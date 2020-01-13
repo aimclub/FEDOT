@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "3.6"
+
+install:
+  - pip install netcdf4
+  - pip install -r requirements.txt
+  - pip install coveralls
+  - pip install pytest-cov
+notifications:
+  email: false
+
+script:
+  - coverage run --source=. -m py.test
+
+after_success:
+  COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
