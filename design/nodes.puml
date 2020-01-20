@@ -1,0 +1,77 @@
+@startuml
+
+class Chain {
+    List[Node] nodes
+    {static} Chain load_atomic_model(file_path: String)
+    DataStream evaluate()
+    void add_node(new_node: Node)
+    void update_node(new_node: Node)
+    AtomicModel save_as_atomic_model()
+}
+
+abstract class Node {
+    List[Node] nodes_from
+    List[Node] nodes_to
+    DataStream apply()
+}
+
+class Nemo {
+    initial_conditions : DomainModelParams
+    boundary_conditions: DomainModelParams
+    void download_inputs()
+    void update_model_params(new_model_params)
+    void tune_model(DataStream dataset)
+    SimulationResults compute()
+}
+
+class ModelNode {
+
+}
+
+class OperationNode {
+
+}
+
+class XGBoost {
+    void fit_model(DataStream dataset)
+    DataStream predict()
+}
+
+class LogRegression {
+    void fit_model(DataStream dataset)
+    DataStream predict()
+}
+
+
+class LinRegression {
+    void fit_model(DataStream dataset)
+    DataStream predict()
+}
+
+class NodeFactory {
+    Node log_reg()
+    Node default_xgb()
+    Node lin_reg()
+    Node nemo()
+}
+
+
+
+interface EvaluationStrategy {
+    DataStream evaluate()
+}
+
+Chain *-right- Node
+ModelNode ..|> Node
+OperationNode ..|> Node
+
+Node *-- EvaluationStrategy
+Nemo ..-right-|> EvaluationStrategy
+XGBoost ..-left-|> EvaluationStrategy
+LogRegression ..|> EvaluationStrategy
+LinRegression ..-right-|> EvaluationStrategy
+
+NodeFactory ..> Node
+
+
+@enduml

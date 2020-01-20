@@ -1,0 +1,65 @@
+@startuml
+
+class EpdeComposer
+class EpdeMetaParams {
+    sparsity_rate: Float
+}
+
+interface Composer {
+
+    Chain compose_chain(initial_chain, requirements, meta_params)
+
+}
+class ComposerRequirements {
+    elementary_functions: ElementaryFunctionsRepository
+    model_templates: ModelTemplatesRepository
+    domain_models: DomainModelsRepository
+    atomic_models: AtomicModelsRepository
+}
+
+abstract class ComposerMetaParams
+
+class Chain {
+    DataStream result()
+    void add_operation(new_operation: Operation)
+    void update_operation(new_operation: Operation)
+    AtomicModel as_atomic_model()
+}
+
+
+interface Operation {
+    DataStream apply()
+}
+
+interface Tuning {
+    void tune_domain_model(observations: DataStream)
+}
+
+interface DataProcessing {
+    DataStream process(input_data: DataStream)
+}
+
+interface Learning {
+    void fit_template_model(dataset: DataStream)
+}
+
+interface Building {
+
+}
+
+Composer ..> ComposerRequirements
+Composer ..> ComposerMetaParams
+Composer ..> Chain
+
+
+EpdeComposer ..|> Composer
+EpdeMetaParams ..|> ComposerMetaParams
+EpdeComposer ..> EpdeMetaParams
+
+Chain ..|> Operation
+
+Operation <|-- DataProcessing
+Operation <|-- Tuning
+Operation <|-- Learning
+Operation <|-- Building
+@enduml
