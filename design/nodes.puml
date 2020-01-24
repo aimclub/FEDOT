@@ -12,6 +12,9 @@ class Chain {
 abstract class Node {
     List[Node] nodes_from
     List[Node] nodes_to
+    List[Id] last_parents_ids
+    DataStream cached_result
+
     DataStream apply()
 }
 
