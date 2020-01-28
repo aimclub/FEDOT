@@ -1,5 +1,5 @@
 from typing import List, Optional
-from abc import ABC, abstractmethod
+from abc import ABC
 from operators.evaluation import EvaluationStrategy, LogRegression, LinRegression
 
 
