@@ -1,31 +1,31 @@
 from typing import List, Optional
 from abc import ABC
-from operators.evaluation import EvaluationStrategy, LogRegression, LinRegression
+from operators.evaluation import (EvaluationStrategy,
+                                  LogRegression,
+                                  LinRegression,
+                                  XGBoost)
 
 
 class Node(ABC):
-    def __init__(self, nodes_from: Optional[List['Node']], nodes_to: Optional[List['Node']], data_stream):
+    def __init__(self, nodes_from: Optional[List['Node']], nodes_to: Optional[List['Node']], data_stream,
+                 eval_strategy: EvaluationStrategy):
         self.nodes_from = nodes_from
         self.nodes_to = nodes_to
         self.last_parents_ids: Optional[List['Id']]
         self.cached_result = data_stream
-        self.evaluation_strategy = EvaluationStrategy
+        self.eval_strategy = eval_strategy
 
 
 class NodeFactory:
-    def __init__(self, model):
-        self.model = model
 
     def log_reg(self):
-        self.model.evaluation_strategy = LogRegression()
-        return self.model
+        return Node(nodes_from=None, nodes_to=None, data_stream=None, eval_strategy=LogRegression())
 
     def lin_reg(self):
-        self.model.evaluation_strategy = LinRegression()
-        return self.model
+        return Node(nodes_from=None, nodes_to=None, data_stream=None, eval_strategy=LinRegression())
 
     def default_xgb(self):
-        pass
+        return Node(nodes_from=None, nodes_to=None, data_stream=None, eval_strategy=XGBoost())
 
     def nemo(self):
         pass

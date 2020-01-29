@@ -33,3 +33,17 @@ class LinRegression(EvaluationStrategy):
 
     def predict(self):
         return 'LinRegPredict'
+
+
+class XGBoost(EvaluationStrategy):
+    def __init__(self):
+        pass
+
+    def evaluate(self):
+        return self.predict()
+
+    def fit(self):
+        pass
+
+    def predict(self):
+        return 'XGBoostPredict'
