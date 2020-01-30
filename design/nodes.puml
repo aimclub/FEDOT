@@ -14,6 +14,7 @@ abstract class Node {
     List[Node] nodes_to
     List[Id] last_parents_ids
     DataStream cached_result
+    EvaluationStrategy evaluation_strategy
 
     DataStream apply()
 }
