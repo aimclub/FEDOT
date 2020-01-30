@@ -1,5 +1,5 @@
 # THEODOR
-[![Build Status](https://travis-ci.com/J3FALL/THEODOR.svg?branch=master)](https://travis-ci.com/J3FALL/THEODOR) [![Coverage Status](https://coveralls.io/repos/github/J3FALL/THEODOR/badge.svg?branch=node-structure)](https://coveralls.io/github/J3FALL/THEODOR?branch=node-structure)
+[![Build Status](https://travis-ci.com/J3FALL/THEODOR.svg?branch=master)](https://travis-ci.com/J3FALL/THEODOR) [![Coverage Status](https://coveralls.io/repos/github/J3FALL/THEODOR/badge.svg?branch=node-structure)](https://coveralls.io/github/J3FALL/THEODOR?branch=master)
 
 Theodor Horseman (Федор Конюхов)
 
