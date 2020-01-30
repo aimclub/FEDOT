@@ -1,1 +1,17 @@
+attrs==19.3.0
+importlib-metadata==1.4.0
+joblib==0.14.1
+more-itertools==8.1.0
+numpy==1.18.1
+packaging==20.1
+pluggy==0.13.1
+py==1.8.1
+pyparsing==2.4.6
+pytest==5.3.4
+scikit-learn==0.22.1
+scipy==1.4.1
+six==1.14.0
+sklearn==0.0
 typing==3.7.4.1
+wcwidth==0.1.8
+zipp==2.1.0
