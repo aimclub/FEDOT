@@ -46,7 +46,7 @@ abstract class Node {
 abstract class Model {
     DataType input_type
     DataType output_type
-    Data run(Data input)
+    Data predict(Data input)
     fit(Data input)
     __tune()
 }
@@ -80,19 +80,16 @@ class SecondaryNode {
 }
 
 class XGBoost {
-    void fit_model(Data dataset)
-    Data predict()
+
 }
 
 class LogRegression {
-    void fit_model(Data dataset)
-    Data predict()
+
 }
 
 
 class LinRegression {
-    fit_model(Data dataset)
-    Data predict()
+
 }
 
 class NodeFactory {
@@ -118,15 +115,16 @@ Composer .down.> MeanSquaredMetric
 EvoComposer ..|> Composer
 
 Node *-- EvaluationStrategy
-XGBoost ..-left-|> EvaluationStrategy
-LogRegression ..-right-|> EvaluationStrategy
-LinRegression ..-right-|> EvaluationStrategy
 
-EvaluationStrategy *-down- Model
+EvaluationStrategy *-left- Model
 EvaluationStrategy ..> Data
-Model .right> DataType
+
+Nemo ..up|> Model
+LinRegression ..-right-|> Model
+LogRegression ..-right-|> Model
+XGBoost .up.|> Model
 Model .right.> Data
-Nemo ..-right-|> Model
+Model .down> DataType
 
 
 
