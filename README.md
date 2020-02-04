@@ -17,5 +17,5 @@ TBD
 
 Актуальная диаграмма классов для композитной цепочки:
 
-![Chain](/design/figures/nodes.png)
+![Chain](/design/figures/core.png)
 
