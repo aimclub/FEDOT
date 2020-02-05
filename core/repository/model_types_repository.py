@@ -22,7 +22,6 @@ class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
     all = 'Models'
 
-
 @dataclass
 class ModelMetaInfo:
     input_types: List[DataTypesEnum]
@@ -30,7 +29,6 @@ class ModelMetaInfo:
     task_types: List[TaskTypesEnum]
     can_be_initial: bool = True
     can_be_secondary: bool = True
-
 
 @dataclass
 class ModelMetaInfoTemplate:
@@ -41,16 +39,15 @@ class ModelMetaInfoTemplate:
     can_be_secondary: bool = None
 
     @staticmethod
-    def _is_candidate_field_suits_for_template_field(candidate_field: bool, template_field: Optional[bool]):
-        return template_field is None or not template_field or template_field == candidate_field
-
-    @staticmethod
     def _is_candidate_field_suits_for_template_field(
-            template_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum]]],
-            candidate_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum]]]):
-        return candidate_field is None or not candidate_field or \
-               template_field is None or not template_field or \
-               any([prop_item in template_field for prop_item in candidate_field])
+            candidate_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum],bool]],
+            template_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum],bool]]):
+        if isinstance(candidate_field, list):
+            return candidate_field is None or not candidate_field or \
+                   template_field is None or not template_field or \
+                   any([template_field in prop_item for prop_item in candidate_field])
+        else:
+            return template_field is None or not template_field or template_field == candidate_field
 
     def is_suits_for_template(self, candidate: ModelMetaInfo):
         fields = vars(self)
