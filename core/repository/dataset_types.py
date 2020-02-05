@@ -12,9 +12,9 @@ class NumericalDataTypesEnum(DataTypesEnum):
 
 
 class CategoricalDataTypesEnum(DataTypesEnum):
-    vector = 'categorial_vector'
-    table = 'categorial_table'
-    ts = 'categorial_timeseries'
+    vector = 'categoriсal_vector'
+    table = 'categoriсal_table'
+    ts = 'categoriсal_timeseries'
 
 
 class SpecialDataTypesEnum(DataTypesEnum):

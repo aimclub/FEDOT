@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import (
     List, Optional, Union
 )
 
 from anytree import Node, RenderTree, findall
+from dataclasses import dataclass
 
 from core.evaluation import LogRegression
 from core.evaluation import XGBoost
@@ -22,6 +22,7 @@ class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
     all = 'Models'
 
+
 @dataclass
 class ModelMetaInfo:
     input_types: List[DataTypesEnum]
@@ -30,22 +31,23 @@ class ModelMetaInfo:
     can_be_initial: bool = True
     can_be_secondary: bool = True
 
+
 @dataclass
 class ModelMetaInfoTemplate:
-    input_types: List[DataTypesEnum] = None
-    output_types: List[DataTypesEnum] = None
-    task_types: List[TaskTypesEnum] = None
+    input_types: DataTypesEnum = None
+    output_types: DataTypesEnum = None
+    task_types: TaskTypesEnum = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
 
     @staticmethod
     def _is_candidate_field_suits_for_template_field(
-            candidate_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum],bool]],
-            template_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum],bool]]):
+            candidate_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum], bool]],
+            template_field: Optional[Union[DataTypesEnum, TaskTypesEnum, bool]]):
         if isinstance(candidate_field, list):
             return candidate_field is None or not candidate_field or \
                    template_field is None or not template_field or \
-                   any([template_field in prop_item for prop_item in candidate_field])
+                   any([template_field in candidate_field])
         else:
             return template_field is None or not template_field or template_field == candidate_field
 
@@ -108,11 +110,10 @@ class ModelTypesRepository:
         self._tree = self._initialise_tree()
 
     def search_model_types_by_attributes(self,
-                                         desired_ids: Optional[List[ModelGroupsIdsEnum]] = [ModelGroupsIdsEnum.all],
+                                         desired_ids: Optional[List[ModelGroupsIdsEnum]] = None,
                                          desired_metainfo: Optional[ModelMetaInfoTemplate] = None):
 
-        if desired_ids is None or not desired_ids:
-            desired_ids = [ModelGroupsIdsEnum.all]
+        desired_ids = [ModelGroupsIdsEnum.all] if desired_ids is None or not desired_ids else desired_ids
 
         results = findall(self._tree, filter_=lambda node: isinstance(node, ModelType) and
                                                            any(node_from_path.name in desired_ids for node_from_path in

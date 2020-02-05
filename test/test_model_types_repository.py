@@ -1,7 +1,7 @@
 from core.evaluation import XGBoost, LogRegression
+from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import ModelTypesRepository, ModelGroupsIdsEnum, ModelMetaInfoTemplate, \
     ModelTypesIdsEnum
-from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.task_types import MachineLearningTasksEnum
 
 
@@ -10,7 +10,7 @@ def test_search_in_repository_by_id_and_metainfo():
 
     model_names = repo.search_model_types_by_attributes(
         desired_ids=[ModelGroupsIdsEnum.ml],
-        desired_metainfo=ModelMetaInfoTemplate(task_types=[MachineLearningTasksEnum.regression]))
+        desired_metainfo=ModelMetaInfoTemplate(task_types=MachineLearningTasksEnum.regression))
 
     impl = repo.obtain_model_implementation(model_names[0])
 
@@ -34,9 +34,9 @@ def test_search_in_repository_by_metainfo():
     repo = ModelTypesRepository()
 
     model_names = repo.search_model_types_by_attributes(desired_metainfo=ModelMetaInfoTemplate(
-        input_types=[NumericalDataTypesEnum.table],
-        output_types=[CategoricalDataTypesEnum.vector],
-        task_types=[MachineLearningTasksEnum.classification]))
+        input_types=NumericalDataTypesEnum.table,
+        output_types=CategoricalDataTypesEnum.vector,
+        task_types=MachineLearningTasksEnum.classification))
     impl = repo.obtain_model_implementation(model_names[2])
 
     assert model_names[2] is ModelTypesIdsEnum.logit
