@@ -1,10 +1,9 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
-    List, Optional, Union
-)
+    List, Optional, Union)
 
 from anytree import Node, RenderTree, findall
-from dataclasses import dataclass
 
 from core.evaluation import LogRegression
 from core.evaluation import XGBoost
@@ -25,37 +24,37 @@ class ModelGroupsIdsEnum(Enum):
 
 @dataclass
 class ModelMetaInfo:
-    input_types: List[DataTypesEnum]
-    output_types: List[DataTypesEnum]
-    task_types: List[TaskTypesEnum]
+    input_type: List[DataTypesEnum]
+    output_type: List[DataTypesEnum]
+    task_type: List[TaskTypesEnum]
     can_be_initial: bool = True
     can_be_secondary: bool = True
 
 
 @dataclass
 class ModelMetaInfoTemplate:
-    input_types: DataTypesEnum = None
-    output_types: DataTypesEnum = None
-    task_types: TaskTypesEnum = None
+    input_type: DataTypesEnum = None
+    output_type: DataTypesEnum = None
+    task_type: TaskTypesEnum = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
 
     @staticmethod
-    def _is_candidate_field_suits_for_template_field(
-            candidate_field: Optional[Union[List[DataTypesEnum], List[TaskTypesEnum], bool]],
-            template_field: Optional[Union[DataTypesEnum, TaskTypesEnum, bool]]):
-        if isinstance(candidate_field, list):
-            return candidate_field is None or not candidate_field or \
-                   template_field is None or not template_field or \
-                   any([template_field in candidate_field])
-        else:
-            return template_field is None or not template_field or template_field == candidate_field
+    def _is_field_suitable(candidate_field, template_field):
+        if template_field is None:
+            return True
+
+        listed_candidate_field = candidate_field if isinstance(candidate_field, list) else [candidate_field]
+
+        return template_field in listed_candidate_field
 
     def is_suits_for_template(self, candidate: ModelMetaInfo):
         fields = vars(self)
-        return all(
-            [self._is_candidate_field_suits_for_template_field(getattr(candidate, field), getattr(self, field))
-             for field in fields])
+
+        fields_suitability = [self._is_field_suitable(getattr(candidate, field), getattr(self, field))
+                              for field in fields]
+
+        return all(fields_suitability)
 
 
 class ModelsGroup(Node):
@@ -85,22 +84,22 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
 
-        xgboost_meta = ModelMetaInfo(input_types=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                     output_types=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                     task_types=[MachineLearningTasksEnum.classification,
-                                                 MachineLearningTasksEnum.regression])
+        xgboost_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
+                                     task_type=[MachineLearningTasksEnum.classification,
+                                                MachineLearningTasksEnum.regression])
 
         ModelType(ModelTypesIdsEnum.xgboost, xgboost_meta, parent=ml)
 
-        knn_meta = ModelMetaInfo(input_types=[NumericalDataTypesEnum.table],
-                                 output_types=[CategoricalDataTypesEnum.vector],
-                                 task_types=[MachineLearningTasksEnum.classification])
+        knn_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table],
+                                 output_type=[CategoricalDataTypesEnum.vector],
+                                 task_type=[MachineLearningTasksEnum.classification])
 
         ModelType(ModelTypesIdsEnum.knn, knn_meta, parent=ml)
 
-        logit_meta = ModelMetaInfo(input_types=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                   output_types=[CategoricalDataTypesEnum.vector],
-                                   task_types=[MachineLearningTasksEnum.classification])
+        logit_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                   output_type=[CategoricalDataTypesEnum.vector],
+                                   task_type=[MachineLearningTasksEnum.classification])
 
         ModelType(ModelTypesIdsEnum.logit, logit_meta, parent=ml)
 
@@ -109,6 +108,10 @@ class ModelTypesRepository:
     def __init__(self):
         self._tree = self._initialise_tree()
 
+    def _is_in_path(self, node, desired_ids):
+        return any(node_from_path.name in desired_ids for node_from_path in
+                   node.path)
+
     def search_model_types_by_attributes(self,
                                          desired_ids: Optional[List[ModelGroupsIdsEnum]] = None,
                                          desired_metainfo: Optional[ModelMetaInfoTemplate] = None):
@@ -116,12 +119,12 @@ class ModelTypesRepository:
         desired_ids = [ModelGroupsIdsEnum.all] if desired_ids is None or not desired_ids else desired_ids
 
         results = findall(self._tree, filter_=lambda node: isinstance(node, ModelType) and
-                                                           any(node_from_path.name in desired_ids for node_from_path in
-                                                               node.path))
+                                                           self._is_in_path(node, desired_ids))
 
         if desired_metainfo is not None:
             results = [result for result in results
-                       if (isinstance(result, ModelType) and desired_metainfo.is_suits_for_template(result.meta_info))]
+                       if isinstance(result, ModelType) and
+                       desired_metainfo.is_suits_for_template(result.meta_info)]
 
         return [result.name for result in results]
 
