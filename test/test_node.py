@@ -4,10 +4,10 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from core.datastream import DataStream
+from core.data import DataStream
 from core.evaluation import (LinRegression, LogRegression, XGBoost, normalize,
                              split_train_test)
-from core.node import (ModelNode, NodeFactory, OperationNode)
+from core.node import (PrimaryNode, NodeFactory, SecondaryNode)
 
 
 @pytest.fixture()
@@ -39,7 +39,7 @@ def test_node_log_reg():
 def test_node_lin_log():
     test_node = NodeFactory().lin_reg()
     assert test_node.eval_strategy.__class__ == LinRegression
-    assert test_node.__class__ == OperationNode
+    assert test_node.__class__ == SecondaryNode
 
 
 def test_node_xgboost():
@@ -55,8 +55,8 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train_data_x, train_data_y)
     expected_result = test_skl_model.predict(test_data_x)
 
-    test_model_node = ModelNode(nodes_from=None, nodes_to=None, data_stream=data_stream,
-                                eval_strategy=LogRegression(seed=1))
+    test_model_node = PrimaryNode(nodes_from=None, nodes_to=None, data_stream=data_stream,
+                                  eval_strategy=LogRegression(seed=1))
     actual_result = test_model_node.apply()
     if print_metrics:
         get_model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
