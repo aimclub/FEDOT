@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-from sklearn import preprocessing
+
 import numpy as np
+from sklearn import preprocessing
+from sklearn.linear_model import LogisticRegression as SklearnLogReg
+
 from core.datastream import DataStream
 
 

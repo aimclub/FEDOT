@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import (List, Optional, AnyStr)
+from typing import (AnyStr, List, Optional)
 
-from core.evaluation import (EvaluationStrategy, LogRegression, LinRegression, XGBoost)
+from core.evaluation import (EvaluationStrategy, LinRegression, LogRegression, XGBoost)
 
 
 class Node(ABC):
