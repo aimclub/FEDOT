@@ -9,8 +9,7 @@ from core.repository.model_types_repository import (ModelGroupsIdsEnum, ModelMet
 from core.repository.task_types import MachineLearningTasksEnum
 
 
-# TODO re-implement as mock
-def _initialise_tree_for_test():
+def default_mocked_tree():
     root = ModelsGroup(ModelGroupsIdsEnum.all)
 
     ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
@@ -40,7 +39,7 @@ def _initialise_tree_for_test():
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=_initialise_tree_for_test)
+       side_effect=default_mocked_tree)
 def test_search_in_repository_by_id_and_metainfo(mock_init_tree):
     repo = ModelTypesRepository()
 
@@ -56,7 +55,7 @@ def test_search_in_repository_by_id_and_metainfo(mock_init_tree):
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=_initialise_tree_for_test)
+       side_effect=default_mocked_tree)
 def test_search_in_repository_by_model_id(mock_init_tree):
     repo = ModelTypesRepository()
 
@@ -70,7 +69,7 @@ def test_search_in_repository_by_model_id(mock_init_tree):
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=_initialise_tree_for_test)
+       side_effect=default_mocked_tree)
 def test_search_in_repository_by_metainfo(mock_init_tree):
     repo = ModelTypesRepository()
 
@@ -86,7 +85,7 @@ def test_search_in_repository_by_metainfo(mock_init_tree):
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=_initialise_tree_for_test)
+       side_effect=default_mocked_tree)
 def test_direct_model_query(mock_init_tree):
     repo = ModelTypesRepository()
 
