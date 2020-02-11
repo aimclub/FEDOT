@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 
 
 class DataStream:
@@ -15,5 +16,9 @@ class Data:
     target: np.array
 
     @staticmethod
-    def from_csv(self, file_path):
-        raise NotImplementedError()
+    def from_csv(file_path):
+        data_frame = pd.read_csv(file_path)
+        data_array = np.array(data_frame).T
+        features = data_array[1:-1].T
+        target = data_array[-1]
+        return Data(features, target)
