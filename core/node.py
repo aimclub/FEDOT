@@ -22,22 +22,22 @@ class Node(ABC):
 class NodeFactory:
 
     def log_reg(self):
-        return ModelNode(nodes_from=None, nodes_to=None, data_stream=None,
-                         eval_strategy=LogRegression())
+        return PrimaryNode(nodes_from=None, nodes_to=None, data_stream=None,
+                           eval_strategy=LogRegression())
 
     def default_xgb(self):
-        return ModelNode(nodes_from=None, nodes_to=None, data_stream=None,
-                         eval_strategy=XGBoost())
+        return PrimaryNode(nodes_from=None, nodes_to=None, data_stream=None,
+                           eval_strategy=XGBoost())
 
     def lin_reg(self):
-        return OperationNode(nodes_from=None, nodes_to=None, data_stream=None,
+        return SecondaryNode(nodes_from=None, nodes_to=None, data_stream=None,
                              eval_strategy=LinRegression())
 
     def nemo(self):
         pass
 
 
-class ModelNode(Node):
+class PrimaryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -45,7 +45,7 @@ class ModelNode(Node):
         return self.eval_strategy.evaluate(self.cached_result)
 
 
-class OperationNode(Node):
+class SecondaryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
