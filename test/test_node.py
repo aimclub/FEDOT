@@ -11,7 +11,7 @@ from core.data import (
 )
 from core.evaluation import EvaluationStrategy
 from core.model import LogRegression
-from core.node import PrimaryNode, NodeFactory
+from core.node import PrimaryNode, NodeGenerator
 
 
 @pytest.fixture()
@@ -35,7 +35,7 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 
 def test_node_factory_log_reg_correct():
-    node = NodeFactory().log_reg()
+    node = NodeGenerator().get_primary_mode(LogRegression())
 
     expected_model = LogRegression
     actual_model = node.eval_strategy.model.__class__
@@ -53,7 +53,7 @@ def test_eval_strategy_logreg(data_setup):
     expected_result = test_skl_model.predict(test_data_x)
 
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    test_model_node = PrimaryNode(nodes_from=None, nodes_to=None, data_stream=data_stream,
+    test_model_node = PrimaryNode(nodes_to=None, data_stream=data_stream,
                                   eval_strategy=eval_strategy)
     actual_result = test_model_node.apply()
     if print_metrics:
