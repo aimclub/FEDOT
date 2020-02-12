@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import (AnyStr, List, Optional)
 
-from core.evaluation import (EvaluationStrategy, LinRegression, LogRegression, XGBoost)
+from core.evaluation import EvaluationStrategy
+from core.model import Model
 
 
 class Node(ABC):
@@ -19,33 +20,31 @@ class Node(ABC):
         return self.eval_strategy.evaluate(self.cached_result)
 
 
-class NodeFactory:
+class NodeGenerator:
+    def get_primary_mode(self, model: Model):
+        eval_strategy = EvaluationStrategy(model=model)
+        return PrimaryNode(nodes_to=None, data_stream=None,
+                           eval_strategy=eval_strategy)
 
-    def log_reg(self):
-        return ModelNode(nodes_from=None, nodes_to=None, data_stream=None,
-                         eval_strategy=LogRegression())
-
-    def default_xgb(self):
-        return ModelNode(nodes_from=None, nodes_to=None, data_stream=None,
-                         eval_strategy=XGBoost())
-
-    def lin_reg(self):
-        return OperationNode(nodes_from=None, nodes_to=None, data_stream=None,
-                             eval_strategy=LinRegression())
-
-    def nemo(self):
-        pass
+    def get_secondary_mode(self, model: Model):
+        eval_strategy = EvaluationStrategy(model=model)
+        return SecondaryNode(nodes_from=None, nodes_to=None, data_stream=None,
+                             eval_strategy=eval_strategy)
 
 
-class ModelNode(Node):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class PrimaryNode(Node):
+    def __init__(self, nodes_to: Optional[List['Node']], data_stream,
+                 eval_strategy: EvaluationStrategy):
+        super().__init__(nodes_from=None,
+                         nodes_to=nodes_to,
+                         data_stream=data_stream,
+                         eval_strategy=eval_strategy)
 
     def apply(self):
         return self.eval_strategy.evaluate(self.cached_result)
 
 
-class OperationNode(Node):
+class SecondaryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
