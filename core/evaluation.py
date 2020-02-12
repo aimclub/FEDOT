@@ -10,7 +10,7 @@ from core.data import Data, DataStream
 
 class EvaluationStrategy(ABC):
     @abstractmethod
-    def evaluate(self, data: DataStream):
+    def evaluate(self, data: Data):
         pass
 
 
@@ -19,19 +19,24 @@ class LogRegression(EvaluationStrategy):
         self.model = SklearnLogReg(random_state=seed, solver='liblinear', max_iter=10000)
         self.model_predict = None
 
-    def evaluate(self, data: DataStream) -> np.array:
+    def evaluate(self, data: Data) -> np.array:
         train_data, test_data = train_test_data_setup(data)
-        self.fit(train_data.features, train_data.target)
-        return self.predict(test_data.features)
+        self.fit(train_data)
+        return self.predict(test_data)
 
-    def fit(self, fit_data_x: np.array, fit_data_y: np.array):
+    def fit(self, data: Data) -> None:
+        fit_data_x: np.array = data.features
+        fit_data_y: np.array = data.target
         self.model.fit(fit_data_x, fit_data_y)
         print('Model fit: ', self.model)
 
-    def predict(self, data: np.array):
-        self.model_predict = self.model.predict(data)
+    def predict(self, data: Data) -> np.array:
+        self.model_predict = self.model.predict(data.features)
         print('Model prediction: ', self.model_predict)
         return self.model_predict
+
+    def tune(self, data):
+        return 1
 
 
 class LinRegression(EvaluationStrategy):
@@ -62,11 +67,13 @@ class XGBoost(EvaluationStrategy):
         return 'XGBoostPredict'
 
 
-def train_test_data_setup(data: DataStream) -> Tuple[Data, Data]:
-    train_data_x, test_data_x = split_train_test(data.x)
-    train_data_y, test_data_y = split_train_test(data.y)
-    train_data = Data(features=normalize(train_data_x), target=train_data_y)
-    test_data = Data(features=normalize(test_data_x), target=test_data_y)
+def train_test_data_setup(data: Data) -> Tuple[Data, Data]:
+    train_data_x, test_data_x = split_train_test(data.features)
+    train_data_y, test_data_y = split_train_test(data.target)
+    train_idx, test_idx = split_train_test(data.idx)
+    train_data = Data(features=normalize(train_data_x), target=train_data_y,
+                      idx=train_idx)
+    test_data = Data(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
     return train_data, test_data
 
 
