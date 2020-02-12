@@ -1,21 +1,14 @@
-from dataclasses import dataclass
-
 import numpy as np
 import pandas as pd
+from dataclasses import dataclass
 from sklearn import preprocessing
-
-
-class DataStream:
-    def __init__(self, x: np.array, y: np.array):
-        self.x = x
-        self.y = y
 
 
 @dataclass
 class Data:
+    idx: np.array
     features: np.array
     target: np.array
-    idx: np.array
 
     @staticmethod
     def from_csv(file_path):
