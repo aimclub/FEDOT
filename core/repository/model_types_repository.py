@@ -5,8 +5,10 @@ from typing import (
 
 from anytree import Node, RenderTree, findall
 
-from core.evaluation import LogRegression
-from core.evaluation import XGBoost
+from core.model import (
+    LogRegression,
+    XGBoost
+)
 from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
 from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 

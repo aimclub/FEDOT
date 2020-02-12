@@ -1,4 +1,7 @@
-from core.evaluation import XGBoost, LogRegression
+from core.model import (
+    LogRegression,
+    XGBoost
+)
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 
 from core.repository.model_types_repository import (

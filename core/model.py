@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 
-from core.data import Data
-from core.evaluation import (
+from core.data import (
+    Data,
     split_train_test,
     normalize
 )
@@ -52,6 +52,23 @@ class LogRegression(Model):
 
     def tune(self, data):
         return 1
+
+
+class XGBoost(Model):
+
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+        super().__init__(input_type=input_type, output_type=output_type)
+
+    def predict(self, data):
+        pass
+
+    def fit(self, data):
+        pass
+
+    def tune(self, data):
+        pass
 
 
 # TODO: Should return Data-objects

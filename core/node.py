@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import (AnyStr, List, Optional)
 
-from core.evaluation import (EvaluationStrategy, LinRegression, LogRegression, XGBoost)
+from core.evaluation import EvaluationStrategy
+from core.model import LogRegression
 
 
 class Node(ABC):
@@ -20,21 +21,19 @@ class Node(ABC):
 
 
 class NodeFactory:
-
     def log_reg(self):
+        eval_strategy = EvaluationStrategy(model=LogRegression())
         return PrimaryNode(nodes_from=None, nodes_to=None, data_stream=None,
-                           eval_strategy=LogRegression())
+                           eval_strategy=eval_strategy)
 
     def default_xgb(self):
-        return PrimaryNode(nodes_from=None, nodes_to=None, data_stream=None,
-                           eval_strategy=XGBoost())
+        raise NotImplementedError()
 
     def lin_reg(self):
-        return SecondaryNode(nodes_from=None, nodes_to=None, data_stream=None,
-                             eval_strategy=LinRegression())
+        raise NotImplementedError()
 
     def nemo(self):
-        pass
+        raise NotImplementedError()
 
 
 class PrimaryNode(Node):
