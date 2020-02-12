@@ -24,7 +24,7 @@ def data_setup():
     predictors = normalize(predictors[:100])
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
-    data = Data(features=predictors, target=response)
+    data = Data(features=predictors, target=response, idx=np.arange(0, 100))
     return train_data_x, train_data_y, test_data_x, test_data_y, data
 
 

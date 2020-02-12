@@ -1,10 +1,10 @@
+from unittest.mock import patch
+
 from core.model import (
     LogRegression,
     XGBoost
 )
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
-from unittest.mock import patch
-
 from core.repository.model_types_repository import (
     ModelsGroup,
     ModelType,

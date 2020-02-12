@@ -1,7 +1,9 @@
-from core.data import Data
-import pandas as pd
 import os
+
 import numpy as np
+import pandas as pd
+
+from core.data import Data
 
 
 def test_data_from_csv():
