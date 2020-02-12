@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from core.model import (
     LogRegression,
     XGBoost

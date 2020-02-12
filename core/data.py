@@ -1,23 +1,23 @@
-from dataclasses import dataclass
-
 import numpy as np
+import pandas as pd
+from dataclasses import dataclass
 from sklearn import preprocessing
-
-
-class DataStream:
-    def __init__(self, x: np.array, y: np.array):
-        self.x = x
-        self.y = y
 
 
 @dataclass
 class Data:
+    idx: np.array
     features: np.array
     target: np.array
 
     @staticmethod
-    def from_csv(self, file_path):
-        raise NotImplementedError()
+    def from_csv(file_path):
+        data_frame = pd.read_csv(file_path)
+        data_array = np.array(data_frame).T
+        idx = data_array[0]
+        features = data_array[1:-1].T
+        target = data_array[-1]
+        return Data(features, target, idx)
 
 
 def split_train_test(data, split_ratio=0.8):
