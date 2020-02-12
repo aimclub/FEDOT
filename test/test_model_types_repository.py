@@ -1,11 +1,19 @@
+from core.model import (
+    LogRegression,
+    XGBoost
+)
+from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from unittest.mock import patch
 
-from core.evaluation import LogRegression, XGBoost
-from core.repository.dataset_types import CategoricalDataTypesEnum, NumericalDataTypesEnum
-from core.repository.model_types_repository import (ModelGroupsIdsEnum, ModelMetaInfo,
-                                                    ModelMetaInfoTemplate, ModelType,
-                                                    ModelTypesIdsEnum,
-                                                    ModelTypesRepository, ModelsGroup)
+from core.repository.model_types_repository import (
+    ModelsGroup,
+    ModelType,
+    ModelMetaInfo,
+    ModelMetaInfoTemplate,
+    ModelTypesRepository,
+    ModelGroupsIdsEnum,
+    ModelTypesIdsEnum
+)
 from core.repository.task_types import MachineLearningTasksEnum
 
 

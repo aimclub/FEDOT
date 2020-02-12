@@ -1,70 +1,21 @@
-from abc import ABC, abstractmethod
 from typing import Tuple
 
-import numpy as np
-from sklearn import preprocessing
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-
-from core.data import Data, DataStream
-
-
-class EvaluationStrategy(ABC):
-    @abstractmethod
-    def evaluate(self, data: Data):
-        pass
+from core.data import (
+    Data
+)
+from core.data import split_train_test, normalize
+from core.model import (
+    Model
+)
 
 
-class LogRegression(EvaluationStrategy):
-    def __init__(self, seed=None):
-        self.model = SklearnLogReg(random_state=seed, solver='liblinear', max_iter=10000)
-        self.model_predict = None
+class EvaluationStrategy:
+    def __init__(self, model: Model):
+        self.model = model
 
-    def evaluate(self, data: Data) -> np.array:
-        train_data, test_data = train_test_data_setup(data)
-        self.fit(train_data)
-        return self.predict(test_data)
-
-    def fit(self, data: Data) -> None:
-        fit_data_x: np.array = data.features
-        fit_data_y: np.array = data.target
-        self.model.fit(fit_data_x, fit_data_y)
-        print('Model fit: ', self.model)
-
-    def predict(self, data: Data) -> np.array:
-        self.model_predict = self.model.predict(data.features)
-        print('Model prediction: ', self.model_predict)
-        return self.model_predict
-
-    def tune(self, data):
-        return 1
-
-
-class LinRegression(EvaluationStrategy):
-    def __init__(self):
-        pass
-
-    def evaluate(self, data: DataStream):
-        return self.predict()
-
-    def fit(self):
-        pass
-
-    def predict(self):
-        return 'LinRegPredict'
-
-
-class XGBoost(EvaluationStrategy):
-    def __init__(self):
-        pass
-
-    def evaluate(self, data: DataStream):
-        return self.predict()
-
-    def fit(self):
-        pass
-
-    def predict(self):
-        return 'XGBoostPredict'
+    def evaluate(self, data: Data) -> Data:
+        self.model.fit(data=data)
+        return self.model.predict(data=data)
 
 
 def train_test_data_setup(data: Data) -> Tuple[Data, Data]:
@@ -75,13 +26,3 @@ def train_test_data_setup(data: Data) -> Tuple[Data, Data]:
                       idx=train_idx)
     test_data = Data(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
     return train_data, test_data
-
-
-def split_train_test(data: np.array, split_ratio=0.8):
-    split_point = int(len(data) * split_ratio)
-    return data[:split_point], data[split_point:]
-
-
-def normalize(x):
-    """Normalize data with sklearn.preprocessing.scale()"""
-    return preprocessing.scale(x)
