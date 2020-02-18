@@ -5,7 +5,10 @@ from typing import (
     Optional
 )
 
+import numpy as np
+
 from core.composer.chain import Chain
+from core.data import Data
 from core.model import Model
 from core.node import NodeGenerator
 
@@ -30,8 +33,8 @@ class DummyComposer(Composer):
         last_node = node_generator.get_secondary_mode(secondary_requirements[0])
         last_node.nodes_from = []
         for requirement_model in primary_requirements:
-            new_node = node_generator.get_primary_mode(requirement_model)
-            new_node.nodes_to = last_node
+            empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+            new_node = node_generator.get_primary_mode(requirement_model, empty_data)
             new_chain.add_node(new_node)
             last_node.nodes_from.append(new_node)
         new_chain.add_node(last_node)

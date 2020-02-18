@@ -34,8 +34,10 @@ def model_metrics_info(class_name, y_true, y_pred):
     print('Test model accuracy: ', accuracy_score(y_true, y_pred))
 
 
-def test_node_factory_log_reg_correct():
-    node = NodeGenerator().get_primary_mode(LogRegression())
+def test_node_factory_log_reg_correct(data_setup):
+    _, _, _, _, data_stream = data_setup
+
+    node = NodeGenerator().get_primary_mode(LogRegression(), data_stream)
 
     expected_model = LogRegression
     actual_model = node.eval_strategy.model.__class__
