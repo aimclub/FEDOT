@@ -1,6 +1,6 @@
 from core.composer.composer import DummyComposer
-from core.model import XGBoost, LogRegression
-from core.node import PrimaryNode, SecondaryNode
+from core.composer.node import PrimaryNode, SecondaryNode
+from core.models.model import XGBoost, LogRegression
 
 
 def test_composer():

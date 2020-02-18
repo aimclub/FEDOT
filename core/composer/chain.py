@@ -1,5 +1,5 @@
-from core.data import Data
-from core.node import Node
+from core.composer.node import Node
+from core.models.data import Data
 
 
 class Chain:
