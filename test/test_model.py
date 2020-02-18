@@ -16,7 +16,7 @@ def log_function_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = Data(features=x, target=classes, idx=None)
+    data = Data(features=x, target=classes, idx=np.arange(0, len(x)))
 
     return data
 

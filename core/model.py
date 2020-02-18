@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
+
 from dataclasses import dataclass
 
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
@@ -47,8 +49,8 @@ class LogRegression(Model):
         return predicted
 
     def fit(self, data: Data):
-        features, target, _ = train_test_data_setup(data=data)
-        self.__model.fit(features, target)
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
 
     def tune(self, data):
         return 1
@@ -71,8 +73,11 @@ class XGBoost(Model):
         pass
 
 
-# TODO: Should return Data-objects
-def train_test_data_setup(data: Data):
-    train_features, test_features = split_train_test(data.features)
-    train_target, _ = split_train_test(data.target)
-    return normalize(train_features), train_target, normalize(test_features)
+def train_test_data_setup(data: Data) -> Tuple[Data, Data]:
+    train_data_x, test_data_x = split_train_test(data.features)
+    train_data_y, test_data_y = split_train_test(data.target)
+    train_idx, test_idx = split_train_test(data.idx)
+    train_data = Data(features=normalize(train_data_x), target=train_data_y,
+                      idx=train_idx)
+    test_data = Data(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
+    return train_data, test_data

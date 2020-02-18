@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import (AnyStr, List, Optional)
 
+import numpy as np
+
+from core.data import Data
 from core.evaluation import EvaluationStrategy
 from core.model import Model
 
@@ -49,4 +52,12 @@ class SecondaryNode(Node):
         super().__init__(**kwargs)
 
     def apply(self):
+        if self.nodes_from is not None:
+            parent_predict_list = list()
+            for parent in self.nodes_from:
+                parent.cached_result = self.cached_result
+                parent_predict_list.append(parent.apply())
+            parent_predict_list.append(np.arange(0, parent_predict_list[0].size))
+            self.cached_result = Data.from_vectors(parent_predict_list)
+            return self.eval_strategy.evaluate(self.cached_result)
         return self.eval_strategy.evaluate(self.cached_result)
