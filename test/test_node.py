@@ -53,7 +53,7 @@ def test_eval_strategy_logreg(data_setup):
     expected_result = test_skl_model.predict(test_data_x)
 
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    test_model_node = PrimaryNode(nodes_to=None, data_stream=data_stream,
+    test_model_node = PrimaryNode(input_data_stream=data_stream,
                                   eval_strategy=eval_strategy)
     actual_result = test_model_node.apply()
     if print_metrics:

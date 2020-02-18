@@ -5,7 +5,8 @@ from core.model import XGBoost, LogRegression
 def test_composer():
     composer = DummyComposer()
     new_chain = composer.compose_chain(initial_chain=None,
-                                       requirements=[LogRegression, XGBoost],
+                                       primary_requirements=[LogRegression(), XGBoost()],
+                                       secondary_requirements=[LogRegression()],
                                        metrics=None)
 
     assert len(new_chain.nodes) == 3
