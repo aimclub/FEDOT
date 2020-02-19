@@ -1,5 +1,5 @@
 import uuid
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import (List, Optional)
 
 from core.data import Data
@@ -17,8 +17,9 @@ class Node(ABC):
         self.data_stream = input_data_stream
         self.cached_result = None
 
+    @abstractmethod
     def apply(self) -> Data:
-        return self.eval_strategy.evaluate(self.data_stream)
+        raise NotImplementedError()
 
 
 class CachedResult:
@@ -29,12 +30,14 @@ class CachedResult:
 
 
 class NodeGenerator:
-    def get_primary_mode(self, model: Model, input_data: Data) -> Node:
+    @staticmethod
+    def get_primary_node(model: Model, input_data: Data) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return PrimaryNode(input_data_stream=input_data,
                            eval_strategy=eval_strategy)
 
-    def get_secondary_mode(self, model: Model) -> Node:
+    @staticmethod
+    def get_secondary_node(model: Model) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return SecondaryNode(nodes_from=None,
                              eval_strategy=eval_strategy)
@@ -46,6 +49,9 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None,
                          input_data_stream=input_data_stream,
                          eval_strategy=eval_strategy)
+
+    def apply(self) -> Data:
+        return self.eval_strategy.evaluate(self.data_stream)
 
 
 class SecondaryNode(Node):
