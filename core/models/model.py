@@ -1,10 +1,5 @@
 from abc import ABC, abstractmethod
-<<<<<<< HEAD:core/models/model.py
-=======
 from typing import Tuple
-
-from dataclasses import dataclass
->>>>>>> chain-roll-down:core/model.py
 
 from dataclasses import dataclass
 from sklearn.linear_model import LogisticRegression as SklearnLogReg

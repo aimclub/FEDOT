@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_iris
 
-from core.data import Data, normalize, split_train_test
-from core.model import LogRegression
-from core.node import PrimaryNode, SecondaryNode
-from core.evaluation import EvaluationStrategy
+from core.models.data import Data, normalize, split_train_test
+from core.models.model import LogRegression
+from core.composer.node import PrimaryNode, SecondaryNode
+from core.models.evaluation import EvaluationStrategy
 
 
 @pytest.fixture()
@@ -27,14 +27,12 @@ def data_setup():
 
 
 def test_model_chain(data_setup):
-    train_data, test_data, data = data_setup
+    _, _, data = data_setup
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(data_stream=None, eval_strategy=eval_strategy, nodes_to=None)
-    y2 = SecondaryNode(data_stream=None, eval_strategy=eval_strategy, nodes_to=None,
-                       nodes_from=[y1])
-    y3 = SecondaryNode(data_stream=None, eval_strategy=eval_strategy, nodes_to=None,
-                       nodes_from=[y1])
-    y4 = SecondaryNode(data_stream=data, eval_strategy=eval_strategy, nodes_to=None,
-                       nodes_from=[y2, y3])
+    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
+    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
+    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
     y4.apply()
-    assert y1.cached_result is data
+    assert y4.cached_result.cached_output.size == data.target.size
+    assert len(y4.cached_result.last_parents_ids) == 2

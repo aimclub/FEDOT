@@ -2,6 +2,8 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import (List, Optional)
 
+import numpy as np
+
 from core.models.data import Data
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import Model
@@ -23,7 +25,7 @@ class Node(ABC):
 
 
 class CachedNodeResult:
-    def __init__(self, node: Node, model_output: Data):
+    def __init__(self, node: Node, model_output: np.array):
         self.cached_output = model_output
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
@@ -61,7 +63,12 @@ class SecondaryNode(Node):
                          input_data_stream=None,
                          eval_strategy=eval_strategy)
 
-    def apply(self) -> Data:
-        evaluation_result = self.eval_strategy.evaluate(self.cached_result.cached_output)
+    def apply(self) -> np.array:
+        parent_predict_list = list()
+        for parent in self.nodes_from:
+            parent_predict_list.append(parent.apply())
+        parent_predict_list.append(self.nodes_from[0].data_stream.target)
+        self.data_stream = Data.from_vectors(parent_predict_list)
+        evaluation_result = self.eval_strategy.evaluate(self.data_stream)
         self.cached_result = CachedNodeResult(self, evaluation_result)
         return evaluation_result
