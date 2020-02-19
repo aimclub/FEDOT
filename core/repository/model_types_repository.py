@@ -1,11 +1,11 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import (
     List, Optional, Union)
 
 from anytree import Node, RenderTree, findall
+from dataclasses import dataclass
 
-from core.model import (
+from core.models.model import (
     LogRegression,
     XGBoost
 )

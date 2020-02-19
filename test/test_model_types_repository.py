@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from core.model import (
+from core.models.model import (
     LogRegression,
     XGBoost
 )
@@ -14,7 +14,6 @@ from core.repository.model_types_repository import (
     ModelGroupsIdsEnum,
     ModelTypesIdsEnum
 )
-from unittest.mock import patch
 from core.repository.task_types import MachineLearningTasksEnum
 
 

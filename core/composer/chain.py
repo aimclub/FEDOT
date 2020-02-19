@@ -1,5 +1,5 @@
-from core.data import Data
-from core.node import Node
+from core.composer.node import Node
+from core.models.data import Data
 
 
 class Chain:
@@ -11,7 +11,7 @@ class Chain:
 
     def add_node(self, new_node: Node):
         # Append new node to chain
-        raise NotImplementedError()
+        self.nodes.append(new_node)
 
     def update_node(self, new_node: Node):
         raise NotImplementedError()

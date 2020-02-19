@@ -1,10 +1,10 @@
 from typing import Tuple
 
-from core.data import (
+from core.models.data import (
     Data
 )
-from core.data import split_train_test, normalize
-from core.model import (
+from core.models.data import split_train_test, normalize
+from core.models.model import (
     Model
 )
 
