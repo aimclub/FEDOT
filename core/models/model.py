@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 
-from core.data import (
+from core.models.data import (
     Data,
     split_train_test,
     normalize

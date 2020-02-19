@@ -4,14 +4,14 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from core.data import (
+from core.composer.node import PrimaryNode, NodeGenerator
+from core.models.data import (
     Data,
     split_train_test,
     normalize
 )
-from core.evaluation import EvaluationStrategy
-from core.model import LogRegression
-from core.node import PrimaryNode, NodeGenerator
+from core.models.evaluation import EvaluationStrategy
+from core.models.model import LogRegression
 
 
 @pytest.fixture()

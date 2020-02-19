@@ -9,9 +9,9 @@ from typing import (
 import numpy as np
 
 from core.composer.chain import Chain
-from core.data import Data
-from core.model import Model
-from core.node import NodeGenerator
+from core.composer.node import NodeGenerator
+from core.models.data import Data
+from core.models.model import Model
 
 
 # TODO: specify ComposerRequirements class

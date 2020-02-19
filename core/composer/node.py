@@ -2,9 +2,9 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import (List, Optional)
 
-from core.data import Data
-from core.evaluation import EvaluationStrategy
-from core.model import Model
+from core.models.data import Data
+from core.models.evaluation import EvaluationStrategy
+from core.models.model import Model
 
 
 class Node(ABC):
@@ -22,7 +22,7 @@ class Node(ABC):
         raise NotImplementedError()
 
 
-class CachedResult:
+class CachedNodeResult:
     def __init__(self, node: Node, model_output: Data):
         self.cached_output = model_output
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
@@ -63,5 +63,5 @@ class SecondaryNode(Node):
 
     def apply(self) -> Data:
         evaluation_result = self.eval_strategy.evaluate(self.cached_result.cached_output)
-        self.cached_result = CachedResult(self, evaluation_result)
+        self.cached_result = CachedNodeResult(self, evaluation_result)
         return evaluation_result
