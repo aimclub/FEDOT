@@ -17,21 +17,21 @@ class RmseMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain, reference_data: Data) -> float:
         results = chain.evaluate()
-        return mean_squared_error(y_true=reference_data.target, y_pred=results.target)
+        return mean_squared_error(y_true=reference_data.target, y_pred=results)
 
 
 class MaeMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain, reference_data: Data) -> float:
         results = chain.evaluate()
-        return mean_squared_error(y_true=reference_data.target, y_pred=results.target)
+        return mean_squared_error(y_true=reference_data.target, y_pred=results)
 
 
 class RocAucMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain, reference_data: Data) -> float:
         results = chain.evaluate()
-        return roc_auc_score(y_score=results.target, y_true=reference_data)
+        return roc_auc_score(y_score=results, y_true=reference_data.target)
 
 
 class StructuralComplexityMetric(ChainMetric):
