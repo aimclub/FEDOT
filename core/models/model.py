@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from dataclasses import dataclass
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 
 from core.models.data import (
     Data,
@@ -12,7 +13,6 @@ from core.repository.dataset_types import (
     DataTypesEnum,
     NumericalDataTypesEnum
 )
-
 
 @dataclass
 class Model(ABC):
@@ -69,6 +69,26 @@ class XGBoost(Model):
 
     def tune(self, data):
         pass
+
+
+class KNN(Model):
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = SklearnKNN(n_neighbors=15)
+
+    def predict(self, data: Data):
+        predicted = self.__model.predict(data.features)
+        return predicted
+
+    def fit(self, data: Data):
+        features, target, _ = train_test_data_setup(data=data)
+        self.__model.fit(features, target)
+
+    def tune(self, data):
+        return 1
 
 
 # TODO: Should return Data-objects

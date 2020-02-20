@@ -34,3 +34,4 @@ def test_composer_flat_chain():
     assert new_chain.nodes[1].nodes_from[0] is new_chain.nodes[0]
     assert new_chain.nodes[2].nodes_from[0] is new_chain.nodes[1]
     assert new_chain.nodes[0].nodes_from is None
+

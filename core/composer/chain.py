@@ -15,3 +15,8 @@ class Chain:
 
     def update_node(self, new_node: Node):
         raise NotImplementedError()
+
+
+
+
+
