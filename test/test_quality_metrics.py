@@ -67,4 +67,4 @@ def test_classification_quality_metric(data_setup):
 
     metric_value = metric_functions(chain, data)
     assert metric_value > 0
-    assert metric_value > 1
+    assert metric_value < 1
