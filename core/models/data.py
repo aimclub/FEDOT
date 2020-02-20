@@ -1,8 +1,9 @@
+from dataclasses import dataclass
 from typing import List
+from typing import Optional
 
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
 from sklearn import preprocessing
 
 
@@ -11,6 +12,7 @@ class Data:
     idx: np.array
     features: np.array
     target: np.array
+    prediction: Optional[np.array] = None
 
     @staticmethod
     def from_csv(file_path):
