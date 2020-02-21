@@ -46,7 +46,7 @@ class NodeGenerator:
 
 
 class PrimaryNode(Node):
-    def __init__(self, input_data_stream: Data,
+    def __init__( self, input_data_stream: Data,
                  eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=None,
                          input_data_stream=input_data_stream,

@@ -15,6 +15,13 @@ from core.models.model import Model
 
 
 # TODO: specify ComposerRequirements class
+class ComposerRequirements:
+    def __init__(self, primary_requirements, secondary_requirements, max_depth, max_models_num):
+        self.primary_requirements= primary_requirements
+        self.secondary_requirements =secondary_requirements
+        self.max_depth= max_depth
+        self.max_models_num=max_models_num
+
 class Composer(ABC):
     @abstractmethod
     def compose_chain(self, initial_chain: Optional[Chain],
