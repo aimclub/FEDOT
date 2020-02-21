@@ -62,6 +62,7 @@ chain_seq = composer.compose_chain(data=dataset_to_compose,
                                    secondary_requirements=[models_impl[1]],
                                    metrics=metric_function)
 
+# the second variant of optimal chain generation by composition with another requirements
 chain_single = composer.compose_chain(data=dataset_to_compose,
                                       initial_chain=None,
                                       primary_requirements=[models_impl[1]],
