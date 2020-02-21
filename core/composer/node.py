@@ -23,6 +23,10 @@ class Node(ABC):
     def apply(self) -> Data:
         raise NotImplementedError()
 
+    @abstractmethod
+    def draw_branch(self, jpeg="tree.png"):
+        raise NotImplementedError()
+
 
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):
