@@ -34,10 +34,14 @@ def log_function_dataset():
 # file_path = '../test/data/test_dataset.csv'
 # path = Path(__file__).parent / file_path
 # dataset = Data.from_csv(path)
-dataset = log_function_dataset()
 
+# a dataset that will be used as a train and test set during composition
+dataset_to_compose = log_function_dataset()
+# a dataset for a final validation of the composed model
+dataset_to_validate = log_function_dataset()
+
+# the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()
-
 available_model_names = models_repo.search_model_types_by_attributes(
     desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                            output_type=CategoricalDataTypesEnum.vector,
@@ -45,28 +49,35 @@ available_model_names = models_repo.search_model_types_by_attributes(
 
 models_impl = [models_repo.obtain_model_implementation(model_name) for model_name in available_model_names]
 
+# the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().obtain_metric_implementation(ClassificationMetricsEnum.ROCAUC)
 
+# the choice and initialisation of the composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
-chain_seq = composer.compose_chain(data=dataset,
+
+# the optimal chain generation by composition - the most time-consuming task
+chain_seq = composer.compose_chain(data=dataset_to_compose,
                                    initial_chain=None,
                                    primary_requirements=[models_impl[1]],
                                    secondary_requirements=[models_impl[1]],
                                    metrics=metric_function)
 
-chain_single = composer.compose_chain(data=dataset,
+chain_single = composer.compose_chain(data=dataset_to_compose,
                                       initial_chain=None,
                                       primary_requirements=[models_impl[1]],
                                       secondary_requirements=[],
                                       metrics=metric_function)
 
-predicted_seq = chain_seq.evaluate()
-predicted_single = chain_single.evaluate()
+#
+# the execution of the obtained composite models
+predicted_seq = chain_seq.evaluate_with_specific_data(dataset_to_validate)
+predicted_single = chain_single.evaluate_with_specific_data(dataset_to_validate)
 
-roc_on_train_seq = roc_auc(y_true=dataset.target,
+# the quality assessment for the simulation results
+roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,
                            y_score=predicted_seq)
 
-roc_on_train_single = roc_auc(y_true=dataset.target,
+roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
                               y_score=predicted_single)
 
 print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')

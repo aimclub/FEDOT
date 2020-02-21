@@ -14,6 +14,12 @@ class Chain:
     def evaluate(self) -> Data:
         return self.root_node.apply()
 
+    def evaluate_with_specific_data(self, new_data: Data) -> Data:
+        for node in self.nodes:
+            if isinstance(node, PrimaryNode):
+                node.data_stream = new_data
+        return self.root_node.apply()
+
     def add_node(self, new_node: Node):
         # Append new node to chain
         self.nodes.append(new_node)
