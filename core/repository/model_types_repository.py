@@ -1,9 +1,9 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     List, Optional, Union)
 
 from anytree import Node, RenderTree, findall
-from dataclasses import dataclass
 
 from core.models.model import (
     LogRegression,
@@ -128,7 +128,7 @@ class ModelTypesRepository:
                        if isinstance(result, ModelType) and
                        desired_metainfo.is_suits_for_template(result.meta_info)]
 
-        return [result.name for result in results]
+        return [result.name for result in results if (result.name in self.model_implementations)]
 
     def obtain_model_implementation(self, model_type_id: ModelTypesIdsEnum):
         return self.model_implementations[model_type_id]()
