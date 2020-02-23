@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import List
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -12,7 +11,6 @@ class Data:
     idx: np.array
     features: np.array
     target: np.array
-    prediction: Optional[np.array] = None
 
     @staticmethod
     def from_csv(file_path):
