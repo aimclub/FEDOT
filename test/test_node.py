@@ -60,4 +60,4 @@ def test_eval_strategy_logreg(data_setup):
     actual_result = test_model_node.apply()
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
-    assert actual_result.all() == expected_result.all()
+    assert actual_result.target.all() == expected_result.all()

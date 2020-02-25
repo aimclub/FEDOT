@@ -19,9 +19,9 @@ def data_setup():
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     train_data = Data(features=train_data_x, target=train_data_y,
-                      idx=np.arange(0, len(train_data_y)))
+                           idx=np.arange(0, len(train_data_y)))
     test_data = Data(features=test_data_x, target=test_data_y,
-                     idx=np.arange(0, len(test_data_y)))
+                          idx=np.arange(0, len(test_data_y)))
     data = Data(features=predictors, target=response, idx=np.arange(0, 100))
     return train_data, test_data, data
 
@@ -36,3 +36,4 @@ def test_model_chain(data_setup):
     y4.apply()
     assert y4.cached_result.cached_output.size == data.target.size
     assert len(y4.cached_result.last_parents_ids) == 2
+    assert y4.data_stream.target.all() == data.target.all()

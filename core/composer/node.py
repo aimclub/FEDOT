@@ -53,7 +53,9 @@ class PrimaryNode(Node):
                          eval_strategy=eval_strategy)
 
     def apply(self) -> Data:
-        return self.eval_strategy.evaluate(self.data_stream)
+        model_predict = self.eval_strategy.evaluate(self.data_stream)
+        return Data(idx=self.data_stream.idx, features=self.data_stream.features,
+                    target=model_predict)
 
 
 class SecondaryNode(Node):
@@ -63,12 +65,15 @@ class SecondaryNode(Node):
                          input_data_stream=None,
                          eval_strategy=eval_strategy)
 
-    def apply(self) -> np.array:
+    def apply(self) -> Data:
         parent_predict_list = list()
         for parent in self.nodes_from:
             parent_predict_list.append(parent.apply())
-        parent_predict_list.append(self.nodes_from[0].data_stream.target)
-        self.data_stream = Data.from_vectors(parent_predict_list)
+        target = self.nodes_from[0].data_stream.target
+        self.data_stream = Data.from_predictions(outputs=parent_predict_list,
+                                                 target=target)
         evaluation_result = self.eval_strategy.evaluate(self.data_stream)
         self.cached_result = CachedNodeResult(self, evaluation_result)
-        return evaluation_result
+        return Data(idx=self.nodes_from[0].data_stream.idx,
+                    features=self.nodes_from[0].data_stream.features,
+                    target=evaluation_result)
