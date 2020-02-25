@@ -41,10 +41,6 @@ class Chain:
         return len(self.nodes)
 
     @property
-    def length(self):
-        return len(self.nodes)
-
-    @property
     def depth(self):
         def _depth_recursive(node):
             if node is None:
