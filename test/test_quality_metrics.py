@@ -32,11 +32,11 @@ def data_setup():
 def test_structural_quality(data_setup):
     _, _, data = data_setup
 
-    metric_functions = MetricsRepository().obtain_metric_implementation(ComplexityMetricsEnum.structural)
+    metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
 
     chain = Chain()
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
@@ -52,11 +52,11 @@ def test_structural_quality(data_setup):
 def test_classification_quality_metric(data_setup):
     _, _, data = data_setup
 
-    metric_functions = MetricsRepository().obtain_metric_implementation(ClassificationMetricsEnum.ROCAUC)
+    metric_functions = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     chain = Chain()
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])

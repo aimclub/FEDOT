@@ -47,10 +47,10 @@ available_model_names = models_repo.search_model_types_by_attributes(
                                            output_type=CategoricalDataTypesEnum.vector,
                                            task_type=MachineLearningTasksEnum.classification))
 
-models_impl = [models_repo.obtain_model_implementation(model_name) for model_name in available_model_names]
+models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
 
 # the choice of the metric for the chain quality assessment during composition
-metric_function = MetricsRepository().obtain_metric_implementation(ClassificationMetricsEnum.ROCAUC)
+metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
 # the choice and initialisation of the composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
@@ -71,8 +71,8 @@ chain_single = composer.compose_chain(data=dataset_to_compose,
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_seq.evaluate_with_specific_data(dataset_to_validate)
-predicted_single = chain_single.evaluate_with_specific_data(dataset_to_validate)
+predicted_seq = chain_seq.evaluate(dataset_to_validate)
+predicted_single = chain_single.evaluate(dataset_to_validate)
 
 # the quality assessment for the simulation results
 roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,

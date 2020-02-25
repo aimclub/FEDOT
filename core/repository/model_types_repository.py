@@ -130,7 +130,7 @@ class ModelTypesRepository:
 
         return [result.name for result in results if (result.name in self.model_implementations)]
 
-    def obtain_model_implementation(self, model_type_id: ModelTypesIdsEnum):
+    def model_by_id(self, model_type_id: ModelTypesIdsEnum):
         return self.model_implementations[model_type_id]()
 
     def print_tree(self):

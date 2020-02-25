@@ -11,13 +11,14 @@ class Chain:
         else:
             self.nodes = self._flat_nodes_tree(base_node)
 
-    def evaluate(self) -> Data:
-        return self.root_node.apply()
-
-    def evaluate_with_specific_data(self, new_data: Data) -> Data:
-        for node in self.nodes:
-            if isinstance(node, PrimaryNode):
-                node.data_stream = new_data
+    def evaluate(self, new_data: Optional[Data] = None) -> Data:
+        if new_data is not None:
+            # if the chain should be evaluated for the new dataset
+            for node in self.nodes:
+                if isinstance(node, PrimaryNode):
+                    node.input_data = new_data
+                node.cached_result = None
+                # TODO clean cache and choice strategy for trained models
         return self.root_node.apply()
 
     def add_node(self, new_node: Node):

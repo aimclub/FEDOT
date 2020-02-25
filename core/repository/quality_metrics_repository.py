@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Callable
 
 from core.composer.metrics import RmseMetric, StructuralComplexityMetric, MaeMetric, RocAucMetric
 
@@ -34,5 +35,5 @@ class MetricsRepository:
         ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value
     }
 
-    def obtain_metric_implementation(self, metric_id: MetricsEnum):
+    def metric_by_id(self, metric_id: MetricsEnum) -> Callable:
         return self.__metrics_implementations[metric_id]

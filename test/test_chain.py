@@ -31,7 +31,7 @@ def test_models_sequence(data_setup):
     _, _, data = data_setup
 
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
@@ -45,7 +45,7 @@ def test_models_chain_nested(data_setup):
     _, _, data = data_setup
     chain = Chain()
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
@@ -63,7 +63,7 @@ def test_models_chain_seq(data_setup):
     _, _, data = data_setup
     chain = Chain()
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y3])
