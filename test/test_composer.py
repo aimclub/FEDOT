@@ -25,7 +25,7 @@ def test_composer_flat_chain():
     composer = DummyComposer(DummyChainTypeEnum.flat)
     composer_requirements = ComposerRequirements(primary_requirements=[LogRegression()],
                                                  secondary_requirements=[LogRegression(), XGBoost()])
-    new_chain = composer.compose_chain(initial_chain=None,
+    new_chain = composer.compose_chain(data=None,initial_chain=None,
                                        composer_requirements=composer_requirements,
                                        metrics=None)
 

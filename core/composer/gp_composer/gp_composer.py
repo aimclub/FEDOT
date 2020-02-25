@@ -9,10 +9,12 @@ from typing import (
 )
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+
 from core.models.model import Model
 from core.models.data import Data
 from core.optimisers.gp_chain_optimiser import GPChainOptimiser
+from core.composer.gp_composer.gp_node import GP_Secondary_Node,GP_Primary_Node
+from core.composer.tree_drawing import Tree_Drawing
 
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
@@ -23,11 +25,12 @@ class GPComposer_requirements(ComposerRequirements):
         self.pop_size = pop_size
 
 class GPComposer(Composer):
-    def compose_chain(self, initial_chain: Optional[Chain],
+    def compose_chain(self, data:Optional[Data], initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposer_requirements],
                       metrics: Optional[Callable]) -> Chain:
 
         empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+
         best_chain = GPChainOptimiser(initial_chains=initial_chain,
                                       requirements=composer_requirements,
                                       input_data=empty_data).evo_opt()

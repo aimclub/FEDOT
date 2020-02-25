@@ -22,7 +22,7 @@ class ComposerRequirements:
 
 class Composer(ABC):
     @abstractmethod
-    def compose_chain(self,data: Data, initial_chain: Optional[Chain],
+    def compose_chain(self,data: Optional[Data], initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Callable) -> Chain:
         raise NotImplementedError()
@@ -38,12 +38,13 @@ class DummyComposer(Composer):
         self.dummy_chain_type = dummy_chain_type
 
     # TODO move requirements to init
-    def compose_chain(self, data: Data,
+    def compose_chain(self, data: Optional[Data],
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Optional[Callable]) -> Chain:
         new_chain = Chain()
-        empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+        if not data:
+            data = Data(np.zeros(1), np.zeros(1), np.zeros(1)) #empty data
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y

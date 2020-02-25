@@ -23,17 +23,12 @@ class Node(ABC):
     def apply(self) -> Data:
         raise NotImplementedError()
 
-    @abstractmethod
-    def draw_branch(self, jpeg="tree.png"):
-        raise NotImplementedError()
-
 
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):
         self.cached_output = model_output
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
-
 
 class NodeGenerator:
     @staticmethod
