@@ -53,10 +53,16 @@ class PrimaryNode(Node):
                          eval_strategy=eval_strategy)
 
     def apply(self) -> OutputData:
-        model_predict = self.eval_strategy.evaluate(self.data_stream)
-        return OutputData(idx=self.data_stream.idx,
-                          features=self.data_stream.features,
-                          predict=model_predict)
+        if self.cached_result is not None:
+            return OutputData(idx=self.data_stream.idx,
+                              features=self.data_stream.features,
+                              predict=self.cached_result.cached_output)
+        else:
+            model_predict = self.eval_strategy.evaluate(self.data_stream)
+            self.cached_result = CachedNodeResult(self, model_predict)
+            return OutputData(idx=self.data_stream.idx,
+                              features=self.data_stream.features,
+                              predict=model_predict)
 
 
 class SecondaryNode(Node):
