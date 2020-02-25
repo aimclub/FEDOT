@@ -10,7 +10,7 @@ class ChainMetric:
     @staticmethod
     @abstractmethod
     def get_value(chain: Chain, reference_data: Data) -> float:
-        raise NotImplemented
+        raise NotImplementedError()
 
 
 class RmseMetric(ChainMetric):

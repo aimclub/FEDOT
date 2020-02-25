@@ -61,5 +61,5 @@ class DummyComposer(Composer):
                 prev_node = new_node
                 new_chain.add_node(new_node)
         else:
-            raise NotImplemented
+            raise NotImplementedError()
         return new_chain

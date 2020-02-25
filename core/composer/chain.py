@@ -53,4 +53,4 @@ class Chain:
         return _depth_recursive(self.root_node)
 
     def _flat_nodes_tree(self, Node):
-        raise NotImplemented
+        raise NotImplementedError()
