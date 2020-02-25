@@ -1,10 +1,11 @@
-from PIL import Image,ImageDraw
+from PIL import Image, ImageDraw
 import os
+
 
 class Tree_Drawing:
     def __init__(self, secondary_node_type, primary_node_type):
-        self.secondary_node_type =str(secondary_node_type)
-        self.primary_node_type =str(primary_node_type)
+        self.secondary_node_type = str(secondary_node_type)
+        self.primary_node_type = str(primary_node_type)
 
     def getwidth(self, node):
         if str(type(node)) == self.primary_node_type:
@@ -28,7 +29,7 @@ class Tree_Drawing:
             for c in node.nodes_to:
                 wide = self.getwidth(c) * 100
                 draw.line((x, y, left + wide / 2, y + 100), fill=(255, 0, 0))
-                self.drawnode(c,draw, left + wide / 2, y + 100)
+                self.drawnode(c, draw, left + wide / 2, y + 100)
                 left = left + wide
         elif str(type(node)) == self.primary_node_type:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
@@ -40,12 +41,12 @@ class Tree_Drawing:
             os.mkdir(f'HistoryFiles/Trees')
 
         w = self.getwidth(node) * 100
-        if not str(type(node)) == self.primary_node_type:
+        if not str(type(node)) == self.secondary_node_type:
             h = 100 + 120
         else:
             h = node.get_depth_down() * 100 + 120
 
         img = Image.new('RGB', (w, h), (255, 255, 255))
         draw = ImageDraw.Draw(img)
-        self.drawnode(node,draw, w / 2, 20)
+        self.drawnode(node, draw, w / 2, 20)
         img.save(f'HistoryFiles/Trees/{jpeg}', 'PNG')
