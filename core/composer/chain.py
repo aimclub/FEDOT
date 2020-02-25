@@ -28,13 +28,16 @@ class Chain:
     def update_node(self, new_node: Node):
         raise NotImplementedError()
 
+    def _is_node_has_child(self, node):
+        return any([(node in other_node.nodes_from)
+                    for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
+
     @property
     def root_node(self) -> Optional[Node]:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not any([(node in other_node.nodes_from)
-                            for other_node in self.nodes if isinstance(other_node, SecondaryNode)])][0]
+                if not self._is_node_has_child(node)][0]
         return root
 
     @property
@@ -53,5 +56,5 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
-    def _flat_nodes_tree(self, Node):
+    def _flat_nodes_tree(self, node):
         raise NotImplementedError()
