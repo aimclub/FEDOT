@@ -72,7 +72,7 @@ def test_search_in_repository_by_model_id(mock_init_tree):
     impl = repo.obtain_model_implementation(model_names[0])
 
     assert model_names[0] is ModelTypesIdsEnum.xgboost
-    assert len(model_names) == 3
+    assert len(model_names) == 2
     assert isinstance(impl, XGBoost)
 
 
@@ -85,10 +85,10 @@ def test_search_in_repository_by_metainfo(mock_init_tree):
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification))
-    impl = repo.obtain_model_implementation(model_names[2])
+    impl = repo.obtain_model_implementation(model_names[1])
 
-    assert model_names[2] is ModelTypesIdsEnum.logit
-    assert len(model_names) == 3
+    assert model_names[1] is ModelTypesIdsEnum.logit
+    assert len(model_names) == 2
     assert isinstance(impl, LogRegression)
 
 
