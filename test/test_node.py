@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 from core.composer.node import PrimaryNode, NodeGenerator
 from core.models.data import (
-    Data,
+    InputData,
     split_train_test,
     normalize
 )
@@ -24,7 +24,7 @@ def data_setup():
     predictors = normalize(predictors[:100])
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
-    data = Data(features=predictors, target=response, idx=np.arange(0, 100))
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
     return train_data_x, train_data_y, test_data_x, test_data_y, data
 
 
@@ -60,4 +60,4 @@ def test_eval_strategy_logreg(data_setup):
     actual_result = test_model_node.apply()
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
-    assert actual_result.target.all() == expected_result.all()
+    assert actual_result.predict.all() == expected_result.all()

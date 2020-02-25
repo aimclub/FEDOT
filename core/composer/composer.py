@@ -10,7 +10,7 @@ import numpy as np
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.models.data import Data
+from core.models.data import InputData
 from core.models.model import Model
 
 
@@ -38,7 +38,7 @@ class DummyComposer(Composer):
                       secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
         new_chain = Chain()
-        empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+        empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y

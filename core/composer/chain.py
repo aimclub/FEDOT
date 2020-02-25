@@ -1,12 +1,12 @@
 from core.composer.node import Node
-from core.models.data import Data
+from core.models.data import InputData
 
 
 class Chain:
     def __init__(self):
         self.nodes = []
 
-    def evaluate(self) -> Data:
+    def evaluate(self) -> InputData:
         raise NotImplementedError()
 
     def add_node(self, new_node: Node):

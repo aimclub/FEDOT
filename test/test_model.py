@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.models.data import Data
+from core.models.data import InputData
 from core.models.model import LogRegression
 from core.repository.dataset_types import NumericalDataTypesEnum
 
@@ -16,7 +16,7 @@ def log_function_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = Data(features=x, target=classes, idx=np.arange(0, len(x)))
+    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)))
 
     return data
 
