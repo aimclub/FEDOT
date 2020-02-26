@@ -5,7 +5,8 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
-from core.composer.composer import DummyComposer, RandomSearchComposer
+from core.composer.composer import DummyComposer
+from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.models.model import XGBoost
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
