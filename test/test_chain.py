@@ -4,8 +4,11 @@ from sklearn.datasets import load_iris
 
 from core.models.data import InputData, normalize, split_train_test
 from core.models.model import LogRegression
+from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
+from core.models.data import Data, normalize, split_train_test
 from core.models.evaluation import EvaluationStrategy
+from core.models.model import LogRegression
 
 
 @pytest.fixture()
@@ -26,14 +29,49 @@ def data_setup():
     return train_data, test_data, data
 
 
-def test_model_chain(data_setup):
+def test_models_sequence(data_setup):
     _, _, data = data_setup
+
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data_stream=data, eval_strategy=eval_strategy)
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
-    y4.apply()
+    result = y4.apply()
     assert y4.cached_result.cached_output.size == data.target.size
     assert len(y4.cached_result.last_parents_ids) == 2
     assert y4.data_stream.target.all() == data.target.all()
+
+
+def test_models_chain_nested(data_setup):
+    _, _, data = data_setup
+    chain = Chain()
+    eval_strategy = EvaluationStrategy(model=LogRegression())
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
+    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
+    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
+    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
+    chain.add_node(y1)
+    chain.add_node(y2)
+    chain.add_node(y3)
+    chain.add_node(y4)
+    result = chain.evaluate()
+    assert chain.length == 4
+    assert chain.depth == 3
+
+
+def test_models_chain_seq(data_setup):
+    _, _, data = data_setup
+    chain = Chain()
+    eval_strategy = EvaluationStrategy(model=LogRegression())
+    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
+    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
+    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2])
+    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y3])
+    chain.add_node(y1)
+    chain.add_node(y2)
+    chain.add_node(y3)
+    chain.add_node(y4)
+    result = chain.evaluate()
+    assert chain.length == 4
+    assert chain.depth == 4

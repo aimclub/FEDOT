@@ -35,9 +35,9 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 
 def test_node_factory_log_reg_correct(data_setup):
-    _, _, _, _, data_stream = data_setup
+    _, _, _, _, data_set = data_setup
 
-    node = NodeGenerator().get_primary_node(LogRegression(), data_stream)
+    node = NodeGenerator().primary_node(LogRegression(), data_set)
 
     expected_model = LogRegression
     actual_model = node.eval_strategy.model.__class__
@@ -48,14 +48,14 @@ def test_node_factory_log_reg_correct(data_setup):
 
 def test_eval_strategy_logreg(data_setup):
     print_metrics = False
-    train_data_x, train_data_y, test_data_x, true_y, data_stream = data_setup
+    train_data_x, train_data_y, test_data_x, true_y, data_set = data_setup
     test_skl_model = LogisticRegression(C=10., random_state=1, solver='liblinear',
                                         max_iter=10000, verbose=0)
     test_skl_model.fit(train_data_x, train_data_y)
     expected_result = test_skl_model.predict(test_data_x)
 
     eval_strategy = EvaluationStrategy(model=LogRegression())
-    test_model_node = PrimaryNode(input_data_stream=data_stream,
+    test_model_node = PrimaryNode(input_data=data_set,
                                   eval_strategy=eval_strategy)
     actual_result = test_model_node.apply()
     if print_metrics:

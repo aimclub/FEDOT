@@ -11,12 +11,12 @@ from core.models.model import Model
 
 class Node(ABC):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 input_data_stream: Optional[InputData],
+                 input_data: Optional[Data],
                  eval_strategy: EvaluationStrategy):
         self.node_id = str(uuid.uuid4())
         self.nodes_from = nodes_from
         self.eval_strategy = eval_strategy
-        self.data_stream = input_data_stream
+        self.input_data = input_data
         self.cached_result = None
 
     @abstractmethod
@@ -33,25 +33,25 @@ class CachedNodeResult:
 
 class NodeGenerator:
     @staticmethod
-    def get_primary_node(model: Model, input_data: InputData) -> Node:
+    def primary_node(model: Model, input_data: Data) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
-        return PrimaryNode(input_data_stream=input_data,
+        return PrimaryNode(input_data=input_data,
                            eval_strategy=eval_strategy)
 
     @staticmethod
-    def get_secondary_node(model: Model) -> Node:
+    def secondary_node(model: Model) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return SecondaryNode(nodes_from=None,
                              eval_strategy=eval_strategy)
 
 
 class PrimaryNode(Node):
-    def __init__(self, input_data_stream: InputData,
+    def __init__(self, input_data: Data,
                  eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=None,
-                         input_data_stream=input_data_stream,
+                         input_data=input_data,
                          eval_strategy=eval_strategy)
-
+        
     def apply(self) -> OutputData:
         if self.cached_result is not None:
             return OutputData(idx=self.data_stream.idx,
@@ -69,7 +69,7 @@ class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=nodes_from,
-                         input_data_stream=None,
+                         input_data=None,
                          eval_strategy=eval_strategy)
 
     def apply(self) -> OutputData:

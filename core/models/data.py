@@ -1,8 +1,8 @@
+from dataclasses import dataclass
 from typing import List
 
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
 from sklearn import preprocessing
 
 
