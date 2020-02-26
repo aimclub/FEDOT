@@ -58,3 +58,12 @@ class Chain:
 
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()
+
+    @property
+    def reference_data(self) -> Optional[InputData]:
+        if len(self.nodes) == 0:
+            return None
+        primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
+        assert len(primary_nodes) > 0
+
+        return primary_nodes[0].input_data
