@@ -17,7 +17,7 @@ class Data:
         data_array = np.array(data_frame).T
         idx = data_array[0]
         features = data_array[1:-1].T
-        target = data_array[-1]
+        target = data_array[-1].astype(np.float)
         return InputData(idx=idx, features=features, target=target)
 
     @staticmethod
