@@ -2,8 +2,6 @@ import os
 
 import numpy as np
 import pytest
-from sklearn import preprocessing
-from sklearn.utils.multiclass import type_of_target
 from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
