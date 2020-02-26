@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from core.model import (
+from core.models.model import (
     LogRegression,
     XGBoost
 )
@@ -14,7 +14,6 @@ from core.repository.model_types_repository import (
     ModelGroupsIdsEnum,
     ModelTypesIdsEnum
 )
-from unittest.mock import patch
 from core.repository.task_types import MachineLearningTasksEnum
 
 
@@ -56,7 +55,7 @@ def test_search_in_repository_by_id_and_metainfo(mock_init_tree):
         desired_ids=[ModelGroupsIdsEnum.ml], desired_metainfo=ModelMetaInfoTemplate(
             task_type=MachineLearningTasksEnum.regression))
 
-    impl = repo.obtain_model_implementation(model_names[0])
+    impl = repo.model_by_id(model_names[0])
 
     assert model_names[0] is ModelTypesIdsEnum.xgboost
     assert len(model_names) == 1
@@ -70,10 +69,10 @@ def test_search_in_repository_by_model_id(mock_init_tree):
 
     model_names = repo.search_model_types_by_attributes(
         desired_ids=[ModelGroupsIdsEnum.all])
-    impl = repo.obtain_model_implementation(model_names[0])
+    impl = repo.model_by_id(model_names[0])
 
     assert model_names[0] is ModelTypesIdsEnum.xgboost
-    assert len(model_names) == 3
+    assert len(model_names) == 2
     assert isinstance(impl, XGBoost)
 
 
@@ -86,10 +85,10 @@ def test_search_in_repository_by_metainfo(mock_init_tree):
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification))
-    impl = repo.obtain_model_implementation(model_names[2])
+    impl = repo.model_by_id(model_names[1])
 
-    assert model_names[2] is ModelTypesIdsEnum.logit
-    assert len(model_names) == 3
+    assert model_names[1] is ModelTypesIdsEnum.logit
+    assert len(model_names) == 2
     assert isinstance(impl, LogRegression)
 
 
@@ -98,6 +97,6 @@ def test_search_in_repository_by_metainfo(mock_init_tree):
 def test_direct_model_query(mock_init_tree):
     repo = ModelTypesRepository()
 
-    impl = repo.obtain_model_implementation(ModelTypesIdsEnum.logit)
+    impl = repo.model_by_id(ModelTypesIdsEnum.logit)
 
     assert isinstance(impl, LogRegression)

@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from core.data import Data
+from core.models.data import Data
 
 
 def test_data_from_csv():
