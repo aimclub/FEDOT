@@ -73,7 +73,7 @@ class RandomSearchComposer:
                       secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
         best_metric_value = 1000
-        iter_num = 10
+        iter_num = 2000
         best_chain = None
         for i in range(iter_num):
             print(f'Iter {i}')
@@ -99,12 +99,13 @@ class RandomSearchComposer:
                     new_chain.add_node(new_node)
             new_metric_value = round(metrics(new_chain), 3)
 
-            random_final_model_ind = randint(0, len(secondary_requirements) - 1)
-            new_node = NodeGenerator.secondary_node(secondary_requirements[random_final_model_ind])
-            new_node.nodes_from = [node for node in new_chain.nodes if node.nodes_from is None]
-            if len(new_node.nodes_from) == 0:
-                new_node.nodes_from = new_chain.nodes
-            new_chain.add_node(new_node)
+            if len(new_chain.nodes) > 1:
+                random_final_model_ind = randint(0, len(secondary_requirements) - 1)
+                new_node = NodeGenerator.secondary_node(secondary_requirements[random_final_model_ind])
+                new_node.nodes_from = [node for node in new_chain.nodes if node.nodes_from is None]
+                if len(new_node.nodes_from) == 0:
+                    new_node.nodes_from = new_chain.nodes
+                new_chain.add_node(new_node)
 
             print(f'Try {new_metric_value} with length {new_chain.length} and depth {new_chain.depth}')
             if new_metric_value < best_metric_value:
