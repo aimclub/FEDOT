@@ -83,3 +83,10 @@ class Chain:
             primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
             for node in primary_nodes:
                 node.input_data = data
+
+    @reference_data.setter
+    def reference_data(self, data):
+        if len(self.nodes) > 0:
+            primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
+            for node in primary_nodes:
+                node.input_data = data

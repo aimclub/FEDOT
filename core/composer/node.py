@@ -33,7 +33,7 @@ class CachedNodeResult:
 
 class NodeGenerator:
     @staticmethod
-    def primary_node(model: Model, input_data: InputData) -> Node:
+    def primary_node(model: Model, input_data: Optional[InputData]) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return PrimaryNode(input_data=input_data,
                            eval_strategy=eval_strategy)
