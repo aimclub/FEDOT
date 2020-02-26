@@ -49,6 +49,13 @@ class GP_Node(Node):
         else:
             return 1 + max([next_node.get_depth_down() for next_node in self.nodes_to])
 
+    def evaluate_branch(self):
+        if isinstance(self, GP_Secondary_Node):
+            #[node_to.evaluate() for node_to in self.nodes_to]
+            self.eval_strategy.model.predict()
+        elif isinstance(self, GP_Primary_Node):
+            return self.apply()
+
 
 class GP_Secondary_Node(GP_Node):
     def __init__(self, nodes_from: Optional[Node],
@@ -66,7 +73,6 @@ class GP_Secondary_Node(GP_Node):
 
     def apply(self) -> Data:
         return self.eval_strategy.evaluate(self.data_stream)
-
 
 class GP_Primary_Node(GP_Node):
     def __init__(self, nodes_from: Optional[Node],

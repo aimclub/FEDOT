@@ -29,11 +29,9 @@ class GPComposer(Composer):
                       composer_requirements: Optional[GPComposer_requirements],
                       metrics: Optional[Callable]) -> Chain:
 
-        empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
-
         best_chain = GPChainOptimiser(initial_chains=initial_chain,
                                       requirements=composer_requirements,
-                                      input_data=empty_data).evo_opt()
+                                      input_data=data).run_evolution()
         return best_chain
 
 

@@ -14,6 +14,9 @@ class Chain:
     def evaluate(self) -> Data:
         return self.root_node.apply()
 
+    def tree_evaluation(self)->Data:
+        return self.root.evaluate_branch()
+
     def evaluate_with_specific_data(self, new_data: Data) -> Data:
         for node in self.nodes:
             if isinstance(node, PrimaryNode):
@@ -57,13 +60,11 @@ class Chain:
             choice(requirements.secondary_requirements))
         self.tree_generation(node_from=self.root, requirements=requirements, input_data=input_data)
         print("root depth", self.root.get_depth_down())
-        self.root.tree_drawer.draw_branch(node=self.root)
-        print("end")
+
 
     def tree_generation(self, node_from, requirements, input_data: Data):
         offspring_size = randint(2, requirements.max_arity)
         for offspring_node in range(offspring_size):
-            print("self.get_depth_up(node_from)", self.get_depth_up(node_from))
             if self.get_depth_up(node_from) >= requirements.max_depth or (self.get_depth_up(
                     node_from) < requirements.max_depth and requirements.max_depth and randint(0, 1)):
 

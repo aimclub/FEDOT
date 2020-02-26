@@ -6,3 +6,4 @@ numpy==1.15.4
 scikit_learn==0.22.1
 typing==3.7.4.1
 PIL
+xgboost

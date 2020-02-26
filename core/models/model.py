@@ -4,6 +4,7 @@ from typing import Tuple
 from dataclasses import dataclass
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from xgboost import XGBClassifier
 
 from core.models.data import (
     Data,
@@ -62,15 +63,18 @@ class XGBoost(Model):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
         super().__init__(input_type=input_type, output_type=output_type)
+        self._model = XGBClassifier()
 
     def predict(self, data):
-        pass
+        predicted = self.__model.predict(data.features)
+        return predicted
 
     def fit(self, data):
-        pass
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
 
     def tune(self, data):
-        pass
+        return 1
 
 class KNN(Model):
     def __init__(self):

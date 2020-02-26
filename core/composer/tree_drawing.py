@@ -1,7 +1,6 @@
 from PIL import Image, ImageDraw
 import os
 
-
 class Tree_Drawing:
     def __init__(self, secondary_node_type, primary_node_type):
         self.secondary_node_type = str(secondary_node_type)
