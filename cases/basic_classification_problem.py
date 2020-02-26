@@ -1,10 +1,12 @@
 import random
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
+from core.composer.visualisation import ChainStyles, ChainVisualiser
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -17,28 +19,14 @@ from core.repository.task_types import MachineLearningTasksEnum
 random.seed(1)
 np.random.seed(1)
 
-
-def log_function_dataset():
-    samples = 1000
-    x = 10.0 * np.random.rand(samples, ) - 5.0
-    x = np.expand_dims(x, axis=1)
-    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
-    threshold = 0.5
-    classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
-    classes = np.expand_dims(classes, axis=1)
-    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)))
-
-    return data
-
-
-# file_path = '../test/data/test_dataset.csv'
-# path = Path(__file__).parent / file_path
-# dataset = Data.from_csv(path)
+file_path = '../test/data/test_dataset.csv'
+path = Path(__file__).parent / file_path
+dataset_from_file = InputData.from_csv(path)
 
 # a dataset that will be used as a train and test set during composition
-dataset_to_compose = log_function_dataset()
+dataset_to_compose = dataset_from_file
 # a dataset for a final validation of the composed model
-dataset_to_validate = log_function_dataset()
+dataset_to_validate = dataset_from_file
 
 # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()
@@ -83,3 +71,6 @@ roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
 
 print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')
 print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')
+
+visualiser = ChainVisualiser(ChainStyles.circular)
+visualiser.visualise(chain_seq)
