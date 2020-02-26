@@ -2,6 +2,8 @@ import os
 
 import numpy as np
 import pytest
+from sklearn import preprocessing
+from sklearn.utils.multiclass import type_of_target
 from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
@@ -29,7 +31,8 @@ def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
     file = 'data/test_dataset.csv'
     input_data = InputData.from_csv(
-        os.path.join(test_file_path, file)).features.all()
+        os.path.join(test_file_path, file))
+    input_data.target = np.array([np.int64(x) for x in input_data.target])
     return input_data
 
 
