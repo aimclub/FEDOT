@@ -22,7 +22,7 @@ class Data:
         target = np.array(data_frame[label].T).astype(np.float)
         data_frame = data_frame.drop([label] + [data_frame.columns[0]], axis=1)
         if normalization:
-            data_frame = normalize(data_frame)
+            data_frame = normalize_data(data_frame)
         features = np.array(data_frame)
 
         return InputData(idx=idx, features=features, target=target)
@@ -46,7 +46,7 @@ class OutputData(Data):
     predict: np.array
 
 
-def normalize(train):
+def normalize_data(train):
     for column in train.columns:
         col = train[[column]].values.astype(float)
         if not col.min() in range(0, 1) or not col.max() in range(0, 1):
@@ -59,8 +59,7 @@ def split_train_test(data, split_ratio=0.8):
     split_point = int(len(data) * split_ratio)
     return data[:split_point], data[split_point:]
 
-'''
+
 def normalize(x):
     """Normalize data with sklearn.preprocessing.scale()"""
     return preprocessing.scale(x)
-'''

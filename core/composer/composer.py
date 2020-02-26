@@ -3,7 +3,8 @@ from enum import Enum
 from typing import (
     List,
     Callable,
-    Optional
+    Optional,
+    SupportsInt
 )
 
 import numpy as np
@@ -16,7 +17,7 @@ from core.models.model import Model
 
 # TODO: specify ComposerRequirements class
 class ComposerRequirements:
-    def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt]):
+    def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],max_depth: Optional[SupportsInt]=None, max_arity: Optional[SupportsInt]=None):
         self.primary_requirements= primary_requirements
         self.secondary_requirements =secondary_requirements
         self.max_depth = max_depth
@@ -28,8 +29,7 @@ class Composer(ABC):
     @abstractmethod
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      primary_requirements: List[Model],
-                      secondary_requirements: List[Model],
+                      composer_requirements: ComposerRequirements,
                       metrics: Callable) -> Chain:
         raise NotImplementedError()
 

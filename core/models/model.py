@@ -65,11 +65,11 @@ class XGBoost(Model):
         super().__init__(input_type=input_type, output_type=output_type)
         self._model = XGBClassifier()
 
-    def predict(self, data):
+    def predict(self, data:InputData):
         predicted = self.__model.predict(data.features)
         return predicted
 
-    def fit(self, data):
+    def fit(self, data:InputData):
         train_data, _ = train_test_data_setup(data=data)
         self.__model.fit(train_data.features, train_data.target)
 
@@ -84,11 +84,11 @@ class KNN(Model):
         super().__init__(input_type=input_type, output_type=output_type)
         self.__model = SklearnKNN(n_neighbors=15)
 
-    def predict(self, data: Data):
+    def predict(self, data: InputData):
         predicted = self.__model.predict(data.features)
         return predicted
 
-    def fit(self, data: Data):
+    def fit(self, data: InputData):
         features, target, _ = train_test_data_setup(data=data)
         self.__model.fit(features, target)
 

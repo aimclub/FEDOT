@@ -11,7 +11,7 @@ class GP_NodeGenerator:
     @staticmethod
     def get_primary_node(model: Model, input_data: Data,nodes_to: Optional[Node] = None ) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
-        return GP_Primary_Node(input_data_stream=input_data,
+        return GP_Primary_Node(input_data=input_data,
                                eval_strategy=eval_strategy, nodes_to=nodes_to)
 
     @staticmethod
@@ -24,17 +24,12 @@ class GP_NodeGenerator:
 
 class GP_Node(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 input_data_stream: Optional[Data],
+                 input_data: Optional[Data],
                  eval_strategy: EvaluationStrategy, nodes_to: Optional[List['Node']]):
         super().__init__(nodes_from=nodes_from,
-                         input_data_stream=input_data_stream,
+                         input_data=input_data,
                          eval_strategy=eval_strategy)
         self.nodes_to = nodes_to
-        self.tree_drawer = Tree_Drawing(primary_node_type=GP_Primary_Node, secondary_node_type=GP_Secondary_Node)
-
-    @abstractmethod
-    def apply(self) -> Data:
-        raise NotImplementedError()
 
     def get_depth_up(self):
         if self.nodes_to:
@@ -56,12 +51,14 @@ class GP_Node(Node):
         elif isinstance(self, GP_Primary_Node):
             return self.apply()
 
+    def apply(self):
+        pass
 
 class GP_Secondary_Node(GP_Node):
     def __init__(self, nodes_from: Optional[Node],
                  eval_strategy: Optional[EvaluationStrategy], nodes_to: Optional[List['Node']]):
         super().__init__(nodes_from=nodes_from,
-                         input_data_stream=None,
+                         input_data=None,
                          eval_strategy=eval_strategy, nodes_to=nodes_to)
         self.nodes_from = nodes_from
         if not self.nodes_from:
@@ -71,16 +68,15 @@ class GP_Secondary_Node(GP_Node):
         if new_node:
             self.nodes_from.append(new_node)
 
-    def apply(self) -> Data:
-        return self.eval_strategy.evaluate(self.data_stream)
+    def apply(self):
+        pass
+
 
 
 class GP_Primary_Node(GP_Node):
-    def __init__(self, eval_strategy: Optional[EvaluationStrategy], input_data_stream: Optional[Data],
+    def __init__(self, eval_strategy: Optional[EvaluationStrategy], input_data: Optional[Data],
                  nodes_to: Optional[List['Node']]):
         super().__init__(nodes_from=None,
-                         input_data_stream=input_data_stream,
+                         input_data=input_data,
                          eval_strategy=eval_strategy, nodes_to=nodes_to)
 
-    def apply(self) -> Data:
-        return self.eval_strategy.evaluate(self.data_stream)

@@ -1,22 +1,20 @@
 from PIL import Image, ImageDraw
 import os
 
+
 class Tree_Drawing:
-    def __init__(self, secondary_node_type, primary_node_type):
-        self.secondary_node_type = str(secondary_node_type)
-        self.primary_node_type = str(primary_node_type)
 
     def _getwidth(self, node):
-        if str(type(node)) == self.primary_node_type:
+        if not node.nodes_from:
             return 1
-        elif str(type(node)) == self.secondary_node_type:
+        else:
             result = 0
             for i in range(0, len(node.nodes_from)):
                 result += self._getwidth(node.nodes_from[i])
             return result
 
     def _drawnode(self, node, draw, x, y):
-        if str(type(node)) == self.secondary_node_type:
+        if node.nodes_from:
             allwidth = 0
             for c in node.nodes_from:
                 allwidth += self._getwidth(c) * 100
@@ -30,7 +28,7 @@ class Tree_Drawing:
                 draw.line((x, y, left + wide / 2, y + 100), fill=(255, 0, 0))
                 self._drawnode(c, draw, left + wide / 2, y + 100)
                 left = left + wide
-        elif str(type(node)) == self.primary_node_type:
+        else:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
 
     def draw_branch(self, node, jpeg="tree.png"):
@@ -40,7 +38,7 @@ class Tree_Drawing:
             os.mkdir(f'HistoryFiles/Trees')
 
         w = self._getwidth(node) * 100
-        if not str(type(node)) == self.secondary_node_type:
+        if not node.nodes_from:
             h = 100 + 120
         else:
             h = node.get_depth_down() * 100 + 120

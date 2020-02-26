@@ -9,6 +9,7 @@ from core.composer.chain import Chain
 from core.models.data import Data
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
 from random import choice, randint
+from core.composer.tree_drawing import Tree_Drawing
 
 
 class GPChainOptimiser():
@@ -19,6 +20,8 @@ class GPChainOptimiser():
             self.population = [initial_chain] * requirements.pop_size
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
+
+        Tree_Drawing().draw_branch(node=self.population[0], jpeg="tree.png")
 
     def run_evolution(self) -> Chain:
         return Chain()
