@@ -52,7 +52,7 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 # the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-# the choice and initialisation of the composer
+# the choice and initialisation of the dummy_composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
 
 # the optimal chain generation by composition - the most time-consuming task

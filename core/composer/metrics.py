@@ -30,7 +30,7 @@ class RocAucMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain) -> float:
         results = chain.evaluate()
-        return roc_auc_score(y_score=results.predict, y_true=chain.reference_data.target)
+        return -roc_auc_score(y_score=results.predict, y_true=chain.reference_data.target)
 
 
 class StructuralComplexityMetric(ChainMetric):
