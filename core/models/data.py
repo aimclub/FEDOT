@@ -10,7 +10,6 @@ from sklearn import preprocessing
 class Data:
     idx: np.array
     features: np.array
-    target: np.array
 
     @staticmethod
     def from_csv(file_path, delimiter=',', normalization=False, label=[]):
@@ -20,22 +19,31 @@ class Data:
         if not label:
             label = data_frame.columns[len(data_frame.columns) - 1]
 
-        target = np.array(data_frame[label].T)
+        target = np.array(data_frame[label].T).astype(np.float)
         data_frame = data_frame.drop([label] + [data_frame.columns[0]], axis=1)
-
         if normalization:
             data_frame = normalize(data_frame)
-        print(data_frame.head())
         features = np.array(data_frame)
 
-        return Data(idx=idx, features=features, target=target)
+        return InputData(idx=idx, features=features, target=target)
 
     @staticmethod
-    def from_vectors(vectors: List[np.array]):
-        features = np.array(vectors[:-1]).T
-        idx = np.arange(0, vectors[0].size)
-        target = vectors[-1]
-        return Data(idx=idx, features=features, target=target)
+    def from_predictions(outputs: List['OutputData'], target: np.array):
+        idx = outputs[0].idx
+        features = list()
+        for elem in outputs:
+            features.append(elem.predict)
+        return InputData(idx=idx, features=np.array(features).T, target=target)
+
+
+@dataclass
+class InputData(Data):
+    target: np.array
+
+
+@dataclass
+class OutputData(Data):
+    predict: np.array
 
 
 def normalize(train):
@@ -50,7 +58,6 @@ def normalize(train):
 def split_train_test(data, split_ratio=0.8):
     split_point = int(len(data) * split_ratio)
     return data[:split_point], data[split_point:]
-
 
 '''
 def normalize(x):

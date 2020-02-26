@@ -7,7 +7,7 @@ from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from xgboost import XGBClassifier
 
 from core.models.data import (
-    Data,
+    InputData,
     split_train_test,
     normalize
 )
@@ -45,11 +45,11 @@ class LogRegression(Model):
         self.__model = SklearnLogReg(random_state=1, solver='liblinear',
                                      max_iter=100, tol=1e-3, verbose=1)
 
-    def predict(self, data: Data):
+    def predict(self, data: InputData):
         predicted = self.__model.predict(data.features)
         return predicted
 
-    def fit(self, data: Data):
+    def fit(self, data: InputData):
         train_data, _ = train_test_data_setup(data=data)
         self.__model.fit(train_data.features, train_data.target)
 
@@ -95,11 +95,11 @@ class KNN(Model):
     def tune(self, data):
         return 1
 
-def train_test_data_setup(data: Data) -> Tuple[Data, Data]:
+def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
     train_data_x, test_data_x = split_train_test(data.features)
     train_data_y, test_data_y = split_train_test(data.target)
     train_idx, test_idx = split_train_test(data.idx)
-    train_data = Data(features=normalize(train_data_x), target=train_data_y,
-                      idx=train_idx)
-    test_data = Data(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
+    train_data = InputData(features=normalize(train_data_x), target=train_data_y,
+                           idx=train_idx)
+    test_data = InputData(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
     return train_data, test_data

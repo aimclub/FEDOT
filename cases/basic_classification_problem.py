@@ -5,7 +5,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
-from core.models.data import Data
+from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -26,7 +26,7 @@ def log_function_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = Data(features=x, target=classes, idx=np.arange(0, len(x)))
+    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)))
 
     return data
 
@@ -47,10 +47,10 @@ available_model_names = models_repo.search_model_types_by_attributes(
                                            output_type=CategoricalDataTypesEnum.vector,
                                            task_type=MachineLearningTasksEnum.classification))
 
-models_impl = [models_repo.obtain_model_implementation(model_name) for model_name in available_model_names]
+models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
 
 # the choice of the metric for the chain quality assessment during composition
-metric_function = MetricsRepository().obtain_metric_implementation(ClassificationMetricsEnum.ROCAUC)
+metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
 # the choice and initialisation of the composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
@@ -71,15 +71,15 @@ chain_single = composer.compose_chain(data=dataset_to_compose,
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_seq.evaluate_with_specific_data(dataset_to_validate)
-predicted_single = chain_single.evaluate_with_specific_data(dataset_to_validate)
+predicted_seq = chain_seq.evaluate(dataset_to_validate)
+predicted_single = chain_single.evaluate(dataset_to_validate)
 
 # the quality assessment for the simulation results
 roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,
-                           y_score=predicted_seq)
+                           y_score=predicted_seq.predict)
 
 roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
-                              y_score=predicted_single)
+                              y_score=predicted_single.predict)
 
 print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')
 print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')

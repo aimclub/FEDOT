@@ -4,23 +4,23 @@ from typing import (List, Optional)
 
 import numpy as np
 
-from core.models.data import Data
+from core.models.data import Data, InputData, OutputData
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import Model
 
 
 class Node(ABC):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 input_data_stream: Optional[Data],
+                 input_data: Optional[InputData],
                  eval_strategy: EvaluationStrategy):
         self.node_id = str(uuid.uuid4())
         self.nodes_from = nodes_from
         self.eval_strategy = eval_strategy
-        self.data_stream = input_data_stream
+        self.input_data = input_data
         self.cached_result = None
 
     @abstractmethod
-    def apply(self) -> Data:
+    def apply(self) -> OutputData:
         raise NotImplementedError()
 
 
@@ -30,44 +30,57 @@ class CachedNodeResult:
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
 
+
 class NodeGenerator:
     @staticmethod
-    def get_primary_node(model: Model, input_data: Data) -> Node:
+    def primary_node(model: Model, input_data: InputData) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
-        return PrimaryNode(input_data_stream=input_data,
+        return PrimaryNode(input_data=input_data,
                            eval_strategy=eval_strategy)
 
     @staticmethod
-    def get_secondary_node(model: Model) -> Node:
+    def secondary_node(model: Model) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return SecondaryNode(nodes_from=None,
                              eval_strategy=eval_strategy)
 
 
 class PrimaryNode(Node):
-    def __init__( self, input_data_stream: Data,
+    def __init__(self, input_data: InputData,
                  eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=None,
-                         input_data_stream=input_data_stream,
+                         input_data=input_data,
                          eval_strategy=eval_strategy)
 
-    def apply(self) -> Data:
-        return self.eval_strategy.evaluate(self.data_stream)
+    def apply(self) -> OutputData:
+        if self.cached_result is not None:
+            return OutputData(idx=self.input_data.idx,
+                              features=self.input_data.features,
+                              predict=self.cached_result.cached_output)
+        else:
+            model_predict = self.eval_strategy.evaluate(self.input_data)
+            self.cached_result = CachedNodeResult(self, model_predict)
+            return OutputData(idx=self.input_data.idx,
+                              features=self.input_data.features,
+                              predict=model_predict)
 
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=nodes_from,
-                         input_data_stream=None,
+                         input_data=None,
                          eval_strategy=eval_strategy)
 
-    def apply(self) -> np.array:
+    def apply(self) -> OutputData:
         parent_predict_list = list()
         for parent in self.nodes_from:
             parent_predict_list.append(parent.apply())
-        parent_predict_list.append(self.nodes_from[0].data_stream.target)
-        self.data_stream = Data.from_vectors(parent_predict_list)
-        evaluation_result = self.eval_strategy.evaluate(self.data_stream)
+        target = self.nodes_from[0].input_data.target
+        self.input_data = Data.from_predictions(outputs=parent_predict_list,
+                                                target=target)
+        evaluation_result = self.eval_strategy.evaluate(self.input_data)
         self.cached_result = CachedNodeResult(self, evaluation_result)
-        return evaluation_result
+        return OutputData(idx=self.nodes_from[0].input_data.idx,
+                          features=self.nodes_from[0].input_data.features,
+                          predict=evaluation_result)
