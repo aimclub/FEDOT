@@ -8,7 +8,7 @@ from core.composer.node import PrimaryNode, NodeGenerator
 from core.models.data import (
     InputData,
     split_train_test,
-    normalize
+    preprocess
 )
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
@@ -21,7 +21,7 @@ def data_setup():
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     response = response[:100]
-    predictors = normalize(predictors[:100])
+    predictors = preprocess(predictors[:100])
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
