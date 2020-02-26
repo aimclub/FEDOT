@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from xgboost import XGBClassifier
 
 from core.models.data import (
     InputData,
@@ -62,15 +64,41 @@ class XGBoost(Model):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
         super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = XGBClassifier()
 
-    def predict(self, data):
-        pass
+    def predict(self, data: InputData):
+        # TODO preprocess in other place
+        prediction_data = preprocess(data.features)
+        predicted = self.__model.predict(prediction_data)
+        return predicted
 
-    def fit(self, data):
-        pass
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
 
     def tune(self, data):
         pass
+
+
+class KNN(Model):
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = SklearnKNN(n_neighbors=15)
+
+    def predict(self, data: InputData):
+        prediction_data = preprocess(data.features)
+        predicted = self.__model.predict(prediction_data)
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
 
 
 def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:

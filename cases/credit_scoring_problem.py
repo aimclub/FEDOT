@@ -7,6 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
 from core.models.data import InputData
+from core.models.model import XGBoost
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -38,25 +39,25 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
 # the choice and initialisation of the composer
-composer = DummyComposer(DummyChainTypeEnum.flat)
+composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 
 # the optimal chain generation by composition - the most time-consuming task
-chain_seq = composer.compose_chain(data=dataset_to_compose,
-                                   initial_chain=None,
-                                   primary_requirements=[models_impl[1]],
-                                   secondary_requirements=[models_impl[1]],
-                                   metrics=metric_function)
+chain_composed = composer.compose_chain(data=dataset_to_compose,
+                                        initial_chain=None,
+                                        primary_requirements=models_impl,
+                                        secondary_requirements=[XGBoost()],
+                                        metrics=metric_function)
 
-# the second variant of optimal chain generation by composition with another requirements
-chain_single = composer.compose_chain(data=dataset_to_compose,
-                                      initial_chain=None,
-                                      primary_requirements=[models_impl[1]],
-                                      secondary_requirements=[],
-                                      metrics=metric_function)
+# the single-model variant of optimal chain
+chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
+                                                                    initial_chain=None,
+                                                                    primary_requirements=[XGBoost()],
+                                                                    secondary_requirements=[],
+                                                                    metrics=metric_function)
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_seq.evaluate(dataset_to_validate)
+predicted_seq = chain_composed.evaluate(dataset_to_validate)
 predicted_single = chain_single.evaluate(dataset_to_validate)
 
 # the quality assessment for the simulation results
@@ -66,5 +67,5 @@ roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,
 roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
                               y_score=predicted_single.predict)
 
-print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')
+print(f'Composed ROC AUC is {round(roc_on_train_seq, 3)}')
 print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')
