@@ -1,8 +1,7 @@
-
 from typing import Optional
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
-from core.models.data import Data
+from core.models.data import InputData, OutputData
 
 
 class Chain:
@@ -12,7 +11,7 @@ class Chain:
         else:
             self.nodes = self._flat_nodes_tree(base_node)
 
-    def evaluate(self, new_data: Optional[Data] = None) -> Data:
+    def evaluate(self, new_data: Optional[InputData] = None) -> OutputData:
         if new_data is not None:
             # if the chain should be evaluated for the new dataset
             for node in self.nodes:

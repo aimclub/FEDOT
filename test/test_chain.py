@@ -2,11 +2,10 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_iris
 
-from core.models.data import InputData, normalize, split_train_test
-from core.models.model import LogRegression
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.data import Data, normalize, split_train_test
+from core.models.data import InputData
+from core.models.data import normalize, split_train_test
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 
@@ -37,10 +36,10 @@ def test_models_sequence(data_setup):
     y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
     y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
-    result = y4.apply()
+    y4.apply()
     assert y4.cached_result.cached_output.size == data.target.size
     assert len(y4.cached_result.last_parents_ids) == 2
-    assert y4.data_stream.target.all() == data.target.all()
+    assert y4.input_data.target.all() == data.target.all()
 
 
 def test_models_chain_nested(data_setup):
@@ -55,7 +54,7 @@ def test_models_chain_nested(data_setup):
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    result = chain.evaluate()
+    chain.evaluate()
     assert chain.length == 4
     assert chain.depth == 3
 
@@ -72,6 +71,6 @@ def test_models_chain_seq(data_setup):
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    result = chain.evaluate()
+    chain.evaluate()
     assert chain.length == 4
     assert chain.depth == 4

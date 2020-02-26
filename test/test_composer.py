@@ -2,13 +2,13 @@ import numpy as np
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
-from core.composer.node import PrimaryNode, SecondaryNode, Data
+from core.composer.node import PrimaryNode, SecondaryNode, InputData
 from core.models.model import XGBoost, LogRegression
 
 
 def test_composer_hierarchical_chain():
     composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+    empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
                                        primary_requirements=[LogRegression(), XGBoost()],
@@ -26,7 +26,7 @@ def test_composer_hierarchical_chain():
 
 def test_composer_flat_chain():
     composer = DummyComposer(DummyChainTypeEnum.flat)
-    empty_data = Data(np.zeros(1), np.zeros(1), np.zeros(1))
+    empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
                                        primary_requirements=[LogRegression()],

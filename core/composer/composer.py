@@ -8,13 +8,14 @@ from typing import (
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
+from core.models.data import InputData
 from core.models.model import Model
 
 
 # TODO: specify ComposerRequirements class
 class Composer(ABC):
     @abstractmethod
-    def compose_chain(self, data: Data,
+    def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       primary_requirements: List[Model],
                       secondary_requirements: List[Model],
@@ -32,13 +33,13 @@ class DummyComposer(Composer):
         self.dummy_chain_type = dummy_chain_type
 
     # TODO move requirements to init
-    def compose_chain(self, data: Data,
+    def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       primary_requirements: List[Model],
                       secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
         new_chain = Chain()
-        
+
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y
             last_node = NodeGenerator.secondary_node(secondary_requirements[0])
