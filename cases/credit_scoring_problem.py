@@ -19,12 +19,12 @@ from core.repository.task_types import MachineLearningTasksEnum
 random.seed(1)
 np.random.seed(1)
 
-# the dataset was obtained from https://www.kaggle.com/ajay1735/hmeq-data/data
+# the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
 
 # a dataset that will be used as a train and test set during composition
-dataset_to_compose = InputData.from_csv(Path(__file__).parent / 'data/scoring_train.csv')
+dataset_to_compose = InputData.from_csv(Path(__file__).parent / 'data/scoring/scoring_train.csv')
 # a dataset for a final validation of the composed model
-dataset_to_validate = InputData.from_csv(Path(__file__).parent / 'data/scoring_test.csv')
+dataset_to_validate = InputData.from_csv(Path(__file__).parent / 'data/scoring/scoring_test.csv')
 
 # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()
@@ -55,17 +55,19 @@ chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset
                                                                     secondary_requirements=[],
                                                                     metrics=metric_function)
 
+print("Composition finished")
+
 #
 # the execution of the obtained composite models
 predicted_seq = chain_composed.evaluate(dataset_to_validate)
 predicted_single = chain_single.evaluate(dataset_to_validate)
 
 # the quality assessment for the simulation results
-roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,
+roc_on_valid_seq = roc_auc(y_true=dataset_to_validate.target,
                            y_score=predicted_seq.predict)
 
-roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
+roc_on_valid_single = roc_auc(y_true=dataset_to_validate.target,
                               y_score=predicted_single.predict)
 
-print(f'Composed ROC AUC is {round(roc_on_train_seq, 3)}')
-print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')
+print(f'Composed ROC AUC is {round(roc_on_valid_seq, 3)}')
+print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')

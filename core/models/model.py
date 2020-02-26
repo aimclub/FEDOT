@@ -43,7 +43,7 @@ class LogRegression(Model):
 
         super().__init__(input_type=input_type, output_type=output_type)
         self.__model = SklearnLogReg(random_state=1, solver='liblinear',
-                                     max_iter=100, tol=1e-3, verbose=1)
+                                     max_iter=100, tol=1e-3, verbose=0)
 
     def predict(self, data: InputData):
         prediction_data = preprocess(data.features)
