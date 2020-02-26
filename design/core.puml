@@ -1,7 +1,7 @@
 @startuml
 
 class Chain {
-    List[Node] nodes
+     nodes
     {static} Chain load_atomic_model(file_path: String)
     Data evaluate()
     add_node(new_node: Node)

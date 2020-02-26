@@ -4,7 +4,7 @@ from core.models.data import Data
 
 
 def test_composer():
-    data = Data.from_csv1(
+    data = Data.from_csv(
         file_path=f'C://Users//YanaPolonskaya//PycharmProjects//THEODOR(improved-chain)//test//data//agg_data_meta.csv',
         delimiter=';', normalization=True, label='def90')
     #data = Data.from_csv1(

@@ -1,9 +1,9 @@
-pandas
+pandas==0.25.0
 anytree==2.8.0
 dataclasses==0.7
 pytest==5.2.0
 numpy==1.15.4
 scikit_learn==0.22.1
 typing==3.7.4.1
-PIL
-xgboost
+Pillow==6.1.0
+xgboost==1.0.1

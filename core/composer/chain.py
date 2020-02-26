@@ -55,30 +55,8 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
-    def _flat_nodes_tree(self, requirements, input_data: Data):
-        self.root = self.population = GP_NodeGenerator.get_secondary_node(
-            choice(requirements.secondary_requirements))
-        self.tree_generation(node_from=self.root, requirements=requirements, input_data=input_data)
-        print("root depth", self.root.get_depth_down())
+    def get_depth_up(self):
+        return self.root.get_depth_up()
 
-
-    def tree_generation(self, node_from, requirements, input_data: Data):
-        offspring_size = randint(2, requirements.max_arity)
-        for offspring_node in range(offspring_size):
-            if self.get_depth_up(node_from) >= requirements.max_depth or (self.get_depth_up(
-                    node_from) < requirements.max_depth and requirements.max_depth and randint(0, 1)):
-
-                new_node = GP_NodeGenerator.get_primary_node(choice(requirements.primary_requirements),
-                                                             nodes_from=node_from, input_data=input_data)
-                node_from.offspring_fill(new_node)
-            else:
-                new_node = GP_NodeGenerator.get_secondary_node(choice(requirements.secondary_requirements),
-                                                               nodes_from=node_from)
-                self.tree_generation(new_node, requirements, input_data)
-                node_from.offspring_fill(new_node)
-
-    def get_depth_up(self, node):
-        return node.get_depth_up()
-
-    def get_depth_down(self, node):
-        return node.get_depth_down()
+    def get_depth_down(self):
+        return self.root.get_depth_down()

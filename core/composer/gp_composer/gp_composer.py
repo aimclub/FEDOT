@@ -19,9 +19,7 @@ from core.composer.tree_drawing import Tree_Drawing
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size:Optional[SupportsInt]):
-        super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements)
-        self.max_depth = max_depth
-        self.max_arity = max_arity
+        super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements, max_arity= max_arity, max_depth=max_depth)
         self.pop_size = pop_size
 
 class GPComposer(Composer):
@@ -29,7 +27,7 @@ class GPComposer(Composer):
                       composer_requirements: Optional[GPComposer_requirements],
                       metrics: Optional[Callable]) -> Chain:
 
-        best_chain = GPChainOptimiser(initial_chains=initial_chain,
+        best_chain = GPChainOptimiser(initial_chain=initial_chain,
                                       requirements=composer_requirements,
                                       input_data=data).run_evolution()
         return best_chain

@@ -3,43 +3,47 @@ from typing import (
     Callable,
     Optional
 )
+from core.composer.gp_composer.gp_node import GP_Node
 from core.models.model import Model
 from core.composer.chain import Chain
+from core.models.data import Data
+from core.composer.gp_composer.gp_node import GP_NodeGenerator
+from random import choice, randint
 
 
 class GPChainOptimiser():
-    def __init__(self, initial_chains, requirements, input_data):
-        if not initial_chains:
-            self.population = [Chain()._flat_nodes_tree(requirements,input_data ) for i in range(requirements.pop_size)]
+    def __init__(self, initial_chain, requirements, input_data: Data):
+        self.requirements = requirements
+        self.input_data = input_data
+        if initial_chain and type(initial_chain) != list:
+            self.population = [initial_chain] * requirements.pop_size
         else:
-            self.population = initial_chains
-
+            self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
     def run_evolution(self) -> Chain:
         return Chain()
 
-    '''
-    def run_evolution(self):
-        average_num_of_generation = None
+    def _make_population(self, pop_size) -> List[GP_Node]:
+        return [self._tree_generation() for _ in range(pop_size)]
 
-        for i in range(self.max_generations):
-            print("generation num:\n", i)
-            selected_indexes = self.selection(self.population, self.minimization)
-            new_population = []
-            for ind_num in range(self.population_size - 1):
-                new_population.append(self.crossover(self.population[selected_indexes[ind_num][0]],
-                                                     self.population[selected_indexes[ind_num][1]], ind_num, i))
-                new_population[ind_num] = self.mutation(new_population[ind_num])
-                new_population[ind_num].set_fitness()
+    def _tree_generation(self) -> GP_Node:
+        root = GP_NodeGenerator.get_secondary_node(choice(self.requirements.secondary_requirements))
+        self._tree_growth(node_from=root)
+        print("root depth", root)
+        return root
 
-            self.population = deepcopy(new_population)
-            self.population.append(self.the_best_ind)
+    def _tree_growth(self, node_from):
+        offspring_size = randint(2, self.requirements.max_arity)
+        for offspring_node in range(offspring_size):
+            if node_from.get_depth_up() >= self.requirements.max_depth or (
+                    node_from.get_depth_up() < self.requirements.max_depth and self.requirements.max_depth and randint(
+                0, 1)):
 
-            all_fit = [ind.fitness for ind in self.population]
-            if self.minimization:
-                self.the_best_ind = self.population[np.argmin(all_fit)]
+                new_node = GP_NodeGenerator.get_primary_node(choice(self.requirements.primary_requirements),
+                                                             nodes_from=node_from, input_data=self.input_data)
+                node_from.offspring_fill(new_node)
             else:
-                self.the_best_ind = self.population[np.argmax(all_fit)]
-
-        return self.the_best_ind.get_fitness(sample=self.problem.get_test_set())
-    '''
+                new_node = GP_NodeGenerator.get_secondary_node(choice(self.requirements.secondary_requirements),
+                                                               nodes_from=node_from)
+                self._tree_growth(new_node)
+                node_from.offspring_fill(new_node)

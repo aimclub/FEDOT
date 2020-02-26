@@ -3,7 +3,8 @@ from enum import Enum
 from typing import (
     List,
     Callable,
-    Optional
+    Optional,
+    SupportsInt
 )
 
 import numpy as np
@@ -16,9 +17,13 @@ from core.models.model import Model
 
 # TODO: specify ComposerRequirements class
 class ComposerRequirements:
-    def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model]):
+    def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt]):
         self.primary_requirements= primary_requirements
         self.secondary_requirements =secondary_requirements
+        self.max_depth = max_depth
+        self.max_arity = max_arity
+
+
 
 class Composer(ABC):
     @abstractmethod
