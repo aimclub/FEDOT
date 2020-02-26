@@ -13,5 +13,3 @@ class EvaluationStrategy:
     def evaluate(self, data: InputData) -> InputData:
         self.model.fit(data=data)
         return self.model.predict(data=data)
-
-

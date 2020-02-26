@@ -1,5 +1,5 @@
+import os
 import random
-from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -15,13 +15,14 @@ from core.repository.model_types_repository import (
 )
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
+from core.utils import project_root
 
 random.seed(1)
 np.random.seed(1)
 
-file_path = '../test/data/test_dataset.csv'
-path = Path(__file__).parent / file_path
-dataset_from_file = InputData.from_csv(path)
+file_path = 'test/data/test_dataset.csv'
+full_path = os.path.join(str(project_root()), file_path)
+dataset_from_file = InputData.from_csv(full_path)
 
 # a dataset that will be used as a train and test set during composition
 dataset_to_compose = dataset_from_file
