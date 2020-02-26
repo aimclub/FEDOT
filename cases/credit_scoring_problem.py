@@ -18,15 +18,12 @@ from core.repository.task_types import MachineLearningTasksEnum
 random.seed(1)
 np.random.seed(1)
 
-# the dataset obtained from https://www.kaggle.com/ajay1735/hmeq-data/data
-file_path = 'data/scoring.csv'
-path = Path(__file__).parent / file_path
-dataset = InputData.from_csv_special(path)
+# the dataset was obtained from https://www.kaggle.com/ajay1735/hmeq-data/data
 
 # a dataset that will be used as a train and test set during composition
-dataset_to_compose = dataset
+dataset_to_compose = InputData.from_csv(Path(__file__).parent / 'data/scoring_train.csv')
 # a dataset for a final validation of the composed model
-dataset_to_validate = dataset
+dataset_to_validate = InputData.from_csv(Path(__file__).parent / 'data/scoring_test.csv')
 
 # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()

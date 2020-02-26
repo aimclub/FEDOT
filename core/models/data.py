@@ -22,16 +22,6 @@ class Data:
         return InputData(idx=idx, features=features, target=target)
 
     @staticmethod
-    def from_csv_special(file_path):
-        data_frame = pd.read_csv(file_path)
-        data_array = np.array(data_frame).T
-        idx = list(range(len(data_frame)))
-        data_array = data_array[np.r_[0:4, 6:13]]
-        features = data_array[1:].T
-        target = data_array[0].astype(np.float)
-        return InputData(idx=idx, features=features, target=target)
-
-    @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
         idx = outputs[0].idx
         features = list()
