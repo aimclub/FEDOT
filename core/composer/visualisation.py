@@ -22,13 +22,13 @@ class ChainVisualiser:
             raise NotImplementedError()
 
     def visualise(self, chain: Chain):
-        t = ChainTransformer._chain_to_tree(chain)
+        t = ChainTransformer.chain_to_tree(chain)
         t.show(tree_style=self.__style)
 
 
 class ChainTransformer:
     @staticmethod
-    def _chain_to_tree(chain):
+    def chain_to_tree(chain):
         newick_tree = ChainTransformer._node_to_newick(chain.root_node)
         newick_tree = f'({newick_tree});'
         print(newick_tree)
