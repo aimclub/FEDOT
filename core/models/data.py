@@ -1,6 +1,8 @@
+from dataclasses import dataclass
+from typing import List
+
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
 from sklearn import preprocessing
 
 
@@ -17,7 +19,14 @@ class Data:
         idx = data_array[0]
         features = data_array[1:-1].T
         target = data_array[-1]
-        return Data(features, target, idx)
+        return Data(idx=idx, features=features, target=target)
+
+    @staticmethod
+    def from_vectors(vectors: List[np.array]):
+        features = np.array(vectors[:-1]).T
+        idx = np.arange(0, vectors[0].size)
+        target = vectors[-1]
+        return Data(idx=idx, features=features, target=target)
 
 
 def split_train_test(data, split_ratio=0.8):
