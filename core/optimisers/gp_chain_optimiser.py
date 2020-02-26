@@ -28,22 +28,21 @@ class GPChainOptimiser():
 
     def _tree_generation(self) -> GP_Node:
         root = GP_NodeGenerator.get_secondary_node(choice(self.requirements.secondary_requirements))
-        self._tree_growth(node_from=root)
-        print("root depth", root)
+        self._tree_growth(node_parent=root)
         return root
 
-    def _tree_growth(self, node_from):
+    def _tree_growth(self, node_parent):
         offspring_size = randint(2, self.requirements.max_arity)
         for offspring_node in range(offspring_size):
-            if node_from.get_depth_up() >= self.requirements.max_depth or (
-                    node_from.get_depth_up() < self.requirements.max_depth and self.requirements.max_depth and randint(
+            if node_parent.get_depth_up() >= self.requirements.max_depth or (
+                    node_parent.get_depth_up() < self.requirements.max_depth and self.requirements.max_depth and randint(
                 0, 1)):
 
                 new_node = GP_NodeGenerator.get_primary_node(choice(self.requirements.primary_requirements),
-                                                             nodes_from=node_from, input_data=self.input_data)
-                node_from.offspring_fill(new_node)
+                                                             nodes_to=node_parent, input_data=self.input_data)
+                node_parent.offspring_fill(new_node)
             else:
                 new_node = GP_NodeGenerator.get_secondary_node(choice(self.requirements.secondary_requirements),
-                                                               nodes_from=node_from)
+                                                               nodes_to=node_parent)
                 self._tree_growth(new_node)
-                node_from.offspring_fill(new_node)
+                node_parent.offspring_fill(new_node)

@@ -11,21 +11,21 @@ class Tree_Drawing:
             return 1
         elif str(type(node)) == self.secondary_node_type:
             result = 0
-            for i in range(0, len(node.nodes_to)):
-                result += self._getwidth(node.nodes_to[i])
+            for i in range(0, len(node.nodes_from)):
+                result += self._getwidth(node.nodes_from[i])
             return result
 
     def _drawnode(self, node, draw, x, y):
         if str(type(node)) == self.secondary_node_type:
             allwidth = 0
-            for c in node.nodes_to:
+            for c in node.nodes_from:
                 allwidth += self._getwidth(c) * 100
             left = x - allwidth / 2
             # draw the function name
             draw.text((x - 10, y - 10), node.eval_strategy.model.__class__.__name__, (0, 0, 0))
 
             # draw the children
-            for c in node.nodes_to:
+            for c in node.nodes_from:
                 wide = self._getwidth(c) * 100
                 draw.line((x, y, left + wide / 2, y + 100), fill=(255, 0, 0))
                 self._drawnode(c, draw, left + wide / 2, y + 100)
