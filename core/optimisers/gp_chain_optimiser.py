@@ -25,8 +25,9 @@ class GPChainOptimiser():
 
 
 
-    def optimise(self) -> Chain:
-        return Chain()
+    def optimise(self, metric_function_for_nodes) -> Chain:
+        fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+        print("fitness", fitness)
 
     def _make_population(self, pop_size) -> List[GP_Node]:
         return [self._random_tree() for _ in range(pop_size)]

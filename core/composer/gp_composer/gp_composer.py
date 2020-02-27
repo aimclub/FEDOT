@@ -9,16 +9,20 @@ from typing import (
 )
 
 from core.composer.chain import Chain
+from functools import partial
 
 from core.models.model import Model
 from core.models.data import InputData
 from core.optimisers.gp_chain_optimiser import GPChainOptimiser
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
+from core.composer.gp_composer.gp_node import GP_Node
+from core.composer.node import Node
 
 
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
-                 max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt], num_of_generations: SupportsInt):
+                 max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
+                 num_of_generations: SupportsInt):
         super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements,
                          max_arity=max_arity, max_depth=max_depth)
         self.pop_size = pop_size
@@ -29,7 +33,36 @@ class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposer_requirements],
                       metrics: Optional[Callable]) -> Chain:
+        metric_function_for_nodes = partial(self._metric_for_nodes,
+                                            metrics, data)
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
-                                     requirements=composer_requirements, primary_node_func=GP_NodeGenerator.primary_node, secondary_node_func=GP_NodeGenerator.secondary_node)
-        best_chain = optimiser.optimise()
+                                     requirements=composer_requirements,
+                                     primary_node_func=GP_NodeGenerator.primary_node,
+                                     secondary_node_func=GP_NodeGenerator.secondary_node)
+        best_chain = optimiser.optimise(metric_function_for_nodes)
         return best_chain
+
+    @staticmethod
+    def _tree_to_chain(tree_root: GP_Node, data: InputData) -> Chain:
+        chain = Chain()
+        nodes = GPComposer._flat_nodes_tree(tree_root)
+        [chain.add_node(node) for node in nodes]
+        chain.reference_data = data
+        return chain
+
+    @staticmethod
+    def _flat_nodes_tree(node):
+        if node.nodes_from:
+            nodes = []
+            for children in node.nodes_from:
+                nodes += GPComposer._flat_nodes_tree(children)
+            return [node._chain_node] + nodes
+        else:
+            return [node._chain_node]
+
+    @staticmethod
+    def _metric_for_nodes(metric_function, data, root: GP_Node) -> float:
+        chain = GPComposer._tree_to_chain(root, data)
+        return metric_function(chain)
+
+

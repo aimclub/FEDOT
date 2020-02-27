@@ -21,20 +21,20 @@ class GP_NodeGenerator:
 
 class GP_Node:
     def __init__(self, chain_node, nodes_to: Optional[List['Node']]):
-        self.__chain_node = chain_node
+        self._chain_node = chain_node
         self.nodes_to = nodes_to
 
     @property
     def nodes_from(self):
-        return self.__chain_node.nodes_from
+        return self._chain_node.nodes_from
 
     @nodes_from.setter
     def nodes_from(self, nodes):
-        self.__chain_node.nodes_from = nodes
+        self._chain_node.nodes_from = nodes
 
     @property
     def eval_strategy(self):
-        return self.__chain_node.eval_strategy
+        return self._chain_node.eval_strategy
 
     def get_depth_up(self):
         if self.nodes_to:
