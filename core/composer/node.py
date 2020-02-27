@@ -18,6 +18,7 @@ class Node(ABC):
         self.eval_strategy = eval_strategy
         self.input_data = input_data
         self.cached_result = None
+        self.is_use_cache = True
 
     @abstractmethod
     def apply(self) -> OutputData:
@@ -53,13 +54,14 @@ class PrimaryNode(Node):
                          eval_strategy=eval_strategy)
 
     def apply(self) -> OutputData:
-        if self.cached_result is not None:
+        if self.cached_result is not None and self.is_use_cache:
             return OutputData(idx=self.input_data.idx,
                               features=self.input_data.features,
                               predict=self.cached_result.cached_output)
         else:
             model_predict = self.eval_strategy.evaluate(self.input_data)
-            self.cached_result = CachedNodeResult(self, model_predict)
+            if self.is_use_cache:
+                self.cached_result = CachedNodeResult(self, model_predict)
             return OutputData(idx=self.input_data.idx,
                               features=self.input_data.features,
                               predict=model_predict)

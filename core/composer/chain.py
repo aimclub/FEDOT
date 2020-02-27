@@ -12,13 +12,26 @@ class Chain:
             self.nodes = self._flat_nodes_tree(base_node)
 
     def evaluate(self, new_data: Optional[InputData] = None) -> OutputData:
+        is_train_models = True
+        is_use_cache = True
+        # if the chain should be evaluated for the new dataset
         if new_data is not None:
-            # if the chain should be evaluated for the new dataset
+            # train models is necessary
+            if any([node.cached_result is None for node in self.nodes]):
+                self.evaluate()
+            # update data in primary nodes
             for node in self.nodes:
                 if isinstance(node, PrimaryNode):
                     node.input_data = new_data
-                node.cached_result = None
-                # TODO clean cache and choice strategy for trained models
+            is_train_models = False
+            is_use_cache = False
+        # update flags in nodes
+        for node in self.nodes:
+            node.eval_strategy.is_train_models = is_train_models
+            node.is_use_cache = is_use_cache
+            if new_data is None:
+                # preserve reference data in nodes if necessary
+                node.input_data = self.reference_data
         return self.root_node.apply()
 
     def add_node(self, new_node: Node):

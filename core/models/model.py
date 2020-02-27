@@ -9,7 +9,6 @@ from xgboost import XGBClassifier
 from core.models.data import (
     InputData,
     split_train_test,
-    preprocess
 )
 from core.repository.dataset_types import (
     DataTypesEnum,
@@ -46,8 +45,7 @@ class LogRegression(Model):
                                      max_iter=100, tol=1e-3, verbose=0)
 
     def predict(self, data: InputData):
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -67,9 +65,7 @@ class XGBoost(Model):
         self.__model = XGBClassifier()
 
     def predict(self, data: InputData):
-        # TODO preprocess in other place
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -89,8 +85,7 @@ class KNN(Model):
         self.__model = SklearnKNN(n_neighbors=15)
 
     def predict(self, data: InputData):
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -105,7 +100,7 @@ def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
     train_data_x, test_data_x = split_train_test(data.features)
     train_data_y, test_data_y = split_train_test(data.target)
     train_idx, test_idx = split_train_test(data.idx)
-    train_data = InputData(features=preprocess(train_data_x), target=train_data_y,
+    train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=train_idx)
-    test_data = InputData(features=preprocess(test_data_x), target=test_data_y, idx=test_idx)
+    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx)
     return train_data, test_data

@@ -8,7 +8,6 @@ from sklearn.datasets import load_iris
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
-from core.models.data import preprocess
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 
@@ -19,8 +18,8 @@ def data_setup():
     np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
+    predictors = predictors[:100]
     response = response[:100]
-    predictors = preprocess(predictors[:100])
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
     return data
 

@@ -3,6 +3,7 @@ from abc import abstractmethod
 from sklearn.metrics import mean_squared_error, roc_auc_score
 
 from core.composer.chain import Chain
+from core.models.model import train_test_data_setup
 
 
 class ChainMetric:
@@ -29,8 +30,9 @@ class MaeMetric(ChainMetric):
 class RocAucMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain) -> float:
-        results = chain.evaluate()
-        return -roc_auc_score(y_score=results.predict, y_true=chain.reference_data.target)
+        _, test_data = train_test_data_setup(chain.reference_data)
+        results = chain.evaluate(test_data)
+        return -roc_auc_score(y_score=results.predict, y_true=test_data.target)
 
 
 class StructuralComplexityMetric(ChainMetric):

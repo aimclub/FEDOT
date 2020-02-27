@@ -58,7 +58,7 @@ class RandomSearchOptimiser:
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],
                  secondary_candidates: List[Any]):
-        best_metric_value = 10
+        best_metric_value = 1000
         best_set = []
         history = []
         for i in range(self.__iter_num):
@@ -78,7 +78,7 @@ class RandomSearchOptimiser:
     def _random_nodeset(self, primary_requirements: List[Any], secondary_requirements: List[Any]) -> List[Node]:
         new_set = []
 
-        num_of_primary = randint(1, len(primary_requirements))
+        num_of_primary = randint(2, len(primary_requirements))
         num_of_secondary = randint(0, len(secondary_requirements))
 
         # random primary nodes
@@ -86,18 +86,6 @@ class RandomSearchOptimiser:
             random_first_model_ind = randint(0, len(primary_requirements) - 1)
             first_node = self.__primary_node_func(primary_requirements[random_first_model_ind], None)
             new_set.append(first_node)
-
-        # random intermediate secondary nodes
-        for _ in range(num_of_secondary):
-            if randint(0, 1) == 1:
-                random_secondary_model_ind = randint(0, num_of_secondary - 1)
-                new_node = self.__secondary_node_func(secondary_requirements[random_secondary_model_ind])
-                new_node.nodes_from = []
-                for _ in range(num_of_primary):
-                    parent = randint(0, len(new_set) - 1)
-                    if parent != new_node:
-                        new_node.nodes_from.append(new_set[parent])
-                new_set.append(new_node)
 
         # random final node
         if len(new_set) > 1:
