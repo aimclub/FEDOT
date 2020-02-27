@@ -7,9 +7,10 @@ from abc import abstractmethod
 from core.composer.tree_drawing import Tree_Drawing
 
 
+
 class GP_NodeGenerator:
     @staticmethod
-    def get_primary_node(model: Model, input_data: Data,nodes_to: Optional[Node] = None ) -> Node:
+    def get_primary_node(model: Model, input_data: Data, nodes_to: Optional[Node] = None) -> Node:
         eval_strategy = EvaluationStrategy(model=model)
         return GP_Primary_Node(input_data=input_data,
                                eval_strategy=eval_strategy, nodes_to=nodes_to)
@@ -54,6 +55,7 @@ class GP_Node(Node):
     def apply(self):
         pass
 
+
 class GP_Secondary_Node(GP_Node):
     def __init__(self, nodes_from: Optional[Node],
                  eval_strategy: Optional[EvaluationStrategy], nodes_to: Optional[List['Node']]):
@@ -72,11 +74,9 @@ class GP_Secondary_Node(GP_Node):
         pass
 
 
-
 class GP_Primary_Node(GP_Node):
     def __init__(self, eval_strategy: Optional[EvaluationStrategy], input_data: Optional[Data],
                  nodes_to: Optional[List['Node']]):
         super().__init__(nodes_from=None,
                          input_data=input_data,
                          eval_strategy=eval_strategy, nodes_to=nodes_to)
-

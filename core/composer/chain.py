@@ -1,24 +1,26 @@
 from typing import Optional
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
-from core.models.data import InputData, OutputData
+from core.models.data import Data
+from core.composer.gp_composer.gp_node import GP_NodeGenerator
+from random import randint, choice
 
 
 class Chain:
-    def __init__(self, base_node: Optional[Node] = None):
-        if base_node is None:
-            self.nodes = []
-        else:
-            self.nodes = self._flat_nodes_tree(base_node)
+    def __init__(self, ):
+        self.nodes = []
+        self.root = None
 
-    def evaluate(self, new_data: Optional[InputData] = None) -> OutputData:
-        if new_data is not None:
-            # if the chain should be evaluated for the new dataset
-            for node in self.nodes:
-                if isinstance(node, PrimaryNode):
-                    node.input_data = new_data
-                node.cached_result = None
-                # TODO clean cache and choice strategy for trained models
+    def evaluate(self) -> Data:
+        return self.root_node.apply()
+
+    def tree_evaluation(self)->Data:
+        return self.root.evaluate_branch()
+
+    def evaluate_with_specific_data(self, new_data: Data) -> Data:
+        for node in self.nodes:
+            if isinstance(node, PrimaryNode):
+                node.data_stream = new_data
         return self.root_node.apply()
 
     def add_node(self, new_node: Node):
@@ -28,16 +30,13 @@ class Chain:
     def update_node(self, new_node: Node):
         raise NotImplementedError()
 
-    def _is_node_has_child(self, node):
-        return any([(node in other_node.nodes_from)
-                    for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
-
     @property
     def root_node(self) -> Optional[Node]:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not self._is_node_has_child(node)][0]
+                if not any([(node in other_node.nodes_from)
+                            for other_node in self.nodes if isinstance(other_node, SecondaryNode)])][0]
         return root
 
     @property
@@ -56,14 +55,8 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
-    def _flat_nodes_tree(self, node):
-        raise NotImplementedError()
+    def get_depth_up(self):
+        return self.root.get_depth_up()
 
-    @property
-    def reference_data(self) -> Optional[InputData]:
-        if len(self.nodes) == 0:
-            return None
-        primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-        assert len(primary_nodes) > 0
-
-        return primary_nodes[0].input_data
+    def get_depth_down(self):
+        return self.root.get_depth_down()
