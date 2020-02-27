@@ -5,6 +5,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
+from core.composer.composer import ComposerRequirements
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -55,18 +56,20 @@ metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROC
 # the choice and initialisation of the composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
 
+composer_requirements = ComposerRequirements(primary_requirements=[models_impl[1]],
+                                             secondary_requirements=[models_impl[1]])
 # the optimal chain generation by composition - the most time-consuming task
 chain_seq = composer.compose_chain(data=dataset_to_compose,
                                    initial_chain=None,
-                                   primary_requirements=[models_impl[1]],
-                                   secondary_requirements=[models_impl[1]],
+                                   composer_requirements=composer_requirements,
                                    metrics=metric_function)
 
+composer_requirements = ComposerRequirements(primary_requirements=[models_impl[1]],
+                                      secondary_requirements=[])
 # the second variant of optimal chain generation by composition with another requirements
 chain_single = composer.compose_chain(data=dataset_to_compose,
                                       initial_chain=None,
-                                      primary_requirements=[models_impl[1]],
-                                      secondary_requirements=[],
+                                      composer_requirements=composer_requirements,
                                       metrics=metric_function)
 
 #

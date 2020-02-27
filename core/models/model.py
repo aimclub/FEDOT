@@ -43,7 +43,7 @@ class LogRegression(Model):
 
         super().__init__(input_type=input_type, output_type=output_type)
         self.__model = SklearnLogReg(random_state=1, solver='liblinear',
-                                     max_iter=100, tol=1e-3, verbose=1)
+                                     max_iter=100, tol=1e-3, verbose=0)
 
     def predict(self, data: InputData):
         prediction_data = preprocess(data.features)
@@ -64,18 +64,21 @@ class XGBoost(Model):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
         super().__init__(input_type=input_type, output_type=output_type)
-        self._model = XGBClassifier()
+        self.__model = XGBClassifier()
 
-    def predict(self, data:InputData):
-        predicted = self.__model.predict(data.features)
+    def predict(self, data: InputData):
+        # TODO preprocess in other place
+        prediction_data = preprocess(data.features)
+        predicted = self.__model.predict(prediction_data)
         return predicted
 
-    def fit(self, data:InputData):
+    def fit(self, data: InputData):
         train_data, _ = train_test_data_setup(data=data)
         self.__model.fit(train_data.features, train_data.target)
 
     def tune(self, data):
-        return 1
+        pass
+
 
 class KNN(Model):
     def __init__(self):
@@ -86,15 +89,17 @@ class KNN(Model):
         self.__model = SklearnKNN(n_neighbors=15)
 
     def predict(self, data: InputData):
-        predicted = self.__model.predict(data.features)
+        prediction_data = preprocess(data.features)
+        predicted = self.__model.predict(prediction_data)
         return predicted
 
     def fit(self, data: InputData):
-        features, target, _ = train_test_data_setup(data=data)
-        self.__model.fit(features, target)
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
 
     def tune(self, data):
         return 1
+
 
 def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
     train_data_x, test_data_x = split_train_test(data.features)
