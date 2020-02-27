@@ -57,8 +57,8 @@ chain_single = composer.compose_chain(data=dataset_to_compose,
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_seq.evaluate(dataset_to_validate)
-predicted_single = chain_single.evaluate(dataset_to_validate)
+predicted_seq = chain_seq.predict(dataset_to_validate)
+predicted_single = chain_single.predict(dataset_to_validate)
 
 # the quality assessment for the simulation results
 roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,

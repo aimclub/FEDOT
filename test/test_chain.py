@@ -66,7 +66,7 @@ def test_models_chain_nested(data_setup):
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    results = chain.evaluate()
+    results = chain.predict()
     assert chain.length == 4
     assert chain.depth == 3
     assert len(results.predict) == len(data.target)
@@ -84,7 +84,7 @@ def test_models_chain_seq(data_setup):
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    results = chain.evaluate()
+    results = chain.predict()
     assert chain.length == 4
     assert chain.depth == 4
     assert len(results.predict) == len(data.target)

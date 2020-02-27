@@ -70,9 +70,9 @@ print("Composition finished")
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_static.evaluate(dataset_to_validate)
-predicted_single = chain_single.evaluate(dataset_to_validate)
-predicted_random_composed = chain_random_composed.evaluate(dataset_to_validate)
+predicted_seq = chain_static.predict(dataset_to_validate)
+predicted_single = chain_single.predict(dataset_to_validate)
+predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
 
 # the quality assessment for the simulation results
 roc_on_valid_seq = roc_auc(y_true=dataset_to_validate.target,
