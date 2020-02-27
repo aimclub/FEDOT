@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Tuple
 
-from dataclasses import dataclass
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from xgboost import XGBClassifier
@@ -9,7 +9,7 @@ from xgboost import XGBClassifier
 from core.models.data import (
     InputData,
     split_train_test,
-    normalize
+    preprocess
 )
 from core.repository.dataset_types import (
     DataTypesEnum,
@@ -46,7 +46,8 @@ class LogRegression(Model):
                                      max_iter=100, tol=1e-3, verbose=1)
 
     def predict(self, data: InputData):
-        predicted = self.__model.predict(data.features)
+        prediction_data = preprocess(data.features)
+        predicted = self.__model.predict(prediction_data)
         return predicted
 
     def fit(self, data: InputData):
@@ -99,7 +100,7 @@ def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
     train_data_x, test_data_x = split_train_test(data.features)
     train_data_y, test_data_y = split_train_test(data.target)
     train_idx, test_idx = split_train_test(data.idx)
-    train_data = InputData(features=normalize(train_data_x), target=train_data_y,
+    train_data = InputData(features=preprocess(train_data_x), target=train_data_y,
                            idx=train_idx)
-    test_data = InputData(features=normalize(test_data_x), target=test_data_y, idx=test_idx)
+    test_data = InputData(features=preprocess(test_data_x), target=test_data_y, idx=test_idx)
     return train_data, test_data

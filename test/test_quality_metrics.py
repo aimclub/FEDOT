@@ -4,7 +4,7 @@ from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.data import InputData, normalize, split_train_test
+from core.models.data import InputData, preprocess, split_train_test
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 from core.repository.quality_metrics_repository import MetricsRepository, ComplexityMetricsEnum, \
@@ -18,7 +18,7 @@ def data_setup():
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     response = response[:100]
-    predictors = normalize(predictors[:100])
+    predictors = preprocess(predictors[:100])
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
