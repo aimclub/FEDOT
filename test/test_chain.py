@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
@@ -30,8 +31,13 @@ def file_data_setup():
     file = 'data/test_dataset.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
-    input_data.target = np.array([np.int64(x) for x in input_data.target])
+    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
     return input_data
+
+
+def _to_numerical(categorical_ids: np.ndarray):
+    encoded = pd.factorize(categorical_ids)[0]
+    return encoded
 
 
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
@@ -64,26 +70,6 @@ def test_models_chain_nested(data_setup):
     results = chain.evaluate()
     assert chain.length == 4
     assert chain.depth == 3
-    assert len(results.predict) == len(data.target)
-
-
-def test_models_chain_nested(data_setup):
-    data = data_setup
-    chain = Chain()
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2])
-    y5 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y3, y4])
-    chain.add_node(y1)
-    chain.add_node(y2)
-    chain.add_node(y3)
-    chain.add_node(y4)
-    chain.add_node(y5)
-    results = chain.evaluate()
-    assert chain.length == 5
-    assert chain.depth == 4
     assert len(results.predict) == len(data.target)
 
 

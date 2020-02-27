@@ -45,7 +45,7 @@ def test_structural_quality(data_setup):
     chain.add_node(y3)
     chain.add_node(y4)
 
-    metric_value = metric_functions(chain, data)
+    metric_value = metric_functions(chain)
     assert metric_value == 13
 
 
@@ -65,5 +65,5 @@ def test_classification_quality_metric(data_setup):
     chain.add_node(y3)
     chain.add_node(y4)
 
-    metric_value = metric_functions(chain, data)
+    metric_value = metric_functions(chain)
     assert 0.0 < metric_value < 1.0
