@@ -24,7 +24,7 @@ class GPChainOptimiser():
         Tree_Drawing().draw_branch(node=self.population[1], jpeg="tree.png")
         print("J")
 
-    def optimise(self, metric_function_for_nodes) -> List[GP_Node]:
+    def optimise(self, metric_function_for_nodes) -> GP_Node:
         #fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
         fitness = round(metric_function_for_nodes(self.population[1]), 3)
         print("fitness", fitness)

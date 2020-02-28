@@ -11,6 +11,7 @@ from core.composer.chain import Chain, Node
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
+from core.composer.composer import ComposerRequirements
 
 
 class RandomSearchComposer:
@@ -19,8 +20,7 @@ class RandomSearchComposer:
 
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      primary_requirements: List[Model],
-                      secondary_requirements: List[Model],
+                      composer_requirements: ComposerRequirements,
                       metrics: Optional[Callable]) -> Chain:
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
@@ -29,7 +29,7 @@ class RandomSearchComposer:
                                           NodeGenerator.primary_node,
                                           NodeGenerator.secondary_node)
         best_nodes_set, _ = optimiser.optimise(metric_function_for_nodes,
-                                               primary_requirements, secondary_requirements)
+                                               composer_requirements.primary_requirements, composer_requirements.secondary_requirements)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]

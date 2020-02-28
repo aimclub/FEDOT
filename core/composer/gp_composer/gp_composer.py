@@ -40,13 +40,13 @@ class GPComposer(Composer):
                                      requirements=composer_requirements,
                                      primary_node_func=GP_NodeGenerator.primary_node,
                                      secondary_node_func=GP_NodeGenerator.secondary_node)
-        best_chain = optimiser.optimise(metric_function_for_nodes)
+        best_chain = GPComposer._tree_to_chain(tree_root=optimiser.optimise(metric_function_for_nodes),data=data)
         return best_chain
 
     @staticmethod
     def _tree_to_chain(tree_root: GP_Node, data: InputData) -> Chain:
         chain = Chain()
-        nodes = GPComposer._flat_nodes_tree(tree_root)
+        nodes = GPComposer._flat_nodes_tree(deepcopy(tree_root))
         for node in nodes:
             if node.nodes_from:
                 for i in range(len(node.nodes_from)):
@@ -69,5 +69,3 @@ class GPComposer(Composer):
     def _metric_for_nodes(metric_function, data, root: GP_Node) -> float:
         chain = GPComposer._tree_to_chain(root, data)
         return metric_function(chain)
-
-
