@@ -13,10 +13,11 @@ from functools import partial
 
 from core.models.model import Model
 from core.models.data import InputData
-from core.optimisers.gp_chain_optimiser import GPChainOptimiser
+from core.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
 from core.composer.gp_composer.gp_node import GP_Node
 from core.composer.node import Node
+from copy import deepcopy
 
 
 class GPComposer_requirements(ComposerRequirements):
@@ -46,7 +47,11 @@ class GPComposer(Composer):
     def _tree_to_chain(tree_root: GP_Node, data: InputData) -> Chain:
         chain = Chain()
         nodes = GPComposer._flat_nodes_tree(tree_root)
-        [chain.add_node(node) for node in nodes]
+        for node in nodes:
+            if node.nodes_from:
+                for i in range(len(node.nodes_from)):
+                    node.nodes_from[i] = node.nodes_from[i]._chain_node
+            chain.add_node(node._chain_node)
         chain.reference_data = data
         return chain
 
@@ -56,9 +61,9 @@ class GPComposer(Composer):
             nodes = []
             for children in node.nodes_from:
                 nodes += GPComposer._flat_nodes_tree(children)
-            return [node._chain_node] + nodes
+            return [node] + nodes
         else:
-            return [node._chain_node]
+            return [node]
 
     @staticmethod
     def _metric_for_nodes(metric_function, data, root: GP_Node) -> float:

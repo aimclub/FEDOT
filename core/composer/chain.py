@@ -2,7 +2,7 @@ from typing import Optional
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
-
+from copy import deepcopy
 
 class Chain:
     def __init__(self, base_node: Optional[Node] = None):
@@ -73,4 +73,4 @@ class Chain:
         if len(self.nodes) > 0:
             primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
             for node in primary_nodes:
-                node.input_data = data
+                node.input_data = deepcopy(data)
