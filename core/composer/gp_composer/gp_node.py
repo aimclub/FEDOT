@@ -5,6 +5,7 @@ from core.models.model import Model
 from typing import (List, Optional)
 from abc import abstractmethod
 from core.composer.node import NodeGenerator
+from copy import deepcopy
 
 
 class GP_NodeGenerator:
@@ -48,3 +49,24 @@ class GP_Node:
             return 0
         else:
             return 1 + max([next_node.get_depth_down() for next_node in self.nodes_from])
+
+    def get_nodes_from_layer(self, selected_depth):
+        if self.nodes_from:
+            if self.get_depth_up() == selected_depth:
+                return [self]
+            else:
+                nodes = []
+                for child in self.nodes_from:
+                    nodes += child.get_nodes_from_layer(selected_depth)
+                if nodes:
+                    return nodes
+                else:
+                    return []
+        else:
+            return []
+
+    def swap_nodes(self, other):
+        newnode = deepcopy(other)
+        newnode.nodes_to = self.nodes_to
+        self.nodes_to.nodes_from[self.nodes_to.nodes_from.index(self)] = newnode
+        self = newnode
