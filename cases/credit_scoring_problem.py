@@ -4,11 +4,12 @@ from pathlib import Path
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from core.composer.chain import Chain
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
-from core.models.model import XGBoost
+from core.models.model import MLP
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -19,6 +20,16 @@ from core.repository.task_types import MachineLearningTasksEnum
 
 random.seed(1)
 np.random.seed(1)
+
+
+def calculate_validation_metric_for_scoring_model(chain: Chain, dataset_to_validate: InputData) -> float:
+    # the execution of the obtained composite models
+    predicted = chain.predict(dataset_to_validate)
+    # the quality assessment for the simulation results
+    roc_auc_value = roc_auc(y_true=dataset_to_validate.target,
+                            y_score=predicted.predict)
+    return roc_auc_value
+
 
 # the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
 
@@ -56,34 +67,23 @@ chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             primary_requirements=models_impl,
-                                            secondary_requirements=[XGBoost()],
+                                            secondary_requirements=[MLP()],
                                             metrics=metric_function)
 
 # the single-model variant of optimal chain
 chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
                                                                     initial_chain=None,
-                                                                    primary_requirements=[XGBoost()],
+                                                                    primary_requirements=[MLP()],
                                                                     secondary_requirements=[],
                                                                     metrics=metric_function)
 
 print("Composition finished")
 
-#
-# the execution of the obtained composite models
-predicted_seq = chain_static.predict(dataset_to_validate)
-predicted_single = chain_single.predict(dataset_to_validate)
-predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
-
-# the quality assessment for the simulation results
-roc_on_valid_seq = roc_auc(y_true=dataset_to_validate.target,
-                           y_score=predicted_seq.predict)
-
-roc_on_valid_single = roc_auc(y_true=dataset_to_validate.target,
-                              y_score=predicted_single.predict)
-
-roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
-                                       y_score=predicted_random_composed.predict)
+# the quality assessment for the obtained composite models
+roc_on_valid_static = calculate_validation_metric_for_scoring_model(chain_static, dataset_to_validate)
+roc_on_valid_single = calculate_validation_metric_for_scoring_model(chain_single, dataset_to_validate)
+roc_on_valid_random_composed = calculate_validation_metric_for_scoring_model(chain_random_composed, dataset_to_validate)
 
 print(f'Composed ROC AUC is {round(roc_on_valid_random_composed, 3)}')
-print(f'Static ROC AUC is {round(roc_on_valid_seq, 3)}')
+print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
 print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
