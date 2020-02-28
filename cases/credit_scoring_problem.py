@@ -81,6 +81,7 @@ composer_requirements = GPComposer_requirements(primary_requirements=[LogRegress
 
 gp_chain = gp_composer.compose_chain(data=dataset_to_compose, initial_chain=None,
                                      composer_requirements=composer_requirements, metrics=metric_function)
+
 print("Composition finished")
 
 #

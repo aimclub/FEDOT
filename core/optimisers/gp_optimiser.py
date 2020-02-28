@@ -22,11 +22,11 @@ class GPChainOptimiser():
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
         Tree_Drawing().draw_branch(node=self.population[0], jpeg="tree.png")
-        print("I")
 
-    def optimise(self, metric_function_for_nodes) -> Chain:
+    def optimise(self, metric_function_for_nodes)->List[GP_Node]:
         fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
         print("fitness", fitness)
+        return self.population[0]
 
     def _make_population(self, pop_size) -> List[GP_Node]:
         return [self._random_tree() for _ in range(pop_size)]
