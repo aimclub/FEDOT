@@ -12,7 +12,7 @@ from core.models.model import (
     KNN,
     DecisionTree,
     RandomForest,
-    MLP_Classifier,
+    MLP,
     LDA
 )
 from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
@@ -93,9 +93,8 @@ class ModelTypesRepository:
         ModelTypesIdsEnum.knn: KNN,
         ModelTypesIdsEnum.dt: DecisionTree,
         ModelTypesIdsEnum.rf: RandomForest,
-        ModelTypesIdsEnum.mlp: MLP_Classifier,
+        ModelTypesIdsEnum.mlp: MLP,
         ModelTypesIdsEnum.lda: LDA,
-        # ModelTypesIdsEnum.qda: QDA
     }
 
     def _initialise_tree(self):

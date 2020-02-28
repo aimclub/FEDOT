@@ -166,7 +166,7 @@ class LDA(Model):
 
 
 class QDA(Model):
-
+    # TODO investigate NaN in results
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
@@ -186,7 +186,7 @@ class QDA(Model):
         return 1
 
 
-class MLP_Classifier(Model):
+class MLP(Model):
 
     def __init__(self):
         input_type = NumericalDataTypesEnum.table

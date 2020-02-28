@@ -14,18 +14,18 @@ from core.models.model import Model
 
 
 class RandomSearchComposer:
+    def __init__(self, iter_num: int = 10):
+        self.__iter_num = iter_num
 
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       primary_requirements: List[Model],
                       secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
-        iter_num = 5
-
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
 
-        optimiser = RandomSearchOptimiser(iter_num,
+        optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
                                           NodeGenerator.secondary_node)
         best_nodes_set, _ = optimiser.optimise(metric_function_for_nodes,
@@ -78,8 +78,7 @@ class RandomSearchOptimiser:
     def _random_nodeset(self, primary_requirements: List[Any], secondary_requirements: List[Any]) -> List[Node]:
         new_set = []
 
-        num_of_primary = randint(2, len(primary_requirements))
-        num_of_secondary = randint(0, len(secondary_requirements))
+        num_of_primary = randint(1, len(primary_requirements))
 
         # random primary nodes
         for _ in range(num_of_primary):
