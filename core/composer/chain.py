@@ -1,29 +1,47 @@
+from copy import deepcopy
 from typing import Optional
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
-from copy import deepcopy
+
 
 class Chain:
     def __init__(self, base_node: Optional[Node] = None):
         if base_node is None:
             self.nodes = []
+            self.reference_data = None
         else:
             self.nodes = self._flat_nodes_tree(base_node)
+            self.reference_data = deepcopy([node for node in self.nodes if isinstance(node, PrimaryNode)][0])
 
-    def evaluate(self, new_data: Optional[InputData] = None) -> OutputData:
-        if new_data is not None:
-            # if the chain should be evaluated for the new dataset
-            for node in self.nodes:
-                if isinstance(node, PrimaryNode):
-                    node.input_data = new_data
-                node.cached_result = None
-                # TODO clean cache and choice strategy for trained models
+    def train(self) -> OutputData:
+        # if the chain should be evaluated for the new dataset
+        for node in self.nodes:
+            node.eval_strategy.is_train_models = True
+            node.is_caching = True
+            # set reference data in nodes
+            node.input_data = deepcopy(self.reference_data)
+        return self.root_node.apply()
+
+    def predict(self, new_data: InputData) -> OutputData:
+        if any([node.cached_result is None for node in self.nodes]):
+            self.train()
+            # update data in primary nodes
+        for node in self.nodes:
+            if isinstance(node, PrimaryNode):
+                node.input_data = deepcopy(new_data)
+        # update flags in nodes
+        for node in self.nodes:
+            node.eval_strategy.is_train_models = False
+            node.is_caching = False
         return self.root_node.apply()
 
     def add_node(self, new_node: Node):
         # Append new node to chain
         self.nodes.append(new_node)
+        if isinstance(new_node, PrimaryNode):
+            # TODO refactor
+            self.reference_data = deepcopy(new_node.input_data)
 
     def update_node(self, new_node: Node):
         raise NotImplementedError()
@@ -66,7 +84,7 @@ class Chain:
         primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
         assert len(primary_nodes) > 0
 
-        return primary_nodes[0].input_data
+        return deepcopy(primary_nodes[0].input_data)
 
     @reference_data.setter
     def reference_data(self, data):

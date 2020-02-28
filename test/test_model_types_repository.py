@@ -2,7 +2,8 @@ from unittest.mock import patch
 
 from core.models.model import (
     LogRegression,
-    XGBoost
+    XGBoost,
+    KNN
 )
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -72,7 +73,7 @@ def test_search_in_repository_by_model_id(mock_init_tree):
     impl = repo.model_by_id(model_names[0])
 
     assert model_names[0] is ModelTypesIdsEnum.xgboost
-    assert len(model_names) == 2
+    assert len(model_names) == 3
     assert isinstance(impl, XGBoost)
 
 
@@ -87,9 +88,9 @@ def test_search_in_repository_by_metainfo(mock_init_tree):
                                                task_type=MachineLearningTasksEnum.classification))
     impl = repo.model_by_id(model_names[1])
 
-    assert model_names[1] is ModelTypesIdsEnum.logit
-    assert len(model_names) == 2
-    assert isinstance(impl, LogRegression)
+    assert model_names[1] is ModelTypesIdsEnum.knn
+    assert len(model_names) == 3
+    assert isinstance(impl, KNN)
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',

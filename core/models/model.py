@@ -2,18 +2,22 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Tuple
 
+from sklearn.discriminant_analysis import (
+    LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+)
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from core.models.data import (
     InputData,
     split_train_test,
-    preprocess
 )
 from core.repository.dataset_types import (
-    DataTypesEnum,
-    NumericalDataTypesEnum
+    DataTypesEnum, NumericalDataTypesEnum
 )
 
 
@@ -38,16 +42,16 @@ class Model(ABC):
 
 class LogRegression(Model):
     def __init__(self):
+        # TODO check is necessary
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
 
         super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = SklearnLogReg(random_state=1, solver='liblinear',
-                                     max_iter=100, tol=1e-3, verbose=0)
+        self.__model = SklearnLogReg(random_state=1, solver='liblinear', max_iter=100,
+                                     tol=1e-3, verbose=0)
 
     def predict(self, data: InputData):
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -67,9 +71,7 @@ class XGBoost(Model):
         self.__model = XGBClassifier()
 
     def predict(self, data: InputData):
-        # TODO preprocess in other place
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -78,6 +80,48 @@ class XGBoost(Model):
 
     def tune(self, data):
         pass
+
+
+class RandomForest(Model):
+
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = RandomForestClassifier(n_estimators=100, max_depth=2, n_jobs=-1)
+
+    def predict(self, data: InputData):
+        predicted = self.__model.predict_proba(data.features)[:, 1]
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
+
+
+class DecisionTree(Model):
+
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = DecisionTreeClassifier(max_depth=2, )
+
+    def predict(self, data: InputData):
+        predicted = self.__model.predict_proba(data.features)[:, 1]
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
 
 
 class KNN(Model):
@@ -89,8 +133,70 @@ class KNN(Model):
         self.__model = SklearnKNN(n_neighbors=15)
 
     def predict(self, data: InputData):
-        prediction_data = preprocess(data.features)
-        predicted = self.__model.predict(prediction_data)
+        predicted = self.__model.predict_proba(data.features)[:, 1]
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
+
+
+class LDA(Model):
+
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = LinearDiscriminantAnalysis(solver="svd")
+
+    def predict(self, data: InputData):
+        predicted = self.__model.predict_proba(data.features)[:, 1]
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
+
+
+class QDA(Model):
+    # TODO investigate NaN in results
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = QuadraticDiscriminantAnalysis()
+
+    def predict(self, data: InputData):
+        predicted = self.__model.predict_proba(data.features)[:, 1]
+        return predicted
+
+    def fit(self, data: InputData):
+        train_data, _ = train_test_data_setup(data=data)
+        self.__model.fit(train_data.features, train_data.target)
+
+    def tune(self, data):
+        return 1
+
+
+class MLP(Model):
+
+    def __init__(self):
+        input_type = NumericalDataTypesEnum.table
+        output_type = NumericalDataTypesEnum.vector
+
+        super().__init__(input_type=input_type, output_type=output_type)
+        self.__model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500)
+
+    def predict(self, data: InputData):
+        predicted = self.__model.predict_proba(data.features)[:, 1]
         return predicted
 
     def fit(self, data: InputData):
@@ -105,7 +211,7 @@ def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
     train_data_x, test_data_x = split_train_test(data.features)
     train_data_y, test_data_y = split_train_test(data.target)
     train_idx, test_idx = split_train_test(data.idx)
-    train_data = InputData(features=preprocess(train_data_x), target=train_data_y,
+    train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=train_idx)
-    test_data = InputData(features=preprocess(test_data_x), target=test_data_y, idx=test_idx)
+    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx)
     return train_data, test_data

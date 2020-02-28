@@ -11,25 +11,25 @@ from core.composer.chain import Chain, Node
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
-from core.composer.composer import ComposerRequirements
 
 
 class RandomSearchComposer:
+    def __init__(self, iter_num: int = 10):
+        self.__iter_num = iter_num
 
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      composer_requirements: ComposerRequirements,
+                      primary_requirements: List[Model],
+                      secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
-        iter_num = 5
-
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
 
-        optimiser = RandomSearchOptimiser(iter_num,
+        optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
                                           NodeGenerator.secondary_node)
         best_nodes_set, _ = optimiser.optimise(metric_function_for_nodes,
-                                               composer_requirements.primary_requirements, composer_requirements.secondary_requirements)
+                                               primary_requirements, secondary_requirements)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
@@ -58,7 +58,7 @@ class RandomSearchOptimiser:
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],
                  secondary_candidates: List[Any]):
-        best_metric_value = 10
+        best_metric_value = 1000
         best_set = []
         history = []
         for i in range(self.__iter_num):
@@ -79,25 +79,12 @@ class RandomSearchOptimiser:
         new_set = []
 
         num_of_primary = randint(1, len(primary_requirements))
-        num_of_secondary = randint(0, len(secondary_requirements))
 
         # random primary nodes
         for _ in range(num_of_primary):
             random_first_model_ind = randint(0, len(primary_requirements) - 1)
             first_node = self.__primary_node_func(primary_requirements[random_first_model_ind], None)
             new_set.append(first_node)
-
-        # random intermediate secondary nodes
-        for _ in range(num_of_secondary):
-            if randint(0, 1) == 1:
-                random_secondary_model_ind = randint(0, num_of_secondary - 1)
-                new_node = self.__secondary_node_func(secondary_requirements[random_secondary_model_ind])
-                new_node.nodes_from = []
-                for _ in range(num_of_primary):
-                    parent = randint(0, len(new_set) - 1)
-                    if parent != new_node:
-                        new_node.nodes_from.append(new_set[parent])
-                new_set.append(new_node)
 
         # random final node
         if len(new_set) > 1:

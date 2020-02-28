@@ -6,10 +6,8 @@ import pytest
 from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
+from core.composer.node import NodeGenerator
 from core.models.data import InputData
-from core.models.data import preprocess
-from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 
 
@@ -19,8 +17,8 @@ def data_setup():
     np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
+    predictors = predictors[:100]
     response = response[:100]
-    predictors = preprocess(predictors[:100])
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
     return data
 
@@ -44,11 +42,10 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_models_sequence(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
 
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
+    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
     results = y4.apply()
     assert y4.cached_result.cached_output.size == data.target.size
     assert len(y4.cached_result.last_parents_ids) == 2
@@ -58,16 +55,15 @@ def test_models_sequence(data_fixture, request):
 def test_models_chain_nested(data_setup):
     data = data_setup
     chain = Chain()
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
+    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    results = chain.evaluate()
+    results = chain.predict(data)
     assert chain.length == 4
     assert chain.depth == 3
     assert len(results.predict) == len(data.target)
@@ -76,16 +72,16 @@ def test_models_chain_nested(data_setup):
 def test_models_chain_seq(data_setup):
     data = data_setup
     chain = Chain()
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y3])
+    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
+
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    results = chain.evaluate()
+    results = chain.predict(data)
     assert chain.length == 4
     assert chain.depth == 4
     assert len(results.predict) == len(data.target)
