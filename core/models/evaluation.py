@@ -19,11 +19,13 @@ class EvaluationStrategy:
         data.features = EvaluationStrategy.preprocess(data.features)
         if self.is_train_models:
             self.model.fit(data=data)
-        return self.model.predict(data=data)
+        prediction = self.model.predict(data=data)
+        if any([np.isnan(_) for _ in prediction]):
+            print("Value error")
+        return prediction
 
     @staticmethod
     def preprocess(x):
-        """Normalize data with sklearn.preprocessing.scale()"""
         imp = SimpleImputer(missing_values=np.nan, strategy='mean')
         imp.fit(x)
         x = imp.transform(x)

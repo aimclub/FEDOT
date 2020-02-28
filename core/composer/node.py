@@ -41,9 +41,9 @@ class NodeGenerator:
                            eval_strategy=eval_strategy)
 
     @staticmethod
-    def secondary_node(model: Model) -> Node:
+    def secondary_node(model: Model, nodes_from: Optional[List[Node]] = None) -> Node:
         eval_strategy = EvaluationStrategy(model=deepcopy(model))
-        return SecondaryNode(nodes_from=None,
+        return SecondaryNode(nodes_from=nodes_from,
                              eval_strategy=eval_strategy)
 
 

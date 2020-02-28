@@ -3,9 +3,8 @@ import pytest
 from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
+from core.composer.node import NodeGenerator
 from core.models.data import InputData, split_train_test
-from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 from core.repository.quality_metrics_repository import MetricsRepository, ComplexityMetricsEnum, \
     ClassificationMetricsEnum
@@ -35,11 +34,10 @@ def test_structural_quality(data_setup):
     metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
 
     chain = Chain()
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
+    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
@@ -55,11 +53,10 @@ def test_classification_quality_metric(data_setup):
     metric_functions = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     chain = Chain()
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    y1 = PrimaryNode(input_data=data, eval_strategy=eval_strategy)
-    y2 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y3 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y1])
-    y4 = SecondaryNode(eval_strategy=eval_strategy, nodes_from=[y2, y3])
+    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)

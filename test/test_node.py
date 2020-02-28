@@ -9,7 +9,6 @@ from core.models.data import (
     InputData,
     split_train_test,
 )
-from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 
 
@@ -53,9 +52,7 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train_data_x, train_data_y)
     expected_result = test_skl_model.predict(test_data_x)
 
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    test_model_node = PrimaryNode(input_data=data_set,
-                                  eval_strategy=eval_strategy)
+    test_model_node = NodeGenerator.primary_node(input_data=data_set, model=LogRegression())
     actual_result = test_model_node.apply()
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)

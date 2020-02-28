@@ -20,7 +20,7 @@ class RandomSearchComposer:
                       primary_requirements: List[Model],
                       secondary_requirements: List[Model],
                       metrics: Optional[Callable]) -> Chain:
-        iter_num = 1000
+        iter_num = 5
 
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
