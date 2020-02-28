@@ -6,6 +6,5 @@ pytest==5.2.0
 anytree==2.8.0
 typing==3.7.4.1
 scikit_learn==0.22.1
-PyQt5==5.14.1
 matplotlib==3.0.2
 networkx==2.4
