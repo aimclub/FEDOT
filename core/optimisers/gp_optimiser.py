@@ -95,8 +95,8 @@ class GPChainOptimiser():
         if tree1 is tree2:
             return deepcopy(tree1)
         tree1_copy = deepcopy(tree1)
-        rnlayer = randint(0, tree1_copy.depth - 1)
-        rnselflayer = randint(0, tree2.depth - 1)
+        rnlayer = randint(0, tree1_copy.get_depth_down() - 1)
+        rnselflayer = randint(0, tree2.get_depth_down() - 1)
         if rnlayer == 0 and rnselflayer == 0:
             return deepcopy(tree2)
 
@@ -104,9 +104,9 @@ class GPChainOptimiser():
         nodeforchange = choice(tree2.get_nodes_from_layer(rnselflayer))
 
         Tree_Drawing().draw_branch(node=tree1,
-                                   jpeg=f'HistoryFiles/Trees/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.function.name}).png')
+                                   jpeg=f'HistoryFiles/Trees/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
         Tree_Drawing().draw_branch(node=tree2,
-                                   jpeg=f'HistoryFiles/Trees/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.function.name}).png')
+                                   jpeg=f'HistoryFiles/Trees/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
 
         if rnlayer == 0:
             return tree1_copy
