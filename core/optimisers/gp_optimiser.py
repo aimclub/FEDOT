@@ -9,6 +9,8 @@ from core.composer.chain import Chain
 from core.models.data import Data
 from random import choice, randint
 from core.composer.tree_drawing import Tree_Drawing
+from copy import deepcopy
+import numpy as np
 
 
 class GPChainOptimiser():
@@ -22,12 +24,24 @@ class GPChainOptimiser():
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
         Tree_Drawing().draw_branch(node=self.population[1], jpeg="tree.png")
-        print("J")
 
     def optimise(self, metric_function_for_nodes) -> GP_Node:
-        #fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
-        fitness = round(metric_function_for_nodes(self.population[1]), 3)
-        print("fitness", fitness)
+        for generation_num in range(self.requirements.num_of_generations):
+            print("GP generation num:\n", generation_num)
+            self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+            if not self.requirements.mimimization:
+                self.the_best_ind = self.population[np.argsort(self.fitness)[len(self.fitness) - 1]]
+            else:
+                self.the_best_ind = self.population[np.argsort(self.fitness)[0]]
+
+            selected_indexes = GPChainOptimiser._tournament_selection(fitnesses=self.fitness,
+                                                                      minimization=self.requirements.minimization,
+                                                                      group_size=5)
+            new_population = []
+            for ind_num in range(self.requirements.pop_size - 1):
+                new_population.append(GPChainOptimiser._standard_crossover(self.population[selected_indexes[ind_num][0]],
+                                                     self.population[selected_indexes[ind_num][1]], ind_num, generation_num))
+
         return self.population[0]
 
     def _make_population(self, pop_size) -> List[GP_Node]:
@@ -55,3 +69,53 @@ class GPChainOptimiser():
                 self._tree_growth(new_node)
                 node_offspring.append(new_node)
         node_parent.nodes_from = node_offspring
+
+    @staticmethod
+    def _tournament_selection(fitnesses, minimization=False, group_size=5):
+        selected = []
+        pair_num = 0
+        for j in range(len(fitnesses) * 2):
+            if not j % 2:
+                selected.append([])
+                if j > 1:
+                    pair_num += 1
+
+            tournir = [randint(0, len(fitnesses) - 1) for _ in range(group_size)]
+            fitnessobjfromtour = [fitnesses[tournir[i]] for i in range(group_size)]
+
+            if minimization:
+                selected[pair_num].append(tournir[np.argmin(fitnessobjfromtour)])
+            else:
+                selected[pair_num].append(tournir[np.argmax(fitnessobjfromtour)])
+
+        return selected
+
+    @staticmethod
+    def _standard_crossover(tree1, tree2, pair_num=None, pop_num=None, ):
+        if tree1 is tree2:
+            return deepcopy(tree1)
+        tree1_copy = deepcopy(tree1)
+        rnlayer = randint(0, tree1_copy.depth - 1)
+        rnselflayer = randint(0, tree2.depth - 1)
+        if rnlayer == 0 and rnselflayer == 0:
+            return deepcopy(tree2)
+
+        changednode = choice(tree1_copy.get_nodes_from_layer(rnlayer))
+        nodeforchange = choice(tree2.get_nodes_from_layer(rnselflayer))
+
+        tree1.drawtree(
+            jpeg=f'HistoryFiles/Trees/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.function.name}).png')
+        tree2.drawtree(
+            jpeg=f'HistoryFiles/Trees/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.function.name}).png')
+
+        if rnlayer == 0:
+            tree1_copy.change_root_in_tree(deepcopy(nodeforchange))
+            return tree1_copy
+
+        if changednode.nodedepth + nodeforchange.depth - nodeforchange.nodedepth < tree1.max_depth:
+            changednode.swap_nodes(nodeforchange)
+            tree1_copy.refresh_depths_in_tree()
+            tree1_copy.drawtree(jpeg=f'HistoryFiles/Trees/result_pair{pair_num}_pop{pop_num}.png')
+            return tree1_copy
+        else:
+            return tree1_copy

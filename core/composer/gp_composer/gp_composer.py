@@ -23,11 +23,12 @@ from copy import deepcopy
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
-                 num_of_generations: SupportsInt):
+                 num_of_generations: SupportsInt, minimization=False):
         super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements,
                          max_arity=max_arity, max_depth=max_depth)
         self.pop_size = pop_size
         self.num_of_generations = num_of_generations
+        self.minimization =minimization
 
 
 class GPComposer(Composer):
