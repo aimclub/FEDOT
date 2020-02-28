@@ -6,7 +6,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
-from core.composer.visualisation import ChainStyles, ChainVisualiser
+from core.composer.visualisation import ChainVisualiser
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -73,5 +73,5 @@ roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
 print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')
 print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')
 
-visualiser = ChainVisualiser(ChainStyles.circular)
+visualiser = ChainVisualiser()
 visualiser.visualise(chain_seq)

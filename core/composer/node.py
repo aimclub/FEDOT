@@ -23,6 +23,11 @@ class Node(ABC):
     def apply(self) -> OutputData:
         raise NotImplementedError()
 
+    def __str__(self):
+        node_name = f'{self.__class__.__name__}'
+        model = f'{self.eval_strategy.model}'
+        return f'{node_name}: {model}'
+
 
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):

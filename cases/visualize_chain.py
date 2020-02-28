@@ -5,7 +5,7 @@ import numpy as np
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
-from core.composer.visualisation import ChainStyles, ChainVisualiser
+from core.composer.visualisation import ChainVisualiser
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -57,5 +57,4 @@ if __name__ == '__main__':
                                    secondary_requirements=[models[0]],
                                    metrics=metric_function)
 
-    visualiser = ChainVisualiser(ChainStyles.circular)
-    visualiser.visualise(chain)
+    visualiser = ChainVisualiser().visualise(chain)
