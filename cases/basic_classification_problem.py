@@ -1,11 +1,12 @@
+import os
 import random
-from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
+from core.composer.visualisation import ChainVisualiser
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -14,17 +15,19 @@ from core.repository.model_types_repository import (
 )
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
+from core.utils import project_root
 
 random.seed(1)
 np.random.seed(1)
 
-file_path = '../test/data/test_dataset.csv'
-path = Path(__file__).parent / file_path
+file_path = 'test/data/test_dataset.csv'
+full_path = os.path.join(str(project_root()), file_path)
+dataset_from_file = InputData.from_csv(full_path)
 
 # a dataset that will be used as a train and test set during composition
-dataset_to_compose = InputData.from_csv(path)
+dataset_to_compose = dataset_from_file
 # a dataset for a final validation of the composed model
-dataset_to_validate = InputData.from_csv(path)
+dataset_to_validate = dataset_from_file
 
 # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()
@@ -69,3 +72,6 @@ roc_on_train_single = roc_auc(y_true=dataset_to_validate.target,
 
 print(f'Seq chain ROC AUC is {round(roc_on_train_seq, 3)}')
 print(f'Single-model chain ROC AUC is {round(roc_on_train_single, 3)}')
+
+visualiser = ChainVisualiser()
+visualiser.visualise(chain_seq)

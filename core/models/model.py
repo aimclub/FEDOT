@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
+
 from dataclasses import dataclass
 from typing import Tuple
 
@@ -39,6 +41,9 @@ class Model(ABC):
     def tune(self, data):
         raise NotImplementedError()
 
+    def __str__(self):
+        return f'{self.__class__.__name__}'
+
 
 class LogRegression(Model):
     def __init__(self):
@@ -63,7 +68,6 @@ class LogRegression(Model):
 
 
 class XGBoost(Model):
-
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
@@ -83,7 +87,6 @@ class XGBoost(Model):
 
 
 class RandomForest(Model):
-
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
@@ -104,7 +107,6 @@ class RandomForest(Model):
 
 
 class DecisionTree(Model):
-
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
@@ -145,7 +147,6 @@ class KNN(Model):
 
 
 class LDA(Model):
-
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
@@ -187,7 +188,6 @@ class QDA(Model):
 
 
 class MLP(Model):
-
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
