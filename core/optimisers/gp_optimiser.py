@@ -39,8 +39,11 @@ class GPChainOptimiser():
                                                                       group_size=5)
             new_population = []
             for ind_num in range(self.requirements.pop_size - 1):
-                new_population.append(GPChainOptimiser._standard_crossover(self.population[selected_indexes[ind_num][0]],
-                                                     self.population[selected_indexes[ind_num][1]], ind_num, generation_num))
+                new_population.append(
+                    GPChainOptimiser._standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
+                                                         tree2=self.population[selected_indexes[ind_num][1]],
+                                                         max_depth=self.requirements.max_depth, pair_num=ind_num,
+                                                         pop_num=generation_num))
 
         return self.population[0]
 
@@ -91,7 +94,7 @@ class GPChainOptimiser():
         return selected
 
     @staticmethod
-    def _standard_crossover(tree1, tree2,max_depth, pair_num=None, pop_num=None):
+    def _standard_crossover(tree1, tree2, max_depth, pair_num=None, pop_num=None):
         if tree1 is tree2:
             return deepcopy(tree1)
         tree1_copy = deepcopy(tree1)
@@ -104,16 +107,19 @@ class GPChainOptimiser():
         nodeforchange = choice(tree2.get_nodes_from_layer(rnselflayer))
 
         Tree_Drawing().draw_branch(node=tree1,
-                                   jpeg=f'HistoryFiles/Trees/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
+                                   jpeg=f'p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
         Tree_Drawing().draw_branch(node=tree2,
-                                   jpeg=f'HistoryFiles/Trees/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
+                                   jpeg=f'p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
 
         if rnlayer == 0:
             return tree1_copy
 
-        if changednode.get_depth_up() + nodeforchange.get_depth_down() - nodeforchange.get_depth_up() < max_depth:
+        if changednode.get_depth_up() + nodeforchange.get_depth_down() - nodeforchange.get_depth_up() < max_depth + 1:
+            print(changednode.get_depth_up())
+            print(nodeforchange.get_depth_down())
+            print(nodeforchange.get_depth_up())
             changednode.swap_nodes(nodeforchange)
-            Tree_Drawing().draw_branch(node=tree1_copy, jpeg=f'HistoryFiles/Trees/result_pair{pair_num}_pop{pop_num}.png')
+            Tree_Drawing().draw_branch(node=tree1_copy, jpeg=f'result_pair{pair_num}_pop{pop_num}.png')
             return tree1_copy
         else:
             return tree1_copy
