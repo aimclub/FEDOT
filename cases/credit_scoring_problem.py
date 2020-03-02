@@ -62,7 +62,7 @@ metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROC
 # the choice and initialisation of the dummy_composer
 dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 # the choice and initialisation of the random_search
-random_composer = RandomSearchComposer(iter_num=30)
+random_composer = RandomSearchComposer(iter_num=3)
 
 # the optimal chain generation by composition - the most time-consuming task
 chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,

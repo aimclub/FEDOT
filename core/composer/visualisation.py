@@ -30,6 +30,8 @@ class ChainVisualiser:
         images = []
         images_best = []
 
+        last_best_chain = chains[0]
+
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
@@ -49,16 +51,27 @@ class ChainVisualiser:
             images.append(Image.open(path))
 
             path_best = f'../../tmp/best_ch_{ch_id}.png'
-            old_path_best = f'../../tmp/best_ch_0.png'
             plt.title('Best chain')
 
             if fitnesses[ch_id] < prev_fit:
                 fitnesses[ch_id] = prev_fit
-                old_path_best = path_best
+                last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            plt.savefig(old_path_best)
-            images_best.append(Image.open(old_path_best))
+            graph, node_labels = _as_nx_graph(chain=last_best_chain)
+            root = f'{chain.root_node.node_id}'
+            pos = node_positions(graph, root=root,
+                                 width=0.5, vert_gap=0.1,
+                                 vert_loc=0, xcenter=0.5)
+            plt.rcParams['axes.titlesize'] = 20
+            plt.rcParams['axes.labelsize'] = 20
+            plt.rcParams['figure.figsize'] = [10, 10]
+            plt.title('Current chain')
+            nx.draw(graph, pos=pos, with_labels=True, labels=node_labels)
+
+            plt.savefig(path_best)
+
+            images_best.append(Image.open(path_best))
 
             plt.cla()
             plt.clf()
