@@ -14,6 +14,7 @@ class Data:
     @staticmethod
     def from_csv(file_path):
         data_frame = pd.read_csv(file_path)
+        data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
         idx = data_array[0]
         features = data_array[1:-1].T
@@ -47,3 +48,12 @@ def split_train_test(data, split_ratio=0.8):
 def normalize(x):
     """Normalize data with sklearn.preprocessing.scale()"""
     return preprocessing.scale(x)
+
+
+def _convert_dtypes(data_frame: pd.DataFrame):
+    objects: pd.DataFrame = data_frame.select_dtypes('object')
+    for column_name in objects:
+        encoded = pd.factorize(data_frame[column_name])[0]
+        data_frame[column_name] = encoded
+    data_frame = data_frame.fillna(0)
+    return data_frame

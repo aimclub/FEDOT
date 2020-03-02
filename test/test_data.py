@@ -45,3 +45,12 @@ def test_data_from_predictions(output_dataset):
                                            target=target)
     assert new_input_data.features.all() == np.array(
         [data_1.predict, data_2.predict, data_3.predict]).all()
+
+
+def test_string_features_from_csv():
+    test_file_path = str(os.path.dirname(__file__))
+    file = 'data/scoring_train_cat.csv'
+    expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
+
+    assert expected_features.dtype == float
+    assert np.isfinite(expected_features).all()
