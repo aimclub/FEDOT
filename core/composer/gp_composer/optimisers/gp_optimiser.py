@@ -46,8 +46,8 @@ class GPChainOptimiser():
                                                             secondary_requirements=self.requirements.secondary_requirements,
                                                             primary_requirements=self.requirements.primary_requirements)
 
-                self.population = deepcopy(new_population)
-                self.population.append(self.the_best_ind)
+            self.population = deepcopy(new_population)
+            self.population.append(self.the_best_ind)
 
         return self.the_best_ind
 
