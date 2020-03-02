@@ -13,16 +13,20 @@ class ChainVisualiser:
     def visualise(self, chain: Chain):
         graph, node_labels = _as_nx_graph(chain=chain)
         root = f'{chain.root_node.node_id}'
-        pos = node_positions(graph, root=root,
+        pos = node_positions(graph.to_undirected(), root=root,
                              width=0.5, vert_gap=0.1,
                              vert_loc=0, xcenter=0.5)
         plt.figure(figsize=(10, 16))
-        nx.draw(graph, pos=pos, with_labels=True, labels=node_labels)
+        nx.draw(graph, pos=pos,
+                with_labels=True, labels=node_labels,
+                font_size=12, font_family='calibri', font_weight='bold',
+                node_size=7000, width=2.0,
+                node_color=colors_by_node_labels(node_labels), cmap='Set3')
         plt.show()
 
 
 def _as_nx_graph(chain: Chain):
-    graph = nx.Graph()
+    graph = nx.DiGraph()
 
     node_labels = {}
     for node in chain.nodes:
@@ -37,6 +41,11 @@ def _as_nx_graph(chain: Chain):
 
     add_edges(graph, chain)
     return graph, node_labels
+
+
+def colors_by_node_labels(node_labels: dict):
+    colors = [color for color in range(len(node_labels.keys()))]
+    return colors
 
 
 def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.5):
