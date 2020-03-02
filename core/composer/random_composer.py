@@ -39,8 +39,9 @@ class RandomSearchComposer:
             [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
             historical_chains.append(historical_chain)
 
-        ComposerVisualiser.visualise([opt_step[1] for opt_step in history])
-        ChainVisualiser.visualise_chains(historical_chains)
+        historical_fitnesses = [opt_step[1] for opt_step in history]
+        ComposerVisualiser.visualise(historical_fitnesses)
+        ChainVisualiser.visualise_chains(historical_chains, historical_fitnesses)
         ChainVisualiser.combine_gifs()
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]

@@ -2,8 +2,10 @@ import random
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 import pandas as pd
 from PIL import Image
+from imageio import get_reader, get_writer
 
 from core.composer.composer import Chain
 
@@ -24,8 +26,12 @@ class ChainVisualiser:
         plt.show()
 
     @staticmethod
-    def visualise_chains(chains):
+    def visualise_chains(chains, fitnesses):
         images = []
+        images_best = []
+
+        prev_fit = fitnesses[0]
+
         for ch_id, chain in enumerate(chains):
             graph, node_labels = _as_nx_graph(chain=chain)
             root = f'{chain.root_node.node_id}'
@@ -35,12 +41,24 @@ class ChainVisualiser:
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
+            plt.title('Current chain')
             nx.draw(graph, pos=pos, with_labels=True, labels=node_labels)
             # plt.show()
             path = f'../../tmp/ch_{ch_id}.png'
             plt.savefig(path)
-
             images.append(Image.open(path))
+
+            path_best = f'../../tmp/best_ch_{ch_id}.png'
+            old_path_best = f'../../tmp/best_ch_0.png'
+            plt.title('Best chain')
+
+            if fitnesses[ch_id] < prev_fit:
+                fitnesses[ch_id] = prev_fit
+                old_path_best = path_best
+            prev_fit = fitnesses[ch_id]
+
+            plt.savefig(old_path_best)
+            images_best.append(Image.open(old_path_best))
 
             plt.cla()
             plt.clf()
@@ -50,27 +68,31 @@ class ChainVisualiser:
                        append_images=images[1:], duration=250,
                        loop=0)
 
+        images_best[0].save(f'../../tmp/chains_best.gif', save_all=True,
+                            append_images=images_best[1:], duration=250,
+                            loop=0)
+
     @staticmethod
     def combine_gifs():
-        from imageio import get_reader, get_writer
-        import numpy as np
-
         # Create reader object for the gif
+        gif0 = get_reader('../../tmp/chains_best.gif')
         gif1 = get_reader('../../tmp/chains.gif')
         gif2 = get_reader('../../tmp/conv.gif')
 
         # If they don't have the same number of frame take the shorter
-        number_of_frames = min(gif1.get_length(), gif2.get_length())
+        number_of_frames = min(gif0.get_length(), gif1.get_length(), gif2.get_length())
 
         # Create writer object
-        new_gif = get_writer('../../tmp/analyt.gif')
+        new_gif = get_writer('../../tmp/analyt_full.gif')
 
         for frame_number in range(number_of_frames):
+            img0 = gif0.get_next_data()
             img1 = gif1.get_next_data()
             img2 = gif2.get_next_data()
-            new_image = np.hstack((img1, img2))
+            new_image = np.hstack((img0, img1, img2))
             new_gif.append_data(new_image)
 
+        gif0.close()
         gif1.close()
         gif2.close()
         new_gif.close()
@@ -165,12 +187,12 @@ class ComposerVisualiser:
     def visualise(fitness_history):
         prev_fit = fitness_history[0]
         for fit_id, fit in enumerate(fitness_history):
-            if fit > prev_fit:
+            if fit < prev_fit:
                 fitness_history[fit_id] = prev_fit
             prev_fit = fitness_history[fit_id]
         ts = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {"ts": ts, "fitness": fitness_history})
+            {"ts": ts, "fitness": [-f for f in fitness_history]})
 
         images = []
         ind = 0
