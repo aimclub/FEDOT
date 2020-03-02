@@ -25,7 +25,8 @@ class Composer(ABC):
 
 class DummyChainTypeEnum(Enum):
     flat = 1,
-    hierarchical = 2
+    hierarchical = 2,
+    hierarchical_2lev = 3
 
 
 class DummyComposer(Composer):
@@ -49,6 +50,30 @@ class DummyComposer(Composer):
                 new_node = NodeGenerator.primary_node(requirement_model, data)
                 new_chain.add_node(new_node)
                 last_node.nodes_from.append(new_node)
+            new_chain.add_node(last_node)
+        elif self.dummy_chain_type == DummyChainTypeEnum.hierarchical_2lev:
+            # (((y1, y2) -> y3), ((y4, y5) -> y6)) - > y7
+            last_node = NodeGenerator.secondary_node(secondary_requirements[0])
+
+            y1 = NodeGenerator.primary_node(primary_requirements[0], data)
+            new_chain.add_node(y1)
+
+            y2 = NodeGenerator.primary_node(primary_requirements[1], data)
+            new_chain.add_node(y2)
+
+            y3 = NodeGenerator.secondary_node(secondary_requirements[1], [y1, y2])
+            new_chain.add_node(y3)
+
+            y4 = NodeGenerator.primary_node(primary_requirements[2], data)
+            new_chain.add_node(y4)
+            y5 = NodeGenerator.primary_node(primary_requirements[3], data)
+            new_chain.add_node(y5)
+
+            y6 = NodeGenerator.secondary_node(secondary_requirements[4], [y4, y5])
+            new_chain.add_node(y6)
+
+            last_node.nodes_from = [y3, y6]
+
             new_chain.add_node(last_node)
         elif self.dummy_chain_type == DummyChainTypeEnum.flat:
             # (y1) -> (y2) -> y

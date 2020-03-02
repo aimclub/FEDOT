@@ -60,9 +60,9 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
 # the choice and initialisation of the dummy_composer
-dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
+dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 # the choice and initialisation of the random_search
-random_composer = RandomSearchComposer(iter_num=1)
+random_composer = RandomSearchComposer(iter_num=500)
 
 # the optimal chain generation by composition - the most time-consuming task
 chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
@@ -74,7 +74,7 @@ chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             primary_requirements=models_impl,
-                                            secondary_requirements=[MLP()],
+                                            secondary_requirements=models_impl,
                                             metrics=metric_function)
 
 # the single-model variant of optimal chain
@@ -87,6 +87,7 @@ chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset
 print("Composition finished")
 
 visualiser = ChainVisualiser()
+visualiser.visualise(chain_static)
 visualiser.visualise(chain_random_composed)
 
 # the quality assessment for the obtained composite models

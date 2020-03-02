@@ -84,6 +84,8 @@ class SecondaryNode(Node):
         parent_predict_list = list()
         for parent in self.nodes_from:
             parent_predict_list.append(parent.apply())
+        if len(self.nodes_from) == 0:
+            raise ValueError
         target = self.nodes_from[0].input_data.target
         self.input_data = Data.from_predictions(outputs=parent_predict_list,
                                                 target=target)

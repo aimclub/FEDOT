@@ -9,6 +9,7 @@ from typing import (
 
 from core.composer.chain import Chain, Node
 from core.composer.node import NodeGenerator
+from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import Model
 
@@ -24,12 +25,13 @@ class RandomSearchComposer:
                       metrics: Optional[Callable]) -> Chain:
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
-
         optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
-                                          NodeGenerator.secondary_node)
-        best_nodes_set, _ = optimiser.optimise(metric_function_for_nodes,
-                                               primary_requirements, secondary_requirements)
+                                          NodeGenerator.secondary_node,
+                                          )
+        best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
+                                                     primary_requirements, secondary_requirements)
+        ComposerVisualiser.visualise(history)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
@@ -54,7 +56,7 @@ class RandomSearchOptimiser:
         self.__iter_num = iter_num
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
-        self.__allow_multilevel = True
+        self.__allow_multilevel = False
 
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],

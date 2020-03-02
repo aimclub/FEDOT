@@ -2,6 +2,8 @@ import random
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import pandas as pd
+from PIL import Image
 
 from core.composer.composer import Chain
 
@@ -103,3 +105,45 @@ def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.
         return pos
 
     return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+
+
+class ComposerVisualiser:
+    @staticmethod
+    def visualise(opt_history):
+        fitness_history = [opt_step[1] for opt_step in opt_history]
+        prev_fit = fitness_history[0]
+        for fit_id, fit in enumerate(fitness_history):
+            if fit > prev_fit:
+                fitness_history[fit_id] = prev_fit
+            prev_fit = fitness_history[fit_id]
+        ts = list(range(len(fitness_history)))
+        df = pd.DataFrame(
+            {"ts": ts, "fitness": fitness_history})
+
+        images = []
+        ind = 0
+        for ts in ts:
+            plt.rcParams['axes.titlesize'] = 20
+            plt.rcParams['axes.labelsize'] = 20
+            plt.rcParams['figure.figsize'] = [10, 7]
+
+            ind = ind + 1
+            ax = plt.subplot()
+            ax.plot(df['ts'], df['fitness'], label="Random composer")
+            plt.xlabel('Generation', fontsize=18)
+            plt.ylabel('Best ROC AUC', fontsize=18)
+
+            plt.axvline(x=ts, color="black")
+            plt.legend(loc="upper left")
+
+            path = f'../../tmp/{ind}.png'
+            plt.savefig(path, bbox_inches='tight')
+            images.append(Image.open(path))
+
+            plt.cla()
+            plt.clf()
+            plt.close('all')
+
+            images[0].save(f'../../tmp/conv.gif', save_all=True,
+                           append_images=images[1:], duration=250,
+                           loop=0)
