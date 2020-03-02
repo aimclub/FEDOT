@@ -1,5 +1,3 @@
-from random import randint
-import numpy as np
 from core.composer.composer import Composer, ComposerRequirements
 from typing import (
     List,
@@ -13,10 +11,9 @@ from functools import partial
 
 from core.models.model import Model
 from core.models.data import InputData
-from core.optimisers.gp_optimiser import GPChainOptimiser
+from core.composer.gp_composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
 from core.composer.gp_composer.gp_node import GP_Node
-from core.composer.node import Node
 from copy import deepcopy
 
 

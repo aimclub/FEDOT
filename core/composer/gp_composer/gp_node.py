@@ -3,7 +3,7 @@ from core.models.data import InputData
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import Model
 from typing import (List, Optional)
-from abc import abstractmethod
+import random
 from core.composer.node import NodeGenerator
 from copy import deepcopy
 
@@ -36,6 +36,10 @@ class GP_Node:
     @property
     def eval_strategy(self):
         return self._chain_node.eval_strategy
+
+    @eval_strategy.setter
+    def eval_strategy(self, model):
+        self._chain_node.eval_strategy.model = model
 
     def get_depth_up(self):
         if self.nodes_to:
@@ -70,3 +74,5 @@ class GP_Node:
         newnode.nodes_to = self.nodes_to
         self.nodes_to.nodes_from[self.nodes_to.nodes_from.index(self)] = newnode
         self = newnode
+
+
