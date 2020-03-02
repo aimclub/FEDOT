@@ -1,4 +1,5 @@
-from core.composer.composer import Composer, ComposerRequirements
+from copy import deepcopy
+from functools import partial
 from typing import (
     List,
     Callable,
@@ -8,21 +9,22 @@ from typing import (
 )
 
 from core.composer.chain import Chain
-from functools import partial
-
-from core.models.model import Model
-from core.models.data import InputData
-from core.composer.optimisers.gp_optimiser import GPChainOptimiser
-from core.composer.gp_composer.gp_node import GP_NodeGenerator
+from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GP_Node
-from copy import deepcopy
+from core.composer.gp_composer.gp_node import GP_NodeGenerator
+from core.composer.optimisers.gp_optimiser import GPChainOptimiser
+from core.composer.visualisation import ChainVisualiser
+from core.composer.visualisation import ComposerVisualiser
+from core.models.data import InputData
+from core.models.model import Model
 
 
-class GPComposer_requirements(ComposerRequirements):
-    def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
+class GPComposerRequirements(ComposerRequirements):
+    def __init__(self, primary: List[Model], secondary: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
-                 num_of_generations: SupportsInt, crossover_prob:Optional[SupportsFloat], mutation_prob:Optional[SupportsFloat]=None):
-        super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements,
+                 num_of_generations: SupportsInt, crossover_prob: Optional[SupportsFloat],
+                 mutation_prob: Optional[SupportsFloat] = None):
+        super().__init__(primary=primary, secondary=secondary,
                          max_arity=max_arity, max_depth=max_depth)
         self.pop_size = pop_size
         self.num_of_generations = num_of_generations
@@ -32,7 +34,7 @@ class GPComposer_requirements(ComposerRequirements):
 
 class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
-                      composer_requirements: Optional[GPComposer_requirements],
+                      composer_requirements: Optional[GPComposerRequirements],
                       metrics: Optional[Callable]) -> Chain:
         metric_function_for_nodes = partial(self._metric_for_nodes,
                                             metrics, data)
@@ -40,7 +42,22 @@ class GPComposer(Composer):
                                      requirements=composer_requirements,
                                      primary_node_func=GP_NodeGenerator.primary_node,
                                      secondary_node_func=GP_NodeGenerator.secondary_node)
-        best_chain = GPComposer._tree_to_chain(tree_root=optimiser.optimise(metric_function_for_nodes), data=data)
+
+        best_found, history = optimiser.optimise(metric_function_for_nodes)
+
+        historical_chains = []
+        for historical_data in history:
+            historical_nodes_set = GPComposer._tree_to_chain(historical_data[0], data).nodes
+            historical_chain = Chain()
+            [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
+            historical_chains.append(historical_chain)
+
+        historical_fitnesses = [opt_step[1] for opt_step in history]
+        ComposerVisualiser.visualise(historical_fitnesses)
+        ChainVisualiser.visualise_chains(historical_chains, historical_fitnesses)
+        ChainVisualiser.combine_gifs()
+
+        best_chain = GPComposer._tree_to_chain(tree_root=best_found, data=data)
         return best_chain
 
     @staticmethod

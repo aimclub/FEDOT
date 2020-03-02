@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from core.composer.composer import ComposerRequirements
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
 from core.composer.node import PrimaryNode, SecondaryNode
@@ -13,7 +14,6 @@ from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.models.model import LogRegression
 from core.models.model import XGBoost, KNN
-from core.composer.composer import ComposerRequirements
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -41,8 +41,8 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_composer_hierarchical_chain():
     composer = DummyComposer(DummyChainTypeEnum.hierarchical)
     empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
-    composer_requirements = ComposerRequirements(primary_requirements=[LogRegression(), XGBoost()],
-                                                 secondary_requirements=[LogRegression()])
+    composer_requirements = ComposerRequirements(primary=[LogRegression(), XGBoost()],
+                                                 secondary=[LogRegression()])
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
                                        composer_requirements=composer_requirements,
@@ -60,8 +60,8 @@ def test_composer_hierarchical_chain():
 def test_composer_flat_chain():
     composer = DummyComposer(DummyChainTypeEnum.flat)
     empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
-    composer_requirements = ComposerRequirements(primary_requirements=[LogRegression()],
-                                                 secondary_requirements=[LogRegression(), XGBoost()])
+    composer_requirements = ComposerRequirements(primary=[LogRegression()],
+                                                 secondary=[LogRegression(), XGBoost()])
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
                                        composer_requirements=composer_requirements,

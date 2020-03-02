@@ -5,9 +5,10 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
+from core.composer.composer import ComposerRequirements
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
-from core.composer.random_composer import RandomSearchComposer
+from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ChainVisualiser
 from core.models.data import InputData
 from core.models.model import MLP
@@ -62,26 +63,32 @@ metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROC
 # the choice and initialisation of the dummy_composer
 dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 # the choice and initialisation of the random_search
-random_composer = RandomSearchComposer(iter_num=30)
+
+composer_requirements = GPComposerRequirements(primary=models_impl,
+                                               secondary=models_impl, max_arity=2,
+                                               max_depth=3, pop_size=3, num_of_generations=6,
+                                               crossover_prob=0.4, mutation_prob=0.4)
+random_composer = GPComposer()
 
 # the optimal chain generation by composition - the most time-consuming task
 chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
                                                       initial_chain=None,
-                                                      primary_requirements=models_impl,
-                                                      secondary_requirements=models_impl,
+                                                      composer_requirements=composer_requirements,
                                                       metrics=metric_function)
 
+static_composer_requirements = ComposerRequirements(primary=models_impl,
+                                                    secondary=models_impl)
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
-                                            primary_requirements=models_impl,
-                                            secondary_requirements=models_impl,
+                                            composer_requirements=composer_requirements,
                                             metrics=metric_function)
 
 # the single-model variant of optimal chain
+single_composer_requirements = ComposerRequirements(primary=[MLP()],
+                                                    secondary=[])
 chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
                                                                     initial_chain=None,
-                                                                    primary_requirements=[MLP()],
-                                                                    secondary_requirements=[],
+                                                                    composer_requirements=single_composer_requirements,
                                                                     metrics=metric_function)
 
 print("Composition finished")

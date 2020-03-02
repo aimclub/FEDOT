@@ -127,7 +127,7 @@ class ChainVisualiser:
         gif1.close()
         gif2.close()
 
-        mimsave('../../tmp/analyt_full2.gif', images, format='GIF', duration=0.25)
+        mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=0.25)
 
 
 def _as_nx_graph(chain: Chain):
