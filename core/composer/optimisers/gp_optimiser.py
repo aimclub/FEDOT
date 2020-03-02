@@ -6,7 +6,7 @@ from core.composer.gp_composer.gp_node import GP_Node
 from random import choice, randint
 from core.composer.tree_drawing import Tree_Drawing
 import numpy as np
-from core.composer.gp_composer.optimisers.evo_operators import tournament_selection, standard_crossover, \
+from core.composer.optimisers.evo_operators import tournament_selection, standard_crossover, \
     standard_mutation
 from copy import deepcopy
 
@@ -27,13 +27,10 @@ class GPChainOptimiser():
         for generation_num in range(self.requirements.num_of_generations):
             print("GP generation num:\n", generation_num)
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
-            if not self.requirements.minimization:
-                self.the_best_ind = self.population[np.argsort(self.fitness)[len(self.fitness) - 1]]
-            else:
-                self.the_best_ind = self.population[np.argsort(self.fitness)[0]]
+
+            self.the_best_ind = self.population[np.argmin(self.fitness)]
 
             selected_indexes = tournament_selection(fitnesses=self.fitness,
-                                                    minimization=self.requirements.minimization,
                                                     group_size=5)
             new_population = []
             for ind_num in range(self.requirements.pop_size - 1):

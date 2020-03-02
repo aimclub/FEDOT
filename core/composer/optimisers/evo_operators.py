@@ -5,7 +5,7 @@ from core.composer.tree_drawing import Tree_Drawing
 import random
 
 
-def tournament_selection(fitnesses, minimization=False, group_size=5):
+def tournament_selection(fitnesses, minimization=True, group_size=5):
     selected = []
     pair_num = 0
     for j in range(len(fitnesses) * 2):
@@ -15,12 +15,12 @@ def tournament_selection(fitnesses, minimization=False, group_size=5):
                 pair_num += 1
 
         tournir = [randint(0, len(fitnesses) - 1) for _ in range(group_size)]
-        fitnessobjfromtour = [fitnesses[tournir[i]] for i in range(group_size)]
+        fitness_obj_from_tour = [fitnesses[tournir[i]] for i in range(group_size)]
 
         if minimization:
-            selected[pair_num].append(tournir[np.argmin(fitnessobjfromtour)])
+            selected[pair_num].append(tournir[np.argmin(fitness_obj_from_tour)])
         else:
-            selected[pair_num].append(tournir[np.argmax(fitnessobjfromtour)])
+            selected[pair_num].append(tournir[np.argmax(fitness_obj_from_tour)])
 
     return selected
 

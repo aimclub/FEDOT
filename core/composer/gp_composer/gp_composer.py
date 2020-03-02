@@ -11,7 +11,7 @@ from functools import partial
 
 from core.models.model import Model
 from core.models.data import InputData
-from core.composer.gp_composer.optimisers.gp_optimiser import GPChainOptimiser
+from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
 from core.composer.gp_composer.gp_node import GP_Node
 from copy import deepcopy
@@ -20,12 +20,11 @@ from copy import deepcopy
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
-                 num_of_generations: SupportsInt, minimization=False):
+                 num_of_generations: SupportsInt):
         super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements,
                          max_arity=max_arity, max_depth=max_depth)
         self.pop_size = pop_size
         self.num_of_generations = num_of_generations
-        self.minimization =minimization
 
 
 class GPComposer(Composer):
