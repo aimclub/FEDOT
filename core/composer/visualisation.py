@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -29,17 +30,19 @@ class ChainVisualiser:
                 node_color=colors_by_node_labels(node_labels), cmap='Set3')
         plt.show()
 
+
     @staticmethod
     def visualise_chains(chains, fitnesses):
         images = []
         images_best = []
 
+        fitnesses = deepcopy(fitnesses)
         last_best_chain = chains[0]
 
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = _as_nx_graph(chain=chain)
+            graph, node_labels = _as_nx_graph(chain=deepcopy(chain))
             root = f'{chain.root_node.node_id}'
             pos = node_positions(graph.to_undirected(), root=root,
                                  width=0.5, vert_gap=0.1,
@@ -58,43 +61,47 @@ class ChainVisualiser:
             plt.savefig(path)
             images.append(Image.open(path))
 
-            path_best = f'../../tmp/best_ch_{ch_id}.png'
-            plt.title('Best chain')
+            plt.cla()
+            plt.clf()
+            plt.close('all')
 
-            if fitnesses[ch_id] < prev_fit:
+            path_best = f'../../tmp/best_ch_{ch_id}.png'
+
+            if fitnesses[ch_id] > prev_fit:
                 fitnesses[ch_id] = prev_fit
+            else:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            graph, node_labels = _as_nx_graph(chain=last_best_chain)
-            root = f'{chain.root_node.node_id}'
-            pos = node_positions(graph.to_undirected(), root=root,
+            best_graph, best_node_labels = _as_nx_graph(chain=deepcopy(last_best_chain))
+            best_root = f'{last_best_chain.root_node.node_id}'
+            pos = node_positions(best_graph.to_undirected(), root=best_root,
                                  width=0.5, vert_gap=0.1,
                                  vert_loc=0, xcenter=0.5)
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
-            plt.title('Current chain')
-            nx.draw(graph, pos=pos,
-                    with_labels=True, labels=node_labels,
+            plt.title(f'Best chain after {round(ch_id)} gens')
+            nx.draw(best_graph, pos=pos,
+                    with_labels=True, labels=best_node_labels,
                     font_size=12, font_family='calibri', font_weight='bold',
                     node_size=7000, width=2.0,
-                    node_color=colors_by_node_labels(node_labels), cmap='Set3')
+                    node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
             plt.savefig(path_best)
-
-            images_best.append(Image.open(path_best))
 
             plt.cla()
             plt.clf()
             plt.close('all')
 
+            images_best.append(Image.open(path_best))
+
         images[0].save(f'../../tmp/chains.gif', save_all=True,
-                       append_images=images[1:], duration=250,
+                       append_images=images[1:], duration=500,
                        loop=0)
 
         images_best[0].save(f'../../tmp/chains_best.gif', save_all=True,
-                            append_images=images_best[1:], duration=250,
+                            append_images=images_best[1:], duration=500,
                             loop=0)
 
     @staticmethod
@@ -215,9 +222,10 @@ def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.
 class ComposerVisualiser:
     @staticmethod
     def visualise(fitness_history):
+        fitness_history = deepcopy(fitness_history)
         prev_fit = fitness_history[0]
         for fit_id, fit in enumerate(fitness_history):
-            if fit < prev_fit:
+            if fit > prev_fit:
                 fitness_history[fit_id] = prev_fit
             prev_fit = fitness_history[fit_id]
         ts = list(range(len(fitness_history)))
@@ -248,5 +256,5 @@ class ComposerVisualiser:
             plt.close('all')
 
             images[0].save(f'../../tmp/conv.gif', save_all=True,
-                           append_images=images[1:], duration=250,
+                           append_images=images[1:], duration=500,
                            loop=0)
