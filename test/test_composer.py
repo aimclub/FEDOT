@@ -13,6 +13,7 @@ from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.models.model import LogRegression
 from core.models.model import XGBoost, KNN
+from core.composer.composer import ComposerRequirements
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -40,10 +41,11 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_composer_hierarchical_chain():
     composer = DummyComposer(DummyChainTypeEnum.hierarchical)
     empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
+    composer_requirements = ComposerRequirements(primary_requirements=[LogRegression(), XGBoost()],
+                                                 secondary_requirements=[LogRegression()])
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
-                                       primary_requirements=[LogRegression(), XGBoost()],
-                                       secondary_requirements=[LogRegression()],
+                                       composer_requirements=composer_requirements,
                                        metrics=None)
 
     assert len(new_chain.nodes) == 3
@@ -58,10 +60,11 @@ def test_composer_hierarchical_chain():
 def test_composer_flat_chain():
     composer = DummyComposer(DummyChainTypeEnum.flat)
     empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
+    composer_requirements = ComposerRequirements(primary_requirements=[LogRegression()],
+                                                 secondary_requirements=[LogRegression(), XGBoost()])
     new_chain = composer.compose_chain(data=empty_data,
                                        initial_chain=None,
-                                       primary_requirements=[LogRegression()],
-                                       secondary_requirements=[LogRegression(), XGBoost()],
+                                       composer_requirements=composer_requirements,
                                        metrics=None)
 
     assert len(new_chain.nodes) == 3
