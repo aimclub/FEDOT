@@ -12,15 +12,68 @@ class ChainVisualiser:
     def __init__(self):
         pass
 
-    def visualise(self, chain: Chain):
+    @staticmethod
+    def visualise(chain: Chain):
         graph, node_labels = _as_nx_graph(chain=chain)
         root = f'{chain.root_node.node_id}'
         pos = node_positions(graph, root=root,
                              width=0.5, vert_gap=0.1,
                              vert_loc=0, xcenter=0.5)
-        plt.figure(figsize=(10, 16))
+        plt.figure(figsize=(10, 10))
         nx.draw(graph, pos=pos, with_labels=True, labels=node_labels)
         plt.show()
+
+    @staticmethod
+    def visualise_chains(chains):
+        images = []
+        for ch_id, chain in enumerate(chains):
+            graph, node_labels = _as_nx_graph(chain=chain)
+            root = f'{chain.root_node.node_id}'
+            pos = node_positions(graph, root=root,
+                                 width=0.5, vert_gap=0.1,
+                                 vert_loc=0, xcenter=0.5)
+            plt.rcParams['axes.titlesize'] = 20
+            plt.rcParams['axes.labelsize'] = 20
+            plt.rcParams['figure.figsize'] = [10, 10]
+            nx.draw(graph, pos=pos, with_labels=True, labels=node_labels)
+            # plt.show()
+            path = f'../../tmp/ch_{ch_id}.png'
+            plt.savefig(path)
+
+            images.append(Image.open(path))
+
+            plt.cla()
+            plt.clf()
+            plt.close('all')
+
+        images[0].save(f'../../tmp/chains.gif', save_all=True,
+                       append_images=images[1:], duration=250,
+                       loop=0)
+
+    @staticmethod
+    def combine_gifs():
+        from imageio import get_reader, get_writer
+        import numpy as np
+
+        # Create reader object for the gif
+        gif1 = get_reader('../../tmp/chains.gif')
+        gif2 = get_reader('../../tmp/conv.gif')
+
+        # If they don't have the same number of frame take the shorter
+        number_of_frames = min(gif1.get_length(), gif2.get_length())
+
+        # Create writer object
+        new_gif = get_writer('../../tmp/analyt.gif')
+
+        for frame_number in range(number_of_frames):
+            img1 = gif1.get_next_data()
+            img2 = gif2.get_next_data()
+            new_image = np.hstack((img1, img2))
+            new_gif.append_data(new_image)
+
+        gif1.close()
+        gif2.close()
+        new_gif.close()
 
 
 def _as_nx_graph(chain: Chain):
@@ -109,8 +162,7 @@ def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.
 
 class ComposerVisualiser:
     @staticmethod
-    def visualise(opt_history):
-        fitness_history = [opt_step[1] for opt_step in opt_history]
+    def visualise(fitness_history):
         prev_fit = fitness_history[0]
         for fit_id, fit in enumerate(fitness_history):
             if fit > prev_fit:
@@ -125,11 +177,10 @@ class ComposerVisualiser:
         for ts in ts:
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 7]
+            plt.rcParams['figure.figsize'] = [10, 10]
 
             ind = ind + 1
-            ax = plt.subplot()
-            ax.plot(df['ts'], df['fitness'], label="Random composer")
+            plt.plot(df['ts'], df['fitness'], label="Random composer")
             plt.xlabel('Generation', fontsize=18)
             plt.ylabel('Best ROC AUC', fontsize=18)
 
@@ -137,7 +188,7 @@ class ComposerVisualiser:
             plt.legend(loc="upper left")
 
             path = f'../../tmp/{ind}.png'
-            plt.savefig(path, bbox_inches='tight')
+            plt.savefig(path)
             images.append(Image.open(path))
 
             plt.cla()

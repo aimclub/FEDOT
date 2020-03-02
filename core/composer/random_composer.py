@@ -9,6 +9,7 @@ from typing import (
 
 from core.composer.chain import Chain, Node
 from core.composer.node import NodeGenerator
+from core.composer.visualisation import ChainVisualiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import Model
@@ -31,8 +32,16 @@ class RandomSearchComposer:
                                           )
         best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
                                                      primary_requirements, secondary_requirements)
-        ComposerVisualiser.visualise(history)
+        historical_chains = []
+        for historical_data in history:
+            historical_nodes_set = historical_data[0]
+            historical_chain = Chain()
+            [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
+            historical_chains.append(historical_chain)
 
+        ComposerVisualiser.visualise([opt_step[1] for opt_step in history])
+        ChainVisualiser.visualise_chains(historical_chains)
+        ChainVisualiser.combine_gifs()
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
 
