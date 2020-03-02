@@ -3,7 +3,8 @@ from typing import (
     List,
     Callable,
     Optional,
-    SupportsInt
+    SupportsInt,
+    SupportsFloat
 )
 
 from core.composer.chain import Chain
@@ -20,11 +21,13 @@ from copy import deepcopy
 class GPComposer_requirements(ComposerRequirements):
     def __init__(self, primary_requirements: List[Model], secondary_requirements: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
-                 num_of_generations: SupportsInt):
+                 num_of_generations: SupportsInt, crossover_prob:Optional[SupportsFloat], mutation_prob:Optional[SupportsFloat]=None):
         super().__init__(primary_requirements=primary_requirements, secondary_requirements=secondary_requirements,
                          max_arity=max_arity, max_depth=max_depth)
         self.pop_size = pop_size
         self.num_of_generations = num_of_generations
+        self.crossover_prob = crossover_prob
+        self.mutation_prob = mutation_prob
 
 
 class GPComposer(Composer):
@@ -37,7 +40,7 @@ class GPComposer(Composer):
                                      requirements=composer_requirements,
                                      primary_node_func=GP_NodeGenerator.primary_node,
                                      secondary_node_func=GP_NodeGenerator.secondary_node)
-        best_chain = GPComposer._tree_to_chain(tree_root=optimiser.optimise(metric_function_for_nodes),data=data)
+        best_chain = GPComposer._tree_to_chain(tree_root=optimiser.optimise(metric_function_for_nodes), data=data)
         return best_chain
 
     @staticmethod

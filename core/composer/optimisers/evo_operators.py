@@ -25,8 +25,8 @@ def tournament_selection(fitnesses, minimization=True, group_size=5):
     return selected
 
 
-def standard_crossover(tree1, tree2, max_depth, pair_num=None, pop_num=None):
-    if tree1 is tree2:
+def standard_crossover(tree1, tree2, max_depth, crossover_prob, pair_num=None, pop_num=None):
+    if tree1 is tree2 or random.random() > crossover_prob:
         return deepcopy(tree1)
     tree1_copy = deepcopy(tree1)
     rnlayer = randint(0, tree1_copy.get_depth_down() - 1)
@@ -60,6 +60,8 @@ def standard_mutation(root_node, secondary_requirements, primary_requirements, p
     if not probability:
         probability = 1.0 / root_node.get_depth_down()
 
+    Tree_Drawing().draw_branch(node=root_node, jpeg=f'tree(mut).png')
+
     def _node_mutate(node):
         if node.nodes_from:
             if random.random() < probability:
@@ -71,6 +73,7 @@ def standard_mutation(root_node, secondary_requirements, primary_requirements, p
                 node.eval_strategy.model = random.choice(primary_requirements)
 
     result = deepcopy(root_node)
-    result = _node_mutate(node=result)
+    _node_mutate(node=result)
+    Tree_Drawing().draw_branch(node=result, jpeg=f'tree after mut.png')
 
     return result

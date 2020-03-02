@@ -37,7 +37,7 @@ class GPChainOptimiser():
                 new_population.append(standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
                                                          tree2=self.population[selected_indexes[ind_num][1]],
                                                          max_depth=self.requirements.max_depth, pair_num=ind_num,
-                                                         pop_num=generation_num))
+                                                         pop_num=generation_num, crossover_prob=self.requirements.crossover_prob))
 
                 new_population[ind_num] = standard_mutation(new_population[ind_num],
                                                             secondary_requirements=self.requirements.secondary_requirements,
