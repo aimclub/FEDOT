@@ -102,38 +102,13 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
 
-        xgboost_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                     task_type=[MachineLearningTasksEnum.classification,
-                                                MachineLearningTasksEnum.regression])
+        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
+                                    task_type=[MachineLearningTasksEnum.classification,
+                                               MachineLearningTasksEnum.regression])
 
-        ModelType(ModelTypesIdsEnum.xgboost, xgboost_meta, parent=ml)
-
-        knn_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table],
-                                 output_type=[CategoricalDataTypesEnum.vector],
-                                 task_type=[MachineLearningTasksEnum.classification])
-
-        ModelType(ModelTypesIdsEnum.knn, knn_meta, parent=ml)
-
-        logit_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                   output_type=[CategoricalDataTypesEnum.vector],
-                                   task_type=[MachineLearningTasksEnum.classification])
-
-        ModelType(ModelTypesIdsEnum.logit, logit_meta, parent=ml)
-
-        # TODO build correct tree
-        ModelType(ModelTypesIdsEnum.dt, deepcopy(logit_meta), parent=ml)
-
-        ModelType(ModelTypesIdsEnum.rf, deepcopy(logit_meta), parent=ml)
-
-        ModelType(ModelTypesIdsEnum.dt, deepcopy(logit_meta), parent=ml)
-
-        ModelType(ModelTypesIdsEnum.mlp, deepcopy(logit_meta), parent=ml)
-
-        ModelType(ModelTypesIdsEnum.lda, deepcopy(logit_meta), parent=ml)
-
-        ModelType(ModelTypesIdsEnum.qda, deepcopy(logit_meta), parent=ml)
-
+        for model_type in ModelTypesIdsEnum:
+            ModelType(model_type, deepcopy(common_meta), parent=ml)
         return root
 
     def __init__(self):

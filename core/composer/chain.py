@@ -6,13 +6,9 @@ from core.models.data import InputData, OutputData
 
 
 class Chain:
-    def __init__(self, base_node: Optional[Node] = None):
-        if base_node is None:
-            self.nodes = []
-            self.reference_data = None
-        else:
-            self.nodes = self._flat_nodes_tree(base_node)
-            self.reference_data = deepcopy([node for node in self.nodes if isinstance(node, PrimaryNode)][0])
+    def __init__(self):
+        self.nodes = []
+        self.reference_data = None
 
     def train(self) -> OutputData:
         # if the chain should be evaluated for the new dataset

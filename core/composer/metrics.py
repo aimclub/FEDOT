@@ -33,6 +33,7 @@ class RocAucMetric(ChainMetric):
         _, test_data = train_test_data_setup(chain.reference_data)
         results = chain.predict(test_data)
         try:
+            # TODO re-factor to avoid negative
             return -roc_auc_score(y_score=results.predict, y_true=test_data.target)
         except:
             return -0.5
