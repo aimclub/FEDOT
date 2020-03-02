@@ -26,9 +26,8 @@ class Node(ABC):
         raise NotImplementedError()
 
     def __str__(self):
-        node_name = f'{self.__class__.__name__}'
         model = f'{self.eval_strategy.model}'
-        return f'{node_name}: {model}'
+        return model
 
 
 class CachedNodeResult:
