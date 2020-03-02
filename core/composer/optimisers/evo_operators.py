@@ -67,7 +67,7 @@ def standard_mutation(root_node, secondary_requirements, primary_requirements, p
             for child in node.nodes_from:
                 _node_mutate(child)
         else:
-            if random.random < probability:
+            if random.random() < probability:
                 node.eval_strategy.model = random.choice(primary_requirements)
 
     result = deepcopy(root_node)
