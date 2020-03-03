@@ -23,11 +23,13 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
-        Tree_Drawing().draw_branch(node=self.population[1], jpeg="tree.png")
+        Tree_Drawing().draw_branch(node=self.population[1], jpeg='tree.png')
 
     def optimise(self, metric_function_for_nodes):
+        history = []
+
         for generation_num in range(self.requirements.num_of_generations):
-            print("GP generation num:\n", generation_num)
+            print(f'GP generation num: {generation_num}')
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
 
             self.best_individual = self.population[np.argmin(self.fitness)]
@@ -35,7 +37,6 @@ class GPChainOptimiser:
             selected_indexes = tournament_selection(fitnesses=self.fitness,
                                                     group_size=5)
             new_population = []
-            history = []
             for ind_num in range(self.requirements.pop_size - 1):
                 new_population.append(standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
                                                          tree2=self.population[selected_indexes[ind_num][1]],
@@ -60,16 +61,17 @@ class GPChainOptimiser:
 
     def _random_tree(self) -> GP_Node:
         root = self.__secondary_node_func(choice(self.requirements.secondary))
+        new_tree = root
         self._tree_growth(node_parent=root)
-        return root
+        return new_tree
 
     def _tree_growth(self, node_parent):
         offspring_size = randint(2, self.requirements.max_arity)
         node_offspring = []
         for offspring_node in range(offspring_size):
             if node_parent.get_depth_up() >= self.requirements.max_depth or (
-                    node_parent.get_depth_up() < self.requirements.max_depth and randint(
-                0, 1)):
+                    node_parent.get_depth_up() < self.requirements.max_depth
+                    and randint(0, 1)):
 
                 new_node = self.__primary_node_func(choice(self.requirements.primary),
                                                     nodes_to=node_parent, input_data=None)

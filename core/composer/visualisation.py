@@ -127,7 +127,7 @@ class ChainVisualiser:
         gif1.close()
         gif2.close()
 
-        mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=0.25)
+        mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=0.5)
 
 
 def _as_nx_graph(chain: Chain):
@@ -240,7 +240,7 @@ class ComposerVisualiser:
             plt.rcParams['figure.figsize'] = [10, 10]
 
             ind = ind + 1
-            plt.plot(df['ts'], df['fitness'], label="Random composer")
+            plt.plot(df['ts'], df['fitness'], label="Composer")
             plt.xlabel('Generation', fontsize=18)
             plt.ylabel('Best ROC AUC', fontsize=18)
 

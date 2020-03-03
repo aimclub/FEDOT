@@ -66,8 +66,8 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 
 composer_requirements = GPComposerRequirements(primary=models_impl,
                                                secondary=models_impl, max_arity=2,
-                                               max_depth=3, pop_size=3, num_of_generations=6,
-                                               crossover_prob=0.4, mutation_prob=0.4)
+                                               max_depth=3, pop_size=10, num_of_generations=10,
+                                               crossover_prob=0.2, mutation_prob=0.9)
 random_composer = GPComposer()
 
 # the optimal chain generation by composition - the most time-consuming task
