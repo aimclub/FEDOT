@@ -66,16 +66,18 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 # the choice and initialisation of the random_search
 
 composer_requirements = GPComposerRequirements(primary=models_impl,
-                                               secondary=models_impl, max_arity=2,
+                                               secondary=models_impl, max_arity=3,
                                                max_depth=3, pop_size=10, num_of_generations=2,
                                                crossover_prob=0.2, mutation_prob=0.9)
+
+# Create GP-based composer
 composer = GPComposer()
 
 # the optimal chain generation by composition - the most time-consuming task
-chain_random_composed = composer.compose_chain(data=dataset_to_compose,
-                                               initial_chain=None,
-                                               composer_requirements=composer_requirements,
-                                               metrics=alt_metric_function)
+chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                            initial_chain=None,
+                                            composer_requirements=composer_requirements,
+                                            metrics=metric_function)
 
 static_composer_requirements = ComposerRequirements(primary=models_impl,
                                                     secondary=models_impl)
@@ -94,14 +96,14 @@ chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset
 
 print("Composition finished")
 
-# ComposerVisualiser.visualise(chain_static)
-ComposerVisualiser.visualise(chain_random_composed)
+ComposerVisualiser.visualise(chain_static)
+ComposerVisualiser.visualise(chain_evo_composed)
 
 # the quality assessment for the obtained composite models
 roc_on_valid_static = calculate_validation_metric_for_scoring_model(chain_static, dataset_to_validate)
 roc_on_valid_single = calculate_validation_metric_for_scoring_model(chain_single, dataset_to_validate)
-roc_on_valid_random_composed = calculate_validation_metric_for_scoring_model(chain_random_composed, dataset_to_validate)
+roc_on_valid_evo_composed = calculate_validation_metric_for_scoring_model(chain_evo_composed, dataset_to_validate)
 
-print(f'Composed ROC AUC is {round(roc_on_valid_random_composed, 3)}')
+print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
 print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')

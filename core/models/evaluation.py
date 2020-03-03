@@ -6,7 +6,7 @@ from core.models.data import (
     InputData
 )
 from core.models.model import (
-    Model
+    Model, train_test_data_setup
 )
 
 
@@ -19,8 +19,9 @@ class EvaluationStrategy:
     def evaluate(self, data: InputData) -> InputData:
         data.features = _preprocess(data.features)
         if self.is_train_models or not self.is_fitted:
-            self.model.fit(data=data)
-            self.model.is_fitted = True
+            train_data, _ = train_test_data_setup(data)
+            self.model.fit(data=train_data)
+            self.is_fitted = True
         prediction = self.model.predict(data=data)
         if any([np.isnan(_) for _ in prediction]):
             print("Value error")

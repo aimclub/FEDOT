@@ -33,10 +33,13 @@ class Node(ABC):
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):
         self.cached_output = model_output
+        self.is_always_actual = isinstance(node, PrimaryNode)
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
 
     def is_actual(self, parent_nodes):
+        if self.is_always_actual:
+            return True
         if not self.last_parents_ids or self.last_parents_ids is None:
             return False
         if len(self.last_parents_ids) != len(parent_nodes):
@@ -46,7 +49,7 @@ class CachedNodeResult:
                 return False
         return True
 
- 
+
 class NodeGenerator:
     @staticmethod
     def primary_node(model: Model, input_data: Optional[InputData]) -> Node:
