@@ -35,8 +35,8 @@ class GPChainOptimiser:
 
             #print all population
             for i, pop_ind in enumerate(self.population):
-                if not os.path.isdir(f'../../HistoryFiles/Trees/pop_individuals/pop{generation_num}'):
-                    os.mkdir(f'../../HistoryFiles/Trees/pop_individuals/pop{generation_num}')
+                if not os.path.isdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}'):
+                    os.mkdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}')
                 Tree_Drawing().draw_branch(pop_ind, jpeg=f'pop_individuals/pop{generation_num}/{i}(fitness_{self.fitness[i]}).png')
 
             self.best_individual = self.population[np.argmin(self.fitness)]

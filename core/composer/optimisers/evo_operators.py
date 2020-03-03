@@ -46,9 +46,6 @@ def standard_crossover(tree1, tree2, max_depth, crossover_prob, pair_num=None, p
         return tree1_copy
 
     if changednode.get_depth_up() + nodeforchange.get_depth_down() <= max_depth:
-        print(changednode.get_depth_up())
-        print(nodeforchange.get_depth_down())
-        print(nodeforchange.get_depth_up())
         changednode.swap_nodes(nodeforchange)
         Tree_Drawing().draw_branch(node=tree1_copy, jpeg=f'crossover/result_pair{pair_num}_pop{pop_num}.png')
         return tree1_copy
