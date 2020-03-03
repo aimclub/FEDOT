@@ -13,8 +13,8 @@ from core.composer.composer import Chain
 
 
 class ComposerVisualiser:
-    def __init__(self):
-        pass
+    temp_path = '../../tmp/'
+    gif_prefix = 'for_gif_'
 
     @staticmethod
     def visualise(chain: Chain):
@@ -51,15 +51,14 @@ class ComposerVisualiser:
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             # plt.show()
-            path = f'../../tmp/ch_{ch_id}.png'
+            path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
             plt.savefig(path)
-            images.append(Image.open(path))
 
             plt.cla()
             plt.clf()
             plt.close('all')
 
-            path_best = f'../../tmp/best_ch_{ch_id}.png'
+            path_best = f'{ComposerVisualiser.temp_path}best_ch_{ch_id}.png'
 
             if fitnesses[ch_id] > prev_fit:
                 fitnesses[ch_id] = prev_fit
@@ -72,7 +71,7 @@ class ComposerVisualiser:
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
-            plt.title(f'Best chain after {round(ch_id)} gens')
+            plt.title(f'Best chain after {round(ch_id)} evals')
             nx.draw(best_graph, pos=pos,
                     with_labels=True, labels=best_node_labels,
                     font_size=12, font_family='calibri', font_weight='bold',
@@ -85,8 +84,6 @@ class ComposerVisualiser:
             plt.clf()
             plt.close('all')
 
-            images_best.append(Image.open(path_best))
-
     @staticmethod
     def _visualise_convergence(fitness_history):
         fitness_history = deepcopy(fitness_history)
@@ -97,7 +94,7 @@ class ComposerVisualiser:
             prev_fit = fitness_history[fit_id]
         ts = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {"ts": ts, "fitness": [-f for f in fitness_history]})
+            {'ts': ts, 'fitness': [-f for f in fitness_history]})
 
         images = []
         ind = 0
@@ -107,16 +104,15 @@ class ComposerVisualiser:
             plt.rcParams['figure.figsize'] = [10, 10]
 
             ind = ind + 1
-            plt.plot(df['ts'], df['fitness'], label="Composer")
-            plt.xlabel('Generation', fontsize=18)
+            plt.plot(df['ts'], df['fitness'], label='Composer')
+            plt.xlabel('Evaluation', fontsize=18)
             plt.ylabel('Best ROC AUC', fontsize=18)
 
-            plt.axvline(x=ts, color="black")
-            plt.legend(loc="upper left")
+            plt.axvline(x=ts, color='black')
+            plt.legend(loc='upper left')
 
-            path = f'../../tmp/{ind}.png'
+            path = f'{ComposerVisualiser.temp_path}{ind}.png'
             plt.savefig(path)
-            images.append(Image.open(path))
 
             plt.cla()
             plt.clf()
@@ -127,17 +123,16 @@ class ComposerVisualiser:
         ComposerVisualiser._clean()
         ComposerVisualiser._visualise_chains(chains, fitnesses)
         ComposerVisualiser._visualise_convergence(fitnesses)
-        ComposerVisualiser._merge_images()
+        ComposerVisualiser._merge_images(len(chains))
         ComposerVisualiser._combine_gifs()
         ComposerVisualiser._clean()
 
     @staticmethod
-    def _merge_images():
-        num_images = 20
-        for img_idx in (range(1, num_images + 1)):
-            images = list(map(Image.open, [f'../../tmp/ch_{img_idx}.png',
-                                           f'../../tmp/best_ch_{img_idx}.png',
-                                           f'../../tmp/{img_idx}.png']))
+    def _merge_images(num_images):
+        for img_idx in (range(1, num_images)):
+            images = list(map(Image.open, [f'{ComposerVisualiser.temp_path}ch_{img_idx}.png',
+                                           f'{ComposerVisualiser.temp_path}best_ch_{img_idx}.png',
+                                           f'{ComposerVisualiser.temp_path}{img_idx}.png']))
             widths, heights = zip(*(i.size for i in images))
 
             total_width = sum(widths)
@@ -150,19 +145,26 @@ class ComposerVisualiser:
                 new_im.paste(im, (x_offset, 0))
                 x_offset += im.size[0]
 
-            new_im.save(f'../../tmp/for_gif_{img_idx}.png')
+            new_im.save(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}{img_idx}.png')
 
     @staticmethod
     def _combine_gifs():
-        files = [file for file in iglob(f"../../tmp/for_gif_*.png")]
-        with get_writer(f'../../tmp/final.gif', mode='I', duration=0.5) as writer:
+        files = [file_name for file_name in
+                 iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
+        files_idx = [int(file_name[len(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}'):(
+                len(file_name) - len('.png'))]) for
+                     file_name in
+                     iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
+        files = [file for _, file in sorted(zip(files_idx, files))]
+
+        with get_writer(f'{ComposerVisualiser.temp_path}final.gif', mode='I', duration=0.5) as writer:
             for filename in files:
                 image = imread(filename)
                 writer.append_data(image)
 
     @staticmethod
     def _clean():
-        files = glob('../../tmp/*.png')
+        files = glob(f'{ComposerVisualiser.temp_path}*.png')
         for file in files:
             remove(file)
 

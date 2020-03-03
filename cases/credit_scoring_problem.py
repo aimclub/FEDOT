@@ -5,10 +5,9 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.composer import ComposerRequirements
-from core.composer.composer import DummyChainTypeEnum
-from core.composer.composer import DummyComposer
+from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.metrics import PseudoMetric
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import MLP
@@ -59,6 +58,8 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 
 # the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+# alternative can be used for experiments
+alt_metric_function = PseudoMetric.get_value
 
 # the choice and initialisation of the dummy_composer
 dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
@@ -66,15 +67,15 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 
 composer_requirements = GPComposerRequirements(primary=models_impl,
                                                secondary=models_impl, max_arity=2,
-                                               max_depth=8, pop_size=20, num_of_generations=20,
+                                               max_depth=3, pop_size=10, num_of_generations=2,
                                                crossover_prob=0.2, mutation_prob=0.9)
-random_composer = GPComposer()
+composer = GPComposer()
 
 # the optimal chain generation by composition - the most time-consuming task
-chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
-                                                      initial_chain=None,
-                                                      composer_requirements=composer_requirements,
-                                                      metrics=metric_function)
+chain_random_composed = composer.compose_chain(data=dataset_to_compose,
+                                               initial_chain=None,
+                                               composer_requirements=composer_requirements,
+                                               metrics=alt_metric_function)
 
 static_composer_requirements = ComposerRequirements(primary=models_impl,
                                                     secondary=models_impl)

@@ -36,8 +36,16 @@ class RocAucMetric(ChainMetric):
         results = chain.predict(test_data)
         try:
             return -roc_auc_score(y_score=results.predict, y_true=test_data.target)
-        except:
+        except Exception as ex:
+            print(ex)
             return -0.5
+
+
+class PseudoMetric(ChainMetric):
+    @staticmethod
+    def get_value(chain: Chain) -> float:
+        from random import randint
+        return randint(0, 1000)
 
 
 class StructuralComplexityMetric(ChainMetric):

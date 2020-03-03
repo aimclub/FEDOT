@@ -13,7 +13,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.models.model import LogRegression
-from core.models.model import XGBoost, KNN
+from core.models.model import XGBoost
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -26,7 +26,7 @@ from core.repository.task_types import MachineLearningTasksEnum
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/test_dataset.csv'
+    file = 'data/test_dataset2.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)
@@ -94,9 +94,6 @@ def test_random_composer(data_fixture, request):
 
     models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
 
-    # exclude KNN because number of samples is too small
-    models_impl = [model_id for model_id in models_impl if not isinstance(model_id, KNN)]
-
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     random_composer = RandomSearchComposer(iter_num=1)
@@ -111,4 +108,4 @@ def test_random_composer(data_fixture, request):
     roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
                                            y_score=predicted_random_composed.predict)
 
-    assert roc_on_valid_random_composed > 0.99
+    assert roc_on_valid_random_composed > 0.6

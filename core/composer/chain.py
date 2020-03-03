@@ -20,12 +20,13 @@ class Chain:
             node.eval_strategy.is_train_models = True
             node.is_caching = True
             # set reference data in nodes
-            node.input_data = deepcopy(self.reference_data)
+            if isinstance(node, PrimaryNode):
+                node.input_data = deepcopy(self.reference_data)
         return self.root_node.apply()
 
     def predict(self, new_data: InputData) -> OutputData:
-        if any([(node.cached_result is None) or (not node.cached_result.is_actual(node.nodes_from)) for node in
-                self.nodes]):
+        if any([(node.cached_result is None) or (not node.cached_result.is_actual(node.nodes_from))
+                for node in self.nodes]):
             self.train()
             # update data in primary nodes
         for node in self.nodes:
