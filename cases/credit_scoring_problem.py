@@ -66,7 +66,7 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 
 composer_requirements = GPComposerRequirements(primary=models_impl,
                                                secondary=models_impl, max_arity=2,
-                                               max_depth=3, pop_size=10, num_of_generations=7,
+                                               max_depth=5, pop_size=20, num_of_generations=20,
                                                crossover_prob=0.2, mutation_prob=0.9)
 random_composer = GPComposer()
 

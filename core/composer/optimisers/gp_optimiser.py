@@ -64,7 +64,7 @@ class GPChainOptimiser:
             self.population = deepcopy(new_population)
             self.population.append(self.best_individual)
 
-        return self.best_individual, history
+        return self.population[np.argmin(self.fitness)], history
 
     def _make_population(self, pop_size) -> List[GP_Node]:
         return [self._random_tree() for _ in range(pop_size)]
