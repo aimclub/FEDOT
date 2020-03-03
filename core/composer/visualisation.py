@@ -1,6 +1,6 @@
-import random
 from copy import deepcopy
 from glob import glob, iglob
+from math import log2, ceil
 from os import remove
 
 import matplotlib.pyplot as plt
@@ -19,10 +19,7 @@ class ComposerVisualiser:
     @staticmethod
     def visualise(chain: Chain):
         graph, node_labels = _as_nx_graph(chain=chain)
-        root = f'{chain.root_node.node_id}'
-        pos = node_positions(graph.to_undirected(), root=root,
-                             width=0.5, vert_gap=0.1,
-                             vert_loc=0, xcenter=0.5)
+        pos = node_positions(graph.to_undirected())
         plt.figure(figsize=(10, 10))
         nx.draw(graph, pos=pos,
                 with_labels=True, labels=node_labels,
@@ -43,10 +40,7 @@ class ComposerVisualiser:
 
         for ch_id, chain in enumerate(chains):
             graph, node_labels = _as_nx_graph(chain=deepcopy(chain))
-            root = f'{chain.root_node.node_id}'
-            pos = node_positions(graph.to_undirected(), root=root,
-                                 width=0.5, vert_gap=0.1,
-                                 vert_loc=0, xcenter=0.5)
+            pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
@@ -54,7 +48,7 @@ class ComposerVisualiser:
             nx.draw(graph, pos=pos,
                     with_labels=True, labels=node_labels,
                     font_size=12, font_family='calibri', font_weight='bold',
-                    node_size=7000, width=2.0,
+                    node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             # plt.show()
             path = f'../../tmp/ch_{ch_id}.png'
@@ -74,10 +68,7 @@ class ComposerVisualiser:
             prev_fit = fitnesses[ch_id]
 
             best_graph, best_node_labels = _as_nx_graph(chain=deepcopy(last_best_chain))
-            best_root = f'{last_best_chain.root_node.node_id}'
-            pos = node_positions(best_graph.to_undirected(), root=best_root,
-                                 width=0.5, vert_gap=0.1,
-                                 vert_loc=0, xcenter=0.5)
+            pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
@@ -85,7 +76,7 @@ class ComposerVisualiser:
             nx.draw(best_graph, pos=pos,
                     with_labels=True, labels=best_node_labels,
                     font_size=12, font_family='calibri', font_weight='bold',
-                    node_size=7000, width=2.0,
+                    node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
             plt.savefig(path_best)
@@ -199,67 +190,12 @@ def colors_by_node_labels(node_labels: dict):
     return colors
 
 
-def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.5):
-    '''
-    From Joel's answer at https://stackoverflow.com/a/29597209/2966723.
-    Licensed under Creative Commons Attribution-Share Alike
+def scaled_node_size(nodes_amount):
+    size = int(7000.0 / ceil(log2(nodes_amount)))
+    return size
 
-    If the graph is a tree this will return the positions to plot this in a
-    hierarchical layout.
 
-    G: the graph (must be a tree)
-
-    root: the root node of current branch
-    - if the tree is directed and this is not given,
-      the root will be found and used
-    - if the tree is directed and this is given, then
-      the positions will be just for the descendants of this node.
-    - if the tree is undirected and not given,
-      then a random choice will be used.
-
-    width: horizontal space allocated for this branch - avoids overlap with other branches
-
-    vert_gap: gap between levels of hierarchy
-
-    vert_loc: vertical location of root
-
-    xcenter: horizontal location of root
-    '''
-    if not nx.is_tree(G):
+def node_positions(graph: nx.Graph):
+    if not nx.is_tree(graph):
         raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
-
-    if root is None:
-        if isinstance(G, nx.DiGraph):
-            root = next(iter(nx.topological_sort(G)))  # allows back compatibility with nx version 1.11
-        else:
-            root = random.choice(list(G.nodes))
-
-    def _hierarchy_pos(G, root, width=width, vert_gap=vert_gap,
-                       vert_loc=vert_loc, xcenter=xcenter,
-                       pos=None, parent=None):
-        '''
-        see hierarchy_pos docstring for most arguments
-
-        pos: a dict saying where all nodes go if they have been assigned
-        parent: parent of this branch. - only affects it if non-directed
-
-        '''
-
-        if pos is None:
-            pos = {root: (xcenter, vert_loc)}
-        else:
-            pos[root] = (xcenter, vert_loc)
-        children = list(G.neighbors(root))
-        if not isinstance(G, nx.DiGraph) and parent is not None:
-            children.remove(parent)
-        if len(children) != 0:
-            dx = width / len(children)
-            nextx = xcenter - width / 2 - dx / 2
-            for child in children:
-                nextx += dx
-                pos = _hierarchy_pos(G, child, width=dx, vert_gap=vert_gap,
-                                     vert_loc=vert_loc - vert_gap, xcenter=nextx,
-                                     pos=pos, parent=root)
-        return pos
-
-    return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+    return nx.drawing.nx_pydot.graphviz_layout(graph, prog='dot')
