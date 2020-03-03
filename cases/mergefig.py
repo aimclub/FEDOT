@@ -19,4 +19,4 @@ for frame_number in range(number_of_frames):
     new_image = np.hstack((img0, img1, img2))
     images.append(new_image)
 
-mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=0.25)
+mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=500)

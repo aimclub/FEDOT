@@ -36,7 +36,17 @@ class CachedNodeResult:
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
 
+    def is_actual(self, parent_nodes):
+        if not self.last_parents_ids or self.last_parents_ids is None:
+            return False
+        if len(self.last_parents_ids) != len(parent_nodes):
+            return False
+        for id in self.last_parents_ids:
+            if id not in [node.node_id for node in parent_nodes]:
+                return False
+        return True
 
+ 
 class NodeGenerator:
     @staticmethod
     def primary_node(model: Model, input_data: Optional[InputData]) -> Node:
@@ -59,11 +69,14 @@ class PrimaryNode(Node):
                          eval_strategy=eval_strategy)
 
     def apply(self) -> OutputData:
-        if self.cached_result is not None and self.is_caching:
+        if self.is_caching and self.cached_result is not None and self.cached_result.is_actual(self.nodes_from):
             return OutputData(idx=self.input_data.idx,
                               features=self.input_data.features,
                               predict=self.cached_result.cached_output)
         else:
+            if self.cached_result is not None and not self.cached_result.is_actual(self.nodes_from):
+                # TODO refactor check
+                self.eval_strategy.is_train_models = True
             model_predict = self.eval_strategy.evaluate(self.input_data)
             if self.is_caching:
                 self.cached_result = CachedNodeResult(self, model_predict)

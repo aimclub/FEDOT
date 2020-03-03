@@ -3,8 +3,7 @@ from enum import Enum
 from typing import (
     List,
     Callable,
-    Optional,
-    SupportsInt
+    Optional
 )
 
 from core.composer.chain import Chain
@@ -16,8 +15,8 @@ from core.models.model import Model
 # TODO: specify ComposerRequirements class
 class ComposerRequirements:
     def __init__(self, primary: List[Model], secondary: List[Model],
-                 max_depth: Optional[SupportsInt] = None,
-                 max_arity: Optional[SupportsInt] = None):
+                 max_depth: Optional[int] = None,
+                 max_arity: Optional[int] = None):
         self.primary = primary
         self.secondary = secondary
         self.max_depth = max_depth

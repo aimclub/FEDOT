@@ -10,3 +10,4 @@ matplotlib==3.0.2
 networkx==2.4
 xgboost==1.0.1
 Pillow==7.0.0
+imageio==2.8.0
