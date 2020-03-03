@@ -9,7 +9,7 @@ from core.composer.composer import ComposerRequirements
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.visualisation import ChainVisualiser
+from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import MLP
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
@@ -66,7 +66,7 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
 
 composer_requirements = GPComposerRequirements(primary=models_impl,
                                                secondary=models_impl, max_arity=2,
-                                               max_depth=3, pop_size=10, num_of_generations=10,
+                                               max_depth=3, pop_size=10, num_of_generations=3,
                                                crossover_prob=0.2, mutation_prob=0.9)
 random_composer = GPComposer()
 
@@ -93,9 +93,8 @@ chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset
 
 print("Composition finished")
 
-visualiser = ChainVisualiser()
-visualiser.visualise(chain_static)
-visualiser.visualise(chain_random_composed)
+# ComposerVisualiser.visualise(chain_static)
+ComposerVisualiser.visualise(chain_random_composed)
 
 # the quality assessment for the obtained composite models
 roc_on_valid_static = calculate_validation_metric_for_scoring_model(chain_static, dataset_to_validate)

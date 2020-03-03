@@ -24,7 +24,8 @@ class Chain:
         return self.root_node.apply()
 
     def predict(self, new_data: InputData) -> OutputData:
-        if any([node.cached_result is None for node in self.nodes]):
+        if any([(node.cached_result is None) or (not node.cached_result.is_actual(node.nodes_from)) for node in
+                self.nodes]):
             self.train()
             # update data in primary nodes
         for node in self.nodes:

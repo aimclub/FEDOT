@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
-
 from dataclasses import dataclass
 from typing import Tuple
 
@@ -115,8 +113,8 @@ class DecisionTree(Model):
         self.__model = DecisionTreeClassifier(max_depth=2, )
 
     def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
+        prediction = self.__model.predict_proba(data.features)
+        return prediction[:, 1] if prediction.shape[1] > 1 else prediction
 
     def fit(self, data: InputData):
         train_data, _ = train_test_data_setup(data=data)

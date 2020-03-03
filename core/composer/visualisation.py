@@ -1,17 +1,18 @@
 import random
 from copy import deepcopy
+from glob import glob, iglob
+from os import remove
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
 import pandas as pd
 from PIL import Image
-from imageio import get_reader, mimsave
+from imageio import get_writer, imread
 
 from core.composer.composer import Chain
 
 
-class ChainVisualiser:
+class ComposerVisualiser:
     def __init__(self):
         pass
 
@@ -30,9 +31,8 @@ class ChainVisualiser:
                 node_color=colors_by_node_labels(node_labels), cmap='Set3')
         plt.show()
 
-
     @staticmethod
-    def visualise_chains(chains, fitnesses):
+    def _visualise_chains(chains, fitnesses):
         images = []
         images_best = []
 
@@ -96,38 +96,84 @@ class ChainVisualiser:
 
             images_best.append(Image.open(path_best))
 
-        images[0].save(f'../../tmp/chains.gif', save_all=True,
-                       append_images=images[1:], duration=500,
-                       loop=0)
+    @staticmethod
+    def _visualise_convergence(fitness_history):
+        fitness_history = deepcopy(fitness_history)
+        prev_fit = fitness_history[0]
+        for fit_id, fit in enumerate(fitness_history):
+            if fit > prev_fit:
+                fitness_history[fit_id] = prev_fit
+            prev_fit = fitness_history[fit_id]
+        ts = list(range(len(fitness_history)))
+        df = pd.DataFrame(
+            {"ts": ts, "fitness": [-f for f in fitness_history]})
 
-        images_best[0].save(f'../../tmp/chains_best.gif', save_all=True,
-                            append_images=images_best[1:], duration=500,
-                            loop=0)
+        images = []
+        ind = 0
+        for ts in ts:
+            plt.rcParams['axes.titlesize'] = 20
+            plt.rcParams['axes.labelsize'] = 20
+            plt.rcParams['figure.figsize'] = [10, 10]
+
+            ind = ind + 1
+            plt.plot(df['ts'], df['fitness'], label="Composer")
+            plt.xlabel('Generation', fontsize=18)
+            plt.ylabel('Best ROC AUC', fontsize=18)
+
+            plt.axvline(x=ts, color="black")
+            plt.legend(loc="upper left")
+
+            path = f'../../tmp/{ind}.png'
+            plt.savefig(path)
+            images.append(Image.open(path))
+
+            plt.cla()
+            plt.clf()
+            plt.close('all')
 
     @staticmethod
-    def combine_gifs():
-        # Create reader object for the gif
-        gif0 = get_reader('../../tmp/chains_best.gif')
-        gif1 = get_reader('../../tmp/chains.gif')
-        gif2 = get_reader('../../tmp/conv.gif')
+    def visualise_history(chains, fitnesses):
+        ComposerVisualiser._clean()
+        ComposerVisualiser._visualise_chains(chains, fitnesses)
+        ComposerVisualiser._visualise_convergence(fitnesses)
+        ComposerVisualiser._merge_images()
+        ComposerVisualiser._combine_gifs()
+        ComposerVisualiser._clean()
 
-        # If they don't have the same number of frame take the shorter
-        number_of_frames = min(gif0.get_length(), gif1.get_length(), gif2.get_length())
+    @staticmethod
+    def _merge_images():
+        num_images = 20
+        for img_idx in (range(1, num_images + 1)):
+            images = list(map(Image.open, [f'../../tmp/ch_{img_idx}.png',
+                                           f'../../tmp/best_ch_{img_idx}.png',
+                                           f'../../tmp/{img_idx}.png']))
+            widths, heights = zip(*(i.size for i in images))
 
-        # Create writer object
-        images = []
-        for frame_number in range(number_of_frames):
-            img0 = gif0.get_next_data()
-            img1 = gif1.get_next_data()
-            img2 = gif2.get_next_data()
-            new_image = np.hstack((img0, img1, img2))
-            images.append(new_image)
+            total_width = sum(widths)
+            max_height = max(heights)
 
-        gif0.close()
-        gif1.close()
-        gif2.close()
+            new_im = Image.new('RGB', (total_width, max_height))
 
-        mimsave('../../tmp/analyt_full.gif', images, format='GIF', duration=0.5)
+            x_offset = 0
+            for im in images:
+                new_im.paste(im, (x_offset, 0))
+                x_offset += im.size[0]
+
+            new_im.save(f'../../tmp/for_gif_{img_idx}.png')
+
+    @staticmethod
+    def _combine_gifs():
+        files = [file for file in iglob(f"../../tmp/for_gif_*.png")]
+        with get_writer(f'../../tmp/final.gif', mode='I', duration=0.5) as writer:
+            for filename in files:
+                image = imread(filename)
+                writer.append_data(image)
+
+    @staticmethod
+    def _clean():
+        files = glob('../../tmp/*.png')
+        for file in files:
+            remove(file)
 
 
 def _as_nx_graph(chain: Chain):
@@ -217,44 +263,3 @@ def node_positions(G, root=None, width=0.5, vert_gap=0.2, vert_loc=0, xcenter=0.
         return pos
 
     return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
-
-
-class ComposerVisualiser:
-    @staticmethod
-    def visualise(fitness_history):
-        fitness_history = deepcopy(fitness_history)
-        prev_fit = fitness_history[0]
-        for fit_id, fit in enumerate(fitness_history):
-            if fit > prev_fit:
-                fitness_history[fit_id] = prev_fit
-            prev_fit = fitness_history[fit_id]
-        ts = list(range(len(fitness_history)))
-        df = pd.DataFrame(
-            {"ts": ts, "fitness": [-f for f in fitness_history]})
-
-        images = []
-        ind = 0
-        for ts in ts:
-            plt.rcParams['axes.titlesize'] = 20
-            plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
-
-            ind = ind + 1
-            plt.plot(df['ts'], df['fitness'], label="Composer")
-            plt.xlabel('Generation', fontsize=18)
-            plt.ylabel('Best ROC AUC', fontsize=18)
-
-            plt.axvline(x=ts, color="black")
-            plt.legend(loc="upper left")
-
-            path = f'../../tmp/{ind}.png'
-            plt.savefig(path)
-            images.append(Image.open(path))
-
-            plt.cla()
-            plt.clf()
-            plt.close('all')
-
-            images[0].save(f'../../tmp/conv.gif', save_all=True,
-                           append_images=images[1:], duration=500,
-                           loop=0)

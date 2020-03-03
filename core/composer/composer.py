@@ -51,7 +51,7 @@ class DummyComposer(Composer):
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y
-            last_node = NodeGenerator.secondary_node(composer_requirements.secondary_requirements[0])
+            last_node = NodeGenerator.secondary_node(composer_requirements.secondary[0])
             last_node.nodes_from = []
 
             for requirement_model in composer_requirements.primary:

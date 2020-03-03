@@ -1,5 +1,6 @@
-from PIL import Image, ImageDraw
 import os
+
+from PIL import Image, ImageDraw
 
 
 class Tree_Drawing:
@@ -32,6 +33,7 @@ class Tree_Drawing:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
 
     def draw_branch(self, node, jpeg="tree.png"):
+        return 0
         if not os.path.isdir(f'HistoryFiles'):
             os.mkdir(f'HistoryFiles')
         if not os.path.isdir(f'HistoryFiles/Trees'):

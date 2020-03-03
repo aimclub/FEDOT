@@ -67,7 +67,7 @@ class GPChainOptimiser:
 
     def _tree_growth(self, node_parent):
         offspring_size = randint(2, self.requirements.max_arity)
-        node_offspring = []
+        offspring_nodes = []
         for offspring_node in range(offspring_size):
             if node_parent.get_depth_up() >= self.requirements.max_depth or (
                     node_parent.get_depth_up() < self.requirements.max_depth
@@ -75,10 +75,10 @@ class GPChainOptimiser:
 
                 new_node = self.__primary_node_func(choice(self.requirements.primary),
                                                     nodes_to=node_parent, input_data=None)
-                node_offspring.append(new_node)
+                offspring_nodes.append(new_node)
             else:
                 new_node = self.__secondary_node_func(choice(self.requirements.secondary),
                                                       nodes_to=node_parent)
                 self._tree_growth(new_node)
-                node_offspring.append(new_node)
-        node_parent.nodes_from = node_offspring
+                offspring_nodes.append(new_node)
+        node_parent.nodes_from = offspring_nodes

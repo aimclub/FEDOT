@@ -94,7 +94,7 @@ class ModelTypesRepository:
         ModelTypesIdsEnum.dt: DecisionTree,
         ModelTypesIdsEnum.rf: RandomForest,
         ModelTypesIdsEnum.mlp: MLP,
-        ModelTypesIdsEnum.lda: LDA,
+        ModelTypesIdsEnum.lda: LDA
     }
 
     def _initialise_tree(self):

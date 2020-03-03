@@ -100,10 +100,10 @@ def test_random_composer(data_fixture, request):
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     random_composer = RandomSearchComposer(iter_num=1)
+    req = ComposerRequirements(primary=models_impl, secondary=models_impl)
     chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
                                                           initial_chain=None,
-                                                          primary_requirements=models_impl,
-                                                          secondary_requirements=models_impl,
+                                                          composer_requirements=req,
                                                           metrics=metric_function)
 
     predicted_random_composed = chain_random_composed.predict(dataset_to_validate)

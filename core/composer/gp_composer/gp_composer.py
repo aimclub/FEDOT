@@ -13,7 +13,6 @@ from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GP_Node
 from core.composer.gp_composer.gp_node import GP_NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
-from core.composer.visualisation import ChainVisualiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import Model
@@ -53,9 +52,7 @@ class GPComposer(Composer):
             historical_chains.append(historical_chain)
 
         historical_fitnesses = [opt_step[1] for opt_step in history]
-        ComposerVisualiser.visualise(historical_fitnesses)
-        ChainVisualiser.visualise_chains(historical_chains, historical_fitnesses)
-        ChainVisualiser.combine_gifs()
+        ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
 
         best_chain = GPComposer._tree_to_chain(tree_root=best_found, data=data)
         return best_chain
@@ -85,6 +82,6 @@ class GPComposer(Composer):
     @staticmethod
     def _metric_for_nodes(metric_function, data, root: GP_Node) -> float:
         chain = GPComposer._tree_to_chain(root, data)
-        # from random import randint
-        # return randint(0,1000)
-        return metric_function(chain)
+        from random import randint
+        return randint(0, 1000)
+        # return metric_function(chain)

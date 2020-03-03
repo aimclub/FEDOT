@@ -74,9 +74,6 @@ class PrimaryNode(Node):
                               features=self.input_data.features,
                               predict=self.cached_result.cached_output)
         else:
-            if self.cached_result is not None and not self.cached_result.is_actual(self.nodes_from):
-                # TODO refactor check
-                self.eval_strategy.is_train_models = True
             model_predict = self.eval_strategy.evaluate(self.input_data)
             if self.is_caching:
                 self.cached_result = CachedNodeResult(self, model_predict)
