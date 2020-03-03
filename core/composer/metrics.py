@@ -16,14 +16,16 @@ class ChainMetric:
 class RmseMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain) -> float:
-        results = chain.predict()
+        _, test_data = train_test_data_setup(chain.reference_data)
+        results = chain.predict(test_data)
         return mean_squared_error(y_true=chain.reference_data.target, y_pred=results)
 
 
 class MaeMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain) -> float:
-        results = chain.predict()
+        _, test_data = train_test_data_setup(chain.reference_data)
+        results = chain.predict(test_data)
         return mean_squared_error(y_true=chain.reference_data.target, y_pred=results)
 
 
