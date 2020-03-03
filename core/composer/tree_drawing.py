@@ -1,6 +1,5 @@
-import os
-
 from PIL import Image, ImageDraw
+import os
 
 
 class Tree_Drawing:
@@ -33,11 +32,16 @@ class Tree_Drawing:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
 
     def draw_branch(self, node, jpeg="tree.png"):
-        return 0
-        if not os.path.isdir(f'HistoryFiles'):
-            os.mkdir(f'HistoryFiles')
-        if not os.path.isdir(f'HistoryFiles/Trees'):
-            os.mkdir(f'HistoryFiles/Trees')
+        if not os.path.isdir(f'../../HistoryFiles'):
+            os.mkdir(f'../../HistoryFiles')
+        if not os.path.isdir(f'../../HistoryFiles/Trees'):
+            os.mkdir(f'../../HistoryFiles/Trees')
+        if not os.path.isdir(f'../../HistoryFiles/Trees/pop_individuals'):
+            os.mkdir(f'../../HistoryFiles/Trees/pop_individuals')
+        if not os.path.isdir(f'../../HistoryFiles/Trees/mutation'):
+            os.mkdir(f'../../HistoryFiles/Trees/mutation')
+        if not os.path.isdir(f'../../HistoryFiles/Trees/crossover'):
+            os.mkdir(f'../../HistoryFiles/Trees/crossover')
 
         w = self._getwidth(node) * 100
         if not node.nodes_from:
@@ -48,4 +52,4 @@ class Tree_Drawing:
         img = Image.new('RGB', (w, h), (255, 255, 255))
         draw = ImageDraw.Draw(img)
         self._drawnode(node, draw, w / 2, 20)
-        img.save(f'HistoryFiles/Trees/{jpeg}', 'PNG')
+        img.save(f'../../HistoryFiles/Trees/{jpeg}', 'PNG')

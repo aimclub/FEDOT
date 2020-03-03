@@ -38,29 +38,30 @@ def standard_crossover(tree1, tree2, max_depth, crossover_prob, pair_num=None, p
     nodeforchange = choice(tree2.get_nodes_from_layer(rnselflayer))
 
     Tree_Drawing().draw_branch(node=tree1,
-                               jpeg=f'p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
+                               jpeg=f'crossover/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
     Tree_Drawing().draw_branch(node=tree2,
-                               jpeg=f'p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
+                               jpeg=f'crossover/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
 
     if rnlayer == 0:
         return tree1_copy
 
-    if changednode.get_depth_up() + nodeforchange.get_depth_down() - nodeforchange.get_depth_up() < max_depth + 1:
+    if changednode.get_depth_up() + nodeforchange.get_depth_down() <= max_depth:
         print(changednode.get_depth_up())
         print(nodeforchange.get_depth_down())
         print(nodeforchange.get_depth_up())
         changednode.swap_nodes(nodeforchange)
-        Tree_Drawing().draw_branch(node=tree1_copy, jpeg=f'result_pair{pair_num}_pop{pop_num}.png')
+        Tree_Drawing().draw_branch(node=tree1_copy, jpeg=f'crossover/result_pair{pair_num}_pop{pop_num}.png')
         return tree1_copy
     else:
         return tree1_copy
 
 
-def standard_mutation(root_node, secondary_requirements, primary_requirements, probability=None):
+def standard_mutation(root_node, secondary_requirements, primary_requirements, probability=None, pair_num=None,
+                      pop_num=None):
     if not probability:
         probability = 1.0 / root_node.get_depth_down()
 
-    Tree_Drawing().draw_branch(node=root_node, jpeg=f'tree(mut).png')
+    Tree_Drawing().draw_branch(node=root_node, jpeg=f'mutation/tree(mut)_pop{pop_num}_ind{pair_num}.png')
 
     def _node_mutate(node):
         if node.nodes_from:
@@ -74,6 +75,6 @@ def standard_mutation(root_node, secondary_requirements, primary_requirements, p
 
     result = deepcopy(root_node)
     _node_mutate(node=result)
-    Tree_Drawing().draw_branch(node=result, jpeg=f'tree after mut.png')
+    Tree_Drawing().draw_branch(node=result, jpeg=f'mutation/tree after mut_pop{pop_num}_ind{pair_num}.png')
 
     return result

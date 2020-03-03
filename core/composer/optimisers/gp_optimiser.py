@@ -11,6 +11,7 @@ from core.composer.gp_composer.gp_node import GP_Node
 from core.composer.optimisers.evo_operators import tournament_selection, standard_crossover, \
     standard_mutation
 from core.composer.tree_drawing import Tree_Drawing
+import os
 
 
 class GPChainOptimiser:
@@ -32,7 +33,14 @@ class GPChainOptimiser:
             print(f'GP generation num: {generation_num}')
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
 
+            #print all population
+            for i, pop_ind in enumerate(self.population):
+                if not os.path.isdir(f'../../HistoryFiles/Trees/pop_individuals/pop{generation_num}'):
+                    os.mkdir(f'../../HistoryFiles/Trees/pop_individuals/pop{generation_num}')
+                Tree_Drawing().draw_branch(pop_ind, jpeg=f'pop_individuals/pop{generation_num}/{i}(fitness_{self.fitness[i]}).png')
+
             self.best_individual = self.population[np.argmin(self.fitness)]
+            Tree_Drawing().draw_branch(self.best_individual, jpeg=f'the_best_ind_(pop{generation_num}).png')
 
             selected_indexes = tournament_selection(fitnesses=self.fitness,
                                                     group_size=5)
@@ -46,7 +54,9 @@ class GPChainOptimiser:
 
                 new_population[ind_num] = standard_mutation(new_population[ind_num],
                                                             secondary_requirements=self.requirements.secondary,
-                                                            primary_requirements=self.requirements.primary)
+                                                            primary_requirements=self.requirements.primary,
+                                                            pair_num=ind_num,
+                                                            pop_num=generation_num)
 
                 new_metric_value = round(metric_function_for_nodes(new_population[ind_num]), 3)
                 history.append((new_population[ind_num], new_metric_value))
@@ -69,8 +79,8 @@ class GPChainOptimiser:
         offspring_size = randint(2, self.requirements.max_arity)
         offspring_nodes = []
         for offspring_node in range(offspring_size):
-            if node_parent.get_depth_up() >= self.requirements.max_depth or (
-                    node_parent.get_depth_up() < self.requirements.max_depth
+            if node_parent.get_depth_up() >= self.requirements.max_depth-1 or (
+                    node_parent.get_depth_up() < self.requirements.max_depth-1
                     and randint(0, 1)):
 
                 new_node = self.__primary_node_func(choice(self.requirements.primary),
