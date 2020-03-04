@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -7,16 +8,26 @@ from anytree import Node, RenderTree, findall
 
 from core.models.model import (
     LogRegression,
-    XGBoost
+    XGBoost,
+    KNN,
+    DecisionTree,
+    RandomForest,
+    MLP,
+    LDA
 )
 from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
 from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 
 
 class ModelTypesIdsEnum(Enum):
-    xgboost = 'xgboost'
-    knn = 'knn'
-    logit = 'logit'
+    xgboost = 'xgboost',
+    knn = 'knn',
+    logit = 'logit',
+    dt = 'decisiontree',
+    rf = 'randomforest',
+    mlp = 'mlp',
+    lda = 'lda',
+    qda = 'qda'
 
 
 class ModelGroupsIdsEnum(Enum):
@@ -78,7 +89,12 @@ class ModelType(Node):
 class ModelTypesRepository:
     model_implementations = {
         ModelTypesIdsEnum.xgboost: XGBoost,
-        ModelTypesIdsEnum.logit: LogRegression
+        ModelTypesIdsEnum.logit: LogRegression,
+        ModelTypesIdsEnum.knn: KNN,
+        ModelTypesIdsEnum.dt: DecisionTree,
+        ModelTypesIdsEnum.rf: RandomForest,
+        ModelTypesIdsEnum.mlp: MLP,
+        ModelTypesIdsEnum.lda: LDA,
     }
 
     def _initialise_tree(self):
@@ -86,25 +102,13 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
 
-        xgboost_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                     task_type=[MachineLearningTasksEnum.classification,
-                                                MachineLearningTasksEnum.regression])
+        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
+                                    task_type=[MachineLearningTasksEnum.classification,
+                                               MachineLearningTasksEnum.regression])
 
-        ModelType(ModelTypesIdsEnum.xgboost, xgboost_meta, parent=ml)
-
-        knn_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table],
-                                 output_type=[CategoricalDataTypesEnum.vector],
-                                 task_type=[MachineLearningTasksEnum.classification])
-
-        ModelType(ModelTypesIdsEnum.knn, knn_meta, parent=ml)
-
-        logit_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                   output_type=[CategoricalDataTypesEnum.vector],
-                                   task_type=[MachineLearningTasksEnum.classification])
-
-        ModelType(ModelTypesIdsEnum.logit, logit_meta, parent=ml)
-
+        for model_type in ModelTypesIdsEnum:
+            ModelType(model_type, deepcopy(common_meta), parent=ml)
         return root
 
     def __init__(self):

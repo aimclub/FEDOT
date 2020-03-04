@@ -8,9 +8,7 @@ from core.composer.node import PrimaryNode, NodeGenerator
 from core.models.data import (
     InputData,
     split_train_test,
-    normalize
 )
-from core.models.evaluation import EvaluationStrategy
 from core.models.model import LogRegression
 
 
@@ -20,8 +18,8 @@ def data_setup():
     np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
+    predictors = predictors[:100]
     response = response[:100]
-    predictors = normalize(predictors[:100])
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
@@ -54,10 +52,8 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train_data_x, train_data_y)
     expected_result = test_skl_model.predict(test_data_x)
 
-    eval_strategy = EvaluationStrategy(model=LogRegression())
-    test_model_node = PrimaryNode(input_data=data_set,
-                                  eval_strategy=eval_strategy)
+    test_model_node = NodeGenerator.primary_node(input_data=data_set, model=LogRegression())
     actual_result = test_model_node.apply()
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
-    assert actual_result.predict.all() == expected_result.all()
+    assert len(actual_result.predict) == len(train_data_y) + len(expected_result)
