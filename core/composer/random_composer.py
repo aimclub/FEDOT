@@ -30,14 +30,6 @@ class RandomSearchComposer:
         best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
                                                      composer_requirements.primary,
                                                      composer_requirements.secondary)
-        historical_chains = []
-        for historical_data in history:
-            historical_nodes_set = historical_data[0]
-            historical_chain = Chain()
-            [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
-            historical_chains.append(historical_chain)
-
-        historical_fitnesses = [opt_step[1] for opt_step in history]
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]

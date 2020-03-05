@@ -9,8 +9,7 @@ from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, Dum
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.metrics import PseudoMetric
 from core.composer.visualisation import ComposerVisualiser
-from core.models.data import InputData
-from core.models.model import MLP
+from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -66,8 +65,8 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 # the choice and initialisation of the random_search
 
 composer_requirements = GPComposerRequirements(
-    primary=models_impl,
-    secondary=models_impl, max_arity=3,
+    primary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()],
+    secondary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()], max_arity=3,
     max_depth=2, pop_size=20, num_of_generations=10,
     crossover_prob=0.4, mutation_prob=0.5)
 

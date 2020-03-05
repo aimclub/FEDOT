@@ -109,3 +109,38 @@ def test_random_composer(data_fixture, request):
                                            y_score=predicted_random_composed.predict)
 
     assert roc_on_valid_random_composed > 0.6
+
+
+@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
+def test_gp_composer(data_fixture, request):
+    random.seed(1)
+    np.random.seed(1)
+    data = request.getfixturevalue(data_fixture)
+    dataset_to_compose = data
+    dataset_to_validate = data
+
+    models_repo = ModelTypesRepository()
+    available_model_names = models_repo.search_model_types_by_attributes(
+        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                               output_type=CategoricalDataTypesEnum.vector,
+                                               task_type=MachineLearningTasksEnum.classification,
+                                               can_be_initial=True,
+                                               can_be_secondary=True))
+
+    models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
+
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+    random_composer = RandomSearchComposer(iter_num=1)
+    req = ComposerRequirements(primary=models_impl, secondary=models_impl)
+    chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
+                                                          initial_chain=None,
+                                                          composer_requirements=req,
+                                                          metrics=metric_function)
+
+    predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
+
+    roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
+                                           y_score=predicted_random_composed.predict)
+
+    assert roc_on_valid_random_composed > 0.6
