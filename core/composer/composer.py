@@ -12,7 +12,6 @@ from core.models.data import InputData
 from core.models.model import Model
 
 
-# TODO: specify ComposerRequirements class
 class ComposerRequirements:
     def __init__(self, primary: List[Model], secondary: List[Model],
                  max_depth: Optional[int] = None,

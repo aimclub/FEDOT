@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from random import choice, randint
 from typing import (
@@ -11,7 +12,6 @@ from core.composer.gp_composer.gp_node import GP_Node
 from core.composer.optimisers.evo_operators import tournament_selection, standard_crossover, \
     standard_mutation
 from core.composer.tree_drawing import Tree_Drawing
-import os
 
 
 class GPChainOptimiser:
@@ -32,12 +32,15 @@ class GPChainOptimiser:
         for generation_num in range(self.requirements.num_of_generations):
             print(f'GP generation num: {generation_num}')
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+            for i in range(len(self.fitness)):
+                history.append((self.population[i], self.fitness[i]))
 
-            #print all population
+            # print all population
             for i, pop_ind in enumerate(self.population):
                 if not os.path.isdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}'):
                     os.mkdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}')
-                Tree_Drawing().draw_branch(pop_ind, jpeg=f'pop_individuals/pop{generation_num}/{i}(fitness_{self.fitness[i]}).png')
+                Tree_Drawing().draw_branch(pop_ind,
+                                           jpeg=f'pop_individuals/pop{generation_num}/{i}(fitness_{self.fitness[i]}).png')
 
             self.best_individual = self.population[np.argmin(self.fitness)]
             Tree_Drawing().draw_branch(self.best_individual, jpeg=f'the_best_ind_(pop{generation_num}).png')
@@ -58,9 +61,6 @@ class GPChainOptimiser:
                                                             pair_num=ind_num,
                                                             pop_num=generation_num)
 
-                new_metric_value = round(metric_function_for_nodes(new_population[ind_num]), 3)
-                history.append((new_population[ind_num], new_metric_value))
-
             self.population = deepcopy(new_population)
             self.population.append(self.best_individual)
 
@@ -79,8 +79,8 @@ class GPChainOptimiser:
         offspring_size = randint(2, self.requirements.max_arity)
         offspring_nodes = []
         for offspring_node in range(offspring_size):
-            if node_parent.get_depth_up() >= self.requirements.max_depth-1 or (
-                    node_parent.get_depth_up() < self.requirements.max_depth-1
+            if node_parent.get_depth_up() >= self.requirements.max_depth - 1 or (
+                    node_parent.get_depth_up() < self.requirements.max_depth - 1
                     and randint(0, 1)):
 
                 new_node = self.__primary_node_func(choice(self.requirements.primary),

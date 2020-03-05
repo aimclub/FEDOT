@@ -55,6 +55,7 @@ class GPComposer(Composer):
         ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
 
         best_chain = GPComposer._tree_to_chain(tree_root=best_found, data=data)
+        print("GP composition finished")
         return best_chain
 
     @staticmethod

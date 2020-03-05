@@ -2,6 +2,7 @@ from copy import deepcopy
 from glob import glob, iglob
 from math import log2, ceil
 from os import remove
+from time import time
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -30,9 +31,6 @@ class ComposerVisualiser:
 
     @staticmethod
     def _visualise_chains(chains, fitnesses):
-        images = []
-        images_best = []
-
         fitnesses = deepcopy(fitnesses)
         last_best_chain = chains[0]
 
@@ -50,9 +48,8 @@ class ComposerVisualiser:
                     font_size=12, font_family='calibri', font_weight='bold',
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
-            # plt.show()
             path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
-            plt.savefig(path)
+            plt.savefig(path, bbox_inches='tight')
 
             plt.cla()
             plt.clf()
@@ -78,7 +75,7 @@ class ComposerVisualiser:
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
-            plt.savefig(path_best)
+            plt.savefig(path_best, bbox_inches='tight')
 
             plt.cla()
             plt.clf()
@@ -112,7 +109,7 @@ class ComposerVisualiser:
             plt.legend(loc='upper left')
 
             path = f'{ComposerVisualiser.temp_path}{ind}.png'
-            plt.savefig(path)
+            plt.savefig(path, bbox_inches='tight')
 
             plt.cla()
             plt.clf()
@@ -120,7 +117,8 @@ class ComposerVisualiser:
 
     @staticmethod
     def visualise_history(chains, fitnesses):
-        ComposerVisualiser._clean()
+        print("START VISUALISATION")
+        ComposerVisualiser._clean(with_gif=True)
         ComposerVisualiser._visualise_chains(chains, fitnesses)
         ComposerVisualiser._visualise_convergence(fitnesses)
         ComposerVisualiser._merge_images(len(chains))
@@ -157,16 +155,21 @@ class ComposerVisualiser:
                      iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
         files = [file for _, file in sorted(zip(files_idx, files))]
 
-        with get_writer(f'{ComposerVisualiser.temp_path}final.gif', mode='I', duration=0.5) as writer:
+        with get_writer(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif', mode='I', duration=0.5) as writer:
             for filename in files:
                 image = imread(filename)
                 writer.append_data(image)
 
     @staticmethod
-    def _clean():
-        files = glob(f'{ComposerVisualiser.temp_path}*.png')
-        for file in files:
-            remove(file)
+    def _clean(with_gif=False):
+        try:
+            files = glob(f'{ComposerVisualiser.temp_path}*.png')
+            if with_gif:
+                files += glob(f'{ComposerVisualiser.temp_path}*.gif')
+            for file in files:
+                remove(file)
+        except Exception as ex:
+            print(ex)
 
 
 def _as_nx_graph(chain: Chain):

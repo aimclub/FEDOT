@@ -1,8 +1,10 @@
-from random import randint, choice
-from copy import deepcopy
-import numpy as np
-from core.composer.tree_drawing import Tree_Drawing
 import random
+from copy import deepcopy
+from random import randint, choice
+
+import numpy as np
+
+from core.composer.tree_drawing import Tree_Drawing
 
 
 def tournament_selection(fitnesses, minimization=True, group_size=5):
@@ -29,17 +31,18 @@ def standard_crossover(tree1, tree2, max_depth, crossover_prob, pair_num=None, p
     if tree1 is tree2 or random.random() > crossover_prob:
         return deepcopy(tree1)
     tree1_copy = deepcopy(tree1)
+    tree2_copy = deepcopy(tree2)
     rnlayer = randint(0, tree1_copy.get_depth_down() - 1)
-    rnselflayer = randint(0, tree2.get_depth_down() - 1)
+    rnselflayer = randint(0, tree2_copy.get_depth_down() - 1)
     if rnlayer == 0 and rnselflayer == 0:
-        return deepcopy(tree2)
+        return deepcopy(tree2_copy)
 
     changednode = choice(tree1_copy.get_nodes_from_layer(rnlayer))
-    nodeforchange = choice(tree2.get_nodes_from_layer(rnselflayer))
+    nodeforchange = choice(tree2_copy.get_nodes_from_layer(rnselflayer))
 
     Tree_Drawing().draw_branch(node=tree1,
                                jpeg=f'crossover/p1_pair{pair_num}_pop{pop_num}_rnlayer{rnlayer}({changednode.eval_strategy.model.__class__.__name__}).png')
-    Tree_Drawing().draw_branch(node=tree2,
+    Tree_Drawing().draw_branch(node=tree2_copy,
                                jpeg=f'crossover/p2_pair{pair_num}_pop{pop_num}_rnselflayer{rnselflayer}({nodeforchange.eval_strategy.model.__class__.__name__}).png')
 
     if rnlayer == 0:

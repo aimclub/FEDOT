@@ -62,13 +62,14 @@ metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROC
 alt_metric_function = PseudoMetric.get_value
 
 # the choice and initialisation of the dummy_composer
-dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical_2lev)
+dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 # the choice and initialisation of the random_search
 
-composer_requirements = GPComposerRequirements(primary=models_impl,
-                                               secondary=models_impl, max_arity=3,
-                                               max_depth=3, pop_size=10, num_of_generations=2,
-                                               crossover_prob=0.2, mutation_prob=0.9)
+composer_requirements = GPComposerRequirements(
+    primary=models_impl,
+    secondary=models_impl, max_arity=3,
+    max_depth=2, pop_size=20, num_of_generations=10,
+    crossover_prob=0.4, mutation_prob=0.5)
 
 # Create GP-based composer
 composer = GPComposer()
