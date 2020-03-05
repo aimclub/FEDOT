@@ -10,7 +10,7 @@ from typing import (
 
 import numpy as np
 
-from core.composer.gp_composer.gp_node import GP_Node
+from core.composer.gp_composer.gpnode import GPNode
 from core.composer.optimisers.evo_operators import EvolutuionaryOperators
 from core.composer.tree_drawing import TreeDrawing
 
@@ -72,10 +72,10 @@ class GPChainOptimiser:
 
         return self.population[np.argmin(self.fitness)], history
 
-    def _make_population(self, pop_size: SupportsInt) -> List[GP_Node]:
+    def _make_population(self, pop_size: SupportsInt) -> List[GPNode]:
         return [self._random_tree() for _ in range(pop_size)]
 
-    def _random_tree(self) -> GP_Node:
+    def _random_tree(self) -> GPNode:
         root = self.__secondary_node_func(choice(self.requirements.secondary))
         new_tree = root
         self._tree_growth(node_parent=root)

@@ -1,26 +1,25 @@
-from core.composer.node import Node
-from core.models.data import InputData
-from core.models.evaluation import EvaluationStrategy
-from core.models.model import Model
-from typing import (List, Optional)
-import random
-from core.composer.node import NodeGenerator
 from copy import deepcopy
+from typing import (List, Optional)
+
+from core.composer.node import Node
+from core.composer.node import NodeGenerator
+from core.models.data import InputData
+from core.models.model import Model
 
 
-class GP_NodeGenerator:
+class GPNodeGenerator:
     @staticmethod
     def primary_node(model: Model, input_data: InputData, nodes_to: Optional[Node] = None) -> Node:
         chain_node = NodeGenerator.primary_node(model=model, input_data=input_data)
-        return GP_Node(chain_node=chain_node, nodes_to=nodes_to)
+        return GPNode(chain_node=chain_node, nodes_to=nodes_to)
 
     @staticmethod
     def secondary_node(model: Model, nodes_to: Optional[Node] = None) -> Node:
         chain_node = NodeGenerator.secondary_node(model=model)
-        return GP_Node(chain_node=chain_node, nodes_to=nodes_to)
+        return GPNode(chain_node=chain_node, nodes_to=nodes_to)
 
 
-class GP_Node:
+class GPNode:
     def __init__(self, chain_node, nodes_to: Optional[List['Node']]):
         self._chain_node = chain_node
         self.nodes_to = nodes_to

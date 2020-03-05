@@ -17,6 +17,9 @@ class EvolutuionaryOperators:
 
     @staticmethod
     def tournament_selection(fitnesses: List[SupportsFloat], minimization=True, group_size: SupportsInt = 5):
+
+        if group_size > len(fitnesses):
+            group_size = len(fitnesses)
         selected = []
         pair_num = 0
         for j in range(len(fitnesses) * 2):

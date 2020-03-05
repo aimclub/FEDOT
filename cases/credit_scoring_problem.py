@@ -67,7 +67,7 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 composer_requirements = GPComposerRequirements(
     primary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()],
     secondary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()], max_arity=3,
-    max_depth=2, pop_size=20, num_of_generations=10,
+    max_depth=2, pop_size=10, num_of_generations=10,
     crossover_prob=0.4, mutation_prob=0.5)
 
 # Create GP-based composer

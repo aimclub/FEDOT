@@ -9,10 +9,11 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.composer import ComposerRequirements
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
+from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
-from core.models.model import LogRegression
+from core.models.model import LogRegression, KNN, LDA, DecisionTree, RandomForest, MLP
 from core.models.model import XGBoost
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -120,6 +121,7 @@ def test_gp_composer(data_fixture, request):
     dataset_to_validate = data
 
     models_repo = ModelTypesRepository()
+
     available_model_names = models_repo.search_model_types_by_attributes(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
@@ -127,20 +129,26 @@ def test_gp_composer(data_fixture, request):
                                                can_be_initial=True,
                                                can_be_secondary=True))
 
-    models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
+    # models_impl = [LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()]
+    # models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-    random_composer = RandomSearchComposer(iter_num=1)
-    req = ComposerRequirements(primary=models_impl, secondary=models_impl)
-    chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
-                                                          initial_chain=None,
-                                                          composer_requirements=req,
-                                                          metrics=metric_function)
+    gp_composer = GPComposer()
+    req = GPComposerRequirements(
+        primary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()],
+        secondary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()], max_arity=2,
+        max_depth=2,
+        pop_size=2, num_of_generations=1, crossover_prob=0.4,
+        mutation_prob=0.5)
+    chain_gp_composed = gp_composer.compose_chain(data=dataset_to_compose,
+                                                  initial_chain=None,
+                                                  composer_requirements=req,
+                                                  metrics=metric_function)
 
-    predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
+    predicted_gp_composed = chain_gp_composed.predict(dataset_to_validate)
 
-    roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
-                                           y_score=predicted_random_composed.predict)
+    roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
+                                       y_score=predicted_gp_composed.predict)
 
-    assert roc_on_valid_random_composed > 0.6
+    assert roc_on_valid_gp_composed > 0.6
