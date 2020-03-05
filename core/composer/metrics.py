@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from random import randint
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
 
@@ -49,7 +50,6 @@ class RocAucMetric(ChainMetric):
 class PseudoMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain) -> float:
-        from random import randint
         return randint(0, 1000)
 
 
