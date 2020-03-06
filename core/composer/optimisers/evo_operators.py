@@ -90,7 +90,6 @@ class EvolutuionaryOperators:
         return result
 
     def random_change_tree_nodes(self, root_node, probability):
-        root_node_copy = deepcopy(root_node)
 
         def _random_node_recursive(node, parent=None):
 
@@ -107,5 +106,6 @@ class EvolutuionaryOperators:
             if not node.node_to:
                 return node
 
+        root_node_copy = deepcopy(root_node)
         _random_node_recursive(node=root_node_copy)
         return root_node_copy
