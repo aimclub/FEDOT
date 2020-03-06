@@ -1,5 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import (List, Optional)
 
 import numpy as np
@@ -18,6 +19,7 @@ class Node(ABC):
         self.eval_strategy = eval_strategy
         self.input_data = input_data
         self.cached_result = None
+        self.is_caching = True
 
     @abstractmethod
     def apply(self) -> OutputData:
@@ -37,15 +39,15 @@ class CachedNodeResult:
 
 class NodeGenerator:
     @staticmethod
-    def primary_node(model: Model, input_data: InputData) -> Node:
-        eval_strategy = EvaluationStrategy(model=model)
+    def primary_node(model: Model, input_data: Optional[InputData]) -> Node:
+        eval_strategy = EvaluationStrategy(model=deepcopy(model))
         return PrimaryNode(input_data=input_data,
                            eval_strategy=eval_strategy)
 
     @staticmethod
-    def secondary_node(model: Model) -> Node:
-        eval_strategy = EvaluationStrategy(model=model)
-        return SecondaryNode(nodes_from=None,
+    def secondary_node(model: Model, nodes_from: Optional[List[Node]] = None) -> Node:
+        eval_strategy = EvaluationStrategy(model=deepcopy(model))
+        return SecondaryNode(nodes_from=nodes_from,
                              eval_strategy=eval_strategy)
 
 
@@ -57,13 +59,14 @@ class PrimaryNode(Node):
                          eval_strategy=eval_strategy)
 
     def apply(self) -> OutputData:
-        if self.cached_result is not None:
+        if self.cached_result is not None and self.is_caching:
             return OutputData(idx=self.input_data.idx,
                               features=self.input_data.features,
                               predict=self.cached_result.cached_output)
         else:
             model_predict = self.eval_strategy.evaluate(self.input_data)
-            self.cached_result = CachedNodeResult(self, model_predict)
+            if self.is_caching:
+                self.cached_result = CachedNodeResult(self, model_predict)
             return OutputData(idx=self.input_data.idx,
                               features=self.input_data.features,
                               predict=model_predict)
@@ -84,7 +87,8 @@ class SecondaryNode(Node):
         self.input_data = Data.from_predictions(outputs=parent_predict_list,
                                                 target=target)
         evaluation_result = self.eval_strategy.evaluate(self.input_data)
-        self.cached_result = CachedNodeResult(self, evaluation_result)
+        if self.is_caching:
+            self.cached_result = CachedNodeResult(self, evaluation_result)
         return OutputData(idx=self.nodes_from[0].input_data.idx,
                           features=self.nodes_from[0].input_data.features,
                           predict=evaluation_result)

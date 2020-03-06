@@ -3,7 +3,6 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
 
 
 @dataclass
@@ -43,11 +42,6 @@ class OutputData(Data):
 def split_train_test(data, split_ratio=0.8):
     split_point = int(len(data) * split_ratio)
     return data[:split_point], data[split_point:]
-
-
-def normalize(x):
-    """Normalize data with sklearn.preprocessing.scale()"""
-    return preprocessing.scale(x)
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):

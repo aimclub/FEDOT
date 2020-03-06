@@ -41,27 +41,27 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 # the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-# the choice and initialisation of the composer
+# the choice and initialisation of the dummy_composer
 composer = DummyComposer(DummyChainTypeEnum.flat)
 
 # the optimal chain generation by composition - the most time-consuming task
 chain_seq = composer.compose_chain(data=dataset_to_compose,
                                    initial_chain=None,
-                                   primary_requirements=[models_impl[1]],
-                                   secondary_requirements=[models_impl[1]],
+                                   primary_requirements=[models_impl[0]],
+                                   secondary_requirements=[models_impl[2]],
                                    metrics=metric_function)
 
 # the second variant of optimal chain generation by composition with another requirements
 chain_single = composer.compose_chain(data=dataset_to_compose,
                                       initial_chain=None,
-                                      primary_requirements=[models_impl[1]],
+                                      primary_requirements=[models_impl[0]],
                                       secondary_requirements=[],
                                       metrics=metric_function)
 
 #
 # the execution of the obtained composite models
-predicted_seq = chain_seq.evaluate(dataset_to_validate)
-predicted_single = chain_single.evaluate(dataset_to_validate)
+predicted_seq = chain_seq.predict(dataset_to_validate)
+predicted_single = chain_single.predict(dataset_to_validate)
 
 # the quality assessment for the simulation results
 roc_on_train_seq = roc_auc(y_true=dataset_to_validate.target,

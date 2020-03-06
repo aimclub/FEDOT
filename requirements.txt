@@ -8,3 +8,4 @@ typing==3.7.4.1
 scikit_learn==0.22.1
 matplotlib==3.0.2
 networkx==2.4
+xgboost==1.0.1
