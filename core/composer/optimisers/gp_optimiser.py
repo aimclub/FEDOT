@@ -26,6 +26,9 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
+        self.evo_operators = EvolutuionaryOperators(requirements=requirements, primary_node_func=primary_node_func,
+                                                    secondary_node_func=secondary_node_func)
+
     def optimise(self, metric_function_for_nodes):
         history = []
         self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
@@ -33,17 +36,15 @@ class GPChainOptimiser:
             print(f'GP generation num: {generation_num}')
             self.best_individual = self.population[np.argmin(self.fitness)]
             # print all population
-            if self.requirements.verbouse:
+            if self.requirements.verbose:
                 for i, pop_ind in enumerate(self.population):
-                    if not os.path.isdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}'):
-                        os.mkdir(f'../../tmp/HistoryFiles/Trees/pop_individuals/pop{generation_num}')
-                    TreeDrawing().draw_branch(pop_ind,
-                                              jpeg=f'pop_individuals/pop{generation_num}/{i}(fitness_{self.fitness[i]}).png')
+                    TreeDrawing.draw_branch(pop_ind, path="population", generation_num=generation_num, ind_number=i,
+                                            ind_fitness=self.fitness[i])
 
-                TreeDrawing().draw_branch(self.best_individual, jpeg=f'the_best_ind_(pop{generation_num}).png')
+                TreeDrawing.draw_branch(self.best_individual, path="best_individuals", generation_num=generation_num)
 
-            selected_indexes = EvolutuionaryOperators.tournament_selection(fitnesses=self.fitness,
-                                                    group_size=5)
+            selected_indexes = self.evo_operators.tournament_selection(fitnesses=self.fitness,
+                                                                       group_size=5)
             new_population = []
             for ind_num in range(self.requirements.pop_size - 1):
 
@@ -51,19 +52,14 @@ class GPChainOptimiser:
                     history.append((self.population[ind_num], self.fitness[ind_num]))
 
                 new_population.append(
-                    EvolutuionaryOperators.standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
-                                                              tree2=self.population[selected_indexes[ind_num][1]],
-                                                              max_depth=self.requirements.max_depth, pair_num=ind_num,
-                                                              pop_num=generation_num,
-                                                              crossover_prob=self.requirements.crossover_prob,
-                                                              verbouse=self.requirements.verbouse))
+                    self.evo_operators.standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
+                                                          tree2=self.population[selected_indexes[ind_num][1]],
+                                                          pair_num=ind_num,
+                                                          pop_num=generation_num))
 
-                new_population[ind_num] = EvolutuionaryOperators.standard_mutation(new_population[ind_num],
-                                                                                   secondary_requirements=self.requirements.secondary,
-                                                                                   primary_requirements=self.requirements.primary,
-                                                                                   pair_num=ind_num,
-                                                                                   pop_num=generation_num,
-                                                                                   verbouse=self.requirements.verbouse)
+                new_population[ind_num] = self.evo_operators.standard_mutation(new_population[ind_num],
+                                                                               pair_num=ind_num,
+                                                                               pop_num=generation_num)
 
             self.population = deepcopy(new_population)
             self.population.append(self.best_individual)
@@ -90,11 +86,11 @@ class GPChainOptimiser:
                     and randint(0, 1)):
 
                 new_node = self.__primary_node_func(choice(self.requirements.primary),
-                                                    nodes_to=node_parent, input_data=None)
+                                                    node_to=node_parent, input_data=None)
                 offspring_nodes.append(new_node)
             else:
                 new_node = self.__secondary_node_func(choice(self.requirements.secondary),
-                                                      nodes_to=node_parent)
+                                                      node_to=node_parent)
                 self._tree_growth(new_node)
                 offspring_nodes.append(new_node)
         node_parent.nodes_from = offspring_nodes

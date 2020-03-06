@@ -22,14 +22,14 @@ class GPComposerRequirements(ComposerRequirements):
     def __init__(self, primary: List[Model], secondary: List[Model],
                  max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
                  num_of_generations: SupportsInt, crossover_prob: Optional[SupportsFloat],
-                 mutation_prob: Optional[SupportsFloat] = None, verbouse: bool = False, is_visualise: bool = False):
+                 mutation_prob: Optional[SupportsFloat] = None, verbose: bool = False, is_visualise: bool = False):
         super().__init__(primary=primary, secondary=secondary,
                          max_arity=max_arity, max_depth=max_depth, is_visualise=is_visualise)
         self.pop_size = pop_size
         self.num_of_generations = num_of_generations
         self.crossover_prob = crossover_prob
         self.mutation_prob = mutation_prob
-        self.verbouse = verbouse
+        self.verbose = verbose
 
 
 class GPComposer(Composer):

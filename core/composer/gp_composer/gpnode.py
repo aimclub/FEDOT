@@ -6,23 +6,10 @@ from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
 
-
-class GPNodeGenerator:
-    @staticmethod
-    def primary_node(model: Model, input_data: InputData, nodes_to: Optional[Node] = None) -> Node:
-        chain_node = NodeGenerator.primary_node(model=model, input_data=input_data)
-        return GPNode(chain_node=chain_node, nodes_to=nodes_to)
-
-    @staticmethod
-    def secondary_node(model: Model, nodes_to: Optional[Node] = None) -> Node:
-        chain_node = NodeGenerator.secondary_node(model=model)
-        return GPNode(chain_node=chain_node, nodes_to=nodes_to)
-
-
 class GPNode:
-    def __init__(self, chain_node, nodes_to: Optional[List['Node']]):
+    def __init__(self, chain_node, node_to: Optional[List['Node']]):
         self._chain_node = chain_node
-        self.nodes_to = nodes_to
+        self.node_to = node_to
 
     @property
     def nodes_from(self):
@@ -40,9 +27,13 @@ class GPNode:
     def eval_strategy(self, model):
         self._chain_node.eval_strategy.model = model
 
+    @property
+    def input_data(self):
+        return self._chain_node.input_data
+
     def get_depth_up(self):
-        if self.nodes_to:
-            depth = self.nodes_to.get_depth_up() + 1
+        if self.node_to:
+            depth = self.node_to.get_depth_up() + 1
             return depth
         else:
             return 0
@@ -70,8 +61,18 @@ class GPNode:
 
     def swap_nodes(self, other):
         newnode = deepcopy(other)
-        newnode.nodes_to = self.nodes_to
-        self.nodes_to.nodes_from[self.nodes_to.nodes_from.index(self)] = newnode
+        newnode.node_to = self.node_to
+        self.node_to.nodes_from[self.node_to.nodes_from.index(self)] = newnode
         self = newnode
 
 
+class GPNodeGenerator:
+    @staticmethod
+    def primary_node(model: Model, input_data: InputData, node_to: Optional[Node] = None, ) -> GPNode:
+        chain_node = NodeGenerator.primary_node(model=model, input_data=input_data)
+        return GPNode(chain_node=chain_node, node_to=node_to)
+
+    @staticmethod
+    def secondary_node(model: Model, node_to: Optional[Node] = None, nodes_from: Optional[List['Node']] =None ) -> GPNode:
+        chain_node = NodeGenerator.secondary_node(model=model, nodes_from= nodes_from)
+        return GPNode(chain_node=chain_node, node_to=node_to)

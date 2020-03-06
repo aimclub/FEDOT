@@ -68,7 +68,7 @@ composer_requirements = GPComposerRequirements(
     primary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()],
     secondary=[LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()], max_arity=3,
     max_depth=2, pop_size=10, num_of_generations=10,
-    crossover_prob=0.4, mutation_prob=0.5)
+    crossover_prob=0.4, mutation_prob=0.8, verbose= True)
 
 # Create GP-based composer
 composer = GPComposer()
