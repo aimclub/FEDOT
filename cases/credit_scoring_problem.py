@@ -60,8 +60,6 @@ metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROC
 # alternative can be used for experiments
 alt_metric_function = PseudoMetric.get_value
 
-# the choice and initialisation of the dummy_composer
-dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 # the choice and initialisation of the random_search
 
 composer_requirements = GPComposerRequirements(
@@ -81,6 +79,10 @@ chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
 
 static_composer_requirements = ComposerRequirements(primary=models_impl,
                                                     secondary=models_impl)
+
+# the choice and initialisation of the dummy_composer
+dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
+
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             composer_requirements=composer_requirements,
