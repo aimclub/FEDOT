@@ -91,20 +91,26 @@ class EvolutuionaryOperators:
 
     def random_change_tree_nodes(self, root_node, probability):
 
-        def _random_node_recursive(node, parent=None):
+        secondary_node_func = self.__secondary_node_func
+        primary_node_func = self.__primary_node_func
+        secondary = self.requirements.secondary
+        primary = self.requirements.primary
+
+        def _random_node_recursive(node,parent=None):
 
             if node.nodes_from:
                 if random.random() < probability:
-                    node = self.__secondary_node_func(choice(self.requirements.secondary),
+                    rand_func = choice(secondary)
+                    node = secondary_node_func(rand_func,
                                                       node_to=parent, nodes_from=node.nodes_from)
-                for child in node.nodes_from:
-                    _random_node_recursive(child, parent=node)
-            else:
-                if random.random() < probability:
-                    node = self.__primary_node_func(choice(self.requirements.primary), node_to=parent,
-                                                    input_data=node.input_data)
-            if not node.node_to:
-                return node
+                for i, child in enumerate(node.nodes_from):
+                    if child.nodes_from:
+                        node.nodes_from[i] = _random_node_recursive(child, parent=node)
+                    else:
+                        if random.random() < probability:
+                            node.nodes_from[i] = primary_node_func(choice(primary), node_to=node,
+                                                     input_data=node.input_data)
+            return node
 
         root_node_copy = deepcopy(root_node)
         _random_node_recursive(node=root_node_copy)
