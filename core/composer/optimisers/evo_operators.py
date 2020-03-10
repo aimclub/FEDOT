@@ -17,24 +17,6 @@ class EvolutuionaryOperators:
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
 
-    def selTournament(individuals, k, tournsize, fit_attr="fitness"):
-        """Select the best individual among *tournsize* randomly chosen
-        individuals, *k* times. The list returned contains
-        references to the input *individuals*.
-        :param individuals: A list of individuals to select from.
-        :param k: The number of individuals to select.
-        :param tournsize: The number of individuals participating in each tournament.
-        :param fit_attr: The attribute of individuals to use as selection criterion
-        :returns: A list of selected individuals.
-        This function uses the :func:`~random.choice` function from the python base
-        :mod:`random` module.
-        """
-        chosen = []
-        for i in range(k):
-            aspirants = selRandom(individuals, tournsize)
-            chosen.append(max(aspirants, key=attrgetter(fit_attr)))
-        return chosen
-
     def tournament_selection(self, fitnesses: List[float], minimization=True, group_size: int = 5):
 
         group_size = min(group_size, len(fitnesses))
@@ -114,20 +96,20 @@ class EvolutuionaryOperators:
         secondary = self.requirements.secondary
         primary = self.requirements.primary
 
-        def _random_node_recursive(node,parent=None):
+        def _random_node_recursive(node, parent=None):
 
             if node.nodes_from:
                 if random.random() < probability:
                     rand_func = choice(secondary)
                     node = secondary_node_func(rand_func,
-                                                      node_to=parent, nodes_from=node.nodes_from)
+                                               node_to=parent, nodes_from=node.nodes_from)
                 for i, child in enumerate(node.nodes_from):
                     if child.nodes_from:
                         node.nodes_from[i] = _random_node_recursive(child, parent=node)
                     else:
                         if random.random() < probability:
                             node.nodes_from[i] = primary_node_func(choice(primary), node_to=node,
-                                                     input_data=node.input_data)
+                                                                   input_data=node.input_data)
             return node
 
         root_node_copy = deepcopy(root_node)
