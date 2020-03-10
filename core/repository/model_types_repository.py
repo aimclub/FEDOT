@@ -6,15 +6,6 @@ from typing import (
 
 from anytree import Node, RenderTree, findall
 
-from core.models.model import (
-    LogRegression,
-    XGBoost,
-    KNN,
-    DecisionTree,
-    RandomForest,
-    MLP,
-    LDA
-)
 from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
 from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 
@@ -87,15 +78,16 @@ class ModelType(Node):
 
 
 class ModelTypesRepository:
-    model_implementations = {
-        ModelTypesIdsEnum.xgboost: XGBoost,
-        ModelTypesIdsEnum.logit: LogRegression,
-        ModelTypesIdsEnum.knn: KNN,
-        ModelTypesIdsEnum.dt: DecisionTree,
-        ModelTypesIdsEnum.rf: RandomForest,
-        ModelTypesIdsEnum.mlp: MLP,
-        ModelTypesIdsEnum.lda: LDA
-    }
+    # model_implementations = {
+    #     ModelTypesIdsEnum.xgboost: XGBoost,
+    #     ModelTypesIdsEnum.logit: LogRegression,
+    #     ModelTypesIdsEnum.knn: KNN,
+    #     ModelTypesIdsEnum.dt: DecisionTree,
+    #     ModelTypesIdsEnum.rf: RandomForest,
+    #     ModelTypesIdsEnum.mlp: MLP,
+    #     ModelTypesIdsEnum.lda: LDA,
+    # }
+    model_implementations = {}
 
     def _initialise_tree(self):
         root = ModelsGroup(ModelGroupsIdsEnum.all)
