@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     List,
@@ -12,16 +13,13 @@ from core.models.data import InputData
 from core.models.model import Model
 
 
+@dataclass
 class ComposerRequirements:
-    def __init__(self, primary: List[Model], secondary: List[Model],
-                 max_depth: Optional[int] = None,
-                 max_arity: Optional[int] = None,
-                 is_visualise: bool = False):
-        self.primary = primary
-        self.secondary = secondary
-        self.max_depth = max_depth
-        self.max_arity = max_arity
-        self.is_visualise = is_visualise
+    primary: List[Model]
+    secondary: List[Model]
+    max_depth: Optional[int] = None
+    max_arity: Optional[int] = None
+    is_visualise: bool = False
 
 
 class Composer(ABC):

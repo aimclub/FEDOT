@@ -4,32 +4,26 @@ from typing import (
     List,
     Callable,
     Optional,
-    SupportsInt,
-    SupportsFloat
 )
 
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
-from core.composer.gp_composer.gpnode import GPNode
-from core.composer.gp_composer.gpnode import GPNodeGenerator
+from core.composer.gp_composer.gp_node import GPNode
+from core.composer.gp_composer.gp_node import GPNodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import Model
+from dataclasses import dataclass
 
 
+@dataclass
 class GPComposerRequirements(ComposerRequirements):
-    def __init__(self, primary: List[Model], secondary: List[Model],
-                 max_depth: Optional[SupportsInt], max_arity: Optional[SupportsInt], pop_size: Optional[SupportsInt],
-                 num_of_generations: SupportsInt, crossover_prob: Optional[SupportsFloat],
-                 mutation_prob: Optional[SupportsFloat] = None, verbose: bool = False, is_visualise: bool = False):
-        super().__init__(primary=primary, secondary=secondary,
-                         max_arity=max_arity, max_depth=max_depth, is_visualise=is_visualise)
-        self.pop_size = pop_size
-        self.num_of_generations = num_of_generations
-        self.crossover_prob = crossover_prob
-        self.mutation_prob = mutation_prob
-        self.verbose = verbose
+    pop_size: Optional[int] = 50
+    num_of_generations: Optional[int] = 50
+    crossover_prob: Optional[float] = None
+    mutation_prob: Optional[float] = None
+    verbose: bool = True
 
 
 class GPComposer(Composer):

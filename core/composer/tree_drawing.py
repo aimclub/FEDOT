@@ -34,16 +34,16 @@ class TreeDrawing:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
 
     @staticmethod
-    def draw_branch(node, path, generation_num= None, ind_number = None, ind_fitness=None, tree_layer= None, model_name=None, before_mutation=True):
+    def draw_branch(node, path, generation_num= None, ind_number = None, ind_fitness=None, tree_layer= None, model_name=None, before_mutation=True, ind_id=None):
 
 
-        file_name = TreeDrawing.name_generator(path,generation_num,ind_number,ind_fitness, tree_layer, model_name, before_mutation)
+        file_name = TreeDrawing.name_generator(path,generation_num,ind_number,ind_fitness, tree_layer, model_name, before_mutation, ind_id=ind_id)
 
         w = TreeDrawing._getwidth(node) * 100
         if not node.nodes_from:
             h = 100 + 120
         else:
-            h = node.get_depth_down() * 100 + 120
+            h = node.get_depth_to_primary() * 100 + 120
 
         img = Image.new('RGB', (w, h), (255, 255, 255))
         draw = ImageDraw.Draw(img)
@@ -52,7 +52,7 @@ class TreeDrawing:
 
 
     @staticmethod
-    def name_generator(path, generation_num= None, ind_number = None, ind_fitness = None,tree_layer= None, model_name=None, before_mutation=True):
+    def name_generator(path, generation_num= None, ind_number = None, ind_fitness = None,tree_layer= None, model_name=None, before_mutation=True, ind_id=None):
 
         if not os.path.isdir(f'../../tmp'):
             os.mkdir(f'../../tmp')
@@ -76,7 +76,7 @@ class TreeDrawing:
             if not os.path.isdir(f'../../tmp/Trees/crossover'):
                 os.mkdir(f'../../tmp/Trees/crossover')
             if tree_layer:
-                return f'../../tmp/Trees/crossover/p1_pair{ind_number}_pop{generation_num}_rnlayer{tree_layer}({model_name}).png'
+                return f'../../tmp/Trees/crossover/{ind_id}_pair{ind_number}_pop{generation_num}_rnlayer{tree_layer}({model_name}).png'
             else:
                 return f'../../tmp/Trees/crossover/result_pair{ind_number}_pop{generation_num}.png'
 

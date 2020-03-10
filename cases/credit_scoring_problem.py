@@ -68,7 +68,7 @@ composer_requirements = GPComposerRequirements(
     primary=models_impl,
     secondary=models_impl, max_arity=3,
     max_depth=5, pop_size=10, num_of_generations=10,
-    crossover_prob=0.4, mutation_prob=0.8, verbose= True)
+    crossover_prob=0.8, mutation_prob=0.8, verbose= True)
 
 # Create GP-based composer
 composer = GPComposer()

@@ -31,22 +31,22 @@ class GPNode:
     def input_data(self):
         return self._chain_node.input_data
 
-    def get_depth_up(self):
+    def get_depth_to_final(self):
         if self.node_to:
-            depth = self.node_to.get_depth_up() + 1
+            depth = self.node_to.get_depth_to_final() + 1
             return depth
         else:
             return 0
 
-    def get_depth_down(self):
+    def get_depth_to_primary(self):
         if not self.nodes_from:
             return 0
         else:
-            return 1 + max([next_node.get_depth_down() for next_node in self.nodes_from])
+            return 1 + max([next_node.get_depth_to_primary() for next_node in self.nodes_from])
 
     def get_nodes_from_layer(self, selected_depth):
         if self.nodes_from:
-            if self.get_depth_up() == selected_depth:
+            if self.get_depth_to_final() == selected_depth:
                 return [self]
             else:
                 nodes = []
@@ -59,11 +59,11 @@ class GPNode:
         else:
             return []
 
-    def swap_nodes(self, other):
-        newnode = deepcopy(other)
-        newnode.node_to = self.node_to
-        self.node_to.nodes_from[self.node_to.nodes_from.index(self)] = newnode
-        self = newnode
+def swap_nodes(node1, node2):
+    newnode = deepcopy(node2)
+    newnode.node_to = node1.node_to
+    node1.node_to.nodes_from[node1.node_to.nodes_from.index(node1)] = newnode
+    node1 = newnode
 
 
 class GPNodeGenerator:
