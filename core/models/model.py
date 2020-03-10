@@ -43,74 +43,18 @@ class Model(ABC):
         return f'{self.__class__.__name__}'
 
 
-class LogRegression(Model):
-    def __init__(self):
-        # TODO check is necessary
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
+class SkLearnModel(Model):
 
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = SklearnLogReg(random_state=1, solver='liblinear', max_iter=100,
-                                     tol=1e-3, verbose=0)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class XGBoost(Model):
     def __init__(self):
         input_type = NumericalDataTypesEnum.table
         output_type = NumericalDataTypesEnum.vector
         super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = XGBClassifier()
 
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
+        self.__model = self.initialized_model()
 
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        pass
-
-
-class RandomForest(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = RandomForestClassifier(n_estimators=100, max_depth=2, n_jobs=-1)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class DecisionTree(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = DecisionTreeClassifier(max_depth=2, )
+    @abstractmethod
+    def initialized_model(self):
+        raise NotImplementedError()
 
     def predict(self, data: InputData):
         prediction = self.__model.predict_proba(data.features)
@@ -124,85 +68,46 @@ class DecisionTree(Model):
         return 1
 
 
-class KNN(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = SklearnKNN(n_neighbors=15)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
+class LogRegression(SkLearnModel):
+    def initialized_model(self):
+        return SklearnLogReg(random_state=1, solver='liblinear', max_iter=100,
+                             tol=1e-3, verbose=0)
 
 
-class LDA(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = LinearDiscriminantAnalysis(solver="svd")
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
+class XGBoost(SkLearnModel):
+    def initialized_model(self):
+        return XGBClassifier()
 
 
-class QDA(Model):
+class RandomForest(SkLearnModel):
+    def initialized_model(self):
+        return RandomForestClassifier(n_estimators=100, max_depth=2, n_jobs=-1)
+
+
+class DecisionTree(SkLearnModel):
+    def initialized_model(self):
+        return DecisionTreeClassifier(max_depth=2, )
+
+
+class KNN(SkLearnModel):
+    def initialized_model(self):
+        return SklearnKNN(n_neighbors=15)
+
+
+class LDA(SkLearnModel):
+    def initialized_model(self):
+        return LinearDiscriminantAnalysis(solver="svd")
+
+
+class QDA(SkLearnModel):
     # TODO investigate NaN in results
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = QuadraticDiscriminantAnalysis()
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
+    def initialized_model(self):
+        return QuadraticDiscriminantAnalysis()
 
 
-class MLP(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
+class MLP(SkLearnModel):
+    def initialized_model(self):
+        return MLPClassifier(hidden_layer_sizes=(100,), max_iter=500)
 
 
 def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:

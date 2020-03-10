@@ -9,6 +9,7 @@ from core.models.model import (
     QDA,
     LogRegression,
     RandomForest,
+
 )
 from core.repository.dataset_types import NumericalDataTypesEnum
 
