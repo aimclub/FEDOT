@@ -3,9 +3,7 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
-from core.models.evaluation import SkLearnEvaluationStrategy
-from core.models.model import Model
-from core.repository.dataset_types import NumericalDataTypesEnum
+from core.models.model import sklearn_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -23,17 +21,10 @@ def classification_dataset():
     return data
 
 
-def model_by_type(model_type: ModelTypesIdsEnum):
-    return Model(model_type=model_type,
-                 input_type=NumericalDataTypesEnum.table,
-                 output_type=NumericalDataTypesEnum.vector,
-                 eval_strategy=SkLearnEvaluationStrategy())
-
-
 @pytest.mark.skip(reason='The test should be refactored after EvoStrategy fix')
 def test_log_regression_fit_correct(classification_dataset):
     data = classification_dataset
-    log_reg = model_by_type(model_type=ModelTypesIdsEnum.logit)
+    log_reg = sklearn_model_by_type(model_type=ModelTypesIdsEnum.logit)
 
     predicted = log_reg.evaluate(data=data)
     train_to = int(len(data.target) * 0.8)
@@ -47,7 +38,7 @@ def test_log_regression_fit_correct(classification_dataset):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_random_forest_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    random_forest = model_by_type(model_type=ModelTypesIdsEnum.rf)
+    random_forest = sklearn_model_by_type(model_type=ModelTypesIdsEnum.rf)
 
     random_forest.fit(data=data)
     predicted = random_forest.predict(data=data)
@@ -64,7 +55,7 @@ def test_random_forest_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_decision_tree_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = model_by_type(model_type=ModelTypesIdsEnum.dt)
+    decision_tree = sklearn_model_by_type(model_type=ModelTypesIdsEnum.dt)
 
     decision_tree.fit(data=data)
     predicted = decision_tree.predict(data=data)
@@ -82,7 +73,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_lda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = model_by_type(model_type=ModelTypesIdsEnum.lda)
+    decision_tree = sklearn_model_by_type(model_type=ModelTypesIdsEnum.lda)
 
     decision_tree.fit(data=data)
     predicted = decision_tree.predict(data=data)
@@ -100,7 +91,7 @@ def test_lda_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_qda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = model_by_type(model_type=ModelTypesIdsEnum.qda)
+    decision_tree = sklearn_model_by_type(model_type=ModelTypesIdsEnum.qda)
 
     decision_tree.fit(data=data)
     predicted = decision_tree.predict(data=data)

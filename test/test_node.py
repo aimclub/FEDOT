@@ -9,7 +9,8 @@ from core.models.data import (
     InputData,
     split_train_test,
 )
-from core.models.model import LogRegression
+from core.models.model import sklearn_model_by_type
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 @pytest.fixture()
@@ -34,11 +35,12 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 def test_node_factory_log_reg_correct(data_setup):
     _, _, _, _, data_set = data_setup
+    model_type = ModelTypesIdsEnum.logit
+    node = NodeGenerator().primary_node(model_type=model_type,
+                                        input_data=data_set)
 
-    node = NodeGenerator().primary_node(LogRegression(), data_set)
-
-    expected_model = LogRegression
-    actual_model = node.eval_strategy.model.__class__
+    expected_model = sklearn_model_by_type(model_type=model_type).__class__
+    actual_model = node.model.__class__
 
     assert node.__class__ == PrimaryNode
     assert expected_model == actual_model
@@ -52,10 +54,9 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train_data_x, train_data_y)
     expected_result = test_skl_model.predict(test_data_x)
 
-    test_model_node = NodeGenerator.primary_node(input_data=data_set, model=LogRegression())
+    test_model_node = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit,
+                                                 input_data=data_set)
     actual_result = test_model_node.apply()
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
-    assert len(actual_result.predict) == len(train_data_y) + len(expected_result)
-
-
+    assert len(actual_result.predict) == len(expected_result)

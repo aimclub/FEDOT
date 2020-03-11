@@ -10,9 +10,9 @@ from core.models.data import (
     InputData,
     split_train_test,
 )
-from core.models.evaluation import EvaluationStrategy
+from core.models.evaluation import EvaluationStrategy, SkLearnEvaluationStrategy
 from core.repository.dataset_types import (
-    DataTypesEnum
+    DataTypesEnum, NumericalDataTypesEnum
 )
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
@@ -62,3 +62,10 @@ def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
                            idx=train_idx)
     test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx)
     return train_data, test_data
+
+
+def sklearn_model_by_type(model_type: ModelTypesIdsEnum):
+    return Model(model_type=model_type,
+                 input_type=NumericalDataTypesEnum.table,
+                 output_type=NumericalDataTypesEnum.vector,
+                 eval_strategy=SkLearnEvaluationStrategy())
