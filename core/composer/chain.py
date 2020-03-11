@@ -4,6 +4,7 @@ from typing import Optional
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
 from core.repository.node_types import SecondaryNodeType
+
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 

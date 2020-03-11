@@ -5,16 +5,19 @@ from sklearn.datasets import load_iris
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.composer.node import SecondaryNode
+from core.composer.visualisation import _as_nx_graph
 from core.models.data import InputData
 from core.models.model import LogRegression
 from core.composer.chain import (
     has_no_cycle,
     has_primary_nodes,
     has_no_self_cycled_nodes,
-    has_no_isolated_nodes
+    has_no_isolated_nodes,
 
 )
 from core.repository.node_types import SecondaryNodeType
+from networkx.algorithms.isolate import isolates
+from networkx.algorithms.cycles import simple_cycles
 
 
 @pytest.fixture()
@@ -140,3 +143,28 @@ def test_validate_chain():
     chain.add_node(y6)
     chain.add_node(y7)
     chain._self_validation()
+
+
+def test_validate_nx_chain(data_setup):
+    data = data_setup
+    chain = Chain()
+    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
+    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[])
+    y2.nodes_from.append(y4)
+    chain.add_node(y1)
+    chain.add_node(y2)
+    chain.add_node(y3)
+    chain.add_node(y4)
+    chain.add_node(y5)
+    graph, _ = _as_nx_graph(chain)
+    isolated = list(isolates(graph))
+    cycled = list(simple_cycles(graph))
+    for node in chain.nodes:
+        print(node.node_id)
+    print(f'Isolated: {isolated}')
+    print(f'Cycled: {cycled}')
+    assert len(cycled[0]) == 3
+    assert len(isolated) == 1
