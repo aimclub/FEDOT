@@ -4,7 +4,6 @@ from core.composer.gp_composer.gp_node import swap_nodes
 import random
 from random import randint, choice
 from typing import (
-    List,
     Any
 )
 
@@ -18,8 +17,19 @@ def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: f
     if random_layer_in_tree1 == 0 and random_layer_in_tree2 == 0:
         return deepcopy(tree2)
 
-    node_from_tree1 = choice(tree1_copy.get_nodes_from_layer(random_layer_in_tree1))
-    node_from_tree2 = choice(tree2.get_nodes_from_layer(random_layer_in_tree2))
+    try:
+        node_from_tree1 = choice(tree1_copy.get_nodes_from_layer(random_layer_in_tree1))
+        node_from_tree2 = choice(tree2.get_nodes_from_layer(random_layer_in_tree2))
+    except IndexError:
+        TreeDrawing.draw_branch(node=tree1, path="crossover", ind_number=pair_num, generation_num=pop_num,
+                                ind_id="p1",
+                                tree_layer=random_layer_in_tree1)
+
+        TreeDrawing.draw_branch(node=tree2, path="crossover", ind_number=pair_num, generation_num=pop_num,
+                                ind_id="p2",
+                                tree_layer=random_layer_in_tree2)
+
+        a= tree2.get_nodes_from_layer(random_layer_in_tree2)
 
     if verbose:
         TreeDrawing.draw_branch(node=tree1, path="crossover", ind_number=pair_num, generation_num=pop_num,ind_id ="p1",
@@ -33,8 +43,9 @@ def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: f
     if random_layer_in_tree1 == 0:
         return tree1_copy
 
-    if node_from_tree1.get_depth_to_final() + node_from_tree2.get_depth_to_primary() <= max_depth:
+    if random_layer_in_tree1 + node_from_tree2.get_depth_to_primary() <= max_depth:
         swap_nodes(node_from_tree1,node_from_tree2)
+
         if verbose:
             TreeDrawing.draw_branch(node=tree1_copy, path="crossover", ind_number=pair_num, generation_num=pop_num)
 

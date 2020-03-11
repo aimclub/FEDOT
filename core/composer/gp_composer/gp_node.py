@@ -59,6 +59,14 @@ class GPNode:
         else:
             return []
 
+    '''
+    def swap_nodes(self, other):
+        newnode = deepcopy(other)
+        newnode.node_to = self.node_to
+        self.node_to.nodes_from[self.node_to.nodes_from.index(self)] = newnode
+        self = newnode
+    '''
+
 def swap_nodes(node1, node2):
     newnode = deepcopy(node2)
     newnode.node_to = node1.node_to

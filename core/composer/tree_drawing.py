@@ -33,6 +33,7 @@ class TreeDrawing:
         else:
             draw.text((x - 5, y), str(node.eval_strategy.model.__class__.__name__), (0, 0, 0))
 
+
     @staticmethod
     def draw_branch(node, path, generation_num= None, ind_number = None, ind_fitness=None, tree_layer= None, model_name=None, before_mutation=True, ind_id=None):
 
@@ -75,7 +76,7 @@ class TreeDrawing:
         if path =="crossover":
             if not os.path.isdir(f'../../tmp/Trees/crossover'):
                 os.mkdir(f'../../tmp/Trees/crossover')
-            if tree_layer:
+            if not tree_layer is None:
                 return f'../../tmp/Trees/crossover/{ind_id}_pair{ind_number}_pop{generation_num}_rnlayer{tree_layer}({model_name}).png'
             else:
                 return f'../../tmp/Trees/crossover/result_pair{ind_number}_pop{generation_num}.png'

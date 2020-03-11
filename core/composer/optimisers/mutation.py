@@ -11,7 +11,7 @@ from copy import deepcopy
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
                       pair_num: int = None, pop_num: int = None, verbose: bool = True):  # temporary variables
-    if not mutation_prob:
+    if mutation_prob is None:
         probability = 1.0 / root_node.get_depth_to_primary()
     else:
         probability = mutation_prob
@@ -39,15 +39,19 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
                 rand_func = choice(secondary)
                 node = secondary_node_func(rand_func,
                                            node_to=parent, nodes_from=node.nodes_from)
+            else:
+                node.node_to =parent
             for i, child in enumerate(node.nodes_from):
                 if child.nodes_from:
                     node.nodes_from[i] = _random_node_recursive(child, parent=node)
                 else:
                     if random() < probability:
                         node.nodes_from[i] = primary_node_func(choice(primary), node_to=node,
-                                                               input_data=node.input_data)
+                                                               input_data=node.nodes_from[i].input_data)
+                    else:
+                        node.nodes_from[i].node_to = node
         return node
 
     root_node_copy = deepcopy(root_node)
-    _random_node_recursive(node=root_node_copy)
+    root_node_copy = _random_node_recursive(node=root_node_copy)
     return root_node_copy
