@@ -9,7 +9,6 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from core.models.data import InputData
-from core.models.model import Model
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -17,13 +16,13 @@ class EvaluationStrategy:
     def __init__(self):
         pass
 
-    def fit(self, model: Model, train_data: InputData):
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
         raise NotImplementedError()
 
-    def predict(self, model: Model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData):
         raise NotImplementedError()
 
-    def tune(self, model: Model, data_for_tune: InputData):
+    def tune(self, model, data_for_tune: InputData):
         raise NotImplementedError()
 
 
@@ -40,8 +39,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis
         }
 
-    def fit(self, model: ModelTypesIdsEnum, train_data: InputData):
-        sklearn_model = self._convert_to_sklearn(model)
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        sklearn_model = self._convert_to_sklearn(model_type)
         sklearn_model.fit(train_data.features, train_data.target)
         return sklearn_model
 
@@ -49,7 +48,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         prediction = trained_model.predict_proba(predict_data.features)[:, 1]
         return prediction
 
-    def tune(self, model: Model, data_for_tune: InputData):
+    def tune(self, model, data_for_tune: InputData):
         return model
 
     def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):

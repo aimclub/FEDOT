@@ -10,30 +10,37 @@ from core.models.data import (
     InputData,
     split_train_test,
 )
+from core.models.evaluation import EvaluationStrategy
 from core.repository.dataset_types import (
     DataTypesEnum
 )
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 @dataclass
 class Model(ABC):
+    model_type: ModelTypesIdsEnum
     input_type: DataTypesEnum
     output_type: DataTypesEnum
     fitted_model = None
-    eval_strategy = None
+    eval_strategy: EvaluationStrategy = None
 
-    def evaluate(self, data: InputData, retrain=False) -> InputData:
+    # TODO: return annotation
+    def evaluate(self, data: InputData, retrain=False):
         data.features = preprocess(data.features)
         if retrain or self.fitted_model is None:
             train_data, test_data = train_test_data_setup(data=data)
-            self.fitted_model = self.eval_strategy.fit(self, train_data)
+            self.fitted_model = self.eval_strategy.fit(model_type=self.model_type,
+                                                       train_data=train_data)
         else:
             test_data = data
 
-        prediction = self.eval_strategy.predict(data=test_data)
+        prediction = self.eval_strategy.predict(trained_model=self.fitted_model,
+                                                predict_data=test_data)
 
         if any([np.isnan(_) for _ in prediction]):
             print("Value error")
+
         return prediction
 
     def __str__(self):
