@@ -3,7 +3,7 @@ from typing import Optional
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
-
+from core.repository.node_types import SecondaryNodeType
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
@@ -43,7 +43,7 @@ class Chain:
         if isinstance(new_node, PrimaryNode):
             # TODO refactor
             self.reference_data = deepcopy(new_node.input_data)
-        if isinstance(new_node, SecondaryNode) and new_node.status == 'terminal':
+        if isinstance(new_node, SecondaryNode) and new_node.status == SecondaryNodeType.terminal:
             self._self_validation()
 
     def update_node(self, new_node: Node):
