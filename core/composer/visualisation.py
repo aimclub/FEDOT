@@ -123,7 +123,7 @@ class ComposerVisualiser:
         ComposerVisualiser._visualise_convergence(fitnesses)
         ComposerVisualiser._merge_images(len(chains))
         ComposerVisualiser._combine_gifs()
-        ComposerVisualiser._clean()
+        #ComposerVisualiser._clean()
 
     @staticmethod
     def _merge_images(num_images):

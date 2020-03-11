@@ -67,8 +67,8 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 composer_requirements = GPComposerRequirements(
     primary=models_impl,
     secondary=models_impl, max_arity=2,
-    max_depth=5, pop_size=50, num_of_generations=50,
-    crossover_prob=0.8, mutation_prob=0.8, verbose=True)
+    max_depth=5, pop_size=10, num_of_generations=10,
+    crossover_prob=0.8, mutation_prob=0.8, verbose=True, is_visualise=True)
 
 # Create GP-based composer
 composer = GPComposer()
@@ -98,6 +98,7 @@ print("Composition finished")
 
 ComposerVisualiser.visualise(chain_static)
 ComposerVisualiser.visualise(chain_evo_composed)
+
 
 # the quality assessment for the obtained composite models
 roc_on_valid_static = calculate_validation_metric_for_scoring_model(chain_static, dataset_to_validate)

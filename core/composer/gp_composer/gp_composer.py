@@ -80,7 +80,7 @@ class GPComposer(Composer):
 
     @staticmethod
     def _metric_for_nodes(metric_function, data, root: GPNode) -> float:
-        #chain = GPComposer._tree_to_chain(root, data)
+        chain = GPComposer._tree_to_chain(root, data)
         from random import random
         return random()
-        #return metric_function(chain)
+        # metric_function(chain)
