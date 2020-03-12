@@ -3,7 +3,6 @@ from typing import (
     List,
     Any
 )
-from core.composer.tree_drawing import TreeDrawing
 
 from copy import deepcopy
 
@@ -16,17 +15,9 @@ def standard_mutation(root_node: Any, secondary: Any, primary: Any,
     else:
         probability = mutation_prob
 
-    if verbose:
-        TreeDrawing.draw_branch(node=root_node, path="mutation", before_mutation=True, generation_num=pop_num,
-                                ind_number=pair_num)
-
     result = random_mutation(root_node=root_node, probability=probability, primary_node_func=primary_node_func,
                              secondary_node_func=secondary_node_func, secondary=secondary,
                              primary=primary)
-
-    if verbose:
-        TreeDrawing.draw_branch(node=result, path="mutation", before_mutation=False, generation_num=pop_num,
-                                ind_number=pair_num)
 
     return result
 
@@ -40,7 +31,7 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
                 node = secondary_node_func(rand_func,
                                            node_to=parent, nodes_from=node.nodes_from)
             else:
-                node.node_to =parent
+                node.node_to = parent
             for i, child in enumerate(node.nodes_from):
                 if child.nodes_from:
                     node.nodes_from[i] = _random_node_recursive(child, parent=node)

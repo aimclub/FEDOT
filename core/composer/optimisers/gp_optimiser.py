@@ -10,7 +10,6 @@ from typing import (
 import numpy as np
 
 from core.composer.gp_composer.gp_node import GPNode
-from core.composer.tree_drawing import TreeDrawing
 from core.composer.optimisers.selection import tournament_selection
 from core.composer.optimisers.crossover import standard_crossover
 from core.composer.optimisers.mutation import standard_mutation
@@ -33,16 +32,7 @@ class GPChainOptimiser:
         for generation_num in range(self.requirements.num_of_generations):
             print(f'GP generation num: {generation_num}')
             self.best_individual = self.population[np.argmin(self.fitness)]
-            # print all population
 
-            if self.requirements.verbose:
-                for i, pop_ind in enumerate(self.population):
-                    TreeDrawing.draw_branch(pop_ind, path="population", generation_num=generation_num, ind_number=i,
-                                            ind_fitness=self.fitness[i])
-
-                TreeDrawing.draw_branch(self.best_individual, path="best_individuals", generation_num=generation_num)
-
-            ##
             selected_indexes = tournament_selection(self.fitness)
             new_population = []
 
