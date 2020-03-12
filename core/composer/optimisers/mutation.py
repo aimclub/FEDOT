@@ -8,8 +8,7 @@ from copy import deepcopy
 
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
-                      secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
-                      pair_num: int = None, pop_num: int = None, verbose: bool = True):  # temporary variables
+                      secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8):  # temporary variables
     if mutation_prob is None:
         probability = 1.0 / root_node.get_depth_to_primary()
     else:

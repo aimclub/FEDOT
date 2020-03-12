@@ -7,7 +7,7 @@ from typing import (
 )
 
 
-def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: float = 0.8, verbose: bool = True, pair_num: int = None, pop_num: int = None):
+def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: float = 0.8):
     if tree1 is tree2 or random.random() > crossover_prob:
         return deepcopy(tree1)
     tree1_copy = deepcopy(tree1)
