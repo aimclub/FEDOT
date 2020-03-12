@@ -1,8 +1,12 @@
 from copy import deepcopy
 from typing import Optional
 
+import networkx as nx
+
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
+
+ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
@@ -33,7 +37,10 @@ class Chain:
         return self.root_node.apply()
 
     def add_node(self, new_node: Node):
-        # Append new node to chain
+        """
+        Append new node to chain list
+
+        """
         self.nodes.append(new_node)
         if isinstance(new_node, PrimaryNode):
             # TODO refactor
@@ -51,8 +58,10 @@ class Chain:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not self._is_node_has_child(node)][0]
-        return root
+                if not self._is_node_has_child(node)]
+        if len(root) > 1:
+            raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
+        return root[0]
 
     @property
     def length(self):
@@ -88,3 +97,21 @@ class Chain:
             primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
             for node in primary_nodes:
                 node.input_data = deepcopy(data)
+
+
+def as_nx_graph(chain: Chain):
+    graph = nx.DiGraph()
+
+    node_labels = {}
+    for node in chain.nodes:
+        graph.add_node(node.node_id)
+        node_labels[node.node_id] = f'{node}'
+
+    def add_edges(graph, chain):
+        for node in chain.nodes:
+            if node.nodes_from is not None:
+                for child in node.nodes_from:
+                    graph.add_edge(child.node_id, node.node_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels
