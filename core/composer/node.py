@@ -8,7 +8,6 @@ import numpy as np
 from core.models.data import Data, InputData, OutputData
 from core.models.evaluation import EvaluationStrategy
 from core.models.model import Model
-from core.repository.node_types import SecondaryNodeType
 
 
 class Node(ABC):
@@ -46,12 +45,10 @@ class NodeGenerator:
                            eval_strategy=eval_strategy)
 
     @staticmethod
-    def secondary_node(model: Model, nodes_from: Optional[List[Node]] = None,
-                       status: SecondaryNodeType = SecondaryNodeType.non_termianl) -> Node:
+    def secondary_node(model: Model, nodes_from: Optional[List[Node]] = None) -> Node:
         eval_strategy = EvaluationStrategy(model=deepcopy(model))
         return SecondaryNode(nodes_from=nodes_from,
-                             eval_strategy=eval_strategy,
-                             status=status)
+                             eval_strategy=eval_strategy)
 
 
 class PrimaryNode(Node):
@@ -77,12 +74,10 @@ class PrimaryNode(Node):
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 eval_strategy: EvaluationStrategy,
-                 status: SecondaryNodeType = SecondaryNodeType.non_termianl):
+                 eval_strategy: EvaluationStrategy):
         super().__init__(nodes_from=nodes_from,
                          input_data=None,
                          eval_strategy=eval_strategy)
-        self.status = status
 
     def apply(self) -> OutputData:
         parent_predict_list = list()

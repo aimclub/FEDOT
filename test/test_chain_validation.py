@@ -1,140 +1,126 @@
-import numpy as np
 import pytest
 
-from sklearn.datasets import load_iris
-from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
-from core.composer.node import SecondaryNode
-from core.composer.visualisation import _as_nx_graph
-from core.models.data import InputData
-from core.models.model import LogRegression
-from core.composer.chain import (
+from core.chain_validation import (
     has_no_cycle,
     has_primary_nodes,
     has_no_self_cycled_nodes,
     has_no_isolated_nodes,
-
+    self_validation,
+    has_no_isolated_components,
 )
-from core.repository.node_types import SecondaryNodeType
-from networkx.algorithms.isolate import isolates
-from networkx.algorithms.cycles import simple_cycles
+from core.composer.chain import Chain
+from core.composer.node import NodeGenerator
+from core.models.model import LogRegression
+
+ERROR_PREFIX = 'Invalid chain configuration:'
 
 
-@pytest.fixture()
-def data_setup():
-    predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
-    return data
-
-
-@pytest.mark.xfail(raises=ValueError)
-def test_chain_has_cycles(data_setup):
-    data = data_setup
+def test_chain_has_cycles():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
     y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
     y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
-    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3], status=SecondaryNodeType.terminal)
+    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
     y2.nodes_from.append(y4)
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
     chain.add_node(y5)
-    has_no_cycle(chain)
+    with pytest.raises(Exception) as exc:
+        assert has_no_cycle(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has cycles'
 
 
-def test_chain_has_no_cycles(data_setup):
-    data = data_setup
+def test_chain_has_no_cycles():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
     y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3], status=SecondaryNodeType.terminal)
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    has_no_cycle(chain)
+    assert has_no_cycle(chain)
 
 
-@pytest.mark.xfail(raises=ValueError)
-def test_has_isolated_nodes(data_setup):
-    data = data_setup
+def test_has_isolated_nodes():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
     y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
     y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[])
-    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y4])
-    y6 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y5], status=SecondaryNodeType.terminal)
-    y4.nodes_from.append(y6)
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
-    chain.add_node(y5)
-    chain.add_node(y6)
-    has_no_isolated_nodes(chain)
+    with pytest.raises(ValueError) as exc:
+        assert has_no_isolated_nodes(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated nodes'
 
 
-@pytest.mark.xfail(raises=ValueError)
-def test_multi_root_node(data_setup):
-    data = data_setup
+def test_multi_root_chain():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
-    y2 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y2 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y1])
     y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
-    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3], status=SecondaryNodeType.terminal)
+    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
     chain.add_node(y5)
-    assert isinstance(chain.root_node, SecondaryNode)
+    with pytest.raises(Exception) as exc:
+        assert chain.root_node
+    assert str(exc.value) == f'{ERROR_PREFIX} More than 1 root_nodes in chain'
 
 
 def test_has_primary_ndoes():
-    data = data_setup
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1], status=SecondaryNodeType.terminal)
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
     chain.add_node(y1)
     chain.add_node(y2)
     assert has_primary_nodes(chain)
 
 
-@pytest.mark.xfail(raises=ValueError)
-def test_has_self_cycled_nodes():
-    data = data_setup
+def test_has_no_primary_nodes():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=None)
     y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2], status=SecondaryNodeType.terminal)
+    chain.add_node(y1)
+    chain.add_node(y2)
+    with pytest.raises(Exception) as exc:
+        assert has_primary_nodes(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain does not have primary nodes'
+
+
+def test_has_no_self_cycled_nodes():
+    chain = Chain()
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
+    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
     y2.nodes_from.append(y2)
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
-    has_no_self_cycled_nodes(chain)
+    with pytest.raises(Exception) as exc:
+        assert has_no_self_cycled_nodes(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has self-cycled nodes'
 
 
 def test_validate_chain():
-    data = data_setup
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
-    y2 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
-    y3 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
-    y4 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y2 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y3 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
+    y4 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1, y2])
     y6 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3, y4])
-    y7 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y5, y6], status=SecondaryNodeType.terminal)
+    y7 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y5, y6])
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
@@ -142,29 +128,24 @@ def test_validate_chain():
     chain.add_node(y5)
     chain.add_node(y6)
     chain.add_node(y7)
-    chain._self_validation()
+    self_validation(chain)
 
 
-def test_validate_nx_chain(data_setup):
-    data = data_setup
+def test_has_no_isolated_components():
     chain = Chain()
-    y1 = NodeGenerator.primary_node(input_data=data, model=LogRegression())
+    y1 = NodeGenerator.primary_node(input_data=None, model=LogRegression())
     y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
     y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
-    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[])
-    y2.nodes_from.append(y4)
+    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[])
+    y5 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y4])
+    y6 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y5])
+    y4.nodes_from.append(y4)
     chain.add_node(y1)
     chain.add_node(y2)
     chain.add_node(y3)
     chain.add_node(y4)
     chain.add_node(y5)
-    graph, _ = _as_nx_graph(chain)
-    isolated = list(isolates(graph))
-    cycled = list(simple_cycles(graph))
-    for node in chain.nodes:
-        print(node.node_id)
-    print(f'Isolated: {isolated}')
-    print(f'Cycled: {cycled}')
-    assert len(cycled[0]) == 3
-    assert len(isolated) == 1
+    chain.add_node(y6)
+    with pytest.raises(Exception) as exc:
+        assert has_no_isolated_components(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated components'

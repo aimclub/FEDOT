@@ -3,7 +3,8 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from core.composer.composer import Chain
+from core.composer.chain import Chain
+from core.composer.chain import as_nx_graph
 
 
 class ChainVisualiser:
@@ -11,7 +12,7 @@ class ChainVisualiser:
         pass
 
     def visualise(self, chain: Chain):
-        graph, node_labels = _as_nx_graph(chain=chain)
+        graph, node_labels = as_nx_graph(chain=chain)
         root = f'{chain.root_node.node_id}'
         pos = node_positions(graph.to_undirected(), root=root,
                              width=0.5, vert_gap=0.1,
@@ -23,24 +24,6 @@ class ChainVisualiser:
                 node_size=7000, width=2.0,
                 node_color=colors_by_node_labels(node_labels), cmap='Set3')
         plt.show()
-
-
-def _as_nx_graph(chain: Chain):
-    graph = nx.DiGraph()
-
-    node_labels = {}
-    for node in chain.nodes:
-        graph.add_node(node.node_id)
-        node_labels[node.node_id] = f'{node}'
-
-    def add_edges(graph, chain):
-        for node in chain.nodes:
-            if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(child.node_id, node.node_id)
-
-    add_edges(graph, chain)
-    return graph, node_labels
 
 
 def colors_by_node_labels(node_labels: dict):
