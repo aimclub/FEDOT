@@ -8,7 +8,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
-def self_validation(chain: Chain):
+def validate(chain: Chain):
     has_one_root(chain)
     has_no_cycle(chain)
     has_no_self_cycled_nodes(chain)

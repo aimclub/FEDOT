@@ -5,7 +5,7 @@ from core.chain_validation import (
     has_primary_nodes,
     has_no_self_cycled_nodes,
     has_no_isolated_nodes,
-    self_validation,
+    validate,
     has_no_isolated_components,
 )
 from core.composer.chain import Chain
@@ -128,7 +128,7 @@ def test_validate_chain():
     chain.add_node(y5)
     chain.add_node(y6)
     chain.add_node(y7)
-    self_validation(chain)
+    validate(chain)
 
 
 def test_has_no_isolated_components():
