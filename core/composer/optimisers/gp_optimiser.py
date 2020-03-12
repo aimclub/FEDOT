@@ -1,4 +1,3 @@
-import os
 from copy import deepcopy
 from random import choice, randint
 from typing import (
@@ -10,9 +9,9 @@ from typing import (
 import numpy as np
 
 from core.composer.gp_composer.gp_node import GPNode
-from core.composer.optimisers.selection import tournament_selection
 from core.composer.optimisers.crossover import standard_crossover
 from core.composer.optimisers.mutation import standard_mutation
+from core.composer.optimisers.selection import tournament_selection
 
 
 class GPChainOptimiser:
