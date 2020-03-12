@@ -1,19 +1,19 @@
 from copy import deepcopy
 from functools import partial
 from typing import (
-    List,
     Callable,
     Optional,
+    List
 )
 
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GPNode
 from core.composer.gp_composer.gp_node import GPNodeGenerator
+from core.composer.node import Node
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
-from core.models.model import Model
 from dataclasses import dataclass
 
 
@@ -69,7 +69,7 @@ class GPComposer(Composer):
         return chain
 
     @staticmethod
-    def _flat_nodes_tree(node):
+    def _flat_nodes_tree(node) -> List[Node]:
         if node.nodes_from:
             nodes = []
             for children in node.nodes_from:
@@ -81,6 +81,4 @@ class GPComposer(Composer):
     @staticmethod
     def _metric_for_nodes(metric_function, data, root: GPNode) -> float:
         chain = GPComposer._tree_to_chain(root, data)
-        from random import random
-        return random()
-        # metric_function(chain)
+        return metric_function(chain)

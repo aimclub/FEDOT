@@ -108,3 +108,4 @@ roc_on_valid_evo_composed = calculate_validation_metric_for_scoring_model(chain_
 print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
 print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
+

@@ -6,6 +6,7 @@ from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
 
+
 class GPNode:
     def __init__(self, chain_node, node_to: Optional[List['Node']]):
         self._chain_node = chain_node
@@ -59,13 +60,6 @@ class GPNode:
         else:
             return []
 
-    '''
-    def swap_nodes(self, other):
-        newnode = deepcopy(other)
-        newnode.node_to = self.node_to
-        self.node_to.nodes_from[self.node_to.nodes_from.index(self)] = newnode
-        self = newnode
-    '''
 
 def swap_nodes(node1, node2):
     newnode = deepcopy(node2)
@@ -81,6 +75,7 @@ class GPNodeGenerator:
         return GPNode(chain_node=chain_node, node_to=node_to)
 
     @staticmethod
-    def secondary_node(model: Model, node_to: Optional[Node] = None, nodes_from: Optional[List['Node']] =None ) -> GPNode:
-        chain_node = NodeGenerator.secondary_node(model=model, nodes_from= nodes_from)
+    def secondary_node(model: Model, node_to: Optional[Node] = None,
+                       nodes_from: Optional[List['Node']] = None) -> GPNode:
+        chain_node = NodeGenerator.secondary_node(model=model, nodes_from=nodes_from)
         return GPNode(chain_node=chain_node, node_to=node_to)
