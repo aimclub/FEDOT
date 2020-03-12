@@ -9,7 +9,7 @@ from typing import (
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GPNode
-from core.composer.gp_composer.gp_node import GPNodeGenerator
+from core.composer.node import NodeGenerator
 from core.composer.node import Node
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
@@ -34,8 +34,8 @@ class GPComposer(Composer):
                                             metrics, data)
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
-                                     primary_node_func=GPNodeGenerator.primary_node,
-                                     secondary_node_func=GPNodeGenerator.secondary_node)
+                                     primary_node_func=NodeGenerator.primary_node,
+                                     secondary_node_func=NodeGenerator.secondary_node)
 
         best_found, history = optimiser.optimise(metric_function_for_nodes)
 
@@ -63,8 +63,8 @@ class GPComposer(Composer):
         for node in nodes:
             if node.nodes_from:
                 for i in range(len(node.nodes_from)):
-                    node.nodes_from[i] = node.nodes_from[i]._chain_node
-            chain.add_node(node._chain_node)
+                    node.nodes_from[i] = node.nodes_from[i].chain_node
+            chain.add_node(node.chain_node)
         chain.reference_data = data
         return chain
 
@@ -81,4 +81,6 @@ class GPComposer(Composer):
     @staticmethod
     def _metric_for_nodes(metric_function, data, root: GPNode) -> float:
         chain = GPComposer._tree_to_chain(root, data)
-        return metric_function(chain)
+        from random import random
+        return random()
+        #return metric_function(chain)

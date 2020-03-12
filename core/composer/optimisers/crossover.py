@@ -7,7 +7,7 @@ from typing import (
 )
 
 
-def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: float = 0.8):
+def standard_crossover(tree1: Any, tree2: Any, max_depth: int, crossover_prob: float = 0.8):
     if tree1 is tree2 or random.random() > crossover_prob:
         return deepcopy(tree1)
     tree1_copy = deepcopy(tree1)
@@ -23,7 +23,7 @@ def standard_crossover (tree1: Any, tree2: Any, max_depth:int, crossover_prob: f
         return tree1_copy
 
     if random_layer_in_tree1 + node_from_tree2.get_depth_to_primary() <= max_depth:
-        swap_nodes(node_from_tree1,node_from_tree2)
+        swap_nodes(node_from_tree1, node_from_tree2)
 
         return tree1_copy
     else:
