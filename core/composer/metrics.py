@@ -40,7 +40,6 @@ class RocAucMetric(ChainMetric):
         results = chain.predict(test_data)
         try:
             score = -roc_auc_score(y_score=results.predict, y_true=test_data.target)
-            print(score)
             return score
         except Exception as ex:
             print(ex)

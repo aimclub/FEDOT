@@ -129,9 +129,6 @@ def test_gp_composer(data_fixture, request):
                                                can_be_initial=True,
                                                can_be_secondary=True))
 
-    # models_impl = [LogRegression(), KNN(), LDA(), XGBoost(), DecisionTree(), RandomForest(), MLP()]
-    # models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
-
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     gp_composer = GPComposer()
