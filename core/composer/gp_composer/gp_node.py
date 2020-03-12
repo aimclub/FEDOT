@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import (List, Optional)
-
 from core.composer.node import Node
+import enum
 
 
 class GPNode:

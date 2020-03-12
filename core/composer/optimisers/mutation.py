@@ -3,21 +3,32 @@ from typing import Any
 
 from copy import deepcopy
 from core.composer.gp_composer.gp_node import GPNode
+from enum import Enum
+
+
+class mutation_power_enum(Enum):
+    weak = 0
+    mean = 1
+    strong = 2
+
+
+def get_mutation_prob(mut_id, root_node):
+    if mut_id == 0:
+        return 1.0 / (5.0 * root_node.get_depth_to_primary())
+    elif mut_id == 1:
+        return 1.0 / root_node.get_depth_to_primary()
+    elif mut_id == 2:
+        return 5.0 / root_node.get_depth_to_primary()
 
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
-                      node_mutate_prob="strong"):
+                      node_mutate_type=mutation_power_enum.mean):
     if mutation_prob:
         if random() > mutation_prob:
             return deepcopy(root_node)
 
-    if node_mutate_prob == "weak":
-        probability = 1.0 / (5.0 * root_node.get_depth_to_primary())
-    elif node_mutate_prob == "mean":
-        probability = 1.0 / root_node.get_depth_to_primary()
-    elif node_mutate_prob == "strong":
-        probability = 5.0 / root_node.get_depth_to_primary()
+    probability = get_mutation_prob(mut_id=node_mutate_type.value, root_node=root_node)
 
     result = random_mutation(root_node=root_node, probability=probability, primary_node_func=primary_node_func,
                              secondary_node_func=secondary_node_func, secondary=secondary,
