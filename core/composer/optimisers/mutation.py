@@ -1,9 +1,9 @@
+from copy import deepcopy
+from enum import Enum
 from random import random, choice
 from typing import Any
 
-from copy import deepcopy
 from core.composer.gp_composer.gp_node import GPNode
-from enum import Enum
 
 
 class mutation_power_enum(Enum):
