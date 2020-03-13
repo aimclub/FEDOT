@@ -186,8 +186,7 @@ def test_gp_composer_quality(data_fixture, request):
     chain_created_by_hand.add_node(last_node)
 
     predict_created_by_hand = chain_created_by_hand.predict(dataset_to_validate).predict
-
-    dataset_to_compose.target = predict_created_by_hand
+    dataset_to_compose.target = [int(round(i)) for i in predict_created_by_hand]
 
     composer_requirements = GPComposerRequirements(
         primary=models_impl,
