@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from functools import partial
 from typing import (
     Callable,
@@ -9,12 +10,11 @@ from typing import (
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GPNode
-from core.composer.node import NodeGenerator
 from core.composer.node import Node
+from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
-from dataclasses import dataclass
 
 
 @dataclass

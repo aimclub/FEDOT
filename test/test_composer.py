@@ -6,12 +6,15 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements
 from core.composer.composer import DummyChainTypeEnum
 from core.composer.composer import DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.node import NodeGenerator
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
+from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import LogRegression, KNN, LDA, DecisionTree, RandomForest, MLP
 from core.models.model import XGBoost
@@ -80,6 +83,7 @@ def test_composer_flat_chain():
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_random_composer(data_fixture, request):
     random.seed(1)
+    assert 2 > 1
     np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
@@ -149,3 +153,61 @@ def test_gp_composer(data_fixture, request):
                                        y_score=predicted_gp_composed.predict)
 
     assert roc_on_valid_gp_composed > 0.6
+
+
+@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
+def test_gp_composer_quality(data_fixture, request):
+    random.seed(1)
+    np.random.seed(1)
+    data = request.getfixturevalue(data_fixture)
+    dataset_to_compose = data
+    dataset_to_validate = data
+
+    models_repo = ModelTypesRepository()
+    available_model_names = models_repo.search_model_types_by_attributes(
+        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                               output_type=CategoricalDataTypesEnum.vector,
+                                               task_type=MachineLearningTasksEnum.classification,
+                                               can_be_initial=True,
+                                               can_be_secondary=True))
+
+    models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
+
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+    chain_created_by_hand = Chain()
+
+    last_node = NodeGenerator.secondary_node(models_impl[0])
+    last_node.nodes_from = []
+    for requirement_model in (models_impl[1], models_impl[2]):
+        new_node = NodeGenerator.primary_node(requirement_model, data)
+        chain_created_by_hand.add_node(new_node)
+        last_node.nodes_from.append(new_node)
+    chain_created_by_hand.add_node(last_node)
+
+    predict_created_by_hand = chain_created_by_hand.predict(dataset_to_validate).predict
+
+    dataset_to_compose.target = predict_created_by_hand
+
+    composer_requirements = GPComposerRequirements(
+        primary=models_impl,
+        secondary=models_impl, max_arity=2,
+        max_depth=1, pop_size=10, num_of_generations=10,
+        crossover_prob=0.8, mutation_prob=0.8, verbose=True, is_visualise=True)
+
+    # Create GP-based composer
+    composer = GPComposer()
+
+    chain_created_by_evo_alg = composer.compose_chain(data=dataset_to_compose,
+                                                      initial_chain=None,
+                                                      composer_requirements=composer_requirements,
+                                                      metrics=metric_function)
+
+    predicted_created_by_evo_alg = chain_created_by_evo_alg.predict(dataset_to_validate).predict
+
+    print("model created by hand prediction:",
+          roc_auc(y_true=dataset_to_validate.target, y_score=predict_created_by_hand))
+    print("gp composed model prediction:",
+          roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg))
+    ComposerVisualiser.visualise(chain_created_by_hand)
+    ComposerVisualiser.visualise(chain_created_by_evo_alg)
