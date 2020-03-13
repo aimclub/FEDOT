@@ -66,7 +66,7 @@ composer_requirements = GPComposerRequirements(
     primary=models_impl,
     secondary=models_impl, max_arity=2,
     max_depth=5, pop_size=50, num_of_generations=50,
-    crossover_prob=0.8, mutation_prob=0.8, verbose=True, is_visualise=True)
+    crossover_prob=0.8, mutation_prob=0.8)
 
 # Create GP-based composer
 composer = GPComposer()
@@ -75,7 +75,7 @@ composer = GPComposer()
 chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             composer_requirements=composer_requirements,
-                                            metrics=metric_function)
+                                            metrics=metric_function, is_visualise=True)
 
 static_composer_requirements = ComposerRequirements(primary=models_impl,
                                                     secondary=models_impl)
@@ -86,7 +86,7 @@ dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             composer_requirements=composer_requirements,
-                                            metrics=metric_function)
+                                            metrics=metric_function, is_visualise=True)
 
 # the single-model variant of optimal chain
 single_composer_requirements = ComposerRequirements(primary=[MLP()],

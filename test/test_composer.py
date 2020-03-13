@@ -177,9 +177,9 @@ def test_gp_composer_quality(data_fixture, request):
 
     chain_created_by_hand = Chain()
 
-    last_node = NodeGenerator.secondary_node(models_impl[0])
+    last_node = NodeGenerator.secondary_node(XGBoost())
     last_node.nodes_from = []
-    for requirement_model in (models_impl[1], models_impl[2]):
+    for requirement_model in (KNN(), LogRegression()):
         new_node = NodeGenerator.primary_node(requirement_model, data)
         chain_created_by_hand.add_node(new_node)
         last_node.nodes_from.append(new_node)
@@ -192,7 +192,7 @@ def test_gp_composer_quality(data_fixture, request):
         primary=models_impl,
         secondary=models_impl, max_arity=2,
         max_depth=3, pop_size=10, num_of_generations=10,
-        crossover_prob=0.8, mutation_prob=0.8, verbose=True, is_visualise=True)
+        crossover_prob=0.8, mutation_prob=0.8)
 
     # Create GP-based composer
     composer = GPComposer()
@@ -204,9 +204,10 @@ def test_gp_composer_quality(data_fixture, request):
 
     predicted_created_by_evo_alg = chain_created_by_evo_alg.predict(dataset_to_validate).predict
 
-    print("model created by hand prediction:",
-          roc_auc(y_true=dataset_to_validate.target, y_score=predict_created_by_hand))
-    print("gp composed model prediction:",
-          roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg))
+    roc_auc_chain_created_by_hand = roc_auc(y_true=dataset_to_validate.target, y_score=predict_created_by_hand)
+    roc_auc_chain_evo_alg = roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg)
+    print("model created by hand prediction:", roc_auc_chain_created_by_hand)
+    print("gp composed model prediction:", roc_auc_chain_evo_alg)
     ComposerVisualiser.visualise(chain_created_by_hand)
     ComposerVisualiser.visualise(chain_created_by_evo_alg)
+    assert abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.2

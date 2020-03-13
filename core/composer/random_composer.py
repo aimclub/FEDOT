@@ -20,8 +20,8 @@ class RandomSearchComposer:
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable]) -> Chain:
-        metric_function_for_nodes = partial(self._metric_for_nodes,
+                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+        metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, data)
         optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
@@ -36,17 +36,17 @@ class RandomSearchComposer:
 
         return best_chain
 
-    @staticmethod
-    def _nodes_to_chain(nodes: List[Node], data: InputData) -> Chain:
-        chain = Chain()
-        [chain.add_node(nodes) for nodes in nodes]
-        chain.reference_data = data
-        return chain
 
-    @staticmethod
-    def _metric_for_nodes(metric_function, data, nodes: List[Node]) -> float:
-        chain = RandomSearchComposer._nodes_to_chain(nodes, data)
-        return metric_function(chain)
+def nodes_to_chain(nodes: List[Node], data: InputData) -> Chain:
+    chain = Chain()
+    [chain.add_node(nodes) for nodes in nodes]
+    chain.reference_data = data
+    return chain
+
+
+def metric_for_nodes(metric_function, data, nodes: List[Node]) -> float:
+    chain = nodes_to_chain(nodes, data)
+    return metric_function(chain)
 
 
 class RandomSearchOptimiser:

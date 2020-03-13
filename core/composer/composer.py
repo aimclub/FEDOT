@@ -19,7 +19,6 @@ class ComposerRequirements:
     secondary: List[Model]
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
-    is_visualise: bool = False
 
 
 class Composer(ABC):
@@ -27,7 +26,7 @@ class Composer(ABC):
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Callable) -> Chain:
+                      metrics: Callable, is_visualise: bool = False) -> Chain:
         raise NotImplementedError()
 
 
@@ -45,7 +44,7 @@ class DummyComposer(Composer):
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable]) -> Chain:
+                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:

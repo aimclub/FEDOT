@@ -72,8 +72,8 @@ class GPChainOptimiser:
         offspring_size = randint(2, self.requirements.max_arity)
         offspring_nodes = []
         for offspring_node in range(offspring_size):
-            if node_parent.get_depth_to_final() >= self.requirements.max_depth - 1 or (
-                    node_parent.get_depth_to_final() < self.requirements.max_depth - 1
+            if node_parent.get_height() >= self.requirements.max_depth - 1 or (
+                    node_parent.get_height() < self.requirements.max_depth - 1
                     and randint(0, 1)):
 
                 new_node = GPNode(

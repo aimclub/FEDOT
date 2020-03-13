@@ -14,11 +14,11 @@ class mutation_power_enum(Enum):
 
 def get_mutation_prob(mut_id, root_node):
     if mut_id == 0:
-        return 1.0 / (5.0 * root_node.get_depth_to_primary())
+        return 1.0 / (5.0 * root_node.get_depth())
     elif mut_id == 1:
-        return 1.0 / root_node.get_depth_to_primary()
+        return 1.0 / root_node.get_depth()
     elif mut_id == 2:
-        return 5.0 / root_node.get_depth_to_primary()
+        return 5.0 / root_node.get_depth()
 
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,

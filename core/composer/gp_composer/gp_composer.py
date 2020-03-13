@@ -23,14 +23,12 @@ class GPComposerRequirements(ComposerRequirements):
     num_of_generations: Optional[int] = 50
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
-    verbose: bool = True
-
 
 class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
-                      metrics: Optional[Callable]) -> Chain:
-        metric_function_for_nodes = partial(self._metric_for_nodes,
+                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+        metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, data)
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
@@ -39,46 +37,48 @@ class GPComposer(Composer):
 
         best_found, history = optimiser.optimise(metric_function_for_nodes)
 
-        if composer_requirements.is_visualise:
+        if is_visualise:
             historical_chains = []
             for historical_data in history:
-                historical_nodes_set = GPComposer._tree_to_chain(historical_data[0], data).nodes
+                historical_nodes_set = tree_to_chain(historical_data[0], data).nodes
                 historical_chain = Chain()
                 [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
                 historical_chains.append(historical_chain)
 
         historical_fitnesses = [opt_step[1] for opt_step in history]
 
-        if composer_requirements.is_visualise:
+        if is_visualise:
             ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
 
-        best_chain = GPComposer._tree_to_chain(tree_root=best_found, data=data)
+        best_chain = tree_to_chain(tree_root=best_found, data=data)
         print("GP composition finished")
         return best_chain
 
-    @staticmethod
-    def _tree_to_chain(tree_root: GPNode, data: InputData) -> Chain:
-        chain = Chain()
-        nodes = GPComposer._flat_nodes_tree(deepcopy(tree_root))
-        for node in nodes:
-            if node.nodes_from:
-                for i in range(len(node.nodes_from)):
-                    node.nodes_from[i] = node.nodes_from[i].chain_node
-            chain.add_node(node.chain_node)
-        chain.reference_data = data
-        return chain
 
-    @staticmethod
-    def _flat_nodes_tree(node) -> List[Node]:
+def tree_to_chain(tree_root: GPNode, data: InputData) -> Chain:
+    chain = Chain()
+    nodes = flat_nodes_tree(deepcopy(tree_root))
+    for node in nodes:
         if node.nodes_from:
-            nodes = []
-            for children in node.nodes_from:
-                nodes += GPComposer._flat_nodes_tree(children)
-            return [node] + nodes
-        else:
-            return [node]
+            for i in range(len(node.nodes_from)):
+                node.nodes_from[i] = node.nodes_from[i].chain_node
+        chain.add_node(node.chain_node)
+    chain.reference_data = data
+    return chain
 
-    @staticmethod
-    def _metric_for_nodes(metric_function, data, root: GPNode) -> float:
-        chain = GPComposer._tree_to_chain(root, data)
-        return metric_function(chain)
+
+def flat_nodes_tree(node) -> List[Node]:
+    if node.nodes_from:
+        nodes = []
+        for children in node.nodes_from:
+            nodes += flat_nodes_tree(children)
+        return [node] + nodes
+    else:
+        return [node]
+
+
+def metric_for_nodes(metric_function, data, root: GPNode) -> float:
+    chain = tree_to_chain(root, data)
+    from random import random
+    return random()
+    # return metric_function(chain)
