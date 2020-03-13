@@ -7,8 +7,8 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.metrics import PseudoMetric
 from core.composer.visualisation import ComposerVisualiser
+from core.debug.metrics import RandomMetric
 from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -58,7 +58,7 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 # the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 # alternative can be used for experiments
-alt_metric_function = PseudoMetric.get_value
+alt_metric_function = RandomMetric.get_value
 
 # the choice and initialisation of the random_search
 

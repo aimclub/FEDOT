@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from random import randint
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
 
@@ -44,12 +43,6 @@ class RocAucMetric(ChainMetric):
         except Exception as ex:
             print(ex)
             return -0.5
-
-
-class PseudoMetric(ChainMetric):
-    @staticmethod
-    def get_value(chain: Chain) -> float:
-        return randint(0, 1000)
 
 
 class StructuralComplexityMetric(ChainMetric):
