@@ -17,7 +17,7 @@ from core.composer.random_composer import RandomSearchComposer
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import LogRegression
-from core.models.model import XGBoost
+from core.models.model import XGBoost, KNN
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,

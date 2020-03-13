@@ -79,6 +79,4 @@ def flat_nodes_tree(node) -> List[Node]:
 
 def metric_for_nodes(metric_function, data, root: GPNode) -> float:
     chain = tree_to_chain(root, data)
-    from random import random
-    return random()
-    # return metric_function(chain)
+    return metric_function(chain)
