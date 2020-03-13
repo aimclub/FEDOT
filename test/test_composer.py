@@ -14,7 +14,6 @@ from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirem
 from core.composer.node import NodeGenerator
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
-from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import LogRegression
 from core.models.model import XGBoost, KNN
@@ -191,7 +190,7 @@ def test_gp_composer_quality(data_fixture, request):
     composer_requirements = GPComposerRequirements(
         primary=models_impl,
         secondary=models_impl, max_arity=2,
-        max_depth=3, pop_size=2, num_of_generations=2,
+        max_depth=3, pop_size=5, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.8)
 
     # Create GP-based composer
@@ -208,6 +207,4 @@ def test_gp_composer_quality(data_fixture, request):
     roc_auc_chain_evo_alg = roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg)
     print("model created by hand prediction:", roc_auc_chain_created_by_hand)
     print("gp composed model prediction:", roc_auc_chain_evo_alg)
-    ComposerVisualiser.visualise(chain_created_by_hand)
-    ComposerVisualiser.visualise(chain_created_by_evo_alg)
     assert abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.2
