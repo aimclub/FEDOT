@@ -10,7 +10,7 @@ import pandas as pd
 from PIL import Image
 from imageio import get_writer, imread
 
-from core.composer.composer import Chain
+from core.composer.chain import Chain, as_nx_graph
 
 
 class ComposerVisualiser:
@@ -19,9 +19,9 @@ class ComposerVisualiser:
 
     @staticmethod
     def visualise(chain: Chain):
-        graph, node_labels = _as_nx_graph(chain=chain)
+        graph, node_labels = as_nx_graph(chain=chain)
         pos = node_positions(graph.to_undirected())
-        plt.figure(figsize=(10, 10))
+        plt.figure(figsize=(10, 16))
         nx.draw(graph, pos=pos,
                 with_labels=True, labels=node_labels,
                 font_size=12, font_family='calibri', font_weight='bold',
@@ -37,7 +37,7 @@ class ComposerVisualiser:
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = _as_nx_graph(chain=deepcopy(chain))
+            graph, node_labels = as_nx_graph(chain=deepcopy(chain))
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -63,7 +63,7 @@ class ComposerVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            best_graph, best_node_labels = _as_nx_graph(chain=deepcopy(last_best_chain))
+            best_graph, best_node_labels = as_nx_graph(chain=deepcopy(last_best_chain))
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -89,13 +89,12 @@ class ComposerVisualiser:
             if fit > prev_fit:
                 fitness_history[fit_id] = prev_fit
             prev_fit = fitness_history[fit_id]
-        ts = list(range(len(fitness_history)))
+        ts_set = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {'ts': ts, 'fitness': [-f for f in fitness_history]})
+            {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
 
-        images = []
         ind = 0
-        for ts in ts:
+        for ts in ts_set:
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
@@ -123,7 +122,7 @@ class ComposerVisualiser:
         ComposerVisualiser._visualise_convergence(fitnesses)
         ComposerVisualiser._merge_images(len(chains))
         ComposerVisualiser._combine_gifs()
-        #ComposerVisualiser._clean()
+        ComposerVisualiser._clean()
 
     @staticmethod
     def _merge_images(num_images):
@@ -171,23 +170,6 @@ class ComposerVisualiser:
         except Exception as ex:
             print(ex)
 
-
-def _as_nx_graph(chain: Chain):
-    graph = nx.DiGraph()
-
-    node_labels = {}
-    for node in chain.nodes:
-        graph.add_node(node.node_id)
-        node_labels[node.node_id] = f'{node}'
-
-    def add_edges(graph, chain):
-        for node in chain.nodes:
-            if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(child.node_id, node.node_id)
-
-    add_edges(graph, chain)
-    return graph, node_labels
 
 
 def colors_by_node_labels(node_labels: dict):

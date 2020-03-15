@@ -3,7 +3,6 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
 
 
 @dataclass
@@ -12,19 +11,13 @@ class Data:
     features: np.array
 
     @staticmethod
-    def from_csv(file_path, delimiter=',', normalization=False, label=[]):
-
+    def from_csv(file_path, delimiter=','):
         data_frame = pd.read_csv(file_path, sep=delimiter)
-        idx = np.array(data_frame[data_frame.columns[0]].T)
-        if not label:
-            label = data_frame.columns[len(data_frame.columns) - 1]
-
-        target = np.array(data_frame[label].T).astype(np.float)
-        data_frame = data_frame.drop([label] + [data_frame.columns[0]], axis=1)
-        if normalization:
-            data_frame = normalize_data(data_frame)
-        features = np.array(data_frame)
-
+        data_frame = _convert_dtypes(data_frame=data_frame)
+        data_array = np.array(data_frame).T
+        idx = data_array[0]
+        features = data_array[1:-1].T
+        target = data_array[-1].astype(np.float)
         return InputData(idx=idx, features=features, target=target)
 
     @staticmethod
@@ -46,15 +39,15 @@ class OutputData(Data):
     predict: np.array
 
 
-def normalize_data(train):
-    for column in train.columns:
-        col = train[[column]].values.astype(float)
-        if not col.min() in range(0, 1) or not col.max() in range(0, 1):
-            col = preprocessing.MinMaxScaler().fit_transform(col)
-            train[[column]] = col
-    return train
-
-
 def split_train_test(data, split_ratio=0.8):
     split_point = int(len(data) * split_ratio)
     return data[:split_point], data[split_point:]
+
+
+def _convert_dtypes(data_frame: pd.DataFrame):
+    objects: pd.DataFrame = data_frame.select_dtypes('object')
+    for column_name in objects:
+        encoded = pd.factorize(data_frame[column_name])[0]
+        data_frame[column_name] = encoded
+    data_frame = data_frame.fillna(0)
+    return data_frame
