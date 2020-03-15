@@ -11,15 +11,15 @@ from PIL import Image
 from imageio import get_writer, imread
 
 from core.composer.chain import Chain
-from core.composer.chain import as_nx_graph
 
 
 class ComposerVisualiser:
     temp_path = '../../tmp/'
     gif_prefix = 'for_gif_'
 
-    def visualise(self, chain: Chain):
-        graph, node_labels = as_nx_graph(chain=chain)
+    @staticmethod
+    def visualise(chain: Chain):
+        graph, node_labels = _as_nx_graph(chain=chain)
         pos = node_positions(graph.to_undirected())
         plt.figure(figsize=(10, 16))
         nx.draw(graph, pos=pos,
@@ -37,7 +37,7 @@ class ComposerVisualiser:
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = as_nx_graph(chain=deepcopy(chain))
+            graph, node_labels = _as_nx_graph(chain=deepcopy(chain))
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -63,7 +63,7 @@ class ComposerVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            best_graph, best_node_labels = as_nx_graph(chain=deepcopy(last_best_chain))
+            best_graph, best_node_labels = _as_nx_graph(chain=deepcopy(last_best_chain))
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -171,6 +171,24 @@ class ComposerVisualiser:
             print(ex)
 
 
+def _as_nx_graph(chain: Chain):
+    graph = nx.DiGraph()
+
+    node_labels = {}
+    for node in chain.nodes:
+        graph.add_node(node.node_id)
+        node_labels[node.node_id] = f'{node}'
+
+    def add_edges(graph, chain):
+        for node in chain.nodes:
+            if node.nodes_from is not None:
+                for child in node.nodes_from:
+                    graph.add_edge(child.node_id, node.node_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels
+
+
 def colors_by_node_labels(node_labels: dict):
     colors = [color for color in range(len(node_labels.keys()))]
     return colors
@@ -179,6 +197,7 @@ def colors_by_node_labels(node_labels: dict):
 def scaled_node_size(nodes_amount):
     size = int(7000.0 / ceil(log2(nodes_amount)))
     return size
+
 
 def node_positions(graph: nx.Graph):
     if not nx.is_tree(graph):
