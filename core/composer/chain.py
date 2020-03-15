@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import Optional
 
+import networkx as nx
+
 from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData, OutputData
 
@@ -97,3 +99,21 @@ class Chain:
             primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
             for node in primary_nodes:
                 node.input_data = deepcopy(data)
+
+
+def as_nx_graph(chain: Chain):
+    graph = nx.DiGraph()
+
+    node_labels = {}
+    for node in chain.nodes:
+        graph.add_node(node.node_id)
+        node_labels[node.node_id] = f'{node}'
+
+    def add_edges(graph, chain):
+        for node in chain.nodes:
+            if node.nodes_from is not None:
+                for child in node.nodes_from:
+                    graph.add_edge(child.node_id, node.node_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels

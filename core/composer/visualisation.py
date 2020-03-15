@@ -10,7 +10,7 @@ import pandas as pd
 from PIL import Image
 from imageio import get_writer, imread
 
-from core.composer.chain import Chain
+from core.composer.chain import Chain, as_nx_graph
 
 
 class ComposerVisualiser:
@@ -19,7 +19,7 @@ class ComposerVisualiser:
 
     @staticmethod
     def visualise(chain: Chain):
-        graph, node_labels = _as_nx_graph(chain=chain)
+        graph, node_labels = as_nx_graph(chain=chain)
         pos = node_positions(graph.to_undirected())
         plt.figure(figsize=(10, 16))
         nx.draw(graph, pos=pos,
@@ -37,7 +37,7 @@ class ComposerVisualiser:
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = _as_nx_graph(chain=deepcopy(chain))
+            graph, node_labels = as_nx_graph(chain=deepcopy(chain))
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -63,7 +63,7 @@ class ComposerVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            best_graph, best_node_labels = _as_nx_graph(chain=deepcopy(last_best_chain))
+            best_graph, best_node_labels = as_nx_graph(chain=deepcopy(last_best_chain))
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -170,23 +170,6 @@ class ComposerVisualiser:
         except Exception as ex:
             print(ex)
 
-
-def _as_nx_graph(chain: Chain):
-    graph = nx.DiGraph()
-
-    node_labels = {}
-    for node in chain.nodes:
-        graph.add_node(node.node_id)
-        node_labels[node.node_id] = f'{node}'
-
-    def add_edges(graph, chain):
-        for node in chain.nodes:
-            if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(child.node_id, node.node_id)
-
-    add_edges(graph, chain)
-    return graph, node_labels
 
 
 def colors_by_node_labels(node_labels: dict):
