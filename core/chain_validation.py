@@ -2,7 +2,7 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from core.composer.chain import Chain, as_nx_graph
+from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 
 ERROR_PREFIX = 'Invalid chain configuration:'
