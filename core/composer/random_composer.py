@@ -1,3 +1,4 @@
+from copy import copy
 from functools import partial
 from random import randint
 from typing import (
@@ -6,6 +7,8 @@ from typing import (
     Optional,
     Any
 )
+
+from numpy import random
 
 from core.composer.chain import Chain, Node
 from core.composer.composer import ComposerRequirements
@@ -23,6 +26,7 @@ class RandomSearchComposer:
                       metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
         metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, data)
+
         optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
                                           NodeGenerator.secondary_node,
@@ -78,22 +82,15 @@ class RandomSearchOptimiser:
     def _random_nodeset(self, primary_requirements: List[Any], secondary_requirements: List[Any]) -> List[Node]:
         new_set = []
 
-        num_of_primary = randint(1, len(primary_requirements))
-
         # random primary nodes
-        used_indices = []
-        for _ in range(num_of_primary):
-            random_first_model_ind = randint(0, len(primary_requirements) - 1)
-            if random_first_model_ind not in used_indices:
-                used_indices.append(random_first_model_ind)
-                first_node = self.__primary_node_func(primary_requirements[random_first_model_ind], None)
-                new_set.append(first_node)
+        num_of_primary = randint(1, len(primary_requirements))
+        random_first_models = random.choice(primary_requirements, num_of_primary, replace=False)
+        [new_set.append(self.__primary_node_func(model, None)) for model in random_first_models]
 
         # random final node
         if len(new_set) > 1:
-            random_final_model_ind = randint(0, len(secondary_requirements) - 1)
-            new_node = self.__secondary_node_func(secondary_requirements[random_final_model_ind])
-            new_node.nodes_from = [node for node in new_set if node.nodes_from is None]
-            new_set.append(new_node)
+            random_final_model = random.choice(secondary_requirements, replace=False)
+            parent_nodes = copy(new_set)
+            new_set.append(self.__secondary_node_func(random_final_model, parent_nodes))
 
         return new_set
