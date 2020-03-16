@@ -7,7 +7,6 @@ from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.model import LogRegression, KNN, LDA, XGBoost
 
@@ -166,8 +165,6 @@ def test_chain_comparison_diffenrent_case():
     root_of_tree2.nodes_from.append(root_child2)
     chain2.add_node(root_of_tree2)
 
-    ComposerVisualiser.visualise(chain1)
-    ComposerVisualiser.visualise(chain2)
     similar_nodes = chain1.root_node.get_similar_nodes(chain2.root_node)
 
     assert (not chain1.equals(chain2)) and len(similar_nodes) == 6
