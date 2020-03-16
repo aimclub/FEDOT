@@ -202,8 +202,6 @@ def test_gp_composer_quality(data_fixture, request):
                                                       metrics=metric_function)
 
     predicted_created_by_evo_alg = chain_created_by_evo_alg.predict(dataset_to_validate).predict
-
-
     roc_auc_chain_created_by_hand = roc_auc(y_true=dataset_to_validate.target, y_score=predict_created_by_hand)
     roc_auc_chain_evo_alg = roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg)
     print("model created by hand prediction:", roc_auc_chain_created_by_hand)

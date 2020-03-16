@@ -24,6 +24,7 @@ class GPComposerRequirements(ComposerRequirements):
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
 
+
 class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
