@@ -208,4 +208,8 @@ def test_gp_composer_quality(data_fixture, request):
     roc_auc_chain_evo_alg = roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg)
     print("model created by hand prediction:", roc_auc_chain_created_by_hand)
     print("gp composed model prediction:", roc_auc_chain_evo_alg)
+    if not chain_created_by_evo_alg.equals(chain_created_by_hand):
+        print("chains are not equal")
+    else:
+        print("chains are equal")
     assert abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.2
