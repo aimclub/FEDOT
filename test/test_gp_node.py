@@ -6,8 +6,7 @@ import numpy as np
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_node import GPNode
 from core.composer.node import NodeGenerator
-from core.models.model import LogRegression, KNN, LDA
-from core.models.model import XGBoost
+from core.models.model import LogRegression, KNN, LDA, XGBoost
 
 
 def _tree_to_chain(tree_root: GPNode) -> Chain:
@@ -57,3 +56,6 @@ def test_node_depth_and_high():
 
     assert not False in [tree_root_depth == 2, tree_secondary_node_depth == 1, tree_primary_node_depth == 0,
                          tree_secondary_node_height == 1, tree_primary_node_height == 2, tree_root_height == 0]
+
+
+

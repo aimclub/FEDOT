@@ -55,6 +55,17 @@ class Chain:
         return any([(node in other_node.nodes_from)
                     for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
 
+    def equals(self, oter_chain):
+        similar_nodes = self.root_node.get_similar_nodes(oter_chain.root_node)
+        if len(similar_nodes) == len(self.nodes):
+            if False in [True if pair[0].eval_strategy.model.__class__.__name__ == pair[
+                1].eval_strategy.model.__class__.__name__ else False for pair in similar_nodes]:
+                return False
+            else:
+                return True
+        else:
+            return False
+
     @property
     def root_node(self) -> Optional[Node]:
         if len(self.nodes) == 0:
@@ -80,9 +91,6 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
-
-    def equals(self):
-        pass
 
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()

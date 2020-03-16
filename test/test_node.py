@@ -57,3 +57,5 @@ def test_eval_strategy_logreg(data_setup):
     if print_metrics:
         model_metrics_info(test_skl_model.__class__.__name__, true_y, actual_result)
     assert len(actual_result.predict) == len(train_data_y) + len(expected_result)
+
+
