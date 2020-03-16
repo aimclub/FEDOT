@@ -81,6 +81,9 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
+    def equals(self):
+        pass
+
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()
 
