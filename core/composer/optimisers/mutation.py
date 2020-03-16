@@ -13,12 +13,12 @@ class MutationPowerEnum(Enum):
 
 
 def get_mutation_prob(mut_id, root_node):
-    if mut_id == MutationPowerEnum.weak:
+    if mut_id == MutationPowerEnum.weak.value:
         return 1.0 / (5.0 * root_node.depth)
-    elif mut_id == MutationPowerEnum.mean:
+    elif mut_id == MutationPowerEnum.mean.value:
         return 1.0 / root_node.depth
-    elif mut_id == MutationPowerEnum.strong:
-        return 5.0 / root_node.depth()
+    elif mut_id == MutationPowerEnum.strong.value:
+        return 5.0 / root_node.depth
 
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
