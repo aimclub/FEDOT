@@ -6,7 +6,8 @@ import numpy as np
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_node import GPNode
 from core.composer.node import NodeGenerator
-from core.models.model import LogRegression, KNN, LDA, XGBoost
+from core.models.model import LogRegression, KNN, LDA
+from core.models.model import XGBoost
 
 
 def _tree_to_chain(tree_root: GPNode) -> Chain:
@@ -46,12 +47,12 @@ def test_node_depth_and_high():
             last_node_child.nodes_from.append(new_node)
         last_node.nodes_from.append(last_node_child)
 
-    tree_root_depth = last_node.get_depth()
-    tree_secondary_node_depth = last_node.nodes_from[0].get_depth()
-    tree_primary_node_depth = last_node.nodes_from[0].nodes_from[0].get_depth()
-    tree_secondary_node_height = last_node.nodes_from[0].get_height()
-    tree_primary_node_height = last_node.nodes_from[0].nodes_from[0].get_height()
-    tree_root_height = last_node.get_height()
+    tree_root_depth = last_node.depth
+    tree_secondary_node_depth = last_node.nodes_from[0].depth
+    tree_primary_node_depth = last_node.nodes_from[0].nodes_from[0].depth
+    tree_secondary_node_height = last_node.nodes_from[0].height
+    tree_primary_node_height = last_node.nodes_from[0].nodes_from[0].height
+    tree_root_height = last_node.height
 
-    assert all([tree_root_depth == 2, tree_secondary_node_depth == 1, tree_primary_node_depth == 0,
-                tree_secondary_node_height == 1, tree_primary_node_height == 2, tree_root_height == 0])
+    assert all ([tree_root_depth == 2, tree_secondary_node_depth == 1, tree_primary_node_depth == 0,
+                         tree_secondary_node_height == 1, tree_primary_node_height == 2, tree_root_height == 0])

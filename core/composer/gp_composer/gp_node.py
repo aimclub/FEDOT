@@ -1,9 +1,9 @@
 from copy import deepcopy
-from typing import (List, Optional)
+from typing import (Optional)
 
 
 class GPNode:
-    def __init__(self, chain_node, node_to: Optional[List['GPNode']] = None):
+    def __init__(self, chain_node, node_to: Optional['GPNode'] = None):
         self.chain_node = chain_node
         self.node_to = node_to
 
@@ -27,27 +27,29 @@ class GPNode:
     def input_data(self):
         return self.chain_node.input_data
 
-    def get_height(self):
+    @property
+    def height(self) -> int:
         if self.node_to:
-            depth = self.node_to.get_height() + 1
+            depth = self.node_to.height + 1
             return depth
         else:
             return 0
 
-    def get_depth(self) -> int:
+    @property
+    def depth(self) -> int:
         if not self.nodes_from:
             return 0
         else:
-            return 1 + max([next_node.get_depth() for next_node in self.nodes_from])
+            return 1 + max([next_node.depth for next_node in self.nodes_from])
 
-    def get_nodes_from_height(self, selected_height):
+    def nodes_from_height(self, selected_height):
         if self.nodes_from:
-            if self.get_height() == selected_height:
+            if self.height == selected_height:
                 return [self]
             else:
                 nodes = []
                 for child in self.nodes_from:
-                    nodes += child.get_nodes_from_height(selected_height)
+                    nodes += child.nodes_from_height(selected_height)
                 if nodes:
                     return nodes
                 else:

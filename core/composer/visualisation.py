@@ -171,7 +171,6 @@ class ComposerVisualiser:
             print(ex)
 
 
-
 def colors_by_node_labels(node_labels: dict):
     colors = [color for color in range(len(node_labels.keys()))]
     return colors
