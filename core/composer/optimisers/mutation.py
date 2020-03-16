@@ -6,24 +6,24 @@ from typing import Any
 from core.composer.gp_composer.gp_node import GPNode
 
 
-class mutation_power_enum(Enum):
+class MutationPowerEnum(Enum):
     weak = 0
     mean = 1
     strong = 2
 
 
 def get_mutation_prob(mut_id, root_node):
-    if mut_id == 0:
-        return 1.0 / (5.0 * root_node.get_depth())
-    elif mut_id == 1:
-        return 1.0 / root_node.get_depth()
-    elif mut_id == 2:
-        return 5.0 / root_node.get_depth()
+    if mut_id == MutationPowerEnum.weak:
+        return 1.0 / (5.0 * root_node.depth)
+    elif mut_id == MutationPowerEnum.mean:
+        return 1.0 / root_node.depth
+    elif mut_id == MutationPowerEnum.strong:
+        return 5.0 / root_node.depth()
 
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
-                      node_mutate_type=mutation_power_enum.mean) -> Any:
+                      node_mutate_type=MutationPowerEnum.mean) -> Any:
     if mutation_prob:
         if random() > mutation_prob:
             return deepcopy(root_node)

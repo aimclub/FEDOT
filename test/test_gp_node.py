@@ -47,13 +47,12 @@ def test_node_depth_and_high():
             last_node_child.nodes_from.append(new_node)
         last_node.nodes_from.append(last_node_child)
 
-    tree_root_depth = last_node.get_depth()
-    tree_secondary_node_depth = last_node.nodes_from[0].get_depth()
-    tree_primary_node_depth = last_node.nodes_from[0].nodes_from[0].get_depth()
-    tree_secondary_node_height = last_node.nodes_from[0].get_height()
-    tree_primary_node_height = last_node.nodes_from[0].nodes_from[0].get_height()
-    tree_root_height = last_node.get_height()
-    chain = _tree_to_chain(last_node)
+    tree_root_depth = last_node.depth
+    tree_secondary_node_depth = last_node.nodes_from[0].depth
+    tree_primary_node_depth = last_node.nodes_from[0].nodes_from[0].depth
+    tree_secondary_node_height = last_node.nodes_from[0].height
+    tree_primary_node_height = last_node.nodes_from[0].nodes_from[0].height
+    tree_root_height = last_node.height
 
     assert not False in [tree_root_depth == 2, tree_secondary_node_depth == 1, tree_primary_node_depth == 0,
                          tree_secondary_node_height == 1, tree_primary_node_height == 2, tree_root_height == 0]
