@@ -55,30 +55,6 @@ class GPNode:
         else:
             return []
 
-    def get_similar_nodes(self, other):
-
-        if (self.nodes_from and other.nodes_from) or (not self.nodes_from and not other.nodes_from):
-            if self.nodes_from and (len(self.nodes_from) == len(other.nodes_from)):
-                nodes = [[self, other]]
-                offspring_nodes = []
-                for self_c, other_c in zip(self.nodes_from, other.nodes_from):
-                    tmp = self_c.get_similar_nodes(other_c)
-                    if tmp:
-                        if type(tmp[0]) is list:
-                            for i in tmp:
-                                offspring_nodes.append(i)
-                        else:
-                            offspring_nodes.append(tmp)
-                if offspring_nodes:
-                    nodes += offspring_nodes
-                return nodes
-            elif not self.nodes_from:
-                return [self, other]
-            else:
-                return
-        else:
-            return
-
 
 def swap_nodes(node1, node2):
     newnode = deepcopy(node2)
