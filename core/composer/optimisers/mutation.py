@@ -23,7 +23,7 @@ def get_mutation_prob(mut_id, root_node):
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
-                      node_mutate_type=mutation_power_enum.mean):
+                      node_mutate_type=mutation_power_enum.mean)->Any:
     if mutation_prob:
         if random() > mutation_prob:
             return deepcopy(root_node)
@@ -38,7 +38,7 @@ def standard_mutation(root_node: Any, secondary: Any, primary: Any,
 
 
 def random_mutation(root_node, probability, primary_node_func, secondary_node_func, secondary, primary):
-    def _random_node_recursive(node, parent=None):
+    def _random_node_recursive(node, parent=None)->Any:
 
         if node.nodes_from:
             if random() < probability:

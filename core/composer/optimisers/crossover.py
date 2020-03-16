@@ -8,7 +8,7 @@ from typing import (
 from core.composer.gp_composer.gp_node import swap_nodes
 
 
-def standard_crossover(tree1: Any, tree2: Any, max_depth: int, crossover_prob: float = 0.8):
+def standard_crossover(tree1: Any, tree2: Any, max_depth: int, crossover_prob: float = 0.8)->Any:
     if tree1 is tree2 or random.random() > crossover_prob:
         return deepcopy(tree1)
     tree1_copy = deepcopy(tree1)

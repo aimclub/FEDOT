@@ -27,7 +27,7 @@ class GPNode:
     def input_data(self):
         return self.chain_node.input_data
 
-    def get_height(self):
+    def get_height(self)-> int:
         if self.node_to:
             depth = self.node_to.get_height() + 1
             return depth
