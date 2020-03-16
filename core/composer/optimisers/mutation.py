@@ -23,7 +23,7 @@ def get_mutation_prob(mut_id, root_node):
 
 def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
-                      node_mutate_type=mutation_power_enum.mean)->Any:
+                      node_mutate_type=mutation_power_enum.mean) -> Any:
     if mutation_prob:
         if random() > mutation_prob:
             return deepcopy(root_node)
@@ -38,7 +38,7 @@ def standard_mutation(root_node: Any, secondary: Any, primary: Any,
 
 
 def random_mutation(root_node, probability, primary_node_func, secondary_node_func, secondary, primary):
-    def _random_node_recursive(node, parent=None)->Any:
+    def replace_node_to_random_recursive(node, parent=None) -> Any:
 
         if node.nodes_from:
             if random() < probability:
@@ -50,7 +50,7 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
                 node.node_to = parent
             for i, child in enumerate(node.nodes_from):
                 if child.nodes_from:
-                    node.nodes_from[i] = _random_node_recursive(child, parent=node)
+                    node.nodes_from[i] = replace_node_to_random_recursive(child, parent=node)
                 else:
                     if random() < probability:
                         node.nodes_from[i] = GPNode(chain_node=primary_node_func(model=choice(primary),
@@ -61,5 +61,5 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
         return node
 
     root_node_copy = deepcopy(root_node)
-    root_node_copy = _random_node_recursive(node=root_node_copy)
+    root_node_copy = replace_node_to_random_recursive(node=root_node_copy)
     return root_node_copy

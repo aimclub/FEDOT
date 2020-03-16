@@ -101,7 +101,6 @@ print("Composition finished")
 ComposerVisualiser.visualise(chain_static)
 ComposerVisualiser.visualise(chain_evo_composed)
 
-
 # the quality assessment for the obtained composite models
 roc_on_valid_static = calculate_validation_metric(chain_static, dataset_to_validate)
 roc_on_valid_single = calculate_validation_metric(chain_single, dataset_to_validate)
@@ -110,4 +109,3 @@ roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, data
 print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
 print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
-

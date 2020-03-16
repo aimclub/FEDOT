@@ -3,8 +3,7 @@ from random import choice, randint
 from typing import (
     List,
     Callable,
-    Any,
-    Tuple
+    Any
 )
 
 import numpy as np

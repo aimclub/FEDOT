@@ -34,6 +34,7 @@ class DummyChainTypeEnum(Enum):
     flat = 1,
     hierarchical = 2
 
+
 class DummyComposer(Composer):
     def __init__(self, dummy_chain_type):
         self.dummy_chain_type = dummy_chain_type
