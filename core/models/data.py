@@ -11,8 +11,8 @@ class Data:
     features: np.array
 
     @staticmethod
-    def from_csv(file_path):
-        data_frame = pd.read_csv(file_path)
+    def from_csv(file_path, delimiter=','):
+        data_frame = pd.read_csv(file_path, sep=delimiter)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
         idx = data_array[0]

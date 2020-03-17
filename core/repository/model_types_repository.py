@@ -94,7 +94,7 @@ class ModelTypesRepository:
         ModelTypesIdsEnum.dt: DecisionTree,
         ModelTypesIdsEnum.rf: RandomForest,
         ModelTypesIdsEnum.mlp: MLP,
-        ModelTypesIdsEnum.lda: LDA,
+        ModelTypesIdsEnum.lda: LDA
     }
 
     def _initialise_tree(self):
@@ -135,7 +135,7 @@ class ModelTypesRepository:
         return [result.name for result in results if (result.name in self.model_implementations)]
 
     def model_by_id(self, model_type_id: ModelTypesIdsEnum):
-        return self.model_implementations[model_type_id]()
+        return deepcopy(self.model_implementations[model_type_id]())
 
     def print_tree(self):
         for pre, node in RenderTree(self._tree):

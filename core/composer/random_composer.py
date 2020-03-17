@@ -11,9 +11,9 @@ from typing import (
 from numpy import random
 
 from core.composer.chain import Chain, Node
+from core.composer.composer import ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
-from core.models.model import Model
 
 
 class RandomSearchComposer:
@@ -22,34 +22,35 @@ class RandomSearchComposer:
 
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      primary_requirements: List[Model],
-                      secondary_requirements: List[Model],
-                      metrics: Optional[Callable]) -> Chain:
-        metric_function_for_nodes = partial(self._metric_for_nodes,
+                      composer_requirements: ComposerRequirements,
+                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+        metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, data)
 
         optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
-                                          NodeGenerator.secondary_node)
-        best_nodes_set, _ = optimiser.optimise(metric_function_for_nodes,
-                                               primary_requirements, secondary_requirements)
+                                          NodeGenerator.secondary_node,
+                                          )
+        best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
+                                                     composer_requirements.primary,
+                                                     composer_requirements.secondary)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
 
         return best_chain
 
-    @staticmethod
-    def _nodes_to_chain(nodes: List[Node], data: InputData) -> Chain:
-        chain = Chain()
-        [chain.add_node(nodes) for nodes in nodes]
-        chain.reference_data = data
-        return chain
 
-    @staticmethod
-    def _metric_for_nodes(metric_function, data, nodes: List[Node]) -> float:
-        chain = RandomSearchComposer._nodes_to_chain(nodes, data)
-        return metric_function(chain)
+def nodes_to_chain(nodes: List[Node], data: InputData) -> Chain:
+    chain = Chain()
+    [chain.add_node(nodes) for nodes in nodes]
+    chain.reference_data = data
+    return chain
+
+
+def metric_for_nodes(metric_function, data, nodes: List[Node]) -> float:
+    chain = nodes_to_chain(nodes, data)
+    return metric_function(chain)
 
 
 class RandomSearchOptimiser:
@@ -57,7 +58,6 @@ class RandomSearchOptimiser:
         self.__iter_num = iter_num
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
-        self.__allow_multilevel = True
 
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],

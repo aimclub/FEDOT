@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     List,
@@ -12,14 +13,20 @@ from core.models.data import InputData
 from core.models.model import Model
 
 
-# TODO: specify ComposerRequirements class
+@dataclass
+class ComposerRequirements:
+    primary: List[Model]
+    secondary: List[Model]
+    max_depth: Optional[int] = None
+    max_arity: Optional[int] = None
+
+
 class Composer(ABC):
     @abstractmethod
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      primary_requirements: List[Model],
-                      secondary_requirements: List[Model],
-                      metrics: Callable) -> Chain:
+                      composer_requirements: ComposerRequirements,
+                      metrics: Callable, is_visualise: bool = False) -> Chain:
         raise NotImplementedError()
 
 
@@ -32,30 +39,28 @@ class DummyComposer(Composer):
     def __init__(self, dummy_chain_type):
         self.dummy_chain_type = dummy_chain_type
 
-    # TODO move requirements to init
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
-                      primary_requirements: List[Model],
-                      secondary_requirements: List[Model],
-                      metrics: Optional[Callable]) -> Chain:
+                      composer_requirements: ComposerRequirements,
+                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y
-            last_node = NodeGenerator.secondary_node(secondary_requirements[0])
+            last_node = NodeGenerator.secondary_node(composer_requirements.secondary[0])
             last_node.nodes_from = []
 
-            for requirement_model in primary_requirements:
+            for requirement_model in composer_requirements.primary:
                 new_node = NodeGenerator.primary_node(requirement_model, data)
                 new_chain.add_node(new_node)
                 last_node.nodes_from.append(new_node)
             new_chain.add_node(last_node)
         elif self.dummy_chain_type == DummyChainTypeEnum.flat:
             # (y1) -> (y2) -> y
-            first_node = NodeGenerator.primary_node(primary_requirements[0], data)
+            first_node = NodeGenerator.primary_node(composer_requirements.primary[0], data)
             new_chain.add_node(first_node)
             prev_node = first_node
-            for requirement_model in secondary_requirements:
+            for requirement_model in composer_requirements.secondary:
                 new_node = NodeGenerator.secondary_node(requirement_model)
                 new_node.nodes_from = [prev_node]
                 prev_node = new_node

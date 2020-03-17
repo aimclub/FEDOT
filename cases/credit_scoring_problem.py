@@ -5,12 +5,11 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.composer import DummyChainTypeEnum
-from core.composer.composer import DummyComposer
-from core.composer.random_composer import RandomSearchComposer
-from core.composer.visualisation import ChainVisualiser
-from core.models.data import InputData
-from core.models.model import MLP
+from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
+from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.visualisation import ComposerVisualiser
+from core.debug.metrics import RandomMetric
+from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -58,42 +57,55 @@ models_impl = [models_repo.model_by_id(model_name) for model_name in available_m
 
 # the choice of the metric for the chain quality assessment during composition
 metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+# alternative can be used for experiments
+alt_metric_function = RandomMetric.get_value
+
+# the choice and initialisation of the random_search
+
+composer_requirements = GPComposerRequirements(
+    primary=models_impl,
+    secondary=models_impl, max_arity=2,
+    max_depth=3, pop_size=2, num_of_generations=2,
+    crossover_prob=0.8, mutation_prob=0.8)
+
+# Create GP-based composer
+composer = GPComposer()
+
+# the optimal chain generation by composition - the most time-consuming task
+chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                            initial_chain=None,
+                                            composer_requirements=composer_requirements,
+                                            metrics=metric_function, is_visualise=True)
+
+static_composer_requirements = ComposerRequirements(primary=models_impl,
+                                                    secondary=models_impl)
 
 # the choice and initialisation of the dummy_composer
 dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-# the choice and initialisation of the random_search
-random_composer = RandomSearchComposer(iter_num=1)
-
-# the optimal chain generation by composition - the most time-consuming task
-chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
-                                                      initial_chain=None,
-                                                      primary_requirements=models_impl,
-                                                      secondary_requirements=models_impl,
-                                                      metrics=metric_function)
 
 chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
-                                            primary_requirements=models_impl,
-                                            secondary_requirements=[MLP()],
-                                            metrics=metric_function)
+                                            composer_requirements=composer_requirements,
+                                            metrics=metric_function, is_visualise=True)
 
 # the single-model variant of optimal chain
+single_composer_requirements = ComposerRequirements(primary=[MLP()],
+                                                    secondary=[])
 chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
                                                                     initial_chain=None,
-                                                                    primary_requirements=[MLP()],
-                                                                    secondary_requirements=[],
+                                                                    composer_requirements=single_composer_requirements,
                                                                     metrics=metric_function)
 
 print("Composition finished")
 
-visualiser = ChainVisualiser()
-visualiser.visualise(chain_random_composed)
+ComposerVisualiser.visualise(chain_static)
+ComposerVisualiser.visualise(chain_evo_composed)
 
 # the quality assessment for the obtained composite models
 roc_on_valid_static = calculate_validation_metric(chain_static, dataset_to_validate)
 roc_on_valid_single = calculate_validation_metric(chain_single, dataset_to_validate)
-roc_on_valid_random_composed = calculate_validation_metric(chain_random_composed, dataset_to_validate)
+roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, dataset_to_validate)
 
-print(f'Composed ROC AUC is {round(roc_on_valid_random_composed, 3)}')
+print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
 print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
