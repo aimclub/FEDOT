@@ -59,7 +59,7 @@ class GPNode:
 
 
 def swap_nodes(node1, node2):
-    newnode = deepcopy(node2)
-    newnode.node_to = node1.node_to
-    node1.node_to.nodes_from[node1.node_to.nodes_from.index(node1)] = newnode
-    node1 = newnode
+    new_node = deepcopy(node2)
+    new_node.node_to = node1.node_to
+    node1.node_to.nodes_from[node1.node_to.nodes_from.index(node1)] = new_node
+    node1 = new_node

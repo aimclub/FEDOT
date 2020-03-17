@@ -65,7 +65,7 @@ alt_metric_function = RandomMetric.get_value
 composer_requirements = GPComposerRequirements(
     primary=models_impl,
     secondary=models_impl, max_arity=2,
-    max_depth=3, pop_size=5, num_of_generations=50,
+    max_depth=3, pop_size=2, num_of_generations=2,
     crossover_prob=0.8, mutation_prob=0.8)
 
 # Create GP-based composer

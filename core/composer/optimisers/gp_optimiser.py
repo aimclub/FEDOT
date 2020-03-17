@@ -51,11 +51,11 @@ class GPChainOptimiser:
                                                             primary=self.requirements.primary,
                                                             secondary_node_func=self.secondary_node_func,
                                                             primary_node_func=self.primary_node_func)
+                history.append((new_population[ind_num], self.fitness[ind_num]))
 
             self.population = deepcopy(new_population)
             self.population.append(deepcopy(self.best_individual))
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
-            history.append((self.population[ind_num], self.fitness[ind_num]))
 
         return self.population[np.argmin(self.fitness)], history
 
