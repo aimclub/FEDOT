@@ -10,7 +10,6 @@ from typing import (
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.gp_composer.gp_node import GPNode
-from core.composer.node import Node
 from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
@@ -31,6 +30,7 @@ class GPComposer(Composer):
                       metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
         metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, data)
+
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
                                      primary_node_func=NodeGenerator.primary_node,

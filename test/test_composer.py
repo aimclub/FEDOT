@@ -191,7 +191,7 @@ def test_gp_composer_quality(data_fixture, request):
         primary=models_impl,
         secondary=models_impl, max_arity=2,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.8)
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=5)
 
     # Create GP-based composer
     composer = GPComposer()
