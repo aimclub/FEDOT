@@ -67,7 +67,7 @@ def tree_to_chain(tree_root: GPNode, data: InputData) -> Chain:
     return chain
 
 
-def flat_nodes_tree(node) -> List[Node]:
+def flat_nodes_tree(node:GPNode) -> List[GPNode]:
     if node.nodes_from:
         nodes = []
         for children in node.nodes_from:
