@@ -19,6 +19,11 @@ class ComposerRequirements:
     secondary: List[Model]
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
+    max_lead_time: Optional[float] = 10  # minutes
+
+    def __post_init__(self):
+        if self.max_lead_time < 0:
+            self.max_lead_time = 0
 
 
 class Composer(ABC):
