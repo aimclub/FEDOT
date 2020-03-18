@@ -58,11 +58,8 @@ class Chain:
     def equals(self, oter_chain):
         similar_nodes = self.root_node.get_similar_nodes(oter_chain.root_node)
         if len(similar_nodes) == len(self.nodes):
-            if False in [True if pair[0].eval_strategy.model.__class__.__name__ == pair[
-                1].eval_strategy.model.__class__.__name__ else False for pair in similar_nodes]:
-                return False
-            else:
-                return True
+            return all([True if pair[0].eval_strategy.model.__class__.__name__ == pair[
+                1].eval_strategy.model.__class__.__name__ else False for pair in similar_nodes])
         else:
             return False
 
