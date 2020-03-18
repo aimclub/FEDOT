@@ -55,7 +55,7 @@ class Chain:
         return any([(node in other_node.nodes_from)
                     for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
 
-    def equals(self, oter_chain):
+    def equals(self, oter_chain) -> bool:
         similar_nodes = self.root_node.get_similar_nodes(oter_chain.root_node)
         if len(similar_nodes) == len(self.nodes):
             return all([True if pair[0].eval_strategy.model.__class__.__name__ == pair[

@@ -88,6 +88,7 @@ def test_models_chain_seq(data_setup):
 
 
 def test_chain_comparison_equals_case():
+    # the threes are equlas
     chain1 = Chain()
     root_of_tree1 = NodeGenerator.secondary_node(XGBoost())
     root_child1 = NodeGenerator.secondary_node(XGBoost())
@@ -123,6 +124,7 @@ def test_chain_comparison_equals_case():
 
 
 def test_chain_comparison_diffenrent_case():
+    # the threes have 6 similar nodes
     chain1 = Chain()
     root_of_tree1 = NodeGenerator.secondary_node(XGBoost())
     root_child1 = NodeGenerator.secondary_node(XGBoost())
