@@ -201,5 +201,5 @@ def test_gp_composer_quality(data_fixture, request):
     from core.composer.visualisation import ComposerVisualiser
     ComposerVisualiser.visualise(chain_created_by_evo_alg)
     ComposerVisualiser.visualise(chain_created_by_hand)
-    assert chain_created_by_evo_alg.__eq__(chain_created_by_hand) or chain_created_by_evo_alg.__eq__(
+    assert chain_created_by_evo_alg.__eq__(chain_created_by_hand) or not chain_created_by_evo_alg.__eq__(
         chain_created_by_hand) and abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.3
