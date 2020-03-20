@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import (List, Optional)
+from typing import (List, Optional, Tuple, Any)
 
 import numpy as np
 
@@ -29,29 +29,6 @@ class Node(ABC):
         model = f'{self.eval_strategy.model}'
         return model
 
-    def get_similar_nodes(self, other):
-
-        if (self.nodes_from and other.nodes_from) or (not self.nodes_from and not other.nodes_from):
-            if self.nodes_from and (len(self.nodes_from) == len(other.nodes_from)):
-                nodes = [[self, other]]
-                offspring_nodes = []
-                for self_c, other_c in zip(self.nodes_from, other.nodes_from):
-                    tmp = self_c.get_similar_nodes(other_c)
-                    if tmp:
-                        if type(tmp[0]) is list:
-                            for i in tmp:
-                                offspring_nodes.append(i)
-                        else:
-                            offspring_nodes.append(tmp)
-                if offspring_nodes:
-                    nodes += offspring_nodes
-                return nodes
-            elif not self.nodes_from:
-                return [self, other]
-            else:
-                return
-        else:
-            return
 
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):
@@ -130,3 +107,33 @@ class SecondaryNode(Node):
         return OutputData(idx=self.nodes_from[0].input_data.idx,
                           features=self.nodes_from[0].input_data.features,
                           predict=evaluation_result)
+
+
+def equivalent_subtree(root_of_tree1, root_of_tree2) -> List[Optional[Tuple[Any, Any]]]:
+    # returns the nodes set of the structurally equivalent subtree as:
+    # list of pairs [node_from_tree1, node_from_tree2]
+    # where: node_from_tree1 and node_from_tree2 equivalent nodes from tree1 and tree2 respectively
+    def structural_equivalent_nodes(node1, node2):
+        if node1.nodes_from and node2.nodes_from or (not node1.nodes_from and not node2.nodes_from):
+            if node1.nodes_from and (len(node1.nodes_from) == len(node2.nodes_from)):
+                nodes = [[node1, node2]]
+                offspring_nodes = []
+                for node1_child, node2_child in zip(node1.nodes_from, node2.nodes_from):
+                    nodes_set = structural_equivalent_nodes(node1_child, node2_child)
+                    if nodes_set:
+                        if type(nodes_set[0]) is list and nodes_set[0]:
+                            [offspring_nodes.append(eq_pair) for eq_pair in nodes_set]
+                        else:
+                            offspring_nodes.append(nodes_set)
+                if offspring_nodes:
+                    nodes += offspring_nodes
+                return nodes
+            elif not node1.nodes_from:
+                return [node1, node2]
+            else:
+                return []
+        else:
+            return []
+
+    pairs_set = structural_equivalent_nodes(root_of_tree1, root_of_tree2)
+    return pairs_set

@@ -156,21 +156,12 @@ def test_gp_composer(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_quality(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
+    random.seed(5)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
 
-    models_repo = ModelTypesRepository()
-    available_model_names = models_repo.search_model_types_by_attributes(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=MachineLearningTasksEnum.classification,
-                                               can_be_initial=True,
-                                               can_be_secondary=True))
-
-    models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
+    models_impl = [XGBoost(), KNN(), LogRegression()]
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
@@ -190,7 +181,7 @@ def test_gp_composer_quality(data_fixture, request):
     composer_requirements = GPComposerRequirements(
         primary=models_impl,
         secondary=models_impl, max_arity=2,
-        max_depth=3, pop_size=5, num_of_generations=1,
+        max_depth=1, pop_size=10, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.8)
 
     # Create GP-based composer
@@ -199,17 +190,16 @@ def test_gp_composer_quality(data_fixture, request):
     chain_created_by_evo_alg = composer.compose_chain(data=dataset_to_compose,
                                                       initial_chain=None,
                                                       composer_requirements=composer_requirements,
-                                                      metrics=metric_function)
+                                                      metrics=metric_function, is_visualise=True)
 
     predicted_created_by_evo_alg = chain_created_by_evo_alg.predict(dataset_to_validate).predict
-
 
     roc_auc_chain_created_by_hand = roc_auc(y_true=dataset_to_validate.target, y_score=predict_created_by_hand)
     roc_auc_chain_evo_alg = roc_auc(y_true=dataset_to_validate.target, y_score=predicted_created_by_evo_alg)
     print("model created by hand prediction:", roc_auc_chain_created_by_hand)
     print("gp composed model prediction:", roc_auc_chain_evo_alg)
-    if not chain_created_by_evo_alg.equals(chain_created_by_hand):
-        print("chains are not equal")
-    else:
-        print("chains are equal")
-    assert abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.2
+    from core.composer.visualisation import ComposerVisualiser
+    ComposerVisualiser.visualise(chain_created_by_evo_alg)
+    ComposerVisualiser.visualise(chain_created_by_hand)
+    assert chain_created_by_evo_alg.__eq__(chain_created_by_hand) or chain_created_by_evo_alg.__eq__(
+        chain_created_by_hand) and abs(roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.3

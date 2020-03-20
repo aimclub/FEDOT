@@ -4,6 +4,7 @@ from typing import Optional
 import networkx as nx
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
+from core.composer.node import equivalent_subtree
 from core.models.data import InputData, OutputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -55,13 +56,19 @@ class Chain:
         return any([(node in other_node.nodes_from)
                     for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
 
-    def equals(self, oter_chain) -> bool:
-        similar_nodes = self.root_node.get_similar_nodes(oter_chain.root_node)
+    def eq_overlay_case(self, other) -> bool:
+        similar_nodes = equivalent_subtree(self.root_node, other.root_node)
         if len(similar_nodes) == len(self.nodes):
-            return all([True if pair[0].eval_strategy.model.__class__.__name__ == pair[
-                1].eval_strategy.model.__class__.__name__ else False for pair in similar_nodes])
+            return all(
+                [isinstance(pair[0].eval_strategy.model, type(pair[1].eval_strategy.model)) for pair in similar_nodes])
         else:
             return False
+
+    def __eq__(self, other) -> bool:
+        G1, _ = as_nx_graph(self, True)
+        G2, _ = as_nx_graph(other, True)
+        name_comparison_func = lambda node1_model_name, node2_model_name: node1_model_name == node2_model_name
+        return nx.is_isomorphic(G1, G2, node_match=name_comparison_func)
 
     @property
     def root_node(self) -> Optional[Node]:
@@ -109,12 +116,14 @@ class Chain:
                 node.input_data = deepcopy(data)
 
 
-def as_nx_graph(chain: Chain):
+def as_nx_graph(chain: Chain, trees_compare=False):
     graph = nx.DiGraph()
 
     node_labels = {}
     for node in chain.nodes:
         graph.add_node(node.node_id)
+        if trees_compare:
+            graph._node[node.node_id] = f'{node}'
         node_labels[node.node_id] = f'{node}'
 
     def add_edges(graph, chain):
