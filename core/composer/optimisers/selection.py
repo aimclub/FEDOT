@@ -1,7 +1,8 @@
 from random import randint
 from typing import (
     List,
-    Any
+    Any,
+    Tuple
 )
 
 import numpy as np
@@ -11,9 +12,11 @@ def random_selection(pop_size: int, group_size: int):
     return [randint(0, pop_size - 1) for _ in range(group_size)]
 
 
-def tournament_selection(fitnesses: List[Any], group_size: int = 5, minimization=True, num_of_parents=2):
+def tournament_selection(fitnesses: List[Any], group_size: int = 5, minimization=True, num_of_parents=2) -> List[
+    Tuple[int, int]]:
     group_size = min(group_size, len(fitnesses))
     chosen = []
+
     for i in range(len(fitnesses)):
         chosen.append([])
         for j in range(num_of_parents):

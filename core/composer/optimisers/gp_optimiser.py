@@ -40,9 +40,12 @@ class GPChainOptimiser:
                 if generation_num == 0:
                     history.append((self.population[ind_num], self.fitness[ind_num]))
 
+                first_parent = self.population[selected_indexes[ind_num][0]]
+                second_parent = self.population[selected_indexes[ind_num][1]]
+
                 new_population.append(
-                    standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
-                                       tree2=self.population[selected_indexes[ind_num][1]],
+                    standard_crossover(tree1=first_parent,
+                                       tree2=second_parent,
                                        crossover_prob=self.requirements.crossover_prob,
                                        max_depth=self.requirements.max_depth))
 
