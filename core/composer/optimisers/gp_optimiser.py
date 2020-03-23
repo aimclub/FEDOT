@@ -32,7 +32,7 @@ class GPChainOptimiser:
             print(f'GP generation num: {generation_num}')
             self.best_individual = self.population[np.argmin(self.fitness)]
 
-            selected_indexes = tournament_selection(self.fitness)
+            selected_individuals = tournament_selection(self.fitness, self.population)
             new_population = []
 
             for ind_num in range(self.requirements.pop_size - 1):
@@ -40,14 +40,9 @@ class GPChainOptimiser:
                 if generation_num == 0:
                     history.append((self.population[ind_num], self.fitness[ind_num]))
 
-                first_parent = self.population[selected_indexes[ind_num][0]]
-                second_parent = self.population[selected_indexes[ind_num][1]]
-
-                new_population.append(
-                    standard_crossover(tree1=first_parent,
-                                       tree2=second_parent,
-                                       crossover_prob=self.requirements.crossover_prob,
-                                       max_depth=self.requirements.max_depth))
+                new_population.append(standard_crossover(*selected_individuals[ind_num],
+                                                         crossover_prob=self.requirements.crossover_prob,
+                                                         max_depth=self.requirements.max_depth))
 
                 new_population[ind_num] = standard_mutation(root_node=new_population[ind_num],
                                                             secondary=self.requirements.secondary,

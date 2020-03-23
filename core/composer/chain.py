@@ -4,7 +4,6 @@ from typing import Optional
 import networkx as nx
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
-from core.composer.node import equivalent_subtree
 from core.models.data import InputData, OutputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -55,14 +54,6 @@ class Chain:
     def _is_node_has_child(self, node):
         return any([(node in other_node.nodes_from)
                     for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
-
-    def eq_overlay_case(self, other) -> bool:
-        similar_nodes = equivalent_subtree(self.root_node, other.root_node)
-        if len(similar_nodes) == len(self.nodes):
-            return all(
-                [isinstance(pair[0].eval_strategy.model, type(pair[1].eval_strategy.model)) for pair in similar_nodes])
-        else:
-            return False
 
     def __eq__(self, other) -> bool:
         G1, _ = as_nx_graph(self, True)

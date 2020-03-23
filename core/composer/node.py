@@ -109,31 +109,22 @@ class SecondaryNode(Node):
                           predict=evaluation_result)
 
 
-def equivalent_subtree(root_of_tree1, root_of_tree2) -> List[Optional[Tuple[Any, Any]]]:
+def equivalent_subtree(root_of_tree1, root_of_tree2) -> Optional[List[Tuple[Any, Any]]]:
     # returns the nodes set of the structurally equivalent subtree as:
     # list of pairs [node_from_tree1, node_from_tree2]
-    # where: node_from_tree1 and node_from_tree2 equivalent nodes from tree1 and tree2 respectively
+    # where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively
     def structural_equivalent_nodes(node1, node2):
-        if node1.nodes_from and node2.nodes_from or (not node1.nodes_from and not node2.nodes_from):
-            if node1.nodes_from and (len(node1.nodes_from) == len(node2.nodes_from)):
-                nodes = [[node1, node2]]
-                offspring_nodes = []
+        nodes = []
+        eq_secondary_nodes = node1.nodes_from and node2.nodes_from and len(node1.nodes_from) == len(node2.nodes_from)
+        eq_primary_nodes = not node1.nodes_from and not node2.nodes_from
+        if eq_secondary_nodes or eq_primary_nodes:
+            nodes.append((node1, node2))
+            if node1.nodes_from:
                 for node1_child, node2_child in zip(node1.nodes_from, node2.nodes_from):
                     nodes_set = structural_equivalent_nodes(node1_child, node2_child)
                     if nodes_set:
-                        if type(nodes_set[0]) is list and nodes_set[0]:
-                            [offspring_nodes.append(eq_pair) for eq_pair in nodes_set]
-                        else:
-                            offspring_nodes.append(nodes_set)
-                if offspring_nodes:
-                    nodes += offspring_nodes
-                return nodes
-            elif not node1.nodes_from:
-                return [node1, node2]
-            else:
-                return []
-        else:
-            return []
+                        nodes += nodes_set
+        return nodes
 
     pairs_set = structural_equivalent_nodes(root_of_tree1, root_of_tree2)
     return pairs_set

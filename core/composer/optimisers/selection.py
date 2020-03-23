@@ -8,19 +8,20 @@ from typing import (
 import numpy as np
 
 
-def random_selection(pop_size: int, group_size: int):
+def random_selection(pop_size: int, group_size: int) -> List[int]:
     return [randint(0, pop_size - 1) for _ in range(group_size)]
 
 
-def tournament_selection(fitnesses: List[Any], group_size: int = 5, minimization=True, num_of_parents=2) -> List[
+def tournament_selection(fitnesses: List[float], population: List[Any], group_size: int = 5, num_of_parents=2) -> List[
     Tuple[int, int]]:
     group_size = min(group_size, len(fitnesses))
     chosen = []
 
     for i in range(len(fitnesses)):
-        chosen.append([])
-        for j in range(num_of_parents):
+        choice_item = []
+        for _ in range(num_of_parents):
             group = random_selection(len(fitnesses), group_size)
-            choice_func = np.argmin if minimization else np.argmax
-            chosen[i].append(group[choice_func([fitnesses[ind_num] for ind_num in group])])
+            num_of_chosen_ind = group[np.argmin([fitnesses[ind_num] for ind_num in group])]
+            choice_item.append(population[num_of_chosen_ind])
+        chosen.append(choice_item)
     return chosen

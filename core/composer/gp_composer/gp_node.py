@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import (Optional)
+from typing import (Optional, List, Any)
 
 
 class GPNode:
@@ -42,20 +42,15 @@ class GPNode:
         else:
             return 1 + max([next_node.depth for next_node in self.nodes_from])
 
-    def nodes_from_height(self, selected_height):
+    def nodes_from_height(self, selected_height) -> List[Any]:
+        nodes = []
         if self.nodes_from:
             if self.height == selected_height:
-                return [self]
+                nodes.append(self)
             else:
-                nodes = []
                 for child in self.nodes_from:
                     nodes += child.nodes_from_height(selected_height)
-                if nodes:
-                    return nodes
-                else:
-                    return []
-        else:
-            return []
+        return nodes
 
 
 def swap_nodes(node1, node2):
