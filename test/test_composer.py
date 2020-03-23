@@ -192,7 +192,7 @@ def test_gp_composer_quality(data_fixture, request):
     chain_created_by_evo_alg = composer.compose_chain(data=data,
                                                       initial_chain=None,
                                                       composer_requirements=composer_requirements,
-                                                      metrics=metric_function, is_visualise=True)
+                                                      metrics=metric_function, is_visualise=False)
 
     predicted_created_by_evo_alg = chain_created_by_evo_alg.predict(data).predict
 
