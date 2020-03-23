@@ -1,5 +1,6 @@
 import numpy as np
 
+from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.evaluation import SkLearnEvaluationStrategy
 from core.models.model import train_test_data_setup, Model
@@ -43,3 +44,16 @@ model = Model(model_type=ModelTypesIdsEnum.xgboost,
 predicted_by_model = model.evaluate(data=data)
 
 print(np.array_equal(new_predicted, predicted_by_model))
+
+# (y1, y2) -> y
+last_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn)
+last_node.nodes_from = []
+
+node_first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit,
+                                        input_data=data)
+node_second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost,
+                                         input_data=data)
+
+last_node.nodes_from = [node_first, node_second]
+
+last_node.apply()
