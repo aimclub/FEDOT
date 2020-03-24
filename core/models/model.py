@@ -25,18 +25,16 @@ class Model(ABC):
     fitted_model = None
     eval_strategy: EvaluationStrategy = None
 
-    # TODO: return annotation
-    def evaluate(self, data: InputData, retrain=False):
-        data.features = preprocess(data.features)
-        if retrain or self.fitted_model is None:
-            train_data, test_data = train_test_data_setup(data=data)
-            self.fitted_model = self.eval_strategy.fit(model_type=self.model_type,
-                                                       train_data=train_data)
-        else:
-            test_data = data
+    def fit(self, data: InputData):
+        self.fitted_model = self.eval_strategy.fit(model_type=self.model_type,
+                                                   train_data=data)
+        predict_train = self.eval_strategy.predict(trained_model=self.fitted_model,
+                                                   predict_data=data)
+        return predict_train
 
+    def predict(self, data: InputData):
         prediction = self.eval_strategy.predict(trained_model=self.fitted_model,
-                                                predict_data=test_data)
+                                                predict_data=data)
 
         if any([np.isnan(_) for _ in prediction]):
             print("Value error")
@@ -44,7 +42,7 @@ class Model(ABC):
         return prediction
 
     def __str__(self):
-        return f'{self.__class__.__name__}'
+        return f'{self.model_type.name}'
 
 
 def preprocess(x):

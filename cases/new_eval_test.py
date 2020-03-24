@@ -1,9 +1,10 @@
 import numpy as np
+from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.evaluation import SkLearnEvaluationStrategy
-from core.models.model import train_test_data_setup, Model
+from core.models.model import train_test_data_setup, Model, preprocess
 from core.repository.dataset_types import NumericalDataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
@@ -29,9 +30,6 @@ fitted_xgb = eval_strategy.fit(model_type=ModelTypesIdsEnum.xgboost, train_data=
 
 predicted = eval_strategy.predict(trained_model=fitted_xgb, predict_data=test)
 
-print(test)
-print(predicted)
-
 new_predicted = eval_strategy.predict(trained_model=fitted_xgb, predict_data=test)
 
 assert np.array_equal(predicted, new_predicted)
@@ -41,7 +39,7 @@ model = Model(model_type=ModelTypesIdsEnum.xgboost,
               output_type=NumericalDataTypesEnum.vector,
               eval_strategy=eval_strategy)
 
-predicted_by_model = model.evaluate(data=data)
+predicted_by_model = model.fit(data=data)
 
 print(np.array_equal(new_predicted, predicted_by_model))
 
@@ -49,11 +47,21 @@ print(np.array_equal(new_predicted, predicted_by_model))
 last_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn)
 last_node.nodes_from = []
 
-node_first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit,
-                                        input_data=data)
-node_second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                         input_data=data)
+node_first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+node_second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
 
 last_node.nodes_from = [node_first, node_second]
 
-last_node.apply()
+data.features = preprocess(data.features)
+train_data, test_data = train_test_data_setup(data=data)
+
+predict_train = last_node.fit(input_data=train_data)
+predict_test = last_node.predict(input_data=test_data)
+
+roc_on_train = roc_auc(y_true=train_data.target,
+                       y_score=predict_train.predict)
+roc_on_test = roc_auc(y_true=test_data.target,
+                      y_score=predict_test.predict)
+
+print(roc_on_train)
+print(roc_on_test)

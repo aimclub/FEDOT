@@ -11,18 +11,17 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 class Node(ABC):
-    def __init__(self, nodes_from: Optional[List['Node']],
-                 input_data: Optional[InputData],
-                 model: Model):
+    def __init__(self, nodes_from: Optional[List['Node']], model: Model):
         self.node_id = str(uuid.uuid4())
         self.nodes_from = nodes_from
         self.model = model
-        self.input_data = input_data
-        self.cached_result = None
-        self.is_caching = True
 
     @abstractmethod
-    def apply(self) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def predict(self, input_data: InputData) -> OutputData:
         raise NotImplementedError()
 
     def __str__(self):
@@ -38,6 +37,7 @@ class Node(ABC):
         return nodes
 
 
+# TODO: add fitted_model to cache
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):
         self.cached_output = model_output
@@ -45,19 +45,6 @@ class CachedNodeResult:
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
 
-    # @property
-    # def data(self, node: Node):
-    #     if self.last_parents_ids not in node:#TODO
-    #         return None
-    #     else:
-    #         self.cached_output
-    #
-    # @property
-    # def model(self, node: Node) -> Model:
-    #     if self.last_parents_ids not in node:  # TODO
-    #         return None
-    #     else:
-    #         self.model
     def is_actual(self, parent_nodes):
         if self.is_always_actual:
             return True
@@ -74,9 +61,8 @@ class CachedNodeResult:
 # TODO: discuss about the usage of NodeGenerator
 class NodeGenerator:
     @staticmethod
-    def primary_node(model_type: ModelTypesIdsEnum,
-                     input_data: Optional[InputData]) -> Node:
-        return PrimaryNode(model_type=model_type, input_data=input_data)
+    def primary_node(model_type: ModelTypesIdsEnum) -> Node:
+        return PrimaryNode(model_type=model_type)
 
     @staticmethod
     def secondary_node(model_type: ModelTypesIdsEnum,
@@ -85,47 +71,71 @@ class NodeGenerator:
 
 
 class PrimaryNode(Node):
-    def __init__(self, model_type: ModelTypesIdsEnum, input_data: InputData):
+    def __init__(self, model_type: ModelTypesIdsEnum):
         model = sklearn_model_by_type(model_type=model_type)
-        super().__init__(nodes_from=None, input_data=input_data, model=model)
+        super().__init__(nodes_from=None, model=model)
 
-    def apply(self) -> OutputData:
-        if self.is_caching and self.cached_result is not None and self.cached_result.is_actual(self.nodes_from):
-            return OutputData(idx=self.input_data.idx,
-                              features=self.input_data.features,
-                              predict=self.cached_result.cached_output)
-        else:
-            model_predict = self.model.evaluate(self.input_data)
-            if self.is_caching:
-                self.cached_result = CachedNodeResult(self, model_predict)
-            return OutputData(idx=self.input_data.idx,
-                              features=self.input_data.features,
-                              predict=model_predict)
+    def fit(self, input_data: InputData) -> OutputData:
+        # TODO: add caching and logging
+        print(f'Fit primary node with model: {self.model}')
+        model_predict = self.model.fit(data=input_data)
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=model_predict)
+
+    def predict(self, input_data: InputData) -> OutputData:
+        print(f'Predict in primary node by model: {self.model}')
+        predict_train = self.model.predict(data=input_data)
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=predict_train)
+
+    def apply(self, input_data: InputData) -> OutputData:
+        pass
 
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  model_type: ModelTypesIdsEnum):
         model = sklearn_model_by_type(model_type=model_type)
-        super().__init__(nodes_from=nodes_from, input_data=None, model=model)
-
+        super().__init__(nodes_from=nodes_from, model=model)
         if self.nodes_from is None:
             self.nodes_from = []
 
-    def apply(self) -> OutputData:
-        parent_predict_list = list()
-        for parent in self.nodes_from:
-            parent_predict_list.append(parent.apply())
+    def fit(self, input_data: InputData) -> OutputData:
         if len(self.nodes_from) == 0:
-            raise ValueError
-        target = self.nodes_from[0].input_data.target
-        self.input_data = Data.from_predictions(outputs=parent_predict_list,
+            raise ValueError()
+        parent_results = list()
+        print(f'Fit all parent nodes: {self.model}')
+        for parent in self.nodes_from:
+            parent_results.append(parent.fit(input_data=input_data))
+
+        target = input_data.target
+        secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
-        evaluation_result = self.model.evaluate(self.input_data)
-        if self.is_caching:
-            self.cached_result = CachedNodeResult(self, evaluation_result)
-        return OutputData(idx=self.nodes_from[0].input_data.idx,
-                          features=self.nodes_from[0].input_data.features,
+        print(f'Fit secondary node with model: {self.model}')
+        evaluation_result = self.model.fit(data=secondary_input)
+        # TODO: add caching
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=evaluation_result)
+
+    def predict(self, input_data: InputData) -> OutputData:
+        if len(self.nodes_from) == 0:
+            raise ValueError()
+        parent_results = list()
+        print(f'Obtain predictions from all parent nodes: {self.model}')
+        for parent in self.nodes_from:
+            parent_results.append(parent.predict(input_data=input_data))
+
+        target = input_data.target
+        secondary_input = Data.from_predictions(outputs=parent_results,
+                                                target=target)
+        print(f'Obtain prediction in secondary node with model: {self.model}')
+        evaluation_result = self.model.predict(data=secondary_input)
+        # TODO: add caching
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
                           predict=evaluation_result)
 
 

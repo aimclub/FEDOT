@@ -1,5 +1,6 @@
 from sklearn.discriminant_analysis import (
-    LinearDiscriminantAnalysis
+    LinearDiscriminantAnalysis,
+    QuadraticDiscriminantAnalysis
 )
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
@@ -36,12 +37,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             ModelTypesIdsEnum.dt: DecisionTreeClassifier,
             ModelTypesIdsEnum.rf: RandomForestClassifier,
             ModelTypesIdsEnum.mlp: MLPClassifier,
-            ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis
+            ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
+            ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis
         }
 
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
         sklearn_model = self._convert_to_sklearn(model_type)
-        sklearn_model.fit(train_data.features, train_data.target)
+        sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData):
