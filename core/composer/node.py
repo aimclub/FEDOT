@@ -28,6 +28,9 @@ class Node(ABC):
         model = f'{self.model}'
         return model
 
+    def _is_cache_actual(self):
+        return self.cached_result is not None and self.cached_result.is_actual(self)
+
     @property
     def subtree_nodes(self) -> List['Node']:
         nodes = [self]
@@ -37,7 +40,6 @@ class Node(ABC):
         return nodes
 
 
-# TODO: add fitted_model to cache
 class CachedNodeResult:
     def __init__(self, node: Node, fitted_model):
         self.cached_model = fitted_model
@@ -78,16 +80,23 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, model=model)
 
     def fit(self, input_data: InputData) -> OutputData:
-        # TODO: add caching and logging
         print(f'Fit primary node with model: {self.model}')
-        cached_model, model_predict = self.model.fit(data=input_data)
-        self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+        if not self._is_cache_actual():
+            cached_model, model_predict = self.model.fit(data=input_data)
+            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+        else:
+            model_predict = self.model.predict(fitted_model=self.cached_result.cached_model,
+                                               data=input_data)
+
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=model_predict)
 
     def predict(self, input_data: InputData) -> OutputData:
         print(f'Predict in primary node by model: {self.model}')
+        if not self.cached_result:
+            raise ValueError()
+
         predict_train = self.model.predict(fitted_model=self.cached_result.cached_model,
                                            data=input_data)
         return OutputData(idx=input_data.idx,
@@ -118,8 +127,13 @@ class SecondaryNode(Node):
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
         print(f'Fit secondary node with model: {self.model}')
-        cached_model, evaluation_result = self.model.fit(data=secondary_input)
-        self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+
+        if not self._is_cache_actual():
+            cached_model, evaluation_result = self.model.fit(data=secondary_input)
+            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+        else:
+            evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
+                                                   data=secondary_input)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=evaluation_result)

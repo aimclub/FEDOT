@@ -15,17 +15,17 @@ class Chain:
 
     def fit_from_scratch(self, input_data: InputData):
         # Clean all cache and fit all models
-        self._clean_model_cache()
         print('Fit chain from scratch')
-        self.root_node.fit(input_data=input_data)
+        self.fit(input_data, use_cache=False)
 
-    def fit(self, input_data: InputData, use_cache=False):
+    def fit(self, input_data: InputData, use_cache=True):
         if not use_cache:
-            return self.fit_from_scratch(input_data=input_data)
+            self._clean_model_cache()
+        self.root_node.fit(input_data=input_data)
 
     def predict(self, input_data: InputData):
         if not self.is_all_cache_actual():
-            raise Exception('Cache is not actual')
+            raise Exception('Trained model cache is not actual or empty')
         result = self.root_node.predict(input_data=input_data)
         return result
 
