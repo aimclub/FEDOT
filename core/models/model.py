@@ -22,18 +22,17 @@ class Model(ABC):
     model_type: ModelTypesIdsEnum
     input_type: DataTypesEnum
     output_type: DataTypesEnum
-    fitted_model = None
     eval_strategy: EvaluationStrategy = None
 
     def fit(self, data: InputData):
-        self.fitted_model = self.eval_strategy.fit(model_type=self.model_type,
-                                                   train_data=data)
-        predict_train = self.eval_strategy.predict(trained_model=self.fitted_model,
+        fitted_model = self.eval_strategy.fit(model_type=self.model_type,
+                                              train_data=data)
+        predict_train = self.eval_strategy.predict(trained_model=fitted_model,
                                                    predict_data=data)
-        return predict_train
+        return fitted_model, predict_train
 
-    def predict(self, data: InputData):
-        prediction = self.eval_strategy.predict(trained_model=self.fitted_model,
+    def predict(self, fitted_model, data: InputData):
+        prediction = self.eval_strategy.predict(trained_model=fitted_model,
                                                 predict_data=data)
 
         if any([np.isnan(_) for _ in prediction]):

@@ -1,8 +1,7 @@
+import collections
 import uuid
 from abc import ABC, abstractmethod
 from typing import (List, Optional)
-
-import numpy as np
 
 from core.models.data import Data, InputData, OutputData
 from core.models.model import Model
@@ -15,6 +14,7 @@ class Node(ABC):
         self.node_id = str(uuid.uuid4())
         self.nodes_from = nodes_from
         self.model = model
+        self.cached_result = None
 
     @abstractmethod
     def fit(self, input_data: InputData) -> OutputData:
@@ -39,23 +39,25 @@ class Node(ABC):
 
 # TODO: add fitted_model to cache
 class CachedNodeResult:
-    def __init__(self, node: Node, model_output: np.array):
-        self.cached_output = model_output
+    def __init__(self, node: Node, fitted_model):
+        self.cached_model = fitted_model
         self.is_always_actual = isinstance(node, PrimaryNode)
         self.last_parents_ids = [n.node_id for n in node.nodes_from] \
             if isinstance(node, SecondaryNode) else None
 
-    def is_actual(self, parent_nodes):
+    def is_actual(self, node):
         if self.is_always_actual:
             return True
-        if not self.last_parents_ids or self.last_parents_ids is None:
+        if not self.last_parents_ids:
             return False
-        if len(self.last_parents_ids) != len(parent_nodes):
+        parent_node_ids = [node.node_id for node in node.nodes_from]
+        if not _are_lists_equal(self.last_parents_ids, parent_node_ids):
             return False
-        for id in self.last_parents_ids:
-            if id not in [node.node_id for node in parent_nodes]:
-                return False
         return True
+
+
+def _are_lists_equal(first, second):
+    return collections.Counter(first) == collections.Counter(second)
 
 
 # TODO: discuss about the usage of NodeGenerator
@@ -78,14 +80,16 @@ class PrimaryNode(Node):
     def fit(self, input_data: InputData) -> OutputData:
         # TODO: add caching and logging
         print(f'Fit primary node with model: {self.model}')
-        model_predict = self.model.fit(data=input_data)
+        cached_model, model_predict = self.model.fit(data=input_data)
+        self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=model_predict)
 
     def predict(self, input_data: InputData) -> OutputData:
         print(f'Predict in primary node by model: {self.model}')
-        predict_train = self.model.predict(data=input_data)
+        predict_train = self.model.predict(fitted_model=self.cached_result.cached_model,
+                                           data=input_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=predict_train)
@@ -114,8 +118,8 @@ class SecondaryNode(Node):
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
         print(f'Fit secondary node with model: {self.model}')
-        evaluation_result = self.model.fit(data=secondary_input)
-        # TODO: add caching
+        cached_model, evaluation_result = self.model.fit(data=secondary_input)
+        self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=evaluation_result)
@@ -132,7 +136,8 @@ class SecondaryNode(Node):
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
         print(f'Obtain prediction in secondary node with model: {self.model}')
-        evaluation_result = self.model.predict(data=secondary_input)
+        evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
+                                               data=secondary_input)
         # TODO: add caching
         return OutputData(idx=input_data.idx,
                           features=input_data.features,

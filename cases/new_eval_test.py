@@ -1,6 +1,6 @@
 import numpy as np
-from sklearn.metrics import roc_auc_score as roc_auc
 
+from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.evaluation import SkLearnEvaluationStrategy
@@ -55,13 +55,20 @@ last_node.nodes_from = [node_first, node_second]
 data.features = preprocess(data.features)
 train_data, test_data = train_test_data_setup(data=data)
 
-predict_train = last_node.fit(input_data=train_data)
-predict_test = last_node.predict(input_data=test_data)
+chain = Chain()
+chain.add_node(node_first)
+chain.add_node(node_second)
+chain.add_node(last_node)
 
-roc_on_train = roc_auc(y_true=train_data.target,
-                       y_score=predict_train.predict)
-roc_on_test = roc_auc(y_true=test_data.target,
-                      y_score=predict_test.predict)
+last_node.fit(input_data=train_data)
+node_result = last_node.predict(input_data=test_data)
 
-print(roc_on_train)
-print(roc_on_test)
+chain.fit_from_scratch(input_data=train_data)
+chain_result = chain.predict(input_data=test_data)
+assert np.array_equal(node_result.predict, chain_result.predict)
+
+another_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn)
+another_node.nodes_from = [last_node]
+chain.add_node(new_node=another_node)
+chain.fit_from_scratch(input_data=train_data)
+chain_result = chain.predict(input_data=test_data)
