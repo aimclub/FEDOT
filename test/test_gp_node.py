@@ -4,8 +4,7 @@ from core.composer.chain import Chain
 from core.composer.gp_composer.gp_node import GPNode
 from core.composer.gp_composer.gp_node import swap_nodes
 from core.composer.node import NodeGenerator
-from core.models.model import LogRegression, KNN, LDA, MLP
-from core.models.model import XGBoost
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 def tree_to_chain(tree_root: GPNode) -> Chain:
@@ -30,12 +29,13 @@ def flat_nodes_tree(node):
 
 
 def tree_first():
-    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()))
-    root_child_first, root_child_second = [GPNode(chain_node=NodeGenerator.secondary_node(model=model),
-                                                  node_to=root_of_tree) for model in (XGBoost(), MLP())]
+    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost))
+    root_child_first, root_child_second = [GPNode(chain_node=NodeGenerator.secondary_node(model_type=model),
+                                                  node_to=root_of_tree) for model in
+                                           (ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.mlp)]
     for last_node_child in (root_child_first, root_child_second):
-        for requirement_model in (KNN(), LDA()):
-            new_node = GPNode(chain_node=NodeGenerator.primary_node(model=requirement_model, input_data=None),
+        for requirement_model in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.lda):
+            new_node = GPNode(chain_node=NodeGenerator.primary_node(model_type=requirement_model),
                               node_to=last_node_child)
             last_node_child.nodes_from.append(new_node)
         root_of_tree.nodes_from.append(last_node_child)
@@ -43,25 +43,25 @@ def tree_first():
 
 
 def tree_second():
-    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()))
+    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(ModelTypesIdsEnum.xgboost))
     root_child_first, root_child_second = [
-        GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()), node_to=root_of_tree) for model in
-        (XGBoost(), KNN())]
+        GPNode(chain_node=NodeGenerator.secondary_node(model_type=model), node_to=root_of_tree) for model in
+        (ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn)]
 
-    new_node = GPNode(chain_node=NodeGenerator.primary_node(LogRegression(), input_data=None), node_to=root_child_first)
+    new_node = GPNode(chain_node=NodeGenerator.primary_node(ModelTypesIdsEnum.logit), node_to=root_child_first)
     root_child_first.nodes_from.append(new_node)
 
-    new_node = GPNode(NodeGenerator.secondary_node(XGBoost()), node_to=root_child_first)
+    new_node = GPNode(NodeGenerator.secondary_node(ModelTypesIdsEnum.xgboost), node_to=root_child_first)
 
-    for model_type in (KNN(), LDA()):
-        new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(model_type, input_data=None), node_to=new_node))
+    for model_type in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.lda):
+        new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(model_type), node_to=new_node))
 
     root_child_first.nodes_from.append(new_node)
     root_of_tree.nodes_from.append(root_child_first)
 
-    for model_type in (LogRegression(), LDA()):
+    for model_type in (ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda):
         root_child_second.nodes_from.append(
-            GPNode(NodeGenerator.primary_node(model_type, input_data=None), node_to=root_child_second))
+            GPNode(NodeGenerator.primary_node(model_type), node_to=root_child_second))
 
     root_of_tree.nodes_from.append(root_child_second)
     return root_of_tree
@@ -99,15 +99,18 @@ def test_swap_nodes():
     tree_first_node = nodes_set_tree_first[1]
     tree_second_node = nodes_set_tree_second[0]
 
-    assert isinstance(tree_first_node.eval_strategy.model, MLP)
-    assert isinstance(tree_second_node.eval_strategy.model, XGBoost)
+    assert tree_first_node.chain_node.model.model_type == ModelTypesIdsEnum.mlp
+    assert tree_second_node.chain_node.model.model_type, ModelTypesIdsEnum.xgboost
 
     swap_nodes(tree_first_node, tree_second_node)
 
     chain = tree_to_chain(root_of_tree_first)
     assert len(chain.nodes) == 9
 
-    correct_nodes = [XGBoost, XGBoost, KNN, LDA, XGBoost, LogRegression, XGBoost, KNN, LDA]
+    correct_nodes = [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.xgboost,
+                     ModelTypesIdsEnum.knn, ModelTypesIdsEnum.lda, ModelTypesIdsEnum.xgboost,
+                     ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost,
+                     ModelTypesIdsEnum.knn, ModelTypesIdsEnum.lda]
     # swap_nodes function check
-    assert all([isinstance(model_after_swap.eval_strategy.model, correct_model) for model_after_swap, correct_model in
+    assert all([model_after_swap.model.model_type == correct_model for model_after_swap, correct_model in
                 zip(chain.nodes, correct_nodes)])

@@ -78,7 +78,8 @@ class GPChainOptimiser:
         return [self._random_tree() for _ in range(pop_size)]
 
     def _random_tree(self) -> GPNode:
-        root = GPNode(chain_node=self.secondary_node_func(model=choice(self.requirements.secondary)))
+        chain_node = self.secondary_node_func(model_type=choice(self.requirements.secondary))
+        root = GPNode(chain_node=chain_node)
         new_tree = root
         self._tree_growth(node_parent=root)
         return new_tree
@@ -91,13 +92,12 @@ class GPChainOptimiser:
                     node_parent.height < self.requirements.max_depth - 1
                     and randint(0, 1)):
 
-                new_node = GPNode(
-                    chain_node=self.primary_node_func(model=choice(self.requirements.primary), input_data=None),
-                    node_to=node_parent)
+                primary_node = self.primary_node_func(model_type=choice(self.requirements.primary))
+                new_node = GPNode(chain_node=primary_node, node_to=node_parent)
                 offspring_nodes.append(new_node)
             else:
-                new_node = GPNode(chain_node=self.secondary_node_func(model=choice(self.requirements.secondary)),
-                                  node_to=node_parent)
+                secondary_node = self.secondary_node_func(model_type=choice(self.requirements.secondary))
+                new_node = GPNode(chain_node=secondary_node, node_to=node_parent)
                 self._tree_growth(new_node)
                 offspring_nodes.append(new_node)
         node_parent.nodes_from = offspring_nodes

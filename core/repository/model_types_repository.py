@@ -78,16 +78,7 @@ class ModelType(Node):
 
 
 class ModelTypesRepository:
-    # model_implementations = {
-    #     ModelTypesIdsEnum.xgboost: XGBoost,
-    #     ModelTypesIdsEnum.logit: LogRegression,
-    #     ModelTypesIdsEnum.knn: KNN,
-    #     ModelTypesIdsEnum.dt: DecisionTree,
-    #     ModelTypesIdsEnum.rf: RandomForest,
-    #     ModelTypesIdsEnum.mlp: MLP,
-    #     ModelTypesIdsEnum.lda: LDA,
-    # }
-    model_implementations = {}
+    model_types = {type_: type_.value for type_ in ModelTypesIdsEnum}
 
     def _initialise_tree(self):
         root = ModelsGroup(ModelGroupsIdsEnum.all)
@@ -124,10 +115,7 @@ class ModelTypesRepository:
                        if isinstance(result, ModelType) and
                        desired_metainfo.is_suits_for_template(result.meta_info)]
 
-        return [result.name for result in results if (result.name in self.model_implementations)]
-
-    def model_by_id(self, model_type_id: ModelTypesIdsEnum):
-        return deepcopy(self.model_implementations[model_type_id]())
+        return [result.name for result in results if (result.name in self.model_types)]
 
     def print_tree(self):
         for pre, node in RenderTree(self._tree):

@@ -39,12 +39,11 @@ def standard_mutation(root_node: Any, secondary: Any, primary: Any,
 
 def random_mutation(root_node, probability, primary_node_func, secondary_node_func, secondary, primary):
     def replace_node_to_random_recursive(node, parent=None) -> Any:
-
         if node.nodes_from:
             if random() < probability:
                 rand_func = choice(secondary)
-
-                node = GPNode(chain_node=secondary_node_func(model=rand_func, nodes_from=node.nodes_from),
+                secondary_node = secondary_node_func(model_type=rand_func, nodes_from=node.nodes_from)
+                node = GPNode(chain_node=secondary_node,
                               node_to=parent)
             else:
                 node.node_to = parent
@@ -53,9 +52,8 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
                     node.nodes_from[i] = replace_node_to_random_recursive(child, parent=node)
                 else:
                     if random() < probability:
-                        node.nodes_from[i] = GPNode(chain_node=primary_node_func(model=choice(primary),
-                                                                                 input_data=node.nodes_from[
-                                                                                     i].input_data), node_to=node)
+                        primary_node = primary_node_func(model_type=choice(primary))
+                        node.nodes_from[i] = GPNode(chain_node=primary_node, node_to=node)
                     else:
                         node.nodes_from[i].node_to = node
         return node
