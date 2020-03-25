@@ -28,6 +28,17 @@ class Node(ABC):
         model = f'{self.model}'
         return model
 
+    def _fit_using_cache(self, input_data):
+        if not self._is_cache_actual():
+            print('Cache is not actual')
+            cached_model, model_predict = self.model.fit(data=input_data)
+            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+        else:
+            print('Model were obtained from cache')
+            model_predict = self.model.predict(fitted_model=self.cached_result.cached_model,
+                                               data=input_data)
+        return model_predict
+
     def _is_cache_actual(self):
         return self.cached_result is not None and self.cached_result.is_actual(self)
 
@@ -80,13 +91,8 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, model=model)
 
     def fit(self, input_data: InputData) -> OutputData:
-        print(f'Fit primary node with model: {self.model}')
-        if not self._is_cache_actual():
-            cached_model, model_predict = self.model.fit(data=input_data)
-            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
-        else:
-            model_predict = self.model.predict(fitted_model=self.cached_result.cached_model,
-                                               data=input_data)
+        print(f'Trying to fit primary node with model: {self.model}')
+        model_predict = self._fit_using_cache(input_data=input_data)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -95,16 +101,13 @@ class PrimaryNode(Node):
     def predict(self, input_data: InputData) -> OutputData:
         print(f'Predict in primary node by model: {self.model}')
         if not self.cached_result:
-            raise ValueError()
+            raise ValueError('Model must be fitted before predict')
 
         predict_train = self.model.predict(fitted_model=self.cached_result.cached_model,
                                            data=input_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=predict_train)
-
-    def apply(self, input_data: InputData) -> OutputData:
-        pass
 
 
 class SecondaryNode(Node):
@@ -119,28 +122,24 @@ class SecondaryNode(Node):
         if len(self.nodes_from) == 0:
             raise ValueError()
         parent_results = list()
-        print(f'Fit all parent nodes: {self.model}')
+        print(f'Fit all parent nodes in secondary node with model: {self.model}')
         for parent in self.nodes_from:
             parent_results.append(parent.fit(input_data=input_data))
 
         target = input_data.target
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
-        print(f'Fit secondary node with model: {self.model}')
+        print(f'Trying to fit secondary node with model: {self.model}')
 
-        if not self._is_cache_actual():
-            cached_model, evaluation_result = self.model.fit(data=secondary_input)
-            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
-        else:
-            evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
-                                                   data=secondary_input)
+        model_predict = self._fit_using_cache(input_data=secondary_input)
+
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=evaluation_result)
+                          predict=model_predict)
 
     def predict(self, input_data: InputData) -> OutputData:
         if len(self.nodes_from) == 0:
-            raise ValueError()
+            raise ValueError('')
         parent_results = list()
         print(f'Obtain predictions from all parent nodes: {self.model}')
         for parent in self.nodes_from:
@@ -152,7 +151,6 @@ class SecondaryNode(Node):
         print(f'Obtain prediction in secondary node with model: {self.model}')
         evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
                                                data=secondary_input)
-        # TODO: add caching
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=evaluation_result)

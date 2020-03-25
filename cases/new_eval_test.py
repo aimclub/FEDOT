@@ -70,5 +70,5 @@ assert np.array_equal(node_result.predict, chain_result.predict)
 another_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn)
 another_node.nodes_from = [last_node]
 chain.add_node(new_node=another_node)
-chain.fit_from_scratch(input_data=train_data)
+chain.fit(input_data=train_data, use_cache=True)
 chain_result = chain.predict(input_data=test_data)

@@ -21,7 +21,9 @@ class Chain:
     def fit(self, input_data: InputData, use_cache=True):
         if not use_cache:
             self._clean_model_cache()
-        self.root_node.fit(input_data=input_data)
+        train_predicted = self.root_node.fit(input_data=input_data)
+
+        return train_predicted
 
     def predict(self, input_data: InputData):
         if not self.is_all_cache_actual():
