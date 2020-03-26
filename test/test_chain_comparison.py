@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from core.composer.chain import Chain
@@ -6,18 +8,18 @@ from core.composer.node import equivalent_subtree
 from core.models.model import LogRegression, KNN, LDA, XGBoost
 
 
-def chain1():
-    # XG
-    # |   \
-    # XG   KNN
-    # | \   |  \
+def chain_first():
+    #    XG
+    #  |     \
+    # XG     KNN
+    # |  \    |  \
     # LR LDA LR  LDA
     chain = Chain()
-    root_of_tree1 = NodeGenerator.secondary_node(XGBoost())
+    root_of_tree = NodeGenerator.secondary_node(XGBoost())
     root_child1 = NodeGenerator.secondary_node(XGBoost())
     root_child2 = NodeGenerator.secondary_node(KNN())
 
-    for node in (root_of_tree1, root_child1, root_child2):
+    for node in (root_of_tree, root_child1, root_child2):
         node.nodes_from = []
 
     for root_node_child in (root_child1, root_child2):
@@ -26,187 +28,127 @@ def chain1():
             root_node_child.nodes_from.append(new_node)
             chain.add_node(new_node)
         chain.add_node(root_node_child)
-        root_of_tree1.nodes_from.append(root_node_child)
+        root_of_tree.nodes_from.append(root_node_child)
 
-    chain.add_node(root_of_tree1)
+    chain.add_node(root_of_tree)
     return chain
 
 
-def chain2():
-    chain = Chain()
-    root_of_tree2 = NodeGenerator.secondary_node(XGBoost())
-    root_child1 = NodeGenerator.secondary_node(XGBoost())
-    root_child2 = NodeGenerator.secondary_node(KNN())
-
-    for node in (root_of_tree2, root_child1, root_child2):
-        node.nodes_from = []
-
-    new_node = NodeGenerator.primary_node(LogRegression(), input_data=None)
-    root_child1.nodes_from.append(new_node)
-    chain.add_node(new_node)
-
+def chain_second():
+    #      XG
+    #   |      \
+    #  XG      KNN
+    #  | \      |  \
+    # LR XG   LR   LDA
+    #    |  \
+    #   KNN  LDA
+    chain = chain_first()
     new_node = NodeGenerator.secondary_node(XGBoost())
     new_node.nodes_from = []
     new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
     new_node.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
-
-    chain.add_node(new_node.nodes_from[0])
-    chain.add_node(new_node.nodes_from[1])
-    chain.add_node(new_node)
-    chain.add_node(root_child1)
-
-    root_child1.nodes_from.append(new_node)
-    root_of_tree2.nodes_from.append(root_child1)
-    root_child2.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-    root_child2.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
-
-    chain.add_node(root_child2.nodes_from[0])
-    chain.add_node(root_child2.nodes_from[1])
-    chain.add_node(root_child2)
-    root_of_tree2.nodes_from.append(root_child2)
-    chain.add_node(root_of_tree2)
+    chain.replace_node(chain.root_node.nodes_from[0].nodes_from[1], new_node)
 
     return chain
 
 
-def chain3():
+def chain_third():
+    #      XG
+    #   |  |  \
+    #  KNN LDA KNN
     chain = Chain()
-    root_of_tree3 = NodeGenerator.secondary_node(XGBoost())
-    root_of_tree3.nodes_from = []
-    root_of_tree3.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    root_of_tree3.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
-    root_of_tree3.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    for node in root_of_tree3.nodes_from:
+    root_of_tree = NodeGenerator.secondary_node(XGBoost())
+    root_of_tree.nodes_from = []
+    root_of_tree.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+    root_of_tree.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
+    root_of_tree.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+    for node in root_of_tree.nodes_from:
         chain.add_node(node)
-    chain.add_node(root_of_tree3)
+    chain.add_node(root_of_tree)
     return chain
 
 
-def chain4():
-    chain = Chain()
-    root_of_tree2 = NodeGenerator.secondary_node(XGBoost())
-    root_of_tree2.nodes_from = []
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
-    for node in root_of_tree2.nodes_from:
-        chain.add_node(node)
-    chain.add_node(root_of_tree2)
-    return chain
+def chain_fourth():
+    #      XG
+    #   |  \  \
+    #  KNN  XG  KNN
+    #      |  \
+    #    KNN   KNN
 
-
-def chain5():
-    chain = Chain()
-    root_of_tree2 = NodeGenerator.secondary_node(XGBoost())
-    root_of_tree2.nodes_from = []
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-
+    chain = chain_third()
     new_node = NodeGenerator.secondary_node(XGBoost())
-
     new_node.nodes_from = []
-    new_node.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-    new_node.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
+    new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+    new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+    chain.replace_node(chain.root_node.nodes_from[1], new_node)
 
-    root_of_tree2.nodes_from.append(new_node)
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-
-    for node in new_node.nodes_from:
-        chain.add_node(node)
-
-    chain.add_node(root_of_tree2.nodes_from[0])
-    chain.add_node(new_node)
-    chain.add_node(root_of_tree2.nodes_from[2])
-
-    chain.add_node(root_of_tree2)
-    return chain
-
-
-def chain6():
-    chain = Chain()
-    root_of_tree2 = NodeGenerator.secondary_node(XGBoost())
-
-    root_of_tree2.nodes_from = []
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-    root_of_tree2.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-
-    new_node = NodeGenerator.secondary_node(XGBoost())
-
-    new_node.nodes_from = []
-    new_node.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-    new_node.nodes_from.append(NodeGenerator.primary_node(LogRegression(), input_data=None))
-
-    root_of_tree2.nodes_from.append(new_node)
-
-    for node1, node2 in zip(root_of_tree2.nodes_from, new_node.nodes_from):
-        chain.add_node(node1)
-        chain.add_node(node2)
-
-    chain.add_node(new_node)
-    chain.add_node(root_of_tree2)
     return chain
 
 
 @pytest.fixture()
-def case1():
-    c1 = chain1()
-    c2 = chain1()
+def case_first():
+    c1 = chain_first()
+    c2 = chain_first()
     return c1, c2
 
 
 @pytest.fixture()
-def case2():
-    c1 = chain1()
-    c2 = chain2()
+def case_second():
+    c1 = chain_third()
+    c2 = chain_third()
+    c2.root_node.nodes_from[1].eval_strategy.model = KNN()
+    c2.root_node.nodes_from[2].eval_strategy.model = LDA()
     return c1, c2
 
 
 @pytest.fixture()
-def case3():
-    c1 = chain1()
-    c2 = chain3()
+def case_third():
+    c1 = chain_fourth()
+    c2 = chain_fourth()
+    c2.replace_node(c2.root_node.nodes_from[2], deepcopy(c1.root_node.nodes_from[1]))
+    c2.replace_node(c2.root_node.nodes_from[1], deepcopy(c1.root_node.nodes_from[2]))
     return c1, c2
 
 
 @pytest.fixture()
-def case4():
-    c1 = chain2()
-    c2 = chain3()
+def case_fourth():
+    c1 = chain_first()
+    c2 = chain_second()
     return c1, c2
 
 
 @pytest.fixture()
-def case5():
-    c1 = chain3()
-    c2 = chain4()
+def case_fifth():
+    c1 = chain_first()
+    c2 = chain_third()
     return c1, c2
 
 
 @pytest.fixture()
-def case6():
-    c1 = chain5()
-    c2 = chain6()
+def case_sixth():
+    c1 = chain_second()
+    c2 = chain_third()
     return c1, c2
 
 
-@pytest.mark.parametrize('chain_fixture', ['case1', 'case5', 'case6'])
-def test_chain_comparison_equal_case(chain_fixture, request):
+@pytest.mark.parametrize('chain_fixture', ['case_first', 'case_second', 'case_third'])
+def test_chain_comparison_equals(chain_fixture, request):
     c1, c2 = request.getfixturevalue(chain_fixture)
     assert c1 == c2
 
 
-@pytest.mark.parametrize('chain_fixture', ['case2', 'case3', 'case4'])
-def test_chain_comparison_different_case(chain_fixture, request):
+@pytest.mark.parametrize('chain_fixture', ['case_fourth', 'case_fifth', 'case_sixth'])
+def test_chain_comparison_different(chain_fixture, request):
     c1, c2 = request.getfixturevalue(chain_fixture)
     assert not c1 == c2
 
 
-def test_equivalent_subtree():
-    # the threes с1 ana c2 have 6 similar nodes
-    c1 = chain1()
+def test_chains_equivalent_subtree():
+    c1 = chain_first()
 
-    c2 = chain2()
+    c2 = chain_second()
 
-    c3 = chain3()
+    c3 = chain_third()
 
     similar_nodes_c1_c2 = equivalent_subtree(c1.root_node, c2.root_node)
     assert len(similar_nodes_c1_c2) == 6

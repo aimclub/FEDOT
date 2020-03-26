@@ -29,6 +29,14 @@ class Node(ABC):
         model = f'{self.eval_strategy.model}'
         return model
 
+    @property
+    def parent_nodes(self) -> List['Node']:
+        nodes = [self]
+        if self.nodes_from:
+            for parent in self.nodes_from:
+                nodes += parent.parent_nodes
+        return nodes
+
 
 class CachedNodeResult:
     def __init__(self, node: Node, model_output: np.array):

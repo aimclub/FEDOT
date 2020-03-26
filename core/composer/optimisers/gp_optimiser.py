@@ -19,6 +19,7 @@ class GPChainOptimiser:
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
+        self.best_individual = None
 
         if initial_chain and type(initial_chain) != list:
             self.population = [initial_chain] * requirements.pop_size

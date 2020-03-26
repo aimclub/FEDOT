@@ -79,7 +79,7 @@ def test_composer_flat_chain():
     assert new_chain.nodes[0].nodes_from is None
 
 
-def chain1(data):
+def chain(data):
     chain_created_by_hand = Chain()
     last_node = NodeGenerator.secondary_node(XGBoost())
     last_node.nodes_from = []
@@ -175,7 +175,7 @@ def test_gp_composer_quality(data_fixture, request):
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-    chain_created_by_hand = chain1(data)
+    chain_created_by_hand = chain(data)
 
     predicted_created_by_hand = chain_created_by_hand.predict(data).predict
     data.target = [int(round(i)) for i in predicted_created_by_hand]
