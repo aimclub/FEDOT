@@ -31,7 +31,7 @@ def _to_numerical(categorical_ids: np.ndarray):
     return encoded
 
 
-def make_synthetic_input(data):
+def convert_to_input_data(data):
     input_data = InputData(idx=np.arange(0, len(data[1])), features=data[0], target=data[1])
     return input_data
 
@@ -65,44 +65,51 @@ def get_roc_auc_value(chain, train_data, test_data):
     return roc_auc_value_train, roc_auc_value_test
 
 
-def test_absolute_synthetic():
-    data = make_classification(n_samples=1000, n_features=10, random_state=1)
-    input_data = make_synthetic_input(data)
+def get_synthetic_data(random_state):
+    synthetic_data = make_classification(n_samples=1000, n_features=10, random_state=random_state)
+    return synthetic_data
+
+
+def test_one_synthetic_dataset():
+    data = get_synthetic_data(1)
+    input_data = convert_to_input_data(data)
 
     chain = compose_chain(data=input_data)
     train_data, test_data = train_test_data_setup(input_data)
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    print(roc_auc_value_train)
+    print(roc_auc_value_test)
 
-    assert abs(roc_auc_value_test) >= 0.5
-    assert abs(roc_auc_value_train) >= 0.5
+    assert abs(roc_auc_value_test - 0.5) >= 0.25
+    assert abs(roc_auc_value_train - 0.5) >= 0.25
 
 
-def test_synthetic1_synthetic2():
-    data_1 = make_classification(n_samples=1000, n_features=10, random_state=1)
-    data_2 = make_classification(n_samples=1000, n_features=10, random_state=2)
-    input_data_1 = make_synthetic_input(data_1)
-    input_data_2 = make_synthetic_input(data_2)
-    input_data_2.features = deepcopy(input_data_1.features)
+def test_two_synthetic_dataset():
+    first_synthetic_data = get_synthetic_data(1)
+    second_synthetic_data = get_synthetic_data(2)
+    first_input_data = convert_to_input_data(first_synthetic_data)
+    second_input_data = convert_to_input_data(second_synthetic_data)
+    second_input_data.features = deepcopy(first_input_data.features)
 
-    chain = compose_chain(data=input_data_1)
-    train_data, _ = train_test_data_setup(input_data_1)
-    _, test_data = train_test_data_setup(input_data_2)
+    chain = compose_chain(data=first_input_data)
+    train_data, _ = train_test_data_setup(first_input_data)
+    _, test_data = train_test_data_setup(second_input_data)
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
 
-    assert abs(roc_auc_value_train) >= 0.8
-    assert abs(roc_auc_value_test) >= 0.4
+    assert abs(roc_auc_value_test - 0.5) >= 0.01
+    assert abs(roc_auc_value_train - 0.5) >= 0.25
 
 
 def test_synthetic_train_random_test():
-    data_1 = make_classification(n_samples=2999, n_features=10, random_state=1)
-    input_data_1 = make_synthetic_input(data_1)
-    input_data_2 = random_target(input_data_1)
+    first_synthetic_data = get_synthetic_data(1)
+    first_input_data = convert_to_input_data(first_synthetic_data)
+    second_input_data = random_target(first_input_data)
 
-    chain = compose_chain(data=input_data_1)
-    train_data, _ = train_test_data_setup(input_data_1)
-    _, test_data = train_test_data_setup(input_data_2)
+    chain = compose_chain(data=first_input_data)
+    train_data, _ = train_test_data_setup(first_input_data)
+    _, test_data = train_test_data_setup(second_input_data)
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
 
@@ -111,16 +118,15 @@ def test_synthetic_train_random_test():
 
 
 def test_random_train_synthetic_test():
-    data_2 = make_classification(n_samples=2999, n_features=10, random_state=1)
-    input_data_2 = make_synthetic_input(data_2)
-    input_data_1 = random_target(input_data_2)
+    first_synthetic_data = get_synthetic_data(1)
+    first_input_data = convert_to_input_data(first_synthetic_data)
+    second_input_data = random_target(first_input_data)
 
-    chain = compose_chain(data=input_data_1)
-    train_data, _ = train_test_data_setup(input_data_1)
-    _, test_data = train_test_data_setup(input_data_2)
+    chain = compose_chain(data=first_input_data)
+    train_data, _ = train_test_data_setup(second_input_data)
+    _, test_data = train_test_data_setup(first_input_data)
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
-    print(roc_auc_value_train, roc_auc_value_test)
 
     assert abs(roc_auc_value_test - 0.5) >= 0.01
     assert abs(roc_auc_value_train - 0.5) >= 0.03
