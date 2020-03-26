@@ -74,8 +74,8 @@ def test_absolute_synthetic():
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
 
-    assert abs(roc_auc_value_test) > 0.5
-    assert abs(roc_auc_value_train) > 0.5
+    assert abs(roc_auc_value_test) >= 0.5
+    assert abs(roc_auc_value_train) >= 0.5
 
 
 def test_synthetic1_synthetic2():
@@ -91,8 +91,8 @@ def test_synthetic1_synthetic2():
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
 
-    assert abs(roc_auc_value_train) > 0.8
-    assert abs(roc_auc_value_test) > 0.4
+    assert abs(roc_auc_value_train) >= 0.8
+    assert abs(roc_auc_value_test) >= 0.4
 
 
 def test_synthetic_train_random_test():
@@ -106,8 +106,8 @@ def test_synthetic_train_random_test():
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
 
-    assert abs(roc_auc_value_test - 0.5) > 0.01
-    assert abs(roc_auc_value_train - 0.5) > 0.03
+    assert abs(roc_auc_value_test - 0.5) >= 0.01
+    assert abs(roc_auc_value_train - 0.5) >= 0.03
 
 
 def test_random_train_synthetic_test():
@@ -122,5 +122,5 @@ def test_random_train_synthetic_test():
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
     print(roc_auc_value_train, roc_auc_value_test)
 
-    assert abs(roc_auc_value_test - 0.5) > 0.01
-    assert abs(roc_auc_value_train - 0.5) > 0.03
+    assert abs(roc_auc_value_test - 0.5) >= 0.01
+    assert abs(roc_auc_value_train - 0.5) >= 0.03
