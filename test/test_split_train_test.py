@@ -1,20 +1,20 @@
 import os
 import random
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
 import pytest
-
-from core.composer.chain import Chain
-from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
-from core.models.data import InputData
-from core.models.model import LogRegression, XGBoost
-from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-SPLIT_RATIO = 0.8
+from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
+from core.models.data import InputData
+from core.models.model import LogRegression, XGBoost, train_test_data_setup
+from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 
 random.seed(1)
+
 
 @pytest.fixture()
 def data_from_file():
@@ -31,27 +31,12 @@ def _to_numerical(categorical_ids: np.ndarray):
     return encoded
 
 
-@pytest.fixture()
-def correct_train_random_test(data_from_file):
-    data = data_from_file
-    split_point = int(len(data.target) * SPLIT_RATIO)
-    data.target[split_point:] = np.array([random.choice((0, 1)) for _ in range(len(data.target[split_point:]))])
-
-    return data
+def make_synthetic_input(data):
+    input_data = InputData(idx=np.arange(0, len(data[1])), features=data[0], target=data[1])
+    return input_data
 
 
-@pytest.fixture()
-def random_train_correct_test(data_from_file):
-    data = data_from_file
-    split_point = int(len(data.target) * SPLIT_RATIO)
-    data.target[:split_point] = np.array([random.choice((0, 1)) for _ in range(len(data.target[:split_point]))])
-
-    return data
-
-
-@pytest.fixture()
-def random_train_test(data_from_file):
-    data = data_from_file
+def random_target(data):
     data.target = np.array([random.choice((0, 1)) for _ in range(len(data.target))])
 
     return data
@@ -71,40 +56,71 @@ def compose_chain(data=None):
     return chain
 
 
-@pytest.mark.parametrize('data_fixture', ['correct_train_random_test'])
-def test_correct_train_random_test(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    split_point = int(len(data.target) * SPLIT_RATIO)
-    chain = compose_chain(data=data)
-    pred = chain.predict(data)
-    roc_auc_value_test = roc_auc(y_true=data.target[split_point:], y_score=pred.predict[split_point:])
-    roc_auc_value_train = roc_auc(y_true=data.target[:split_point], y_score=pred.predict[:split_point])
+def get_roc_auc_value(chain, train_data, test_data):
+    train_pred = chain.predict(new_data=train_data)
+    test_pred = chain.predict(new_data=test_data)
+    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_pred.predict)
+    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_pred.predict)
 
-    assert roc_auc_value_train > 0.8
-    assert roc_auc_value_test > 0.45
+    return roc_auc_value_train, roc_auc_value_test
 
 
-@pytest.mark.parametrize('data_fixture', ['random_train_correct_test'])
-def test_random_train_correct_test(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    split_point = int(len(data.target) * SPLIT_RATIO)
-    chain = compose_chain(data=data)
-    pred = chain.predict(data)
-    roc_auc_value_test = roc_auc(y_true=data.target[split_point:], y_score=pred.predict[split_point:])
-    roc_auc_value_train = roc_auc(y_true=data.target[:split_point], y_score=pred.predict[:split_point])
+def test_absolute_synthetic():
+    data = make_classification(n_samples=1000, n_features=10, random_state=1)
+    input_data = make_synthetic_input(data)
 
-    assert roc_auc_value_train > 0.45
-    assert roc_auc_value_test > 0.45
+    chain = compose_chain(data=input_data)
+    train_data, test_data = train_test_data_setup(input_data)
+
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+
+    assert abs(roc_auc_value_test) > 0.5
+    assert abs(roc_auc_value_train) > 0.5
 
 
-@pytest.mark.parametrize('data_fixture', ['random_train_test'])
-def test_random_train_test(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    chain = compose_chain(data=data)
-    pred = chain.predict(data)
-    split_point = int(len(data.target) * SPLIT_RATIO)
-    roc_auc_value_test = roc_auc(y_true=data.target[split_point:], y_score=pred.predict[split_point:])
-    roc_auc_value_train = roc_auc(y_true=data.target[:split_point], y_score=pred.predict[:split_point])
+def test_synthetic1_synthetic2():
+    data_1 = make_classification(n_samples=1000, n_features=10, random_state=1)
+    data_2 = make_classification(n_samples=1000, n_features=10, random_state=2)
+    input_data_1 = make_synthetic_input(data_1)
+    input_data_2 = make_synthetic_input(data_2)
+    input_data_2.features = deepcopy(input_data_1.features)
 
-    assert roc_auc_value_train > 0.45
-    assert roc_auc_value_test > 0.45
+    chain = compose_chain(data=input_data_1)
+    train_data, _ = train_test_data_setup(input_data_1)
+    _, test_data = train_test_data_setup(input_data_2)
+
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+
+    assert abs(roc_auc_value_train) > 0.8
+    assert abs(roc_auc_value_test) > 0.4
+
+
+def test_synthetic_train_random_test():
+    data_1 = make_classification(n_samples=2999, n_features=10, random_state=1)
+    input_data_1 = make_synthetic_input(data_1)
+    input_data_2 = random_target(input_data_1)
+
+    chain = compose_chain(data=input_data_1)
+    train_data, _ = train_test_data_setup(input_data_1)
+    _, test_data = train_test_data_setup(input_data_2)
+
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+
+    assert abs(roc_auc_value_test - 0.5) > 0.01
+    assert abs(roc_auc_value_train - 0.5) > 0.03
+
+
+def test_random_train_synthetic_test():
+    data_2 = make_classification(n_samples=2999, n_features=10, random_state=1)
+    input_data_2 = make_synthetic_input(data_2)
+    input_data_1 = random_target(input_data_2)
+
+    chain = compose_chain(data=input_data_1)
+    train_data, _ = train_test_data_setup(input_data_1)
+    _, test_data = train_test_data_setup(input_data_2)
+
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    print(roc_auc_value_train, roc_auc_value_test)
+
+    assert abs(roc_auc_value_test - 0.5) > 0.01
+    assert abs(roc_auc_value_train - 0.5) > 0.03
