@@ -13,15 +13,15 @@ class Chain:
     def __init__(self):
         self.nodes = []
 
-    def fit_from_scratch(self, input_data: InputData):
+    def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
         print('Fit chain from scratch')
-        self.fit(input_data, use_cache=False)
+        self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def fit(self, input_data: InputData, use_cache=True):
+    def fit(self, input_data: InputData, use_cache=True, verbose=False):
         if not use_cache:
             self._clean_model_cache()
-        train_predicted = self.root_node.fit(input_data=input_data)
+        train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
 
         return train_predicted
 

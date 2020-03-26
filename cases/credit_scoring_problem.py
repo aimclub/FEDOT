@@ -73,7 +73,7 @@ chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             composer_requirements=composer_requirements,
                                             metrics=metric_function, is_visualise=True)
-chain_evo_composed.fit(input_data=dataset_to_compose)
+chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 static_composer_requirements = ComposerRequirements(primary=available_model_types,
                                                     secondary=available_model_types)
 
@@ -84,7 +84,7 @@ chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                             initial_chain=None,
                                             composer_requirements=composer_requirements,
                                             metrics=metric_function, is_visualise=True)
-chain_static.fit(input_data=dataset_to_compose)
+chain_static.fit(input_data=dataset_to_compose, verbose=True)
 # the single-model variant of optimal chain
 single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.mlp],
                                                     secondary=[])
@@ -92,7 +92,7 @@ chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset
                                                                     initial_chain=None,
                                                                     composer_requirements=single_composer_requirements,
                                                                     metrics=metric_function)
-chain_single.fit(input_data=dataset_to_compose)
+chain_single.fit(input_data=dataset_to_compose, verbose=True)
 print("Composition finished")
 
 ComposerVisualiser.visualise(chain_static)

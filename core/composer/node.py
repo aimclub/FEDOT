@@ -17,24 +17,26 @@ class Node(ABC):
         self.cached_result = None
 
     @abstractmethod
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, input_data: InputData) -> OutputData:
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
         raise NotImplementedError()
 
     def __str__(self):
         model = f'{self.model}'
         return model
 
-    def _fit_using_cache(self, input_data):
+    def _fit_using_cache(self, input_data, verbose=False):
         if not self._is_cache_actual():
-            print('Cache is not actual')
+            if verbose:
+                print('Cache is not actual')
             cached_model, model_predict = self.model.fit(data=input_data)
             self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
         else:
-            print('Model were obtained from cache')
+            if verbose:
+                print('Model were obtained from cache')
             model_predict = self.model.predict(fitted_model=self.cached_result.cached_model,
                                                data=input_data)
         return model_predict
@@ -90,16 +92,18 @@ class PrimaryNode(Node):
         model = sklearn_model_by_type(model_type=model_type)
         super().__init__(nodes_from=None, model=model)
 
-    def fit(self, input_data: InputData) -> OutputData:
-        print(f'Trying to fit primary node with model: {self.model}')
-        model_predict = self._fit_using_cache(input_data=input_data)
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        if verbose:
+            print(f'Trying to fit primary node with model: {self.model}')
+        model_predict = self._fit_using_cache(input_data=input_data, verbose=verbose)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=model_predict)
 
-    def predict(self, input_data: InputData) -> OutputData:
-        print(f'Predict in primary node by model: {self.model}')
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        if verbose:
+            print(f'Predict in primary node by model: {self.model}')
         if not self.cached_result:
             raise ValueError('Model must be fitted before predict')
 
@@ -118,18 +122,21 @@ class SecondaryNode(Node):
         if self.nodes_from is None:
             self.nodes_from = []
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
-        parent_results = list()
-        print(f'Fit all parent nodes in secondary node with model: {self.model}')
+        parent_results = []
+
+        if verbose:
+            print(f'Fit all parent nodes in secondary node with model: {self.model}')
         for parent in self.nodes_from:
             parent_results.append(parent.fit(input_data=input_data))
 
         target = input_data.target
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
-        print(f'Trying to fit secondary node with model: {self.model}')
+        if verbose:
+            print(f'Trying to fit secondary node with model: {self.model}')
 
         model_predict = self._fit_using_cache(input_data=secondary_input)
 
@@ -137,18 +144,20 @@ class SecondaryNode(Node):
                           features=input_data.features,
                           predict=model_predict)
 
-    def predict(self, input_data: InputData) -> OutputData:
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
             raise ValueError('')
-        parent_results = list()
-        print(f'Obtain predictions from all parent nodes: {self.model}')
+        parent_results = []
+        if verbose:
+            print(f'Obtain predictions from all parent nodes: {self.model}')
         for parent in self.nodes_from:
             parent_results.append(parent.predict(input_data=input_data))
 
         target = input_data.target
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
-        print(f'Obtain prediction in secondary node with model: {self.model}')
+        if verbose:
+            print(f'Obtain prediction in secondary node with model: {self.model}')
         evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
                                                data=secondary_input)
         return OutputData(idx=input_data.idx,
