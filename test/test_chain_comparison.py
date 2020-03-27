@@ -1,3 +1,4 @@
+import itertools
 from copy import deepcopy
 
 import pytest
@@ -16,13 +17,13 @@ def chain_first():
     # LR LDA LR  LDA
     chain = Chain()
     root_of_tree = NodeGenerator.secondary_node(XGBoost())
-    root_child1 = NodeGenerator.secondary_node(XGBoost())
-    root_child2 = NodeGenerator.secondary_node(KNN())
+    root_child_first = NodeGenerator.secondary_node(XGBoost())
+    root_child_second = NodeGenerator.secondary_node(KNN())
 
-    for node in (root_of_tree, root_child1, root_child2):
+    for node in (root_of_tree, root_child_first, root_child_second):
         node.nodes_from = []
 
-    for root_node_child in (root_child1, root_child2):
+    for root_node_child in (root_child_first, root_child_second):
         for requirement_model in (LogRegression(), LDA()):
             new_node = NodeGenerator.primary_node(requirement_model, input_data=None)
             root_node_child.nodes_from.append(new_node)
@@ -42,11 +43,12 @@ def chain_second():
     # LR XG   LR   LDA
     #    |  \
     #   KNN  LDA
-    chain = chain_first()
     new_node = NodeGenerator.secondary_node(XGBoost())
     new_node.nodes_from = []
-    new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    new_node.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
+    for model_type in (KNN(), LDA()):
+        new_node.nodes_from.append(NodeGenerator.primary_node(model_type, input_data=None))
+
+    chain = chain_first()
     chain.replace_node(chain.root_node.nodes_from[0].nodes_from[1], new_node)
 
     return chain
@@ -56,15 +58,18 @@ def chain_third():
     #      XG
     #   |  |  \
     #  KNN LDA KNN
-    chain = Chain()
     root_of_tree = NodeGenerator.secondary_node(XGBoost())
     root_of_tree.nodes_from = []
-    root_of_tree.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    root_of_tree.nodes_from.append(NodeGenerator.primary_node(LDA(), input_data=None))
-    root_of_tree.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+
+    for model_type in (KNN(), LDA(), KNN()):
+        root_of_tree.nodes_from.append(NodeGenerator.primary_node(model_type, input_data=None))
+
+    chain = Chain()
+
     for node in root_of_tree.nodes_from:
         chain.add_node(node)
     chain.add_node(root_of_tree)
+
     return chain
 
 
@@ -78,86 +83,60 @@ def chain_fourth():
     chain = chain_third()
     new_node = NodeGenerator.secondary_node(XGBoost())
     new_node.nodes_from = []
-    new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
-    new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None))
+    [new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None)) for _ in range(2)]
     chain.replace_node(chain.root_node.nodes_from[1], new_node)
 
     return chain
 
 
 @pytest.fixture()
-def case_first():
-    c1 = chain_first()
-    c2 = chain_first()
-    return c1, c2
+def equality_cases():
+    pairs = [[chain_first(), chain_first()], [chain_third(), chain_third()], [chain_fourth(), chain_fourth()]]
+
+    for node_num, model in enumerate([KNN(), LDA()]):
+        pairs[1][1].root_node.nodes_from[node_num].eval_strategy.model = model
+
+    for node_num in ((2, 1), (1, 2)):
+        pairs[2][1].replace_node(pairs[2][1].root_node.nodes_from[node_num[0]],
+                                 deepcopy(pairs[2][0].root_node.nodes_from[node_num[1]]))
+
+    return pairs
 
 
 @pytest.fixture()
-def case_second():
-    c1 = chain_third()
-    c2 = chain_third()
-    c2.root_node.nodes_from[1].eval_strategy.model = KNN()
-    c2.root_node.nodes_from[2].eval_strategy.model = LDA()
-    return c1, c2
+def non_equality_cases():
+    return list(itertools.combinations([chain_first(), chain_second(), chain_third()], 2))
 
 
-@pytest.fixture()
-def case_third():
-    c1 = chain_fourth()
-    c2 = chain_fourth()
-    c2.replace_node(c2.root_node.nodes_from[2], deepcopy(c1.root_node.nodes_from[1]))
-    c2.replace_node(c2.root_node.nodes_from[1], deepcopy(c1.root_node.nodes_from[2]))
-    return c1, c2
+@pytest.mark.parametrize('chain_fixture', ['equality_cases'])
+def test_equality_cases(chain_fixture, request):
+    list_chains_pairs = request.getfixturevalue(chain_fixture)
+    for pair in list_chains_pairs:
+        assert pair[0] == pair[1]
+        assert pair[1] == pair[0]
 
 
-@pytest.fixture()
-def case_fourth():
-    c1 = chain_first()
-    c2 = chain_second()
-    return c1, c2
-
-
-@pytest.fixture()
-def case_fifth():
-    c1 = chain_first()
-    c2 = chain_third()
-    return c1, c2
-
-
-@pytest.fixture()
-def case_sixth():
-    c1 = chain_second()
-    c2 = chain_third()
-    return c1, c2
-
-
-@pytest.mark.parametrize('chain_fixture', ['case_first', 'case_second', 'case_third'])
-def test_chain_comparison_equals(chain_fixture, request):
-    c1, c2 = request.getfixturevalue(chain_fixture)
-    assert c1 == c2
-
-
-@pytest.mark.parametrize('chain_fixture', ['case_fourth', 'case_fifth', 'case_sixth'])
-def test_chain_comparison_different(chain_fixture, request):
-    c1, c2 = request.getfixturevalue(chain_fixture)
-    assert not c1 == c2
+@pytest.mark.parametrize('chain_fixture', ['non_equality_cases'])
+def test_non_equality_cases(chain_fixture, request):
+    list_chains_pairs = request.getfixturevalue(chain_fixture)
+    for pair in list_chains_pairs:
+        assert not pair[0] == pair[1]
+        assert not pair[1] == pair[0]
 
 
 def test_chains_equivalent_subtree():
-    c1 = chain_first()
+    c_first = chain_first()
+    c_second = chain_second()
+    c_third = chain_third()
 
-    c2 = chain_second()
+    similar_nodes_first_and_second = equivalent_subtree(c_first.root_node, c_second.root_node)
+    assert len(similar_nodes_first_and_second) == 6
 
-    c3 = chain_third()
+    similar_nodes_first_and_third = equivalent_subtree(c_first.root_node, c_third.root_node)
+    assert len(similar_nodes_first_and_third) == 0 and similar_nodes_first_and_third == []
 
-    similar_nodes_c1_c2 = equivalent_subtree(c1.root_node, c2.root_node)
-    assert len(similar_nodes_c1_c2) == 6
+    similar_nodes_second_and_third = equivalent_subtree(c_second.root_node, c_third.root_node)
+    assert len(similar_nodes_second_and_third) == 0 and similar_nodes_second_and_third == []
 
-    similar_nodes_c1_c3 = equivalent_subtree(c1.root_node, c3.root_node)
-    assert len(similar_nodes_c1_c3) == 0 and similar_nodes_c1_c3 == []
-
-    similar_nodes_c2_c3 = equivalent_subtree(c2.root_node, c3.root_node)
-    assert len(similar_nodes_c2_c3) == 0 and similar_nodes_c2_c3 == []
-
-    simular_nodes_c3_c3 = equivalent_subtree(c3.root_node, c3.root_node)
-    assert len(simular_nodes_c3_c3) == 4
+    similar_nodes_third = equivalent_subtree(c_third.root_node, c_third.root_node)
+    assert len(similar_nodes_third) == 4

@@ -29,44 +29,51 @@ def flat_nodes_tree(node):
         return [node]
 
 
-def tree1():
-    root_of_tree1 = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()))
-    root_child1 = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()), node_to=root_of_tree1)
-    root_child2 = GPNode(chain_node=NodeGenerator.secondary_node(model=MLP()), node_to=root_of_tree1)
-    for node in (root_of_tree1, root_child1, root_child2):
+def tree_first():
+    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()))
+    root_child_first = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()), node_to=root_of_tree)
+    root_child_second = GPNode(chain_node=NodeGenerator.secondary_node(model=MLP()), node_to=root_of_tree)
+    for node in (root_of_tree, root_child_first, root_child_second):
         node.nodes_from = []
-    for last_node_child in (root_child1, root_child2):
+    for last_node_child in (root_child_first, root_child_second):
         for requirement_model in (KNN(), LDA()):
             new_node = GPNode(chain_node=NodeGenerator.primary_node(model=requirement_model, input_data=None),
                               node_to=last_node_child)
             last_node_child.nodes_from.append(new_node)
-        root_of_tree1.nodes_from.append(last_node_child)
-    return root_of_tree1
+        root_of_tree.nodes_from.append(last_node_child)
+    return root_of_tree
 
 
-def tree2():
-    root_of_tree2 = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()))
-    root_child1 = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()), node_to=root_of_tree2)
-    root_child2 = GPNode(chain_node=NodeGenerator.secondary_node(KNN()), node_to=root_of_tree2)
-    for node in (root_of_tree2, root_child1, root_child2):
+def tree_second():
+    root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()))
+
+    root_child_first = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()), node_to=root_of_tree)
+    root_child_second = GPNode(chain_node=NodeGenerator.secondary_node(KNN()), node_to=root_of_tree)
+    for node in (root_of_tree, root_child_first, root_child_second):
         node.nodes_from = []
-    new_node = GPNode(chain_node=NodeGenerator.primary_node(LogRegression(), input_data=None), node_to=root_child1)
-    root_child1.nodes_from.append(new_node)
-    new_node = GPNode(NodeGenerator.secondary_node(XGBoost()), node_to=root_child1)
+
+    new_node = GPNode(chain_node=NodeGenerator.primary_node(LogRegression(), input_data=None), node_to=root_child_first)
+    root_child_first.nodes_from.append(new_node)
+
+    new_node = GPNode(NodeGenerator.secondary_node(XGBoost()), node_to=root_child_first)
     new_node.nodes_from = []
-    new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(KNN(), input_data=None), node_to=new_node))
-    new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(LDA(), input_data=None), node_to=new_node))
-    root_child1.nodes_from.append(new_node)
-    root_of_tree2.nodes_from.append(root_child1)
-    root_child2.nodes_from.append(
-        GPNode(NodeGenerator.primary_node(LogRegression(), input_data=None), node_to=root_child2))
-    root_child2.nodes_from.append(GPNode(NodeGenerator.primary_node(LDA(), input_data=None), node_to=root_child2))
-    root_of_tree2.nodes_from.append(root_child2)
-    return root_of_tree2
+
+    for model_type in (KNN(), LDA()):
+        new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(model_type, input_data=None), node_to=new_node))
+
+    root_child_first.nodes_from.append(new_node)
+    root_of_tree.nodes_from.append(root_child_first)
+
+    for model_type in (LogRegression(), LDA()):
+        root_child_second.nodes_from.append(
+            GPNode(NodeGenerator.primary_node(model_type, input_data=None), node_to=root_child_second))
+
+    root_of_tree.nodes_from.append(root_child_second)
+    return root_of_tree
 
 
 def test_node_depth_and_height():
-    last_node = tree1()
+    last_node = tree_first()
 
     tree_root_depth = last_node.depth
     tree_secondary_node_depth = last_node.nodes_from[0].depth
@@ -82,27 +89,27 @@ def test_node_depth_and_height():
 
 
 def test_swap_nodes():
-    root_of_tree1 = tree1()
+    root_of_tree_first = tree_first()
 
-    root_of_tree2 = tree2()
+    root_of_tree_second = tree_second()
 
-    height_in_tree1 = 1
-    height_in_tree2 = 1
+    height_in_tree = 1
 
     # nodes_from_height function check
-    nodes_set_tree1 = root_of_tree1.nodes_from_height(height_in_tree1)
-    assert len(nodes_set_tree1) == 2
-    nodes_set_tree2 = root_of_tree2.nodes_from_height(height_in_tree2)
-    assert len(nodes_set_tree2) == 2
+    nodes_set_tree_first = root_of_tree_first.nodes_from_height(height_in_tree)
+    assert len(nodes_set_tree_first) == 2
+    nodes_set_tree_second = root_of_tree_second.nodes_from_height(height_in_tree)
+    assert len(nodes_set_tree_second) == 2
 
-    tree1_node = nodes_set_tree1[1]
-    tree2_node = nodes_set_tree2[0]
+    tree_first_node = nodes_set_tree_first[1]
+    tree_second_node = nodes_set_tree_second[0]
 
-    assert isinstance(tree1_node.eval_strategy.model, MLP)
-    assert isinstance(tree2_node.eval_strategy.model, XGBoost)
-    swap_nodes(tree1_node, tree2_node)
+    assert isinstance(tree_first_node.eval_strategy.model, MLP)
+    assert isinstance(tree_second_node.eval_strategy.model, XGBoost)
 
-    chain = tree_to_chain(root_of_tree1)
+    swap_nodes(tree_first_node, tree_second_node)
+
+    chain = tree_to_chain(root_of_tree_first)
     assert len(chain.nodes) == 9
 
     correct_nodes = [XGBoost, XGBoost, KNN, LDA, XGBoost, LogRegression, XGBoost, KNN, LDA]

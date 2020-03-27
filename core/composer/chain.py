@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, List
 
 import networkx as nx
 
@@ -50,8 +50,9 @@ class Chain:
 
     def replace_node(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
-        old_node_child = self._node_child(old_node)
-        old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
+        old_node_offspring = self._node_child(old_node)
+        for old_node_child in old_node_offspring:
+            old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
         new_nodes = [parent for parent in new_node.parent_nodes if not parent in self.nodes]
         old_nodes = [node for node in self.nodes if not node in old_node.parent_nodes]
         self.nodes = new_nodes + old_nodes
@@ -59,13 +60,12 @@ class Chain:
     def update_node(self, new_node: Node):
         raise NotImplementedError()
 
-    def _node_child(self, node) -> Optional[Node]:
+    def _node_child(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
-                node in other_node.nodes_from][0]
+                node in other_node.nodes_from]
 
-    def _is_node_has_child(self, node):
-        return any([(node in other_node.nodes_from)
-                    for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
+    def _is_node_has_child(self, node) -> bool:
+        return any(self._node_child(node))
 
     def __eq__(self, other) -> bool:
         g1, _ = as_nx_graph(self, True)
@@ -140,5 +140,5 @@ def as_nx_graph(chain: Chain, force_node_model_name=False):
     return graph, node_labels
 
 
-def name_comparison_func(node1_model_name, node2_model_name) -> bool:
-    return node1_model_name == node2_model_name
+def name_comparison_func(first_node_model_name, second_node_model_name) -> bool:
+    return first_node_model_name == second_node_model_name
