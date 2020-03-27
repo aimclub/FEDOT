@@ -34,10 +34,9 @@ class CompositionTimer(object):
         return reached
 
     def __exit__(self, *args):
-        self.end = time.time()
-        self.secs = self.end - self.start
+        self.secs = time.time() - self.start
         self.minutes = self.secs / 60.
         if self.verbose:
             print(f'Composition time: {round(self.minutes, 3)} min')
             if self.evo_terminated:
-                print(f'Algorithm was terminated due to processing time limit')
+                print('Algorithm was terminated due to processing time limit')
