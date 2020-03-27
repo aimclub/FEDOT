@@ -100,6 +100,9 @@ class SecondaryNode(Node):
                          input_data=None,
                          eval_strategy=eval_strategy)
 
+        if self.nodes_from is None:
+            self.nodes_from = []
+
     def apply(self) -> OutputData:
         parent_predict_list = list()
         for parent in self.nodes_from:

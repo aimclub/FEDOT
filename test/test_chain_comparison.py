@@ -16,12 +16,9 @@ def chain_first():
     # |  \    |  \
     # LR LDA LR  LDA
     chain = Chain()
-    root_of_tree = NodeGenerator.secondary_node(XGBoost())
-    root_child_first = NodeGenerator.secondary_node(XGBoost())
-    root_child_second = NodeGenerator.secondary_node(KNN())
 
-    for node in (root_of_tree, root_child_first, root_child_second):
-        node.nodes_from = []
+    root_of_tree, root_child_first, root_child_second = \
+        [NodeGenerator.secondary_node(model) for model in (XGBoost(), XGBoost(), KNN())]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in (LogRegression(), LDA()):
@@ -44,10 +41,8 @@ def chain_second():
     #    |  \
     #   KNN  LDA
     new_node = NodeGenerator.secondary_node(XGBoost())
-    new_node.nodes_from = []
     for model_type in (KNN(), LDA()):
         new_node.nodes_from.append(NodeGenerator.primary_node(model_type, input_data=None))
-
     chain = chain_first()
     chain.replace_node(chain.root_node.nodes_from[0].nodes_from[1], new_node)
 
@@ -59,11 +54,8 @@ def chain_third():
     #   |  |  \
     #  KNN LDA KNN
     root_of_tree = NodeGenerator.secondary_node(XGBoost())
-    root_of_tree.nodes_from = []
-
     for model_type in (KNN(), LDA(), KNN()):
         root_of_tree.nodes_from.append(NodeGenerator.primary_node(model_type, input_data=None))
-
     chain = Chain()
 
     for node in root_of_tree.nodes_from:
@@ -82,7 +74,6 @@ def chain_fourth():
 
     chain = chain_third()
     new_node = NodeGenerator.secondary_node(XGBoost())
-    new_node.nodes_from = []
     [new_node.nodes_from.append(NodeGenerator.primary_node(KNN(), input_data=None)) for _ in range(2)]
     chain.replace_node(chain.root_node.nodes_from[1], new_node)
 
@@ -93,12 +84,14 @@ def chain_fourth():
 def equality_cases():
     pairs = [[chain_first(), chain_first()], [chain_third(), chain_third()], [chain_fourth(), chain_fourth()]]
 
+    # the following changes don't affect to chains equality:
     for node_num, model in enumerate([KNN(), LDA()]):
         pairs[1][1].root_node.nodes_from[node_num].eval_strategy.model = model
 
     for node_num in ((2, 1), (1, 2)):
-        pairs[2][1].replace_node(pairs[2][1].root_node.nodes_from[node_num[0]],
-                                 deepcopy(pairs[2][0].root_node.nodes_from[node_num[1]]))
+        old_node = pairs[2][1].root_node.nodes_from[node_num[0]]
+        new_node = deepcopy(pairs[2][0].root_node.nodes_from[node_num[1]])
+        pairs[2][1].replace_node(old_node, new_node)
 
     return pairs
 

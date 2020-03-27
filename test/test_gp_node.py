@@ -31,10 +31,8 @@ def flat_nodes_tree(node):
 
 def tree_first():
     root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()))
-    root_child_first = GPNode(chain_node=NodeGenerator.secondary_node(model=XGBoost()), node_to=root_of_tree)
-    root_child_second = GPNode(chain_node=NodeGenerator.secondary_node(model=MLP()), node_to=root_of_tree)
-    for node in (root_of_tree, root_child_first, root_child_second):
-        node.nodes_from = []
+    root_child_first, root_child_second = [GPNode(chain_node=NodeGenerator.secondary_node(model=model),
+                                                  node_to=root_of_tree) for model in (XGBoost(), MLP())]
     for last_node_child in (root_child_first, root_child_second):
         for requirement_model in (KNN(), LDA()):
             new_node = GPNode(chain_node=NodeGenerator.primary_node(model=requirement_model, input_data=None),
@@ -46,17 +44,14 @@ def tree_first():
 
 def tree_second():
     root_of_tree = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()))
-
-    root_child_first = GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()), node_to=root_of_tree)
-    root_child_second = GPNode(chain_node=NodeGenerator.secondary_node(KNN()), node_to=root_of_tree)
-    for node in (root_of_tree, root_child_first, root_child_second):
-        node.nodes_from = []
+    root_child_first, root_child_second = [
+        GPNode(chain_node=NodeGenerator.secondary_node(XGBoost()), node_to=root_of_tree) for model in
+        (XGBoost(), KNN())]
 
     new_node = GPNode(chain_node=NodeGenerator.primary_node(LogRegression(), input_data=None), node_to=root_child_first)
     root_child_first.nodes_from.append(new_node)
 
     new_node = GPNode(NodeGenerator.secondary_node(XGBoost()), node_to=root_child_first)
-    new_node.nodes_from = []
 
     for model_type in (KNN(), LDA()):
         new_node.nodes_from.append(GPNode(NodeGenerator.primary_node(model_type, input_data=None), node_to=new_node))

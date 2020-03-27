@@ -82,7 +82,6 @@ def test_composer_flat_chain():
 def custom_chain(data):
     chain_created_by_hand = Chain()
     last_node = NodeGenerator.secondary_node(XGBoost())
-    last_node.nodes_from = []
     for requirement_model in (KNN(), KNN()):
         new_node = NodeGenerator.primary_node(requirement_model, data)
         chain_created_by_hand.add_node(new_node)
