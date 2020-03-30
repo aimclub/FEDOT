@@ -60,6 +60,7 @@ def get_auc_threshold(roc_auc_value: float) -> float:
 
 
 def test_correct_fit_valid():
+    """Checks whether the model fits correctly on one synthetic dataset"""
     data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
 
     chain = compose_chain(data=data)
@@ -74,6 +75,8 @@ def test_correct_fit_valid():
 
 
 def test_correct_fit_incorrect_synthetic_valid():
+    """Checks whether the model fits correctly and
+    predict incorrectly because of different relation in train and test data"""
     train_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     test_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=2)
     test_synthetic_data.features = deepcopy(train_synthetic_data.features)
@@ -91,6 +94,8 @@ def test_correct_fit_incorrect_synthetic_valid():
 
 
 def test_correct_fit_incorrect_random_valid():
+    """Checks whether the model fits correctly and roc_auc_score of test data is close to 0.5
+    because of random target in test data"""
     train_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     test_random_data = get_random_target_data(train_synthetic_data)
 
@@ -107,16 +112,20 @@ def test_correct_fit_incorrect_random_valid():
 
 
 def test_incorrect_random_fit_correct_valid():
+    """Checks whether the roc_auc_scores of train and test is close to 0.5
+     because of random target of train data"""
     data_for_test = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     data_for_train = get_random_target_data(data_for_test)
 
-    chain = compose_chain(data=data_for_test)
+    chain = compose_chain(data=data_for_train)
     train_data, _ = train_test_data_setup(data_for_train)
     _, test_data = train_test_data_setup(data_for_test)
 
     roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
     train_auc_thr = get_auc_threshold(roc_auc_value_train)
     test_auc_thr = get_auc_threshold(roc_auc_value_test)
+    print(roc_auc_value_train)
+    print(roc_auc_value_test)
 
-    assert test_auc_thr >= CORRECT_MODEL_AUC_THR
+    assert test_auc_thr <= CORRECT_MODEL_AUC_THR
     assert train_auc_thr <= CORRECT_MODEL_AUC_THR
