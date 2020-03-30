@@ -59,8 +59,8 @@ def get_auc_threshold(roc_auc_value: float) -> float:
     return abs(roc_auc_value - 0.5)
 
 
-def test_correct_fit_valid():
-    """Checks whether the model fits correctly on one synthetic dataset"""
+def test_model_fit_and_predict_correctly():
+    """Checks whether the model fits and predict correctly on the synthetic dataset"""
     data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
 
     chain = compose_chain(data=data)
@@ -74,9 +74,10 @@ def test_correct_fit_valid():
     assert test_auc_thr >= CORRECT_MODEL_AUC_THR
 
 
-def test_correct_fit_incorrect_synthetic_valid():
-    """Checks whether the model fits correctly and
-    predict incorrectly because of different relation in train and test data"""
+def test_model_fit_correctly_but_predict_incorrectly():
+    """Check that the model can fit the train dataset but
+    can't predict the test dataset. Train and test are supposed to be
+    from different distributions."""
     train_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     test_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=2)
     test_synthetic_data.features = deepcopy(train_synthetic_data.features)
@@ -93,9 +94,10 @@ def test_correct_fit_incorrect_synthetic_valid():
     assert train_auc_thr >= CORRECT_MODEL_AUC_THR
 
 
-def test_correct_fit_incorrect_random_valid():
-    """Checks whether the model fits correctly and roc_auc_score of test data is close to 0.5
-    because of random target in test data"""
+def test_model_fit_correctly_but_random_predictions_on_test():
+    """Checks whether the model can fit train dataset correctly, but
+    the roc_auc_score on the test dataset is close to 0.5 (predictions are random).
+    Test data has not relations between features and target."""
     train_synthetic_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     test_random_data = get_random_target_data(train_synthetic_data)
 
@@ -111,9 +113,10 @@ def test_correct_fit_incorrect_random_valid():
     assert train_auc_thr >= CORRECT_MODEL_AUC_THR
 
 
-def test_incorrect_random_fit_correct_valid():
-    """Checks whether the roc_auc_scores of train and test is close to 0.5
-     because of random target of train data"""
+def test_model_predictions_on_train_test_random():
+    """Checks that model can't predict correctly on random train and test datasets and
+    the roc_auc_scores is close to 0.5.
+    Both train and test data have no relations between features and target."""
     data_for_test = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     data_for_train = get_random_target_data(data_for_test)
 
