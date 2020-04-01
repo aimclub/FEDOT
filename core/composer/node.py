@@ -120,22 +120,23 @@ class SecondaryNode(Node):
                           predict=evaluation_result)
 
 
-def equivalent_subtree(root_of_tree1, root_of_tree2) -> Optional[List[Tuple[Any, Any]]]:
+def equivalent_subtree(root_of_tree_first, root_of_tree_second) -> List[Tuple[Any, Any]]:
     # returns the nodes set of the structurally equivalent subtree as:
     # list of pairs [node_from_tree1, node_from_tree2]
     # where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively
-    def structural_equivalent_nodes(node1, node2):
+    def structural_equivalent_nodes(node_first, node_second):
         nodes = []
-        eq_secondary_nodes = node1.nodes_from and node2.nodes_from and len(node1.nodes_from) == len(node2.nodes_from)
-        eq_primary_nodes = not node1.nodes_from and not node2.nodes_from
+        eq_secondary_nodes = node_first.nodes_from and node_second.nodes_from and len(node_first.nodes_from) == len(node_second.nodes_from)
+        eq_primary_nodes = not node_first.nodes_from and not node_second.nodes_from
         if eq_secondary_nodes or eq_primary_nodes:
-            nodes.append((node1, node2))
-            if node1.nodes_from:
-                for node1_child, node2_child in zip(node1.nodes_from, node2.nodes_from):
+            nodes.append((node_first, node_second))
+            if node_first.nodes_from:
+                for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):
                     nodes_set = structural_equivalent_nodes(node1_child, node2_child)
                     if nodes_set:
                         nodes += nodes_set
         return nodes
 
-    pairs_set = structural_equivalent_nodes(root_of_tree1, root_of_tree2)
+    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
+    assert isinstance(pairs_set, list)
     return pairs_set
