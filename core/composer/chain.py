@@ -50,22 +50,22 @@ class Chain:
 
     def replace_node(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
-        old_node_offspring = self._node_child(old_node)
+        old_node_offspring = self._node_childs(old_node)
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
-        new_nodes = [parent for parent in new_node.parent_nodes if not parent in self.nodes]
-        old_nodes = [node for node in self.nodes if not node in old_node.parent_nodes]
+        new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
+        old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
         self.nodes = new_nodes + old_nodes
 
     def update_node(self, new_node: Node):
         raise NotImplementedError()
 
-    def _node_child(self, node) -> List[Optional[Node]]:
+    def _node_childs(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
                 node in other_node.nodes_from]
 
     def _is_node_has_child(self, node) -> bool:
-        return any(self._node_child(node))
+        return any(self._node_childs(node))
 
     def __eq__(self, other) -> bool:
         g1, _ = as_nx_graph(self, True)
@@ -119,16 +119,18 @@ class Chain:
 
 
 def as_nx_graph(chain: Chain, force_node_model_name=False):
-    # force_node_model_name  is necessary in case nx.is_isomorphic function using when its parameter mode_math
-    # is the function which compares model names in nodes
+    """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
+    function which compares nodes model names"""
     graph = nx.DiGraph()
 
     node_labels = {}
     for node in chain.nodes:
-        graph.add_node(node.node_id)
-        if force_node_model_name:  # it is necessary in the case
-            graph._node[node.node_id] = f'{node}'
-        node_labels[node.node_id] = f'{node}'
+        id, label = node.node_id, f'{node}'
+        node_labels[node.node_id] = label
+        if not force_node_model_name:
+            graph.add_node(id)
+        else:
+            graph.add_node(label)
 
     def add_edges(graph, chain):
         for node in chain.nodes:

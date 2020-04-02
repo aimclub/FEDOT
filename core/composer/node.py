@@ -30,11 +30,11 @@ class Node(ABC):
         return model
 
     @property
-    def parent_nodes(self) -> List['Node']:
+    def subtree_nodes(self) -> List['Node']:
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.parent_nodes
+                nodes += parent.subtree_nodes
         return nodes
 
 
@@ -120,14 +120,20 @@ class SecondaryNode(Node):
                           predict=evaluation_result)
 
 
+def is_nodes_equivalent(node_first, node_second)-> Tuple[bool, bool]:
+    eq_secondary_nodes = node_first.nodes_from and node_second.nodes_from and len(node_first.nodes_from) == len(
+        node_second.nodes_from)
+    eq_primary_nodes = not node_first.nodes_from and not node_second.nodes_from
+    return eq_secondary_nodes, eq_primary_nodes
+
+
 def equivalent_subtree(root_of_tree_first, root_of_tree_second) -> List[Tuple[Any, Any]]:
-    # returns the nodes set of the structurally equivalent subtree as:
-    # list of pairs [node_from_tree1, node_from_tree2]
-    # where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively
+    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
+    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
+
     def structural_equivalent_nodes(node_first, node_second):
         nodes = []
-        eq_secondary_nodes = node_first.nodes_from and node_second.nodes_from and len(node_first.nodes_from) == len(node_second.nodes_from)
-        eq_primary_nodes = not node_first.nodes_from and not node_second.nodes_from
+        eq_secondary_nodes, eq_primary_nodes = is_nodes_equivalent(node_first, node_second)
         if eq_secondary_nodes or eq_primary_nodes:
             nodes.append((node_first, node_second))
             if node_first.nodes_from:

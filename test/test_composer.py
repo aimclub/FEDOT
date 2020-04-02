@@ -165,6 +165,7 @@ def test_gp_composer(data_fixture, request):
     assert roc_on_valid_gp_composed > 0.6
 
 
+@pytest.mark.skip("the dataset doesn't provide necessary condition fulfillment (too small)")
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_quality(data_fixture, request):
     random.seed(1)
@@ -200,7 +201,5 @@ def test_gp_composer_quality(data_fixture, request):
     print("model created by hand prediction:", roc_auc_chain_created_by_hand)
     print("gp composed model prediction:", roc_auc_chain_evo_alg)
 
-    # the dataset doesn't provide necessary condition fulfillment (small)
-
-    # assert chain_created_by_evo_alg == chain_created_by_hand or chain_created_by_evo_alg != chain_created_by_hand and abs(
-    #    roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.01
+    assert chain_created_by_evo_alg == chain_created_by_hand or chain_created_by_evo_alg != chain_created_by_hand and abs(
+        roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.01
