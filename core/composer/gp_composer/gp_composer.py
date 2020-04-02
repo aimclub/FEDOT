@@ -24,6 +24,9 @@ class GPComposerRequirements(ComposerRequirements):
     mutation_prob: Optional[float] = None
 
 class GPComposer(Composer):
+    def __init__(self):
+        super(Composer, self).__init__()
+
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
                       metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
@@ -36,14 +39,17 @@ class GPComposer(Composer):
 
         best_found, history = optimiser.optimise(metric_function_for_nodes)
 
+        historical_chains = []
+        for historical_data in history:
+            historical_nodes_set = tree_to_chain(historical_data[0], data).nodes
+            historical_chain = Chain()
+            [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
+            historical_chains.append(historical_chain)
+        historical_fitnesses = [opt_step[1] for opt_step in history]
+
+        self.history = [(chain, fitness) for chain, fitness in zip(historical_chains, historical_fitnesses)]
+
         if is_visualise:
-            historical_chains = []
-            for historical_data in history:
-                historical_nodes_set = tree_to_chain(historical_data[0], data).nodes
-                historical_chain = Chain()
-                [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
-                historical_chains.append(historical_chain)
-            historical_fitnesses = [opt_step[1] for opt_step in history]
             ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
 
         best_chain = tree_to_chain(tree_root=best_found, data=data)

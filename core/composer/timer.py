@@ -1,4 +1,4 @@
-import time
+import datetime
 
 
 class CompositionTimer(object):
@@ -7,7 +7,7 @@ class CompositionTimer(object):
         self.evo_terminated = False
 
     def __enter__(self):
-        self.start = time.time()
+        self.start = datetime.datetime.now()
         return self
 
     @property
@@ -16,7 +16,7 @@ class CompositionTimer(object):
 
     @property
     def minutes_from_start(self):
-        return (time.time() - self.start) / 60.
+        return (datetime.datetime.now() - self.start).seconds / 60.
 
     def _is_next_iteration_possible(self, generation_num: int, time_constraint: float) -> bool:
         minutes = self.minutes_from_start
@@ -30,11 +30,11 @@ class CompositionTimer(object):
         if max_lead_time:
             reached = not self._is_next_iteration_possible(generation_num, max_lead_time)
         else:
-            reached = False
+            reached = True
         return reached
 
     def __exit__(self, *args):
-        self.secs = time.time() - self.start
+        self.secs = (datetime.datetime.now() - self.start).seconds
         self.minutes = self.secs / 60.
         if self.verbose:
             print(f'Composition time: {round(self.minutes, 3)} min')

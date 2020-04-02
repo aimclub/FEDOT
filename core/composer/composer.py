@@ -23,6 +23,9 @@ class ComposerRequirements:
 
 
 class Composer(ABC):
+    def __init__(self):
+        self.history = None
+
     @abstractmethod
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
@@ -38,6 +41,7 @@ class DummyChainTypeEnum(Enum):
 
 class DummyComposer(Composer):
     def __init__(self, dummy_chain_type):
+        super(Composer, self).__init__()
         self.dummy_chain_type = dummy_chain_type
 
     def compose_chain(self, data: InputData,

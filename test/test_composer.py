@@ -16,7 +16,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.models.model import LogRegression
-from core.models.model import XGBoost, KNN
+from core.models.model import XGBoost, KNN, MLP
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
