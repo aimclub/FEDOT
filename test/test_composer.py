@@ -24,6 +24,7 @@ from core.repository.model_types_repository import (
 )
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
+import datetime
 
 
 @pytest.fixture()
@@ -203,3 +204,44 @@ def test_gp_composer_quality(data_fixture, request):
 
     assert chain_created_by_evo_alg == chain_created_by_hand or chain_created_by_evo_alg != chain_created_by_hand and abs(
         roc_auc_chain_created_by_hand - roc_auc_chain_evo_alg) < 0.01
+
+
+@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
+def test_composition_time(data_fixture, request):
+    random.seed(1)
+    np.random.seed(1)
+    data = request.getfixturevalue(data_fixture)
+
+    models_impl = [MLP(), KNN()]
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+    gp_composer_terminated_evolution = GPComposer()
+
+    req_terminated_evolution = GPComposerRequirements(
+        primary=models_impl,
+        secondary=models_impl, max_arity=2,
+        max_depth=2,
+        pop_size=2, num_of_generations=5, crossover_prob=0.9,
+        mutation_prob=0.9, max_lead_time=datetime.timedelta(minutes=0.01))
+
+    chain_terminated_evolution = gp_composer_terminated_evolution.compose_chain(data=data,
+                                                                                initial_chain=None,
+                                                                                composer_requirements=req_terminated_evolution,
+                                                                                metrics=metric_function)
+
+    gp_composer_completed_evolution = GPComposer()
+
+    req_completed_evolution = GPComposerRequirements(
+        primary=models_impl,
+        secondary=models_impl, max_arity=2,
+        max_depth=2,
+        pop_size=2, num_of_generations=2, crossover_prob=0.4,
+        mutation_prob=0.5)
+
+    chain_completed_evolution = gp_composer_completed_evolution.compose_chain(data=data,
+                                                                               initial_chain=None,
+                                                                               composer_requirements=req_completed_evolution,
+                                                                               metrics=metric_function)
+
+    assert len(gp_composer_terminated_evolution.history) == 4
+    assert len(gp_composer_completed_evolution.history) == 4

@@ -45,12 +45,12 @@ class GPComposer(Composer):
             historical_chain = Chain()
             [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
             historical_chains.append(historical_chain)
-        historical_fitnesses = [opt_step[1] for opt_step in history]
+        historical_fitness = [opt_step[1] for opt_step in history]
 
-        self.history = [(chain, fitness) for chain, fitness in zip(historical_chains, historical_fitnesses)]
+        self.history = [(chain, fitness) for chain, fitness in zip(historical_chains, historical_fitness)]
 
         if is_visualise:
-            ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
+            ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
 
         best_chain = tree_to_chain(tree_root=best_found, data=data)
         print("GP composition finished")

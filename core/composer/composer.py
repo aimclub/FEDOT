@@ -11,13 +11,13 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
-
+import datetime
 
 @dataclass
 class ComposerRequirements:
     primary: List[Model]
     secondary: List[Model]
-    max_lead_time: Optional[float] = 10  # minutes
+    max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=10)
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
 
