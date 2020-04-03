@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, List
 
 import networkx as nx
 
@@ -48,12 +48,29 @@ class Chain:
             # TODO refactor
             self.reference_data = deepcopy(new_node.input_data)
 
+    def replace_node(self, old_node: Node, new_node: Node):
+        new_node = deepcopy(new_node)
+        old_node_offspring = self._node_childs(old_node)
+        for old_node_child in old_node_offspring:
+            old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
+        new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
+        old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
+        self.nodes = new_nodes + old_nodes
+
     def update_node(self, new_node: Node):
         raise NotImplementedError()
 
-    def _is_node_has_child(self, node):
-        return any([(node in other_node.nodes_from)
-                    for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
+    def _node_childs(self, node) -> List[Optional[Node]]:
+        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
+                node in other_node.nodes_from]
+
+    def _is_node_has_child(self, node) -> bool:
+        return any(self._node_childs(node))
+
+    def __eq__(self, other) -> bool:
+        g1, _ = as_nx_graph(self, True)
+        g2, _ = as_nx_graph(other, True)
+        return nx.is_isomorphic(g1, g2, node_match=name_comparison_func)
 
     @property
     def root_node(self) -> Optional[Node]:
@@ -66,11 +83,11 @@ class Chain:
         return root[0]
 
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self.nodes)
 
     @property
-    def depth(self):
+    def depth(self) -> int:
         def _depth_recursive(node):
             if node is None:
                 return 0
@@ -101,13 +118,19 @@ class Chain:
                 node.input_data = deepcopy(data)
 
 
-def as_nx_graph(chain: Chain):
+def as_nx_graph(chain: Chain, force_node_model_name=False):
+    """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
+    function which compares nodes model names"""
     graph = nx.DiGraph()
 
     node_labels = {}
     for node in chain.nodes:
-        graph.add_node(node.node_id)
-        node_labels[node.node_id] = f'{node}'
+        id, label = node.node_id, f'{node}'
+        node_labels[node.node_id] = label
+        if not force_node_model_name:
+            graph.add_node(id)
+        else:
+            graph.add_node(label)
 
     def add_edges(graph, chain):
         for node in chain.nodes:
@@ -117,3 +140,7 @@ def as_nx_graph(chain: Chain):
 
     add_edges(graph, chain)
     return graph, node_labels
+
+
+def name_comparison_func(first_node_model_name, second_node_model_name) -> bool:
+    return first_node_model_name == second_node_model_name

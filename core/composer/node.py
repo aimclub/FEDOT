@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import (List, Optional)
+from typing import (List, Optional, Tuple, Any)
 
 import numpy as np
 
@@ -28,6 +28,14 @@ class Node(ABC):
     def __str__(self):
         model = f'{self.eval_strategy.model}'
         return model
+
+    @property
+    def subtree_nodes(self) -> List['Node']:
+        nodes = [self]
+        if self.nodes_from:
+            for parent in self.nodes_from:
+                nodes += parent.subtree_nodes
+        return nodes
 
 
 class CachedNodeResult:
@@ -92,6 +100,9 @@ class SecondaryNode(Node):
                          input_data=None,
                          eval_strategy=eval_strategy)
 
+        if self.nodes_from is None:
+            self.nodes_from = []
+
     def apply(self) -> OutputData:
         parent_predict_list = list()
         for parent in self.nodes_from:
@@ -107,3 +118,26 @@ class SecondaryNode(Node):
         return OutputData(idx=self.nodes_from[0].input_data.idx,
                           features=self.nodes_from[0].input_data.features,
                           predict=evaluation_result)
+
+
+def equivalent_subtree(root_of_tree_first: Node, root_of_tree_second: Node) -> List[Tuple[Any, Any]]:
+    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
+    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
+
+    def structural_equivalent_nodes(node_first, node_second):
+        nodes = []
+        is_same_type = type(node_first) == type(node_second)
+        node_first_childs = node_first.nodes_from
+        node_second_childs = node_second.nodes_from
+        if is_same_type and (isinstance(node_first, PrimaryNode) or len(node_first_childs) == len(node_second_childs)):
+            nodes.append((node_first, node_second))
+            if node_first.nodes_from:
+                for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):
+                    nodes_set = structural_equivalent_nodes(node1_child, node2_child)
+                    if nodes_set:
+                        nodes += nodes_set
+        return nodes
+
+    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
+    assert isinstance(pairs_set, list)
+    return pairs_set

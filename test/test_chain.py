@@ -85,3 +85,4 @@ def test_models_chain_seq(data_setup):
     assert chain.length == 4
     assert chain.depth == 4
     assert len(results.predict) == len(data.target)
+

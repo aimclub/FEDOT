@@ -19,6 +19,8 @@ class GPChainOptimiser:
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
+        self.best_individual = None
+        self.best_fitness = None
 
         if initial_chain and type(initial_chain) != list:
             self.population = [initial_chain] * requirements.pop_size
@@ -30,32 +32,36 @@ class GPChainOptimiser:
         self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
         for generation_num in range(self.requirements.num_of_generations):
             print(f'GP generation num: {generation_num}')
-            self.best_individual = self.population[np.argmin(self.fitness)]
+            best_ind_num = np.argmin(self.fitness)
+            self.best_individual = deepcopy(self.population[best_ind_num])
+            self.best_fitness = self.fitness[best_ind_num]
+            selected_individuals = tournament_selection(self.fitness, self.population)
 
-            selected_indexes = tournament_selection(self.fitness)
-            new_population = []
-
-            for ind_num in range(self.requirements.pop_size - 1):
+            for ind_num in range(self.requirements.pop_size):
 
                 if generation_num == 0:
                     history.append((self.population[ind_num], self.fitness[ind_num]))
 
-                new_population.append(
-                    standard_crossover(tree1=self.population[selected_indexes[ind_num][0]],
-                                       tree2=self.population[selected_indexes[ind_num][1]],
-                                       crossover_prob=self.requirements.crossover_prob,
-                                       max_depth=self.requirements.max_depth))
+                if ind_num == self.requirements.pop_size - 1:
+                    self.population[ind_num] = deepcopy(self.best_individual)
+                    self.fitness[ind_num] = self.best_fitness
+                    history.append((self.population[ind_num], self.fitness[ind_num]))
+                    break
 
-                new_population[ind_num] = standard_mutation(root_node=new_population[ind_num],
-                                                            secondary=self.requirements.secondary,
-                                                            primary=self.requirements.primary,
-                                                            secondary_node_func=self.secondary_node_func,
-                                                            primary_node_func=self.primary_node_func)
-                history.append((new_population[ind_num], self.fitness[ind_num]))
+                self.population[ind_num] = standard_crossover(*selected_individuals[ind_num],
+                                                              crossover_prob=self.requirements.crossover_prob,
+                                                              max_depth=self.requirements.max_depth)
 
-            self.population = deepcopy(new_population)
-            self.population.append(deepcopy(self.best_individual))
-            self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+                self.population[ind_num] = standard_mutation(root_node=self.population[ind_num],
+                                                             secondary=self.requirements.secondary,
+                                                             primary=self.requirements.primary,
+                                                             secondary_node_func=self.secondary_node_func,
+                                                             primary_node_func=self.primary_node_func,
+                                                             mutation_prob=self.requirements.mutation_prob)
+
+                self.fitness[ind_num] = round(metric_function_for_nodes(self.population[ind_num]), 3)
+
+                history.append((self.population[ind_num], self.fitness[ind_num]))
 
         return self.population[np.argmin(self.fitness)], history
 
