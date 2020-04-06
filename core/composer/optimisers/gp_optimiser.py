@@ -12,6 +12,7 @@ from core.composer.gp_composer.gp_node import GPNode
 from core.composer.optimisers.crossover import standard_crossover
 from core.composer.optimisers.mutation import standard_mutation
 from core.composer.optimisers.selection import tournament_selection
+from core.composer.timer import CompositionTimer
 
 
 class GPChainOptimiser:
@@ -27,41 +28,49 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
+
     def optimise(self, metric_function_for_nodes):
-        history = []
-        self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
-        for generation_num in range(self.requirements.num_of_generations):
-            print(f'GP generation num: {generation_num}')
-            best_ind_num = np.argmin(self.fitness)
-            self.best_individual = deepcopy(self.population[best_ind_num])
-            self.best_fitness = self.fitness[best_ind_num]
-            selected_individuals = tournament_selection(self.fitness, self.population)
 
-            for ind_num in range(self.requirements.pop_size):
+        with CompositionTimer() as t:
 
-                if generation_num == 0:
+            history = []
+            self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+            [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
+             range(self.requirements.pop_size)]
+
+            for generation_num in range(self.requirements.num_of_generations-1):
+                print(f'GP generation num: {generation_num}')
+                best_ind_num = np.argmin(self.fitness)
+                self.best_individual = deepcopy(self.population[best_ind_num])
+                self.best_fitness = self.fitness[best_ind_num]
+                selected_individuals = tournament_selection(self.fitness, self.population)
+
+                for ind_num in range(self.requirements.pop_size):
+
+                    if ind_num == self.requirements.pop_size - 1:
+                        self.population[ind_num] = deepcopy(self.best_individual)
+                        self.fitness[ind_num] = self.best_fitness
+                        history.append((self.population[ind_num], self.fitness[ind_num]))
+                        break
+
+                    self.population[ind_num] = standard_crossover(*selected_individuals[ind_num],
+                                                                  crossover_prob=self.requirements.crossover_prob,
+                                                                  max_depth=self.requirements.max_depth)
+
+                    self.population[ind_num] = standard_mutation(root_node=self.population[ind_num],
+                                                                 secondary=self.requirements.secondary,
+                                                                 primary=self.requirements.primary,
+                                                                 secondary_node_func=self.secondary_node_func,
+                                                                 primary_node_func=self.primary_node_func,
+                                                                 mutation_prob=self.requirements.mutation_prob)
+
+                    self.fitness[ind_num] = round(metric_function_for_nodes(self.population[ind_num]), 3)
+
                     history.append((self.population[ind_num], self.fitness[ind_num]))
 
-                if ind_num == self.requirements.pop_size - 1:
-                    self.population[ind_num] = deepcopy(self.best_individual)
-                    self.fitness[ind_num] = self.best_fitness
-                    history.append((self.population[ind_num], self.fitness[ind_num]))
+
+                if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-
-                self.population[ind_num] = standard_crossover(*selected_individuals[ind_num],
-                                                              crossover_prob=self.requirements.crossover_prob,
-                                                              max_depth=self.requirements.max_depth)
-
-                self.population[ind_num] = standard_mutation(root_node=self.population[ind_num],
-                                                             secondary=self.requirements.secondary,
-                                                             primary=self.requirements.primary,
-                                                             secondary_node_func=self.secondary_node_func,
-                                                             primary_node_func=self.primary_node_func,
-                                                             mutation_prob=self.requirements.mutation_prob)
-
-                self.fitness[ind_num] = round(metric_function_for_nodes(self.population[ind_num]), 3)
-
-                history.append((self.population[ind_num], self.fitness[ind_num]))
 
         return self.population[np.argmin(self.fitness)], history
 

@@ -11,17 +11,21 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.models.model import Model
-
+import datetime
 
 @dataclass
 class ComposerRequirements:
     primary: List[Model]
     secondary: List[Model]
+    max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=10)
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
 
 
 class Composer(ABC):
+    def __init__(self):
+        self.history = None
+
     @abstractmethod
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
@@ -37,6 +41,7 @@ class DummyChainTypeEnum(Enum):
 
 class DummyComposer(Composer):
     def __init__(self, dummy_chain_type):
+        super(Composer, self).__init__()
         self.dummy_chain_type = dummy_chain_type
 
     def compose_chain(self, data: InputData,
