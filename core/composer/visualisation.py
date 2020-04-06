@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from glob import glob, iglob
 from math import log2, ceil
@@ -11,10 +12,15 @@ from PIL import Image
 from imageio import get_writer, imread
 
 from core.composer.chain import Chain, as_nx_graph
+from core.utils import project_root
 
 
 class ComposerVisualiser:
-    temp_path = '../../tmp/'
+    root_parent_path = os.path.join('../', str(project_root()))
+    root_parent_path_dirname = os.path.dirname(root_parent_path)
+    temp_path = os.path.join(root_parent_path_dirname, 'tmp/')
+    if 'tmp' not in os.listdir(root_parent_path_dirname):
+        os.mkdir(temp_path)
     gif_prefix = 'for_gif_'
 
     @staticmethod

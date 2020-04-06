@@ -32,80 +32,86 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
     return roc_auc_value
 
 
-# the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
+def run_credit_scoring_problem(train_file_path, test_file_path):
+    dataset_to_compose = InputData.from_csv(train_file_path)
+    dataset_to_validate = InputData.from_csv(test_file_path)
 
-# a dataset that will be used as a train and test set during composition
-file_path_train = 'cases/data/scoring/scoring_train.csv'
-full_path_train = os.path.join(str(project_root()), file_path_train)
-dataset_to_compose = InputData.from_csv(full_path_train)
+    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+    models_repo = ModelTypesRepository()
+    available_model_names = models_repo.search_model_types_by_attributes(
+        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                               output_type=CategoricalDataTypesEnum.vector,
+                                               task_type=MachineLearningTasksEnum.classification,
+                                               can_be_initial=True,
+                                               can_be_secondary=True))
 
-# a dataset for a final validation of the composed model
-file_path_test = 'cases/data/scoring/scoring_test.csv'
-full_path_test = os.path.join(str(project_root()), file_path_test)
-dataset_to_validate = InputData.from_csv(full_path_test)
+    models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
 
-# the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-models_repo = ModelTypesRepository()
-available_model_names = models_repo.search_model_types_by_attributes(
-    desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                           output_type=CategoricalDataTypesEnum.vector,
-                                           task_type=MachineLearningTasksEnum.classification,
-                                           can_be_initial=True,
-                                           can_be_secondary=True))
+    # the choice of the metric for the chain quality assessment during composition
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    # alternative can be used for experiments
+    alt_metric_function = RandomMetric.get_value
 
-models_impl = [models_repo.model_by_id(model_name) for model_name in available_model_names]
+    # the choice and initialisation of the random_search
 
-# the choice of the metric for the chain quality assessment during composition
-metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-# alternative can be used for experiments
-alt_metric_function = RandomMetric.get_value
+    composer_requirements = GPComposerRequirements(
+        primary=models_impl,
+        secondary=models_impl, max_arity=2,
+        max_depth=3, pop_size=2, num_of_generations=2,
+        crossover_prob=0.8, mutation_prob=0.8)
 
-# the choice and initialisation of the random_search
+    # Create GP-based composer
+    composer = GPComposer()
 
-composer_requirements = GPComposerRequirements(
-    primary=models_impl,
-    secondary=models_impl, max_arity=2,
-    max_depth=3, pop_size=2, num_of_generations=2,
-    crossover_prob=0.8, mutation_prob=0.8)
+    # the optimal chain generation by composition - the most time-consuming task
+    chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                                initial_chain=None,
+                                                composer_requirements=composer_requirements,
+                                                metrics=metric_function, is_visualise=True)
 
-# Create GP-based composer
-composer = GPComposer()
+    static_composer_requirements = ComposerRequirements(primary=models_impl,
+                                                        secondary=models_impl)
 
-# the optimal chain generation by composition - the most time-consuming task
-chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                            initial_chain=None,
-                                            composer_requirements=composer_requirements,
-                                            metrics=metric_function, is_visualise=True)
+    # the choice and initialisation of the dummy_composer
+    dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
 
-static_composer_requirements = ComposerRequirements(primary=models_impl,
-                                                    secondary=models_impl)
+    chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
+                                                initial_chain=None,
+                                                composer_requirements=composer_requirements,
+                                                metrics=metric_function, is_visualise=True)
 
-# the choice and initialisation of the dummy_composer
-dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
+    # the single-model variant of optimal chain
+    single_composer_requirements = ComposerRequirements(primary=[MLP()],
+                                                        secondary=[])
+    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
+                                                                        initial_chain=None,
+                                                                        composer_requirements=single_composer_requirements,
+                                                                        metrics=metric_function)
 
-chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
-                                            initial_chain=None,
-                                            composer_requirements=composer_requirements,
-                                            metrics=metric_function, is_visualise=True)
+    print("Composition finished")
 
-# the single-model variant of optimal chain
-single_composer_requirements = ComposerRequirements(primary=[MLP()],
-                                                    secondary=[])
-chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
-                                                                    initial_chain=None,
-                                                                    composer_requirements=single_composer_requirements,
-                                                                    metrics=metric_function)
+    ComposerVisualiser.visualise(chain_static)
+    ComposerVisualiser.visualise(chain_evo_composed)
 
-print("Composition finished")
+    # the quality assessment for the obtained composite models
+    roc_on_valid_static = calculate_validation_metric(chain_static, dataset_to_validate)
+    roc_on_valid_single = calculate_validation_metric(chain_single, dataset_to_validate)
+    roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, dataset_to_validate)
 
-ComposerVisualiser.visualise(chain_static)
-ComposerVisualiser.visualise(chain_evo_composed)
+    print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
+    print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
+    print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
 
-# the quality assessment for the obtained composite models
-roc_on_valid_static = calculate_validation_metric(chain_static, dataset_to_validate)
-roc_on_valid_single = calculate_validation_metric(chain_single, dataset_to_validate)
-roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, dataset_to_validate)
 
-print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
-print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
-print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
+if __name__ == '__main__':
+    # the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
+
+    # a dataset that will be used as a train and test set during composition
+
+    file_path_train = 'cases/data/scoring/scoring_train.csv'
+    full_path_train = os.path.join(str(project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/scoring/scoring_test.csv'
+    full_path_test = os.path.join(str(project_root()), file_path_test)
+    run_credit_scoring_problem(full_path_train, full_path_test)
