@@ -2,8 +2,9 @@ import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.models.data import InputData
-from core.models.model import sklearn_model_by_type, train_test_data_setup, preprocess
+from core.models.data import InputData, train_test_data_setup
+from core.models.model import sklearn_model_by_type
+from core.models.preprocessing import scaling_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -23,7 +24,7 @@ def classification_dataset():
 
 def test_log_regression_fit_correct(classification_dataset):
     data = classification_dataset
-    data.features = preprocess(data.features)
+    data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     log_reg = sklearn_model_by_type(model_type=ModelTypesIdsEnum.logit)
@@ -37,7 +38,7 @@ def test_log_regression_fit_correct(classification_dataset):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_random_forest_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = preprocess(data.features)
+    data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     random_forest = sklearn_model_by_type(model_type=ModelTypesIdsEnum.rf)
@@ -51,7 +52,7 @@ def test_random_forest_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_decision_tree_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = preprocess(data.features)
+    data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     decision_tree = sklearn_model_by_type(model_type=ModelTypesIdsEnum.dt)
@@ -66,7 +67,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_lda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = preprocess(data.features)
+    data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     lda = sklearn_model_by_type(model_type=ModelTypesIdsEnum.lda)
@@ -80,7 +81,7 @@ def test_lda_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_qda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = preprocess(data.features)
+    data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     qda = sklearn_model_by_type(model_type=ModelTypesIdsEnum.qda)

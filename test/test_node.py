@@ -7,8 +7,8 @@ from sklearn.metrics import accuracy_score, classification_report
 from core.composer.node import PrimaryNode, NodeGenerator
 from core.models.data import (
     InputData,
-)
-from core.models.model import sklearn_model_by_type, train_test_data_setup
+    train_test_data_setup)
+from core.models.model import sklearn_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
