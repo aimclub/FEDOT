@@ -1,36 +1,60 @@
-import numpy as np
-from sklearn import preprocessing
-from sklearn.impute import SimpleImputer
+from sklearn.discriminant_analysis import (
+    LinearDiscriminantAnalysis,
+    QuadraticDiscriminantAnalysis
+)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
 
-from core.models.data import (
-    InputData
-)
-from core.models.model import (
-    Model, train_test_data_setup
-)
+from core.models.data import InputData
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 class EvaluationStrategy:
-    def __init__(self, model: Model):
-        self.model = model
-        self.is_train_models = True
-        self.is_fitted = False
+    def __init__(self):
+        pass
 
-    def evaluate(self, data: InputData) -> InputData:
-        data.features = _preprocess(data.features)
-        if self.is_train_models or not self.is_fitted:
-            train_data, _ = train_test_data_setup(data)
-            self.model.fit(data=train_data)
-            self.is_fitted = True
-        prediction = self.model.predict(data=data)
-        if any([np.isnan(_) for _ in prediction]):
-            print("Value error")
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        raise NotImplementedError()
+
+    def predict(self, trained_model, predict_data: InputData):
+        raise NotImplementedError()
+
+    def tune(self, model, data_for_tune: InputData):
+        raise NotImplementedError()
+
+
+class SkLearnEvaluationStrategy(EvaluationStrategy):
+    def __init__(self):
+        super().__init__()
+        self.__model_by_types = {
+            ModelTypesIdsEnum.xgboost: XGBClassifier,
+            ModelTypesIdsEnum.logit: SklearnLogReg,
+            ModelTypesIdsEnum.knn: SklearnKNN,
+            ModelTypesIdsEnum.dt: DecisionTreeClassifier,
+            ModelTypesIdsEnum.rf: RandomForestClassifier,
+            ModelTypesIdsEnum.mlp: MLPClassifier,
+            ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
+            ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis
+        }
+
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        sklearn_model = self._convert_to_sklearn(model_type)
+        sklearn_model.fit(train_data.features, train_data.target.ravel())
+        return sklearn_model
+
+    def predict(self, trained_model, predict_data: InputData):
+        prediction = trained_model.predict_proba(predict_data.features)[:, 1]
         return prediction
 
+    def tune(self, model, data_for_tune: InputData):
+        return model
 
-def _preprocess(x):
-    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-    imp.fit(x)
-    x = imp.transform(x)
-    x_float = x.astype(float)
-    return preprocessing.scale(x_float)
+    def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):
+        if model_type in self.__model_by_types.keys():
+            return self.__model_by_types[model_type]()
+        else:
+            raise ValueError()

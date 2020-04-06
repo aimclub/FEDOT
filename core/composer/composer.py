@@ -1,3 +1,4 @@
+import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
@@ -10,13 +11,13 @@ from typing import (
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
-from core.models.model import Model
-import datetime
+from core.repository.model_types_repository import ModelTypesIdsEnum
+
 
 @dataclass
 class ComposerRequirements:
-    primary: List[Model]
-    secondary: List[Model]
+    primary: List[ModelTypesIdsEnum]
+    secondary: List[ModelTypesIdsEnum]
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=10)
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
@@ -55,13 +56,13 @@ class DummyComposer(Composer):
             last_node = NodeGenerator.secondary_node(composer_requirements.secondary[0])
 
             for requirement_model in composer_requirements.primary:
-                new_node = NodeGenerator.primary_node(requirement_model, data)
+                new_node = NodeGenerator.primary_node(requirement_model)
                 new_chain.add_node(new_node)
                 last_node.nodes_from.append(new_node)
             new_chain.add_node(last_node)
         elif self.dummy_chain_type == DummyChainTypeEnum.flat:
             # (y1) -> (y2) -> y
-            first_node = NodeGenerator.primary_node(composer_requirements.primary[0], data)
+            first_node = NodeGenerator.primary_node(composer_requirements.primary[0])
             new_chain.add_node(first_node)
             prev_node = first_node
             for requirement_model in composer_requirements.secondary:

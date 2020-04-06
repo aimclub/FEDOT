@@ -3,8 +3,8 @@ from typing import Optional, List
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode
-from core.models.data import InputData, OutputData
+from core.composer.node import Node, SecondaryNode, PrimaryNode, CachedNodeResult
+from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -12,31 +12,24 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 class Chain:
     def __init__(self):
         self.nodes = []
-        self.reference_data = None
 
-    def train(self) -> OutputData:
-        # if the chain should be evaluated for the new dataset
-        for node in self.nodes:
-            node.eval_strategy.is_train_models = True
-            node.is_caching = True
-            # set reference data in nodes
-            if isinstance(node, PrimaryNode):
-                node.input_data = deepcopy(self.reference_data)
-        return self.root_node.apply()
+    def fit_from_scratch(self, input_data: InputData, verbose=False):
+        # Clean all cache and fit all models
+        print('Fit chain from scratch')
+        self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def predict(self, new_data: InputData) -> OutputData:
-        if any([(node.cached_result is None) or (not node.cached_result.is_actual(node.nodes_from))
-                for node in self.nodes]):
-            self.train()
-            # update data in primary nodes
-        for node in self.nodes:
-            if isinstance(node, PrimaryNode):
-                node.input_data = deepcopy(new_data)
-        # update flags in nodes
-        for node in self.nodes:
-            node.eval_strategy.is_train_models = False
-            node.is_caching = False
-        return self.root_node.apply()
+    def fit(self, input_data: InputData, use_cache=True, verbose=False):
+        if not use_cache:
+            self._clean_model_cache()
+        train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
+
+        return train_predicted
+
+    def predict(self, input_data: InputData):
+        if not self.is_all_cache_actual():
+            raise Exception('Trained model cache is not actual or empty')
+        result = self.root_node.predict(input_data=input_data)
+        return result
 
     def add_node(self, new_node: Node):
         """
@@ -44,9 +37,6 @@ class Chain:
 
         """
         self.nodes.append(new_node)
-        if isinstance(new_node, PrimaryNode):
-            # TODO refactor
-            self.reference_data = deepcopy(new_node.input_data)
 
     def replace_node(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
@@ -59,6 +49,14 @@ class Chain:
 
     def update_node(self, new_node: Node):
         raise NotImplementedError()
+
+    def _clean_model_cache(self):
+        for node in self.nodes:
+            node.cached_result = None
+
+    def is_all_cache_actual(self):
+        cache_status = [_is_cache_actual(node, node.cached_result) for node in self.nodes]
+        return all(cache_status)
 
     def _node_childs(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
@@ -101,22 +99,6 @@ class Chain:
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()
 
-    @property
-    def reference_data(self) -> Optional[InputData]:
-        if len(self.nodes) == 0:
-            return None
-        primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-        assert len(primary_nodes) > 0
-
-        return deepcopy(primary_nodes[0].input_data)
-
-    @reference_data.setter
-    def reference_data(self, data):
-        if len(self.nodes) > 0:
-            primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-            for node in primary_nodes:
-                node.input_data = deepcopy(data)
-
 
 def as_nx_graph(chain: Chain, force_node_model_name=False):
     """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
@@ -140,6 +122,13 @@ def as_nx_graph(chain: Chain, force_node_model_name=False):
 
     add_edges(graph, chain)
     return graph, node_labels
+
+
+def _is_cache_actual(node, cache: CachedNodeResult):
+    if cache is not None and cache.is_actual(node):
+        return True
+
+    return False
 
 
 def name_comparison_func(first_node_model_name, second_node_model_name) -> bool:

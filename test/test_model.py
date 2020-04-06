@@ -3,14 +3,8 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
-from core.models.model import (
-    DecisionTree,
-    LDA,
-    QDA,
-    LogRegression,
-    RandomForest,
-)
-from core.repository.dataset_types import NumericalDataTypesEnum
+from core.models.model import sklearn_model_by_type, train_test_data_setup, preprocess
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 @pytest.fixture()
@@ -27,24 +21,15 @@ def classification_dataset():
     return data
 
 
-def test_log_regression_types_correct():
-    log_reg = LogRegression()
-
-    assert log_reg.input_type is NumericalDataTypesEnum.table
-    assert log_reg.output_type is NumericalDataTypesEnum.vector
-
-
 def test_log_regression_fit_correct(classification_dataset):
     data = classification_dataset
-    log_reg = LogRegression()
+    data.features = preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    log_reg.fit(data=data)
-    predicted = log_reg.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    log_reg = sklearn_model_by_type(model_type=ModelTypesIdsEnum.logit)
+    _, train_predicted = log_reg.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -52,15 +37,13 @@ def test_log_regression_fit_correct(classification_dataset):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_random_forest_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    random_forest = RandomForest()
+    data.features = preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    random_forest.fit(data=data)
-    predicted = random_forest.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    random_forest = sklearn_model_by_type(model_type=ModelTypesIdsEnum.rf)
+    _, train_predicted = random_forest.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -68,49 +51,42 @@ def test_random_forest_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_decision_tree_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = DecisionTree()
+    data.features = preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    decision_tree = sklearn_model_by_type(model_type=ModelTypesIdsEnum.dt)
+    decision_tree.fit(data=train_data)
+    _, train_predicted = decision_tree.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_lda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = LDA()
+    data.features = preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    lda = sklearn_model_by_type(model_type=ModelTypesIdsEnum.lda)
+    _, train_predicted = lda.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_qda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = QDA()
+    data.features = preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
+    qda = sklearn_model_by_type(model_type=ModelTypesIdsEnum.qda)
 
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    _, train_predicted = qda.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
