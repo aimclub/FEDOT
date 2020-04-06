@@ -45,7 +45,7 @@ class GPComposer(Composer):
 
         historical_chains = []
         for historical_data in history:
-            historical_nodes_set = tree_to_chain(historical_data[0], data).nodes
+            historical_nodes_set = tree_to_chain(historical_data[0]).nodes
             historical_chain = Chain()
             [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
             historical_chains.append(historical_chain)
