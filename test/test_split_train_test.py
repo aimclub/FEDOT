@@ -2,7 +2,6 @@ import random
 from copy import deepcopy
 
 import numpy as np
-import pytest
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -117,8 +116,6 @@ def test_model_fit_correctly_but_random_predictions_on_test():
     assert train_auc_thr >= CORRECT_MODEL_AUC_THR
 
 
-# TODO: why this test is skipped?
-@pytest.mark.skip("the test fails under certain conditions")
 def test_model_predictions_on_train_test_random():
     """Checks that model can't predict correctly on random train and test datasets and
     the roc_auc_scores is close to 0.5.
