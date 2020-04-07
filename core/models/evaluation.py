@@ -1,3 +1,5 @@
+import warnings
+
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
     QuadraticDiscriminantAnalysis
@@ -11,6 +13,8 @@ from xgboost import XGBClassifier
 
 from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
+
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:

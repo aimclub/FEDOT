@@ -7,8 +7,7 @@ from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.models.data import InputData
-from core.models.model import train_test_data_setup
+from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 

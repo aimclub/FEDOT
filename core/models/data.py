@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -51,3 +51,13 @@ def _convert_dtypes(data_frame: pd.DataFrame):
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)
     return data_frame
+
+
+def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
+    train_data_x, test_data_x = split_train_test(data.features)
+    train_data_y, test_data_y = split_train_test(data.target)
+    train_idx, test_idx = split_train_test(data.idx)
+    train_data = InputData(features=train_data_x, target=train_data_y,
+                           idx=train_idx)
+    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx)
+    return train_data, test_data

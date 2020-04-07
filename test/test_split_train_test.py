@@ -7,8 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
-from core.models.data import InputData
-from core.models.model import train_test_data_setup
+from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 
