@@ -54,3 +54,6 @@ def test_eval_strategy_logreg(data_setup):
     actual_result = test_model_node.predict(input_data=test)
 
     assert len(actual_result.predict) == len(expected_result)
+
+
+
