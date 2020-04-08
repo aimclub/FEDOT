@@ -65,9 +65,9 @@ class GPChainOptimiser:
                                                                  mutation_prob=self.requirements.mutation_prob)
 
                     self.fitness[ind_num] = round(metric_function_for_nodes(self.population[ind_num]), 3)
+                    print(f'Best metric is {np.min(self.fitness)}')
 
                     history.append((self.population[ind_num], self.fitness[ind_num]))
-
 
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break

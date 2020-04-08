@@ -9,6 +9,7 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -19,7 +20,8 @@ def data_setup():
     np.random.shuffle(response)
     predictors = predictors[:100]
     response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
+                     task_type=MachineLearningTasksEnum.classification)
     return data
 
 

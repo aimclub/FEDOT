@@ -47,7 +47,7 @@ def default_mocked_tree():
 def test_search_in_repository_by_id_and_metainfo_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_ids=[ModelGroupsIdsEnum.ml], desired_metainfo=ModelMetaInfoTemplate(
             task_type=MachineLearningTasksEnum.regression))
 
@@ -60,7 +60,7 @@ def test_search_in_repository_by_id_and_metainfo_correct(mock_init_tree):
 def test_search_in_repository_by_model_id_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_ids=[ModelGroupsIdsEnum.all])
 
     assert ModelTypesIdsEnum.xgboost in model_names
@@ -72,7 +72,7 @@ def test_search_in_repository_by_model_id_correct(mock_init_tree):
 def test_search_in_repository_by_metainfo_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification))

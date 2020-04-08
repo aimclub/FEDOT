@@ -5,7 +5,7 @@ from typing import (List, Optional, Any, Tuple)
 
 from core.models.data import Data, InputData, OutputData
 from core.models.model import Model
-from core.models.model import sklearn_model_by_type
+from core.models.model import init_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -89,7 +89,7 @@ class NodeGenerator:
 
 class PrimaryNode(Node):
     def __init__(self, model_type: ModelTypesIdsEnum):
-        model = sklearn_model_by_type(model_type=model_type)
+        model = init_model_by_type(model_type=model_type)
         super().__init__(nodes_from=None, model=model)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
@@ -99,7 +99,7 @@ class PrimaryNode(Node):
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=model_predict)
+                          predict=model_predict, task_type=input_data.task_type)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
@@ -111,13 +111,13 @@ class PrimaryNode(Node):
                                            data=input_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=predict_train)
+                          predict=predict_train, task_type=input_data.task_type)
 
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  model_type: ModelTypesIdsEnum):
-        model = sklearn_model_by_type(model_type=model_type)
+        model = init_model_by_type(model_type=model_type)
         super().__init__(nodes_from=nodes_from, model=model)
         if self.nodes_from is None:
             self.nodes_from = []
@@ -142,7 +142,8 @@ class SecondaryNode(Node):
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=model_predict)
+                          predict=model_predict,
+                          task_type=input_data.task_type)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
@@ -162,7 +163,8 @@ class SecondaryNode(Node):
                                                data=secondary_input)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=evaluation_result)
+                          predict=evaluation_result,
+                          task_type=input_data.task_type)
 
 
 def equivalent_subtree(root_of_tree_first: Node, root_of_tree_second: Node) -> List[Tuple[Any, Any]]:

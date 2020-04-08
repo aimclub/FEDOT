@@ -10,6 +10,7 @@ from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRe
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 np.random.seed(1)
 random.seed(1)
@@ -45,7 +46,8 @@ def get_synthetic_input_data(n_samples=10000, n_features=10, random_state=None) 
     synthetic_data = make_classification(n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
-                           target=synthetic_data[1])
+                           target=synthetic_data[1],
+                           task_type=MachineLearningTasksEnum.classification)
     return input_data
 
 

@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
-    List, Optional, Union)
+    List, Optional, Union, Tuple)
 
 from anytree import Node, RenderTree, findall
 
@@ -18,11 +18,18 @@ class ModelTypesIdsEnum(Enum):
     rf = 'randomforest',
     mlp = 'mlp',
     lda = 'lda',
-    qda = 'qda'
+    qda = 'qda',
+    ar = 'ar',
+    arima = 'arima',
+    linear = 'linear',
+    ridge = 'ridge',
+    lasso = 'lasso',
+    kmeans = 'kmeans'
 
 
 class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
+    stat = 'Stat_models'
     all = 'Models'
 
 
@@ -39,20 +46,23 @@ class ModelMetaInfo:
 class ModelMetaInfoTemplate:
     input_type: DataTypesEnum = None
     output_type: DataTypesEnum = None
-    task_type: TaskTypesEnum = None
+    task_type: Union[List[TaskTypesEnum],TaskTypesEnum] = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
 
     @staticmethod
-    def _is_field_suitable(candidate_field, template_field):
+    def _is_field_suitable(candidate_field, template_field) -> bool:
         if template_field is None:
             return True
 
         listed_candidate_field = candidate_field if isinstance(candidate_field, list) else [candidate_field]
 
-        return template_field in listed_candidate_field
+        if isinstance(template_field, list):
+            return any([template_field_item in listed_candidate_field for template_field_item in template_field])
+        else:
+            return template_field in listed_candidate_field
 
-    def is_suits_for_template(self, candidate: ModelMetaInfo):
+    def is_suits_for_template(self, candidate: ModelMetaInfo) -> bool:
         fields = vars(self)
 
         fields_suitability = [self._is_field_suitable(getattr(candidate, field), getattr(self, field))
@@ -84,14 +94,47 @@ class ModelTypesRepository:
         root = ModelsGroup(ModelGroupsIdsEnum.all)
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
+        stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
 
         common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
                                     task_type=[MachineLearningTasksEnum.classification,
                                                MachineLearningTasksEnum.regression])
 
+        ar_meta = deepcopy(common_meta)
+        ar_meta.task_type = [MachineLearningTasksEnum.auto_regression]
+
+        reg_meta = deepcopy(common_meta)
+        reg_meta.task_type = [MachineLearningTasksEnum.regression]
+
+        class_meta = deepcopy(common_meta)
+        class_meta.task_type = [MachineLearningTasksEnum.classification]
+
+        clust_meta = deepcopy(common_meta)
+        clust_meta.task_type = [MachineLearningTasksEnum.clustering]
+
         for model_type in ModelTypesIdsEnum:
-            ModelType(model_type, deepcopy(common_meta), parent=ml)
+            if model_type in [ModelTypesIdsEnum.arima,
+                              ModelTypesIdsEnum.ar]:
+                ModelType(model_type, deepcopy(ar_meta), parent=stat)
+            elif model_type in [ModelTypesIdsEnum.linear,
+                                ModelTypesIdsEnum.lasso,
+                                ModelTypesIdsEnum.ridge]:
+                ModelType(model_type, deepcopy(reg_meta), parent=ml)
+            elif model_type in [ModelTypesIdsEnum.rf,
+                                ModelTypesIdsEnum.dt,
+                                ModelTypesIdsEnum.mlp,
+                                ModelTypesIdsEnum.lda,
+                                ModelTypesIdsEnum.qda,
+                                ModelTypesIdsEnum.logit,
+                                ModelTypesIdsEnum.knn,
+                                ModelTypesIdsEnum.xgboost]:
+                ModelType(model_type, deepcopy(class_meta), parent=ml)
+            elif model_type in [ModelTypesIdsEnum.kmeans]:
+                ModelType(model_type, deepcopy(clust_meta), parent=stat)
+            else:
+                ModelType(model_type, deepcopy(common_meta), parent=ml)
+
         return root
 
     def __init__(self):
@@ -101,9 +144,11 @@ class ModelTypesRepository:
         return any(node_from_path.name in desired_ids for node_from_path in
                    node.path)
 
-    def search_model_types_by_attributes(self,
-                                         desired_ids: Optional[List[ModelGroupsIdsEnum]] = None,
-                                         desired_metainfo: Optional[ModelMetaInfoTemplate] = None):
+    def search_models(self,
+                      desired_ids:
+                      Optional[List[Union[ModelGroupsIdsEnum, ModelTypesIdsEnum]]] = None,
+                      desired_metainfo:
+                      Optional[ModelMetaInfoTemplate] = None) -> Tuple[List[ModelTypesIdsEnum], List[ModelMetaInfo]]:
 
         desired_ids = [ModelGroupsIdsEnum.all] if desired_ids is None or not desired_ids else desired_ids
 
@@ -115,8 +160,10 @@ class ModelTypesRepository:
                        if isinstance(result, ModelType) and
                        desired_metainfo.is_suits_for_template(result.meta_info)]
 
-        return [result.name for result in results if (result.name in self.model_types)]
+        return ([result.name for result in results if (result.name in self.model_types)],
+                [result.meta_info for result in results if (result.name in self.model_types)])
 
-    def print_tree(self):
-        for pre, node in RenderTree(self._tree):
-            print(f'{pre}{node.name}')
+
+def print_tree(self):
+    for pre, node in RenderTree(self._tree):
+        print(f'{pre}{node.name}')

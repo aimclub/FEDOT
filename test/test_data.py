@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from core.models.data import Data, OutputData, InputData
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -16,7 +17,8 @@ def output_dataset():
     y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = OutputData(idx=np.arange(0, 100), features=x, predict=classes)
+    data = OutputData(idx=np.arange(0, 100), features=x, predict=classes,
+                      task_type=MachineLearningTasksEnum.classification)
 
     return data
 
@@ -30,7 +32,8 @@ def test_data_from_csv():
     target = data_array[-1]
     idx = data_array[0]
     expected_features = InputData(features=features, target=target,
-                                  idx=idx).features.all()
+                                  idx=idx,
+                                  task_type=MachineLearningTasksEnum.classification).features.all()
     actual_features = InputData.from_csv(
         os.path.join(test_file_path, file)).features.all()
     assert expected_features == actual_features
