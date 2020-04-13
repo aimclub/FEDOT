@@ -66,8 +66,8 @@ class Chain:
         return any(self._node_childs(node))
 
     def __eq__(self, other) -> bool:
-        g1, _ = as_nx_graph(self, True)
-        g2, _ = as_nx_graph(other, True)
+        g1, _ = as_nx_graph(self)
+        g2, _ = as_nx_graph(other)
         return nx.is_isomorphic(g1, g2, node_match=name_comparison_func)
 
     @property
@@ -100,7 +100,7 @@ class Chain:
         raise NotImplementedError()
 
 
-def as_nx_graph(chain: Chain, force_node_model_name=False):
+def as_nx_graph(chain: Chain):
     """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
     function which compares nodes model names"""
     graph = nx.DiGraph()
@@ -109,10 +109,8 @@ def as_nx_graph(chain: Chain, force_node_model_name=False):
     for node in chain.nodes:
         id, label = node.node_id, f'{node}'
         node_labels[node.node_id] = label
-        if not force_node_model_name:
-            graph.add_node(id)
-        else:
-            graph.add_node(label)
+        graph.add_node(id)
+    nx.set_node_attributes(graph, node_labels, 'model')
 
     def add_edges(graph, chain):
         for node in chain.nodes:
@@ -132,4 +130,4 @@ def _is_cache_actual(node, cache: CachedNodeResult):
 
 
 def name_comparison_func(first_node_model_name, second_node_model_name) -> bool:
-    return first_node_model_name == second_node_model_name
+    return first_node_model_name['model'] == second_node_model_name['model']
