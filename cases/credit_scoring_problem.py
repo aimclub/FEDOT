@@ -102,6 +102,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
     print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
     print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
 
+    return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
+
 
 if __name__ == '__main__':
     # the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
