@@ -12,6 +12,8 @@ class CaseExecutor:
     train_file: str
     test_file: str
     case: str
+    label: str
+    hyperparameters: dict
     is_classification: bool
     tpot: bool = True
     h2o: bool = True
@@ -32,6 +34,7 @@ class CaseExecutor:
             tpot_result = run_tpot(train_file_path=self.train_file,
                                    test_file_path=self.test_file,
                                    case_name=self.case,
+                                   config_data=self.hyperparameters['TPOT'],
                                    is_classification=True if self.is_classification else False)
             saved_metric_results['tpot_metric'] = tpot_result
         if self.h2o:
@@ -41,6 +44,8 @@ class CaseExecutor:
             h2o_result = run_h2o(train_file_path=self.train_file,
                                  test_file_path=self.test_file,
                                  case_name=self.case,
+                                 target_name=self.label,
+                                 config_data=self.hyperparameters['H2O'],
                                  is_classification=True if self.is_classification else False)
             saved_metric_results['h2o_metric'] = h2o_result
         if self.autokeras:
@@ -50,6 +55,7 @@ class CaseExecutor:
             autokeras_result = run_autokeras(train_file_path=self.train_file,
                                              test_file_path=self.test_file,
                                              case_name=self.case,
+                                             config_data=self.hyperparameters['AutoKeras'],
                                              is_classification=True if self.is_classification else False)
             saved_metric_results['autokeras_metric'] = autokeras_result
         if self.fedot:
@@ -61,14 +67,13 @@ class CaseExecutor:
                                                           test_file_path=self.test_file)
                 saved_metric_results['fedot_metric'] = {'composed_roc_auc': fedot_result[0],
                                                         'static_roc_auc': fedot_result[1],
-                                                        'single_model_roc_auc':fedot_result[2]}
+                                                        'single_model_roc_auc': fedot_result[2]}
         if self.baseline:
             print('---------')
             print('RUN BASELINE')
             print('---------')
-            xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file)
+            xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
+                                         target_name=self.label)
             saved_metric_results['baseline_metric'] = xgboost_result
 
         return saved_metric_results
-
-

@@ -1,33 +1,32 @@
+import pandas as pd
 import xgboost as xgb
+from sklearn.metrics import roc_auc_score
 from xgboost import XGBClassifier
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths
-from sklearn.metrics import roc_auc_score
-
 from core.models.data import InputData
 
 
-def run_xgboost(train_file_path: str, test_file_path: str):
+def run_xgboost(train_file_path: str, test_file_path: str, target_name: str):
+    train_dataframe = pd.read_csv(train_file_path)
+    test_dataframe = pd.read_csv(test_file_path)
 
-    train_data = xgb.DMatrix(f'{train_file_path}?format=csv&label_column=11', silent=True)
-    test_data = xgb.DMatrix(f'{test_file_path}?format=csv&label_column=11', silent=True)
+    train_data = xgb.DMatrix(train_dataframe, label=train_dataframe[target_name])
+    test_data = xgb.DMatrix(test_dataframe, label=test_dataframe[target_name])
 
     xgb_params = {'max_depth': 2, 'eta': 1, 'objective': 'binary:logistic'}
-    num_round = 2
+    num_round = 20
 
-    trained_model = xgb.train(xgb_params, train_data, num_round)
+    trained_model = xgb.train(params=xgb_params, dtrain=train_data, num_boost_round=num_round)
 
     predicted = trained_model.predict(test_data)
 
-    roc_auc_value = roc_auc_score(test_data.get_label(), predicted)
-
-    print(f'XGBoost_Booster roc_auc metric: {roc_auc_value}')
+    roc_auc_value = round(roc_auc_score(test_data.get_label(), predicted), 3)
 
     return roc_auc_value
 
 
 def run_xgb_classifier(train_file: str, test_file: str):
-
     train_data = InputData.from_csv(train_file)
     test_data = InputData.from_csv(test_file)
 
@@ -36,7 +35,7 @@ def run_xgb_classifier(train_file: str, test_file: str):
 
     predicted = model.predict(test_data.features)
 
-    roc_auc_value = roc_auc_score(test_data.target, predicted)
+    roc_auc_value = round(roc_auc_score(test_data.target, predicted), 3)
 
     return roc_auc_value
 

@@ -81,7 +81,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
                                                 metrics=metric_function, is_visualise=True)
 
     # the single-model variant of optimal chain
-    single_composer_requirements = ComposerRequirements(primary=[MLP()],
+    single_composer_requirements = ComposerRequirements(primary=[XGBoost()],
                                                         secondary=[])
     chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
                                                                         initial_chain=None,
@@ -94,13 +94,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
     ComposerVisualiser.visualise(chain_evo_composed)
 
     # the quality assessment for the obtained composite models
-    roc_on_valid_static = calculate_validation_metric(chain_static, dataset_to_validate)
-    roc_on_valid_single = calculate_validation_metric(chain_single, dataset_to_validate)
-    roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, dataset_to_validate)
+    roc_on_valid_static = round(calculate_validation_metric(chain_static, dataset_to_validate), 3)
+    roc_on_valid_single = round(calculate_validation_metric(chain_single, dataset_to_validate), 3)
+    roc_on_valid_evo_composed = round(calculate_validation_metric(chain_evo_composed, dataset_to_validate), 3)
 
-    print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
-    print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
-    print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
+    print(f'Composed ROC AUC is {roc_on_valid_evo_composed}')
+    print(f'Static ROC AUC is {roc_on_valid_static}')
+    print(f'Single-model ROC AUC is {roc_on_valid_single}')
 
     return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
 
