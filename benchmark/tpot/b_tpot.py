@@ -9,32 +9,31 @@ from benchmark.benchmark_utils import get_scoring_case_data_paths
 from core.models.data import InputData
 from sklearn.metrics import mean_squared_error as mse
 
-# MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS in b_h20.py
-MAX_RUNTIME_MINS = 30
-GENERATIONS = 50
-POPULATION_SIZE = 10
 
+def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, case_name='tpot_default',
+             is_classification=True):
+    max_runtime_mins = config_data['MAX_RUNTIME_MINS']
+    generations = config_data['GENERATIONS']
+    population_size = config_data['POPULATION_SIZE']
 
-def run_tpot(train_file_path: str, test_file_path: str, case_name='tpot_default', is_classification=True):
     train_data = InputData.from_csv(train_file_path)
     test_data = InputData.from_csv(test_file_path)
 
-    tpot_config_data = {'generations': GENERATIONS, 'population_size': POPULATION_SIZE}
     task = 'clss' if is_classification else 'reg'
 
-    result_model_filename = f"{case_name}_g{tpot_config_data['generations']}" \
-                            f"_p{tpot_config_data['population_size']}_{task}.pkl"
+    result_model_filename = f"{case_name}_g{generations}" \
+                            f"_p{population_size}_{task}.pkl"
     current_file_path = str(os.path.dirname(__file__))
     result_file_path = os.path.join(current_file_path, result_model_filename)
 
     if result_model_filename not in os.listdir(current_file_path):
         estimator = TPOTClassifier if is_classification else TPOTRegressor
 
-        model = estimator(generations=tpot_config_data['generations'],
-                          population_size=tpot_config_data['population_size'],
+        model = estimator(generations=generations,
+                          population_size=population_size,
                           verbosity=2,
                           random_state=42,
-                          max_time_mins=MAX_RUNTIME_MINS)
+                          max_time_mins=max_runtime_mins)
 
         model.fit(train_data.features, train_data.target)
         model.export(output_file_name=f'{result_model_filename[:-4]}_pipeline.py')
@@ -49,11 +48,11 @@ def run_tpot(train_file_path: str, test_file_path: str, case_name='tpot_default'
     print(f'BEST_model: {imported_model}')
 
     if is_classification:
-        result_metric = f'TPOT_ROC_AUC_test: {roc_auc_score(test_data.target, predicted)}'
-        print(result_metric)
+        result_metric = {'TPOT_ROC_AUC_test': round(roc_auc_score(test_data.target, predicted), 3)}
+        print(f"TPOT_ROC_AUC_test:{result_metric['TPOT_ROC_AUC_test']} ")
     else:
-        result_metric = f'TPOT_MSE: {mse(test_data.target, predicted)}'
-        print(result_metric)
+        result_metric = {'TPOT_MSE': round(mse(test_data.target, predicted), 3)}
+        print(f"TPOT_MSE: {result_metric['TPOT_MSE']}")
 
     return result_metric
 
@@ -61,4 +60,10 @@ def run_tpot(train_file_path: str, test_file_path: str, case_name='tpot_default'
 if __name__ == '__main__':
     train_data_path, test_data_path = get_scoring_case_data_paths()
 
-    run_tpot(train_data_path, test_data_path)
+    # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS in b_h20.py
+    tpot_config = {'MAX_RUNTIME_MINS': 30,
+                   'GENERATIONS': 30,
+                   'POPULATION_SIZE': 8
+                   }
+
+    run_tpot(train_data_path, test_data_path, config_data=tpot_config)
