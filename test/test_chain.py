@@ -53,7 +53,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     train_predicted = final.fit(input_data=train)
 
     assert train_predicted.predict.shape == train.target.shape
-    assert len(final.cached_result.last_parents_ids) == 2
+    assert final.cache.actual_cached_model is not None
 
 
 def test_chain_hierarchy_fit_correct(data_setup):

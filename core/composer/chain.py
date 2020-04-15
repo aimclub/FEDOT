@@ -1,9 +1,10 @@
 from copy import deepcopy
 from typing import Optional, List
+from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode, CachedNodeResult
+from core.composer.node import Node, SecondaryNode, PrimaryNode
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -43,7 +44,7 @@ class Chain:
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
 
-    def replace_node(self, old_node: Node, new_node: Node):
+    def replace_node_with_parents(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
         self._actualise_old_node_childs(old_node, new_node)
         new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
@@ -58,10 +59,10 @@ class Chain:
 
     def _clean_model_cache(self):
         for node in self.nodes:
-            node.cached_result = None
+            node.cache.clear()
 
     def is_all_cache_actual(self):
-        cache_status = [_is_cache_actual(node, node.cached_result) for node in self.nodes]
+        cache_status = [node.cache.actual_cached_model is not None for node in self.nodes]
         return all(cache_status)
 
     def _node_childs(self, node) -> List[Optional[Node]]:
@@ -72,9 +73,7 @@ class Chain:
         return any(self._node_childs(node))
 
     def __eq__(self, other) -> bool:
-        g1, _ = as_nx_graph(self)
-        g2, _ = as_nx_graph(other)
-        return nx.is_isomorphic(g1, g2, node_match=name_comparison_func)
+        return self.root_node.descriptive_id == other.root_node.descriptive_id
 
     @property
     def root_node(self) -> Optional[Node]:
@@ -107,33 +106,21 @@ class Chain:
 
 
 def as_nx_graph(chain: Chain):
-    """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
-    function which compares nodes model names"""
     graph = nx.DiGraph()
 
     node_labels = {}
+    new_node_idx = {}
     for node in chain.nodes:
-        id, label = node.node_id, f'{node}'
-        node_labels[node.node_id] = label
-        graph.add_node(id)
-    nx.set_node_attributes(graph, node_labels, 'model')
+        unique_id, label = uuid4(), str(node)
+        node_labels[unique_id] = str(node)
+        new_node_idx[node] = unique_id
+        graph.add_node(unique_id)
 
-    def add_edges(graph, chain):
+    def add_edges(graph, chain, new_node_idx):
         for node in chain.nodes:
             if node.nodes_from is not None:
                 for child in node.nodes_from:
-                    graph.add_edge(child.node_id, node.node_id)
+                    graph.add_edge(new_node_idx[child], new_node_idx[node])
 
-    add_edges(graph, chain)
+    add_edges(graph, chain, new_node_idx)
     return graph, node_labels
-
-
-def _is_cache_actual(node, cache: CachedNodeResult):
-    if cache is not None and cache.is_actual(node):
-        return True
-
-    return False
-
-
-def name_comparison_func(first_node_model_name, second_node_model_name) -> bool:
-    return first_node_model_name['model'] == second_node_model_name['model']

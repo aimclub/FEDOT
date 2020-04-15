@@ -54,7 +54,7 @@ def chain_second():
     new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.dt)
     for model_type in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.knn):
         new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
-    chain.replace_node(chain.root_node.nodes_from[0], new_node)
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0], new_node)
     return chain
 
 
@@ -74,10 +74,10 @@ def test_cache_model_changed(data_setup):
     primary_node_third = root_parent_second.nodes_from[0]
     primary_node_fourth = root_parent_second.nodes_from[1]
 
-    assert not all([root._is_cache_actual(), root_parent_first._is_cache_actual()])
-    assert all([root_parent_second._is_cache_actual(), primary_node_first._is_cache_actual(),
-                primary_node_second._is_cache_actual(), primary_node_third._is_cache_actual(),
-                primary_node_fourth._is_cache_actual()])
+    assert not all([root.cache.actual_cached_model, root_parent_first.cache.actual_cached_model])
+    assert all([root_parent_second.cache.actual_cached_model, primary_node_first.cache.actual_cached_model,
+                primary_node_second.cache.actual_cached_model, primary_node_third.cache.actual_cached_model,
+                primary_node_fourth.cache.actual_cached_model])
 
 
 def test_cache_subtree_changed(data_setup):
@@ -87,12 +87,12 @@ def test_cache_subtree_changed(data_setup):
     other_chain = chain_second()
     chain.fit(input_data=train)
     other_chain.fit(input_data=train)
-    chain.replace_node(chain.root_node.nodes_from[0], other_chain.root_node.nodes_from[0])
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0], other_chain.root_node.nodes_from[0])
     root = chain.root_node
     root_parent_first = root.nodes_from[0]
     root_parent_second = root.nodes_from[1]
-    assert not root._is_cache_actual()
-    assert all([root_parent_first._is_cache_actual(), root_parent_second._is_cache_actual()])
+    assert not root.cache.actual_cached_model
+    assert all([root_parent_first.cache.actual_cached_model, root_parent_second.cache.actual_cached_model])
 
 
 def test_cache_primary_node_changed_to_subtree(data_setup):
@@ -102,7 +102,7 @@ def test_cache_primary_node_changed_to_subtree(data_setup):
     other_chain = chain_second()
     chain.fit(input_data=train)
     other_chain.fit(input_data=train)
-    chain.replace_node(chain.root_node.nodes_from[0].nodes_from[0], other_chain.root_node.nodes_from[0])
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], other_chain.root_node.nodes_from[0])
     root = chain.root_node
     root_parent_first = root.nodes_from[0]
     root_parent_second = root.nodes_from[1]
@@ -111,7 +111,7 @@ def test_cache_primary_node_changed_to_subtree(data_setup):
     primary_node_first = root_parent_first_parent_first.nodes_from[0]
     primary_node_second = root_parent_first_parent_first.nodes_from[0]
 
-    assert not all([root._is_cache_actual(), root_parent_first._is_cache_actual()])
-    assert all([root_parent_second._is_cache_actual(), root_parent_first_parent_first._is_cache_actual(),
-                root_parent_first_parent_second._is_cache_actual()])
-    assert all([primary_node_first._is_cache_actual(), primary_node_second._is_cache_actual()])
+    assert not all([root.cache.actual_cached_model, root_parent_first.cache.actual_cached_model])
+    assert all([root_parent_second.cache.actual_cached_model, root_parent_first_parent_first.cache.actual_cached_model,
+                root_parent_first_parent_second.cache.actual_cached_model])
+    assert all([primary_node_first.cache.actual_cached_model, primary_node_second.cache.actual_cached_model])

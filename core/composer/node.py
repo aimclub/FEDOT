@@ -1,5 +1,4 @@
 import collections
-import uuid
 from abc import ABC, abstractmethod
 from typing import (List, Optional, Any, Tuple)
 
@@ -11,10 +10,34 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 
 class Node(ABC):
     def __init__(self, nodes_from: Optional[List['Node']], model: Model):
-        self.node_id = str(uuid.uuid4())
         self.nodes_from = nodes_from
         self.model = model
-        self.cached_result = None
+        self.cache = FittedModelCache(self)
+
+    @property
+    def descriptive_id(self):
+        return self._descriptive_id_recursive(visited_nodes=[])
+
+    def _descriptive_id_recursive(self, visited_nodes):
+        model_type = self.model.model_type
+        model_params = 'defaultparams'
+        node_label = f'n_{model_type}_{model_params}'
+        full_path = ''
+        if self in visited_nodes:
+            return 'ID_CYCLED'
+        visited_nodes.append(self)
+        if self.nodes_from:
+            previous_items = []
+            for parent_node in self.nodes_from:
+                visited_nodes.append(self)
+                previous_items.append(f'{parent_node._descriptive_id_recursive(visited_nodes)};')
+
+            previous_items.sort()  # models with different inputs order are equal
+            previous_items_str = ';'.join(previous_items)
+
+            full_path += f'({previous_items_str})'
+        full_path += f'/{node_label}'
+        return full_path
 
     @abstractmethod
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
@@ -29,20 +52,17 @@ class Node(ABC):
         return model
 
     def _fit_using_cache(self, input_data, verbose=False):
-        if not self._is_cache_actual():
+        if not self.cache.actual_cached_model:
             if verbose:
                 print('Cache is not actual')
             cached_model, model_predict = self.model.fit(data=input_data)
-            self.cached_result = CachedNodeResult(node=self, fitted_model=cached_model)
+            self.cache.append(cached_model)
         else:
             if verbose:
                 print('Model were obtained from cache')
-            model_predict = self.model.predict(fitted_model=self.cached_result.cached_model,
+            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_model,
                                                data=input_data)
         return model_predict
-
-    def _is_cache_actual(self):
-        return self.cached_result is not None and self.cached_result.is_actual(self)
 
     @property
     def subtree_nodes(self) -> List['Node']:
@@ -53,26 +73,20 @@ class Node(ABC):
         return nodes
 
 
-class CachedNodeResult:
-    def __init__(self, node: Node, fitted_model):
-        self.cached_model = fitted_model
-        self.is_always_actual = isinstance(node, PrimaryNode)
-        self.last_parents_ids = [n.node_id for n in node.nodes_from] \
-            if isinstance(node, SecondaryNode) else None
+class FittedModelCache:
+    def __init__(self, related_node: Node):
+        self._cached_models_history = {}
+        self._related_node_ref = related_node
 
-    def is_actual(self, node):
-        if self.is_always_actual:
-            return True
-        if not self.last_parents_ids:
-            return False
-        parent_node_ids = [node.node_id for node in node.nodes_from]
-        if not _are_lists_equal(self.last_parents_ids, parent_node_ids):
-            return False
-        return True
+    def append(self, fitted_model):
+        self._cached_models_history[self._related_node_ref.descriptive_id] = fitted_model
 
+    def clear(self):
+        self._cached_models_history = {}
 
-def _are_lists_equal(first, second):
-    return collections.Counter(first) == collections.Counter(second)
+    @property
+    def actual_cached_model(self):
+        return self._cached_models_history.get(self._related_node_ref.descriptive_id, None)
 
 
 # TODO: discuss about the usage of NodeGenerator
@@ -104,10 +118,10 @@ class PrimaryNode(Node):
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
             print(f'Predict in primary node by model: {self.model}')
-        if not self.cached_result:
+        if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        predict_train = self.model.predict(fitted_model=self.cached_result.cached_model,
+        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_model,
                                            data=input_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -158,7 +172,7 @@ class SecondaryNode(Node):
                                                 target=target)
         if verbose:
             print(f'Obtain prediction in secondary node with model: {self.model}')
-        evaluation_result = self.model.predict(fitted_model=self.cached_result.cached_model,
+        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_model,
                                                data=secondary_input)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
