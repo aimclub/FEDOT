@@ -38,17 +38,23 @@ class Chain:
         """
         self.nodes.append(new_node)
 
-    def replace_node(self, old_node: Node, new_node: Node):
-        new_node = deepcopy(new_node)
+    def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
         old_node_offspring = self._node_childs(old_node)
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
+
+    def replace_node(self, old_node: Node, new_node: Node):
+        new_node = deepcopy(new_node)
+        self._actualise_old_node_childs(old_node, new_node)
         new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
         old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
         self.nodes = new_nodes + old_nodes
 
-    def update_node(self, new_node: Node):
-        raise NotImplementedError()
+    def update_node(self, old_node: Node, new_node: Node):
+        self._actualise_old_node_childs(old_node, new_node)
+        new_node.nodes_from = old_node.nodes_from
+        self.nodes.remove(old_node)
+        self.nodes.append(new_node)
 
     def _clean_model_cache(self):
         for node in self.nodes:
