@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import (Optional, List, Any)
+from core.composer.node import node_duplicate
 
 
 class GPNode:
@@ -14,6 +15,14 @@ class GPNode:
     @nodes_from.setter
     def nodes_from(self, nodes):
         self.chain_node.nodes_from = nodes
+
+    @property
+    def node_id(self):
+        return self.chain_node.node_id
+
+    @node_id.setter
+    def node_id(self, id):
+        self.chain_node.node_id = id
 
     @property
     def eval_strategy(self):
@@ -42,6 +51,10 @@ class GPNode:
         else:
             return 1 + max([next_node.depth for next_node in self.nodes_from])
 
+    @property
+    def duplicate(self) -> 'GPNode':
+        return node_duplicate(self)
+
     def nodes_from_height(self, selected_height) -> List[Any]:
         nodes = []
         if self.nodes_from:
@@ -54,7 +67,7 @@ class GPNode:
 
 
 def swap_nodes(node_first, node_second):
-    new_node = deepcopy(node_second)
+    new_node = node_second.duplicate
     new_node.node_to = node_first.node_to
     node_first.node_to.nodes_from[node_first.node_to.nodes_from.index(node_first)] = new_node
     node_first = new_node

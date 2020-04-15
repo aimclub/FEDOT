@@ -1,4 +1,3 @@
-from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (
@@ -14,6 +13,7 @@ from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
+from core.chain_validation import validate
 
 
 @dataclass
@@ -62,13 +62,16 @@ class GPComposer(Composer):
 
 
 def tree_to_chain(tree_root: GPNode) -> Chain:
+
     chain = Chain()
-    nodes = flat_nodes_tree(deepcopy(tree_root))
+    nodes = flat_nodes_tree(tree_root.duplicate)
     for node in nodes:
         if node.nodes_from:
             for i in range(len(node.nodes_from)):
                 node.nodes_from[i] = node.nodes_from[i].chain_node
         chain.add_node(node.chain_node)
+
+    assert validate(chain)
     return chain
 
 

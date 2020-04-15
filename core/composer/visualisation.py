@@ -37,7 +37,7 @@ class ComposerVisualiser:
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = as_nx_graph(chain=deepcopy(chain))
+            graph, node_labels = as_nx_graph(chain=chain.duplicate)
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -63,7 +63,7 @@ class ComposerVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            best_graph, best_node_labels = as_nx_graph(chain=deepcopy(last_best_chain))
+            best_graph, best_node_labels = as_nx_graph(chain=last_best_chain.duplicate)
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20

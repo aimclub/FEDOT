@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_node import GPNode
 from core.composer.gp_composer.gp_node import swap_nodes
@@ -9,7 +7,7 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 
 def tree_to_chain(tree_root: GPNode) -> Chain:
     chain = Chain()
-    nodes = flat_nodes_tree(deepcopy(tree_root))
+    nodes = flat_nodes_tree(tree_root.duplicate)
     for node in nodes:
         if node.nodes_from:
             for i in range(len(node.nodes_from)):

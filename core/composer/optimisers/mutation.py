@@ -1,4 +1,3 @@
-from copy import deepcopy
 from enum import Enum
 from random import random, choice
 from typing import Any
@@ -26,7 +25,7 @@ def standard_mutation(root_node: Any, secondary: Any, primary: Any,
                       node_mutate_type=MutationPowerEnum.mean) -> Any:
     if mutation_prob:
         if random() > mutation_prob:
-            return deepcopy(root_node)
+            return root_node.duplicate
 
     probability = get_mutation_prob(mut_id=node_mutate_type.value, root_node=root_node)
 
@@ -58,6 +57,6 @@ def random_mutation(root_node, probability, primary_node_func, secondary_node_fu
                         node.nodes_from[i].node_to = node
         return node
 
-    root_node_copy = deepcopy(root_node)
+    root_node_copy = root_node.duplicate
     root_node_copy = replace_node_to_random_recursive(node=root_node_copy)
     return root_node_copy

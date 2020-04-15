@@ -1,4 +1,3 @@
-from copy import deepcopy
 from random import choice, randint
 from typing import (
     List,
@@ -41,14 +40,14 @@ class GPChainOptimiser:
             for generation_num in range(self.requirements.num_of_generations-1):
                 print(f'GP generation num: {generation_num}')
                 best_ind_num = np.argmin(self.fitness)
-                self.best_individual = deepcopy(self.population[best_ind_num])
+                self.best_individual = self.population[best_ind_num].duplicate
                 self.best_fitness = self.fitness[best_ind_num]
                 selected_individuals = tournament_selection(self.fitness, self.population)
 
                 for ind_num in range(self.requirements.pop_size):
 
                     if ind_num == self.requirements.pop_size - 1:
-                        self.population[ind_num] = deepcopy(self.best_individual)
+                        self.population[ind_num] = self.best_individual.duplicate
                         self.fitness[ind_num] = self.best_fitness
                         history.append((self.population[ind_num], self.fitness[ind_num]))
                         break

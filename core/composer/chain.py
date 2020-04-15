@@ -1,10 +1,10 @@
-from copy import deepcopy
 from typing import Optional, List
 
 import networkx as nx
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode, CachedNodeResult
 from core.models.data import InputData
+from copy import deepcopy
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -39,7 +39,7 @@ class Chain:
         self.nodes.append(new_node)
 
     def replace_node(self, old_node: Node, new_node: Node):
-        new_node = deepcopy(new_node)
+        new_node = new_node.duplicate
         old_node_offspring = self._node_childs(old_node)
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
@@ -96,11 +96,18 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
+    @property
+    def duplicate(self) -> 'Chain':
+        duplicate_chain = deepcopy(self)
+        root_node_duplicate = self.root_node.duplicate
+        duplicate_chain.nodes = root_node_duplicate.subtree_nodes
+        return duplicate_chain
+
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()
 
 
-def as_nx_graph(chain: Chain):
+def as_nx_graph(chain: Chain) -> (nx.DiGraph, dict):
     """force_node_model_name should be True in case when parameter mode_math of function nx.is_isomorphic is the
     function which compares nodes model names"""
     graph = nx.DiGraph()
@@ -122,10 +129,9 @@ def as_nx_graph(chain: Chain):
     return graph, node_labels
 
 
-def _is_cache_actual(node, cache: CachedNodeResult):
+def _is_cache_actual(node, cache: CachedNodeResult) -> bool:
     if cache is not None and cache.is_actual(node):
         return True
-
     return False
 
 

@@ -1,5 +1,4 @@
 import itertools
-from copy import deepcopy
 
 import pytest
 
@@ -91,7 +90,7 @@ def equality_cases():
 
     for node_num in ((2, 1), (1, 2)):
         old_node = pairs[2][1].root_node.nodes_from[node_num[0]]
-        new_node = deepcopy(pairs[2][0].root_node.nodes_from[node_num[1]])
+        new_node = pairs[2][0].root_node.nodes_from[node_num[1]].duplicate
         pairs[2][1].replace_node(old_node, new_node)
 
     return pairs

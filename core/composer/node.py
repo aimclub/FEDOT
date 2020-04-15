@@ -7,6 +7,7 @@ from core.models.data import Data, InputData, OutputData
 from core.models.model import Model
 from core.models.model import sklearn_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from copy import deepcopy, copy
 
 
 class Node(ABC):
@@ -52,6 +53,9 @@ class Node(ABC):
                 nodes += parent.subtree_nodes
         return nodes
 
+    @property
+    def duplicate(self)-> 'Node':
+        return node_duplicate(self)
 
 class CachedNodeResult:
     def __init__(self, node: Node, fitted_model):
@@ -186,3 +190,16 @@ def equivalent_subtree(root_of_tree_first: Node, root_of_tree_second: Node) -> L
     pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
     assert isinstance(pairs_set, list)
     return pairs_set
+
+
+def node_duplicate(any_node: Any) -> Any:
+    duplicate_node = deepcopy(any_node)
+
+    def update_node_id(node):
+        node.node_id = str(uuid.uuid4())
+        if isinstance(node, SecondaryNode):
+            [update_node_id(node_from) for node_from in node.nodes_from]
+
+    update_node_id(duplicate_node)
+
+    return duplicate_node
