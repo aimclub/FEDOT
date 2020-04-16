@@ -23,10 +23,11 @@ import matplotlib.pyplot as plt
 
 
 def compare_plot(predicted: OutputData, dataset_to_validate: InputData):
-    # plot results
     fig, ax = plt.subplots()
     plt.plot(dataset_to_validate.target, linewidth=1, label="Observed")
-    plt.plot(predicted.predict, linewidth=1, label="Predict")
+    plt.plot(predicted.predict, linewidth=1, label="Predicted")
+    ax.legend()
+
     plt.show()
 
 

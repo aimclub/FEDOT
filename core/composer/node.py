@@ -5,7 +5,6 @@ from typing import (List, Optional, Any, Tuple)
 
 from core.models.data import Data, InputData, OutputData
 from core.models.model import Model
-from core.models.model import init_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -89,7 +88,7 @@ class NodeGenerator:
 
 class PrimaryNode(Node):
     def __init__(self, model_type: ModelTypesIdsEnum):
-        model = init_model_by_type(model_type=model_type)
+        model = Model(model_type=model_type)
         super().__init__(nodes_from=None, model=model)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
@@ -117,7 +116,7 @@ class PrimaryNode(Node):
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  model_type: ModelTypesIdsEnum):
-        model = init_model_by_type(model_type=model_type)
+        model = Model(model_type=model_type)
         super().__init__(nodes_from=nodes_from, model=model)
         if self.nodes_from is None:
             self.nodes_from = []

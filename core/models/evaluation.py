@@ -54,6 +54,14 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         }
 
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        sklearn_model = self._convert_to_sklearn(model_type)()
+        sklearn_model.fit(train_data.features, train_data.target.ravel())
+        return sklearn_model
+
+    def predict(self, trained_model, predict_data: InputData):
+        raise NotImplementedError()
+
     def tune(self, model, data_for_tune: InputData):
         return model
 
@@ -65,37 +73,18 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        sklearn_model = self._convert_to_sklearn(model_type)()
-        sklearn_model.fit(train_data.features, train_data.target.ravel())
-        return sklearn_model
-
     def predict(self, trained_model, predict_data: InputData):
         prediction = trained_model.predict_proba(predict_data.features)[:, 1]
         return prediction
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
-    def __init__(self):
-        super().__init__()
-
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        sklearn_model = self._convert_to_sklearn(model_type)()
-        sklearn_model.fit(train_data.features, train_data.target.ravel())
-        return sklearn_model
-
     def predict(self, trained_model, predict_data: InputData):
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    def __init__(self):
-        super().__init__()
-
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
         sklearn_model = self._convert_to_sklearn(model_type)(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
@@ -107,7 +96,6 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
 
 class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
-
     def _model_specific_fit(self, stats_model: Any):
         raise NotImplementedError()
 

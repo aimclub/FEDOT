@@ -63,8 +63,8 @@ def _convert_dtypes(data_frame: pd.DataFrame):
 
 
 def train_test_data_setup(data: InputData, split_ratio=0.8) -> Tuple[InputData, InputData]:
-    train_data_x, test_data_x = split_train_test(data.features)
-    train_data_y, test_data_y = split_train_test(data.target)
+    train_data_x, test_data_x = split_train_test(data.features, split_ratio)
+    train_data_y, test_data_y = split_train_test(data.target, split_ratio)
     train_idx, test_idx = split_train_test(data.idx, split_ratio)
     train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=train_idx, task_type=data.task_type)

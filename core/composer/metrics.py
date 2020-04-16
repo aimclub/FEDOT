@@ -42,14 +42,13 @@ class RocAucMetric(ChainMetric):
         try:
             validate(chain)
             results = chain.predict(reference_data)
-            # TODO re-factor to avoid negative
             score = roc_auc_score(y_score=results.predict,
                                   y_true=reference_data.target)
         except Exception as ex:
             print(ex)
             score = 0.5
 
-        return -score
+        return score
 
 
 # TODO: reference_data = None ?

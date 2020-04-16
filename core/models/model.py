@@ -1,14 +1,13 @@
 from abc import ABC
 from copy import copy
 from dataclasses import dataclass
-from typing import Optional, Callable
 
 import numpy as np
 
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation import EvaluationStrategy, SkLearnClassificationStrategy, \
+from core.models.evaluation import SkLearnClassificationStrategy, \
     StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
 from core.models.preprocessing import scaling_preprocess, simple_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -20,12 +19,13 @@ from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, 
 # noinspection SpellCheckingInspection
 @dataclass
 class Model(ABC):
-    model_type: ModelTypesIdsEnum
-    eval_strategy: Optional[EvaluationStrategy] = None
-    data_preprocessing: Optional[Callable] = None
+
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        self.model_type = model_type
+        self._eval_strategy, self._data_preprocessing = None, None
 
     def fit(self, data: InputData):
-        self.eval_strategy, self.data_preprocessing = \
+        self._eval_strategy, self._data_preprocessing = \
             _eval_strategy_for_task(self.model_type, data.task_type)
         preprocessed_data = copy(data)
         preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
@@ -51,11 +51,6 @@ class Model(ABC):
 
     def __str__(self):
         return f'{self.model_type.name}'
-
-
-def init_model_by_type(model_type: ModelTypesIdsEnum):
-    return Model(model_type=model_type,
-                 eval_strategy=None)
 
 
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type: TaskTypesEnum):

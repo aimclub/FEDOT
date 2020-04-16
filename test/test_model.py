@@ -3,7 +3,7 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData, train_test_data_setup
-from core.models.model import init_model_by_type
+from core.models.model import Model
 from core.models.preprocessing import scaling_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
@@ -29,7 +29,7 @@ def test_log_regression_fit_correct(classification_dataset):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    log_reg = init_model_by_type(model_type=ModelTypesIdsEnum.logit)
+    log_reg = Model(model_type=ModelTypesIdsEnum.logit)
     _, train_predicted = log_reg.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -43,7 +43,7 @@ def test_random_forest_fit_correct(data_fixture, request):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    random_forest = init_model_by_type(model_type=ModelTypesIdsEnum.rf)
+    random_forest = Model(model_type=ModelTypesIdsEnum.rf)
     _, train_predicted = random_forest.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -57,7 +57,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree = init_model_by_type(model_type=ModelTypesIdsEnum.dt)
+    decision_tree = Model(model_type=ModelTypesIdsEnum.dt)
     decision_tree.fit(data=train_data)
     _, train_predicted = decision_tree.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
@@ -72,7 +72,7 @@ def test_lda_fit_correct(data_fixture, request):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    lda = init_model_by_type(model_type=ModelTypesIdsEnum.lda)
+    lda = Model(model_type=ModelTypesIdsEnum.lda)
     _, train_predicted = lda.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -86,7 +86,7 @@ def test_qda_fit_correct(data_fixture, request):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    qda = init_model_by_type(model_type=ModelTypesIdsEnum.qda)
+    qda = Model(model_type=ModelTypesIdsEnum.qda)
 
     _, train_predicted = qda.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
@@ -101,7 +101,7 @@ def test_log_clustring_fit_correct(data_fixture, request):
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    kmeans = init_model_by_type(model_type=ModelTypesIdsEnum.kmeans)
+    kmeans = Model(model_type=ModelTypesIdsEnum.kmeans)
 
     _, train_predicted = kmeans.fit(data=train_data)
 

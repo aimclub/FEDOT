@@ -1,4 +1,4 @@
-statsmodels
+statsmodels==0.11.1
 pandas==1.0.1
 dataclasses==0.7
 ete3==3.1.1
