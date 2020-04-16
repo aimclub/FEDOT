@@ -24,6 +24,12 @@ class Model(ABC):
     eval_strategy: EvaluationStrategy = None
     data_preprocessing: Callable = scaling_preprocess
 
+    @property
+    def description(self):
+        model_type = self.model_type
+        model_params = 'defaultparams'
+        return f'n_{model_type}_{model_params}'
+
     def fit(self, data: InputData):
         preprocessed_data = copy(data)
         preprocessed_data.features = self.data_preprocessing(preprocessed_data.features)

@@ -63,21 +63,17 @@ def test_cache_model_changed(data_setup):
     chain = chain_first()
     train, _ = data_setup
     chain.fit(input_data=train)
-    function = ModelTypesIdsEnum.dt
-    new_node = NodeGenerator.secondary_node(model_type=function)
-    chain.update_node(old_node=chain.root_node.nodes_from[0], new_node=new_node)
-    root = chain.root_node
-    root_parent_first = root.nodes_from[0]
-    root_parent_second = root.nodes_from[1]
-    primary_node_first = root_parent_first.nodes_from[0]
-    primary_node_second = root_parent_first.nodes_from[1]
-    primary_node_third = root_parent_second.nodes_from[0]
-    primary_node_fourth = root_parent_second.nodes_from[1]
+    new_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit)
+    chain.update_node(old_node=chain.root_node.nodes_from[0],
+                      new_node=new_node)
 
-    assert not all([root.cache.actual_cached_model, root_parent_first.cache.actual_cached_model])
-    assert all([root_parent_second.cache.actual_cached_model, primary_node_first.cache.actual_cached_model,
-                primary_node_second.cache.actual_cached_model, primary_node_third.cache.actual_cached_model,
-                primary_node_fourth.cache.actual_cached_model])
+    root_parent_first = chain.root_node.nodes_from[0]
+
+    nodes_with_non_actual_cache = [chain.root_node, root_parent_first]
+    nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
+
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
 
 
 def test_cache_subtree_changed(data_setup):
@@ -87,12 +83,13 @@ def test_cache_subtree_changed(data_setup):
     other_chain = chain_second()
     chain.fit(input_data=train)
     other_chain.fit(input_data=train)
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0], other_chain.root_node.nodes_from[0])
-    root = chain.root_node
-    root_parent_first = root.nodes_from[0]
-    root_parent_second = root.nodes_from[1]
-    assert not root.cache.actual_cached_model
-    assert all([root_parent_first.cache.actual_cached_model, root_parent_second.cache.actual_cached_model])
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0],
+                                    other_chain.root_node.nodes_from[0])
+
+    nodes_with_actual_cache = [node for node in chain.nodes if node not in [chain.root_node]]
+
+    assert not chain.root_node.cache.actual_cached_model
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
 
 
 def test_cache_primary_node_changed_to_subtree(data_setup):
@@ -102,16 +99,31 @@ def test_cache_primary_node_changed_to_subtree(data_setup):
     other_chain = chain_second()
     chain.fit(input_data=train)
     other_chain.fit(input_data=train)
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], other_chain.root_node.nodes_from[0])
-    root = chain.root_node
-    root_parent_first = root.nodes_from[0]
-    root_parent_second = root.nodes_from[1]
-    root_parent_first_parent_first = root_parent_first.nodes_from[0]
-    root_parent_first_parent_second = root_parent_first.nodes_from[1]
-    primary_node_first = root_parent_first_parent_first.nodes_from[0]
-    primary_node_second = root_parent_first_parent_first.nodes_from[0]
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0],
+                                    other_chain.root_node.nodes_from[0])
 
-    assert not all([root.cache.actual_cached_model, root_parent_first.cache.actual_cached_model])
-    assert all([root_parent_second.cache.actual_cached_model, root_parent_first_parent_first.cache.actual_cached_model,
-                root_parent_first_parent_second.cache.actual_cached_model])
-    assert all([primary_node_first.cache.actual_cached_model, primary_node_second.cache.actual_cached_model])
+    root_parent_first = chain.root_node.nodes_from[0]
+
+    nodes_with_non_actual_cache = [chain.root_node, root_parent_first]
+    nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
+
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+
+
+def test_cache_dictionary(data_setup):
+    train, _ = data_setup
+    chain = chain_first()
+    chain.fit(input_data=train)
+    new_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit)
+    old_node = chain.root_node.nodes_from[0]
+
+    # change child node
+    chain.update_node(old_node=old_node,
+                      new_node=new_node)
+    assert not chain.root_node.cache.actual_cached_model
+
+    # change back
+    chain.update_node(old_node=chain.root_node.nodes_from[0],
+                      new_node=old_node)
+    assert chain.root_node.cache.actual_cached_model

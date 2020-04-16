@@ -1,5 +1,5 @@
-import collections
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import (List, Optional, Any, Tuple)
 
 from core.models.data import Data, InputData, OutputData
@@ -19,9 +19,7 @@ class Node(ABC):
         return self._descriptive_id_recursive(visited_nodes=[])
 
     def _descriptive_id_recursive(self, visited_nodes):
-        model_type = self.model.model_type
-        model_params = 'defaultparams'
-        node_label = f'n_{model_type}_{model_params}'
+        node_label = self.model.description
         full_path = ''
         if self in visited_nodes:
             return 'ID_CYCLED'
@@ -29,9 +27,7 @@ class Node(ABC):
         if self.nodes_from:
             previous_items = []
             for parent_node in self.nodes_from:
-                visited_nodes.append(self)
-                previous_items.append(f'{parent_node._descriptive_id_recursive(visited_nodes)};')
-
+                previous_items.append(f'{parent_node._descriptive_id_recursive(copy(visited_nodes))};')
             previous_items.sort()  # models with different inputs order are equal
             previous_items_str = ';'.join(previous_items)
 
