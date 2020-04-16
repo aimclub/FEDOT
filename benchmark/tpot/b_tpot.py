@@ -5,7 +5,7 @@ from sklearn.metrics import roc_auc_score
 from tpot import TPOTClassifier
 from tpot import TPOTRegressor
 
-from benchmark.benchmark_utils import get_scoring_case_data_paths
+from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.models.data import InputData
 from sklearn.metrics import mean_squared_error as mse
 
@@ -44,7 +44,8 @@ def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, case_
 
     imported_model = joblib.load(result_file_path)
 
-    predicted = imported_model.predict(test_data.features)
+    predicted = imported_model.predict_proba(test_data.features)[:, 1]
+    print(predicted)
     print(f'BEST_model: {imported_model}')
 
     if is_classification:
@@ -61,9 +62,6 @@ if __name__ == '__main__':
     train_data_path, test_data_path = get_scoring_case_data_paths()
 
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS in b_h20.py
-    tpot_config = {'MAX_RUNTIME_MINS': 30,
-                   'GENERATIONS': 30,
-                   'POPULATION_SIZE': 8
-                   }
+    tpot_config = get_models_hyperparameters()['TPOT']
 
     run_tpot(train_data_path, test_data_path, config_data=tpot_config)

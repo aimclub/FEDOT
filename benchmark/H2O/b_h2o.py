@@ -8,7 +8,7 @@ import os
 import h2o
 from h2o.automl import H2OAutoML
 
-from benchmark.benchmark_utils import get_scoring_case_data_paths
+from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 
 CURRENT_PATH = str(os.path.dirname(__file__))
 IP = '127.0.0.1'
@@ -18,13 +18,12 @@ PORT = 8888
 # MAX_RUNTIME_SECS should be equivalent to MAX_RUNTIME_MINS in b_tpot.py
 
 
-def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target_name: str,
-            case_name='h2o_default',
+def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target_name: str, case_name='h2o_default',
             is_classification=True):
     max_models = config_data['MAX_MODELS']
     max_runtime_secs = config_data['MAX_RUNTIME_SECS']
 
-    h2o.init(ip=IP, port=PORT)
+    h2o.init(ip=IP, port=PORT, name='h2o_server')
 
     task = 'clss' if is_classification else 'reg'
 
@@ -61,19 +60,19 @@ def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target
         mse_train = imported_model.mse()
         rmse_train = imported_model.rmse()
 
-        metrics = {'H2O_MSE_train' : mse_train, 'H2O_RMSE_train': rmse_train}
+        metrics = {'H2O_MSE_train': mse_train, 'H2O_RMSE_train': rmse_train}
 
         print(f"H2O_MSE_train: {metrics['H2O_MSE_train']}")
         print(f"H2O_RMSE_train: {metrics['H2O_RMSE_train']}")
 
-    h2o.shutdown(prompt=True)
+    h2o.shutdown(prompt=False)
 
     return metrics
 
 
 if __name__ == '__main__':
     train_file, test_file = get_scoring_case_data_paths()
-    h2o_config = {'MAX_MODELS': 20,
-                  'MAX_RUNTIME_SECS': 1800}
 
-    run_h2o(train_file, test_file, config_data=h2o_config)
+    h2o_config = get_models_hyperparameters()['H2O']
+
+    run_h2o(train_file, test_file, config_data=h2o_config, target_name='default')

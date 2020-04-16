@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from benchmark.H2O.b_h2o import run_h2o
 from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
+from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
 from cases.credit_scoring_problem import run_credit_scoring_problem
 
@@ -19,6 +20,7 @@ class CaseExecutor:
     h2o: bool = True
     autokeras: bool = True
     fedot: bool = True
+    mlbox: bool = True
     baseline: bool = True
 
     def execute(self):
@@ -28,9 +30,7 @@ class CaseExecutor:
         saved_metric_results = {'task': task}
 
         if self.tpot:
-            print('---------')
-            print('RUN TPOT')
-            print('---------')
+            print('---------\nRUN TPOT\n---------')
             tpot_result = run_tpot(train_file_path=self.train_file,
                                    test_file_path=self.test_file,
                                    case_name=self.case,
@@ -38,9 +38,7 @@ class CaseExecutor:
                                    is_classification=True if self.is_classification else False)
             saved_metric_results['tpot_metric'] = tpot_result
         if self.h2o:
-            print('---------')
-            print('RUN H2O')
-            print('---------')
+            print('---------\nRUN H2O\n---------')
             h2o_result = run_h2o(train_file_path=self.train_file,
                                  test_file_path=self.test_file,
                                  case_name=self.case,
@@ -49,9 +47,7 @@ class CaseExecutor:
                                  is_classification=True if self.is_classification else False)
             saved_metric_results['h2o_metric'] = h2o_result
         if self.autokeras:
-            print('---------')
-            print('RUN AUTOKERAS')
-            print('---------')
+            print('---------\nRUN AUTOKERAS\n---------')
             autokeras_result = run_autokeras(train_file_path=self.train_file,
                                              test_file_path=self.test_file,
                                              case_name=self.case,
@@ -59,19 +55,27 @@ class CaseExecutor:
                                              is_classification=True if self.is_classification else False)
             saved_metric_results['autokeras_metric'] = autokeras_result
         if self.fedot:
-            print('---------')
-            print('RUN FEDOT')
-            print('---------')
+            print('---------\nRUN FEDOT\n---------')
             if self.is_classification:
                 fedot_result = run_credit_scoring_problem(train_file_path=self.train_file,
                                                           test_file_path=self.test_file)
                 saved_metric_results['fedot_metric'] = {'composed_roc_auc': fedot_result[0],
                                                         'static_roc_auc': fedot_result[1],
                                                         'single_model_roc_auc': fedot_result[2]}
+
+        if self.mlbox:
+            print('---------\nRUN MLBOX\n---------')
+            mlbox_result = run_mlbox(train_file_path=self.train_file,
+                                     test_file_path=self.test_file,
+                                     target_name=self.label,
+                                     case_name=self.case,
+                                     config_data=self.hyperparameters['MLBox'],
+                                     is_classification=True if self.is_classification else False)
+
+            saved_metric_results['mlbox_metric'] = mlbox_result
+
         if self.baseline:
-            print('---------')
-            print('RUN BASELINE')
-            print('---------')
+            print('---------\nRUN BASELINE\n---------')
             xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
                                          target_name=self.label)
             saved_metric_results['baseline_metric'] = xgboost_result

@@ -33,7 +33,7 @@ def run_xgb_classifier(train_file: str, test_file: str):
     model = XGBClassifier()
     model.fit(train_data.features, train_data.target)
 
-    predicted = model.predict(test_data.features)
+    predicted = model.predict_proba(test_data.features)[:, 1]
 
     roc_auc_value = round(roc_auc_score(test_data.target, predicted), 3)
 
@@ -43,7 +43,7 @@ def run_xgb_classifier(train_file: str, test_file: str):
 if __name__ == '__main__':
     train_file, test_file = get_scoring_case_data_paths()
 
-    xgb_booster_roc_auc = run_xgboost(train_file, test_file)
+    xgb_booster_roc_auc = run_xgboost(train_file, test_file, target_name='default')
     xgb_cls_roc_auc = run_xgb_classifier(train_file, test_file)
 
     print(f'XGBoost_Booster roc_auc metric: {xgb_booster_roc_auc}')
