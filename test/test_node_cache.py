@@ -61,6 +61,51 @@ def chain_second():
     chain.replace_node_with_parents(chain.root_node.nodes_from[0], new_node)
     return chain
 
+def chain_third():
+    #    QDA
+    #  |     \
+    # RF     RF
+    chain = Chain()
+    new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.qda)
+    for model_type in (ModelTypesIdsEnum.rf, ModelTypesIdsEnum.rf):
+        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+    chain.add_node(new_node)
+    [chain.add_node(node_from) for node_from in new_node.nodes_from]
+    return chain
+
+def chain_fourth():
+    #          XG
+    #      |         \
+    #     XG          KNN
+    #   |    \        |  \
+    # QDA     KNN     LR  LDA
+    #|  \    |    \
+    #RF  RF  KNN KNN
+    chain = chain_first()
+    new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.qda)
+    for model_type in (ModelTypesIdsEnum.rf, ModelTypesIdsEnum.rf):
+        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[1], new_node)
+    new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.knn)
+    for model_type in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.knn):
+        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], new_node)
+    return chain
+
+def chain_fifth():
+    #    KNN
+    #  |     \
+    # XG      KNN
+    # |  \    |  \
+    # LR LDA KNN  KNN
+    chain = chain_first()
+    new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.knn)
+    chain.update_node(chain.root_node,new_node)
+    new_node = NodeGenerator.primary_node(ModelTypesIdsEnum.knn)
+    chain.update_node(chain.root_node.nodes_from[1].nodes_from[0], new_node)
+    chain.update_node(chain.root_node.nodes_from[1].nodes_from[1], new_node)
+
+    return chain
 
 def test_cache_model_changed(data_setup):
     """Changing the model in one of the tree node"""
@@ -131,3 +176,29 @@ def test_cache_dictionary(data_setup):
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=old_node)
     assert chain.root_node.cache.actual_cached_model
+
+def test_obtain_fitted_models_first(data_setup):
+    train, _ = data_setup
+    chain = chain_second()
+    other_chain = chain_first()
+    other_chain.fit(input_data=train)
+    chain.obtain_fitted_models([other_chain])
+    assert not chain.root_node.cache.actual_cached_model
+    assert not chain.root_node.nodes_from[0].cache.actual_cached_model
+    assert not chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
+    assert chain.root_node.nodes_from[1].cache.actual_cached_model
+    assert chain.root_node.nodes_from[1].nodes_from[0].cache.actual_cached_model
+    assert chain.root_node.nodes_from[1].nodes_from[1].cache.actual_cached_model
+
+def test_obtain_fitted_models_second(data_setup):
+    train, _ = data_setup
+    chain = chain_fourth()
+    prev_chain_first = chain_third()
+    prev_chain_second = chain_fifth()
+    prev_chain_first.fit(input_data=train)
+    prev_chain_second.fit(input_data=train)
+    chain.obtain_fitted_models([prev_chain_first, prev_chain_second])
+    assert not chain.root_node.cache.actual_cached_model
+    assert not chain.root_node.nodes_from[1].cache.actual_cached_model
+    assert chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
+    assert chain.root_node.nodes_from[0].nodes_from[1].cache.actual_cached_model

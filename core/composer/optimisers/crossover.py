@@ -5,7 +5,7 @@ from typing import (
     Any
 )
 
-from core.composer.gp_composer.gp_node import swap_nodes
+from core.composer.optimisers.gp_node import swap_nodes
 
 
 def standard_crossover(tree1: Any, tree2: Any, max_depth: int, crossover_prob: float = 0.8) -> Any:
