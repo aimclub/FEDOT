@@ -1,13 +1,10 @@
 import numpy as np
-from sklearn.datasets import make_regression
-from sklearn.metrics import mean_squared_error as mse
 
 from core.composer.chain import Chain
 from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from core.repository.task_types import MachineLearningTasksEnum
 from test.test_split_train_test import get_synthetic_input_data, get_roc_auc_value
 
 

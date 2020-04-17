@@ -46,7 +46,7 @@ class ModelMetaInfo:
 class ModelMetaInfoTemplate:
     input_type: DataTypesEnum = None
     output_type: DataTypesEnum = None
-    task_type: Union[List[TaskTypesEnum],TaskTypesEnum] = None
+    task_type: Union[List[TaskTypesEnum], TaskTypesEnum] = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
 
@@ -96,46 +96,44 @@ class ModelTypesRepository:
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
         stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
 
-        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                    task_type=[MachineLearningTasksEnum.classification,
-                                               MachineLearningTasksEnum.regression])
+        self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
+                                      task_type=[MachineLearningTasksEnum.auto_regression],
+                                      parent=stat)
 
-        ar_meta = deepcopy(common_meta)
-        ar_meta.task_type = [MachineLearningTasksEnum.auto_regression]
+        self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
+                                              ModelTypesIdsEnum.lasso,
+                                              ModelTypesIdsEnum.ridge],
+                                      task_type=[MachineLearningTasksEnum.regression],
+                                      parent=ml)
 
-        reg_meta = deepcopy(common_meta)
-        reg_meta.task_type = [MachineLearningTasksEnum.regression]
-
-        class_meta = deepcopy(common_meta)
-        class_meta.task_type = [MachineLearningTasksEnum.classification]
-
-        clust_meta = deepcopy(common_meta)
-        clust_meta.task_type = [MachineLearningTasksEnum.clustering]
-
-        for model_type in ModelTypesIdsEnum:
-            if model_type in [ModelTypesIdsEnum.arima,
-                              ModelTypesIdsEnum.ar]:
-                ModelType(model_type, deepcopy(ar_meta), parent=stat)
-            elif model_type in [ModelTypesIdsEnum.linear,
-                                ModelTypesIdsEnum.lasso,
-                                ModelTypesIdsEnum.ridge]:
-                ModelType(model_type, deepcopy(reg_meta), parent=ml)
-            elif model_type in [ModelTypesIdsEnum.rf,
-                                ModelTypesIdsEnum.dt,
-                                ModelTypesIdsEnum.mlp,
-                                ModelTypesIdsEnum.lda,
-                                ModelTypesIdsEnum.qda,
-                                ModelTypesIdsEnum.logit,
-                                ModelTypesIdsEnum.knn,
-                                ModelTypesIdsEnum.xgboost]:
-                ModelType(model_type, deepcopy(class_meta), parent=ml)
-            elif model_type in [ModelTypesIdsEnum.kmeans]:
-                ModelType(model_type, deepcopy(clust_meta), parent=stat)
-            else:
-                ModelType(model_type, deepcopy(common_meta), parent=ml)
+        self._initialise_models_group(models=[ModelTypesIdsEnum.rf,
+                                              ModelTypesIdsEnum.dt,
+                                              ModelTypesIdsEnum.mlp,
+                                              ModelTypesIdsEnum.lda,
+                                              ModelTypesIdsEnum.qda,
+                                              ModelTypesIdsEnum.logit,
+                                              ModelTypesIdsEnum.knn,
+                                              ModelTypesIdsEnum.xgboost],
+                                      task_type=[MachineLearningTasksEnum.classification],
+                                      parent=ml)
+        self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
+                                      task_type=[MachineLearningTasksEnum.clustering],
+                                      parent=stat)
 
         return root
+
+    def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
+                                 task_type: List[MachineLearningTasksEnum],
+                                 parent: ModelsGroup):
+
+        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
+                                    task_type=[])
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = task_type
+
+        for model_type in models:
+            ModelType(model_type, deepcopy(group_meta), parent=parent)
 
     def __init__(self):
         self._tree = self._initialise_tree()
@@ -160,10 +158,11 @@ class ModelTypesRepository:
                        if isinstance(result, ModelType) and
                        desired_metainfo.is_suits_for_template(result.meta_info)]
 
-        return ([result.name for result in results if (result.name in self.model_types)],
-                [result.meta_info for result in results if (result.name in self.model_types)])
+        models_ids = [result.name for result in results if (result.name in self.model_types)]
+        models_metainfo = [result.meta_info for result in results if (result.name in self.model_types)]
 
+        return models_ids, models_metainfo
 
-def print_tree(self):
-    for pre, node in RenderTree(self._tree):
-        print(f'{pre}{node.name}')
+    def print_structure(self):
+        for pre, node in RenderTree(self._tree):
+            print(f'{pre}{node.name}')

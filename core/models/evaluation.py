@@ -1,5 +1,4 @@
 import warnings
-from typing import Any
 
 import numpy as np
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -19,7 +18,7 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima_model import ARIMA
 from xgboost import XGBClassifier
 
-from core.models.data import InputData
+from core.models.data import InputData, OutputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -29,7 +28,7 @@ class EvaluationStrategy:
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
         raise NotImplementedError()
 
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
     def tune(self, model, data_for_tune: InputData):
@@ -59,7 +58,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
     def tune(self, model, data_for_tune: InputData):
@@ -73,13 +72,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         prediction = trained_model.predict_proba(predict_data.features)[:, 1]
         return prediction
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
@@ -90,24 +89,32 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
 
 class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
-    def _model_specific_fit(self, stats_model: Any):
-        raise NotImplementedError()
+    def __init__(self):
+        self._model_functions_by_types = {
+            ModelTypesIdsEnum.arima: (self._fit_arima, self._predict_arima),
+            ModelTypesIdsEnum.ar: (self._fit_ar, self._predict_ar)
+        }
+        self._model_specific_fit, self._model_specific_predict = None, None
 
-    def _model_specific_predict(self, *kwargs):
-        raise NotImplementedError()
+    def _init_stats_model_functions(self, model_type: ModelTypesIdsEnum):
+        if model_type in self._model_functions_by_types.keys():
+            self._model_specific_fit, self._model_specific_predict = \
+                self._model_functions_by_types[model_type]
+        else:
+            raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')
 
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
         self._init_stats_model_functions(model_type)
         stats_model = self._model_specific_fit(train_data)
         return stats_model
 
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
 
     def _fit_ar(self, train_data: InputData):
@@ -118,7 +125,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         return ARIMA(train_data.target, order=(2, 0, 0),
                      exog=train_data.features).fit(disp=0)
 
-    def _predict_ar(self, trained_model, predict_data: InputData):
+    def _predict_ar(self, trained_model, predict_data: InputData) -> OutputData:
         start, end = trained_model.nobs, \
                      trained_model.nobs + len(predict_data.target) - 1
         exog, exog_oos = None, predict_data.features
@@ -138,7 +145,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
         return prediction
 
-    def _predict_arima(self, trained_model, predict_data: InputData):
+    def _predict_arima(self, trained_model, predict_data: InputData) -> OutputData:
         start, end = trained_model.nobs, \
                      trained_model.nobs + len(predict_data.target) - 1
         exog = predict_data.features
@@ -154,18 +161,3 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
     def tune(self, model, data_for_tune: InputData):
         return model
-
-    def __init__(self):
-        super().__init__()
-        # TODO discuss
-        self._model_functions_by_types = {
-            ModelTypesIdsEnum.arima: (self._fit_arima, self._predict_arima),
-            ModelTypesIdsEnum.ar: (self._fit_ar, self._predict_ar)
-        }
-
-    def _init_stats_model_functions(self, model_type: ModelTypesIdsEnum):
-        if model_type in self._model_functions_by_types.keys():
-            self._model_specific_fit, self._model_specific_predict = \
-                self._model_functions_by_types[model_type]
-        else:
-            raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')

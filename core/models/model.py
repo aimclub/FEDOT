@@ -16,7 +16,6 @@ from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, 
     compatible_task_types
 
 
-# noinspection SpellCheckingInspection
 @dataclass
 class Model(ABC):
 
@@ -53,7 +52,7 @@ class Model(ABC):
         return f'{self.model_type.name}'
 
 
-def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type: TaskTypesEnum):
+def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
     preprocessing_for_tasks = {
         MachineLearningTasksEnum.auto_regression: simple_preprocess,
         MachineLearningTasksEnum.classification: scaling_preprocess,
@@ -68,23 +67,25 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type: TaskTypesE
         MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
     }
 
-    preprocessing_function = preprocessing_for_tasks.get(task_type, scaling_preprocess)
+    preprocessing_function = preprocessing_for_tasks.get(task_type_for_data, scaling_preprocess)
 
     models_repo = ModelTypesRepository()
     _, model_info = models_repo.search_models(
         desired_ids=[model_type])
 
-    local_task_types = model_info[0].task_type
+    task_type_for_model = task_type_for_data
+    task_types_acceptable_for_model = model_info[0].task_type
 
-    # if the model can't be used for specified task type
-    if task_type not in local_task_types:
-        globally_compatible_task_types = compatible_task_types(task_type)
-        available_task_types = list(set(local_task_types).intersection
-                                    (set(globally_compatible_task_types)))
-        if not available_task_types:
-            raise ValueError(f'Model {model_type} can not be used as a part of {task_type}.')
-        task_type = available_task_types[0]
+    # if the model can't be used directly for the task type from data
+    if task_type_for_model not in task_types_acceptable_for_model:
+        # search the supplementary task types, that can be included in chain which solves original task
+        globally_compatible_task_types = compatible_task_types(task_type_for_model)
+        compatible_task_types_acceptable_for_model = list(set(task_types_acceptable_for_model).intersection
+                                                          (set(globally_compatible_task_types)))
+        if len(compatible_task_types_acceptable_for_model) == 0:
+            raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
+        task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    eval_strategy = strategies_for_tasks[task_type]()
+    eval_strategy = strategies_for_tasks[task_type_for_model]()
 
     return eval_strategy, preprocessing_function

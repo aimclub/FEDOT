@@ -96,7 +96,7 @@ def test_qda_fit_correct(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_log_clustring_fit_correct(data_fixture, request):
+def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     data.features = scaling_preprocess(data.features)
     train_data, test_data = train_test_data_setup(data=data)
