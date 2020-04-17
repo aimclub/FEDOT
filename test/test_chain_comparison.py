@@ -45,7 +45,7 @@ def chain_second():
     for model_type in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.lda):
         new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
     chain = chain_first()
-    chain.replace_node(chain.root_node.nodes_from[0].nodes_from[1], new_node)
+    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[1], new_node)
 
     return chain
 
@@ -76,7 +76,7 @@ def chain_fourth():
     chain = chain_third()
     new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.xgboost)
     [new_node.nodes_from.append(NodeGenerator.primary_node(ModelTypesIdsEnum.knn)) for _ in range(2)]
-    chain.replace_node(chain.root_node.nodes_from[1], new_node)
+    chain.replace_node_with_parents(chain.root_node.nodes_from[1], new_node)
 
     return chain
 
@@ -92,7 +92,7 @@ def equality_cases():
     for node_num in ((2, 1), (1, 2)):
         old_node = pairs[2][1].root_node.nodes_from[node_num[0]]
         new_node = deepcopy(pairs[2][0].root_node.nodes_from[node_num[1]])
-        pairs[2][1].replace_node(old_node, new_node)
+        pairs[2][1].replace_node_with_parents(old_node, new_node)
 
     return pairs
 
