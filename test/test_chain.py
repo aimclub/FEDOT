@@ -52,11 +52,13 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
 
     train_predicted = final.fit(input_data=train)
 
-    assert final.descriptive_id == '((/n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                   'n_ModelTypesIdsEnum.lda_defaultparams;;(/' \
-                                   'n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                   'n_ModelTypesIdsEnum.qda_defaultparams;)/' \
-                                   'n_ModelTypesIdsEnum.knn_defaultparams'
+    assert final.descriptive_id == (
+        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.lda_defaultparams;;(/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.qda_defaultparams;)/'
+        'n_ModelTypesIdsEnum.knn_defaultparams')
+
     assert train_predicted.predict.shape == train.target.shape
     assert final.cache.actual_cached_model is not None
 
@@ -78,11 +80,13 @@ def test_chain_hierarchy_fit_correct(data_setup):
 
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
-    assert chain.root_node.descriptive_id == '((/n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams;;(/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams'
+    assert chain.root_node.descriptive_id == (
+        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;;(/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams')
+
     assert chain.length == 4
     assert chain.depth == 3
     assert train_predicted.predict.shape == train.target.shape
@@ -106,10 +110,12 @@ def test_chain_sequential_fit_correct(data_setup):
 
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
-    assert chain.root_node.descriptive_id == '(((/n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams;)/' \
-                                             'n_ModelTypesIdsEnum.logit_defaultparams'
+    assert chain.root_node.descriptive_id == (
+        '(((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams')
+
     assert chain.length == 4
     assert chain.depth == 4
     assert train_predicted.predict.shape == train.target.shape
