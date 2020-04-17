@@ -1,8 +1,9 @@
 from copy import deepcopy
 
 from core.composer.chain import Chain
-from core.composer.gp_composer.gp_node import GPNode
-from core.composer.gp_composer.gp_node import swap_nodes
+from core.composer.optimisers.gp_node import GPNode
+from core.composer.node import SecondaryNode
+from core.composer.optimisers.gp_node import swap_nodes
 from core.composer.node import NodeGenerator
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
@@ -16,6 +17,21 @@ def tree_to_chain(tree_root: GPNode) -> Chain:
                 node.nodes_from[i] = node.nodes_from[i].chain_node
         chain.add_node(node.chain_node)
     return chain
+
+
+def chain_to_tree(chain: Chain) -> GPNode:
+    chain = deepcopy(chain)
+    def recursive_nodes_to_tree(prev_node: GPNode):
+        for i, node_parent in enumerate(prev_node.nodes_from):
+            root_of_tree = GPNode(chain_node=node_parent, node_to=prev_node)
+            prev_node.nodes_from[i] = root_of_tree
+            if isinstance(root_of_tree.chain_node, SecondaryNode):
+                recursive_nodes_to_tree(root_of_tree)
+
+    root = GPNode(chain_node=chain.root_node)
+    if isinstance(root.chain_node, SecondaryNode):
+        recursive_nodes_to_tree(root)
+    return root
 
 
 def flat_nodes_tree(node):
@@ -66,6 +82,28 @@ def tree_second():
     root_of_tree.nodes_from.append(root_child_second)
     return root_of_tree
 
+def chain_first():
+    #    XG
+    #  |     \
+    # XG      KNN
+    # |  \    |  \
+    # LR LDA LR  LDA
+    chain = Chain()
+
+    root_of_tree, root_child_first, root_child_second = \
+        [NodeGenerator.secondary_node(model) for model in (ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.xgboost,
+                                                           ModelTypesIdsEnum.knn)]
+
+    for root_node_child in (root_child_first, root_child_second):
+        for requirement_model in (ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda):
+            new_node = NodeGenerator.primary_node(requirement_model)
+            root_node_child.nodes_from.append(new_node)
+            chain.add_node(new_node)
+        chain.add_node(root_node_child)
+        root_of_tree.nodes_from.append(root_node_child)
+
+    chain.add_node(root_of_tree)
+    return chain
 
 def test_node_depth_and_height():
     last_node = tree_first()
@@ -114,3 +152,9 @@ def test_swap_nodes():
     # swap_nodes function check
     assert all([model_after_swap.model.model_type == correct_model for model_after_swap, correct_model in
                 zip(chain.nodes, correct_nodes)])
+
+def test_chain_to_tree():
+    chain = chain_first()
+    gp_root_of_chain = chain_to_tree(chain)
+    assert tree_to_chain(gp_root_of_chain) == chain
+

@@ -9,11 +9,12 @@ from typing import (
 
 from core.composer.chain import Chain
 from core.composer.composer import Composer, ComposerRequirements
-from core.composer.gp_composer.gp_node import GPNode
+from core.composer.optimisers.gp_node import GPNode
 from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
+from core.chain_validation import validate
 
 
 @dataclass
@@ -22,7 +23,6 @@ class GPComposerRequirements(ComposerRequirements):
     num_of_generations: Optional[int] = 50
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
-
 
 class GPComposer(Composer):
     def __init__(self):
@@ -69,6 +69,7 @@ def tree_to_chain(tree_root: GPNode) -> Chain:
             for i in range(len(node.nodes_from)):
                 node.nodes_from[i] = node.nodes_from[i].chain_node
         chain.add_node(node.chain_node)
+    validate(chain)
     return chain
 
 

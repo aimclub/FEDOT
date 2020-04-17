@@ -72,6 +72,20 @@ class Chain:
     def _is_node_has_child(self, node) -> bool:
         return any(self._node_childs(node))
 
+    def obtain_fitted_models(self, prev_chains: List['Chain']):
+        def recursive_common_subtrees(subtree_root):
+            subtree_was_found = False
+            for prev_chain in prev_chains:
+                for prev_chain_node in prev_chain.nodes:
+                    if subtree_root.descriptive_id == prev_chain_node.descriptive_id:
+                        self.replace_node_with_parents(subtree_root, prev_chain_node)
+                        subtree_was_found = True
+            if not subtree_was_found:
+                if isinstance(subtree_root, SecondaryNode):
+                    [recursive_common_subtrees(parent) for parent in subtree_root.nodes_from]
+
+        recursive_common_subtrees(self.root_node)
+
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 

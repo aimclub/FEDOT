@@ -8,12 +8,11 @@ from typing import (
 
 import numpy as np
 
-from core.composer.gp_composer.gp_node import GPNode
+from core.composer.optimisers.gp_node import GPNode
 from core.composer.optimisers.crossover import standard_crossover
 from core.composer.optimisers.mutation import standard_mutation
 from core.composer.optimisers.selection import tournament_selection
 from core.composer.timer import CompositionTimer
-
 
 class GPChainOptimiser:
     def __init__(self, initial_chain, requirements, primary_node_func: Callable, secondary_node_func: Callable):
@@ -29,12 +28,14 @@ class GPChainOptimiser:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
 
-    def optimise(self, metric_function_for_nodes):
+    def optimise(self, metric_function_for_nodes, ):
 
         with CompositionTimer() as t:
 
             history = []
+
             self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+
             [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
              range(self.requirements.pop_size)]
 
