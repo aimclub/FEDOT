@@ -44,7 +44,7 @@ class Node(ABC):
         return full_path
 
     @abstractmethod
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData, with_tuning: bool = False, verbose=False) -> OutputData:
         raise NotImplementedError()
 
     @abstractmethod
@@ -55,9 +55,9 @@ class Node(ABC):
         model = f'{self.model}'
         return model
 
-    def _fit_using_cache(self, input_data, verbose=False):
+    def _fit_using_cache(self, input_data, with_tuning: bool, verbose=False):
 
-        if not self.cache.actual_cached_state:
+        if not self.cache.actual_cached_state or with_tuning:
             if verbose:
                 print('Cache is not actual')
 
@@ -65,7 +65,8 @@ class Node(ABC):
             preprocessed_data = copy(input_data)
             preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
-            cached_model, model_predict = self.model.fit(data=preprocessed_data)
+            cached_model, model_predict = self.model.fit(data=preprocessed_data, with_tuning=with_tuning,
+                                                         tuning_iterations=10)
             self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
                                           model=cached_model))
         else:
@@ -154,11 +155,11 @@ class PrimaryNode(Node):
         model = Model(model_type=model_type)
         super().__init__(nodes_from=None, model=model)
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData, with_tuning: bool = False, verbose=False) -> OutputData:
         if verbose:
             print(f'Trying to fit primary node with model: {self.model}')
 
-        model_predict = self._fit_using_cache(input_data=input_data, verbose=verbose)
+        model_predict = self._fit_using_cache(input_data=input_data, with_tuning=with_tuning, verbose=verbose)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -191,7 +192,7 @@ class SecondaryNode(Node):
         if self.nodes_from is not None:
             return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData, with_tuning: bool = False, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
         parent_results = []
@@ -207,7 +208,7 @@ class SecondaryNode(Node):
         if verbose:
             print(f'Trying to fit secondary node with model: {self.model}')
 
-        model_predict = self._fit_using_cache(input_data=secondary_input)
+        model_predict = self._fit_using_cache(input_data=secondary_input, with_tuning=with_tuning)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -238,4 +239,3 @@ class SecondaryNode(Node):
                           features=input_data.features,
                           predict=evaluation_result,
                           task_type=input_data.task_type)
-

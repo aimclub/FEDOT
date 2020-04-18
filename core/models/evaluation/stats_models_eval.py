@@ -5,13 +5,13 @@ from statsmodels.tsa.arima_model import ARIMA
 from core.models.data import InputData, OutputData
 
 
-def fit_ar(train_data: InputData):
-    return AutoReg(train_data.target, lags=[1, 2, 6, 12, 24],
+def fit_ar(train_data: InputData, params):
+    return AutoReg(train_data.target, **params,
                    exog=train_data.features).fit()
 
 
-def fit_arima(train_data: InputData):
-    return ARIMA(train_data.target, order=(2, 0, 0),
+def fit_arima(train_data: InputData, params):
+    return ARIMA(train_data.target, **params,
                  exog=train_data.features).fit(disp=0)
 
 
