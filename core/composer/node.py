@@ -70,18 +70,29 @@ class Node(ABC):
 
 class FittedModelCache:
     def __init__(self, related_node: Node):
-        self._cached_models_history = {}
+        self._local_cached_models = {}
         self._related_node_ref = related_node
+        self.global_cached_models = None
 
     def append(self, fitted_model):
-        self._cached_models_history[self._related_node_ref.descriptive_id] = fitted_model
+        self._local_cached_models[self._related_node_ref.descriptive_id] = fitted_model
+        if self.global_cached_models is not None:
+            self.global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
+
+    def import_from_other_cache(self, other_cache: 'FittedModelCache'):
+        for entry_key in other_cache._local_cached_models.keys():
+            self._local_cached_models[entry_key] = other_cache._local_cached_models[entry_key]
 
     def clear(self):
-        self._cached_models_history = {}
+        self._local_cached_models = {}
+        self.global_cached_models = None
 
     @property
     def actual_cached_model(self):
-        return self._cached_models_history.get(self._related_node_ref.descriptive_id, None)
+        found_model = self._local_cached_models.get(self._related_node_ref.descriptive_id, None)
+        if not found_model and self.global_cached_models:
+            found_model = self.global_cached_models.get(self._related_node_ref.descriptive_id, None)
+        return found_model
 
 
 # TODO: discuss about the usage of NodeGenerator

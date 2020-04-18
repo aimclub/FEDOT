@@ -13,6 +13,7 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 class Chain:
     def __init__(self):
         self.nodes = []
+        self.shared_cache = False
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
@@ -61,6 +62,15 @@ class Chain:
         for node in self.nodes:
             node.cache.clear()
 
+    @property
+    def shared_cache(self):
+        return [node.cache.global_cached_models for node in self.nodes][0]
+
+    @shared_cache.setter
+    def shared_cache(self, value: dict):
+        for node in self.nodes:
+            node.cache.global_cached_models = value
+
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_model is not None for node in self.nodes]
         return all(cache_status)
@@ -72,19 +82,13 @@ class Chain:
     def _is_node_has_child(self, node) -> bool:
         return any(self._node_childs(node))
 
-    def obtain_fitted_models(self, prev_chains: List['Chain']):
-        def recursive_common_subtrees(subtree_root):
-            subtree_was_found = False
-            for prev_chain in prev_chains:
-                for prev_chain_node in prev_chain.nodes:
-                    if subtree_root.descriptive_id == prev_chain_node.descriptive_id:
-                        self.replace_node_with_parents(subtree_root, prev_chain_node)
-                        subtree_was_found = True
-            if not subtree_was_found:
-                if isinstance(subtree_root, SecondaryNode):
-                    [recursive_common_subtrees(parent) for parent in subtree_root.nodes_from]
-
-        recursive_common_subtrees(self.root_node)
+    def import_cache(self, fitted_chain: 'Chain'):
+        for node in self.nodes:
+            if not node.cache.actual_cached_model:
+                for fitted_node in fitted_chain.nodes:
+                    if fitted_node.descriptive_id == node.descriptive_id:
+                        node.cache.import_from_other_cache(fitted_node.cache)
+                        break
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -114,9 +118,6 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
-
-    def _flat_nodes_tree(self, node):
-        raise NotImplementedError()
 
 
 def as_nx_graph(chain: Chain):

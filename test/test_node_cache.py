@@ -61,6 +61,7 @@ def chain_second():
     chain.replace_node_with_parents(chain.root_node.nodes_from[0], new_node)
     return chain
 
+
 def chain_third():
     #    QDA
     #  |     \
@@ -73,14 +74,15 @@ def chain_third():
     [chain.add_node(node_from) for node_from in new_node.nodes_from]
     return chain
 
+
 def chain_fourth():
     #          XG
     #      |         \
     #     XG          KNN
     #   |    \        |  \
     # QDA     KNN     LR  LDA
-    #|  \    |    \
-    #RF  RF  KNN KNN
+    # |  \    |    \
+    # RF  RF  KNN KNN
     chain = chain_first()
     new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.qda)
     for model_type in (ModelTypesIdsEnum.rf, ModelTypesIdsEnum.rf):
@@ -92,6 +94,7 @@ def chain_fourth():
     chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], new_node)
     return chain
 
+
 def chain_fifth():
     #    KNN
     #  |     \
@@ -100,12 +103,13 @@ def chain_fifth():
     # LR LDA KNN  KNN
     chain = chain_first()
     new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.knn)
-    chain.update_node(chain.root_node,new_node)
+    chain.update_node(chain.root_node, new_node)
     new_node = NodeGenerator.primary_node(ModelTypesIdsEnum.knn)
     chain.update_node(chain.root_node.nodes_from[1].nodes_from[0], new_node)
     chain.update_node(chain.root_node.nodes_from[1].nodes_from[1], new_node)
 
     return chain
+
 
 def test_cache_model_changed(data_setup):
     """Changing the model in one of the tree node"""
@@ -177,28 +181,65 @@ def test_cache_dictionary(data_setup):
                       new_node=old_node)
     assert chain.root_node.cache.actual_cached_model
 
-def test_obtain_fitted_models_first(data_setup):
+
+def test_multi_chain_caching_global_cache(data_setup):
+    _multi_chain_caching(data_setup, is_global_cache=True)
+
+
+def test_multi_chain_caching_local_cache(data_setup):
+    _multi_chain_caching(data_setup, is_global_cache=False)
+
+
+def test_no_multi_chain_caching(data_setup):
+    _multi_chain_caching(data_setup, try_multichain=False)
+
+
+def _multi_chain_caching(data_setup, try_multichain=True, is_global_cache=False):
     train, _ = data_setup
     chain = chain_second()
     other_chain = chain_first()
-    other_chain.fit(input_data=train)
-    chain.obtain_fitted_models([other_chain])
-    assert not chain.root_node.cache.actual_cached_model
-    assert not chain.root_node.nodes_from[0].cache.actual_cached_model
-    assert not chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
-    assert chain.root_node.nodes_from[1].cache.actual_cached_model
-    assert chain.root_node.nodes_from[1].nodes_from[0].cache.actual_cached_model
-    assert chain.root_node.nodes_from[1].nodes_from[1].cache.actual_cached_model
 
-def test_obtain_fitted_models_second(data_setup):
-    train, _ = data_setup
+    if try_multichain and is_global_cache:
+        shared_cache = {}
+        chain.shared_cache = shared_cache
+        other_chain.shared_cache = shared_cache
+
+    other_chain.fit(input_data=train)
+
+    if try_multichain and not is_global_cache:
+        chain.import_cache(other_chain)
+
+    if try_multichain:
+        assert not chain.root_node.cache.actual_cached_model
+        assert not chain.root_node.nodes_from[0].cache.actual_cached_model
+        assert not chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
+        assert chain.root_node.nodes_from[1].cache.actual_cached_model
+        assert chain.root_node.nodes_from[1].nodes_from[0].cache.actual_cached_model
+        assert chain.root_node.nodes_from[1].nodes_from[1].cache.actual_cached_model
+    else:
+        assert not any([node.cache.actual_cached_model for node in chain.nodes])
+
     chain = chain_fourth()
     prev_chain_first = chain_third()
     prev_chain_second = chain_fifth()
+
+    if try_multichain and is_global_cache:
+        shared_cache = {}
+        chain.shared_cache = shared_cache
+        prev_chain_first.shared_cache = shared_cache
+        prev_chain_second.shared_cache = shared_cache
+
     prev_chain_first.fit(input_data=train)
     prev_chain_second.fit(input_data=train)
-    chain.obtain_fitted_models([prev_chain_first, prev_chain_second])
-    assert not chain.root_node.cache.actual_cached_model
-    assert not chain.root_node.nodes_from[1].cache.actual_cached_model
-    assert chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
-    assert chain.root_node.nodes_from[0].nodes_from[1].cache.actual_cached_model
+
+    if try_multichain and not is_global_cache:
+        chain.import_cache(prev_chain_first)
+        chain.import_cache(prev_chain_second)
+
+    if try_multichain:
+        assert not chain.root_node.cache.actual_cached_model
+        assert not chain.root_node.nodes_from[1].cache.actual_cached_model
+        assert chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
+        assert chain.root_node.nodes_from[0].nodes_from[1].cache.actual_cached_model
+    else:
+        assert not any([node.cache.actual_cached_model for node in chain.nodes])
