@@ -30,6 +30,7 @@ def test_log_regression_fit_correct(classification_dataset):
     train_data, test_data = train_test_data_setup(data=data)
 
     log_reg = Model(model_type=ModelTypesIdsEnum.logit)
+    log_reg.init(task=data.task_type)
     _, train_predicted = log_reg.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -44,6 +45,7 @@ def test_random_forest_fit_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     random_forest = Model(model_type=ModelTypesIdsEnum.rf)
+    random_forest.init(task=data.task_type)
     _, train_predicted = random_forest.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -58,6 +60,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     decision_tree = Model(model_type=ModelTypesIdsEnum.dt)
+    decision_tree.init(task=data.task_type)
     decision_tree.fit(data=train_data)
     _, train_predicted = decision_tree.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
@@ -73,6 +76,7 @@ def test_lda_fit_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     lda = Model(model_type=ModelTypesIdsEnum.lda)
+    lda.init(task=data.task_type)
     _, train_predicted = lda.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -87,7 +91,7 @@ def test_qda_fit_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     qda = Model(model_type=ModelTypesIdsEnum.qda)
-
+    qda.init(task=data.task_type)
     _, train_predicted = qda.fit(data=train_data)
     roc_on_train = roc_auc(y_true=train_data.target,
                            y_score=train_predicted)
@@ -102,7 +106,7 @@ def test_log_clustering_fit_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     kmeans = Model(model_type=ModelTypesIdsEnum.kmeans)
-
+    kmeans.init(task=data.task_type)
     _, train_predicted = kmeans.fit(data=train_data)
 
     assert all(np.unique(train_predicted) == [0, 1])

@@ -47,6 +47,7 @@ class Node(ABC):
         return model
 
     def _fit_using_cache(self, input_data, verbose=False):
+        self.model.init(task=input_data.task_type)
         if not self.cache.actual_cached_model:
             if verbose:
                 print('Cache is not actual')

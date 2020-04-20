@@ -36,7 +36,7 @@ class EvaluationStrategy:
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
-    def __init__(self):
+    def __init__(self, model_type: ModelTypesIdsEnum):
         self.__model_by_types = {
             ModelTypesIdsEnum.xgboost: XGBClassifier,
             ModelTypesIdsEnum.logit: SklearnLogReg,
@@ -50,11 +50,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             ModelTypesIdsEnum.ridge: SklearnRidgeReg,
             ModelTypesIdsEnum.lasso: SklearnLassoReg,
             ModelTypesIdsEnum.kmeans: SklearnKmeans
-
         }
 
+        self._sklearn_model_impl = self._convert_to_sklearn(model_type)
+
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        sklearn_model = self._convert_to_sklearn(model_type)()
+        sklearn_model = self._sklearn_model_impl()
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 
@@ -85,7 +86,7 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        sklearn_model = self._convert_to_sklearn(model_type)(n_clusters=2)
+        sklearn_model = self._sklearn_model_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
@@ -95,22 +96,20 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
 
 class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
-    def __init__(self):
+    def __init__(self, model_type: ModelTypesIdsEnum):
         self._model_functions_by_types = {
             ModelTypesIdsEnum.arima: (self._fit_arima, self._predict_arima),
             ModelTypesIdsEnum.ar: (self._fit_ar, self._predict_ar)
         }
-        self._model_specific_fit, self._model_specific_predict = None, None
+        self._model_specific_fit, self._model_specific_predict = self._init_stats_model_functions(model_type)
 
     def _init_stats_model_functions(self, model_type: ModelTypesIdsEnum):
         if model_type in self._model_functions_by_types.keys():
-            self._model_specific_fit, self._model_specific_predict = \
-                self._model_functions_by_types[model_type]
+            return self._model_functions_by_types[model_type]
         else:
             raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')
 
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        self._init_stats_model_functions(model_type)
         stats_model = self._model_specific_fit(train_data)
         return stats_model
 
