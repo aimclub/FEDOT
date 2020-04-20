@@ -11,7 +11,7 @@ from core.repository.task_types import MachineLearningTasksEnum
 
 @pytest.fixture()
 def data_setup():
-    task_type = task_type = MachineLearningTasksEnum.classification
+    task_type = MachineLearningTasksEnum.classification
     predictors, response = load_breast_cancer(return_X_y=True)
     np.random.seed(1)
     np.random.shuffle(predictors)
@@ -54,6 +54,11 @@ def chain_first():
 
 
 def chain_second():
+    #    XG
+    #  |     \
+    # DT      KNN
+    # |  \    |  \
+    # KNN KNN LR  LDA
     chain = chain_first()
     new_node = NodeGenerator.secondary_node(ModelTypesIdsEnum.dt)
     for model_type in (ModelTypesIdsEnum.knn, ModelTypesIdsEnum.knn):
@@ -209,13 +214,12 @@ def _multi_chain_caching(data_setup, try_multichain=True, is_global_cache=False)
     if try_multichain and not is_global_cache:
         chain.import_cache(other_chain)
 
+    nodes_with_non_actual_cache = [chain.root_node, chain.root_node.nodes_from[0]]+[child for child in chain.root_node.nodes_from[0].nodes_from]
+    nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
+
     if try_multichain:
-        assert not chain.root_node.cache.actual_cached_model
-        assert not chain.root_node.nodes_from[0].cache.actual_cached_model
-        assert not chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
-        assert chain.root_node.nodes_from[1].cache.actual_cached_model
-        assert chain.root_node.nodes_from[1].nodes_from[0].cache.actual_cached_model
-        assert chain.root_node.nodes_from[1].nodes_from[1].cache.actual_cached_model
+        assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+        assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
     else:
         assert not any([node.cache.actual_cached_model for node in chain.nodes])
 
@@ -236,10 +240,10 @@ def _multi_chain_caching(data_setup, try_multichain=True, is_global_cache=False)
         chain.import_cache(prev_chain_first)
         chain.import_cache(prev_chain_second)
 
+    nodes_with_non_actual_cache = [chain.root_node, chain.root_node.nodes_from[1]]
+    nodes_with_actual_cache = [child for child in chain.root_node.nodes_from[0].nodes_from]
     if try_multichain:
-        assert not chain.root_node.cache.actual_cached_model
-        assert not chain.root_node.nodes_from[1].cache.actual_cached_model
-        assert chain.root_node.nodes_from[0].nodes_from[0].cache.actual_cached_model
-        assert chain.root_node.nodes_from[0].nodes_from[1].cache.actual_cached_model
+        assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+        assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
     else:
         assert not any([node.cache.actual_cached_model for node in chain.nodes])
