@@ -14,6 +14,7 @@ from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
+from core.models.data import train_test_data_setup
 
 
 @dataclass
@@ -31,9 +32,8 @@ class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
                       metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
-        # TODO: fix this later?
-        train_data = data
-        test_data = data
+
+        train_data, test_data = train_test_data_setup(data, 0.8)
         metric_function_for_nodes = partial(metric_for_nodes,
                                             metrics, train_data, test_data)
         optimiser = GPChainOptimiser(initial_chain=initial_chain,

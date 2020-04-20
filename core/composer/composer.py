@@ -31,7 +31,8 @@ class Composer(ABC):
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Callable, is_visualise: bool = False) -> Chain:
+                      metrics: Callable,
+                      is_visualise: bool = False) -> Chain:
         raise NotImplementedError()
 
 
@@ -48,7 +49,8 @@ class DummyComposer(Composer):
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+                      metrics: Optional[Callable],
+                      is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:

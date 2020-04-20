@@ -43,7 +43,8 @@ def _to_numerical(categorical_ids: np.ndarray):
 
 def test_dummy_composer_hierarchical_chain_build_correct():
     composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
+    empty_data = InputData(idx=np.zeros(1), features=np.zeros(1), target=np.zeros(1),
+                           task_type=MachineLearningTasksEnum.classification)
     primary = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost]
     secondary = [ModelTypesIdsEnum.logit]
     composer_requirements = ComposerRequirements(primary=primary,
@@ -64,7 +65,8 @@ def test_dummy_composer_hierarchical_chain_build_correct():
 
 def test_dummy_composer_flat_chain_build_correct():
     composer = DummyComposer(DummyChainTypeEnum.flat)
-    empty_data = InputData(np.zeros(1), np.zeros(1), np.zeros(1))
+    empty_data = InputData(idx=np.zeros(1), features=np.zeros(1), target=np.zeros(1),
+                           task_type=MachineLearningTasksEnum.classification)
     primary = [ModelTypesIdsEnum.logit]
     secondary = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost]
     composer_requirements = ComposerRequirements(primary=primary,
@@ -92,7 +94,7 @@ def test_random_composer(data_fixture, request):
     dataset_to_validate = data
 
     models_repo = ModelTypesRepository()
-    available_model_types = models_repo.search_model_types_by_attributes(
+    available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification,
@@ -127,7 +129,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
 
     models_repo = ModelTypesRepository()
 
-    available_model_types = models_repo.search_model_types_by_attributes(
+    available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification,
@@ -174,7 +176,7 @@ def test_gp_composer_quality(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
     models_repo = ModelTypesRepository()
-    available_model_types = models_repo.search_model_types_by_attributes(
+    available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification,

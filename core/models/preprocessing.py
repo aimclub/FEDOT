@@ -9,3 +9,10 @@ def scaling_preprocess(x):
     x = imp.transform(x)
     scaler = preprocessing.StandardScaler()
     return scaler.fit_transform(x)
+
+
+def simple_preprocess(x):
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp.fit(x)
+    x = imp.transform(x)
+    return x

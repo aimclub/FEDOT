@@ -2,7 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
-    List, Optional, Union)
+    List, Optional, Union, Tuple)
 
 from anytree import Node, RenderTree, findall
 
@@ -18,11 +18,18 @@ class ModelTypesIdsEnum(Enum):
     rf = 'randomforest',
     mlp = 'mlp',
     lda = 'lda',
-    qda = 'qda'
+    qda = 'qda',
+    ar = 'ar',
+    arima = 'arima',
+    linear = 'linear',
+    ridge = 'ridge',
+    lasso = 'lasso',
+    kmeans = 'kmeans'
 
 
 class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
+    stat = 'Stat_models'
     all = 'Models'
 
 
@@ -39,20 +46,23 @@ class ModelMetaInfo:
 class ModelMetaInfoTemplate:
     input_type: DataTypesEnum = None
     output_type: DataTypesEnum = None
-    task_type: TaskTypesEnum = None
+    task_type: Union[List[TaskTypesEnum], TaskTypesEnum] = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
 
     @staticmethod
-    def _is_field_suitable(candidate_field, template_field):
+    def _is_field_suitable(candidate_field, template_field) -> bool:
         if template_field is None:
             return True
 
         listed_candidate_field = candidate_field if isinstance(candidate_field, list) else [candidate_field]
 
-        return template_field in listed_candidate_field
+        if isinstance(template_field, list):
+            return any([template_field_item in listed_candidate_field for template_field_item in template_field])
+        else:
+            return template_field in listed_candidate_field
 
-    def is_suits_for_template(self, candidate: ModelMetaInfo):
+    def is_suits_for_template(self, candidate: ModelMetaInfo) -> bool:
         fields = vars(self)
 
         fields_suitability = [self._is_field_suitable(getattr(candidate, field), getattr(self, field))
@@ -84,15 +94,46 @@ class ModelTypesRepository:
         root = ModelsGroup(ModelGroupsIdsEnum.all)
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
+        stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
+                                      task_type=[MachineLearningTasksEnum.auto_regression],
+                                      parent=stat)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
+                                              ModelTypesIdsEnum.lasso,
+                                              ModelTypesIdsEnum.ridge],
+                                      task_type=[MachineLearningTasksEnum.regression],
+                                      parent=ml)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.rf,
+                                              ModelTypesIdsEnum.dt,
+                                              ModelTypesIdsEnum.mlp,
+                                              ModelTypesIdsEnum.lda,
+                                              ModelTypesIdsEnum.qda,
+                                              ModelTypesIdsEnum.logit,
+                                              ModelTypesIdsEnum.knn,
+                                              ModelTypesIdsEnum.xgboost],
+                                      task_type=[MachineLearningTasksEnum.classification],
+                                      parent=ml)
+        self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
+                                      task_type=[MachineLearningTasksEnum.clustering],
+                                      parent=stat)
+
+        return root
+
+    def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
+                                 task_type: List[MachineLearningTasksEnum],
+                                 parent: ModelsGroup):
 
         common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                    task_type=[MachineLearningTasksEnum.classification,
-                                               MachineLearningTasksEnum.regression])
+                                    task_type=[])
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = task_type
 
-        for model_type in ModelTypesIdsEnum:
-            ModelType(model_type, deepcopy(common_meta), parent=ml)
-        return root
+        for model_type in models:
+            ModelType(model_type, deepcopy(group_meta), parent=parent)
 
     def __init__(self):
         self._tree = self._initialise_tree()
@@ -101,9 +142,11 @@ class ModelTypesRepository:
         return any(node_from_path.name in desired_ids for node_from_path in
                    node.path)
 
-    def search_model_types_by_attributes(self,
-                                         desired_ids: Optional[List[ModelGroupsIdsEnum]] = None,
-                                         desired_metainfo: Optional[ModelMetaInfoTemplate] = None):
+    def search_models(self,
+                      desired_ids:
+                      Optional[List[Union[ModelGroupsIdsEnum, ModelTypesIdsEnum]]] = None,
+                      desired_metainfo:
+                      Optional[ModelMetaInfoTemplate] = None) -> Tuple[List[ModelTypesIdsEnum], List[ModelMetaInfo]]:
 
         desired_ids = [ModelGroupsIdsEnum.all] if desired_ids is None or not desired_ids else desired_ids
 
@@ -115,8 +158,11 @@ class ModelTypesRepository:
                        if isinstance(result, ModelType) and
                        desired_metainfo.is_suits_for_template(result.meta_info)]
 
-        return [result.name for result in results if (result.name in self.model_types)]
+        models_ids = [result.name for result in results if (result.name in self.model_types)]
+        models_metainfo = [result.meta_info for result in results if (result.name in self.model_types)]
 
-    def print_tree(self):
+        return models_ids, models_metainfo
+
+    def print_structure(self):
         for pre, node in RenderTree(self._tree):
             print(f'{pre}{node.name}')

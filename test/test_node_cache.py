@@ -6,10 +6,12 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, split_train_test
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
 def data_setup():
+    task_type = task_type = MachineLearningTasksEnum.classification
     predictors, response = load_breast_cancer(return_X_y=True)
     np.random.seed(1)
     np.random.shuffle(predictors)
@@ -19,9 +21,11 @@ def data_setup():
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)))
+                           idx=np.arange(0, len(train_data_y)),
+                           task_type=task_type)
     test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)))
+                          idx=np.arange(0, len(test_data_y)),
+                          task_type=task_type)
     return train_data, test_data
 
 

@@ -1,3 +1,4 @@
+import datetime
 import os
 import random
 
@@ -45,10 +46,11 @@ dataset_to_validate = InputData.from_csv(full_path_test)
 
 # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
 models_repo = ModelTypesRepository()
-available_model_types = models_repo.search_model_types_by_attributes(
+available_model_types, _ = models_repo.search_models(
     desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                            output_type=CategoricalDataTypesEnum.vector,
-                                           task_type=MachineLearningTasksEnum.classification,
+                                           task_type=[MachineLearningTasksEnum.classification,
+                                                      MachineLearningTasksEnum.clustering],
                                            can_be_initial=True,
                                            can_be_secondary=True))
 
@@ -63,7 +65,7 @@ composer_requirements = GPComposerRequirements(
     primary=available_model_types,
     secondary=available_model_types, max_arity=2,
     max_depth=3, pop_size=2, num_of_generations=2,
-    crossover_prob=0.8, mutation_prob=0.8)
+    crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=3))
 
 # Create GP-based composer
 composer = GPComposer()

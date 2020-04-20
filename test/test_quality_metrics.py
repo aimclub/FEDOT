@@ -10,6 +10,7 @@ from core.repository.quality_metrics_repository import (
     MetricsRepository, ComplexityMetricsEnum,
     ClassificationMetricsEnum
 )
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -23,9 +24,11 @@ def data_setup():
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)))
+                           idx=np.arange(0, len(train_data_y)),
+                           task_type=MachineLearningTasksEnum.classification)
     test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)))
+                          idx=np.arange(0, len(test_data_y)),
+                          task_type=MachineLearningTasksEnum.classification)
     return train_data, test_data
 
 

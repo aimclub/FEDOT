@@ -8,8 +8,9 @@ from core.composer.node import PrimaryNode, NodeGenerator
 from core.models.data import (
     InputData,
     train_test_data_setup)
-from core.models.model import sklearn_model_by_type
+from core.models.model import Model
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -20,7 +21,8 @@ def data_setup() -> InputData:
     np.random.shuffle(response)
     predictors = predictors[:100]
     response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
+                     task_type=MachineLearningTasksEnum.classification)
     return data
 
 
@@ -34,7 +36,7 @@ def test_node_factory_log_reg_correct(data_setup):
     model_type = ModelTypesIdsEnum.logit
     node = NodeGenerator().primary_node(model_type=model_type)
 
-    expected_model = sklearn_model_by_type(model_type=model_type).__class__
+    expected_model = Model(model_type=model_type).__class__
     actual_model = node.model.__class__
 
     assert node.__class__ == PrimaryNode
