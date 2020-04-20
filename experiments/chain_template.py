@@ -1,4 +1,5 @@
 import itertools
+import uuid
 from dataclasses import dataclass
 
 import numpy as np
@@ -15,12 +16,16 @@ from experiments.generate_data import synthetic_dataset
 @dataclass
 class ModelTemplate:
     def __init__(self, model_type):
+        self.id = str(uuid.uuid4())
         self.model_type = model_type
         self.input_shape = []
         self.output_shape = []
         self.parents = []
         self.model_instance = None
         self.fitted_model = None
+
+    def __eq__(self, other):
+        return self.id == other.id
 
 
 def chain_template_random(model_types, depth, models_per_level,
@@ -180,12 +185,13 @@ def real_chain(chain_template):
 
 
 def real_parents(nodes_by_templates, template_child):
-    parents = []
-    for node, template in nodes_by_templates:
-        if template in template_child.parents:
-            parents.append(node)
-
-    return parents
+    parent_nodes = []
+    for parent in template_child.parents:
+        for node, template in nodes_by_templates:
+            if template == parent:
+                parent_nodes.append(node)
+                break
+    return parent_nodes
 
 
 if __name__ == '__main__':
@@ -194,7 +200,7 @@ if __name__ == '__main__':
 
     # chain = chain_template_random(model_types=model_types, depth=3, models_per_level=2,
     #                               samples=samples, features=features_amount)
-    chain = chain_template_balanced_tree(model_types=model_types, depth=3, models_per_level=[4, 2, 1],
+    chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
                                          samples=samples, features=features_amount)
     show_chain_template(chain)
     fit_template(chain_template=chain, classes=classes)
