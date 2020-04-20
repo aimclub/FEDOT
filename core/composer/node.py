@@ -1,109 +1,199 @@
-import uuid
 from abc import ABC, abstractmethod
-from copy import deepcopy
-from typing import (List, Optional)
-
-import numpy as np
+from copy import copy
+from typing import (List, Optional, Any, Tuple)
 
 from core.models.data import Data, InputData, OutputData
-from core.models.evaluation import EvaluationStrategy
 from core.models.model import Model
+from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 class Node(ABC):
-    def __init__(self, nodes_from: Optional[List['Node']],
-                 input_data: Optional[InputData],
-                 eval_strategy: EvaluationStrategy):
-        self.node_id = str(uuid.uuid4())
+    def __init__(self, nodes_from: Optional[List['Node']], model: Model):
         self.nodes_from = nodes_from
-        self.eval_strategy = eval_strategy
-        self.input_data = input_data
-        self.cached_result = None
-        self.is_caching = True
+        self.model = model
+        self.cache = FittedModelCache(self)
+
+    @property
+    def descriptive_id(self):
+        return self._descriptive_id_recursive(visited_nodes=[])
+
+    def _descriptive_id_recursive(self, visited_nodes):
+        node_label = self.model.description
+        full_path = ''
+        if self in visited_nodes:
+            return 'ID_CYCLED'
+        visited_nodes.append(self)
+        if self.nodes_from:
+            previous_items = []
+            for parent_node in self.nodes_from:
+                previous_items.append(f'{parent_node._descriptive_id_recursive(copy(visited_nodes))};')
+            previous_items.sort()  # models with different inputs order are equal
+            previous_items_str = ';'.join(previous_items)
+
+            full_path += f'({previous_items_str})'
+        full_path += f'/{node_label}'
+        return full_path
 
     @abstractmethod
-    def apply(self) -> OutputData:
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
         raise NotImplementedError()
 
     def __str__(self):
-        model = f'{self.eval_strategy.model}'
+        model = f'{self.model}'
         return model
 
+    def _fit_using_cache(self, input_data, verbose=False):
+        if not self.cache.actual_cached_model:
+            if verbose:
+                print('Cache is not actual')
+            cached_model, model_predict = self.model.fit(data=input_data)
+            self.cache.append(cached_model)
+        else:
+            if verbose:
+                print('Model were obtained from cache')
+            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_model,
+                                               data=input_data)
+        return model_predict
 
-class CachedNodeResult:
-    def __init__(self, node: Node, model_output: np.array):
-        self.cached_output = model_output
-        self.is_always_actual = isinstance(node, PrimaryNode)
-        self.last_parents_ids = [n.node_id for n in node.nodes_from] \
-            if isinstance(node, SecondaryNode) else None
-
-    def is_actual(self, parent_nodes):
-        if self.is_always_actual:
-            return True
-        if not self.last_parents_ids or self.last_parents_ids is None:
-            return False
-        if len(self.last_parents_ids) != len(parent_nodes):
-            return False
-        for id in self.last_parents_ids:
-            if id not in [node.node_id for node in parent_nodes]:
-                return False
-        return True
+    @property
+    def subtree_nodes(self) -> List['Node']:
+        nodes = [self]
+        if self.nodes_from:
+            for parent in self.nodes_from:
+                nodes += parent.subtree_nodes
+        return nodes
 
 
+class FittedModelCache:
+    def __init__(self, related_node: Node):
+        self._cached_models_history = {}
+        self._related_node_ref = related_node
+
+    def append(self, fitted_model):
+        self._cached_models_history[self._related_node_ref.descriptive_id] = fitted_model
+
+    def clear(self):
+        self._cached_models_history = {}
+
+    @property
+    def actual_cached_model(self):
+        return self._cached_models_history.get(self._related_node_ref.descriptive_id, None)
+
+
+# TODO: discuss about the usage of NodeGenerator
 class NodeGenerator:
     @staticmethod
-    def primary_node(model: Model, input_data: Optional[InputData]) -> Node:
-        eval_strategy = EvaluationStrategy(model=deepcopy(model))
-        return PrimaryNode(input_data=input_data,
-                           eval_strategy=eval_strategy)
+    def primary_node(model_type: ModelTypesIdsEnum) -> Node:
+        return PrimaryNode(model_type=model_type)
 
     @staticmethod
-    def secondary_node(model: Model, nodes_from: Optional[List[Node]] = None) -> Node:
-        eval_strategy = EvaluationStrategy(model=deepcopy(model))
-        return SecondaryNode(nodes_from=nodes_from,
-                             eval_strategy=eval_strategy)
+    def secondary_node(model_type: ModelTypesIdsEnum,
+                       nodes_from: Optional[List[Node]] = None) -> Node:
+        return SecondaryNode(nodes_from=nodes_from, model_type=model_type)
 
 
 class PrimaryNode(Node):
-    def __init__(self, input_data: InputData,
-                 eval_strategy: EvaluationStrategy):
-        super().__init__(nodes_from=None,
-                         input_data=input_data,
-                         eval_strategy=eval_strategy)
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        model = Model(model_type=model_type)
+        super().__init__(nodes_from=None, model=model)
 
-    def apply(self) -> OutputData:
-        if self.is_caching and self.cached_result is not None and self.cached_result.is_actual(self.nodes_from):
-            return OutputData(idx=self.input_data.idx,
-                              features=self.input_data.features,
-                              predict=self.cached_result.cached_output)
-        else:
-            model_predict = self.eval_strategy.evaluate(self.input_data)
-            if self.is_caching:
-                self.cached_result = CachedNodeResult(self, model_predict)
-            return OutputData(idx=self.input_data.idx,
-                              features=self.input_data.features,
-                              predict=model_predict)
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        if verbose:
+            print(f'Trying to fit primary node with model: {self.model}')
+        model_predict = self._fit_using_cache(input_data=input_data, verbose=verbose)
+
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=model_predict, task_type=input_data.task_type)
+
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        if verbose:
+            print(f'Predict in primary node by model: {self.model}')
+        if not self.cache:
+            raise ValueError('Model must be fitted before predict')
+
+        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_model,
+                                           data=input_data)
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=predict_train, task_type=input_data.task_type)
 
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 eval_strategy: EvaluationStrategy):
-        super().__init__(nodes_from=nodes_from,
-                         input_data=None,
-                         eval_strategy=eval_strategy)
+                 model_type: ModelTypesIdsEnum):
+        model = Model(model_type=model_type)
+        super().__init__(nodes_from=nodes_from, model=model)
+        if self.nodes_from is None:
+            self.nodes_from = []
 
-    def apply(self) -> OutputData:
-        parent_predict_list = list()
-        for parent in self.nodes_from:
-            parent_predict_list.append(parent.apply())
+    def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
-            raise ValueError
-        target = self.nodes_from[0].input_data.target
-        self.input_data = Data.from_predictions(outputs=parent_predict_list,
+            raise ValueError()
+        parent_results = []
+
+        if verbose:
+            print(f'Fit all parent nodes in secondary node with model: {self.model}')
+        for parent in self.nodes_from:
+            parent_results.append(parent.fit(input_data=input_data))
+
+        target = input_data.target
+        secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
-        evaluation_result = self.eval_strategy.evaluate(self.input_data)
-        if self.is_caching:
-            self.cached_result = CachedNodeResult(self, evaluation_result)
-        return OutputData(idx=self.nodes_from[0].input_data.idx,
-                          features=self.nodes_from[0].input_data.features,
-                          predict=evaluation_result)
+        if verbose:
+            print(f'Trying to fit secondary node with model: {self.model}')
+
+        model_predict = self._fit_using_cache(input_data=secondary_input)
+
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=model_predict,
+                          task_type=input_data.task_type)
+
+    def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        if len(self.nodes_from) == 0:
+            raise ValueError('')
+        parent_results = []
+        if verbose:
+            print(f'Obtain predictions from all parent nodes: {self.model}')
+        for parent in self.nodes_from:
+            parent_results.append(parent.predict(input_data=input_data))
+
+        target = input_data.target
+        secondary_input = Data.from_predictions(outputs=parent_results,
+                                                target=target)
+        if verbose:
+            print(f'Obtain prediction in secondary node with model: {self.model}')
+        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_model,
+                                               data=secondary_input)
+        return OutputData(idx=input_data.idx,
+                          features=input_data.features,
+                          predict=evaluation_result,
+                          task_type=input_data.task_type)
+
+
+def equivalent_subtree(root_of_tree_first: Node, root_of_tree_second: Node) -> List[Tuple[Any, Any]]:
+    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
+    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
+
+    def structural_equivalent_nodes(node_first, node_second):
+        nodes = []
+        is_same_type = type(node_first) == type(node_second)
+        node_first_childs = node_first.nodes_from
+        node_second_childs = node_second.nodes_from
+        if is_same_type and (isinstance(node_first, PrimaryNode) or len(node_first_childs) == len(node_second_childs)):
+            nodes.append((node_first, node_second))
+            if node_first.nodes_from:
+                for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):
+                    nodes_set = structural_equivalent_nodes(node1_child, node2_child)
+                    if nodes_set:
+                        nodes += nodes_set
+        return nodes
+
+    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
+    assert isinstance(pairs_set, list)
+    return pairs_set

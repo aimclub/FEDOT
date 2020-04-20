@@ -2,15 +2,11 @@ import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.models.data import InputData
-from core.models.model import (
-    DecisionTree,
-    LDA,
-    QDA,
-    LogRegression,
-    RandomForest,
-)
-from core.repository.dataset_types import NumericalDataTypesEnum
+from core.models.data import InputData, train_test_data_setup
+from core.models.model import Model
+from core.models.preprocessing import scaling_preprocess
+from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -22,29 +18,21 @@ def classification_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)))
+    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
+                     task_type=MachineLearningTasksEnum.classification)
 
     return data
 
 
-def test_log_regression_types_correct():
-    log_reg = LogRegression()
-
-    assert log_reg.input_type is NumericalDataTypesEnum.table
-    assert log_reg.output_type is NumericalDataTypesEnum.vector
-
-
 def test_log_regression_fit_correct(classification_dataset):
     data = classification_dataset
-    log_reg = LogRegression()
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    log_reg.fit(data=data)
-    predicted = log_reg.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    log_reg = Model(model_type=ModelTypesIdsEnum.logit)
+    _, train_predicted = log_reg.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -52,15 +40,13 @@ def test_log_regression_fit_correct(classification_dataset):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_random_forest_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    random_forest = RandomForest()
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    random_forest.fit(data=data)
-    predicted = random_forest.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    random_forest = Model(model_type=ModelTypesIdsEnum.rf)
+    _, train_predicted = random_forest.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -68,49 +54,55 @@ def test_random_forest_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_decision_tree_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = DecisionTree()
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    decision_tree = Model(model_type=ModelTypesIdsEnum.dt)
+    decision_tree.fit(data=train_data)
+    _, train_predicted = decision_tree.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_lda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = LDA()
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
-
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    lda = Model(model_type=ModelTypesIdsEnum.lda)
+    _, train_predicted = lda.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_qda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    decision_tree = QDA()
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree.fit(data=data)
-    predicted = decision_tree.predict(data=data)
+    qda = Model(model_type=ModelTypesIdsEnum.qda)
 
-    train_to = int(len(predicted) * 0.8)
-
-    roc_on_train = roc_auc(y_true=data.target[:train_to],
-                           y_score=predicted[:train_to])
+    _, train_predicted = qda.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
     roc_threshold = 0.95
-
     assert roc_on_train >= roc_threshold
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_log_clustering_fit_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    data.features = scaling_preprocess(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    kmeans = Model(model_type=ModelTypesIdsEnum.kmeans)
+
+    _, train_predicted = kmeans.fit(data=train_data)
+
+    assert all(np.unique(train_predicted) == [0, 1])

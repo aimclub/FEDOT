@@ -2,57 +2,63 @@ from abc import abstractmethod
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
 
+from core.chain_validation import validate
 from core.composer.chain import Chain
-from core.models.model import train_test_data_setup
+from core.models.data import InputData
+
+
+def from_maximised_metric(metric_func):
+    def wrapper(*args, **kwargs):
+        return -metric_func(*args, **kwargs)
+
+    return wrapper
 
 
 class ChainMetric:
     @staticmethod
     @abstractmethod
-    def get_value(chain: Chain) -> float:
+    def get_value(chain: Chain, reference_data: InputData) -> float:
         raise NotImplementedError()
 
 
 class RmseMetric(ChainMetric):
     @staticmethod
-    def get_value(chain: Chain) -> float:
-        _, test_data = train_test_data_setup(chain.reference_data)
-        chain.train()
-        results = chain.predict(test_data)
-        return mean_squared_error(y_true=chain.reference_data.target, y_pred=results)
+    def get_value(chain: Chain, reference_data: InputData) -> float:
+        results = chain.predict(reference_data)
+        return mean_squared_error(y_true=reference_data.target, y_pred=results.predict)
 
 
 class MaeMetric(ChainMetric):
     @staticmethod
-    def get_value(chain: Chain) -> float:
-        _, test_data = train_test_data_setup(chain.reference_data)
-        chain.train()
-        results = chain.predict(test_data)
-        return mean_squared_error(y_true=chain.reference_data.target, y_pred=results)
+    def get_value(chain: Chain, reference_data: InputData) -> float:
+        results = chain.predict(reference_data)
+        return mean_squared_error(y_true=reference_data.target, y_pred=results.predict)
 
 
 class RocAucMetric(ChainMetric):
     @staticmethod
-    def get_value(chain: Chain) -> float:
-        _, test_data = train_test_data_setup(chain.reference_data)
-        chain.train()
-        results = chain.predict(test_data)
+    @from_maximised_metric
+    def get_value(chain: Chain, reference_data: InputData) -> float:
         try:
-            # TODO re-factor to avoid negative
-            score = -roc_auc_score(y_score=results.predict, y_true=test_data.target)
-            return score
+            validate(chain)
+            results = chain.predict(reference_data)
+            score = roc_auc_score(y_score=results.predict,
+                                  y_true=reference_data.target)
         except Exception as ex:
             print(ex)
-            return -0.5
+            score = 0.5
+
+        return score
 
 
+# TODO: reference_data = None ?
 class StructuralComplexityMetric(ChainMetric):
     @staticmethod
-    def get_value(chain: Chain) -> float:
+    def get_value(chain: Chain, reference_data: InputData) -> float:
         return chain.depth ** 2 + chain.length
 
 
 class NodeNum(ChainMetric):
     @staticmethod
-    def get_value(chain: Chain) -> float:
+    def get_value(chain: Chain, reference_data: InputData) -> float:
         return chain.length

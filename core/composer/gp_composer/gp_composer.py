@@ -14,6 +14,7 @@ from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
+from core.models.data import train_test_data_setup
 
 
 @dataclass
@@ -25,11 +26,16 @@ class GPComposerRequirements(ComposerRequirements):
 
 
 class GPComposer(Composer):
+    def __init__(self):
+        super(Composer, self).__init__()
+
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
                       metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+
+        train_data, test_data = train_test_data_setup(data, 0.8)
         metric_function_for_nodes = partial(metric_for_nodes,
-                                            metrics, data)
+                                            metrics, train_data, test_data)
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
                                      primary_node_func=NodeGenerator.primary_node,
@@ -37,22 +43,25 @@ class GPComposer(Composer):
 
         best_found, history = optimiser.optimise(metric_function_for_nodes)
 
-        if is_visualise:
-            historical_chains = []
-            for historical_data in history:
-                historical_nodes_set = tree_to_chain(historical_data[0], data).nodes
-                historical_chain = Chain()
-                [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
-                historical_chains.append(historical_chain)
-            historical_fitnesses = [opt_step[1] for opt_step in history]
-            ComposerVisualiser.visualise_history(historical_chains, historical_fitnesses)
+        historical_chains = []
+        for historical_data in history:
+            historical_nodes_set = tree_to_chain(historical_data[0]).nodes
+            historical_chain = Chain()
+            [historical_chain.add_node(nodes) for nodes in historical_nodes_set]
+            historical_chains.append(historical_chain)
+        historical_fitness = [opt_step[1] for opt_step in history]
 
-        best_chain = tree_to_chain(tree_root=best_found, data=data)
+        self.history = [(chain, fitness) for chain, fitness in zip(historical_chains, historical_fitness)]
+
+        if is_visualise:
+            ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
+
+        best_chain = tree_to_chain(tree_root=best_found)
         print("GP composition finished")
         return best_chain
 
 
-def tree_to_chain(tree_root: GPNode, data: InputData) -> Chain:
+def tree_to_chain(tree_root: GPNode) -> Chain:
     chain = Chain()
     nodes = flat_nodes_tree(deepcopy(tree_root))
     for node in nodes:
@@ -60,7 +69,6 @@ def tree_to_chain(tree_root: GPNode, data: InputData) -> Chain:
             for i in range(len(node.nodes_from)):
                 node.nodes_from[i] = node.nodes_from[i].chain_node
         chain.add_node(node.chain_node)
-    chain.reference_data = data
     return chain
 
 
@@ -74,6 +82,8 @@ def flat_nodes_tree(node: GPNode) -> List[GPNode]:
         return [node]
 
 
-def metric_for_nodes(metric_function, data, root: GPNode) -> float:
-    chain = tree_to_chain(root, data)
-    return metric_function(chain)
+def metric_for_nodes(metric_function, train_data: InputData,
+                     test_data: InputData, root: GPNode) -> float:
+    chain = tree_to_chain(root)
+    chain.fit(input_data=train_data)
+    return metric_function(chain, test_data)

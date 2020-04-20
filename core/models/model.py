@@ -1,215 +1,97 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from copy import copy
 from dataclasses import dataclass
-from typing import Tuple
 
-from sklearn.discriminant_analysis import (
-    LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
-)
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
+import numpy as np
 
 from core.models.data import (
     InputData,
-    split_train_test,
 )
-from core.repository.dataset_types import (
-    DataTypesEnum, NumericalDataTypesEnum
-)
+from core.models.evaluation import SkLearnClassificationStrategy, \
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
+from core.models.preprocessing import scaling_preprocess, simple_preprocess
+from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
+    compatible_task_types
 
 
 @dataclass
 class Model(ABC):
-    input_type: DataTypesEnum
-    output_type: DataTypesEnum
-    __model = None
 
-    @abstractmethod
-    def predict(self, data):
-        raise NotImplementedError()
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        self.model_type = model_type
+        self._eval_strategy, self._data_preprocessing = None, None
 
-    @abstractmethod
-    def fit(self, data):
-        raise NotImplementedError()
+    @property
+    def description(self):
+        model_type = self.model_type
+        model_params = 'defaultparams'
+        return f'n_{model_type}_{model_params}'
 
-    @abstractmethod
-    def tune(self, data):
-        raise NotImplementedError()
+    def fit(self, data: InputData):
+        self._eval_strategy, self._data_preprocessing = \
+            _eval_strategy_for_task(self.model_type, data.task_type)
+        preprocessed_data = copy(data)
+        preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
+        fitted_model = self._eval_strategy.fit(model_type=self.model_type,
+                                               train_data=preprocessed_data)
+        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
+                                                    predict_data=preprocessed_data)
+        return fitted_model, predict_train
+
+    def predict(self, fitted_model, data: InputData):
+        preprocessed_data = copy(data)
+        if not (self._data_preprocessing and self._eval_strategy):
+            raise ValueError(f'Model {str(self)} not initialised')
+        preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
+
+        prediction = self._eval_strategy.predict(trained_model=fitted_model,
+                                                 predict_data=preprocessed_data)
+
+        if any([np.isnan(_) for _ in prediction]):
+            print("Value error")
+
+        return prediction
 
     def __str__(self):
-        return f'{self.__class__.__name__}'
+        return f'{self.model_type.name}'
 
 
-class LogRegression(Model):
-    def __init__(self):
-        # TODO check is necessary
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
+def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
+    preprocessing_for_tasks = {
+        MachineLearningTasksEnum.auto_regression: simple_preprocess,
+        MachineLearningTasksEnum.classification: scaling_preprocess,
+        MachineLearningTasksEnum.regression: scaling_preprocess,
+        MachineLearningTasksEnum.clustering: scaling_preprocess
+    }
 
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = SklearnLogReg(random_state=1, solver='liblinear', max_iter=100,
-                                     tol=1e-3, verbose=0)
+    strategies_for_tasks = {
+        MachineLearningTasksEnum.classification: SkLearnClassificationStrategy,
+        MachineLearningTasksEnum.regression: SkLearnRegressionStrategy,
+        MachineLearningTasksEnum.auto_regression: StatsModelsAutoRegressionStrategy,
+        MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
+    }
 
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
+    preprocessing_function = preprocessing_for_tasks.get(task_type_for_data, scaling_preprocess)
 
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
+    models_repo = ModelTypesRepository()
+    _, model_info = models_repo.search_models(
+        desired_ids=[model_type])
 
-    def tune(self, data):
-        return 1
+    task_type_for_model = task_type_for_data
+    task_types_acceptable_for_model = model_info[0].task_type
 
+    # if the model can't be used directly for the task type from data
+    if task_type_for_model not in task_types_acceptable_for_model:
+        # search the supplementary task types, that can be included in chain which solves original task
+        globally_compatible_task_types = compatible_task_types(task_type_for_model)
+        compatible_task_types_acceptable_for_model = list(set(task_types_acceptable_for_model).intersection
+                                                          (set(globally_compatible_task_types)))
+        if len(compatible_task_types_acceptable_for_model) == 0:
+            raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
+        task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-class XGBoost(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = XGBClassifier()
+    eval_strategy = strategies_for_tasks[task_type_for_model]()
 
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        pass
-
-
-class RandomForest(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = RandomForestClassifier(n_estimators=100, max_depth=2, n_jobs=-1)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class DecisionTree(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = DecisionTreeClassifier(max_depth=2, )
-
-    def predict(self, data: InputData):
-        prediction = self.__model.predict_proba(data.features)
-        return prediction[:, 1] if prediction.shape[1] > 1 else prediction
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class KNN(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = SklearnKNN(n_neighbors=15)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class LDA(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = LinearDiscriminantAnalysis(solver="svd")
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class QDA(Model):
-    # TODO investigate NaN in results
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = QuadraticDiscriminantAnalysis()
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-class MLP(Model):
-    def __init__(self):
-        input_type = NumericalDataTypesEnum.table
-        output_type = NumericalDataTypesEnum.vector
-
-        super().__init__(input_type=input_type, output_type=output_type)
-        self.__model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=500)
-
-    def predict(self, data: InputData):
-        predicted = self.__model.predict_proba(data.features)[:, 1]
-        return predicted
-
-    def fit(self, data: InputData):
-        train_data, _ = train_test_data_setup(data=data)
-        self.__model.fit(train_data.features, train_data.target)
-
-    def tune(self, data):
-        return 1
-
-
-def train_test_data_setup(data: InputData) -> Tuple[InputData, InputData]:
-    train_data_x, test_data_x = split_train_test(data.features)
-    train_data_y, test_data_y = split_train_test(data.target)
-    train_idx, test_idx = split_train_test(data.idx)
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=train_idx)
-    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx)
-    return train_data, test_data
+    return eval_strategy, preprocessing_function

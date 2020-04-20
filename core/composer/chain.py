@@ -1,10 +1,11 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, List
+from uuid import uuid4
 
 import networkx as nx
 
 from core.composer.node import Node, SecondaryNode, PrimaryNode
-from core.models.data import InputData, OutputData
+from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -12,31 +13,24 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 class Chain:
     def __init__(self):
         self.nodes = []
-        self.reference_data = None
 
-    def train(self) -> OutputData:
-        # if the chain should be evaluated for the new dataset
-        for node in self.nodes:
-            node.eval_strategy.is_train_models = True
-            node.is_caching = True
-            # set reference data in nodes
-            if isinstance(node, PrimaryNode):
-                node.input_data = deepcopy(self.reference_data)
-        return self.root_node.apply()
+    def fit_from_scratch(self, input_data: InputData, verbose=False):
+        # Clean all cache and fit all models
+        print('Fit chain from scratch')
+        self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def predict(self, new_data: InputData) -> OutputData:
-        if any([(node.cached_result is None) or (not node.cached_result.is_actual(node.nodes_from))
-                for node in self.nodes]):
-            self.train()
-            # update data in primary nodes
-        for node in self.nodes:
-            if isinstance(node, PrimaryNode):
-                node.input_data = deepcopy(new_data)
-        # update flags in nodes
-        for node in self.nodes:
-            node.eval_strategy.is_train_models = False
-            node.is_caching = False
-        return self.root_node.apply()
+    def fit(self, input_data: InputData, use_cache=True, verbose=False):
+        if not use_cache:
+            self._clean_model_cache()
+        train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
+
+        return train_predicted
+
+    def predict(self, input_data: InputData):
+        if not self.is_all_cache_actual():
+            raise Exception('Trained model cache is not actual or empty')
+        result = self.root_node.predict(input_data=input_data)
+        return result
 
     def add_node(self, new_node: Node):
         """
@@ -44,16 +38,42 @@ class Chain:
 
         """
         self.nodes.append(new_node)
-        if isinstance(new_node, PrimaryNode):
-            # TODO refactor
-            self.reference_data = deepcopy(new_node.input_data)
 
-    def update_node(self, new_node: Node):
-        raise NotImplementedError()
+    def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
+        old_node_offspring = self._node_childs(old_node)
+        for old_node_child in old_node_offspring:
+            old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
 
-    def _is_node_has_child(self, node):
-        return any([(node in other_node.nodes_from)
-                    for other_node in self.nodes if isinstance(other_node, SecondaryNode)])
+    def replace_node_with_parents(self, old_node: Node, new_node: Node):
+        new_node = deepcopy(new_node)
+        self._actualise_old_node_childs(old_node, new_node)
+        new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
+        old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
+        self.nodes = new_nodes + old_nodes
+
+    def update_node(self, old_node: Node, new_node: Node):
+        self._actualise_old_node_childs(old_node, new_node)
+        new_node.nodes_from = old_node.nodes_from
+        self.nodes.remove(old_node)
+        self.nodes.append(new_node)
+
+    def _clean_model_cache(self):
+        for node in self.nodes:
+            node.cache.clear()
+
+    def is_all_cache_actual(self):
+        cache_status = [node.cache.actual_cached_model is not None for node in self.nodes]
+        return all(cache_status)
+
+    def _node_childs(self, node) -> List[Optional[Node]]:
+        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
+                node in other_node.nodes_from]
+
+    def _is_node_has_child(self, node) -> bool:
+        return any(self._node_childs(node))
+
+    def __eq__(self, other) -> bool:
+        return self.root_node.descriptive_id == other.root_node.descriptive_id
 
     @property
     def root_node(self) -> Optional[Node]:
@@ -66,11 +86,11 @@ class Chain:
         return root[0]
 
     @property
-    def length(self):
+    def length(self) -> int:
         return len(self.nodes)
 
     @property
-    def depth(self):
+    def depth(self) -> int:
         def _depth_recursive(node):
             if node is None:
                 return 0
@@ -84,36 +104,23 @@ class Chain:
     def _flat_nodes_tree(self, node):
         raise NotImplementedError()
 
-    @property
-    def reference_data(self) -> Optional[InputData]:
-        if len(self.nodes) == 0:
-            return None
-        primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-        assert len(primary_nodes) > 0
-
-        return deepcopy(primary_nodes[0].input_data)
-
-    @reference_data.setter
-    def reference_data(self, data):
-        if len(self.nodes) > 0:
-            primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-            for node in primary_nodes:
-                node.input_data = deepcopy(data)
-
 
 def as_nx_graph(chain: Chain):
     graph = nx.DiGraph()
 
     node_labels = {}
+    new_node_idx = {}
     for node in chain.nodes:
-        graph.add_node(node.node_id)
-        node_labels[node.node_id] = f'{node}'
+        unique_id, label = uuid4(), str(node)
+        node_labels[unique_id] = str(node)
+        new_node_idx[node] = unique_id
+        graph.add_node(unique_id)
 
-    def add_edges(graph, chain):
+    def add_edges(graph, chain, new_node_idx):
         for node in chain.nodes:
             if node.nodes_from is not None:
                 for child in node.nodes_from:
-                    graph.add_edge(child.node_id, node.node_id)
+                    graph.add_edge(new_node_idx[child], new_node_idx[node])
 
-    add_edges(graph, chain)
+    add_edges(graph, chain, new_node_idx)
     return graph, node_labels

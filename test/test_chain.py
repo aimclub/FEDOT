@@ -7,8 +7,9 @@ from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.models.data import InputData
-from core.models.model import LogRegression
+from core.models.data import InputData, train_test_data_setup
+from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -19,7 +20,8 @@ def data_setup():
     np.random.shuffle(response)
     predictors = predictors[:100]
     response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
+                     task_type=MachineLearningTasksEnum.classification)
     return data
 
 
@@ -39,49 +41,83 @@ def _to_numerical(categorical_ids: np.ndarray):
 
 
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
-def test_models_sequence(data_fixture, request):
+def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
+    train, _ = train_test_data_setup(data)
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.lda,
+                                          nodes_from=[first])
+    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.qda,
+                                         nodes_from=[first])
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
+                                         nodes_from=[second, third])
 
-    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
-    results = y4.apply()
-    assert y4.cached_result.cached_output.size == data.target.size
-    assert len(y4.cached_result.last_parents_ids) == 2
-    assert len(results.predict) == len(data.target)
+    train_predicted = final.fit(input_data=train)
+
+    assert final.descriptive_id == (
+        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.lda_defaultparams;;(/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.qda_defaultparams;)/'
+        'n_ModelTypesIdsEnum.knn_defaultparams')
+
+    assert train_predicted.predict.shape == train.target.shape
+    assert final.cache.actual_cached_model is not None
 
 
-def test_models_chain_nested(data_setup):
+def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
+    train, _ = train_test_data_setup(data)
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                          nodes_from=[first])
+    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[first])
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[second, third])
+
     chain = Chain()
-    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
-    chain.add_node(y1)
-    chain.add_node(y2)
-    chain.add_node(y3)
-    chain.add_node(y4)
-    results = chain.predict(data)
+    for node in [first, second, third, final]:
+        chain.add_node(node)
+
+    train_predicted = chain.fit(input_data=train, use_cache=False)
+
+    assert chain.root_node.descriptive_id == (
+        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;;(/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams')
+
     assert chain.length == 4
     assert chain.depth == 3
-    assert len(results.predict) == len(data.target)
+    assert train_predicted.predict.shape == train.target.shape
 
 
-def test_models_chain_seq(data_setup):
+def test_chain_sequential_fit_correct(data_setup):
     data = data_setup
-    chain = Chain()
-    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y3])
+    train, _ = train_test_data_setup(data)
 
-    chain.add_node(y1)
-    chain.add_node(y2)
-    chain.add_node(y3)
-    chain.add_node(y4)
-    results = chain.predict(data)
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                          nodes_from=[first])
+    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[second])
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[third])
+
+    chain = Chain()
+    for node in [first, second, third, final]:
+        chain.add_node(node)
+
+    train_predicted = chain.fit(input_data=train, use_cache=False)
+
+    assert chain.root_node.descriptive_id == (
+        '(((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
+        'n_ModelTypesIdsEnum.logit_defaultparams')
+
     assert chain.length == 4
     assert chain.depth == 4
-    assert len(results.predict) == len(data.target)
+    assert train_predicted.predict.shape == train.target.shape

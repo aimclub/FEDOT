@@ -5,9 +5,12 @@ from sklearn.datasets import load_breast_cancer
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, split_train_test
-from core.models.model import LogRegression
-from core.repository.quality_metrics_repository import MetricsRepository, ComplexityMetricsEnum, \
+from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.quality_metrics_repository import (
+    MetricsRepository, ComplexityMetricsEnum,
     ClassificationMetricsEnum
+)
+from core.repository.task_types import MachineLearningTasksEnum
 
 
 @pytest.fixture()
@@ -21,46 +24,45 @@ def data_setup():
     train_data_x, test_data_x = split_train_test(predictors)
     train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)))
+                           idx=np.arange(0, len(train_data_y)),
+                           task_type=MachineLearningTasksEnum.classification)
     test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)))
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100))
-    return train_data, test_data, data
+                          idx=np.arange(0, len(test_data_y)),
+                          task_type=MachineLearningTasksEnum.classification)
+    return train_data, test_data
 
 
-def test_structural_quality(data_setup):
-    _, _, data = data_setup
-
-    metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
+def default_valid_chain():
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                          nodes_from=[first])
+    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[first])
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[second, third])
 
     chain = Chain()
-    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
-    chain.add_node(y1)
-    chain.add_node(y2)
-    chain.add_node(y3)
-    chain.add_node(y4)
+    for node in [first, second, third, final]:
+        chain.add_node(node)
 
-    metric_value = metric_functions(chain)
-    assert metric_value == 13
+    return chain
+
+
+def test_structural_quality_correct():
+    chain = default_valid_chain()
+    metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
+
+    expected_metric_value = 13
+    actual_metric_value = metric_functions(chain, None)
+    assert actual_metric_value == expected_metric_value
 
 
 def test_classification_quality_metric(data_setup):
-    _, _, data = data_setup
+    train, _ = data_setup
 
     metric_functions = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-    chain = Chain()
-    y1 = NodeGenerator.primary_node(model=LogRegression(), input_data=data)
-    y2 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y3 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y1])
-    y4 = NodeGenerator.secondary_node(model=LogRegression(), nodes_from=[y2, y3])
-    chain.add_node(y1)
-    chain.add_node(y2)
-    chain.add_node(y3)
-    chain.add_node(y4)
-
-    metric_value = metric_functions(chain)
+    chain = default_valid_chain()
+    chain.fit(input_data=train)
+    metric_value = metric_functions(chain=chain, reference_data=train)
     assert 0.0 < abs(metric_value) < 1.0

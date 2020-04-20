@@ -25,15 +25,18 @@ class ComposerVisualiser:
 
     @staticmethod
     def visualise(chain: Chain):
-        graph, node_labels = as_nx_graph(chain=chain)
-        pos = node_positions(graph.to_undirected())
-        plt.figure(figsize=(10, 16))
-        nx.draw(graph, pos=pos,
-                with_labels=True, labels=node_labels,
-                font_size=12, font_family='calibri', font_weight='bold',
-                node_size=7000, width=2.0,
-                node_color=colors_by_node_labels(node_labels), cmap='Set3')
-        plt.show()
+        try:
+            graph, node_labels = as_nx_graph(chain=chain)
+            pos = node_positions(graph.to_undirected())
+            plt.figure(figsize=(10, 16))
+            nx.draw(graph, pos=pos,
+                    with_labels=True, labels=node_labels,
+                    font_size=12, font_family='calibri', font_weight='bold',
+                    node_size=7000, width=2.0,
+                    node_color=colors_by_node_labels(node_labels), cmap='Set3')
+            plt.show()
+        except Exception as ex:
+            print(f'Visualisation failed with {ex}')
 
     @staticmethod
     def _visualise_chains(chains, fitnesses):
@@ -43,7 +46,7 @@ class ComposerVisualiser:
         prev_fit = fitnesses[0]
 
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = as_nx_graph(chain=deepcopy(chain))
+            graph, node_labels = as_nx_graph(chain=chain)
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -69,7 +72,7 @@ class ComposerVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
 
-            best_graph, best_node_labels = as_nx_graph(chain=deepcopy(last_best_chain))
+            best_graph, best_node_labels = as_nx_graph(chain=last_best_chain)
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -122,13 +125,16 @@ class ComposerVisualiser:
 
     @staticmethod
     def visualise_history(chains, fitnesses):
-        print("START VISUALISATION")
-        ComposerVisualiser._clean(with_gif=True)
-        ComposerVisualiser._visualise_chains(chains, fitnesses)
-        ComposerVisualiser._visualise_convergence(fitnesses)
-        ComposerVisualiser._merge_images(len(chains))
-        ComposerVisualiser._combine_gifs()
-        ComposerVisualiser._clean()
+        print('START VISUALISATION')
+        try:
+            ComposerVisualiser._clean(with_gif=True)
+            ComposerVisualiser._visualise_chains(chains, fitnesses)
+            ComposerVisualiser._visualise_convergence(fitnesses)
+            ComposerVisualiser._merge_images(len(chains))
+            ComposerVisualiser._combine_gifs()
+            ComposerVisualiser._clean()
+        except Exception as ex:
+            print(f'Visualisation failed with {ex}')
 
     @staticmethod
     def _merge_images(num_images):

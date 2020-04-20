@@ -1,10 +1,5 @@
 from unittest.mock import patch
 
-from core.models.model import (
-    LogRegression,
-    XGBoost,
-    KNN
-)
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelsGroup,
@@ -49,55 +44,38 @@ def default_mocked_tree():
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
        side_effect=default_mocked_tree)
-def test_search_in_repository_by_id_and_metainfo(mock_init_tree):
+def test_search_in_repository_by_id_and_metainfo_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_ids=[ModelGroupsIdsEnum.ml], desired_metainfo=ModelMetaInfoTemplate(
             task_type=MachineLearningTasksEnum.regression))
 
-    impl = repo.model_by_id(model_names[0])
-
-    assert model_names[0] is ModelTypesIdsEnum.xgboost
+    assert ModelTypesIdsEnum.xgboost in model_names
     assert len(model_names) == 1
-    assert isinstance(impl, XGBoost)
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
        side_effect=default_mocked_tree)
-def test_search_in_repository_by_model_id(mock_init_tree):
+def test_search_in_repository_by_model_id_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_ids=[ModelGroupsIdsEnum.all])
-    impl = repo.model_by_id(model_names[0])
 
-    assert model_names[0] is ModelTypesIdsEnum.xgboost
+    assert ModelTypesIdsEnum.xgboost in model_names
     assert len(model_names) == 3
-    assert isinstance(impl, XGBoost)
 
 
 @patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
        side_effect=default_mocked_tree)
-def test_search_in_repository_by_metainfo(mock_init_tree):
+def test_search_in_repository_by_metainfo_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
-    model_names = repo.search_model_types_by_attributes(
+    model_names, _ = repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification))
-    impl = repo.model_by_id(model_names[1])
 
-    assert model_names[1] is ModelTypesIdsEnum.knn
+    assert ModelTypesIdsEnum.knn in model_names
     assert len(model_names) == 3
-    assert isinstance(impl, KNN)
-
-
-@patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=default_mocked_tree)
-def test_direct_model_query(mock_init_tree):
-    repo = ModelTypesRepository()
-
-    impl = repo.model_by_id(ModelTypesIdsEnum.logit)
-
-    assert isinstance(impl, LogRegression)
