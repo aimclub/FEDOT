@@ -3,6 +3,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from core.chain_validation import validate
+from core.composer.chain import Chain
+from core.composer.node import PrimaryNode, SecondaryNode, CachedNodeResult
 from core.models.model import InputData
 from core.models.model import sklearn_model_by_type
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -16,10 +19,12 @@ class ModelTemplate:
         self.input_shape = []
         self.output_shape = []
         self.parents = []
+        self.model_instance = None
+        self.fitted_model = None
 
 
-def chain_template(model_types, depth, models_per_level,
-                   samples, features):
+def chain_template_random(model_types, depth, models_per_level,
+                          samples, features):
     models_by_level = []
 
     for level in range(depth - 1):
@@ -41,6 +46,31 @@ def chain_template(model_types, depth, models_per_level,
     return models_by_level
 
 
+def chain_template_balanced_tree(model_types, depth, models_per_level,
+                                 samples, features):
+    models_by_level = []
+
+    for level in range(depth - 1):
+        selected_models = np.random.choice(model_types, models_per_level[level])
+        templates = [ModelTemplate(model_type=model_type) for model_type in selected_models]
+        models_by_level.append(templates)
+
+    assert models_per_level[-1] == 1
+    last_model = np.random.choice(model_types)
+    models_by_level.append([ModelTemplate(model_type=last_model)])
+
+    models_by_level = with_balanced_tree_links(models_by_level)
+
+    features_shape = [samples, features]
+    # TODO: change target_shape later if non-classification problems will be used
+    target_shape = [samples, 1]
+    models_by_level = with_calculated_shapes(models_by_level,
+                                             source_features=features_shape,
+                                             source_target=target_shape)
+    return models_by_level
+
+
+# TODO: fix internal primary nodes appearance
 def with_random_links(models_by_level):
     for current_lvl in range(len(models_by_level) - 1):
         next_lvl = current_lvl + 1
@@ -51,6 +81,29 @@ def with_random_links(models_by_level):
             models_to_link = np.random.choice(models_by_level[next_lvl], links_amount, replace=False)
             for model_ in models_to_link:
                 model_.parents.append(model)
+    return models_by_level
+
+
+def with_balanced_tree_links(models_by_level):
+    for current_lvl in range(len(models_by_level) - 1):
+        next_lvl = current_lvl + 1
+        models_on_lvl = models_by_level[current_lvl]
+
+        current_level_amount = len(models_by_level[current_lvl])
+        next_level_amount = len(models_by_level[next_lvl])
+        assert current_level_amount >= next_level_amount
+
+        models_per_group = current_level_amount // next_level_amount
+
+        current_group_idx = 0
+        for model_idx in range(current_level_amount):
+            if (model_idx % models_per_group) == 0 and model_idx != 0 and current_group_idx < next_level_amount - 1:
+                current_group_idx += 1
+            current_model = models_on_lvl[model_idx]
+            current_group_parent = models_by_level[next_lvl][current_group_idx]
+
+            current_group_parent.parents.append(current_model)
+
     return models_by_level
 
 
@@ -90,7 +143,7 @@ def fit_template(chain_template, classes):
         templates_by_models.append((model_template, model_instance))
 
     for template, instance in templates_by_models:
-        samples, features = template.input_shape
+        samples, features_amount = template.input_shape
 
         features, target = synthetic_dataset(samples_amount=samples,
                                              features_amount=features_amount,
@@ -100,14 +153,58 @@ def fit_template(chain_template, classes):
                                features=features, target=target)
         print(f'Fit {instance}')
         fitted_model, predictions = instance.fit(data=data_train)
-        print(f'Predictions: {predictions[:10]}')
+
+        template.model_instance = instance
+        template.fitted_model = fitted_model
+
+
+def real_chain(chain_template):
+    nodes_by_templates = []
+    for level in range(0, len(chain_template)):
+        for template in chain_template[level]:
+            if len(template.parents) == 0:
+                node = PrimaryNode(model_type=template.model_type)
+            else:
+                node = SecondaryNode(nodes_from=real_parents(nodes_by_templates,
+                                                             template),
+                                     model_type=template.model_type)
+            node.model = template.model_instance
+            node.cached_result = CachedNodeResult(node=node, fitted_model=template.fitted_model)
+            nodes_by_templates.append((node, template))
+
+    chain = Chain()
+    for node, _ in nodes_by_templates:
+        chain.add_node(node)
+
+    return chain
+
+
+def real_parents(nodes_by_templates, template_child):
+    parents = []
+    for node, template in nodes_by_templates:
+        if template in template_child.parents:
+            parents.append(node)
+
+    return parents
 
 
 if __name__ == '__main__':
-    model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.xgboost]
+    model_types = [ModelTypesIdsEnum.logit]
     samples, features_amount, classes = 1000, 10, 2
 
-    chain = chain_template(model_types=model_types, depth=4, models_per_level=3,
-                           samples=samples, features=features_amount)
+    # chain = chain_template_random(model_types=model_types, depth=3, models_per_level=2,
+    #                               samples=samples, features=features_amount)
+    chain = chain_template_balanced_tree(model_types=model_types, depth=3, models_per_level=[4, 2, 1],
+                                         samples=samples, features=features_amount)
     show_chain_template(chain)
     fit_template(chain_template=chain, classes=classes)
+    real = real_chain(chain)
+    validate(real)
+    features, target = synthetic_dataset(samples_amount=samples,
+                                         features_amount=features_amount,
+                                         classes_amount=classes)
+    target = np.expand_dims(target, axis=1)
+    data_test = InputData(idx=np.arange(0, samples),
+                          features=features, target=target)
+    predictions = real.predict(input_data=data_test)
+    print(predictions.predict[:10])

@@ -5,7 +5,7 @@ from sklearn import datasets
 def synthetic_dataset(samples_amount, features_amount, classes_amount):
     noisy_labels_fraction = 0.05
     features, target = datasets.make_classification(n_samples=samples_amount, n_features=features_amount,
-                                                    n_informative=2, n_redundant=3, n_repeated=2,
+                                                    n_informative=features_amount, n_redundant=0, n_repeated=0,
                                                     n_classes=classes_amount, n_clusters_per_class=1,
                                                     flip_y=noisy_labels_fraction,
                                                     shuffle=False)
