@@ -5,13 +5,16 @@ from sklearn.metrics import roc_auc_score
 from tpot import TPOTClassifier
 from tpot import TPOTRegressor
 
+from benchmark.benchmark_model_types import ModelTypesEnum
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.models.data import InputData
 from sklearn.metrics import mean_squared_error as mse
 
+from core.repository.task_types import MachineLearningTasksEnum
 
-def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, case_name='tpot_default',
-             is_classification=True):
+
+def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, task: MachineLearningTasksEnum,
+             case_name='tpot_default'):
     max_runtime_mins = config_data['MAX_RUNTIME_MINS']
     generations = config_data['GENERATIONS']
     population_size = config_data['POPULATION_SIZE']
@@ -19,15 +22,13 @@ def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, case_
     train_data = InputData.from_csv(train_file_path)
     test_data = InputData.from_csv(test_file_path)
 
-    task = 'clss' if is_classification else 'reg'
-
     result_model_filename = f"{case_name}_g{generations}" \
-                            f"_p{population_size}_{task}.pkl"
+                            f"_p{population_size}_{task.value}.pkl"
     current_file_path = str(os.path.dirname(__file__))
     result_file_path = os.path.join(current_file_path, result_model_filename)
 
     if result_model_filename not in os.listdir(current_file_path):
-        estimator = TPOTClassifier if is_classification else TPOTRegressor
+        estimator = TPOTClassifier if task is MachineLearningTasksEnum.classification else TPOTRegressor
 
         model = estimator(generations=generations,
                           population_size=population_size,
@@ -48,7 +49,7 @@ def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, case_
     print(predicted)
     print(f'BEST_model: {imported_model}')
 
-    if is_classification:
+    if task is MachineLearningTasksEnum.classification:
         result_metric = {'TPOT_ROC_AUC_test': round(roc_auc_score(test_data.target, predicted), 3)}
         print(f"TPOT_ROC_AUC_test:{result_metric['TPOT_ROC_AUC_test']} ")
     else:
@@ -64,4 +65,4 @@ if __name__ == '__main__':
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS in b_h20.py
     tpot_config = get_models_hyperparameters()['TPOT']
 
-    run_tpot(train_data_path, test_data_path, config_data=tpot_config)
+    run_tpot(train_data_path, test_data_path, config_data=tpot_config, task=MachineLearningTasksEnum.classification)

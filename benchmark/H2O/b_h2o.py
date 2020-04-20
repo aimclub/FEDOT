@@ -8,7 +8,9 @@ import os
 import h2o
 from h2o.automl import H2OAutoML
 
+from benchmark.benchmark_model_types import ModelTypesEnum
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
+from core.repository.task_types import MachineLearningTasksEnum
 
 CURRENT_PATH = str(os.path.dirname(__file__))
 IP = '127.0.0.1'
@@ -18,14 +20,12 @@ PORT = 8888
 # MAX_RUNTIME_SECS should be equivalent to MAX_RUNTIME_MINS in b_tpot.py
 
 
-def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target_name: str, case_name='h2o_default',
-            is_classification=True):
+def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target_name: str,
+            task: MachineLearningTasksEnum, case_name='h2o_default'):
     max_models = config_data['MAX_MODELS']
     max_runtime_secs = config_data['MAX_RUNTIME_SECS']
 
     h2o.init(ip=IP, port=PORT, name='h2o_server')
-
-    task = 'clss' if is_classification else 'reg'
 
     # Data preprocessing
     train_frame = h2o.import_file(train_file_path)
@@ -34,9 +34,10 @@ def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target
     train_frame[target_name] = train_frame[target_name].asfactor()
     test_frame[target_name] = test_frame[target_name].asfactor()
 
-    result_filename = f"{case_name}_m{max_models}_rs{max_runtime_secs}_{task}"
+    result_filename = f"{case_name}_m{max_models}_rs{max_runtime_secs}_{task.value}"
     exported_model_path = os.path.join(CURRENT_PATH, result_filename)
 
+    # TODO Regression
     if result_filename not in os.listdir(CURRENT_PATH):
         model = H2OAutoML(max_models=max_models, seed=1, max_runtime_secs=max_runtime_secs)
         model.train(x=predictors, y=target_name, training_frame=train_frame, validation_frame=test_frame)
@@ -48,7 +49,7 @@ def run_h2o(train_file_path: str, test_file_path: str, config_data: dict, target
 
     imported_model = h2o.load_model(exported_model_path)
 
-    if is_classification:
+    if task is MachineLearningTasksEnum.classification:
         train_roc_auc_value = round(imported_model.auc(train=True), 3)
         test_roc_auc_value = round(imported_model.auc(valid=True), 3)
 
@@ -75,4 +76,5 @@ if __name__ == '__main__':
 
     h2o_config = get_models_hyperparameters()['H2O']
 
-    run_h2o(train_file, test_file, config_data=h2o_config, target_name='default')
+    run_h2o(train_file, test_file, config_data=h2o_config, target_name='default',
+            task=MachineLearningTasksEnum.classification)
