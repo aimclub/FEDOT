@@ -1,0 +1,86 @@
+{
+    "task": "classification",
+    "tpot_metric": {
+        "TPOT_ROC_AUC_test": 0.846
+    },
+    "h2o_metric": {
+        "H2O_ROC_AUC_train": 0.895,
+        "H2O_ROC_AUC_test": 0.856
+    },
+    "autokeras_metric": {
+        "autokeras_roc_auc": 0.515
+    },
+    "mlbox_metric": 0.8356111607586139,
+    "baseline_metric": 1.0,
+    "hyperparameters": {
+        "TPOT": {
+            "MAX_RUNTIME_MINS": 30,
+            "GENERATIONS": 10,
+            "POPULATION_SIZE": 5
+        },
+        "H2O": {
+            "MAX_MODELS": 20,
+            "MAX_RUNTIME_SECS": 1800
+        },
+        "AutoKeras": {
+            "MAX_TRIAL": 1,
+            "EPOCH": 1
+        },
+        "MLBox": {
+            "ne__numerical_strategy": {
+                "space": [
+                    0,
+                    "mean"
+                ]
+            },
+            "ce__strategy": {
+                "space": [
+                    "label_encoding",
+                    "random_projection",
+                    "entity_embedding"
+                ]
+            },
+            "fs__strategy": {
+                "space": [
+                    "variance",
+                    "rf_feature_importance"
+                ]
+            },
+            "fs__threshold": {
+                "search": "choice",
+                "space": [
+                    0.1,
+                    0.2,
+                    0.3,
+                    0.4,
+                    0.5
+                ]
+            },
+            "est__strategy": {
+                "space": [
+                    "LightGBM"
+                ]
+            },
+            "est__max_depth": {
+                "search": "choice",
+                "space": [
+                    5,
+                    6
+                ]
+            },
+            "est__subsample": {
+                "search": "uniform",
+                "space": [
+                    0.6,
+                    0.9
+                ]
+            },
+            "est__learning_rate": {
+                "search": "choice",
+                "space": [
+                    0.07
+                ]
+            }
+        }
+    }
+}

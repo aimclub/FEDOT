@@ -1,0 +1,29 @@
+{
+    "task": "classification",
+    "tpot_metric": {
+        "TPOT_ROC_AUC_test": 0.958
+    },
+    "h2o_metric": {
+        "H2O_ROC_AUC_train": 0.998,
+        "H2O_ROC_AUC_test": 0.997
+    },
+    "autokeras_metric": {
+        "autokeras_roc_auc": 0.87
+    },
+    "baseline_metric": 1.0,
+    "hyperparameters": {
+        "TPOT": {
+            "MAX_RUNTIME_MINS": 30,
+            "GENERATIONS": 10,
+            "POPULATION_SIZE": 5
+        },
+        "H2O": {
+            "MAX_MODELS": 10,
+            "MAX_RUNTIME_SECS": 1800
+        },
+        "AutoKeras": {
+            "MAX_TRIAL": 10,
+            "EPOCH": 100
+        }
+    }
+}
