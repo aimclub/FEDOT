@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 from sklearn import datasets
 
 
-def synthetic_dataset(samples_amount, features_amount, classes_amount):
+def synthetic_dataset(samples_amount, features_amount, classes_amount, full_shuffle=True):
     noisy_labels_fraction = 0.10
     features, target = datasets.make_classification(n_samples=samples_amount, n_features=features_amount,
                                                     n_informative=features_amount, n_redundant=0, n_repeated=0,
                                                     n_classes=classes_amount, n_clusters_per_class=1,
                                                     flip_y=noisy_labels_fraction,
-                                                    shuffle=False)
+                                                    shuffle=full_shuffle)
 
     return features, target
 
