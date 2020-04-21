@@ -4,12 +4,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from core.chain_validation import validate
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode, CachedNodeResult
 from core.models.model import InputData
 from core.models.model import sklearn_model_by_type
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from experiments.generate_data import synthetic_dataset
 
 
@@ -192,25 +190,3 @@ def real_parents(nodes_by_templates, template_child):
                 parent_nodes.append(node)
                 break
     return parent_nodes
-
-
-if __name__ == '__main__':
-    model_types = [ModelTypesIdsEnum.logit]
-    samples, features_amount, classes = 1000, 10, 2
-
-    # chain = chain_template_random(model_types=model_types, depth=3, models_per_level=2,
-    #                               samples=samples, features=features_amount)
-    chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
-                                         samples=samples, features=features_amount)
-    show_chain_template(chain)
-    fit_template(chain_template=chain, classes=classes)
-    real = real_chain(chain)
-    validate(real)
-    features, target = synthetic_dataset(samples_amount=samples,
-                                         features_amount=features_amount,
-                                         classes_amount=classes)
-    target = np.expand_dims(target, axis=1)
-    data_test = InputData(idx=np.arange(0, samples),
-                          features=features, target=target)
-    predictions = real.predict(input_data=data_test)
-    print(predictions.predict[:10])
