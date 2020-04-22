@@ -5,9 +5,10 @@ from dataclasses import dataclass
 import numpy as np
 
 from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode, CachedNodeResult
+from core.composer.node import PrimaryNode, SecondaryNode, FittedModelCache
 from core.models.model import InputData
-from core.models.model import sklearn_model_by_type
+from core.models.model import Model
+from core.repository.task_types import MachineLearningTasksEnum
 from experiments.generate_data import synthetic_dataset
 
 
@@ -142,7 +143,7 @@ def show_chain_template(models_by_level):
 def fit_template(chain_template, classes):
     templates_by_models = []
     for model_template in itertools.chain.from_iterable(chain_template):
-        model_instance = sklearn_model_by_type(model_type=model_template.model_type)
+        model_instance = Model(model_type=model_template.model_type)
         templates_by_models.append((model_template, model_instance))
 
     for template, instance in templates_by_models:
@@ -153,7 +154,8 @@ def fit_template(chain_template, classes):
                                              classes_amount=classes)
         target = np.expand_dims(target, axis=1)
         data_train = InputData(idx=np.arange(0, samples),
-                               features=features, target=target)
+                               features=features, target=target,
+                               task_type=MachineLearningTasksEnum.classification)
         print(f'Fit {instance}')
         fitted_model, predictions = instance.fit(data=data_train)
 
@@ -172,7 +174,9 @@ def real_chain(chain_template):
                                                              template),
                                      model_type=template.model_type)
             node.model = template.model_instance
-            node.cached_result = CachedNodeResult(node=node, fitted_model=template.fitted_model)
+            cache = FittedModelCache(related_node=node)
+            cache.append(fitted_model=template.fitted_model)
+            node.cache = cache
             nodes_by_templates.append((node, template))
 
     chain = Chain()

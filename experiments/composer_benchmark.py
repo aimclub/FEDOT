@@ -7,7 +7,7 @@ from core.chain_validation import validate
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData, train_test_data_setup
-from core.models.model import sklearn_model_by_type
+from core.models.model import Model
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelTypesIdsEnum, ModelTypesRepository, ModelMetaInfoTemplate)
@@ -45,12 +45,13 @@ def data_robust_test():
                                              features_amount=features_amount,
                                              classes_amount=classes)
         target = np.expand_dims(target, axis=1)
+        task_type = MachineLearningTasksEnum.classification
         data_test = InputData(idx=np.arange(0, samples),
-                              features=features, target=target)
+                              features=features, target=target, task_type=task_type)
         synth_target = real.predict(input_data=data_test).predict
         synth_labels = to_labels(synth_target)
         data = InputData(idx=np.arange(0, samples),
-                         features=features, target=synth_labels)
+                         features=features, target=synth_labels, task_type=task_type)
         roc_train_, roc_test_ = predict_with_xgboost(data)
         roc_train.append(roc_train_)
         roc_test.append(roc_test_)
@@ -77,17 +78,18 @@ def default_run():
                                          features_amount=features_amount,
                                          classes_amount=classes)
     target = np.expand_dims(target, axis=1)
+    task_type = MachineLearningTasksEnum.classification
     data_test = InputData(idx=np.arange(0, samples),
-                          features=features, target=target)
+                          features=features, target=target, task_type=task_type)
     synth_target = real.predict(input_data=data_test).predict
     synth_labels = to_labels(synth_target)
     data = InputData(idx=np.arange(0, samples),
-                     features=features, target=synth_labels)
+                     features=features, target=synth_labels, task_type=task_type)
     print(predict_with_log_reg(data))
 
 
 def predict_with_log_reg(data):
-    logit = sklearn_model_by_type(model_type=ModelTypesIdsEnum.logit)
+    logit = Model(model_type=ModelTypesIdsEnum.logit)
     train, test = train_test_data_setup(data)
     fitted_model, predict_train = logit.fit(data=train)
     roc_train = roc_auc(y_true=train.target,
@@ -102,7 +104,7 @@ def predict_with_log_reg(data):
 
 
 def predict_with_xgboost(data):
-    xgboost = sklearn_model_by_type(model_type=ModelTypesIdsEnum.xgboost)
+    xgboost = Model(model_type=ModelTypesIdsEnum.xgboost)
     train, test = train_test_data_setup(data)
     fitted_model, predict_train = xgboost.fit(data=train)
     roc_train = roc_auc(y_true=train.target,
@@ -135,7 +137,7 @@ def composer_robust_test():
     dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain())
 
     models_repo = ModelTypesRepository()
-    available_model_types = models_repo.search_model_types_by_attributes(
+    available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification,
@@ -147,7 +149,7 @@ def composer_robust_test():
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
-        max_depth=4, pop_size=2, num_of_generations=10,
+        max_depth=4, pop_size=5, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8)
     composer = GPComposer()
     print('Starting to compose:')
@@ -180,19 +182,21 @@ def data_by_synthetic_chain():
     fit_template(chain_template=chain, classes=classes)
     real = real_chain(chain)
     validate(real)
+    task_type = MachineLearningTasksEnum.classification
     features, target = synthetic_dataset(samples_amount=samples,
                                          features_amount=features_amount,
                                          classes_amount=classes)
     target = np.expand_dims(target, axis=1)
     data_test = InputData(idx=np.arange(0, samples),
-                          features=features, target=target)
+                          features=features, target=target, task_type=task_type)
     synth_target = real.predict(input_data=data_test).predict
     synth_labels = to_labels(synth_target)
     data = InputData(idx=np.arange(0, samples),
-                     features=features, target=synth_labels)
+                     features=features, target=synth_labels, task_type=task_type)
 
     return data
 
 
 if __name__ == '__main__':
     composer_robust_test()
+    # default_run()
