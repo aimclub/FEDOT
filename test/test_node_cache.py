@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
 
-from core.composer.chain import Chain
+from core.composer.chain import Chain, SharedChain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, split_train_test
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -116,8 +116,8 @@ def chain_fifth():
     return chain
 
 
-def test_cache_model_changed(data_setup):
-    """Changing the model in one of the tree node"""
+def test_cache_actuality_after_model_change(data_setup):
+    """The non-affected nodes has actual cache after changing the model"""
     chain = chain_first()
     train, _ = data_setup
     chain.fit(input_data=train)
@@ -130,12 +130,14 @@ def test_cache_model_changed(data_setup):
     nodes_with_non_actual_cache = [chain.root_node, root_parent_first]
     nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
 
-    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    # non-affected nodes are actual
     assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+    # affected nodes and their childs has no any actual cache
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
 
 
-def test_cache_subtree_changed(data_setup):
-    """The subtree in source tree changed to other previously trained subtree"""
+def test_cache_actuality_after_subtree_change_to_identical(data_setup):
+    """The non-affected nodes has actual cache after changing the subtree to other pre-fitted subtree"""
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -146,12 +148,14 @@ def test_cache_subtree_changed(data_setup):
 
     nodes_with_actual_cache = [node for node in chain.nodes if node not in [chain.root_node]]
 
-    assert not chain.root_node.cache.actual_cached_model
+    # non-affected nodes of initial chain and fitted nodes of new subtree are actual
     assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+    # affected root node has no any actual cache
+    assert not chain.root_node.cache.actual_cached_model
 
 
-def test_cache_primary_node_changed_to_subtree(data_setup):
-    """The primary node in source tree changed to other previously trained subtree"""
+def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
+    """ The non-affected nodes has actual cache after changing the primary node to pre-fitted subtree"""
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -165,8 +169,10 @@ def test_cache_primary_node_changed_to_subtree(data_setup):
     nodes_with_non_actual_cache = [chain.root_node, root_parent_first]
     nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
 
-    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    # non-affected nodes of initial chain and fitted nodes of new subtree are actual
     assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+    # affected root nodes and their childs has no any actual cache
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
 
 
 def test_cache_dictionary(data_setup):
@@ -179,71 +185,109 @@ def test_cache_dictionary(data_setup):
     # change child node
     chain.update_node(old_node=old_node,
                       new_node=new_node)
+    # cache is not actual
     assert not chain.root_node.cache.actual_cached_model
 
     # change back
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=old_node)
+    # cache is actual again
     assert chain.root_node.cache.actual_cached_model
 
 
-def test_multi_chain_caching_global_cache(data_setup):
-    _multi_chain_caching(data_setup, is_global_cache=True)
-
-
-def test_multi_chain_caching_local_cache(data_setup):
-    _multi_chain_caching(data_setup, is_global_cache=False)
-
-
-def test_no_multi_chain_caching(data_setup):
-    _multi_chain_caching(data_setup, try_multichain=False)
-
-
-def _multi_chain_caching(data_setup, try_multichain=True, is_global_cache=False):
+def test_multi_chain_caching_with_shared_cache(data_setup):
     train, _ = data_setup
-    chain = chain_second()
-    other_chain = chain_first()
+    shared_cache = {}
 
-    if try_multichain and is_global_cache:
-        shared_cache = {}
-        chain.shared_cache = shared_cache
-        other_chain.shared_cache = shared_cache
+    main_chain = SharedChain(base_chain=chain_second(), shared_cache=shared_cache)
+    other_chain = SharedChain(base_chain=chain_first(), shared_cache=shared_cache)
 
+    # fit other_chain that contains the parts identical to main_chain
     other_chain.fit(input_data=train)
 
-    if try_multichain and not is_global_cache:
-        chain.import_cache(other_chain)
+    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[0]] + \
+                                  [_ for _ in main_chain.root_node.nodes_from[0].nodes_from]
+    nodes_with_actual_cache = [node for node in main_chain.nodes if node not in nodes_with_non_actual_cache]
 
-    nodes_with_non_actual_cache = [chain.root_node, chain.root_node.nodes_from[0]]+[child for child in chain.root_node.nodes_from[0].nodes_from]
-    nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
+    # check that using of SharedChain make identical of the main_chain fitted,
+    # despite the main_chain.fit() was not called
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+    # the non-identical parts are still not fitted
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
 
-    if try_multichain:
-        assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
-        assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
-    else:
-        assert not any([node.cache.actual_cached_model for node in chain.nodes])
+    # check the same case with another chains
+    shared_cache = {}
 
-    chain = chain_fourth()
-    prev_chain_first = chain_third()
-    prev_chain_second = chain_fifth()
+    main_chain = SharedChain(base_chain=chain_fourth(), shared_cache=shared_cache)
 
-    if try_multichain and is_global_cache:
-        shared_cache = {}
-        chain.shared_cache = shared_cache
-        prev_chain_first.shared_cache = shared_cache
-        prev_chain_second.shared_cache = shared_cache
+    prev_chain_first = SharedChain(base_chain=chain_third(), shared_cache=shared_cache)
+    prev_chain_second = SharedChain(base_chain=chain_fifth(), shared_cache=shared_cache)
 
     prev_chain_first.fit(input_data=train)
     prev_chain_second.fit(input_data=train)
 
-    if try_multichain and not is_global_cache:
-        chain.import_cache(prev_chain_first)
-        chain.import_cache(prev_chain_second)
+    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[1]]
+    nodes_with_actual_cache = [child for child in main_chain.root_node.nodes_from[0].nodes_from]
 
-    nodes_with_non_actual_cache = [chain.root_node, chain.root_node.nodes_from[1]]
-    nodes_with_actual_cache = [child for child in chain.root_node.nodes_from[0].nodes_from]
-    if try_multichain:
-        assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
-        assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
-    else:
-        assert not any([node.cache.actual_cached_model for node in chain.nodes])
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+
+
+def test_multi_chain_caching_with_import(data_setup):
+    train, _ = data_setup
+
+    main_chain = chain_second()
+    other_chain = chain_first()
+
+    # fit other_chain that contains the parts identical to main_chain
+    other_chain.fit(input_data=train)
+    main_chain.import_cache(other_chain)
+
+    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[0]] + \
+                                  [_ for _ in main_chain.root_node.nodes_from[0].nodes_from]
+    nodes_with_actual_cache = [node for node in main_chain.nodes if node not in nodes_with_non_actual_cache]
+
+    #    # check that using of SharedChain make identical of the main_chain fitted,
+    # despite the main_chain.fit() was not called
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+    # the non-identical parts are still not fitted
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+
+    # check the same case with another chains
+    main_chain = chain_fourth()
+
+    prev_chain_first = chain_third()
+    prev_chain_second = chain_fifth()
+
+    prev_chain_first.fit(input_data=train)
+    prev_chain_second.fit(input_data=train)
+
+    main_chain.import_cache(prev_chain_first)
+    main_chain.import_cache(prev_chain_second)
+
+    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[1]]
+    nodes_with_actual_cache = [child for child in main_chain.root_node.nodes_from[0].nodes_from]
+
+    assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
+    assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
+
+
+def test_multi_chain_caching_local_cache(data_setup):
+    train, _ = data_setup
+
+    main_chain = chain_second()
+    other_chain = chain_first()
+
+    other_chain.fit(input_data=train)
+    # shared cache is not used, so the main_chain is not fitted at all
+    assert not any([node.cache.actual_cached_model for node in main_chain.nodes])
+
+    main_chain = chain_fourth()
+
+    prev_chain_first = chain_third()
+    prev_chain_second = chain_fifth()
+
+    prev_chain_first.fit(input_data=train)
+    prev_chain_second.fit(input_data=train)
+
+    assert not any([node.cache.actual_cached_model for node in main_chain.nodes])

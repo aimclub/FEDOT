@@ -36,22 +36,22 @@ class EvaluationStrategy:
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
-    def __init__(self, model_type: ModelTypesIdsEnum):
-        self.__model_by_types = {
-            ModelTypesIdsEnum.xgboost: XGBClassifier,
-            ModelTypesIdsEnum.logit: SklearnLogReg,
-            ModelTypesIdsEnum.knn: SklearnKNN,
-            ModelTypesIdsEnum.dt: DecisionTreeClassifier,
-            ModelTypesIdsEnum.rf: RandomForestClassifier,
-            ModelTypesIdsEnum.mlp: MLPClassifier,
-            ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
-            ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
-            ModelTypesIdsEnum.linear: SklearnLinReg,
-            ModelTypesIdsEnum.ridge: SklearnRidgeReg,
-            ModelTypesIdsEnum.lasso: SklearnLassoReg,
-            ModelTypesIdsEnum.kmeans: SklearnKmeans
-        }
+    __model_by_types = {
+        ModelTypesIdsEnum.xgboost: XGBClassifier,
+        ModelTypesIdsEnum.logit: SklearnLogReg,
+        ModelTypesIdsEnum.knn: SklearnKNN,
+        ModelTypesIdsEnum.dt: DecisionTreeClassifier,
+        ModelTypesIdsEnum.rf: RandomForestClassifier,
+        ModelTypesIdsEnum.mlp: MLPClassifier,
+        ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
+        ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
+        ModelTypesIdsEnum.linear: SklearnLinReg,
+        ModelTypesIdsEnum.ridge: SklearnRidgeReg,
+        ModelTypesIdsEnum.lasso: SklearnLassoReg,
+        ModelTypesIdsEnum.kmeans: SklearnKmeans
+    }
 
+    def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
 
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):

@@ -1,10 +1,10 @@
 from copy import deepcopy
 
 from core.composer.chain import Chain
-from core.composer.optimisers.gp_node import GPNode
-from core.composer.node import SecondaryNode
-from core.composer.optimisers.gp_node import swap_nodes
 from core.composer.node import NodeGenerator
+from core.composer.node import SecondaryNode
+from core.composer.optimisers.gp_node import GPNode
+from core.composer.optimisers.gp_node import swap_nodes
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
@@ -21,6 +21,7 @@ def tree_to_chain(tree_root: GPNode) -> Chain:
 
 def chain_to_tree(chain: Chain) -> GPNode:
     chain = deepcopy(chain)
+
     def recursive_nodes_to_tree(prev_node: GPNode):
         for i, node_parent in enumerate(prev_node.nodes_from):
             root_of_tree = GPNode(chain_node=node_parent, node_to=prev_node)
@@ -82,6 +83,7 @@ def tree_second():
     root_of_tree.nodes_from.append(root_child_second)
     return root_of_tree
 
+
 def chain_first():
     #    XG
     #  |     \
@@ -104,6 +106,7 @@ def chain_first():
 
     chain.add_node(root_of_tree)
     return chain
+
 
 def test_node_depth_and_height():
     last_node = tree_first()
@@ -153,8 +156,8 @@ def test_swap_nodes():
     assert all([model_after_swap.model.model_type == correct_model for model_after_swap, correct_model in
                 zip(chain.nodes, correct_nodes)])
 
+
 def test_chain_to_tree():
     chain = chain_first()
     gp_root_of_chain = chain_to_tree(chain)
     assert tree_to_chain(gp_root_of_chain) == chain
-

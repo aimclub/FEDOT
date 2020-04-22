@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode
+from core.composer.node import Node, SecondaryNode, PrimaryNode, SharedCache
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -13,7 +13,6 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 class Chain:
     def __init__(self):
         self.nodes = []
-        self.shared_cache = False
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
@@ -62,15 +61,6 @@ class Chain:
         for node in self.nodes:
             node.cache.clear()
 
-    @property
-    def shared_cache(self):
-        return [node.cache.global_cached_models for node in self.nodes][0]
-
-    @shared_cache.setter
-    def shared_cache(self, value: dict):
-        for node in self.nodes:
-            node.cache.global_cached_models = value
-
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_model is not None for node in self.nodes]
         return all(cache_status)
@@ -118,6 +108,14 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
+
+
+class SharedChain(Chain):
+    def __init__(self, base_chain: Chain, shared_cache: dict):
+        super().__init__()
+        self.nodes = base_chain.nodes
+        for node in self.nodes:
+            node.cache = SharedCache(node, global_cached_models=shared_cache)
 
 
 def as_nx_graph(chain: Chain):

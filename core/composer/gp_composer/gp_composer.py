@@ -8,7 +8,7 @@ from typing import (
 )
 
 from core.chain_validation import validate
-from core.composer.chain import Chain
+from core.composer.chain import Chain, SharedChain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_node import GPNode
@@ -16,7 +16,6 @@ from core.composer.optimisers.gp_optimiser import GPChainOptimiser
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
-from core.chain_validation import validate
 
 
 @dataclass
@@ -39,9 +38,8 @@ class GPComposer(Composer):
         train_data, test_data = train_test_data_setup(data, 0.8)
         self.shared_cache.clear()
 
-        metric_function_for_nodes = partial(metric_for_nodes,
-                                            metrics, train_data, test_data,
-                                            self.shared_cache)
+        metric_function_for_nodes = partial(self.metric_for_nodes,
+                                            metrics, train_data, test_data)
 
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
@@ -52,7 +50,7 @@ class GPComposer(Composer):
 
         historical_chains = []
         for historical_data in history:
-            historical_chain = tree_to_chain(historical_data[0])
+            historical_chain = self.tree_to_chain(historical_data[0])
             historical_chains.append(historical_chain)
         historical_fitness = [opt_step[1] for opt_step in history]
 
@@ -61,22 +59,31 @@ class GPComposer(Composer):
         if is_visualise:
             ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
 
-        best_chain = tree_to_chain(tree_root=best_found)
-
+        best_chain = self.tree_to_chain(tree_root=best_found)
         print("GP composition finished")
         return best_chain
 
+    def tree_to_chain(self, tree_root: GPNode, is_chain_shared: bool = False) -> Chain:
+        chain = Chain()
 
-def tree_to_chain(tree_root: GPNode) -> Chain:
-    chain = Chain()
-    nodes = flat_nodes_tree(deepcopy(tree_root))
-    for node in nodes:
-        if node.nodes_from:
-            for i in range(len(node.nodes_from)):
-                node.nodes_from[i] = node.nodes_from[i].chain_node
-        chain.add_node(node.chain_node)
-    validate(chain)
-    return chain
+        if is_chain_shared:
+            chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
+
+        nodes = flat_nodes_tree(deepcopy(tree_root))
+        for node in nodes:
+            if node.nodes_from:
+                for i in range(len(node.nodes_from)):
+                    node.nodes_from[i] = node.nodes_from[i].chain_node
+            chain.add_node(node.chain_node)
+        validate(chain)
+        return chain
+
+    def metric_for_nodes(self, metric_function, train_data: InputData,
+                         test_data: InputData,
+                         root: GPNode) -> float:
+        chain = self.tree_to_chain(root, is_chain_shared=True)
+        chain.fit(input_data=train_data)
+        return metric_function(chain, test_data)
 
 
 def flat_nodes_tree(node: GPNode) -> List[GPNode]:
@@ -87,13 +94,3 @@ def flat_nodes_tree(node: GPNode) -> List[GPNode]:
         return [node] + nodes
     else:
         return [node]
-
-
-def metric_for_nodes(metric_function, train_data: InputData,
-                     test_data: InputData,
-                     shared_cache: bool,
-                     root: GPNode) -> float:
-    chain = tree_to_chain(root)
-    chain.shared_cache = shared_cache
-    chain.fit(input_data=train_data)
-    return metric_function(chain, test_data)
