@@ -3,6 +3,7 @@ import pytest
 from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain, SharedChain
+from core.composer.node import FittedModelCache, SharedCache
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, split_train_test
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -175,23 +176,30 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
 
 
-def test_cache_dictionary(data_setup):
+def test_cache_historical_state_using(data_setup):
     train, _ = data_setup
     chain = chain_first()
+
+    # chain fitted, model goes to cache
     chain.fit(input_data=train)
     new_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit)
     old_node = chain.root_node.nodes_from[0]
 
-    # change child node
+    # change child node to new one
     chain.update_node(old_node=old_node,
                       new_node=new_node)
     # cache is not actual
     assert not chain.root_node.cache.actual_cached_model
+    # fit modified chain
+    chain.fit(input_data=train)
+    # cache is actual now
+    assert chain.root_node.cache.actual_cached_model
 
-    # change back
+    # change node back
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=old_node)
-    # cache is actual again
+    # cache is actual without new fitting,
+    # because the cached model was saved after first fit
     assert chain.root_node.cache.actual_cached_model
 
 
@@ -243,11 +251,12 @@ def test_multi_chain_caching_with_import(data_setup):
     other_chain.fit(input_data=train)
     main_chain.import_cache(other_chain)
 
-    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[0]] + \
-                                  [_ for _ in main_chain.root_node.nodes_from[0].nodes_from]
+    nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[0]]
+    nodes_with_non_actual_cache += main_chain.root_node.nodes_from[0].nodes_from
+
     nodes_with_actual_cache = [node for node in main_chain.nodes if node not in nodes_with_non_actual_cache]
 
-    #    # check that using of SharedChain make identical of the main_chain fitted,
+    # check that using of SharedChain make identical of the main_chain fitted,
     # despite the main_chain.fit() was not called
     assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
     # the non-identical parts are still not fitted
@@ -266,7 +275,7 @@ def test_multi_chain_caching_with_import(data_setup):
     main_chain.import_cache(prev_chain_second)
 
     nodes_with_non_actual_cache = [main_chain.root_node, main_chain.root_node.nodes_from[1]]
-    nodes_with_actual_cache = [child for child in main_chain.root_node.nodes_from[0].nodes_from]
+    nodes_with_actual_cache = main_chain.root_node.nodes_from[0].nodes_from
 
     assert not any([node.cache.actual_cached_model for node in nodes_with_non_actual_cache])
     assert all([node.cache.actual_cached_model for node in nodes_with_actual_cache])
@@ -291,3 +300,42 @@ def test_multi_chain_caching_local_cache(data_setup):
     prev_chain_second.fit(input_data=train)
 
     assert not any([node.cache.actual_cached_model for node in main_chain.nodes])
+
+
+def test_chain_sharing_and_unsharing(data_setup):
+    chain = chain_first()
+    assert all([isinstance(node.cache, FittedModelCache) for node in chain.nodes])
+    chain = SharedChain(chain, {})
+
+    assert all([isinstance(node.cache, SharedCache) for node in chain.nodes])
+    chain = chain.unshare()
+    assert all([isinstance(node.cache, FittedModelCache) for node in chain.nodes])
+    assert isinstance(chain, Chain)
+
+
+def test_shared_cache(data_setup):
+    train, _ = data_setup
+
+    shared_cache = {}
+    main_chain = SharedChain(chain_first(), shared_cache)
+    other_chain = SharedChain(chain_first(), shared_cache)
+    other_chain.fit(train)
+
+    # test cache is shared
+    assert isinstance(main_chain.root_node.cache, SharedCache)
+    # test cache is actual
+    assert main_chain.root_node.cache.actual_cached_model is not None
+
+    saved_model = main_chain.root_node.cache.actual_cached_model
+    main_chain.root_node.cache.clear()
+    # test cache is still actual despite the clearing of local cache
+    assert main_chain.root_node.cache.actual_cached_model is not None
+
+    shared_cache.clear()
+    # test cache is not actual after clearing shared cache
+    assert main_chain.root_node.cache.actual_cached_model is None
+
+    main_chain.root_node.cache.append(saved_model)
+    # test cache is actual after manual appending of model
+    assert main_chain.root_node.cache.actual_cached_model is not None
+    assert shared_cache[main_chain.root_node.descriptive_id] == saved_model

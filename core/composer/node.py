@@ -47,7 +47,7 @@ class Node(ABC):
         return model
 
     def _fit_using_cache(self, input_data, verbose=False):
-        self.model.init(task=input_data.task_type)
+
         if not self.cache.actual_cached_model:
             if verbose:
                 print('Cache is not actual')
@@ -99,10 +99,6 @@ class SharedCache(FittedModelCache):
         super().append(fitted_model)
         if self._global_cached_models is not None:
             self._global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
-
-    def clear(self):
-        super().clear()
-        self._global_cached_models = None
 
     @property
     def actual_cached_model(self):

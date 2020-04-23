@@ -1,10 +1,10 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import Optional, List
 from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode, SharedCache
+from core.composer.node import Node, SecondaryNode, PrimaryNode, SharedCache, FittedModelCache
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -113,9 +113,16 @@ class Chain:
 class SharedChain(Chain):
     def __init__(self, base_chain: Chain, shared_cache: dict):
         super().__init__()
-        self.nodes = base_chain.nodes
+        self.nodes = copy(base_chain.nodes)
         for node in self.nodes:
             node.cache = SharedCache(node, global_cached_models=shared_cache)
+
+    def unshare(self) -> Chain:
+        chain = Chain()
+        chain.nodes = copy(self.nodes)
+        for node in chain.nodes:
+            node.cache = FittedModelCache(node)
+        return chain
 
 
 def as_nx_graph(chain: Chain):

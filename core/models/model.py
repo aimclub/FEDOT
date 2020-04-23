@@ -7,7 +7,7 @@ import numpy as np
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation import SkLearnClassificationStrategy, \
+from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
     StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
 from core.models.preprocessing import scaling_preprocess, simple_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -29,13 +29,12 @@ class Model(ABC):
         model_params = 'defaultparams'
         return f'n_{model_type}_{model_params}'
 
-    def init(self, task: TaskTypesEnum):
+    def _init(self, task: TaskTypesEnum):
         self._eval_strategy, self._data_preprocessing = \
             _eval_strategy_for_task(self.model_type, task)
 
     def fit(self, data: InputData):
-        if not (self._data_preprocessing and self._eval_strategy):
-            raise ValueError(f'Model {str(self)} not initialised')
+        self._init(data.task_type)
 
         preprocessed_data = copy(data)
         preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
@@ -47,8 +46,7 @@ class Model(ABC):
         return fitted_model, predict_train
 
     def predict(self, fitted_model, data: InputData):
-        if not (self._data_preprocessing and self._eval_strategy):
-            raise ValueError(f'Model {str(self)} not initialised')
+        self._init(data.task_type)
 
         preprocessed_data = copy(data)
         preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
