@@ -9,19 +9,25 @@ from typing import (
 import numpy as np
 
 from core.composer.optimisers.crossover import standard_crossover
-from core.composer.optimisers.gp_node import GPNode
+from core.composer.optimisers.gp_operators import node_height
 from core.composer.optimisers.mutation import standard_mutation
 from core.composer.optimisers.selection import tournament_selection
 from core.composer.timer import CompositionTimer
 
 
 class GPChainOptimiser:
-    def __init__(self, initial_chain, requirements, primary_node_func: Callable, secondary_node_func: Callable):
+    def __init__(self, initial_chain, requirements, primary_node_func: Callable, secondary_node_func: Callable,
+                 chain_class: Callable):
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
         self.best_individual = None
         self.best_fitness = None
+        self.chain_class = chain_class
+
+        necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
+        if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
+            raise AttributeError(f'Object chain_base has no required attributes for gp_optimizer')
 
         if initial_chain and type(initial_chain) != list:
             self.population = [initial_chain] * requirements.pop_size
@@ -34,7 +40,7 @@ class GPChainOptimiser:
 
             history = []
 
-            self.fitness = [round(metric_function_for_nodes(tree_root), 3) for tree_root in self.population]
+            self.fitness = [round(metric_function_for_nodes(chain), 3) for chain in self.population]
 
             [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
              range(self.requirements.pop_size)]
@@ -58,7 +64,7 @@ class GPChainOptimiser:
                                                                   crossover_prob=self.requirements.crossover_prob,
                                                                   max_depth=self.requirements.max_depth)
 
-                    self.population[ind_num] = standard_mutation(root_node=self.population[ind_num],
+                    self.population[ind_num] = standard_mutation(chain=self.population[ind_num],
                                                                  secondary=self.requirements.secondary,
                                                                  primary=self.requirements.primary,
                                                                  secondary_node_func=self.secondary_node_func,
@@ -75,30 +81,28 @@ class GPChainOptimiser:
 
         return self.population[np.argmin(self.fitness)], history
 
-    def _make_population(self, pop_size: int) -> List[GPNode]:
-        return [self._random_tree() for _ in range(pop_size)]
+    def _make_population(self, pop_size: int) -> List[Any]:
+        return [self._random_chain() for _ in range(pop_size)]
 
-    def _random_tree(self) -> GPNode:
-        chain_node = self.secondary_node_func(model_type=choice(self.requirements.secondary))
-        root = GPNode(chain_node=chain_node)
-        new_tree = root
-        self._tree_growth(node_parent=root)
-        return new_tree
+    def _random_chain(self) -> Any:
+        chain = self.chain_class()
+        chain_root = self.secondary_node_func(model_type=choice(self.requirements.secondary))
+        chain.add_node(chain_root)
+        self._chain_growth(chain, chain_root)
+        return chain
 
-    def _tree_growth(self, node_parent: Any):
+    def _chain_growth(self, chain: Any, node_parent: Any):
         offspring_size = randint(2, self.requirements.max_arity)
-        offspring_nodes = []
         for offspring_node in range(offspring_size):
-            if node_parent.height >= self.requirements.max_depth - 1 or (
-                    node_parent.height < self.requirements.max_depth - 1
-                    and randint(0, 1)):
-
+            height = node_height(chain, node_parent)
+            is_max_depth_exceeded = height >= self.requirements.max_depth - 1
+            is_primary_node_selected = height < self.requirements.max_depth - 1 and randint(0, 1)
+            if is_max_depth_exceeded or is_primary_node_selected:
                 primary_node = self.primary_node_func(model_type=choice(self.requirements.primary))
-                new_node = GPNode(chain_node=primary_node, node_to=node_parent)
-                offspring_nodes.append(new_node)
+                node_parent.nodes_from.append(primary_node)
+                chain.add_node(primary_node)
             else:
                 secondary_node = self.secondary_node_func(model_type=choice(self.requirements.secondary))
-                new_node = GPNode(chain_node=secondary_node, node_to=node_parent)
-                self._tree_growth(new_node)
-                offspring_nodes.append(new_node)
-        node_parent.nodes_from = offspring_nodes
+                chain.add_node(secondary_node)
+                node_parent.nodes_from.append(secondary_node)
+                self._chain_growth(chain, secondary_node)

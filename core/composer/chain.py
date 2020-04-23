@@ -40,7 +40,7 @@ class Chain:
         self.nodes.append(new_node)
 
     def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
-        old_node_offspring = self._node_childs(old_node)
+        old_node_offspring = self.node_childs(old_node)
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
 
@@ -65,12 +65,12 @@ class Chain:
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]
         return all(cache_status)
 
-    def _node_childs(self, node) -> List[Optional[Node]]:
-        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
+    def node_childs(self, node) -> List[Optional[Node]]:
+        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) and
                 node in other_node.nodes_from]
 
     def _is_node_has_child(self, node) -> bool:
-        return any(self._node_childs(node))
+        return any(self.node_childs(node))
 
     def import_cache(self, fitted_chain: 'Chain'):
         for node in self.nodes:
