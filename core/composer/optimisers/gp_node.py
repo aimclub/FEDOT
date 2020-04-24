@@ -16,18 +16,6 @@ class GPNode:
         self.chain_node.nodes_from = nodes
 
     @property
-    def eval_strategy(self):
-        return self.chain_node.eval_strategy
-
-    @eval_strategy.setter
-    def eval_strategy(self, model):
-        self.chain_node.eval_strategy.model = model
-
-    @property
-    def input_data(self):
-        return self.chain_node.input_data
-
-    @property
     def height(self) -> int:
         if self.node_to:
             depth = self.node_to.height + 1

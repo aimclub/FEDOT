@@ -3,7 +3,7 @@ from enum import Enum
 from random import random, choice
 from typing import Any
 
-from core.composer.gp_composer.gp_node import GPNode
+from core.composer.optimisers.gp_node import GPNode
 
 
 class MutationPowerEnum(Enum):

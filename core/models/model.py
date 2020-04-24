@@ -7,7 +7,7 @@ import numpy as np
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation import SkLearnClassificationStrategy, \
+from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
     StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
 from core.models.preprocessing import scaling_preprocess, simple_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
@@ -29,11 +29,16 @@ class Model(ABC):
         model_params = 'defaultparams'
         return f'n_{model_type}_{model_params}'
 
-    def fit(self, data: InputData):
+    def _init(self, task: TaskTypesEnum):
         self._eval_strategy, self._data_preprocessing = \
-            _eval_strategy_for_task(self.model_type, data.task_type)
+            _eval_strategy_for_task(self.model_type, task)
+
+    def fit(self, data: InputData):
+        self._init(data.task_type)
+
         preprocessed_data = copy(data)
         preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
+
         fitted_model = self._eval_strategy.fit(model_type=self.model_type,
                                                train_data=preprocessed_data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
@@ -41,9 +46,9 @@ class Model(ABC):
         return fitted_model, predict_train
 
     def predict(self, fitted_model, data: InputData):
+        self._init(data.task_type)
+
         preprocessed_data = copy(data)
-        if not (self._data_preprocessing and self._eval_strategy):
-            raise ValueError(f'Model {str(self)} not initialised')
         preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
@@ -92,6 +97,6 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
             raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    eval_strategy = strategies_for_tasks[task_type_for_model]()
+    eval_strategy = strategies_for_tasks[task_type_for_model](model_type)
 
     return eval_strategy, preprocessing_function

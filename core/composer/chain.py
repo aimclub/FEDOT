@@ -1,10 +1,10 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import Optional, List
 from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode
+from core.composer.node import Node, SecondaryNode, PrimaryNode, SharedCache, FittedModelCache
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -72,6 +72,14 @@ class Chain:
     def _is_node_has_child(self, node) -> bool:
         return any(self._node_childs(node))
 
+    def import_cache(self, fitted_chain: 'Chain'):
+        for node in self.nodes:
+            if not node.cache.actual_cached_model:
+                for fitted_node in fitted_chain.nodes:
+                    if fitted_node.descriptive_id == node.descriptive_id:
+                        node.cache.import_from_other_cache(fitted_node.cache)
+                        break
+
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 
@@ -101,8 +109,20 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
-    def _flat_nodes_tree(self, node):
-        raise NotImplementedError()
+
+class SharedChain(Chain):
+    def __init__(self, base_chain: Chain, shared_cache: dict):
+        super().__init__()
+        self.nodes = copy(base_chain.nodes)
+        for node in self.nodes:
+            node.cache = SharedCache(node, global_cached_models=shared_cache)
+
+    def unshare(self) -> Chain:
+        chain = Chain()
+        chain.nodes = copy(self.nodes)
+        for node in chain.nodes:
+            node.cache = FittedModelCache(node)
+        return chain
 
 
 def as_nx_graph(chain: Chain):

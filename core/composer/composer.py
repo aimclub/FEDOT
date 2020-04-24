@@ -18,10 +18,9 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 class ComposerRequirements:
     primary: List[ModelTypesIdsEnum]
     secondary: List[ModelTypesIdsEnum]
-    max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=10)
+    max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=30)
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
-
 
 class Composer(ABC):
     def __init__(self):
