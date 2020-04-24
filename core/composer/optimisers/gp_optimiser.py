@@ -3,7 +3,8 @@ from random import choice, randint
 from typing import (
     List,
     Callable,
-    Any
+    Any,
+    Optional
 )
 
 import numpy as np
@@ -50,7 +51,12 @@ class GPChainOptimiser:
                 best_ind_num = np.argmin(self.fitness)
                 self.best_individual = deepcopy(self.population[best_ind_num])
                 self.best_fitness = self.fitness[best_ind_num]
-                selected_individuals = tournament_selection(self.fitness, self.population)
+
+                individuals_to_select = self.population
+                if self.requirements.chain_regularization:
+                    individuals_to_select += self.regularized_population(metric_function_for_nodes)
+
+                selected_individuals = tournament_selection(self.fitness, individuals_to_select)
 
                 for ind_num in range(self.requirements.pop_size):
 
@@ -80,6 +86,21 @@ class GPChainOptimiser:
                     break
 
         return self.population[np.argmin(self.fitness)], history
+
+    def regularized_population(self, metric, size: int = None) -> Optional[List[Any]]:
+        size = size if size else self.requirements.pop_size
+        additional_inds = []
+        prev_nodes_ids = []
+        for ind in self.population:
+            ind_copy = deepcopy(ind)
+            ind_copy_subtrees = [node for node in ind_copy.nodes if node != ind_copy.root_node]
+            subtrees = [self.chain_class(node.subtree_nodes) for node in ind_copy_subtrees if
+                        node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_model]
+            additional_inds += subtrees
+            prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
+        if additional_inds and len(additional_inds) > size:
+            additional_inds = sorted(additional_inds, key=lambda chain: round(metric(chain), 3))[:size]
+        return additional_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self._random_chain() for _ in range(pop_size)]

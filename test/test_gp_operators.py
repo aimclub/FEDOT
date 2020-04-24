@@ -34,6 +34,3 @@ def test_nodes_from_height():
     true_nodes = [node for node in chain.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in zip(true_nodes, found_nodes)])
 
-
-if __name__ == "__main__":
-    test_nodes_from_height()

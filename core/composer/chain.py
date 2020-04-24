@@ -11,8 +11,8 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
-    def __init__(self):
-        self.nodes = []
+    def __init__(self, nodes=None):
+        self.nodes = [] if not nodes else nodes
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
@@ -50,12 +50,14 @@ class Chain:
         new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
         old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
         self.nodes = new_nodes + old_nodes
+        self.sort_nodes()
 
     def update_node(self, old_node: Node, new_node: Node):
         self._actualise_old_node_childs(old_node, new_node)
         new_node.nodes_from = old_node.nodes_from
         self.nodes.remove(old_node)
         self.nodes.append(new_node)
+        self.sort_nodes()
 
     def _clean_model_cache(self):
         for node in self.nodes:
@@ -79,6 +81,11 @@ class Chain:
                     if fitted_node.descriptive_id == node.descriptive_id:
                         node.cache.import_from_other_cache(fitted_node.cache)
                         break
+
+    def sort_nodes(self):
+        """layer by layer sorting"""
+        nodes = self.root_node.subtree_nodes
+        self.nodes = nodes
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -109,7 +116,6 @@ class Chain:
 
         return _depth_recursive(self.root_node)
 
-
 class SharedChain(Chain):
     def __init__(self, base_chain: Chain, shared_cache: dict):
         super().__init__()
@@ -127,7 +133,6 @@ class SharedChain(Chain):
 
 def as_nx_graph(chain: Chain):
     graph = nx.DiGraph()
-
     node_labels = {}
     new_node_idx = {}
     for node in chain.nodes:

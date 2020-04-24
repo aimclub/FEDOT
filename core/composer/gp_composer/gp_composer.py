@@ -21,6 +21,7 @@ class GPComposerRequirements(ComposerRequirements):
     num_of_generations: Optional[int] = 50
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
+    chain_regularization: bool = True
 
 
 class GPComposer(Composer):
