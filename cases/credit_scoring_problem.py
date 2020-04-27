@@ -7,6 +7,8 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
+from core.composer.optimisers.regularization import RegularizationTypeEnum
 from core.composer.visualisation import ComposerVisualiser
 from core.debug.metrics import RandomMetric
 from core.models.model import *
@@ -31,6 +33,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
                             y_score=predicted.predict)
     return roc_auc_value
 
+
 def run_credit_scoring_problem(train_file_path, test_file_path):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
@@ -52,11 +55,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
 
     # the choice and initialisation of the random_search
 
+    optimiser_parameters = GPChainOptimiserParameters(regularization_type=RegularizationTypeEnum.decremental)
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=10))
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=10),
+        optimiser_params=optimiser_parameters)
 
     # Create GP-based composer
     composer = GPComposer()

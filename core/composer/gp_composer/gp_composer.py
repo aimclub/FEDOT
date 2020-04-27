@@ -9,7 +9,7 @@ from core.chain_validation import validate
 from core.composer.chain import Chain, SharedChain
 from core.composer.composer import Composer, ComposerRequirements
 from core.composer.node import NodeGenerator
-from core.composer.optimisers.gp_optimiser import GPChainOptimiser
+from core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
@@ -21,7 +21,7 @@ class GPComposerRequirements(ComposerRequirements):
     num_of_generations: Optional[int] = 50
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
-    chain_regularization: bool = True
+    optimiser_params: Optional[GPChainOptimiserParameters] = None
 
 
 class GPComposer(Composer):

@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from random import choice, randint
 from typing import (
     List,
@@ -8,23 +9,33 @@ from typing import (
 )
 
 import numpy as np
-
+from core.composer.optimisers.regularization import RegularizationTypeEnum
 from core.composer.optimisers.crossover import standard_crossover
 from core.composer.optimisers.gp_operators import node_height
 from core.composer.optimisers.mutation import standard_mutation
 from core.composer.optimisers.selection import tournament_selection
+from core.composer.optimisers.regularization import regularized_population
 from core.composer.timer import CompositionTimer
+
+
+@dataclass
+class GPChainOptimiserParameters:
+    selection_type: Optional[Callable] = tournament_selection
+    crossover_type: Optional[Callable] = standard_crossover
+    mutation_type: Optional[Callable] = standard_mutation
+    regularization_type: RegularizationTypeEnum = RegularizationTypeEnum.decremental
 
 
 class GPChainOptimiser:
     def __init__(self, initial_chain, requirements, primary_node_func: Callable, secondary_node_func: Callable,
-                 chain_class: Callable):
+                 chain_class: Callable, parameters: Optional[GPChainOptimiserParameters] = None):
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
         self.best_individual = None
         self.best_fitness = None
         self.chain_class = chain_class
+        self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
 
         necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
         if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
@@ -52,11 +63,12 @@ class GPChainOptimiser:
                 self.best_individual = deepcopy(self.population[best_ind_num])
                 self.best_fitness = self.fitness[best_ind_num]
 
-                individuals_to_select = self.population
-                if self.requirements.chain_regularization:
-                    individuals_to_select += self.regularized_population(metric_function_for_nodes)
+                individuals_to_select = self.population + regularized_population(self.parameters.regularization_type,
+                                                                                 self.population, self.requirements,
+                                                                                 metric_function_for_nodes,
+                                                                                 self.chain_class)
 
-                selected_individuals = tournament_selection(self.fitness, individuals_to_select)
+                selected_individuals = self.parameters.selection_type(self.fitness, individuals_to_select)
 
                 for ind_num in range(self.requirements.pop_size):
 
@@ -66,11 +78,11 @@ class GPChainOptimiser:
                         history.append((self.population[ind_num], self.fitness[ind_num]))
                         break
 
-                    self.population[ind_num] = standard_crossover(*selected_individuals[ind_num],
+                    self.population[ind_num] = self.parameters.crossover_type(*selected_individuals[ind_num],
                                                                   crossover_prob=self.requirements.crossover_prob,
                                                                   max_depth=self.requirements.max_depth)
 
-                    self.population[ind_num] = standard_mutation(chain=self.population[ind_num],
+                    self.population[ind_num] = self.parameters.mutation_type(chain=self.population[ind_num],
                                                                  secondary=self.requirements.secondary,
                                                                  primary=self.requirements.primary,
                                                                  secondary_node_func=self.secondary_node_func,
@@ -86,21 +98,6 @@ class GPChainOptimiser:
                     break
 
         return self.population[np.argmin(self.fitness)], history
-
-    def regularized_population(self, metric, size: int = None) -> Optional[List[Any]]:
-        size = size if size else self.requirements.pop_size
-        additional_inds = []
-        prev_nodes_ids = []
-        for ind in self.population:
-            ind_copy = deepcopy(ind)
-            ind_copy_subtrees = [node for node in ind_copy.nodes if node != ind_copy.root_node]
-            subtrees = [self.chain_class(node.subtree_nodes) for node in ind_copy_subtrees if
-                        node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_model]
-            additional_inds += subtrees
-            prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
-        if additional_inds and len(additional_inds) > size:
-            additional_inds = sorted(additional_inds, key=lambda chain: round(metric(chain), 3))[:size]
-        return additional_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self._random_chain() for _ in range(pop_size)]
