@@ -13,9 +13,9 @@ def synthetic_dataset(samples_amount, features_amount, classes_amount, full_shuf
     return features, target
 
 
-def gauss_quantiles(samples_amount, features_amount, classes_amount):
+def gauss_quantiles(samples_amount, features_amount, classes_amount, full_shuffle=True):
     features, target = datasets.make_gaussian_quantiles(n_samples=samples_amount, n_features=features_amount,
-                                                        n_classes=classes_amount, shuffle=False)
+                                                        n_classes=classes_amount, shuffle=full_shuffle)
 
     return features, target
 
@@ -23,7 +23,7 @@ def gauss_quantiles(samples_amount, features_amount, classes_amount):
 if __name__ == '__main__':
     samples_total, features_amount = 100, 10
     classes = 2
-    features, target = synthetic_dataset(samples_total, features_amount, classes)
+    features, target = synthetic_dataset(samples_total, features_amount, classes, full_shuffle=False)
 
     plt.subplot(121)
     plt.title("Two informative features, one cluster per class")

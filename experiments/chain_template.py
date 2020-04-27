@@ -9,7 +9,7 @@ from core.composer.node import PrimaryNode, SecondaryNode, FittedModelCache
 from core.models.model import InputData
 from core.models.model import Model
 from core.repository.task_types import MachineLearningTasksEnum
-from experiments.generate_data import synthetic_dataset
+from experiments.generate_data import synthetic_dataset, gauss_quantiles
 
 
 @dataclass
@@ -140,7 +140,7 @@ def show_chain_template(models_by_level):
             print(f'{model.model_type}, input = {model.input_shape}, output = {model.output_shape}')
 
 
-def fit_template(chain_template, classes):
+def fit_template(chain_template, classes, with_gaussian=False):
     templates_by_models = []
     for model_template in itertools.chain.from_iterable(chain_template):
         model_instance = Model(model_type=model_template.model_type)
@@ -149,9 +149,14 @@ def fit_template(chain_template, classes):
     for template, instance in templates_by_models:
         samples, features_amount = template.input_shape
 
-        features, target = synthetic_dataset(samples_amount=samples,
-                                             features_amount=features_amount,
-                                             classes_amount=classes)
+        if with_gaussian:
+            features, target = gauss_quantiles(samples_amount=samples,
+                                               features_amount=features_amount,
+                                               classes_amount=classes)
+        else:
+            features, target = synthetic_dataset(samples_amount=samples,
+                                                 features_amount=features_amount,
+                                                 classes_amount=classes)
         target = np.expand_dims(target, axis=1)
         data_train = InputData(idx=np.arange(0, samples),
                                features=features, target=target,

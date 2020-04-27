@@ -18,7 +18,8 @@ from experiments.chain_template import (
     chain_template_balanced_tree, show_chain_template,
     real_chain, fit_template
 )
-from experiments.generate_data import synthetic_dataset
+from experiments.generate_data import synthetic_dataset, gauss_quantiles
+from experiments.viz import show_fitness_by_generations
 
 
 def to_labels(predictions):
@@ -37,13 +38,20 @@ def data_robust_test():
     show_chain_template(chain)
     runs = 30
 
+    with_gaussian = True
+
     roc_train, roc_test = [], []
     for run in range(runs):
-        fit_template(chain_template=chain, classes=classes)
+        fit_template(chain_template=chain, classes=classes, with_gaussian=with_gaussian)
         real = real_chain(chain)
-        features, target = synthetic_dataset(samples_amount=samples,
-                                             features_amount=features_amount,
-                                             classes_amount=classes)
+        if with_gaussian:
+            features, target = gauss_quantiles(samples_amount=samples,
+                                               features_amount=features_amount,
+                                               classes_amount=classes)
+        else:
+            features, target = synthetic_dataset(samples_amount=samples,
+                                                 features_amount=features_amount,
+                                                 classes_amount=classes)
         target = np.expand_dims(target, axis=1)
         task_type = MachineLearningTasksEnum.classification
         data_test = InputData(idx=np.arange(0, samples),
@@ -71,7 +79,7 @@ def default_run():
     chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
                                          samples=samples, features=features_amount)
     show_chain_template(chain)
-    fit_template(chain_template=chain, classes=classes)
+    fit_template(chain_template=chain, classes=classes, with_gaussian=True)
     real = real_chain(chain)
     validate(real)
     features, target = synthetic_dataset(samples_amount=samples,
@@ -133,7 +141,123 @@ def data_distribution():
     print(f'Second part: {second_part}')
 
 
+def models_to_use():
+    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
+              ModelTypesIdsEnum.qda, ModelTypesIdsEnum.dt]
+    return models
+
+
 def composer_robust_test():
+    dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
+
+    models_repo = ModelTypesRepository()
+    available_model_types, _ = models_repo.search_models(
+        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                               output_type=CategoricalDataTypesEnum.vector,
+                                               task_type=MachineLearningTasksEnum.classification,
+                                               can_be_initial=True,
+                                               can_be_secondary=True))
+    available_model_types = models_to_use()
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+    composer_requirements = GPComposerRequirements(
+        primary=available_model_types,
+        secondary=available_model_types, max_arity=2,
+        max_depth=4, pop_size=2, num_of_generations=5,
+        crossover_prob=0.8, mutation_prob=0.8)
+    composer = GPComposer()
+    print('Starting to compose:')
+    chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                                initial_chain=None,
+                                                composer_requirements=composer_requirements,
+                                                metrics=metric_function, is_visualise=False)
+    history = composer.history
+    show_fitness_by_generations([history])
+    chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
+    ComposerVisualiser.visualise(chain_evo_composed)
+
+    predicted_train = chain_evo_composed.predict(dataset_to_compose)
+    predicted_test = chain_evo_composed.predict(data_to_validate)
+    # the quality assessment for the simulation results
+    roc_train = roc_auc(y_true=dataset_to_compose.target,
+                        y_score=predicted_train.predict)
+
+    roc_test = roc_auc(y_true=data_to_validate.target,
+                       y_score=predicted_test.predict)
+    print(f'Train ROC: {roc_train}')
+    print(f'Test ROC: {roc_test}')
+
+
+def composer_multiple_run(runs=5):
+    history_by_runs = []
+    for run in range(runs):
+        dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
+
+        models_repo = ModelTypesRepository()
+        available_model_types, _ = models_repo.search_models(
+            desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                                   output_type=CategoricalDataTypesEnum.vector,
+                                                   task_type=MachineLearningTasksEnum.classification,
+                                                   can_be_initial=True,
+                                                   can_be_secondary=True))
+        available_model_types = models_to_use()
+        metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+        composer_requirements = GPComposerRequirements(
+            primary=available_model_types,
+            secondary=available_model_types, max_arity=2,
+            max_depth=4, pop_size=5, num_of_generations=10,
+            crossover_prob=0.8, mutation_prob=0.8)
+        composer = GPComposer()
+        print('Starting to compose:')
+        chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                                    initial_chain=None,
+                                                    composer_requirements=composer_requirements,
+                                                    metrics=metric_function, is_visualise=False)
+        history_by_runs.append(composer.history)
+        chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
+        ComposerVisualiser.visualise(chain_evo_composed)
+
+        predicted_train = chain_evo_composed.predict(dataset_to_compose)
+        predicted_test = chain_evo_composed.predict(data_to_validate)
+        # the quality assessment for the simulation results
+        roc_train = roc_auc(y_true=dataset_to_compose.target,
+                            y_score=predicted_train.predict)
+
+        roc_test = roc_auc(y_true=data_to_validate.target,
+                           y_score=predicted_test.predict)
+        print(f'Train ROC: {roc_train}')
+        print(f'Test ROC: {roc_test}')
+
+    show_fitness_by_generations(history_by_runs)
+
+
+def data_by_synthetic_chain(with_gaussian=False):
+    model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
+    samples, features_amount, classes = 10000, 10, 2
+
+    chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
+                                         samples=samples, features=features_amount)
+    show_chain_template(chain)
+    fit_template(chain_template=chain, classes=classes, with_gaussian=with_gaussian)
+    real = real_chain(chain)
+    validate(real)
+    task_type = MachineLearningTasksEnum.classification
+    features, target = synthetic_dataset(samples_amount=samples,
+                                         features_amount=features_amount,
+                                         classes_amount=classes)
+    target = np.expand_dims(target, axis=1)
+    data_test = InputData(idx=np.arange(0, samples),
+                          features=features, target=target, task_type=task_type)
+    synth_target = real.predict(input_data=data_test).predict
+    synth_labels = to_labels(synth_target)
+    data = InputData(idx=np.arange(0, samples),
+                     features=features, target=synth_labels, task_type=task_type)
+
+    return data
+
+
+def composer_test_with_gaussian():
     dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain())
 
     models_repo = ModelTypesRepository()
@@ -172,31 +296,7 @@ def composer_robust_test():
     print(f'Test ROC: {roc_test}')
 
 
-def data_by_synthetic_chain():
-    model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
-    samples, features_amount, classes = 10000, 10, 2
-
-    chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
-                                         samples=samples, features=features_amount)
-    show_chain_template(chain)
-    fit_template(chain_template=chain, classes=classes)
-    real = real_chain(chain)
-    validate(real)
-    task_type = MachineLearningTasksEnum.classification
-    features, target = synthetic_dataset(samples_amount=samples,
-                                         features_amount=features_amount,
-                                         classes_amount=classes)
-    target = np.expand_dims(target, axis=1)
-    data_test = InputData(idx=np.arange(0, samples),
-                          features=features, target=target, task_type=task_type)
-    synth_target = real.predict(input_data=data_test).predict
-    synth_labels = to_labels(synth_target)
-    data = InputData(idx=np.arange(0, samples),
-                     features=features, target=synth_labels, task_type=task_type)
-
-    return data
-
-
 if __name__ == '__main__':
-    composer_robust_test()
+    composer_multiple_run()
     # default_run()
+    # data_robust_test()
