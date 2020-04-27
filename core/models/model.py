@@ -8,8 +8,9 @@ from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AtomisedStrategy
 from core.models.preprocessing import scaling_preprocess, simple_preprocess
+from core.repository.atomised_models import is_model_atomised
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -71,14 +72,17 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
         MachineLearningTasksEnum.clustering: scaling_preprocess
     }
 
-    strategies_for_tasks = {
+    default_strategies_for_tasks = {
         MachineLearningTasksEnum.classification: SkLearnClassificationStrategy,
         MachineLearningTasksEnum.regression: SkLearnRegressionStrategy,
         MachineLearningTasksEnum.auto_regression: StatsModelsAutoRegressionStrategy,
-        MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
+        MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy,
     }
 
     preprocessing_function = preprocessing_for_tasks.get(task_type_for_data, scaling_preprocess)
+
+    if is_model_atomised(model_type):
+        return AtomisedStrategy(model_type), simple_preprocess
 
     models_repo = ModelTypesRepository()
     _, model_info = models_repo.search_models(
@@ -97,6 +101,6 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
             raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    eval_strategy = strategies_for_tasks[task_type_for_model](model_type)
+    eval_strategy = default_strategies_for_tasks[task_type_for_model](model_type)
 
     return eval_strategy, preprocessing_function

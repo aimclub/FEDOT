@@ -4,13 +4,14 @@ from enum import Enum
 from typing import (
     List, Optional, Union, Tuple)
 
+from aenum import Enum as MutableEnum
 from anytree import Node, RenderTree, findall
 
 from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
 from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 
 
-class ModelTypesIdsEnum(Enum):
+class ModelTypesIdsEnum(MutableEnum):
     xgboost = 'xgboost',
     knn = 'knn',
     logit = 'logit',
@@ -88,6 +89,7 @@ class ModelType(Node):
 
 
 class ModelTypesRepository:
+    # TODO fix warnings
     model_types = {type_: type_.value for type_ in ModelTypesIdsEnum}
 
     def _initialise_tree(self):

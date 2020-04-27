@@ -1,4 +1,5 @@
 import warnings
+from pickle import load
 
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
@@ -114,6 +115,23 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
+
+    def tune(self, model, data_for_tune: InputData):
+        return model
+
+
+class AtomisedStrategy(EvaluationStrategy):
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        path_to_file = model_type.value.path_to_file
+        with open(path_to_file, 'rb') as pickle_file:
+            self._atomised_model = load(pickle_file)
+
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        self._atomised_model.fit(train_data)
+        return self._atomised_model
+
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        return trained_model.predict(predict_data).predict
 
     def tune(self, model, data_for_tune: InputData):
         return model
