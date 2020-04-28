@@ -21,7 +21,6 @@ class GPComposerRequirements(ComposerRequirements):
     num_of_generations: Optional[int] = 50
     crossover_prob: Optional[float] = None
     mutation_prob: Optional[float] = None
-    optimiser_params: Optional[GPChainOptimiserParameters] = None
 
 
 class GPComposer(Composer):
@@ -31,7 +30,8 @@ class GPComposer(Composer):
 
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
-                      metrics: Optional[Callable], is_visualise: bool = False) -> Chain:
+                      metrics: Optional[Callable], optimiser_parameters: GPChainOptimiserParameters = None,
+                      is_visualise: bool = False) -> Chain:
 
         train_data, test_data = train_test_data_setup(data, 0.8)
         self.shared_cache.clear()
@@ -42,7 +42,8 @@ class GPComposer(Composer):
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
                                      primary_node_func=NodeGenerator.primary_node,
-                                     secondary_node_func=NodeGenerator.secondary_node, chain_class=Chain)
+                                     secondary_node_func=NodeGenerator.secondary_node, chain_class=Chain,
+                                     parameters=optimiser_parameters)
 
         best_chain, self.history = optimiser.optimise(metric_function_for_nodes)
 

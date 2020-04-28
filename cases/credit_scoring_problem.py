@@ -9,6 +9,7 @@ from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, Dum
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
 from core.composer.optimisers.regularization import RegularizationTypeEnum
+from core.composer.optimisers.mutation import MutationTypeEnum
 from core.composer.visualisation import ComposerVisualiser
 from core.debug.metrics import RandomMetric
 from core.models.model import *
@@ -55,13 +56,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
 
     # the choice and initialisation of the random_search
 
-    optimiser_parameters = GPChainOptimiserParameters(regularization_type=RegularizationTypeEnum.decremental)
+    optimiser_parameters = GPChainOptimiserParameters(mutation_type=MutationTypeEnum.standard,
+                                                      regularization_type=RegularizationTypeEnum.none)
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=10),
-        optimiser_params=optimiser_parameters)
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=30))
 
     # Create GP-based composer
     composer = GPComposer()
@@ -70,7 +71,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=True)
+                                                metrics=metric_function, optimiser_parameters=optimiser_parameters,
+                                                is_visualise=True)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     # the choice and initialisation of the dummy_composer

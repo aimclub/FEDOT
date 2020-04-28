@@ -5,7 +5,7 @@ import pytest
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.composer.node import equivalent_subtree
+from core.composer.optimisers.gp_operators import equivalent_subtree
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 

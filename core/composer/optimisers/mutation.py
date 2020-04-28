@@ -1,10 +1,16 @@
 from copy import deepcopy
 from enum import Enum
 from random import random, choice
-from typing import Any
+from typing import (Any, Callable)
 
+from random import randint
 from core.composer.chain import Chain
-from core.composer.optimisers.gp_operators import node_depth
+from core.composer.optimisers.gp_operators import nodes_from_height, node_depth, random_chain
+
+
+class MutationTypeEnum(Enum):
+    standard = 0
+    growth = 1
 
 
 class MutationPowerEnum(Enum):
@@ -25,27 +31,55 @@ def get_mutation_prob(mut_id, root_node):
         return default_mutation_prob
 
 
-def standard_mutation(chain: Chain, secondary: Any, primary: Any,
-                      secondary_node_func: Any = None, primary_node_func: Any = None, mutation_prob: bool = 0.8,
+def mutation(mut_type, chain_class, chain: Chain, requirements,
+             secondary_node_func: Callable = None, primary_node_func: Callable = None, mutation_prob: bool = 0.8,
+             node_mutate_type=MutationPowerEnum.mean) -> Any:
+    if mutation_prob and random() > mutation_prob:
+        return deepcopy(chain)
+    if mut_type == MutationTypeEnum.standard:
+        return standard_mutation(chain, requirements.secondary, requirements.primary, secondary_node_func,
+                                 primary_node_func, node_mutate_type)
+    elif mut_type == MutationTypeEnum.growth:
+        return growth_mutation(chain=chain, chain_class=chain_class, secondary_node_func=secondary_node_func,
+                               primary_node_func=primary_node_func, requirements=requirements)
+
+
+def standard_mutation(chain: Any, secondary: Any, primary: Any,
+                      secondary_node_func: Callable, primary_node_func: Callable,
                       node_mutate_type=MutationPowerEnum.mean) -> Any:
     result = deepcopy(chain)
-    if mutation_prob and random() > mutation_prob:
-        return result
 
-    node_mutation_probality = get_mutation_prob(mut_id=node_mutate_type.value, root_node=result.root_node)
+    node_mutation_probability = get_mutation_prob(mut_id=node_mutate_type.value, root_node=result.root_node)
 
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
-            if random() < node_mutation_probality:
+            if random() < node_mutation_probability:
                 secondary_node = secondary_node_func(model_type=choice(secondary), nodes_from=node.nodes_from)
                 result.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
         else:
-            if random() < node_mutation_probality:
+            if random() < node_mutation_probability:
                 primary_node = primary_node_func(model_type=choice(primary))
                 result.update_node(node, primary_node)
 
     replace_node_to_random_recursive(result.root_node)
 
     return result
+
+
+def growth_mutation(chain: Any, chain_class, secondary_node_func: Callable, primary_node_func: Callable,
+                    requirements) -> Any:
+    chain_copy = deepcopy(chain)
+    random_layer_in_chain = randint(0, chain_copy.depth - 1)
+    node_from_chain = choice(nodes_from_height(chain_copy, random_layer_in_chain))
+    is_primary_node_selected = (not node_from_chain.nodes_from) or (
+                node_from_chain.nodes_from and node_from_chain != chain_copy.root_node and randint(0, 1))
+    if is_primary_node_selected:
+        new_subtree = primary_node_func(model_type=choice(requirements.primary))
+    else:
+        max_depth = node_depth(node_from_chain)
+        new_subtree = random_chain(chain_class, secondary_node_func, primary_node_func, requirements,
+                                   max_depth=max_depth).root_node
+    chain_copy.replace_node_with_parents(node_from_chain, new_subtree)
+    return chain_copy

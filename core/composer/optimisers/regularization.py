@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from enum import Enum
 from typing import (Optional,
                     List,
@@ -12,10 +12,9 @@ class RegularizationTypeEnum(Enum):
 
 def regularized_population(reg_id, population, requirements, metric, chain_class, size=None) -> Optional[List[Any]]:
     if reg_id == RegularizationTypeEnum.decremental:
-        return decremental_regularization(population, requirements, metric, chain_class, size)
+        return population + decremental_regularization(population, requirements, metric, chain_class, size)
     elif reg_id == RegularizationTypeEnum.none:
-        return []
-
+        return population
 
 def decremental_regularization(population, requirements, metric, chain_class, size=None):
     size = size if size else requirements.pop_size

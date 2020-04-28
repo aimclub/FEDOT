@@ -5,7 +5,8 @@ from enum import Enum
 from typing import (
     List,
     Callable,
-    Optional
+    Optional,
+    Any
 )
 
 from core.composer.chain import Chain
@@ -22,6 +23,7 @@ class ComposerRequirements:
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
 
+
 class Composer(ABC):
     def __init__(self):
         self.history = None
@@ -31,6 +33,7 @@ class Composer(ABC):
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Callable,
+                      optimiser_parameters: Any = None,
                       is_visualise: bool = False) -> Chain:
         raise NotImplementedError()
 
@@ -49,6 +52,7 @@ class DummyComposer(Composer):
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Optional[Callable],
+                      optimiser_parameters=None,
                       is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 

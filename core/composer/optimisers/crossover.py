@@ -2,11 +2,21 @@ import random
 from copy import deepcopy
 from random import randint, choice
 from typing import Any
+from enum import Enum
 
 from core.composer.optimisers.gp_operators import nodes_from_height, node_depth
 
 
-def standard_crossover(chain_first: Any, chain_second: Any, max_depth: int, crossover_prob: float = 0.8) -> Any:
+class CrossoverTypeEnum(Enum):
+    standard = 0
+
+
+def crossover(cros_type, chain_first: Any, chain_second: Any, max_depth: int, crossover_prob: float = 0.8) -> Any:
+    if cros_type == CrossoverTypeEnum.standard:
+        return standard_crossover(chain_first, chain_second, max_depth, crossover_prob)
+
+
+def standard_crossover(chain_first: Any, chain_second: Any, max_depth: int, crossover_prob: float) -> Any:
     if chain_first is chain_second or random.random() > crossover_prob:
         return deepcopy(chain_first)
     chain_first_copy = deepcopy(chain_first)
