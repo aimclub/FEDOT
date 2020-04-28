@@ -188,8 +188,9 @@ def composer_robust_test():
     print(f'Test ROC: {roc_test}')
 
 
-def composer_multiple_run(runs=5):
+def composer_multiple_run(runs=2):
     history_by_runs = []
+    generations, pop_size = 5, 3
     for run in range(runs):
         dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
 
@@ -206,7 +207,7 @@ def composer_multiple_run(runs=5):
         composer_requirements = GPComposerRequirements(
             primary=available_model_types,
             secondary=available_model_types, max_arity=2,
-            max_depth=4, pop_size=5, num_of_generations=10,
+            max_depth=4, pop_size=pop_size, num_of_generations=generations,
             crossover_prob=0.8, mutation_prob=0.8)
         composer = GPComposer()
         print('Starting to compose:')
@@ -229,7 +230,19 @@ def composer_multiple_run(runs=5):
         print(f'Train ROC: {roc_train}')
         print(f'Test ROC: {roc_test}')
 
-    show_fitness_by_generations(history_by_runs)
+    reduced = [_reduced_history_best(history, generations, pop_size) for history in history_by_runs]
+    show_fitness_by_generations(reduced, generations)
+
+
+def _reduced_history_best(history, generations, pop_size):
+    reduced = []
+    for gen in range(generations):
+        fitness_values = [individ[1] for individ in history[gen: gen + pop_size]]
+        best = min(fitness_values)
+        print(f'Min in generation #{gen}: {best}')
+        reduced.append(best)
+
+    return reduced
 
 
 def data_by_synthetic_chain(with_gaussian=False):

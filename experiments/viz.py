@@ -2,18 +2,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def show_fitness_by_generations(history_runs):
-    gens = [gen for gen in range(len(history_runs[0]))]
-    fitness_by_gens = []
-    for gen in gens:
+def show_fitness_by_generations(history_runs, iterations):
+    iters = [it for it in range(iterations)]
+    fitness_by_iter = []
+    for it in iters:
         fitness_values = []
         for history in history_runs:
-            value = abs(history[gen][1])
+            value = abs(history[it])
             fitness_values.append(value)
-        print(fitness_values)
-        fitness_by_gens.append(fitness_values)
+        fitness_by_iter.append(fitness_values)
 
-    sns.boxplot(gens, fitness_by_gens, color="seagreen")
+    sns.boxplot(iters, fitness_by_iter, color="seagreen")
 
     plt.title('Fitness history by generations')
     plt.ylabel('Fitness')
