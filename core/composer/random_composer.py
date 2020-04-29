@@ -14,6 +14,8 @@ from core.composer.chain import Chain, Node
 from core.composer.composer import ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
+from core.models.data import train_test_data_setup
+from experiments.chain_template import chain_template_random, fit_template, real_chain
 
 
 class RandomSearchComposer:
@@ -24,9 +26,7 @@ class RandomSearchComposer:
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Optional[Callable]) -> Chain:
-        # TODO: fix this later?
-        train_data = data
-        test_data = data
+        train_data, test_data = train_test_data_setup(data, 0.8)
         metric_function_for_nodes = partial(metric_for_nodes,
                                             metric_function=metrics,
                                             train_data=train_data,
@@ -78,7 +78,11 @@ class RandomSearchOptimiser:
         history = []
         for i in range(self.__iter_num):
             print(f'Iter {i}')
-            new_nodeset = self._random_nodeset(primary_candidates, secondary_candidates)
+            # new_nodeset = self._random_nodeset(primary_candidates, secondary_candidates)
+            depth = random.choice([_ for _ in range(1, 5)])
+            models_per_level = 6
+            new_nodeset = _random_chain(primary_candidates, depth=depth,
+                                        models_per_level=models_per_level)
             new_metric_value = round(metric_function_for_nodes(nodes=new_nodeset), 3)
             history.append((new_nodeset, new_metric_value))
 
@@ -105,3 +109,13 @@ class RandomSearchOptimiser:
             new_set.append(self.__secondary_node_func(random_final_model, parent_nodes))
 
         return new_set
+
+
+def _random_chain(requirements, depth=4, models_per_level=4):
+    template = chain_template_random(model_types=requirements,
+                                     depth=depth, models_per_level=models_per_level,
+                                     samples=1000, features=10)
+    fit_template(template, classes=2, skip_fit=True)
+    final_chain = real_chain(template)
+
+    return final_chain.nodes

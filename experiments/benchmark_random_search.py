@@ -28,7 +28,7 @@ if __name__ == '__main__':
     fit_template(chain, classes=2, skip_fit=True)
     initial_chain = real_chain(chain)
 
-    random_composer = RandomSearchComposer(iter_num=10)
+    random_composer = RandomSearchComposer(iter_num=30)
     available_model_types = models_to_use()
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
 
     composed_chain = random_composer.compose_chain(data=dataset_to_compose,
-                                                   initial_chain=initial_chain,
+                                                   initial_chain=None,
                                                    composer_requirements=req,
                                                    metrics=metric_function)
     composed_chain.fit(input_data=dataset_to_compose, verbose=True)
