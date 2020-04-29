@@ -16,6 +16,7 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from core.models.data import InputData, OutputData
+from core.models.evaluation.algebraic import *
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
@@ -117,3 +118,31 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
     def tune(self, model, data_for_tune: InputData):
         return model
+
+
+class AlgebraicStrategy(EvaluationStrategy):
+    __model_by_types = {
+        ModelTypesIdsEnum.plus: plus_operator,
+        ModelTypesIdsEnum.minus: minus_operator,
+        ModelTypesIdsEnum.mult: mult_operator,
+        ModelTypesIdsEnum.div: div_operator,
+    }
+
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        self._arithm_model_impl = self._convert_to_arithm(model_type)
+
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        arithm_model = self._arithm_model_impl
+        return arithm_model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return trained_model(predict_data.features)
+
+    def tune(self, model, data_for_tune: InputData):
+        return model
+
+    def _convert_to_arithm(self, model_type: ModelTypesIdsEnum):
+        if model_type in self.__model_by_types.keys():
+            return self.__model_by_types[model_type]
+        else:
+            raise ValueError(f'Impossible to obtain arithmetic strategy for {model_type}')

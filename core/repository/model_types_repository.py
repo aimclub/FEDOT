@@ -24,12 +24,17 @@ class ModelTypesIdsEnum(Enum):
     linear = 'linear',
     ridge = 'ridge',
     lasso = 'lasso',
-    kmeans = 'kmeans'
+    kmeans = 'kmeans',
+    plus = 'plus',
+    minus = 'minus',
+    mult = 'mult',
+    div = 'div'
 
 
 class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
     stat = 'Stat_models'
+    algebraic = 'Algebraic_operators'
     all = 'Models'
 
 
@@ -95,6 +100,7 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
         stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
+        algebraic = ModelsGroup(ModelGroupsIdsEnum.algebraic, parent=root)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
                                       task_type=[MachineLearningTasksEnum.auto_regression],
@@ -119,6 +125,17 @@ class ModelTypesRepository:
         self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
                                       task_type=[MachineLearningTasksEnum.clustering],
                                       parent=stat)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
+                                      task_type=[MachineLearningTasksEnum.clustering],
+                                      parent=stat)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.mult,
+                                              ModelTypesIdsEnum.div,
+                                              ModelTypesIdsEnum.minus,
+                                              ModelTypesIdsEnum.plus],
+                                      task_type=[MachineLearningTasksEnum.regression],
+                                      parent=algebraic)
 
         return root
 

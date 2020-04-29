@@ -8,7 +8,8 @@ from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, \
+    AlgebraicStrategy
 from core.models.preprocessing import scaling_preprocess, simple_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
@@ -31,7 +32,7 @@ class Model(ABC):
 
     def _init(self, task: TaskTypesEnum):
         self._eval_strategy, self._data_preprocessing = \
-            _eval_strategy_for_task(self.model_type, task)
+            _eval_strategy_for_model(self.model_type, task)
 
     def fit(self, data: InputData):
         self._init(data.task_type)
@@ -63,19 +64,30 @@ class Model(ABC):
         return f'{self.model_type.name}'
 
 
-def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
+def _eval_strategy_for_model(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
     preprocessing_for_tasks = {
         MachineLearningTasksEnum.auto_regression: simple_preprocess,
         MachineLearningTasksEnum.classification: scaling_preprocess,
-        MachineLearningTasksEnum.regression: scaling_preprocess,
+        MachineLearningTasksEnum.regression: simple_preprocess,
         MachineLearningTasksEnum.clustering: scaling_preprocess
     }
 
     strategies_for_tasks = {
-        MachineLearningTasksEnum.classification: SkLearnClassificationStrategy,
-        MachineLearningTasksEnum.regression: SkLearnRegressionStrategy,
-        MachineLearningTasksEnum.auto_regression: StatsModelsAutoRegressionStrategy,
-        MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
+        MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy],
+        MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy, AlgebraicStrategy],
+        MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
+        MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
+    }
+
+    strategies_for_models = {
+        SkLearnClassificationStrategy: [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
+                                        ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
+                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda],
+        SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
+        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
+        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima],
+        AlgebraicStrategy: [ModelTypesIdsEnum.plus, ModelTypesIdsEnum.minus,
+                            ModelTypesIdsEnum.mult, ModelTypesIdsEnum.div]
     }
 
     preprocessing_function = preprocessing_for_tasks.get(task_type_for_data, scaling_preprocess)
@@ -97,6 +109,11 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
             raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    eval_strategy = strategies_for_tasks[task_type_for_model](model_type)
+    eval_strategies = strategies_for_tasks[task_type_for_model]
 
-    return eval_strategy, preprocessing_function
+    for strategy in eval_strategies:
+        if model_type in strategies_for_models[strategy]:
+            eval_strategy = strategy(model_type)
+            return eval_strategy, preprocessing_function
+
+    return None, None
