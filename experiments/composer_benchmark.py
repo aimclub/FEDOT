@@ -19,7 +19,7 @@ from experiments.chain_template import (
     real_chain, fit_template
 )
 from experiments.generate_data import synthetic_dataset, gauss_quantiles
-from experiments.viz import show_fitness_by_generations
+from experiments.viz import fitness_by_generations_boxplots, show_fitness_history_all
 
 
 def to_labels(predictions):
@@ -172,7 +172,7 @@ def composer_robust_test():
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function, is_visualise=False)
     history = composer.history
-    show_fitness_by_generations([history])
+    fitness_by_generations_boxplots([history])
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
     ComposerVisualiser.visualise(chain_evo_composed)
 
@@ -190,7 +190,7 @@ def composer_robust_test():
 
 def composer_multiple_run(runs=2):
     history_by_runs = []
-    generations, pop_size = 5, 3
+    generations, pop_size = 10, 10
     for run in range(runs):
         dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
 
@@ -208,7 +208,7 @@ def composer_multiple_run(runs=2):
             primary=available_model_types,
             secondary=available_model_types, max_arity=2,
             max_depth=4, pop_size=pop_size, num_of_generations=generations,
-            crossover_prob=0.8, mutation_prob=0.8)
+            crossover_prob=0.8, mutation_prob=0.4)
         composer = GPComposer()
         print('Starting to compose:')
         chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
@@ -231,14 +231,15 @@ def composer_multiple_run(runs=2):
         print(f'Test ROC: {roc_test}')
 
     reduced = [_reduced_history_best(history, generations, pop_size) for history in history_by_runs]
-    show_fitness_by_generations(reduced, generations)
+    fitness_by_generations_boxplots(reduced, generations)
+    show_fitness_history_all(reduced, generations)
 
 
 def _reduced_history_best(history, generations, pop_size):
     reduced = []
     for gen in range(generations):
-        fitness_values = [individ[1] for individ in history[gen: gen + pop_size]]
-        best = min(fitness_values)
+        fitness_values = [abs(individ[1]) for individ in history[gen: gen + pop_size]]
+        best = max(fitness_values)
         print(f'Min in generation #{gen}: {best}')
         reduced.append(best)
 
