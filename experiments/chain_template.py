@@ -140,11 +140,15 @@ def show_chain_template(models_by_level):
             print(f'{model.model_type}, input = {model.input_shape}, output = {model.output_shape}')
 
 
-def fit_template(chain_template, classes, with_gaussian=False):
+# TODO: refactor skip_fit logic
+def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
     templates_by_models = []
     for model_template in itertools.chain.from_iterable(chain_template):
         model_instance = Model(model_type=model_template.model_type)
+        model_template.model_instance = model_instance
         templates_by_models.append((model_template, model_instance))
+    if skip_fit:
+        return
 
     for template, instance in templates_by_models:
         samples, features_amount = template.input_shape
@@ -164,11 +168,10 @@ def fit_template(chain_template, classes, with_gaussian=False):
         print(f'Fit {instance}')
         fitted_model, predictions = instance.fit(data=data_train)
 
-        template.model_instance = instance
         template.fitted_model = fitted_model
 
 
-def real_chain(chain_template):
+def real_chain(chain_template, with_cache=True):
     nodes_by_templates = []
     for level in range(0, len(chain_template)):
         for template in chain_template[level]:
@@ -179,9 +182,10 @@ def real_chain(chain_template):
                                                              template),
                                      model_type=template.model_type)
             node.model = template.model_instance
-            cache = FittedModelCache(related_node=node)
-            cache.append(fitted_model=template.fitted_model)
-            node.cache = cache
+            if with_cache:
+                cache = FittedModelCache(related_node=node)
+                cache.append(fitted_model=template.fitted_model)
+                node.cache = cache
             nodes_by_templates.append((node, template))
 
     chain = Chain()

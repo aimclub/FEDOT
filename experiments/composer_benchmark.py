@@ -172,7 +172,7 @@ def composer_robust_test():
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function, is_visualise=False)
     history = composer.history
-    fitness_by_generations_boxplots([history])
+    fitness_by_generations_boxplots([history], 5)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
     ComposerVisualiser.visualise(chain_evo_composed)
 
@@ -188,7 +188,7 @@ def composer_robust_test():
     print(f'Test ROC: {roc_test}')
 
 
-def composer_multiple_run(runs=2):
+def composer_multiple_run(runs=5):
     history_by_runs = []
     generations, pop_size = 10, 10
     for run in range(runs):
@@ -217,7 +217,7 @@ def composer_multiple_run(runs=2):
                                                     metrics=metric_function, is_visualise=False)
         history_by_runs.append(composer.history)
         chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
-        ComposerVisualiser.visualise(chain_evo_composed)
+        # ComposerVisualiser.visualise(chain_evo_composed)
 
         predicted_train = chain_evo_composed.predict(dataset_to_compose)
         predicted_test = chain_evo_composed.predict(data_to_validate)
@@ -311,6 +311,6 @@ def composer_test_with_gaussian():
 
 
 if __name__ == '__main__':
-    composer_multiple_run()
-    # default_run()
+    # composer_multiple_run()
+    default_run()
     # data_robust_test()

@@ -31,13 +31,13 @@ class RandomSearchComposer:
                                             metric_function=metrics,
                                             train_data=train_data,
                                             test_data=test_data)
-
         optimiser = RandomSearchOptimiser(self.__iter_num,
                                           NodeGenerator.primary_node,
                                           NodeGenerator.secondary_node)
         best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
                                                      composer_requirements.primary,
-                                                     composer_requirements.secondary)
+                                                     composer_requirements.secondary,
+                                                     initial_solution=initial_chain)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
@@ -58,16 +58,23 @@ def metric_for_nodes(metric_function, nodes: List[Node], train_data: InputData, 
 
 
 class RandomSearchOptimiser:
-    def __init__(self, iter_num: int, primary_node_func: Callable, secondary_node_func: Callable):
+    def __init__(self, iter_num: int, primary_node_func: Callable,
+                 secondary_node_func: Callable):
         self.__iter_num = iter_num
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
 
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],
-                 secondary_candidates: List[Any]):
-        best_metric_value = 1000
-        best_set = []
+                 secondary_candidates: List[Any],
+                 initial_solution: Optional[Chain]):
+
+        if initial_solution is not None:
+            best_set = initial_solution.nodes
+            best_metric_value = metric_function_for_nodes(nodes=best_set)
+        else:
+            best_metric_value = 1000
+            best_set = []
         history = []
         for i in range(self.__iter_num):
             print(f'Iter {i}')
