@@ -8,6 +8,7 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 class Node(ABC):
+
     def __init__(self, nodes_from: Optional[List['Node']], model: Model):
         self.nodes_from = nodes_from
         self.model = model
@@ -27,7 +28,7 @@ class Node(ABC):
             previous_items = []
             for parent_node in self.nodes_from:
                 previous_items.append(f'{parent_node._descriptive_id_recursive(copy(visited_nodes))};')
-            previous_items.sort()  # models with different inputs order are equal
+            previous_items.sort()
             previous_items_str = ';'.join(previous_items)
 
             full_path += f'({previous_items_str})'
@@ -152,9 +153,12 @@ class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
                  model_type: ModelTypesIdsEnum):
         model = Model(model_type=model_type)
+        nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model=model)
-        if self.nodes_from is None:
-            self.nodes_from = []
+
+    def _nodes_from_with_fixed_order(self):
+        if self.nodes_from is not None:
+            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
@@ -163,7 +167,7 @@ class SecondaryNode(Node):
 
         if verbose:
             print(f'Fit all parent nodes in secondary node with model: {self.model}')
-        for parent in self.nodes_from:
+        for parent in self._nodes_from_with_fixed_order():
             parent_results.append(parent.fit(input_data=input_data))
 
         target = input_data.target
@@ -185,7 +189,7 @@ class SecondaryNode(Node):
         parent_results = []
         if verbose:
             print(f'Obtain predictions from all parent nodes: {self.model}')
-        for parent in self.nodes_from:
+        for parent in self._nodes_from_with_fixed_order():
             parent_results.append(parent.predict(input_data=input_data))
 
         target = input_data.target
