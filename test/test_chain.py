@@ -1,4 +1,6 @@
 import os
+from copy import deepcopy
+from random import seed
 
 import numpy as np
 import pandas as pd
@@ -11,11 +13,13 @@ from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 
+seed(1)
+np.random.seed(1)
+
 
 @pytest.fixture()
 def data_setup():
     predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
     np.random.shuffle(predictors)
     np.random.shuffle(response)
     predictors = predictors[:100]
@@ -121,3 +125,52 @@ def test_chain_sequential_fit_correct(data_setup):
     assert chain.length == 4
     assert chain.depth == 4
     assert train_predicted.predict.shape == train.target.shape
+
+
+def test_chain_insensitivity_to_secondary_nodes_inputs_order_change(data_setup):
+    data = data_setup
+    train, test = train_test_data_setup(data)
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.lda)
+    third = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+                                         nodes_from=[first, second, third])
+
+    chain = Chain()
+    for node in [first, second, third, final]:
+        chain.add_node(node)
+
+    first = deepcopy(first)
+    second = deepcopy(second)
+    third = deepcopy(third)
+    final_shuffled = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+                                                  nodes_from=[third, first, second])
+
+    chain_shuffled = Chain()
+    # change order of nodes in list
+    for node in [final_shuffled, third, first, second]:
+        chain_shuffled.add_node(node)
+
+    train_predicted = chain.fit(input_data=train)
+
+    train_predicted_shuffled = chain_shuffled.fit(input_data=train)
+
+    # train results should be insensitive
+    assert chain.root_node.descriptive_id == chain_shuffled.root_node.descriptive_id
+    assert all(np.equal(train_predicted.predict, train_predicted_shuffled.predict))
+
+    test_predicted = chain.predict(input_data=test)
+    test_predicted_shuffled = chain_shuffled.predict(input_data=test)
+
+    # predict results should be insensitive
+    assert all(np.equal(test_predicted.predict, test_predicted_shuffled.predict))
+
+    # change parents order for the nodes fitted chain
+    nodes_for_change = chain.nodes[3].nodes_from
+    chain.nodes[3].nodes_from = [nodes_for_change[2], nodes_for_change[0], nodes_for_change[1]]
+    chain.nodes[3].cache.clear()
+    chain.fit(train)
+    test_predicted_re_shuffled = chain.predict(input_data=test)
+
+    # predict results should be insensitive
+    assert all(np.equal(test_predicted.predict, test_predicted_re_shuffled.predict))
