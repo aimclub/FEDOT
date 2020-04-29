@@ -127,7 +127,7 @@ def test_chain_sequential_fit_correct(data_setup):
     assert train_predicted.predict.shape == train.target.shape
 
 
-def test_chain_insensitivity_to_secondary_nodes_inputs_order_change(data_setup):
+def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
     first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
@@ -155,14 +155,14 @@ def test_chain_insensitivity_to_secondary_nodes_inputs_order_change(data_setup):
 
     train_predicted_shuffled = chain_shuffled.fit(input_data=train)
 
-    # train results should be insensitive
+    # train results should be invariant
     assert chain.root_node.descriptive_id == chain_shuffled.root_node.descriptive_id
     assert all(np.equal(train_predicted.predict, train_predicted_shuffled.predict))
 
     test_predicted = chain.predict(input_data=test)
     test_predicted_shuffled = chain_shuffled.predict(input_data=test)
 
-    # predict results should be insensitive
+    # predict results should be invariant
     assert all(np.equal(test_predicted.predict, test_predicted_shuffled.predict))
 
     # change parents order for the nodes fitted chain
@@ -172,5 +172,5 @@ def test_chain_insensitivity_to_secondary_nodes_inputs_order_change(data_setup):
     chain.fit(train)
     test_predicted_re_shuffled = chain.predict(input_data=test)
 
-    # predict results should be insensitive
+    # predict results should be invariant
     assert all(np.equal(test_predicted.predict, test_predicted_re_shuffled.predict))
