@@ -5,10 +5,6 @@ from core.composer.random_composer import RandomSearchComposer, History
 from core.models.data import train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from experiments.chain_template import (
-    chain_template_balanced_tree, show_chain_template,
-    real_chain, fit_template
-)
 from experiments.composer_benchmark import data_by_synthetic_chain
 from experiments.viz import show_history_optimization_comparison
 
@@ -25,12 +21,6 @@ if __name__ == '__main__':
     history_all = []
     model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
     for run in range(runs):
-        chain = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
-                                             samples=1000, features=10)
-        show_chain_template(chain)
-        fit_template(chain, classes=2, skip_fit=True)
-        initial_chain = real_chain(chain)
-
         random_composer = RandomSearchComposer(iter_num=iterations)
         available_model_types = models_to_use()
         metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
