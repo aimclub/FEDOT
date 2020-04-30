@@ -1,4 +1,5 @@
 import warnings
+from random import randint
 
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
@@ -122,21 +123,23 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
 class AlgebraicStrategy(EvaluationStrategy):
     __model_by_types = {
-        ModelTypesIdsEnum.plus: plus_operator,
-        ModelTypesIdsEnum.minus: minus_operator,
-        ModelTypesIdsEnum.mult: mult_operator,
-        ModelTypesIdsEnum.div: div_operator,
+        ModelTypesIdsEnum.plus: PlusOperator,
+        ModelTypesIdsEnum.minus: MinusOperator,
+        ModelTypesIdsEnum.mult: MultOperator,
+        ModelTypesIdsEnum.div: DivOperator,
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._arithm_model_impl = self._convert_to_arithm(model_type)
 
     def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        arithm_model = self._arithm_model_impl
+        inp_var_num = train_data.features.shape[1]
+        arithm_model = self._arithm_model_impl(variables_ids=[randint(0, inp_var_num - 1),
+                                                              randint(0, inp_var_num - 1)])
         return arithm_model
 
     def predict(self, trained_model, predict_data: InputData):
-        return trained_model(predict_data.features)
+        return trained_model.evaluate(predict_data.features)
 
     def tune(self, model, data_for_tune: InputData):
         return model
