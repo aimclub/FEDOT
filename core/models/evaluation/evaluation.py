@@ -15,7 +15,10 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
+from benchmark.tpot.b_tpot import fit_tpot, predict_tpot
 from core.models.data import InputData, OutputData
+from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
@@ -117,3 +120,29 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
     def tune(self, model, data_for_tune: InputData):
         return model
+
+
+class AutoMLEvaluationStrategy(EvaluationStrategy):
+    _model_functions_by_type = {
+        ModelTypesIdsEnum.tpot: (fit_tpot, predict_tpot),
+        ModelTypesIdsEnum.h2o: (fit_h2o, predict_h2o)
+    }
+
+    def __init__(self, model_type: BenchmarkModelTypesEnum):
+        self._model_specific_fit, self._model_specific_predict = self._init_benchmark_model_functions(model_type)
+
+    def _init_benchmark_model_functions(self, model_type):
+        if model_type in self._model_functions_by_type.keys():
+            return self._model_functions_by_type[model_type]
+        else:
+            raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
+
+    def fit(self, model_type: BenchmarkModelTypesEnum, train_data: InputData):
+        benchmark_model = self._model_specific_fit(train_data)
+        return benchmark_model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return self._model_specific_predict(trained_model, predict_data)
+
+    def tune(self, model, data_for_tune):
+        raise NotImplementedError()
