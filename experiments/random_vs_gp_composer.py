@@ -64,7 +64,7 @@ def _reduced_history_best(history, generations, pop_size):
     return reduced
 
 
-def print_roc_score(chain, data_to_compose, data_to_validate):
+def roc_score(chain, data_to_compose, data_to_validate):
     predicted_train = chain.predict(data_to_compose)
     predicted_test = chain.predict(data_to_validate)
     # the quality assessment for the simulation results
@@ -75,6 +75,28 @@ def print_roc_score(chain, data_to_compose, data_to_validate):
                        y_score=predicted_test.predict)
     print(f'Train ROC: {roc_train}')
     print(f'Test ROC: {roc_test}')
+
+    return roc_train, roc_test
+
+
+def source_chain_self_predict():
+    models_in_source_chain = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
+    samples, features_amount, classes = 10000, 10, 2
+
+    train_score, test_score = [], []
+
+    for _ in range(10):
+        source = source_chain(models_in_source_chain, samples=samples,
+                              features=features_amount, classes=classes)
+        data_full = data_generated_by(source, samples, features_amount, classes)
+        data_to_compose, data_to_validate = train_test_data_setup(data_full)
+        source.fit_from_scratch(input_data=data_to_compose)
+        roc_train, roc_test = roc_score(chain=source, data_to_compose=data_to_compose,
+                                        data_to_validate=data_to_validate)
+        train_score.append(roc_train)
+        test_score.append(roc_test)
+    print(train_score)
+    print(test_score)
 
 
 def compare_composers():
@@ -105,7 +127,7 @@ def compare_composers():
                                                         history_callback=history_best_random)
         history_random.append(history_best_random.values)
         random_composed.fit(input_data=data_to_compose, verbose=True)
-        print_roc_score(random_composed, data_to_compose, data_to_validate)
+        roc_score(random_composed, data_to_compose, data_to_validate)
 
         # Init and run GPComposer
         print('Running GPComposer:')
@@ -121,7 +143,7 @@ def compare_composers():
                                                 metrics=metric_function, is_visualise=False)
         history_gp.append(gp_composer.history)
         gp_composed.fit(input_data=data_to_compose, verbose=True)
-        print_roc_score(gp_composed, data_to_compose, data_to_validate)
+        roc_score(gp_composed, data_to_compose, data_to_validate)
 
     reduced_history_gp = [_reduced_history_best(history, iterations, pop_size) for history in history_gp]
 
@@ -132,4 +154,4 @@ def compare_composers():
 
 
 if __name__ == '__main__':
-    compare_composers()
+    source_chain_self_predict()
