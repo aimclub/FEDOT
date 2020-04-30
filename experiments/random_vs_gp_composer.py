@@ -43,14 +43,26 @@ def data_generated_by(chain, samples, features_amount, classes):
                                          features_amount=features_amount,
                                          classes_amount=classes)
     target = np.expand_dims(target, axis=1)
-    data_test = InputData(idx=np.arange(0, samples),
-                          features=features, target=target, task_type=task_type)
-    synth_target = chain.predict(input_data=data_test).predict
+    train = InputData(idx=np.arange(0, samples),
+                      features=features, target=target, task_type=task_type)
+    synth_target = chain.predict(input_data=train).predict
     synth_labels = to_labels(synth_target)
-    data = InputData(idx=np.arange(0, samples),
-                     features=features, target=synth_labels, task_type=task_type)
+    data_synth_train = InputData(idx=np.arange(0, samples),
+                                 features=features, target=synth_labels, task_type=task_type)
 
-    return data
+    chain.fit_from_scratch(data=data_synth_train)
+
+    features, target = synthetic_dataset(samples_amount=samples,
+                                         features_amount=features_amount,
+                                         classes_amount=classes)
+    target = np.expand_dims(target, axis=1)
+    test = InputData(idx=np.arange(0, samples),
+                     features=features, target=target, task_type=task_type)
+    synth_target = chain.predict(input_data=test).predict
+    synth_labels = to_labels(synth_target)
+    data_synth_test = InputData(idx=np.arange(0, samples),
+                                features=features, target=synth_labels, task_type=task_type)
+    return data_synth_test
 
 
 def _reduced_history_best(history, generations, pop_size):
@@ -85,7 +97,7 @@ def source_chain_self_predict():
 
     train_score, test_score = [], []
 
-    for _ in range(10):
+    for _ in range(5):
         source = source_chain(models_in_source_chain, samples=samples,
                               features=features_amount, classes=classes)
         data_full = data_generated_by(source, samples, features_amount, classes)

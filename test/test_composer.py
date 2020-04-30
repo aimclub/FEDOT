@@ -14,7 +14,7 @@ from core.composer.composer import DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.node import NodeGenerator
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.random_composer import RandomSearchComposer
+from core.composer.random_composer import RandomSearchComposer, History
 from core.models.data import InputData
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -102,13 +102,14 @@ def test_random_composer(data_fixture, request):
                                                can_be_secondary=True))
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-
+    history = History()
     random_composer = RandomSearchComposer(iter_num=1)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
     chain_random_composed = random_composer.compose_chain(data=dataset_to_compose,
                                                           initial_chain=None,
                                                           composer_requirements=req,
-                                                          metrics=metric_function)
+                                                          metrics=metric_function,
+                                                          history_callback=history)
     chain_random_composed.fit_from_scratch(input_data=dataset_to_compose)
 
     predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
