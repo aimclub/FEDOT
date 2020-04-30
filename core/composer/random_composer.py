@@ -10,7 +10,7 @@ from typing import (
 
 from numpy import random
 
-from core.composer.chain import Chain, Node
+from core.composer.chain import Chain, Node, SharedChain
 from core.composer.composer import ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
@@ -32,6 +32,7 @@ class History:
 class RandomSearchComposer:
     def __init__(self, iter_num: int = 10):
         self.__iter_num = iter_num
+        self.shared_cache = {}
 
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
@@ -39,7 +40,7 @@ class RandomSearchComposer:
                       metrics: Optional[Callable],
                       history_callback: History) -> Chain:
         train_data, test_data = train_test_data_setup(data, 0.8)
-        metric_function_for_nodes = partial(metric_for_nodes,
+        metric_function_for_nodes = partial(self.metric_for_nodes,
                                             metric_function=metrics,
                                             train_data=train_data,
                                             test_data=test_data)
@@ -57,17 +58,18 @@ class RandomSearchComposer:
 
         return best_chain
 
+    def metric_for_nodes(self, metric_function, nodes: List[Node], train_data: InputData,
+                         test_data: InputData) -> float:
+        chain = nodes_to_chain(nodes)
+        chain = SharedChain(chain, self.shared_cache)
+        chain.fit(input_data=train_data)
+        return metric_function(chain, test_data)
+
 
 def nodes_to_chain(nodes: List[Node]) -> Chain:
     chain = Chain()
     [chain.add_node(nodes) for nodes in nodes]
     return chain
-
-
-def metric_for_nodes(metric_function, nodes: List[Node], train_data: InputData, test_data: InputData) -> float:
-    chain = nodes_to_chain(nodes)
-    chain.fit(input_data=train_data)
-    return metric_function(chain, test_data)
 
 
 class RandomSearchOptimiser:

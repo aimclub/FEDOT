@@ -37,13 +37,15 @@ def show_fitness_history_all(history_runs, iterations, with_bands=False):
     plt.show()
 
 
-def show_history_optimization_comparison(first, second, iterations,
+def show_history_optimization_comparison(first, second,
+                                         iterations_first,
+                                         iterations_second,
                                          label_first, label_second):
     color_to_take = cycle('bgrcmykw')
-    iters = [it for it in range(iterations)]
+    # iters = [it for it in range(iterations_first)]
 
-    sns.tsplot(first, iters, legend=True, color=next(color_to_take))
-    sns.tsplot(second, iters, legend=True, color=next(color_to_take))
+    sns.tsplot(first, iterations_first, legend=True, color=next(color_to_take))
+    sns.tsplot(second, iterations_second, legend=True, color=next(color_to_take))
     plt.legend(labels=[label_first, label_second])
 
     plt.ylabel('Fitness')

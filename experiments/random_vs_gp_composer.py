@@ -1,3 +1,5 @@
+from random import seed
+
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -15,10 +17,13 @@ from experiments.composer_benchmark import to_labels
 from experiments.generate_data import synthetic_dataset
 from experiments.viz import show_history_optimization_comparison
 
+seed(42)
+np.random.seed(42)
+
 
 def models_to_use():
     models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
-              ModelTypesIdsEnum.qda, ModelTypesIdsEnum.dt]
+              ModelTypesIdsEnum.dt]
     return models
 
 
@@ -51,7 +56,7 @@ def data_generated_by(chain, samples, features_amount, classes):
 def _reduced_history_best(history, generations, pop_size):
     reduced = []
     for gen in range(generations):
-        fitness_values = [abs(individ[1]) for individ in history[gen: gen + pop_size]]
+        fitness_values = [abs(individ[1]) for individ in history[gen * pop_size: (gen + 1) * pop_size]]
         best = max(fitness_values)
         print(f'Min in generation #{gen}: {best}')
         reduced.append(best)
@@ -90,7 +95,7 @@ def compare_composers():
 
         # Init and run RandomComposer
         print('Running RandomComposer:')
-        random_composer = RandomSearchComposer(iter_num=iterations)
+        random_composer = RandomSearchComposer(iter_num=iterations * pop_size)
         random_reqs = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
         history_best_random = History()
         random_composed = random_composer.compose_chain(data=data_to_compose,
@@ -121,7 +126,8 @@ def compare_composers():
     reduced_history_gp = [_reduced_history_best(history, iterations, pop_size) for history in history_gp]
 
     show_history_optimization_comparison(first=history_random, second=reduced_history_gp,
-                                         iterations=iterations,
+                                         iterations_first=range(iterations * pop_size),
+                                         iterations_second=[_ * pop_size for _ in range(iterations)],
                                          label_first='Random', label_second='GP')
 
 
