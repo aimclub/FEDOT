@@ -22,14 +22,30 @@ def fitness_by_generations_boxplots(history_runs, iterations):
     plt.show()
 
 
-def show_fitness_history_all(history_runs, iterations):
+def show_fitness_history_all(history_runs, iterations, with_bands=False):
     color_to_take = cycle('bgrcmykw')
     iters = [it for it in range(iterations)]
 
-    for idx, history in enumerate(history_runs):
-        sns.tsplot(history, iters, legend=True, color=next(color_to_take))
-
-    plt.legend(labels=[idx for idx in range(len(history_runs))])
+    if not with_bands:
+        for history in history_runs:
+            sns.tsplot(history, iters, legend=True, color=next(color_to_take))
+        plt.legend(labels=[idx for idx in range(len(history_runs))])
+    else:
+        sns.tsplot(history_runs, iters, legend=True, color=next(color_to_take))
     plt.ylabel('Fitness')
-    plt.xlabel('Generation, #')
+    plt.xlabel('Iteration, #')
+    plt.show()
+
+
+def show_history_optimization_comparison(first, second, iterations,
+                                         label_first, label_second):
+    color_to_take = cycle('bgrcmykw')
+    iters = [it for it in range(iterations)]
+
+    sns.tsplot(first, iters, legend=True, color=next(color_to_take))
+    sns.tsplot(second, iters, legend=True, color=next(color_to_take))
+    plt.legend(labels=[label_first, label_second])
+
+    plt.ylabel('Fitness')
+    plt.xlabel('Iteration, #')
     plt.show()

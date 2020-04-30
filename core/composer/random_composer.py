@@ -18,6 +18,17 @@ from core.models.data import train_test_data_setup
 from experiments.chain_template import chain_template_random, fit_template, real_chain
 
 
+class History:
+    def __init__(self):
+        self.values = []
+
+    def on_new_value(self, value):
+        self.values.append(value)
+
+    def clear(self):
+        self.values = []
+
+
 class RandomSearchComposer:
     def __init__(self, iter_num: int = 10):
         self.__iter_num = iter_num
@@ -25,7 +36,8 @@ class RandomSearchComposer:
     def compose_chain(self, data: InputData,
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable]) -> Chain:
+                      metrics: Optional[Callable],
+                      history_callback: History) -> Chain:
         train_data, test_data = train_test_data_setup(data, 0.8)
         metric_function_for_nodes = partial(metric_for_nodes,
                                             metric_function=metrics,
@@ -37,7 +49,8 @@ class RandomSearchComposer:
         best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
                                                      composer_requirements.primary,
                                                      composer_requirements.secondary,
-                                                     initial_solution=initial_chain)
+                                                     initial_solution=initial_chain,
+                                                     history_callback=history_callback)
 
         best_chain = Chain()
         [best_chain.add_node(nodes) for nodes in best_nodes_set]
@@ -67,7 +80,8 @@ class RandomSearchOptimiser:
     def optimise(self, metric_function_for_nodes,
                  primary_candidates: List[Any],
                  secondary_candidates: List[Any],
-                 initial_solution: Optional[Chain]):
+                 initial_solution: Optional[Chain],
+                 history_callback: History):
 
         if initial_solution is not None:
             best_set = initial_solution.nodes
@@ -79,8 +93,8 @@ class RandomSearchOptimiser:
         for i in range(self.__iter_num):
             print(f'Iter {i}')
             # new_nodeset = self._random_nodeset(primary_candidates, secondary_candidates)
-            depth = random.choice([_ for _ in range(1, 5)])
-            models_per_level = 6
+            depth = random.choice([_ for _ in range(2, 5)])
+            models_per_level = 5
             new_nodeset = _random_chain(primary_candidates, depth=depth,
                                         models_per_level=models_per_level)
             new_metric_value = round(metric_function_for_nodes(nodes=new_nodeset), 3)
@@ -91,7 +105,7 @@ class RandomSearchOptimiser:
                 best_metric_value = new_metric_value
                 best_set = new_nodeset
                 print(f'Better chain found: metric {best_metric_value}')
-
+            history_callback.on_new_value(abs(best_metric_value))
         return best_set, history
 
     def _random_nodeset(self, primary_requirements: List[Any], secondary_requirements: List[Any]) -> List[Node]:

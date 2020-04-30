@@ -190,7 +190,7 @@ def composer_robust_test():
 
 def composer_multiple_run(runs=5):
     history_by_runs = []
-    generations, pop_size = 10, 10
+    generations, pop_size = 10, 5
     for run in range(runs):
         dataset_to_compose, data_to_validate = train_test_data_setup(data_by_synthetic_chain(with_gaussian=True))
 
@@ -311,6 +311,6 @@ def composer_test_with_gaussian():
 
 
 if __name__ == '__main__':
-    # composer_multiple_run()
-    default_run()
+    composer_multiple_run()
+    # default_run()
     # data_robust_test()
