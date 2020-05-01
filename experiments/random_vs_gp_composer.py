@@ -50,7 +50,7 @@ def data_generated_by(chain, samples, features_amount, classes):
     data_synth_train = InputData(idx=np.arange(0, samples),
                                  features=features, target=synth_labels, task_type=task_type)
 
-    chain.fit_from_scratch(data=data_synth_train)
+    chain.fit_from_scratch(input_data=data_synth_train)
 
     features, target = synthetic_dataset(samples_amount=samples,
                                          features_amount=features_amount,
@@ -166,4 +166,4 @@ def compare_composers():
 
 
 if __name__ == '__main__':
-    source_chain_self_predict()
+    compare_composers()
