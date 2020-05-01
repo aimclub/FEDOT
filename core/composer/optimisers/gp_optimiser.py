@@ -10,10 +10,10 @@ from typing import (
 
 import numpy as np
 from functools import partial
-from core.composer.optimisers.regularization import RegularizationTypeEnum
-from core.composer.optimisers.mutation import MutationTypeEnum
-from core.composer.optimisers.selection import SelectionTypeEnum
-from core.composer.optimisers.crossover import CrossoverTypeEnum
+from core.composer.optimisers.regularization import RegularizationTypesEnum
+from core.composer.optimisers.mutation import MutationTypesEnum
+from core.composer.optimisers.selection import SelectionTypesEnum
+from core.composer.optimisers.crossover import CrossoverTypesEnum
 from core.composer.optimisers.crossover import crossover
 from core.composer.optimisers.gp_operators import random_chain
 from core.composer.optimisers.selection import selection
@@ -24,10 +24,10 @@ from core.composer.timer import CompositionTimer
 
 @dataclass
 class GPChainOptimiserParameters:
-    selection_type: Optional[Callable] = SelectionTypeEnum.tournament
-    crossover_type: Optional[Callable] = CrossoverTypeEnum.standard
-    mutation_type: Optional[MutationTypeEnum] = MutationTypeEnum.standard
-    regularization_type: Optional[RegularizationTypeEnum] = RegularizationTypeEnum.decremental
+    selection_types: List[SelectionTypesEnum] = (SelectionTypesEnum.tournament,)
+    crossover_types: List[CrossoverTypesEnum] = (CrossoverTypesEnum.standard,)
+    mutation_types: List[MutationTypesEnum] = (MutationTypesEnum.standard,)
+    regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental
 
 
 class GPChainOptimiser:
@@ -46,7 +46,7 @@ class GPChainOptimiser:
 
         necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
         if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
-            raise AttributeError(f'Object chain_base has no required attributes for gp_optimizer')
+            raise AttributeError(f'Object chain_class has no required attributes for gp_optimizer')
 
         if initial_chain and type(initial_chain) != list:
             self.population = [initial_chain] * requirements.pop_size
@@ -74,7 +74,7 @@ class GPChainOptimiser:
                                                                metric_function_for_nodes,
                                                                self.chain_class)
 
-                selected_individuals = selection(self.parameters.selection_type, self.fitness, individuals_to_select)
+                selected_individuals = selection(self.parameters.selection_types, self.fitness, individuals_to_select)
 
                 for ind_num in range(self.requirements.pop_size):
 
@@ -84,12 +84,11 @@ class GPChainOptimiser:
                         history.append((self.population[ind_num], self.fitness[ind_num]))
                         break
 
-                    self.population[ind_num] = crossover(self.parameters.crossover_type, *selected_individuals[ind_num],
+                    self.population[ind_num] = crossover(self.parameters.crossover_types, *selected_individuals[ind_num],
                                                          crossover_prob=self.requirements.crossover_prob,
                                                          max_depth=self.requirements.max_depth)
 
-                    mut_type = self.parameters.mutation_type
-                    self.population[ind_num] = mutation(mut_type=mut_type,
+                    self.population[ind_num] = mutation(types=self.parameters.mutation_types,
                                                         chain_class=self.chain_class,
                                                         chain=self.population[ind_num],
                                                         requirements=self.requirements,
@@ -105,8 +104,8 @@ class GPChainOptimiser:
                 print("spent time:", t.minutes_from_start)
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-
-        return self.population[np.argmin(self.fitness)], history
+        self.best_individual, _ = self.best_ind
+        return self.best_individual, history
 
     @property
     def best_ind(self) -> Tuple[Any, float]:

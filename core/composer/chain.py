@@ -59,6 +59,11 @@ class Chain:
         self.nodes.append(new_node)
         self.sort_nodes()
 
+    def delete_node(self, node: Node):
+        [node_child.nodes_from.remove(node) for node_child in self.node_childs(node)]
+        self.nodes.remove(node)
+        del node
+
     def _clean_model_cache(self):
         for node in self.nodes:
             node.cache.clear()

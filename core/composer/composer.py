@@ -22,6 +22,7 @@ class ComposerRequirements:
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=30)
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
+    min_arity: int = 2
 
 
 class Composer(ABC):

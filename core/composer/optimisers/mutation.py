@@ -1,16 +1,16 @@
 from copy import deepcopy
 from enum import Enum
-from random import random, choice
+from random import random, choice, randint
 from typing import (Any, Callable)
 
-from random import randint
-from core.composer.chain import Chain
+from core.composer.chain import Chain, List
 from core.composer.optimisers.gp_operators import nodes_from_height, node_depth, random_chain
 
 
-class MutationTypeEnum(Enum):
-    standard = 0
-    growth = 1
+class MutationTypesEnum(Enum):
+    standard = 'standard'
+    growth = 'growth'
+    reduce = 'reduce'
 
 
 class MutationPowerEnum(Enum):
@@ -31,17 +31,23 @@ def get_mutation_prob(mut_id, root_node):
         return default_mutation_prob
 
 
-def mutation(mut_type, chain_class, chain: Chain, requirements,
+def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirements,
              secondary_node_func: Callable = None, primary_node_func: Callable = None, mutation_prob: bool = 0.8,
              node_mutate_type=MutationPowerEnum.mean) -> Any:
     if mutation_prob and random() > mutation_prob:
         return deepcopy(chain)
-    if mut_type == MutationTypeEnum.standard:
-        return standard_mutation(chain, requirements.secondary, requirements.primary, secondary_node_func,
-                                 primary_node_func, node_mutate_type)
-    elif mut_type == MutationTypeEnum.growth:
+    type = choice(types)
+    if type == MutationTypesEnum.standard:
+        return standard_mutation(chain=chain, secondary=requirements.secondary, primary=requirements.primary,
+                                 secondary_node_func=secondary_node_func,
+                                 primary_node_func=primary_node_func, node_mutate_type=node_mutate_type)
+    elif type == MutationTypesEnum.growth:
         return growth_mutation(chain=chain, chain_class=chain_class, secondary_node_func=secondary_node_func,
                                primary_node_func=primary_node_func, requirements=requirements)
+    elif type == MutationTypesEnum.reduce:
+        return reduce_mutation(chain=chain, primary_node_func=primary_node_func, requirements=requirements)
+    else:
+        raise ValueError(f'Required mutation not found: {type}')
 
 
 def standard_mutation(chain: Any, secondary: Any, primary: Any,
@@ -74,7 +80,7 @@ def growth_mutation(chain: Any, chain_class, secondary_node_func: Callable, prim
     random_layer_in_chain = randint(0, chain_copy.depth - 1)
     node_from_chain = choice(nodes_from_height(chain_copy, random_layer_in_chain))
     is_primary_node_selected = (not node_from_chain.nodes_from) or (
-                node_from_chain.nodes_from and node_from_chain != chain_copy.root_node and randint(0, 1))
+            node_from_chain.nodes_from and node_from_chain != chain_copy.root_node and randint(0, 1))
     if is_primary_node_selected:
         new_subtree = primary_node_func(model_type=choice(requirements.primary))
     else:
@@ -82,4 +88,18 @@ def growth_mutation(chain: Any, chain_class, secondary_node_func: Callable, prim
         new_subtree = random_chain(chain_class, secondary_node_func, primary_node_func, requirements,
                                    max_depth=max_depth).root_node
     chain_copy.replace_node_with_parents(node_from_chain, new_subtree)
+    return chain_copy
+
+
+def reduce_mutation(chain: Any, primary_node_func: Callable, requirements) -> Any:
+    chain_copy = deepcopy(chain)
+    nodes = [node for node in chain_copy.nodes if not node is chain_copy.root_node]
+    node_to_del = choice(nodes)
+    childs = chain_copy.node_childs(node_to_del)
+    is_possible_to_delete = all([len(child.nodes_from) - 1 >= requirements.min_arity for child in childs])
+    if is_possible_to_delete:
+        chain_copy.delete_node(node_to_del)
+    else:
+        primary_node = primary_node_func(model_type=choice(requirements.primary))
+        chain_copy.replace_node_with_parents(node_to_del, primary_node)
     return chain_copy

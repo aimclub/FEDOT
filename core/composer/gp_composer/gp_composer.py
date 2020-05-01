@@ -1,8 +1,12 @@
 from dataclasses import dataclass
 from functools import partial
+import math
+import os
+import csv
 from typing import (
     Callable,
-    Optional
+    Optional,
+    List
 )
 
 from core.chain_validation import validate
@@ -52,6 +56,8 @@ class GPComposer(Composer):
         if is_visualise:
             ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
 
+        write_composer_history_to_csv(historical_fitness=historical_fitness, pop_size=composer_requirements.pop_size)
+
         print("GP composition finished")
         return best_chain
 
@@ -64,3 +70,25 @@ class GPComposer(Composer):
             chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
         chain.fit(input_data=train_data)
         return metric_function(chain, test_data)
+
+
+def write_composer_history_to_csv(historical_fitness: List[int], pop_size: int, f=None):
+    f = f if f else 'history.csv'
+    f = f'../../tmp/{f}'
+    if not os.path.isdir('../../tmp'):
+        os.mkdir('../../tmp')
+    write_header_to_csv(f)
+    for i, fitness in enumerate(historical_fitness):
+        gen_num = math.ceil(i / pop_size)
+        add_history_to_csv(f, fitness, i, gen_num)
+
+
+def write_header_to_csv(f):
+    with open(f, 'w', newline='') as file:
+        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+        writer.writerow(['num', 'generation', 'fitness'])
+
+def add_history_to_csv(f, fitness: float, num: int = None, generation: int = None):
+    with open(f, 'a', newline='') as file:
+        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+        writer.writerow([num, generation, fitness])

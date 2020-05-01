@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+from typing import List, Optional
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -8,8 +9,10 @@ from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
-from core.composer.optimisers.regularization import RegularizationTypeEnum
-from core.composer.optimisers.mutation import MutationTypeEnum
+from core.composer.optimisers.regularization import RegularizationTypesEnum
+from core.composer.optimisers.mutation import MutationTypesEnum
+from core.composer.optimisers.selection import SelectionTypesEnum
+from core.composer.optimisers.crossover import CrossoverTypesEnum
 from core.composer.visualisation import ComposerVisualiser
 from core.debug.metrics import RandomMetric
 from core.models.model import *
@@ -35,7 +38,12 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
     return roc_auc_value
 
 
-def run_credit_scoring_problem(train_file_path, test_file_path):
+def run_credit_scoring_problem(train_file_path, test_file_path,
+                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
+                               mutation_types: Optional[List[MutationTypesEnum]] = None,
+                               selection_types: Optional[List[SelectionTypesEnum]] = None,
+                               crossover_types: Optional[List[CrossoverTypesEnum]] = None,
+                               regularization_type: Optional[RegularizationTypesEnum] = None):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
@@ -55,14 +63,19 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
     alt_metric_function = RandomMetric.get_value
 
     # the choice and initialisation of the random_search
-
-    optimiser_parameters = GPChainOptimiserParameters(mutation_type=MutationTypeEnum.standard,
-                                                      regularization_type=RegularizationTypeEnum.none)
+    selection_types = selection_types if selection_types else [SelectionTypesEnum.tournament]
+    crossover_types = crossover_types if crossover_types else [CrossoverTypesEnum.standard]
+    mutation_types = mutation_types if mutation_types else [MutationTypesEnum.standard, MutationTypesEnum.growth,
+                                                            MutationTypesEnum.reduce]
+    regularization_type = regularization_type if regularization_type else RegularizationTypesEnum.decremental
+    optimiser_parameters = GPChainOptimiserParameters(selection_types=selection_types, crossover_types=crossover_types,
+                                                      mutation_types=mutation_types,
+                                                      regularization_type=regularization_type)
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=30))
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
     # Create GP-based composer
     composer = GPComposer()
@@ -72,7 +85,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function, optimiser_parameters=optimiser_parameters,
-                                                is_visualise=True)
+                                                is_visualise=False)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     # the choice and initialisation of the dummy_composer
@@ -84,7 +97,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
                                                 metrics=metric_function, is_visualise=True)
     chain_static.fit(input_data=dataset_to_compose, verbose=True)
     # the single-model variant of optimal chain
-    single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.mlp],
+    single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.xgboost],
                                                         secondary=[])
     chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
                                                                         initial_chain=None,
@@ -105,7 +118,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path):
     print(f'Static ROC AUC is {round(roc_on_valid_static, 3)}')
     print(f'Single-model ROC AUC is {round(roc_on_valid_single, 3)}')
 
-    return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
+    return (roc_on_valid_evo_composed, chain_evo_composed), (chain_static, roc_on_valid_static), (
+        chain_single, roc_on_valid_single)
 
 
 if __name__ == '__main__':
