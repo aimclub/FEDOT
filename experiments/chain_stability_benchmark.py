@@ -1,11 +1,15 @@
+import itertools
+from copy import deepcopy
+
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
+from core.models.data import train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (chain_template_balanced_tree, fit_template,
-                                        show_chain_template, real_chain)
+                                        show_chain_template, real_chain, with_calculated_shapes)
 from experiments.composer_benchmark import to_labels
 from experiments.generate_data import synthetic_dataset
 
@@ -17,7 +21,7 @@ def models_to_use():
 
 
 def source_chain(model_types, samples, features, classes):
-    template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
+    template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[5, 4, 2, 1],
                                             samples=samples, features=features)
     show_chain_template(template)
     fit_template(template, classes=classes, skip_fit=False)
@@ -69,10 +73,40 @@ def roc_score(chain, data_to_compose, data_to_validate):
     return roc_train, roc_test
 
 
+def remove_first_node(template, samples, features):
+    if len(template[0]) == 0:
+        del template[0]
+    node_to_remove = template[0][0]
+    all_nodes = list(itertools.chain.from_iterable(template))
+    childs = [node for node in all_nodes if node_to_remove in node.parents]
+    for child in childs:
+        child.parents.remove(node_to_remove)
+    template[0].remove(node_to_remove)
+    features_shape = [samples, features]
+    target_shape = [samples, 1]
+    fixed_template = with_calculated_shapes(template,
+                                            source_features=features_shape,
+                                            source_target=target_shape)
+
+    fixed_chain = real_chain(fixed_template)
+    return fixed_template, fixed_chain
+
+
 if __name__ == '__main__':
     samples, features_amount, classes = 10000, 10, 2
     chain, template = source_chain(model_types=models_to_use(),
                                    samples=samples, features=features_amount,
                                    classes=classes)
+
     data_synth_test = data_generated_by(chain, samples, features_amount, classes)
-    roc_score(chain, data_synth_test, data_synth_test)
+    train, test = train_test_data_setup(data_synth_test)
+    roc_score(chain, train, test)
+
+    prev_chain, prev_template = deepcopy(chain), deepcopy(template)
+    iterations = chain.length // 2
+    for iter in range(iterations):
+        print(f'Iteration  #{iter}')
+        new_template, new_chain = remove_first_node(prev_template, samples=samples, features=features_amount)
+        new_chain.fit_from_scratch(train)
+        roc_score(new_chain, train, test)
+        prev_chain, prev_template = new_chain, new_template
