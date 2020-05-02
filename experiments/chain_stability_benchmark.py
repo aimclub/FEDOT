@@ -1,7 +1,13 @@
+import csv
 import itertools
+import os
 from copy import deepcopy
+from random import seed
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
@@ -10,8 +16,11 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (chain_template_balanced_tree, fit_template,
                                         show_chain_template, real_chain, with_calculated_shapes)
-from experiments.composer_benchmark import to_labels
+from experiments.composer_benchmark import to_labels, predict_with_xgboost
 from experiments.generate_data import synthetic_dataset
+
+np.random.seed(42)
+seed(42)
 
 
 def models_to_use():
@@ -63,10 +72,10 @@ def roc_score(chain, data_to_compose, data_to_validate):
     predicted_test = chain.predict(data_to_validate)
     # the quality assessment for the simulation results
     roc_train = roc_auc(y_true=data_to_compose.target,
-                        y_score=predicted_train.predict)
+                        y_score=to_labels(predicted_train.predict))
 
     roc_test = roc_auc(y_true=data_to_validate.target,
-                       y_score=predicted_test.predict)
+                       y_score=to_labels(predicted_test.predict))
     print(f'Train ROC: {roc_train}')
     print(f'Test ROC: {roc_test}')
 
@@ -92,21 +101,59 @@ def remove_first_node(template, samples, features):
     return fixed_template, fixed_chain
 
 
+def write_header_to_csv(f):
+    with open(f, 'w', newline='') as file:
+        writer = csv.writer(file, quoting=csv.QUOTE_NONE)
+        writer.writerow(['iter', 'test_auc'])
+
+
+def add_result_to_csv(f, iter, roc_auc_test):
+    with open(f, 'a', newline='') as file:
+        writer = csv.writer(file, quoting=csv.QUOTE_NONE)
+        writer.writerow([iter, roc_auc_test])
+
+
 if __name__ == '__main__':
-    samples, features_amount, classes = 10000, 10, 2
-    chain, template = source_chain(model_types=models_to_use(),
-                                   samples=samples, features=features_amount,
-                                   classes=classes)
+    exp_file_name = 'chain_stab_res.csv'
+    write_header_to_csv(exp_file_name)
 
-    data_synth_test = data_generated_by(chain, samples, features_amount, classes)
-    train, test = train_test_data_setup(data_synth_test)
-    roc_score(chain, train, test)
+    for exp in range(10):
+        samples, features_amount, classes = 10000, 10, 2
+        chain, template = source_chain(model_types=models_to_use(),
+                                       samples=samples, features=features_amount,
+                                       classes=classes)
 
-    prev_chain, prev_template = deepcopy(chain), deepcopy(template)
-    iterations = chain.length // 2
-    for iter in range(iterations):
-        print(f'Iteration  #{iter}')
-        new_template, new_chain = remove_first_node(prev_template, samples=samples, features=features_amount)
-        new_chain.fit_from_scratch(train)
-        roc_score(new_chain, train, test)
-        prev_chain, prev_template = new_chain, new_template
+        data_synth_test = data_generated_by(chain, samples, features_amount, classes)
+        train, test = train_test_data_setup(data_synth_test)
+        roc_train, roc_test = roc_score(chain, train, test)
+        add_result_to_csv(exp_file_name, 0, roc_test)
+
+        prev_chain, prev_template = deepcopy(chain), deepcopy(template)
+        iterations = chain.length // 2
+
+        _, roc_test_ = predict_with_xgboost(data_synth_test)
+        add_result_to_csv(exp_file_name, "BL", roc_test_)
+
+        for iter in range(iterations):
+            print(f'Iteration  #{iter}')
+            new_template, new_chain = remove_first_node(prev_template, samples=samples, features=features_amount)
+            new_chain.fit_from_scratch(train)
+            roc_train, roc_test = roc_score(new_chain, train, test)
+            prev_chain, prev_template = new_chain, new_template
+            add_result_to_csv(exp_file_name, iter + 1, roc_test)
+
+        chain_stab_data_base = pd.read_csv(exp_file_name, delimiter=',')
+        chain_stab_data = chain_stab_data_base[chain_stab_data_base.iter != 'BL']
+        p = sns.lineplot(chain_stab_data.iter, chain_stab_data.test_auc)
+        p.set(xlabel='Str. diff', ylabel='ROC AUC')
+        baselines = chain_stab_data_base[chain_stab_data_base.iter == 'BL'].test_auc
+
+        crit_high = plt.hlines(np.mean(baselines) + np.std(baselines),
+                               xmin=0, xmax=6, colors='red', linestyles='dashed')
+        crit_low = plt.hlines(np.mean(baselines) - np.std(baselines),
+                              xmin=0, xmax=6, colors='red', linestyles='dashed')
+        crit = plt.hlines(np.mean(baselines),
+                          xmin=0, xmax=6, colors='red', linestyles='solid')
+
+        plt.ylim(0.6, 1)
+        plt.show()
