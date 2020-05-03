@@ -1,6 +1,5 @@
 import csv
 import itertools
-import os
 from copy import deepcopy
 from random import seed
 
@@ -8,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from sklearn import preprocessing
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
@@ -25,13 +23,13 @@ seed(42)
 
 
 def models_to_use():
-    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.lda,
+    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
               ModelTypesIdsEnum.dt]
     return models
 
 
 def source_chain(model_types, samples, features, classes):
-    template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[5, 4, 2, 1],
+    template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
                                             samples=samples, features=features)
     show_chain_template(template)
     fit_template(template, classes=classes, skip_fit=False, with_gaussian=True)
@@ -53,7 +51,7 @@ def data_generated_by(chain, samples, features_amount, classes):
     data_synth_train = InputData(idx=np.arange(0, samples),
                                  features=features, target=synth_labels, task_type=task_type)
 
-    data_synth_train.features = preprocessing.StandardScaler().fit_transform(data_synth_train.features)
+    # data_synth_train.features = preprocessing.StandardScaler().fit_transform(data_synth_train.features)
 
     chain.fit_from_scratch(input_data=data_synth_train)
 
@@ -196,5 +194,5 @@ if __name__ == '__main__':
         crit = plt.hlines(np.mean(baselines),
                           xmin=0, xmax=6, colors='red', linestyles='solid')
 
-        plt.ylim(0.6, 1)
+        plt.ylim(0.6, 1.01)
         plt.show()

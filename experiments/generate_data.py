@@ -1,7 +1,4 @@
-import random
-
 import matplotlib.pyplot as plt
-import numpy as np
 from sklearn import datasets
 
 
@@ -16,10 +13,12 @@ def synthetic_dataset(samples_amount, features_amount, classes_amount, full_shuf
     return features, target
 
 
-def gauss_quantiles(samples_amount, features_amount, classes_amount, full_shuffle=True):
+def gauss_quantiles(samples_amount, features_amount, classes_amount,
+                    features_as_probs=False, full_shuffle=True):
     features, target = datasets.make_gaussian_quantiles(n_samples=samples_amount, n_features=features_amount,
                                                         n_classes=classes_amount, shuffle=full_shuffle)
-
+    # if features_as_probs:
+    #    features = preprocessing.minmax_scale(preprocessing.normalize(features))
     return features, target
 
 

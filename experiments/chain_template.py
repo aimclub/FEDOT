@@ -156,7 +156,8 @@ def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
         if with_gaussian:
             features, target = gauss_quantiles(samples_amount=samples,
                                                features_amount=features_amount,
-                                               classes_amount=classes)
+                                               classes_amount=classes,
+                                               features_as_probs=features_amount != 10)
         else:
             features, target = synthetic_dataset(samples_amount=samples,
                                                  features_amount=features_amount,

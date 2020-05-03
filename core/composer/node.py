@@ -241,4 +241,3 @@ class SecondaryNode(Node):
                           features=input_data.features,
                           predict=evaluation_result,
                           task_type=input_data.task_type)
-
