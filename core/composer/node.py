@@ -207,7 +207,10 @@ class SecondaryNode(Node):
         if verbose:
             print(f'Trying to fit secondary node with model: {self.model}')
 
-        model_predict = self._fit_using_cache(input_data=secondary_input)
+        preprocessed_data = copy(secondary_input)
+        preprocessed_data.features = preprocessing.StandardScaler().fit_transform((preprocessed_data.features))
+
+        model_predict = self._fit_using_cache(input_data=preprocessed_data)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,

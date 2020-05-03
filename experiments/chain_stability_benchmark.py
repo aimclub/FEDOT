@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from sklearn import preprocessing
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
@@ -24,7 +25,7 @@ seed(42)
 
 
 def models_to_use():
-    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
+    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.lda,
               ModelTypesIdsEnum.dt]
     return models
 
@@ -33,7 +34,7 @@ def source_chain(model_types, samples, features, classes):
     template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[5, 4, 2, 1],
                                             samples=samples, features=features)
     show_chain_template(template)
-    fit_template(template, classes=classes, skip_fit=False)
+    fit_template(template, classes=classes, skip_fit=False, with_gaussian=True)
     initialized_chain = real_chain(template)
 
     return initialized_chain, template
@@ -52,6 +53,8 @@ def data_generated_by(chain, samples, features_amount, classes):
     data_synth_train = InputData(idx=np.arange(0, samples),
                                  features=features, target=synth_labels, task_type=task_type)
 
+    data_synth_train.features = preprocessing.StandardScaler().fit_transform(data_synth_train.features)
+
     chain.fit_from_scratch(input_data=data_synth_train)
 
     features, target = synthetic_dataset(samples_amount=samples,
@@ -69,13 +72,20 @@ def data_generated_by(chain, samples, features_amount, classes):
 
 def roc_score(chain, data_to_compose, data_to_validate):
     predicted_train = chain.predict(data_to_compose)
+
     predicted_test = chain.predict(data_to_validate)
     # the quality assessment for the simulation results
+
+    for i in range(len(data_to_compose.target)):
+        if data_to_compose.target[i] != predicted_train.predict[i]:
+            print(f'PROBLEM, {i}')
+            # raise ValueError(i)
+
     roc_train = roc_auc(y_true=data_to_compose.target,
-                        y_score=to_labels(predicted_train.predict))
+                        y_score=predicted_train.predict)
 
     roc_test = roc_auc(y_true=data_to_validate.target,
-                       y_score=to_labels(predicted_test.predict))
+                       y_score=predicted_test.predict)
     print(f'Train ROC: {roc_train}')
     print(f'Test ROC: {roc_test}')
 
@@ -125,6 +135,37 @@ if __name__ == '__main__':
 
         data_synth_test = data_generated_by(chain, samples, features_amount, classes)
         train, test = train_test_data_setup(data_synth_test)
+
+        if False:
+            pred_res = chain.predict(data_synth_test)
+
+            for i in range(len(data_synth_test.target)):
+                if data_synth_test.target[i] != to_labels(pred_res.predict)[i]:
+                    print(i)
+                    raise ValueError("!1")
+
+            pred_res = chain.predict(data_synth_test)
+
+            for i in range(len(data_synth_test.target)):
+                if data_synth_test.target[i] != to_labels(pred_res.predict)[i]:
+                    print(i)
+                    raise ValueError("!2")
+
+            # train=data_synth_test
+            print("!!!")
+            train = InputData(features=data_synth_test.features[0:1000], target=data_synth_test.target[0:1000],
+                              idx=data_synth_test.idx[0:1000], task_type=data_synth_test.task_type)
+
+            pred_res = chain.predict(train)
+
+            for i in range(len(train.target)):
+                if train.target[i] != to_labels(pred_res.predict)[i]:
+                    print(i)
+                    raise ValueError("!3")
+
+            # exit(0)
+            # exit(0)
+
         roc_train, roc_test = roc_score(chain, train, test)
         add_result_to_csv(exp_file_name, 0, roc_test)
 
