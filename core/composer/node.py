@@ -1,26 +1,16 @@
-from abc import ABC
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from copy import copy
-from copy import copy, copy
-from dataclasses import dataclass
 from typing import (List, Optional, Any, Tuple)
 
-import numpy as np
-
-from core.models.data import Data, InputData, OutputData
+from core.models.data import Data, OutputData
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
 from core.models.model import Model
 from core.models.preprocessing import *
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.model_types_repository import ModelTypesRepository
-from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
-    compatible_task_types
+from core.repository.task_types import MachineLearningTasksEnum
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -181,9 +171,9 @@ class PrimaryNode(Node):
             raise ValueError('Model must be fitted before predict')
 
         preprocessed_data = copy(input_data)
-        preprocessed_data.features = self.cache.actual_cached_state[0].apply(preprocessed_data.features)
+        preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
 
-        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_state[1],
+        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                            data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -240,9 +230,9 @@ class SecondaryNode(Node):
             print(f'Obtain prediction in secondary node with model: {self.model}')
 
         preprocessed_data = copy(secondary_input)
-        preprocessed_data.features = self.cache.actual_cached_state[0].apply(preprocessed_data.features)
+        preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
 
-        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_state[1],
+        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
