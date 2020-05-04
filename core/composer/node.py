@@ -68,9 +68,10 @@ class Node(ABC):
             if verbose:
                 print('Cache is not actual')
             preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-            input_data.features = preprocessing_strategy.apply(input_data.features)
-            cached_model, model_predict = self.model.fit(data=input_data)
-            self.cache.append((preprocessing_strategy, cached_model))
+            preprocessed_data = deepcopy(input_data)
+            preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+            cached_model, model_predict = self.model.fit(data=preprocessed_data)
+            self.cache.append((deepcopy(preprocessing_strategy), cached_model))
         else:
             if verbose:
                 print('Model were obtained from cache')

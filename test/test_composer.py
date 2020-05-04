@@ -152,7 +152,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                        y_score=predicted_gp_composed.predict)
 
-    assert roc_on_valid_gp_composed > 0.55
+    assert roc_on_valid_gp_composed > 0.6
 
 
 def baseline_chain():
