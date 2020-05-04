@@ -1,7 +1,8 @@
 from abc import ABC
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from copy import copy
-from copy import copy, deepcopy
+from copy import copy, copy
 from dataclasses import dataclass
 from typing import (List, Optional, Any, Tuple)
 
@@ -20,6 +21,8 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
     compatible_task_types
+
+CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
 class Node(ABC):
@@ -64,23 +67,26 @@ class Node(ABC):
 
     def _fit_using_cache(self, input_data, verbose=False):
 
-        if not self.cache.actual_cached_model:
+        if not self.cache.actual_cached_state:
             if verbose:
                 print('Cache is not actual')
+
             preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-            preprocessed_data = deepcopy(input_data)
+            preprocessed_data = copy(input_data)
             preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
             cached_model, model_predict = self.model.fit(data=preprocessed_data)
-            self.cache.append((deepcopy(preprocessing_strategy), cached_model))
+            self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+                                          model=cached_model))
         else:
             if verbose:
                 print('Model were obtained from cache')
 
-            preprocessing_strategy = self.cache.actual_cached_model[0]
-            preprocessed_data = deepcopy(input_data)
+            preprocessing_strategy = self.cache.actual_cached_state.preprocessor
+            preprocessed_data = copy(input_data)
             preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
-            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_model[1],
+            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
         return model_predict
 
@@ -109,7 +115,7 @@ class FittedModelCache:
         self._local_cached_models = {}
 
     @property
-    def actual_cached_model(self):
+    def actual_cached_state(self):
         found_model = self._local_cached_models.get(self._related_node_ref.descriptive_id, None)
         return found_model
 
@@ -125,8 +131,8 @@ class SharedCache(FittedModelCache):
             self._global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
 
     @property
-    def actual_cached_model(self):
-        found_model = super().actual_cached_model
+    def actual_cached_state(self):
+        found_model = super().actual_cached_state
 
         if not found_model and self._global_cached_models:
             found_model = self._global_cached_models.get(self._related_node_ref.descriptive_id, None)
@@ -174,10 +180,10 @@ class PrimaryNode(Node):
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        preprocessed_data = deepcopy(input_data)
-        preprocessed_data.features = self.cache.actual_cached_model[0].apply(preprocessed_data.features)
+        preprocessed_data = copy(input_data)
+        preprocessed_data.features = self.cache.actual_cached_state[0].apply(preprocessed_data.features)
 
-        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_model[1],
+        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_state[1],
                                            data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -233,10 +239,10 @@ class SecondaryNode(Node):
         if verbose:
             print(f'Obtain prediction in secondary node with model: {self.model}')
 
-        preprocessed_data = deepcopy(secondary_input)
-        preprocessed_data.features = self.cache.actual_cached_model[0].apply(preprocessed_data.features)
+        preprocessed_data = copy(secondary_input)
+        preprocessed_data.features = self.cache.actual_cached_state[0].apply(preprocessed_data.features)
 
-        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_model[1],
+        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_state[1],
                                                data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,

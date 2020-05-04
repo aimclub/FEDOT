@@ -62,7 +62,7 @@ class Chain:
             node.cache.clear()
 
     def is_all_cache_actual(self):
-        cache_status = [node.cache.actual_cached_model is not None for node in self.nodes]
+        cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]
         return all(cache_status)
 
     def _node_childs(self, node) -> List[Optional[Node]]:
@@ -74,7 +74,7 @@ class Chain:
 
     def import_cache(self, fitted_chain: 'Chain'):
         for node in self.nodes:
-            if not node.cache.actual_cached_model:
+            if not node.cache.actual_cached_state:
                 for fitted_node in fitted_chain.nodes:
                     if fitted_node.descriptive_id == node.descriptive_id:
                         node.cache.import_from_other_cache(fitted_node.cache)
