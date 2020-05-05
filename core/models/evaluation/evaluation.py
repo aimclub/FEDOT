@@ -10,6 +10,7 @@ from sklearn.linear_model import Lasso as SklearnLassoReg
 from sklearn.linear_model import LinearRegression as SklearnLinReg
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.linear_model import Ridge as SklearnRidgeReg
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -36,6 +37,20 @@ class EvaluationStrategy:
         raise NotImplementedError()
 
 
+class DataStrategy(EvaluationStrategy):
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        return
+
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        return None
+
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        return predict_data.features
+
+    def tune(self, model, data_for_tune: InputData):
+        return model
+
+
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     __model_by_types = {
         ModelTypesIdsEnum.xgboost: XGBClassifier,
@@ -46,6 +61,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.mlp: MLPClassifier,
         ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
         ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
+        ModelTypesIdsEnum.bernb: SklearnBernoulliNB,
         ModelTypesIdsEnum.linear: SklearnLinReg,
         ModelTypesIdsEnum.ridge: SklearnRidgeReg,
         ModelTypesIdsEnum.lasso: SklearnLassoReg,

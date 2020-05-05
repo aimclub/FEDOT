@@ -3,6 +3,7 @@ import os
 import random
 from typing import Optional
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
@@ -44,12 +45,18 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path)
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
+    available_model_types_primary, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=[MachineLearningTasksEnum.classification,
                                                           MachineLearningTasksEnum.clustering],
-                                               can_be_initial=True,
+                                               can_be_initial=True))
+
+    available_model_types_secondary, _ = models_repo.search_models(
+        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
+                                               output_type=CategoricalDataTypesEnum.vector,
+                                               task_type=[MachineLearningTasksEnum.classification,
+                                                          MachineLearningTasksEnum.clustering],
                                                can_be_secondary=True))
 
     # the choice of the metric for the chain quality assessment during composition
@@ -64,9 +71,11 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                                                           MutationTypesEnum.growth,
                                                                           MutationTypesEnum.reduce],
                                                           regularization_type=RegularizationTypesEnum.decremental)
+
+    # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
-        primary=available_model_types,
-        secondary=available_model_types, max_arity=4,
+        primary=available_model_types_primary,
+        secondary=available_model_types_secondary, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 

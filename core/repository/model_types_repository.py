@@ -20,6 +20,7 @@ class ModelTypesIdsEnum(Enum):
     lda = 'lda',
     qda = 'qda',
     ar = 'ar',
+    bernb = 'bernoullinb'
     arima = 'arima',
     linear = 'linear',
     ridge = 'ridge',
@@ -27,6 +28,7 @@ class ModelTypesIdsEnum(Enum):
     kmeans = 'kmeans'
     tpot = 'tpot'
     h2o = 'h2o'
+    datamodel = 'data_model'  # a pseudo_model that allow injecting raw input data to the secondary nodes
 
 
 class ModelGroupsIdsEnum(Enum):
@@ -115,7 +117,8 @@ class ModelTypesRepository:
                                               ModelTypesIdsEnum.qda,
                                               ModelTypesIdsEnum.logit,
                                               ModelTypesIdsEnum.knn,
-                                              ModelTypesIdsEnum.xgboost],
+                                              ModelTypesIdsEnum.xgboost,
+                                              ModelTypesIdsEnum.bernb],
                                       task_type=[MachineLearningTasksEnum.classification],
                                       parent=ml)
 
@@ -127,6 +130,14 @@ class ModelTypesRepository:
                                       task_type=[MachineLearningTasksEnum.clustering],
                                       parent=stat)
 
+        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
+                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
+                                    task_type=[], can_be_initial=True, can_be_secondary=False)
+
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = [MachineLearningTasksEnum.classification]
+        ModelType(ModelTypesIdsEnum.datamodel, deepcopy(group_meta), parent=root)
+
         return root
 
     def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
@@ -136,6 +147,7 @@ class ModelTypesRepository:
         common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
                                     task_type=[], can_be_initial=is_initial, can_be_secondary=is_secondary)
+
         group_meta = deepcopy(common_meta)
         group_meta.task_type = task_type
 

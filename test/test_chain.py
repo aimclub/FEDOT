@@ -127,6 +127,26 @@ def test_chain_sequential_fit_correct(data_setup):
     assert train_predicted.predict.shape == train.target.shape
 
 
+def test_chain_with_datamodel_fit_correct(data_setup):
+    data = data_setup
+    train_data, test_data = train_test_data_setup(data)
+
+    chain = Chain()
+    node_data = NodeGenerator.primary_node(ModelTypesIdsEnum.datamodel)
+    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.bernb)
+    node_second = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_second.nodes_from = [node_first, node_data]
+
+    chain.add_node(node_data)
+    chain.add_node(node_first)
+    chain.add_node(node_second)
+
+    chain.fit(train_data)
+    results = chain.predict(test_data)
+
+    assert results.predict.shape == test_data.target.shape
+
+
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)

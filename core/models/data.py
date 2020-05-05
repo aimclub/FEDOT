@@ -34,7 +34,12 @@ class Data:
         for elem in outputs:
             if len(elem.predict) != expected_len:
                 raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
-            features.append(elem.predict)
+            if len(elem.predict.shape) == 1:
+                features.append(elem.predict)
+            else:
+                # if the model returns several values
+                for i in range(elem.predict.shape[1]):
+                    features.append(elem.predict[:, i])
         return InputData(idx=idx, features=np.array(features).T, target=target, task_type=task_type)
 
 

@@ -1,13 +1,12 @@
 from abc import ABC
 from dataclasses import dataclass
 
-import numpy as np
-
 from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AutoMLEvaluationStrategy
+    AutoMLEvaluationStrategy, \
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, DataStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -45,10 +44,6 @@ class Model(ABC):
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
                                                  predict_data=data)
-
-        if any([np.isnan(_) for _ in prediction]):
-            print("Value error")
-
         return prediction
 
     def __str__(self):
@@ -56,8 +51,10 @@ class Model(ABC):
 
 
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
+    # TODO refactor
     strategies_for_tasks = {
-        MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy],
+        MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy,
+                                                  DataStrategy],
         MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy],
         MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
         MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
@@ -66,8 +63,9 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
     models_for_strategies = {
         SkLearnClassificationStrategy: [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
                                         ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
-                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda],
+                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda, ModelTypesIdsEnum.bernb],
         AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
+        DataStrategy: [ModelTypesIdsEnum.datamodel],
         SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
         SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
         StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]

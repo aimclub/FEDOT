@@ -93,13 +93,7 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=MachineLearningTasksEnum.classification,
-                                               can_be_initial=True,
-                                               can_be_secondary=True))
+    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda, ModelTypesIdsEnum.knn]
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
