@@ -1,8 +1,8 @@
-from dataclasses import dataclass
-from functools import partial
+import csv
 import math
 import os
-import csv
+from dataclasses import dataclass
+from functools import partial
 from typing import (
     Callable,
     Optional,
@@ -56,7 +56,8 @@ class GPComposer(Composer):
         if is_visualise:
             ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
 
-        write_composer_history_to_csv(historical_fitness=historical_fitness, pop_size=composer_requirements.pop_size)
+        write_composer_history_to_csv(historical_fitness=historical_fitness, historical_chains=historical_chains,
+                                      pop_size=composer_requirements.pop_size)
 
         print("GP composition finished")
         return best_chain
@@ -72,23 +73,25 @@ class GPComposer(Composer):
         return metric_function(chain, test_data)
 
 
-def write_composer_history_to_csv(historical_fitness: List[int], pop_size: int, f=None):
-    f = f if f else 'history.csv'
+def write_composer_history_to_csv(historical_fitness: List[int], historical_chains: List[Chain], pop_size: int,
+                                  f='history.csv'):
     f = f'../../tmp/{f}'
     if not os.path.isdir('../../tmp'):
         os.mkdir('../../tmp')
     write_header_to_csv(f)
     for i, fitness in enumerate(historical_fitness):
         gen_num = math.ceil(i / pop_size)
-        add_history_to_csv(f, fitness, i, gen_num)
+        historical_chain = historical_chains[i]
+        add_history_to_csv(f, fitness, len(historical_chain.nodes), historical_chain.depth, i, gen_num)
 
 
 def write_header_to_csv(f):
     with open(f, 'w', newline='') as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow(['num', 'generation', 'fitness'])
+        writer.writerow(['num', 'generation', 'fitness, num_of_models, depth'])
 
-def add_history_to_csv(f, fitness: float, num: int = None, generation: int = None):
+
+def add_history_to_csv(f, fitness: float, models_num: int, depth: int, num: int = None, generation: int = None):
     with open(f, 'a', newline='') as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow([num, generation, fitness])
+        writer.writerow([num, generation, fitness, models_num, depth])

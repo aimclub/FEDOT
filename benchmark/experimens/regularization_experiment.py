@@ -1,8 +1,14 @@
-import os
 import csv
-from cases.credit_scoring_problem import run_credit_scoring_problem
 import datetime
+import gc
+import os
+
+from benchmark.experimens.credit_scoring_experiment import run_credit_scoring_problem
+from core.composer.optimisers.crossover import CrossoverTypesEnum
+from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
+from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
+from core.composer.optimisers.selection import SelectionTypesEnum
 from core.utils import project_root
 
 
@@ -36,9 +42,18 @@ if __name__ == '__main__':
     time_amount = step
     while time_amount < max_amount_of_time:
         for regular_type in (RegularizationTypesEnum.none, RegularizationTypesEnum.decremental):
-            result, _, _ = run_credit_scoring_problem(full_path_train, full_path_test, regularization_type=regular_type,
-                                                      max_lead_time=datetime.timedelta(minutes=time_amount))
-            roc_auc, chain = result
+            gc.collect()
+
+            selection_types = [SelectionTypesEnum.tournament]
+            crossover_types = [CrossoverTypesEnum.standard]
+            mutation_types = [MutationTypesEnum.standard, MutationTypesEnum.growth, MutationTypesEnum.reduce]
+            optimiser_parameters = GPChainOptimiserParameters(selection_types=selection_types,
+                                                              crossover_types=crossover_types,
+                                                              mutation_types=mutation_types,
+                                                              regularization_type=regular_type)
+            roc_auc, chain = run_credit_scoring_problem(full_path_train, full_path_test,
+                                                        max_lead_time=datetime.timedelta(minutes=time_amount),
+                                                        gp_optimiser_params=optimiser_parameters)
 
             is_regular = True if regular_type == RegularizationTypesEnum.decremental else False
             add_result_to_csv(file_path_result, time_amount, is_regular, round(roc_auc, 4), len(chain.nodes),

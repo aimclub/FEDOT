@@ -20,9 +20,17 @@ class ComposerRequirements:
     primary: List[ModelTypesIdsEnum]
     secondary: List[ModelTypesIdsEnum]
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=30)
-    max_depth: Optional[int] = None
-    max_arity: Optional[int] = None
+    max_depth: int = 3
+    max_arity: int = 2
     min_arity: int = 2
+
+    def __post_init__(self):
+        if self.max_depth < 0:
+            raise ValueError(f'invalid max_depth value')
+        if self.max_arity < 0:
+            raise ValueError(f'invalid max_arity value')
+        if self.max_depth < 0:
+            raise ValueError(f'invalid min_arity value')
 
 
 class Composer(ABC):

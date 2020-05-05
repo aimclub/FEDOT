@@ -36,16 +36,22 @@ def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirem
              node_mutate_type=MutationPowerEnum.mean) -> Any:
     if mutation_prob and random() > mutation_prob:
         return deepcopy(chain)
+
+    mutation_by_type = {
+        MutationTypesEnum.standard: standard_mutation(chain=chain, secondary=requirements.secondary,
+                                                      primary=requirements.primary,
+                                                      secondary_node_func=secondary_node_func,
+                                                      primary_node_func=primary_node_func,
+                                                      node_mutate_type=node_mutate_type),
+        MutationTypesEnum.growth: growth_mutation(chain=chain, chain_class=chain_class,
+                                                  secondary_node_func=secondary_node_func,
+                                                  primary_node_func=primary_node_func, requirements=requirements),
+        MutationTypesEnum.reduce: reduce_mutation(chain=chain, primary_node_func=primary_node_func,
+                                                  requirements=requirements)
+    }
     type = choice(types)
-    if type == MutationTypesEnum.standard:
-        return standard_mutation(chain=chain, secondary=requirements.secondary, primary=requirements.primary,
-                                 secondary_node_func=secondary_node_func,
-                                 primary_node_func=primary_node_func, node_mutate_type=node_mutate_type)
-    elif type == MutationTypesEnum.growth:
-        return growth_mutation(chain=chain, chain_class=chain_class, secondary_node_func=secondary_node_func,
-                               primary_node_func=primary_node_func, requirements=requirements)
-    elif type == MutationTypesEnum.reduce:
-        return reduce_mutation(chain=chain, primary_node_func=primary_node_func, requirements=requirements)
+    if type in mutation_by_type:
+        return mutation_by_type[type]
     else:
         raise ValueError(f'Required mutation not found: {type}')
 
@@ -103,3 +109,4 @@ def reduce_mutation(chain: Any, primary_node_func: Callable, requirements) -> An
         primary_node = primary_node_func(model_type=choice(requirements.primary))
         chain_copy.replace_node_with_parents(node_to_del, primary_node)
     return chain_copy
+

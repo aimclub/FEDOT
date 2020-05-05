@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
+from functools import partial
 from typing import (
     List,
     Callable,
@@ -9,16 +10,16 @@ from typing import (
 )
 
 import numpy as np
-from functools import partial
-from core.composer.optimisers.regularization import RegularizationTypesEnum
-from core.composer.optimisers.mutation import MutationTypesEnum
-from core.composer.optimisers.selection import SelectionTypesEnum
+
 from core.composer.optimisers.crossover import CrossoverTypesEnum
 from core.composer.optimisers.crossover import crossover
 from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.selection import selection
-from core.composer.optimisers.regularization import regularized_population
+from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.mutation import mutation
+from core.composer.optimisers.regularization import RegularizationTypesEnum
+from core.composer.optimisers.regularization import regularized_population
+from core.composer.optimisers.selection import SelectionTypesEnum
+from core.composer.optimisers.selection import selection
 from core.composer.timer import CompositionTimer
 
 
@@ -59,7 +60,7 @@ class GPChainOptimiser:
 
             history = []
 
-            self.fitness = [round(metric_function_for_nodes(chain), 3) for chain in self.population]
+            self.fitness = [metric_function_for_nodes(chain) for chain in self.population]
 
             [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
              range(self.requirements.pop_size)]
@@ -67,7 +68,7 @@ class GPChainOptimiser:
             for generation_num in range(self.requirements.num_of_generations - 1):
                 print(f'GP generation num: {generation_num}')
 
-                self.best_individual, self.best_fitness = self.best_ind
+                self.best_individual, self.best_fitness = self.best_individual_with_fitness
 
                 individuals_to_select = regularized_population(self.parameters.regularization_type,
                                                                self.population, self.requirements,
@@ -96,7 +97,7 @@ class GPChainOptimiser:
                                                         primary_node_func=self.primary_node_func,
                                                         mutation_prob=self.requirements.mutation_prob)
 
-                    self.fitness[ind_num] = round(metric_function_for_nodes(self.population[ind_num]), 3)
+                    self.fitness[ind_num] = metric_function_for_nodes(self.population[ind_num])
                     print(f'Best metric is {np.min(self.fitness)}')
 
                     history.append((self.population[ind_num], self.fitness[ind_num]))
@@ -104,20 +105,20 @@ class GPChainOptimiser:
                 print("spent time:", t.minutes_from_start)
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-        self.best_individual, _ = self.best_ind
+        self.best_individual, _ = self.best_individual_with_fitness
         return self.best_individual, history
 
     @property
-    def best_ind(self) -> Tuple[Any, float]:
+    def best_individual_with_fitness(self) -> Tuple[Any, float]:
         best_ind_num = np.argmin(self.fitness)
         sort_inds = np.argsort(self.fitness)[1:]
-        candidates = {i: len(self.population[i].nodes) for i in sort_inds if
-                      self.fitness[best_ind_num] == self.fitness[i] and len(self.population[i].nodes) < len(
-                          self.population[best_ind_num].nodes)}
+        simpler_equivalents = {i: len(self.population[i].nodes) for i in sort_inds if
+                               self.fitness[best_ind_num] == self.fitness[i] and len(self.population[i].nodes) < len(
+                                   self.population[best_ind_num].nodes)}
 
-        if candidates:
-            best_candidate = min(candidates, key=candidates.get)
-            best = deepcopy(self.population[best_candidate])
+        if simpler_equivalents:
+            best_candidate = min(simpler_equivalents, key=simpler_equivalents.get)
+            best = self.population[best_candidate]
             best_fitness = self.fitness[best_candidate]
         else:
             best = deepcopy(self.population[best_ind_num])

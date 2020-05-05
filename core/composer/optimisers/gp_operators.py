@@ -1,5 +1,5 @@
-from typing import (Any, List, Tuple, Callable)
 from random import randint, choice
+from typing import (Any, List, Tuple, Callable)
 
 
 def node_height(chain: Any, node: Any) -> int:
@@ -41,7 +41,7 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
                  requirements, max_depth=None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
     def chain_growth(chain: Any, node_parent: Any):
-        offspring_size = randint(2, requirements.max_arity)
+        offspring_size = randint(requirements.min_arity, requirements.max_arity)
         for offspring_node in range(offspring_size):
             height = node_height(chain, node_parent)
             is_max_depth_exceeded = height >= max_depth - 1

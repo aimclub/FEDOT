@@ -1,3 +1,6 @@
+import math
+from copy import deepcopy
+from enum import Enum
 from random import randint, choice
 from typing import (
     List,
@@ -5,9 +8,7 @@ from typing import (
     Tuple
 )
 
-from enum import Enum
 import numpy as np
-from copy import deepcopy
 
 
 class SelectionTypesEnum(Enum):
@@ -26,9 +27,9 @@ def random_selection(pop_size: int, group_size: int) -> List[int]:
     return [randint(0, pop_size - 1) for _ in range(group_size)]
 
 
-def tournament_selection(fitness: List[float], population: List[Any], group_size: int = 9, num_of_parents=2) -> List[
+def tournament_selection(fitness: List[float], population: List[Any], num_of_parents=2) -> List[
     Tuple[Any]]:
-    group_size = min(group_size, len(fitness))
+    group_size = max(math.ceil(len(fitness) * 0.1), 2) if len(fitness) != 1 else 1
     chosen = []
 
     for i in range(len(fitness)):

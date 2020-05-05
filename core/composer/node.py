@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from copy import copy
-from typing import (List, Optional, Any, Tuple)
+from typing import (List, Optional)
 
 from core.models.data import Data, OutputData
 from core.models.data import (
@@ -81,11 +81,11 @@ class Node(ABC):
         return model_predict
 
     @property
-    def subtree_nodes(self) -> List['Node']:
+    def ordered_subnodes_hierarchy(self) -> List['Node']:
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.subtree_nodes
+                nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
 

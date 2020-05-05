@@ -47,8 +47,8 @@ class Chain:
     def replace_node_with_parents(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
         self._actualise_old_node_childs(old_node, new_node)
-        new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
-        old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
+        new_nodes = [parent for parent in new_node.ordered_subnodes_hierarchy if not parent in self.nodes]
+        old_nodes = [node for node in self.nodes if not node in old_node.ordered_subnodes_hierarchy]
         self.nodes = new_nodes + old_nodes
         self.sort_nodes()
 
@@ -61,7 +61,7 @@ class Chain:
 
     def delete_node(self, node: Node):
         [node_child.nodes_from.remove(node) for node_child in self.node_childs(node)]
-        self.nodes.remove(node)
+        [self.nodes.remove(subtree_node) for subtree_node in node.ordered_subnodes_hierarchy]
         del node
 
     def _clean_model_cache(self):
@@ -87,9 +87,10 @@ class Chain:
                         node.cache.import_from_other_cache(fitted_node.cache)
                         break
 
+    # TODO why trees visualisation is incorrect?
     def sort_nodes(self):
         """layer by layer sorting"""
-        nodes = self.root_node.subtree_nodes
+        nodes = self.root_node.ordered_subnodes_hierarchy
         self.nodes = nodes
 
     def __eq__(self, other) -> bool:
@@ -120,6 +121,7 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
+
 
 class SharedChain(Chain):
     def __init__(self, base_chain: Chain, shared_cache: dict):

@@ -25,9 +25,8 @@ def decremental_regularization(population: List[Any], requirements, metric: Call
     additional_inds = []
     prev_nodes_ids = []
     for ind in population:
-        ind_copy = deepcopy(ind)
-        ind_copy_subtrees = [node for node in ind_copy.nodes if node != ind_copy.root_node]
-        subtrees = [chain_class(node.subtree_nodes) for node in ind_copy_subtrees if
+        ind_subtrees = [node for node in ind.nodes if node != ind.root_node]
+        subtrees = [deepcopy(chain_class(node.ordered_subnodes_hierarchy)) for node in ind_subtrees if
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
@@ -37,4 +36,4 @@ def decremental_regularization(population: List[Any], requirements, metric: Call
 
 
 def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:
-    return node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_model
+    return node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_state
