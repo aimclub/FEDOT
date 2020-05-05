@@ -15,7 +15,8 @@ if __name__ == '__main__':
                                           BenchmarkModelTypesEnum.h2o,
                                           BenchmarkModelTypesEnum.autokeras,
                                           BenchmarkModelTypesEnum.mlbox,
-                                          BenchmarkModelTypesEnum.baseline]).execute()
+                                          BenchmarkModelTypesEnum.baseline],
+                                  metric_list=['roc_auc', 'f1']).execute()
 
     result_metrics['hyperparameters'] = get_models_hyperparameters()
 

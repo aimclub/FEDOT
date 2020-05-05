@@ -1,7 +1,4 @@
 import autokeras as ak
-from sklearn.metrics import mean_squared_error as mse
-from sklearn.metrics import roc_auc_score
-
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.models.data import InputData
 from core.repository.task_types import MachineLearningTasksEnum
@@ -29,12 +26,7 @@ def run_autokeras(train_file_path: str, test_file_path: str, task: MachineLearni
 
     predicted = model.predict(test_data.features)
 
-    if task is MachineLearningTasksEnum.classification:
-        result_metric = {'autokeras_roc_auc': round(roc_auc_score(test_data.target, predicted), 3)}
-    else:
-        result_metric = {'MSE': round(mse(test_data.target, predicted), 3)}
-
-    return result_metric
+    return test_data.target, predicted
 
 
 if __name__ == '__main__':

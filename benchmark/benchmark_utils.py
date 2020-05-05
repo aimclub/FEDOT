@@ -1,11 +1,12 @@
+import os
 import gc
 import json
-import os
-
-import pandas as pd
-
 from core.utils import project_root
 from typing import Tuple
+from sklearn.model_selection import train_test_split
+import pandas as pd
+from pmlb import fetch_data
+
 
 
 def get_scoring_case_data_paths() -> Tuple[str, str]:
@@ -23,6 +24,26 @@ def get_cancer_case_data_paths() -> Tuple[str, str]:
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
 
+    return full_train_file_path, full_test_file_path
+
+def init_penn_data_paths(name_of_dataset: str):
+    tmp_dir = os.path.join(str(project_root()), 'cases', 'data', 'penn', str(name_of_dataset))
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+    else:
+        print('Dataset already exist')
+
+
+def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> str:
+    df = fetch_data(name_of_dataset)
+    penn_train, penn_test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
+    init_penn_data_paths(name_of_dataset)
+    train_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_train.csv')
+    test_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_test.csv')
+    full_train_file_path = os.path.join(str(project_root()), train_file_path)
+    full_test_file_path = os.path.join(str(project_root()), test_file_path)
+    penn_train.to_csv(full_train_file_path, sep=',')
+    penn_test.to_csv(full_test_file_path, sep=',')
     return full_train_file_path, full_test_file_path
 
 

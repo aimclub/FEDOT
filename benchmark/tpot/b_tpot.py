@@ -1,8 +1,6 @@
 import os
 
 import joblib
-from sklearn.metrics import mean_squared_error as mse
-from sklearn.metrics import roc_auc_score
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.models.data import InputData
@@ -40,14 +38,7 @@ def run_tpot(train_file_path: str, test_file_path: str, task: MachineLearningTas
 
     print(f'BEST_model: {imported_model}')
 
-    if task is MachineLearningTasksEnum.classification:
-        result_metric = {'TPOT_ROC_AUC_test': round(roc_auc_score(true_target, predicted), 3)}
-        print(f"TPOT_ROC_AUC_test:{result_metric['TPOT_ROC_AUC_test']} ")
-    else:
-        result_metric = {'TPOT_MSE': round(mse(true_target, predicted), 3)}
-        print(f"TPOT_MSE: {result_metric['TPOT_MSE']}")
-
-    return result_metric
+    return true_target, predicted
 
 
 if __name__ == '__main__':

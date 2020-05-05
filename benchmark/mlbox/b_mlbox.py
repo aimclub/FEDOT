@@ -4,7 +4,6 @@ import pandas as pd
 from mlbox.optimisation import Optimiser
 from mlbox.prediction import Predictor
 from mlbox.preprocessing import Reader, Drift_thresholder
-from sklearn.metrics import roc_auc_score
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.repository.task_types import MachineLearningTasksEnum
@@ -28,7 +27,7 @@ def separate_target_column(file_path: str, target_name: str):
 def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
               task: MachineLearningTasksEnum):
     config_data = get_models_hyperparameters()['MLBox']
-    new_test_file_path, test_target = separate_target_column(test_file_path, target_name)
+    new_test_file_path, true_target = separate_target_column(test_file_path, target_name)
     paths = [train_file_path, new_test_file_path]
 
     data = Reader(sep=",").train_test_split(paths, target_name)
@@ -46,13 +45,10 @@ def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
 
     predicted_df = pd.read_csv(os.path.join(cur_work_dir, f'save/{target_name}_predictions.csv'))
     predicted = predicted_df['1.0']
-    metric = roc_auc_score(test_target, predicted)
-
-    print(f'ROC_AUC: {metric}')
 
     os.remove(new_test_file_path)
 
-    return metric
+    return true_target, predicted
 
 
 if __name__ == '__main__':
