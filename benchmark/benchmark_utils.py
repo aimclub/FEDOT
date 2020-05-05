@@ -3,6 +3,8 @@ import os
 from benchmark.benchmark_model_types import ModelTypesEnum
 from core.utils import project_root
 import json
+from sklearn.model_selection import train_test_split
+import pandas as pd
 
 import gc
 
@@ -26,6 +28,19 @@ def get_cancer_case_data_paths():
 
     return full_train_file_path, full_test_file_path
 
+    
+def get_penn_case_data_paths(type_flag):
+    tsv_file_path = os.path.join('cases', 'data', 'penn', str(type_flag), 'penn.tsv')
+    train_file_path = os.path.join('cases', 'data', 'penn', str(type_flag), 'penn_train.csv')
+    test_file_path = os.path.join('cases', 'data', 'penn', str(type_flag), 'penn_test.csv')
+    full_tsv_file_path = os.path.join(str(project_root()), tsv_file_path)
+    full_train_file_path = os.path.join(str(project_root()), train_file_path)
+    full_test_file_path = os.path.join(str(project_root()), test_file_path)
+    df = pd.read_csv(full_tsv_file_path,sep='\t')
+    penn_train, penn_test=train_test_split(df.iloc[:,:], test_size=0.2, random_state=42)
+    penn_train.to_csv(full_train_file_path ,sep=',')
+    penn_test.to_csv(full_test_file_path ,sep=',')
+    return full_train_file_path, full_test_file_path 
 
 def save_metrics_result_file(data: dict, file_name: str):
     with open(f'{file_name}.json', 'w') as file:
