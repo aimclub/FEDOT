@@ -1,10 +1,18 @@
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from copy import copy
 from typing import (List, Optional, Any, Tuple)
 
-from core.models.data import Data, InputData, OutputData
+from core.models.data import Data, OutputData
+from core.models.data import (
+    InputData,
+)
 from core.models.model import Model
+from core.models.preprocessing import *
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.task_types import MachineLearningTasksEnum
+
+CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
 class Node(ABC):
@@ -49,16 +57,27 @@ class Node(ABC):
 
     def _fit_using_cache(self, input_data, verbose=False):
 
-        if not self.cache.actual_cached_model:
+        if not self.cache.actual_cached_state:
             if verbose:
                 print('Cache is not actual')
-            cached_model, model_predict = self.model.fit(data=input_data)
-            self.cache.append(cached_model)
+
+            preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
+            preprocessed_data = copy(input_data)
+            preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
+            cached_model, model_predict = self.model.fit(data=preprocessed_data)
+            self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+                                          model=cached_model))
         else:
             if verbose:
                 print('Model were obtained from cache')
-            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_model,
-                                               data=input_data)
+
+            preprocessing_strategy = self.cache.actual_cached_state.preprocessor
+            preprocessed_data = copy(input_data)
+            preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
+            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
+                                               data=preprocessed_data)
         return model_predict
 
     @property
@@ -86,7 +105,7 @@ class FittedModelCache:
         self._local_cached_models = {}
 
     @property
-    def actual_cached_model(self):
+    def actual_cached_state(self):
         found_model = self._local_cached_models.get(self._related_node_ref.descriptive_id, None)
         return found_model
 
@@ -102,8 +121,8 @@ class SharedCache(FittedModelCache):
             self._global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
 
     @property
-    def actual_cached_model(self):
-        found_model = super().actual_cached_model
+    def actual_cached_state(self):
+        found_model = super().actual_cached_state
 
         if not found_model and self._global_cached_models:
             found_model = self._global_cached_models.get(self._related_node_ref.descriptive_id, None)
@@ -122,6 +141,14 @@ class NodeGenerator:
         return SecondaryNode(nodes_from=nodes_from, model_type=model_type)
 
 
+preprocessing_for_tasks = {
+    MachineLearningTasksEnum.auto_regression: DefaultStrategy,
+    MachineLearningTasksEnum.classification: Scaling,
+    MachineLearningTasksEnum.regression: Scaling,
+    MachineLearningTasksEnum.clustering: Scaling
+}
+
+
 class PrimaryNode(Node):
     def __init__(self, model_type: ModelTypesIdsEnum):
         model = Model(model_type=model_type)
@@ -130,6 +157,7 @@ class PrimaryNode(Node):
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
             print(f'Trying to fit primary node with model: {self.model}')
+
         model_predict = self._fit_using_cache(input_data=input_data, verbose=verbose)
 
         return OutputData(idx=input_data.idx,
@@ -142,8 +170,11 @@ class PrimaryNode(Node):
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_model,
-                                           data=input_data)
+        preprocessed_data = copy(input_data)
+        preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
+
+        predict_train = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
+                                           data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=predict_train, task_type=input_data.task_type)
@@ -197,8 +228,12 @@ class SecondaryNode(Node):
                                                 target=target)
         if verbose:
             print(f'Obtain prediction in secondary node with model: {self.model}')
-        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_model,
-                                               data=secondary_input)
+
+        preprocessed_data = copy(secondary_input)
+        preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
+
+        evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
+                                               data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=evaluation_result,

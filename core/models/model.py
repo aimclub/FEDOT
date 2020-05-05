@@ -9,7 +9,6 @@ from core.models.data import (
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
     StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
-from core.models.preprocessing import scaling_preprocess, simple_preprocess
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -30,29 +29,23 @@ class Model(ABC):
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: TaskTypesEnum):
-        self._eval_strategy, self._data_preprocessing = \
+        self._eval_strategy = \
             _eval_strategy_for_task(self.model_type, task)
 
     def fit(self, data: InputData):
         self._init(data.task_type)
 
-        preprocessed_data = copy(data)
-        preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
-
         fitted_model = self._eval_strategy.fit(model_type=self.model_type,
-                                               train_data=preprocessed_data)
+                                               train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=preprocessed_data)
+                                                    predict_data=data)
         return fitted_model, predict_train
 
     def predict(self, fitted_model, data: InputData):
         self._init(data.task_type)
 
-        preprocessed_data = copy(data)
-        preprocessed_data.features = self._data_preprocessing(preprocessed_data.features)
-
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
-                                                 predict_data=preprocessed_data)
+                                                 predict_data=data)
 
         if any([np.isnan(_) for _ in prediction]):
             print("Value error")
@@ -64,21 +57,12 @@ class Model(ABC):
 
 
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
-    preprocessing_for_tasks = {
-        MachineLearningTasksEnum.auto_regression: simple_preprocess,
-        MachineLearningTasksEnum.classification: scaling_preprocess,
-        MachineLearningTasksEnum.regression: scaling_preprocess,
-        MachineLearningTasksEnum.clustering: scaling_preprocess
-    }
-
     strategies_for_tasks = {
         MachineLearningTasksEnum.classification: SkLearnClassificationStrategy,
         MachineLearningTasksEnum.regression: SkLearnRegressionStrategy,
         MachineLearningTasksEnum.auto_regression: StatsModelsAutoRegressionStrategy,
         MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
     }
-
-    preprocessing_function = preprocessing_for_tasks.get(task_type_for_data, scaling_preprocess)
 
     models_repo = ModelTypesRepository()
     _, model_info = models_repo.search_models(
@@ -99,4 +83,4 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
 
     eval_strategy = strategies_for_tasks[task_type_for_model](model_type)
 
-    return eval_strategy, preprocessing_function
+    return eval_strategy
