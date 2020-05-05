@@ -10,6 +10,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from core.composer.node import preprocessing_for_tasks
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
 from core.models.preprocessing import Normalization
@@ -55,6 +56,9 @@ def data_generated_by(chain, samples, features_amount, classes):
 
     if len(np.unique(data_synth_train.target)) < 2:
         raise ValueError()
+
+    # workaround to change preprocessing
+    preprocessing_for_tasks[MachineLearningTasksEnum.classification] = Normalization
 
     chain.fit_from_scratch(input_data=data_synth_train)
 
@@ -135,36 +139,6 @@ if __name__ == '__main__':
 
         data_synth_test = data_generated_by(chain, samples, features_amount, classes)
         train, test = train_test_data_setup(data_synth_test)
-
-        if False:
-            pred_res = chain.predict(data_synth_test)
-
-            for i in range(len(data_synth_test.target)):
-                if data_synth_test.target[i] != to_labels(pred_res.predict)[i]:
-                    print(i)
-                    raise ValueError("!1")
-
-            pred_res = chain.predict(data_synth_test)
-
-            for i in range(len(data_synth_test.target)):
-                if data_synth_test.target[i] != to_labels(pred_res.predict)[i]:
-                    print(i)
-                    raise ValueError("!2")
-
-            # train=data_synth_test
-            print("!!!")
-            train = InputData(features=data_synth_test.features[0:1000], target=data_synth_test.target[0:1000],
-                              idx=data_synth_test.idx[0:1000], task_type=data_synth_test.task_type)
-
-            pred_res = chain.predict(train)
-
-            for i in range(len(train.target)):
-                if train.target[i] != to_labels(pred_res.predict)[i]:
-                    print(i)
-                    raise ValueError("!3")
-
-            # exit(0)
-            # exit(0)
 
         roc_train, roc_test = roc_score(chain, train, test)
         add_result_to_csv(exp_file_name, 0, roc_test)

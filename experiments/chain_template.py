@@ -25,7 +25,7 @@ class ModelTemplate:
         self.parents = []
         self.model_instance = None
         self.fitted_model = None
-        self.fit_data = None
+        self.preprocessor = None
 
     def __eq__(self, other):
         return self.id == other.id
