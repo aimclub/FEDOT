@@ -25,6 +25,7 @@ class ModelTemplate:
         self.parents = []
         self.model_instance = None
         self.fitted_model = None
+        self.data_fit = None
         self.preprocessor = None
 
     def __eq__(self, other):
@@ -178,6 +179,7 @@ def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
         fitted_model, predictions = instance.fit(data=preproc_data)
 
         template.fitted_model = fitted_model
+        template.data_fit = preproc_data
         template.preprocessor = preprocessor
 
 

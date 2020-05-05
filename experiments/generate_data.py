@@ -13,6 +13,7 @@ def synthetic_dataset(samples_amount, features_amount, classes_amount, full_shuf
     return features, target
 
 
+# TODO: fix features_as_probs - unused parameter
 def gauss_quantiles(samples_amount, features_amount, classes_amount,
                     features_as_probs=False, full_shuffle=True):
     features, target = datasets.make_gaussian_quantiles(n_samples=samples_amount, n_features=features_amount,
