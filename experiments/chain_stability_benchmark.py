@@ -1,5 +1,6 @@
 import csv
 import itertools
+from copy import copy
 from copy import deepcopy
 from random import seed
 
@@ -11,6 +12,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
+from core.models.preprocessing import Normalization
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (chain_template_balanced_tree, fit_template,
@@ -24,7 +26,7 @@ seed(42)
 
 def models_to_use():
     models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
-              ModelTypesIdsEnum.dt]
+              ModelTypesIdsEnum.rf]
     return models
 
 
@@ -51,7 +53,8 @@ def data_generated_by(chain, samples, features_amount, classes):
     data_synth_train = InputData(idx=np.arange(0, samples),
                                  features=features, target=synth_labels, task_type=task_type)
 
-    # data_synth_train.features = preprocessing.StandardScaler().fit_transform(data_synth_train.features)
+    if len(np.unique(data_synth_train.target)) < 2:
+        raise ValueError()
 
     chain.fit_from_scratch(input_data=data_synth_train)
 
@@ -61,7 +64,11 @@ def data_generated_by(chain, samples, features_amount, classes):
     target = np.expand_dims(target, axis=1)
     test = InputData(idx=np.arange(0, samples),
                      features=features, target=target, task_type=task_type)
-    synth_target = chain.predict(input_data=test).predict
+    preproc_data = copy(test)
+    preprocessor = Normalization().fit(preproc_data.features)
+    preproc_data.features = preprocessor.apply(preproc_data.features)
+
+    synth_target = chain.predict(input_data=preproc_data).predict
     synth_labels = to_labels(synth_target)
     data_synth_test = InputData(idx=np.arange(0, samples),
                                 features=features, target=synth_labels, task_type=task_type)
@@ -73,11 +80,6 @@ def roc_score(chain, data_to_compose, data_to_validate):
 
     predicted_test = chain.predict(data_to_validate)
     # the quality assessment for the simulation results
-
-    for i in range(len(data_to_compose.target)):
-        if data_to_compose.target[i] != predicted_train.predict[i]:
-            print(f'PROBLEM, {i}')
-            # raise ValueError(i)
 
     roc_train = roc_auc(y_true=data_to_compose.target,
                         y_score=predicted_train.predict)
@@ -188,11 +190,11 @@ if __name__ == '__main__':
         baselines = chain_stab_data_base[chain_stab_data_base.iter == 'BL'].test_auc
 
         crit_high = plt.hlines(np.mean(baselines) + np.std(baselines),
-                               xmin=0, xmax=6, colors='red', linestyles='dashed')
+                               xmin=0, xmax=7, colors='red', linestyles='dashed')
         crit_low = plt.hlines(np.mean(baselines) - np.std(baselines),
-                              xmin=0, xmax=6, colors='red', linestyles='dashed')
+                              xmin=0, xmax=7, colors='red', linestyles='dashed')
         crit = plt.hlines(np.mean(baselines),
-                          xmin=0, xmax=6, colors='red', linestyles='solid')
+                          xmin=0, xmax=7, colors='red', linestyles='solid')
 
-        plt.ylim(0.6, 1.01)
+        plt.ylim(0.45, 1.01)
         plt.show()

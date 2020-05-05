@@ -1,13 +1,16 @@
 import itertools
 import uuid
+from copy import copy
 from dataclasses import dataclass
 
 import numpy as np
 
 from core.composer.chain import Chain
+from core.composer.node import CachedState
 from core.composer.node import PrimaryNode, SecondaryNode, FittedModelCache
 from core.models.model import InputData
 from core.models.model import Model
+from core.models.preprocessing import Normalization
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.generate_data import synthetic_dataset, gauss_quantiles
 
@@ -22,6 +25,7 @@ class ModelTemplate:
         self.parents = []
         self.model_instance = None
         self.fitted_model = None
+        self.fit_data = None
 
     def __eq__(self, other):
         return self.id == other.id
@@ -166,10 +170,15 @@ def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
         data_train = InputData(idx=np.arange(0, samples),
                                features=features, target=target,
                                task_type=MachineLearningTasksEnum.classification)
+
+        preproc_data = copy(data_train)
+        preprocessor = Normalization().fit(preproc_data.features)
+        preproc_data.features = preprocessor.apply(preproc_data.features)
         print(f'Fit {instance}')
-        fitted_model, predictions = instance.fit(data=data_train)
+        fitted_model, predictions = instance.fit(data=preproc_data)
 
         template.fitted_model = fitted_model
+        template.preprocessor = preprocessor
 
 
 def real_chain(chain_template, with_cache=True):
@@ -185,7 +194,7 @@ def real_chain(chain_template, with_cache=True):
             node.model = template.model_instance
             if with_cache:
                 cache = FittedModelCache(related_node=node)
-                cache.append(fitted_model=template.fitted_model)
+                cache.append(CachedState(preprocessor=template.preprocessor, model=template.fitted_model))
                 node.cache = cache
             nodes_by_templates.append((node, template))
 

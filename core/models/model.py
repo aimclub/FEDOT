@@ -35,6 +35,9 @@ class Model(ABC):
     def fit(self, data: InputData):
         self._init(data.task_type)
 
+        # preprocessed_data = copy(data)
+        # preprocessed_data.features = preprocessing.StandardScaler().fit_transform((preprocessed_data.features))
+
         fitted_model = self._eval_strategy.fit(model_type=self.model_type,
                                                train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
@@ -43,6 +46,9 @@ class Model(ABC):
 
     def predict(self, fitted_model, data: InputData):
         self._init(data.task_type)
+
+        # preprocessed_data = copy(data)
+        # preprocessed_data.features = preprocessing.StandardScaler().fit_transform((preprocessed_data.features))
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
                                                  predict_data=data)

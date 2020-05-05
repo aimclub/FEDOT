@@ -143,7 +143,7 @@ class NodeGenerator:
 
 preprocessing_for_tasks = {
     MachineLearningTasksEnum.auto_regression: DefaultStrategy,
-    MachineLearningTasksEnum.classification: Scaling,
+    MachineLearningTasksEnum.classification: Normalization,
     MachineLearningTasksEnum.regression: Scaling,
     MachineLearningTasksEnum.clustering: Scaling
 }
