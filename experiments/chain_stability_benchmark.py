@@ -3,7 +3,6 @@ import itertools
 import random
 from copy import copy
 from copy import deepcopy
-from random import seed
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,14 +21,15 @@ from experiments.chain_template import (chain_template_balanced_tree, fit_templa
                                         show_chain_template, real_chain, with_calculated_shapes)
 from experiments.composer_benchmark import to_labels, predict_with_xgboost
 from experiments.generate_data import synthetic_dataset
+from experiments.tree_dist import chain_distance
 
-np.random.seed(42)
-seed(42)
+
+# np.random.seed(42)
+# seed(42)
 
 
 def models_to_use():
-    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
-              ModelTypesIdsEnum.rf]
+    models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
     return models
 
 
@@ -120,8 +120,7 @@ def remove_first_node(template, samples, features):
 def change_random_node_model(template):
     all_nodes = list(itertools.chain.from_iterable(template))
     node_to_modify = random.choice(all_nodes)
-    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn,
-                             ModelTypesIdsEnum.rf]
+    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
 
     new_model_type = random.choice(available_model_types)
     while node_to_modify.model_type == new_model_type:
@@ -213,7 +212,7 @@ def model_changing_experiment():
         chain, template = source_chain(model_types=models_to_use(),
                                        samples=samples, features=features_amount,
                                        classes=classes)
-
+        initial_chain = deepcopy(chain)
         data_synth_test = data_generated_by(chain, samples, features_amount, classes)
         train, test = train_test_data_setup(data_synth_test)
 
@@ -231,6 +230,8 @@ def model_changing_experiment():
             new_template, new_chain = change_random_node_model(prev_template)
             new_chain.fit_from_scratch(train)
             roc_train, roc_test = roc_score(new_chain, train, test)
+            chain_dist = chain_distance(first=initial_chain, second=new_chain)
+            print(f'Tree Distance from initial: {chain_dist}')
             prev_chain, prev_template = new_chain, new_template
             add_result_to_csv(exp_file_name, iter + 1, roc_test)
 
