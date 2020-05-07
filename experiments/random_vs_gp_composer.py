@@ -72,20 +72,21 @@ def data_generated_by(chain, samples, features_amount, classes):
     return data_synth_test
 
 
-def _reduced_history_best(history, generations, pop_size):
+def _reduced_history_best(history_all, generations, pop_size):
     reduced_fitness = []
-    reduced_chains = []
+    reduced_distances = []
+    history_, source_chain, = history_all
     for gen in range(generations):
         fitness_values, chains = [], []
-        for individ in history[gen * pop_size: (gen + 1) * pop_size]:
+        for individ in history_[gen * pop_size: (gen + 1) * pop_size]:
             chains.append(individ[0])
             fitness_values.append(abs(individ[1]))
         best = max(fitness_values)
         best_chain = chains[fitness_values.index(best)]
         print(f'Min in generation #{gen}: {best}')
         reduced_fitness.append(best)
-        reduced_chains.append(best_chain)
-    return reduced_fitness, reduced_chains
+        reduced_distances.append(chain_distance(source_chain, best_chain))
+    return reduced_fitness, reduced_distances
 
 
 def roc_score(chain, data_to_compose, data_to_validate):
@@ -130,8 +131,8 @@ def _distances_history(source_chain, chain_history):
 
 def compare_composers():
     runs = 1
-    iterations = 5
-    pop_size = 5
+    iterations = 3
+    pop_size = 10
     models_in_source_chain = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
     samples, features_amount, classes = 10000, 10, 2
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
@@ -171,23 +172,23 @@ def compare_composers():
                                                 initial_chain=None,
                                                 composer_requirements=gp_requirements,
                                                 metrics=metric_function, is_visualise=False)
-        history_gp.append(gp_composer.history)
+        history_gp.append((gp_composer.history, source))
         gp_composed.fit(input_data=data_to_compose, verbose=True)
         roc_score(gp_composed, data_to_compose, data_to_validate)
         gp_dist.append(chain_distance(source, gp_composed))
 
     reduced_fitness_gp = []
-    reduced_chains_gp = []
+    reduced_distances_gp = []
     for history in history_gp:
         fitness, chains = _reduced_history_best(history, iterations, pop_size)
         reduced_fitness_gp.append(fitness)
-        reduced_chains_gp.append(chains)
+        reduced_distances_gp.append(chains)
 
     show_history_optimization_comparison(first=history_random, second=reduced_fitness_gp,
                                          iterations_first=range(iterations * pop_size),
                                          iterations_second=[_ * pop_size for _ in range(iterations)],
                                          label_first='Random', label_second='GP')
-    show_tree_distance_changes(random_dist, reduced_fitness_gp, range(iterations * pop_size),
+    show_tree_distance_changes(random_dist, reduced_distances_gp, range(iterations * pop_size),
                                [_ * pop_size for _ in range(iterations)], label_first='Random', label_second='GP')
 
 
