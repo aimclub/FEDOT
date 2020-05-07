@@ -40,14 +40,39 @@ def show_fitness_history_all(history_runs, iterations, with_bands=False):
 def show_history_optimization_comparison(first, second,
                                          iterations_first,
                                          iterations_second,
-                                         label_first, label_second):
+                                         label_first, label_second, **kwargs):
     color_to_take = cycle('bgrcmykw')
-    # iters = [it for it in range(iterations_first)]
+
+    labels = [label_first, label_second]
+    sns.tsplot(first, iterations_first, legend=True, color=next(color_to_take))
+    sns.tsplot(second, iterations_second, legend=True, color=next(color_to_take))
+
+    if 'chain_distances' in kwargs:
+        dist_first, dist_second = kwargs['chain_distances']
+        sns.tsplot(dist_first, iterations_first, legend=True, color=next(color_to_take))
+        sns.tsplot(dist_second, iterations_second, legend=True, color=next(color_to_take))
+        labels.append(f'Tree distance for {label_first}')
+        labels.append(f'Tree distance for {label_second}')
+
+    plt.legend(labels=labels)
+
+    plt.ylabel('Fitness')
+    plt.xlabel('Iteration, #')
+    plt.show()
+
+
+def show_tree_distance_changes(first, second,
+                               iterations_first,
+                               iterations_second,
+                               label_first, label_second):
+    color_to_take = cycle('bgrcmykw')
+    labels = [label_first, label_second]
 
     sns.tsplot(first, iterations_first, legend=True, color=next(color_to_take))
     sns.tsplot(second, iterations_second, legend=True, color=next(color_to_take))
-    plt.legend(labels=[label_first, label_second])
 
-    plt.ylabel('Fitness')
+    plt.legend(labels=labels)
+
+    plt.ylabel('Tree distance')
     plt.xlabel('Iteration, #')
     plt.show()

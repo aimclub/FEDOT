@@ -36,7 +36,7 @@ if __name__ == '__main__':
                                                        history_callback=history_best)
         composed_chain.fit(input_data=dataset_to_compose, verbose=True)
         # ComposerVisualiser.visualise(composed_chain)
-        history_all.append(history_best.values)
+        history_all.append(history_best.fitness_values)
         predicted_train = composed_chain.predict(dataset_to_compose)
         predicted_test = composed_chain.predict(data_to_validate)
         # the quality assessment for the simulation results

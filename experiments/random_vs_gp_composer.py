@@ -1,3 +1,4 @@
+from copy import copy
 from random import seed
 
 import numpy as np
@@ -8,6 +9,7 @@ from core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComp
 from core.composer.random_composer import RandomSearchComposer, History
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
+from core.models.preprocessing import Normalization
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.task_types import MachineLearningTasksEnum
@@ -15,7 +17,8 @@ from experiments.chain_template import (chain_template_balanced_tree, fit_templa
                                         show_chain_template, real_chain)
 from experiments.composer_benchmark import to_labels
 from experiments.generate_data import synthetic_dataset
-from experiments.viz import show_history_optimization_comparison
+from experiments.tree_dist import chain_distance
+from experiments.viz import show_history_optimization_comparison, show_tree_distance_changes
 
 seed(42)
 np.random.seed(42)
@@ -31,7 +34,7 @@ def source_chain(model_types, samples, features, classes):
     template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
                                             samples=samples, features=features)
     show_chain_template(template)
-    fit_template(template, classes=classes, skip_fit=False)
+    fit_template(template, classes=classes, with_gaussian=True, skip_fit=False)
     initialized_chain = real_chain(template)
 
     return initialized_chain
@@ -50,7 +53,11 @@ def data_generated_by(chain, samples, features_amount, classes):
     data_synth_train = InputData(idx=np.arange(0, samples),
                                  features=features, target=synth_labels, task_type=task_type)
 
-    chain.fit_from_scratch(input_data=data_synth_train)
+    # data_synth_train.features = Normalization().fit(data_synth_train.features).apply(data_synth_train.features)
+    preproc_data = copy(data_synth_train)
+    preprocessor = Normalization().fit(preproc_data.features)
+    preproc_data.features = preprocessor.apply(preproc_data.features)
+    chain.fit_from_scratch(input_data=preproc_data)
 
     features, target = synthetic_dataset(samples_amount=samples,
                                          features_amount=features_amount,
@@ -66,14 +73,19 @@ def data_generated_by(chain, samples, features_amount, classes):
 
 
 def _reduced_history_best(history, generations, pop_size):
-    reduced = []
+    reduced_fitness = []
+    reduced_chains = []
     for gen in range(generations):
-        fitness_values = [abs(individ[1]) for individ in history[gen * pop_size: (gen + 1) * pop_size]]
+        fitness_values, chains = [], []
+        for individ in history[gen * pop_size: (gen + 1) * pop_size]:
+            chains.append(individ[0])
+            fitness_values.append(abs(individ[1]))
         best = max(fitness_values)
+        best_chain = chains[fitness_values.index(best)]
         print(f'Min in generation #{gen}: {best}')
-        reduced.append(best)
-
-    return reduced
+        reduced_fitness.append(best)
+        reduced_chains.append(best_chain)
+    return reduced_fitness, reduced_chains
 
 
 def roc_score(chain, data_to_compose, data_to_validate):
@@ -111,15 +123,21 @@ def source_chain_self_predict():
     print(test_score)
 
 
+def _distances_history(source_chain, chain_history):
+    distances = [chain_distance(source_chain, chain) for chain in chain_history]
+    return distances
+
+
 def compare_composers():
-    runs = 5
-    iterations = 10
+    runs = 1
+    iterations = 5
     pop_size = 5
     models_in_source_chain = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
     samples, features_amount, classes = 10000, 10, 2
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     history_random, history_gp = [], []
+    random_dist, gp_dist = [], []
     for run in range(runs):
         source = source_chain(models_in_source_chain, samples=samples,
                               features=features_amount, classes=classes)
@@ -137,10 +155,10 @@ def compare_composers():
                                                         composer_requirements=random_reqs,
                                                         metrics=metric_function,
                                                         history_callback=history_best_random)
-        history_random.append(history_best_random.values)
+        history_random.append(history_best_random.fitness_values)
         random_composed.fit(input_data=data_to_compose, verbose=True)
         roc_score(random_composed, data_to_compose, data_to_validate)
-
+        random_dist.append(_distances_history(source, history_best_random.best_chains))
         # Init and run GPComposer
         print('Running GPComposer:')
         gp_requirements = GPComposerRequirements(
@@ -156,13 +174,21 @@ def compare_composers():
         history_gp.append(gp_composer.history)
         gp_composed.fit(input_data=data_to_compose, verbose=True)
         roc_score(gp_composed, data_to_compose, data_to_validate)
+        gp_dist.append(chain_distance(source, gp_composed))
 
-    reduced_history_gp = [_reduced_history_best(history, iterations, pop_size) for history in history_gp]
+    reduced_fitness_gp = []
+    reduced_chains_gp = []
+    for history in history_gp:
+        fitness, chains = _reduced_history_best(history, iterations, pop_size)
+        reduced_fitness_gp.append(fitness)
+        reduced_chains_gp.append(chains)
 
-    show_history_optimization_comparison(first=history_random, second=reduced_history_gp,
+    show_history_optimization_comparison(first=history_random, second=reduced_fitness_gp,
                                          iterations_first=range(iterations * pop_size),
                                          iterations_second=[_ * pop_size for _ in range(iterations)],
                                          label_first='Random', label_second='GP')
+    show_tree_distance_changes(random_dist, reduced_fitness_gp, range(iterations * pop_size),
+                               [_ * pop_size for _ in range(iterations)], label_first='Random', label_second='GP')
 
 
 if __name__ == '__main__':

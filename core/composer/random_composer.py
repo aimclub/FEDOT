@@ -20,13 +20,17 @@ from experiments.chain_template import chain_template_random, fit_template, real
 
 class History:
     def __init__(self):
-        self.values = []
+        self.fitness_values = []
+        self.best_chains = []
 
-    def on_new_value(self, value):
-        self.values.append(value)
+    def on_new_fitness_value(self, value):
+        self.fitness_values.append(value)
+
+    def on_new_best_chain(self, chain):
+        self.best_chains.append(chain)
 
     def clear(self):
-        self.values = []
+        self.fitness_values = []
 
 
 class RandomSearchComposer:
@@ -107,7 +111,10 @@ class RandomSearchOptimiser:
                 best_metric_value = new_metric_value
                 best_set = new_nodeset
                 print(f'Better chain found: metric {best_metric_value}')
-            history_callback.on_new_value(abs(best_metric_value))
+            history_callback.on_new_fitness_value(abs(best_metric_value))
+            chain_ = Chain()
+            chain_.nodes = best_set
+            history_callback.on_new_best_chain(chain_)
         return best_set, history
 
     def _random_nodeset(self, primary_requirements: List[Any], secondary_requirements: List[Any]) -> List[Node]:
