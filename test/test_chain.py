@@ -66,7 +66,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
         'n_ModelTypesIdsEnum.knn_defaultparams')
 
     assert train_predicted.predict.shape == train.target.shape
-    assert final.cache.actual_cached_model is not None
+    assert final.cache.actual_cached_state is not None
 
 
 def test_chain_hierarchy_fit_correct(data_setup):
