@@ -8,7 +8,7 @@ from core.composer.optimisers.gp_operators import nodes_from_height, node_depth,
 
 
 class MutationTypesEnum(Enum):
-    standard = 'standard'
+    simple = 'simple'
     growth = 'growth'
     reduce = 'reduce'
 
@@ -22,11 +22,14 @@ class MutationPowerEnum(Enum):
 def get_mutation_prob(mut_id, root_node):
     default_mutation_prob = 0.7
     if mut_id == MutationPowerEnum.weak.value:
-        return 1.0 / (5.0 * (node_depth(root_node) + 1))
+        mutation_strength = 0.2
+        return mutation_strength / (node_depth(root_node) + 1)
     elif mut_id == MutationPowerEnum.mean.value:
-        return 1.0 / (node_depth(root_node) + 1)
+        mutation_strength = 1.0
+        return mutation_strength / (node_depth(root_node) + 1)
     elif mut_id == MutationPowerEnum.strong.value:
-        return 5.0 / (node_depth(root_node) + 1)
+        mutation_strength = 5.0
+        return mutation_strength / (node_depth(root_node) + 1)
     else:
         return default_mutation_prob
 
@@ -38,11 +41,11 @@ def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirem
         return deepcopy(chain)
 
     mutation_by_type = {
-        MutationTypesEnum.standard: standard_mutation(chain=chain, secondary=requirements.secondary,
-                                                      primary=requirements.primary,
-                                                      secondary_node_func=secondary_node_func,
-                                                      primary_node_func=primary_node_func,
-                                                      node_mutate_type=node_mutate_type),
+        MutationTypesEnum.simple: simple_mutation(chain=chain, secondary=requirements.secondary,
+                                                  primary=requirements.primary,
+                                                  secondary_node_func=secondary_node_func,
+                                                  primary_node_func=primary_node_func,
+                                                  node_mutate_type=node_mutate_type),
         MutationTypesEnum.growth: growth_mutation(chain=chain, chain_class=chain_class,
                                                   secondary_node_func=secondary_node_func,
                                                   primary_node_func=primary_node_func, requirements=requirements),
@@ -56,9 +59,9 @@ def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirem
         raise ValueError(f'Required mutation not found: {type}')
 
 
-def standard_mutation(chain: Any, secondary: Any, primary: Any,
-                      secondary_node_func: Callable, primary_node_func: Callable,
-                      node_mutate_type=MutationPowerEnum.mean) -> Any:
+def simple_mutation(chain: Any, secondary: Any, primary: Any,
+                    secondary_node_func: Callable, primary_node_func: Callable,
+                    node_mutate_type=MutationPowerEnum.mean) -> Any:
     result = deepcopy(chain)
 
     node_mutation_probability = get_mutation_prob(mut_id=node_mutate_type.value, root_node=result.root_node)

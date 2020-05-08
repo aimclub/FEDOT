@@ -8,7 +8,7 @@ from core.composer.optimisers.gp_operators import nodes_from_height, node_depth
 
 
 class CrossoverTypesEnum(Enum):
-    standard = 'standard'
+    subtree = 'subtree'
 
 
 def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int,
@@ -22,7 +22,7 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
         raise ValueError(f'Required crossover not found: {type}')
 
 
-def standard_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
+def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
     chain_first_copy = deepcopy(chain_first)
     random_layer_in_chain_first = randint(0, chain_first_copy.depth - 1)
     random_layer_in_chain_second = randint(0, chain_second.depth - 1)
@@ -43,4 +43,4 @@ def standard_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> A
 
 
 crossover_by_type = {
-    CrossoverTypesEnum.standard: standard_crossover}
+    CrossoverTypesEnum.subtree: subtree_crossover}

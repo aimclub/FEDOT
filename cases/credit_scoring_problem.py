@@ -64,8 +64,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         optimiser_parameters = gp_optimiser_params
     else:
         optimiser_parameters = GPChainOptimiserParameters(selection_types=[SelectionTypesEnum.tournament],
-                                                          crossover_types=[CrossoverTypesEnum.standard],
-                                                          mutation_types=[MutationTypesEnum.standard,
+                                                          crossover_types=[CrossoverTypesEnum.subtree],
+                                                          mutation_types=[MutationTypesEnum.simple,
                                                                           MutationTypesEnum.growth,
                                                                           MutationTypesEnum.reduce],
                                                           regularization_type=RegularizationTypesEnum.decremental)

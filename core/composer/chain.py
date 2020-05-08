@@ -60,9 +60,10 @@ class Chain:
         self.sort_nodes()
 
     def delete_node(self, node: Node):
-        [node_child.nodes_from.remove(node) for node_child in self.node_childs(node)]
-        [self.nodes.remove(subtree_node) for subtree_node in node.ordered_subnodes_hierarchy]
-        del node
+        for node_child in self.node_childs(node):
+            node_child.nodes_from.remove(node)
+        for subtree_node in node.ordered_subnodes_hierarchy:
+            self.nodes.remove(subtree_node)
 
     def _clean_model_cache(self):
         for node in self.nodes:

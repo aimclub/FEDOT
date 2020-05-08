@@ -29,7 +29,7 @@ class ComposerRequirements:
             raise ValueError(f'invalid max_depth value')
         if self.max_arity < 0:
             raise ValueError(f'invalid max_arity value')
-        if self.max_depth < 0:
+        if self.min_arity < 0:
             raise ValueError(f'invalid min_arity value')
 
 

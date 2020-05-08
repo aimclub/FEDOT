@@ -1,12 +1,8 @@
-import csv
-import math
-import os
 from dataclasses import dataclass
 from functools import partial
 from typing import (
     Callable,
     Optional,
-    List
 )
 
 from core.chain_validation import validate
@@ -15,6 +11,7 @@ from core.composer.composer import Composer, ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from core.composer.visualisation import ComposerVisualiser
+from core.composer.wrire_history import write_composer_history_to_csv
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
 
@@ -73,25 +70,4 @@ class GPComposer(Composer):
         return metric_function(chain, test_data)
 
 
-def write_composer_history_to_csv(historical_fitness: List[int], historical_chains: List[Chain], pop_size: int,
-                                  f='history.csv'):
-    f = f'../../tmp/{f}'
-    if not os.path.isdir('../../tmp'):
-        os.mkdir('../../tmp')
-    write_header_to_csv(f)
-    for i, fitness in enumerate(historical_fitness):
-        gen_num = math.ceil(i / pop_size)
-        historical_chain = historical_chains[i]
-        add_history_to_csv(f, fitness, len(historical_chain.nodes), historical_chain.depth, i, gen_num)
 
-
-def write_header_to_csv(f):
-    with open(f, 'w', newline='') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow(['num', 'generation', 'fitness, num_of_models, depth'])
-
-
-def add_history_to_csv(f, fitness: float, models_num: int, depth: int, num: int = None, generation: int = None):
-    with open(f, 'a', newline='') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow([num, generation, fitness, models_num, depth])

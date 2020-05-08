@@ -25,10 +25,18 @@ from core.composer.timer import CompositionTimer
 
 @dataclass
 class GPChainOptimiserParameters:
-    selection_types: List[SelectionTypesEnum] = (SelectionTypesEnum.tournament,)
-    crossover_types: List[CrossoverTypesEnum] = (CrossoverTypesEnum.standard,)
-    mutation_types: List[MutationTypesEnum] = (MutationTypesEnum.standard,)
+    selection_types: List[SelectionTypesEnum] = None
+    crossover_types: List[CrossoverTypesEnum] = None
+    mutation_types: List[MutationTypesEnum] = None
     regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental
+
+    def __post_init__(self):
+        if not self.selection_types:
+            self.selection_types = [SelectionTypesEnum.tournament]
+        if not self.crossover_types:
+            self.crossover_types = [CrossoverTypesEnum.subtree]
+        if not self.mutation_types:
+            self.mutation_types = [MutationTypesEnum.simple]
 
 
 class GPChainOptimiser:
@@ -70,12 +78,16 @@ class GPChainOptimiser:
 
                 self.best_individual, self.best_fitness = self.best_individual_with_fitness
 
-                individuals_to_select = regularized_population(self.parameters.regularization_type,
-                                                               self.population, self.requirements,
-                                                               metric_function_for_nodes,
-                                                               self.chain_class)
+                additional_inds, fitness = regularized_population(self.parameters.regularization_type,
+                                                                  self.population, self.requirements,
+                                                                  metric_function_for_nodes,
+                                                                  self.chain_class)
 
-                selected_individuals = selection(self.parameters.selection_types, self.fitness, individuals_to_select)
+                individuals_to_select = self.population + additional_inds
+                fitness = self.fitness + fitness
+
+                selected_individuals = selection(self.parameters.selection_types, fitness, individuals_to_select,
+                                                 self.requirements.pop_size)
 
                 for ind_num in range(self.requirements.pop_size):
 
@@ -85,7 +97,8 @@ class GPChainOptimiser:
                         history.append((self.population[ind_num], self.fitness[ind_num]))
                         break
 
-                    self.population[ind_num] = crossover(self.parameters.crossover_types, *selected_individuals[ind_num],
+                    self.population[ind_num] = crossover(self.parameters.crossover_types,
+                                                         *selected_individuals[ind_num],
                                                          crossover_prob=self.requirements.crossover_prob,
                                                          max_depth=self.requirements.max_depth)
 
@@ -111,10 +124,7 @@ class GPChainOptimiser:
     @property
     def best_individual_with_fitness(self) -> Tuple[Any, float]:
         best_ind_num = np.argmin(self.fitness)
-        sort_inds = np.argsort(self.fitness)[1:]
-        simpler_equivalents = {i: len(self.population[i].nodes) for i in sort_inds if
-                               self.fitness[best_ind_num] == self.fitness[i] and len(self.population[i].nodes) < len(
-                                   self.population[best_ind_num].nodes)}
+        simpler_equivalents = self.simpler_equivalents_of_best_ind(best_ind_num)
 
         if simpler_equivalents:
             best_candidate = min(simpler_equivalents, key=simpler_equivalents.get)
@@ -124,6 +134,16 @@ class GPChainOptimiser:
             best = deepcopy(self.population[best_ind_num])
             best_fitness = self.fitness[best_ind_num]
         return best, best_fitness
+
+    def simpler_equivalents_of_best_ind(self, best_ind_num: int) -> dict:
+        sort_inds = np.argsort(self.fitness)[1:]
+        simpler_equivalents = {}
+        for i in sort_inds:
+            is_fitness_equals_to_best = self.fitness[best_ind_num] == self.fitness[i]
+            has_less_num_of_models_than_best = len(self.population[i].nodes) < len(self.population[best_ind_num].nodes)
+            if is_fitness_equals_to_best and has_less_num_of_models_than_best:
+                simpler_equivalents[i] = len(self.population[i].nodes)
+        return simpler_equivalents
 
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self.chain_generation_function() for _ in range(pop_size)]

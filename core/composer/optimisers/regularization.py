@@ -3,7 +3,10 @@ from enum import Enum
 from typing import (Optional,
                     List,
                     Any,
-                    Callable)
+                    Callable,
+                    Tuple)
+
+import numpy as np
 
 
 class RegularizationTypesEnum(Enum):
@@ -12,15 +15,15 @@ class RegularizationTypesEnum(Enum):
 
 
 def regularized_population(reg_id: RegularizationTypesEnum, population: List[Any], requirements, metric: Callable,
-                           chain_class: Any, size: Optional[int] = None) -> Optional[List[Any]]:
+                           chain_class: Any, size: Optional[int] = None) -> Tuple[List[Any], List[float]]:
     if reg_id == RegularizationTypesEnum.decremental:
-        return population + decremental_regularization(population, requirements, metric, chain_class, size)
+        return decremental_regularization(population, requirements, metric, chain_class, size)
     elif reg_id == RegularizationTypesEnum.none:
-        return population
+        return ([], [])
 
 
 def decremental_regularization(population: List[Any], requirements, metric: Callable, chain_class: Any,
-                               size: Optional[int] = None):
+                               size: Optional[int] = None) -> Tuple[List[Any], List[float]]:
     size = size if size else requirements.pop_size
     additional_inds = []
     prev_nodes_ids = []
@@ -30,9 +33,12 @@ def decremental_regularization(population: List[Any], requirements, metric: Call
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
+    metrics = [metric(additional_ind) for additional_ind in additional_inds]
     if additional_inds and len(additional_inds) > size:
-        additional_inds = sorted(additional_inds, key=lambda chain: metric(chain))[:size]
-    return additional_inds
+        sort_metrics_ids = np.argsort(metrics)
+        metrics = [metrics[i] for i in sort_metrics_ids][:size]
+        additional_inds = [additional_inds[i] for i in sort_metrics_ids][:size]
+    return (additional_inds, metrics)
 
 
 def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:

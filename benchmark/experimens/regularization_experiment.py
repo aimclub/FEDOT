@@ -45,8 +45,8 @@ if __name__ == '__main__':
             gc.collect()
 
             selection_types = [SelectionTypesEnum.tournament]
-            crossover_types = [CrossoverTypesEnum.standard]
-            mutation_types = [MutationTypesEnum.standard, MutationTypesEnum.growth, MutationTypesEnum.reduce]
+            crossover_types = [CrossoverTypesEnum.subtree]
+            mutation_types = [MutationTypesEnum.simple, MutationTypesEnum.growth, MutationTypesEnum.reduce]
             optimiser_parameters = GPChainOptimiserParameters(selection_types=selection_types,
                                                               crossover_types=crossover_types,
                                                               mutation_types=mutation_types,
