@@ -2,12 +2,13 @@ from dataclasses import dataclass
 from typing import List
 
 from benchmark.H2O.b_h2o import run_h2o
-from benchmark.autokeras.b_autokeras import run_autokeras
+#from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
 from benchmark.benchmark_model_types import ModelTypesEnum
-from benchmark.mlbox.b_mlbox import run_mlbox
+#from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
-from cases.credit_scoring_problem import run_credit_scoring_problem
+from benchmark.fedot.fedot_classification import run_classification_problem
+from benchmark.fedot.fedot_regression import run_regression_problem
 from core.repository.task_types import MachineLearningTasksEnum
 
 
@@ -54,11 +55,16 @@ class CaseExecutor:
         if ModelTypesEnum.fedot in self.models:
             print('---------\nRUN FEDOT\n---------')
             if self.task is MachineLearningTasksEnum.classification:
-                fedot_result = run_credit_scoring_problem(train_file_path=self.train_file,
+                fedot_result = run_classification_problem(train_file_path=self.train_file,
                                                           test_file_path=self.test_file)
                 saved_metric_results['fedot_metric'] = {'composed_roc_auc': fedot_result[0],
                                                         'static_roc_auc': fedot_result[1],
                                                         'single_model_roc_auc': fedot_result[2]}
+            elif self.task is MachineLearningTasksEnum.regression:
+                fedot_result = run_regression_problem(train_file_path=self.train_file,
+                                                          test_file_path=self.test_file)
+                saved_metric_results['fedot_metric'] = {'Static RMSE': fedot_result[0],
+                                                        'Composed RMSE': fedot_result[1]}
         if ModelTypesEnum.mlbox in self.models:
             print('---------\nRUN MLBOX\n---------')
             mlbox_result = run_mlbox(train_file_path=self.train_file,
@@ -71,8 +77,13 @@ class CaseExecutor:
 
         if ModelTypesEnum.baseline in self.models:
             print('---------\nRUN BASELINE\n---------')
-            xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
-                                         target_name=self.target_name)
-            saved_metric_results['baseline_metric'] = xgboost_result
-
+            if self.task is MachineLearningTasksEnum.classification:
+                xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
+                                             target_name=self.target_name, task_flag = 1)
+                saved_metric_results['baseline_metric'] = xgboost_result
+            elif self.task is MachineLearningTasksEnum.regression:
+                xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
+                                             target_name=self.target_name, task_flag = 0)
+                saved_metric_results['baseline_metric'] = xgboost_result
+            
         return saved_metric_results
