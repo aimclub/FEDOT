@@ -13,13 +13,16 @@ def synthetic_dataset(samples_amount, features_amount, classes_amount, full_shuf
     return features, target
 
 
-# TODO: fix features_as_probs - unused parameter
 def gauss_quantiles(samples_amount, features_amount, classes_amount,
-                    features_as_probs=False, full_shuffle=True):
+                    full_shuffle=True, **kwargs):
+    if 'gauss_params' in kwargs:
+        mean, cov = kwargs['gauss_params']
+    else:
+        mean, cov = None, 1.
+
     features, target = datasets.make_gaussian_quantiles(n_samples=samples_amount, n_features=features_amount,
-                                                        n_classes=classes_amount, shuffle=full_shuffle)
-    # if features_as_probs:
-    #    features = preprocessing.minmax_scale(preprocessing.normalize(features))
+                                                        n_classes=classes_amount, shuffle=full_shuffle,
+                                                        mean=mean, cov=cov)
     return features, target
 
 
