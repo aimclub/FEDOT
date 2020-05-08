@@ -45,14 +45,16 @@ def run_tpot(train_file_path: str, test_file_path: str, config_data: dict, task:
 
     imported_model = joblib.load(result_file_path)
 
-    predicted = imported_model.predict_proba(test_data.features)[:, 1]
-    print(predicted)
-    print(f'BEST_model: {imported_model}')
-
     if task is MachineLearningTasksEnum.classification:
+        predicted = imported_model.predict_proba(test_data.features)[:, 1]
+        print(predicted)
+        print(f'BEST_model: {imported_model}')
         result_metric = {'TPOT_ROC_AUC_test': round(roc_auc_score(test_data.target, predicted), 3)}
         print(f"TPOT_ROC_AUC_test:{result_metric['TPOT_ROC_AUC_test']} ")
     else:
+        predicted = imported_model.predict(test_data.features)
+        print(predicted)
+        print(f'BEST_model: {imported_model}')
         result_metric = {'TPOT_MSE': round(mse(test_data.target, predicted), 3)}
         print(f"TPOT_MSE: {result_metric['TPOT_MSE']}")
 
