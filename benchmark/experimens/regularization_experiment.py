@@ -55,7 +55,7 @@ if __name__ == '__main__':
                                                         max_lead_time=datetime.timedelta(minutes=time_amount),
                                                         gp_optimiser_params=optimiser_parameters)
 
-            is_regular = True if regular_type == RegularizationTypesEnum.decremental else False
+            is_regular = regular_type == RegularizationTypesEnum.decremental
             add_result_to_csv(file_path_result, time_amount, is_regular, round(roc_auc, 4), len(chain.nodes),
                               chain.depth)
 

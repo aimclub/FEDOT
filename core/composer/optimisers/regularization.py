@@ -14,12 +14,17 @@ class RegularizationTypesEnum(Enum):
     decremental = 'decremental'
 
 
-def regularized_population(reg_id: RegularizationTypesEnum, population: List[Any], requirements, metric: Callable,
+def regularized_population(reg_id: RegularizationTypesEnum, population: List[Any], fitness: List[float], requirements,
+                           metric: Callable,
                            chain_class: Any, size: Optional[int] = None) -> Tuple[List[Any], List[float]]:
     if reg_id == RegularizationTypesEnum.decremental:
-        return decremental_regularization(population, requirements, metric, chain_class, size)
+        additional_inds, additional_fitness = decremental_regularization(population, requirements, metric, chain_class,
+                                                                         size)
+        return population + additional_inds, fitness + additional_fitness
     elif reg_id == RegularizationTypesEnum.none:
-        return ([], [])
+        return population, fitness
+    else:
+        raise ValueError(f'Required regularization type not found: {type}')
 
 
 def decremental_regularization(population: List[Any], requirements, metric: Callable, chain_class: Any,
