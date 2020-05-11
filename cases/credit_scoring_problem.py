@@ -34,7 +34,6 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 def run_credit_scoring_problem(train_file_path, test_file_path):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
-
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
