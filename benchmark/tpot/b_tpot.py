@@ -16,8 +16,8 @@ def run_tpot(train_file_path: str, test_file_path: str, task: MachineLearningTas
     generations = models_hyperparameters['GENERATIONS']
     population_size = models_hyperparameters['POPULATION_SIZE']
 
-    result_model_filename = f"{case_name}_g{generations}" \
-                            f"_p{population_size}_{task.name}.pkl"
+    result_model_filename = f'{case_name}_g{generations}' \
+                            f'_p{population_size}_{task.name}.pkl'
     current_file_path = str(os.path.dirname(__file__))
     result_file_path = os.path.join(current_file_path, result_model_filename)
 

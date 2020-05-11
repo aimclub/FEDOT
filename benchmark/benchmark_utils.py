@@ -5,9 +5,10 @@ import os
 import pandas as pd
 
 from core.utils import project_root
+from typing import Tuple
 
 
-def get_scoring_case_data_paths() -> tuple:
+def get_scoring_case_data_paths() -> Tuple[str, str]:
     train_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_train.csv')
     test_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
@@ -16,7 +17,7 @@ def get_scoring_case_data_paths() -> tuple:
     return full_train_file_path, full_test_file_path
 
 
-def get_cancer_case_data_paths() -> tuple:
+def get_cancer_case_data_paths() -> Tuple[str, str]:
     train_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_train.csv')
     test_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)

@@ -23,7 +23,7 @@ def run_h2o(train_file_path: str, test_file_path: str, task: MachineLearningTask
     max_models = config_data['MAX_MODELS']
     max_runtime_secs = config_data['MAX_RUNTIME_SECS']
 
-    result_filename = f"{case_name}_m{max_models}_rs{max_runtime_secs}_{task.name}"
+    result_filename = f'{case_name}_m{max_models}_rs{max_runtime_secs}_{task.name}'
     exported_model_path = os.path.join(CURRENT_PATH, result_filename)
 
     # TODO Regression
