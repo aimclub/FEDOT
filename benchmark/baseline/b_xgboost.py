@@ -1,7 +1,7 @@
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import roc_auc_score
-from xgboost import XGBClassifier,XGBRegressor
+from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import mean_squared_error as mse
 from benchmark.benchmark_utils import get_scoring_case_data_paths
 from core.models.data import InputData
