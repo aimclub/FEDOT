@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import List
 
 from benchmark.H2O.b_h2o import run_h2o
-#from benchmark.autokeras.b_autokeras import run_autokeras
+from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
-from benchmark.benchmark_model_types import ModelTypesEnum
-#from benchmark.mlbox.b_mlbox import run_mlbox
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
+from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
 from benchmark.fedot.fedot_classification import run_classification_problem
 from benchmark.fedot.fedot_regression import run_regression_problem
@@ -20,14 +20,14 @@ class CaseExecutor:
     target_name: str
     hyperparameters: dict
     task: MachineLearningTasksEnum
-    models: List[ModelTypesEnum]
+    models: List[BenchmarkModelTypesEnum]
 
     def execute(self):
         print('START EXECUTION')
 
         saved_metric_results = {'task': self.task.value}
 
-        if ModelTypesEnum.tpot in self.models:
+        if BenchmarkModelTypesEnum.tpot in self.models:
             print('---------\nRUN TPOT\n---------')
             tpot_result = run_tpot(train_file_path=self.train_file,
                                    test_file_path=self.test_file,
@@ -35,24 +35,21 @@ class CaseExecutor:
                                    config_data=self.hyperparameters['TPOT'],
                                    task=self.task)
             saved_metric_results['tpot_metric'] = tpot_result
-        if ModelTypesEnum.h2o in self.models:
+        if BenchmarkModelTypesEnum.h2o in self.models:
             print('---------\nRUN H2O\n---------')
             h2o_result = run_h2o(train_file_path=self.train_file,
                                  test_file_path=self.test_file,
                                  case_name=self.case_label,
-                                 target_name=self.target_name,
-                                 config_data=self.hyperparameters['H2O'],
                                  task=self.task)
             saved_metric_results['h2o_metric'] = h2o_result
-        if ModelTypesEnum.autokeras in self.models:
+        if BenchmarkModelTypesEnum.autokeras in self.models:
             print('---------\nRUN AUTOKERAS\n---------')
             autokeras_result = run_autokeras(train_file_path=self.train_file,
                                              test_file_path=self.test_file,
                                              case_name=self.case_label,
-                                             config_data=self.hyperparameters['autokeras'],
                                              task=self.task)
             saved_metric_results['autokeras_metric'] = autokeras_result
-        if ModelTypesEnum.fedot in self.models:
+        if BenchmarkModelTypesEnum.fedot in self.models:
             print('---------\nRUN FEDOT\n---------')
             if self.task is MachineLearningTasksEnum.classification:
                 fedot_result = run_classification_problem(train_file_path=self.train_file,
@@ -62,28 +59,22 @@ class CaseExecutor:
                                                         'single_model_roc_auc': fedot_result[2]}
             elif self.task is MachineLearningTasksEnum.regression:
                 fedot_result = run_regression_problem(train_file_path=self.train_file,
-                                                          test_file_path=self.test_file)
+                                                      test_file_path=self.test_file)
                 saved_metric_results['fedot_metric'] = {'Static RMSE': fedot_result[0],
                                                         'Composed RMSE': fedot_result[1]}
-        if ModelTypesEnum.mlbox in self.models:
+        if BenchmarkModelTypesEnum.mlbox in self.models:
             print('---------\nRUN MLBOX\n---------')
             mlbox_result = run_mlbox(train_file_path=self.train_file,
                                      test_file_path=self.test_file,
                                      target_name=self.target_name,
-                                     config_data=self.hyperparameters['MLBox'],
                                      task=self.task)
 
             saved_metric_results['mlbox_metric'] = mlbox_result
 
-        if ModelTypesEnum.baseline in self.models:
+        if BenchmarkModelTypesEnum.baseline in self.models:
             print('---------\nRUN BASELINE\n---------')
-            if self.task is MachineLearningTasksEnum.classification:
-                xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
-                                             target_name=self.target_name, task_flag = 1)
-                saved_metric_results['baseline_metric'] = xgboost_result
-            elif self.task is MachineLearningTasksEnum.regression:
-                xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
-                                             target_name=self.target_name, task_flag = 0)
-                saved_metric_results['baseline_metric'] = xgboost_result
-            
+            xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
+                                         target_name=self.target_name, task=self.task)
+            saved_metric_results['baseline_metric'] = xgboost_result
+
         return saved_metric_results

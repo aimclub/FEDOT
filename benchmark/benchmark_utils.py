@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from benchmark.benchmark_model_types import ModelTypesEnum
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from core.utils import project_root
 import json
 from sklearn.model_selection import train_test_split
@@ -27,27 +27,28 @@ def get_cancer_case_data_paths():
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
 
     return full_train_file_path, full_test_file_path
-    
-def get_penn_data_paths(name_of_dataset: str)-> str:
+
+
+def init_penn_data_paths(name_of_dataset: str):
     tmp_dir = os.path.join(str(project_root()), 'cases', 'data', 'penn', str(name_of_dataset))
     if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
     else:
         print('Dataset already exist')
-        pass
-    return 
- 
-def get_penn_case_data_paths(name_of_dataset: str)-> str:
+
+
+def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> str:
     df = fetch_data(name_of_dataset)
-    penn_train, penn_test=train_test_split(df.iloc[:,:], test_size=0.2, random_state=42)
-    get_penn_data_paths(name_of_dataset)
+    penn_train, penn_test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
+    init_penn_data_paths(name_of_dataset)
     train_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_train.csv')
     test_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
-    penn_train.to_csv(full_train_file_path ,sep=',')
-    penn_test.to_csv(full_test_file_path ,sep=',')
-    return full_train_file_path, full_test_file_path 
+    penn_train.to_csv(full_train_file_path, sep=',')
+    penn_test.to_csv(full_test_file_path, sep=',')
+    return full_train_file_path, full_test_file_path
+
 
 def save_metrics_result_file(data: dict, file_name: str):
     with open(f'{file_name}.json', 'w') as file:

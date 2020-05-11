@@ -1,5 +1,4 @@
 import datetime
-import os
 import random
 
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -17,7 +16,6 @@ from core.repository.model_types_repository import (
 )
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
-from core.utils import project_root
 
 random.seed(1)
 np.random.seed(1)
@@ -32,7 +30,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
     return roc_auc_value
 
 
-def run_classification_problem(train_file_path, test_file_path):
+def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
@@ -57,7 +55,7 @@ def run_classification_problem(train_file_path, test_file_path):
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=10))
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
     # Create GP-based composer
     composer = GPComposer()
@@ -85,7 +83,6 @@ def run_classification_problem(train_file_path, test_file_path):
                                                                         composer_requirements=single_composer_requirements,
                                                                         metrics=metric_function)
     chain_single.fit(input_data=dataset_to_compose, verbose=True)
-    print("Composition finished")
 
     ComposerVisualiser.visualise(chain_static)
     ComposerVisualiser.visualise(chain_evo_composed)
@@ -94,10 +91,6 @@ def run_classification_problem(train_file_path, test_file_path):
     roc_on_valid_static = round(calculate_validation_metric(chain_static, dataset_to_validate), 3)
     roc_on_valid_single = round(calculate_validation_metric(chain_single, dataset_to_validate), 3)
     roc_on_valid_evo_composed = round(calculate_validation_metric(chain_evo_composed, dataset_to_validate), 3)
-
-    print(f'Composed ROC AUC is {roc_on_valid_evo_composed}')
-    print(f'Static ROC AUC is {roc_on_valid_static}')
-    print(f'Single-model ROC AUC is {roc_on_valid_single}')
 
     return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
 
