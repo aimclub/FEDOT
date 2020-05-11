@@ -38,7 +38,7 @@ def run_classification_problem(train_file_path, test_file_path):
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types = models_repo.search_models(
+    available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=MachineLearningTasksEnum.classification,
@@ -101,16 +101,3 @@ def run_classification_problem(train_file_path, test_file_path):
 
     return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
 
-
-if __name__ == '__main__':
-    # the dataset was obtained from https://www.kaggle.com/kashnitsky/a5-demo-logit-and-rf-for-credit-scoring
-
-    # a dataset that will be used as a train and test set during composition
-
-    file_path_train = 'cases/data/scoring/scoring_train.csv'
-    full_path_train = os.path.join(str(project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/scoring/scoring_test.csv'
-    full_path_test = os.path.join(str(project_root()), file_path_test)
-    run_credit_scoring_problem(full_path_train, full_path_test)
