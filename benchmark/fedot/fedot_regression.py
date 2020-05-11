@@ -27,10 +27,10 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
     # the execution of the obtained composite models
     predicted = chain.predict(dataset_to_validate)
     # the quality assessment for the simulation results
-    mse = mse(y_true=dataset_to_validate.target,
+    score_value = mse(y_true=dataset_to_validate.target,
                         y_pred=predicted.predict,
                         squared=False)
-    return mse
+    return score_value
 
 
 def run_regression_problem(train_file_path, test_file_path):
