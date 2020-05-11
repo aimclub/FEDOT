@@ -1,0 +1,9 @@
+classification_dataset_names,regression_dataset_names
+GAMETES_Epistasis_2-Way_1000atts_0.4H_EDM-1_EDM-1_1,1027_ESL
+GAMETES_Epistasis_2-Way_20atts_0.1H_EDM-1_1,1028_SWD
+GAMETES_Epistasis_2-Way_20atts_0.4H_EDM-1_1,1029_LEV
+GAMETES_Epistasis_3-Way_20atts_0.2H_EDM-1_1,1030_ERA
+GAMETES_Heterogeneity_20atts_1600_Het_0.4_0.2_50_EDM-2_001,1089_USCrime
+GAMETES_Heterogeneity_20atts_1600_Het_0.4_0.2_75_EDM-2_001,1096_FacultySalaries
+Hill_Valley_with_noise,1191_BNG_pbc
+Hill_Valley_without_noise,

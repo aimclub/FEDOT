@@ -1,26 +1,22 @@
-# -*- coding: utf-8 -*-
-from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from core.utils import project_root
+import gc
 import json
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from pmlb import fetch_data
 import os
-import gc
-
+from core.utils import project_root
+from typing import Tuple
 
 def get_scoring_case_data_paths():
     train_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_train.csv')
     test_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_test.csv')
-    print(train_file_path)
-    print(test_file_path)
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
 
     return full_train_file_path, full_test_file_path
 
 
-def get_cancer_case_data_paths():
+def get_cancer_case_data_paths() -> Tuple[str, str]:
     train_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_train.csv')
     test_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
@@ -55,7 +51,7 @@ def save_metrics_result_file(data: dict, file_name: str):
         json.dump(data, file, indent=4)
 
 
-def get_models_hyperparameters(timedelta=30):
+def get_models_hyperparameters(timedelta: int = 30) -> dict:
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS
 
     tpot_config = {'MAX_RUNTIME_MINS': timedelta,
@@ -92,3 +88,18 @@ def get_models_hyperparameters(timedelta=30):
     gc.collect()
 
     return config_dictionary
+
+
+def get_target_name(file_path: str) -> str:
+    print('Make sure that your dataset target column is the last one')
+    dataframe = pd.read_csv(file_path)
+    column_names = dataframe.columns()
+    target_name = column_names[-1]
+
+    return target_name
+
+
+def get_h2o_connect_config():
+    IP = '127.0.0.1'
+    PORT = 8888
+    return IP, PORT

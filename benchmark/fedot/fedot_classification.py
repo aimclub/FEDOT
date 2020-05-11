@@ -30,7 +30,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
     return roc_auc_value
 
 
-def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10):
+def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
@@ -42,7 +42,6 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
                                                task_type=MachineLearningTasksEnum.classification,
                                                can_be_initial=True,
                                                can_be_secondary=True))
-
 
     # the choice of the metric for the chain quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
@@ -64,7 +63,7 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=True)
+                                                metrics=metric_function, is_visualise=vis_flag)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     # the choice and initialisation of the dummy_composer
@@ -73,7 +72,7 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=True)
+                                                metrics=metric_function, is_visualise=vis_flag)
     chain_static.fit(input_data=dataset_to_compose, verbose=True)
     # the single-model variant of optimal chain
     single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.mlp],
@@ -93,4 +92,3 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     roc_on_valid_evo_composed = round(calculate_validation_metric(chain_evo_composed, dataset_to_validate), 3)
 
     return roc_on_valid_evo_composed, roc_on_valid_static, roc_on_valid_single
-

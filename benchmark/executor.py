@@ -18,7 +18,6 @@ class CaseExecutor:
     test_file: str
     case_label: str
     target_name: str
-    hyperparameters: dict
     task: MachineLearningTasksEnum
     models: List[BenchmarkModelTypesEnum]
 
@@ -32,7 +31,6 @@ class CaseExecutor:
             tpot_result = run_tpot(train_file_path=self.train_file,
                                    test_file_path=self.test_file,
                                    case_name=self.case_label,
-                                   config_data=self.hyperparameters['TPOT'],
                                    task=self.task)
             saved_metric_results['tpot_metric'] = tpot_result
         if BenchmarkModelTypesEnum.h2o in self.models:
@@ -52,7 +50,7 @@ class CaseExecutor:
         if BenchmarkModelTypesEnum.fedot in self.models:
             print('---------\nRUN FEDOT\n---------')
             if self.task is MachineLearningTasksEnum.classification:
-                fedot_result = run_classification_problem(train_file_path=self.train_file,
+                fedot_result = run_credit_scoring_problem(train_file_path=self.train_file,
                                                           test_file_path=self.test_file)
                 saved_metric_results['fedot_metric'] = {'composed_roc_auc': fedot_result[0],
                                                         'static_roc_auc': fedot_result[1],

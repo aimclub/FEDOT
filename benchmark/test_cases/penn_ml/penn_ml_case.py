@@ -1,15 +1,20 @@
-from benchmark.benchmark_model_types import ModelTypesEnum
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.benchmark_utils import get_penn_case_data_paths, save_metrics_result_file, get_models_hyperparameters
 from benchmark.executor import CaseExecutor
 from core.repository.task_types import MachineLearningTasksEnum
 from pmlb import classification_dataset_names, regression_dataset_names
-from pmlb import fetch_data
+import pandas as pd
 
 if __name__ == '__main__':
-    with open('./datasets.txt', 'r') as f:
-        datasets = f.read().splitlines()
-    if len(datasets) == 0:
+    try:
+        df = pd.read_csv('./datasets.csv')
+    except:
+        raise FileNotFoundError
+        print('Please create csv-file with datasets')
+    if len(df) == 0:
         datasets=classification_dataset_names+regression_dataset_names
+    else:
+        datasets=df['regression_dataset_names'].values + df['classification_dataset_names'].values
 
     for name_of_dataset in datasets:
         if name_of_dataset in classification_dataset_names:
@@ -24,11 +29,11 @@ if __name__ == '__main__':
         result_metrics=CaseExecutor(train_file=train_file,
                                       test_file=test_file,
                                       task=problem_class,
-                                      models=[ModelTypesEnum.tpot,
-                                              ModelTypesEnum.h2o,
-                                              ModelTypesEnum.fedot,
-                                              ModelTypesEnum.autokeras,
-                                              ModelTypesEnum.mlbox],
+                                      models=[BenchmarkModelTypesEnum.tpot,
+                                              BenchmarkModelTypesEnum.h2o,
+                                              BenchmarkModelTypesEnum.fedot,
+                                              BenchmarkModelTypesEnum(autokeras,
+                                              BenchmarkModelTypesEnum(mlbox],
                                       target_name='target',
                                       case_label=case_name,hyperparameters=config_models_data).execute()
 
