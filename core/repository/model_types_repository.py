@@ -25,6 +25,8 @@ class ModelTypesIdsEnum(Enum):
     ridge = 'ridge',
     lasso = 'lasso',
     kmeans = 'kmeans'
+    tpot = 'tpot'
+    h2o = 'h2o'
 
 
 class ModelGroupsIdsEnum(Enum):
@@ -116,6 +118,11 @@ class ModelTypesRepository:
                                               ModelTypesIdsEnum.xgboost],
                                       task_type=[MachineLearningTasksEnum.classification],
                                       parent=ml)
+
+        self._initialise_models_group(models=[ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
+                                      task_type=[MachineLearningTasksEnum.classification],
+                                      parent=ml, is_initial=False, is_secondary=False)
+
         self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
                                       task_type=[MachineLearningTasksEnum.clustering],
                                       parent=stat)
@@ -124,11 +131,11 @@ class ModelTypesRepository:
 
     def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
                                  task_type: List[MachineLearningTasksEnum],
-                                 parent: ModelsGroup):
+                                 parent: ModelsGroup, is_initial=True, is_secondary=True):
 
         common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
                                     output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                    task_type=[])
+                                    task_type=[], can_be_initial=is_initial, can_be_secondary=is_secondary)
         group_meta = deepcopy(common_meta)
         group_meta.task_type = task_type
 

@@ -22,6 +22,7 @@ class ComposerRequirements:
     max_depth: Optional[int] = None
     max_arity: Optional[int] = None
 
+
 class Composer(ABC):
     def __init__(self):
         self.history = None

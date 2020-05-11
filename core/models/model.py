@@ -1,5 +1,4 @@
 from abc import ABC
-from copy import copy
 from dataclasses import dataclass
 
 import numpy as np
@@ -8,7 +7,7 @@ from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AutoMLEvaluationStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -58,10 +57,20 @@ class Model(ABC):
 
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
     strategies_for_tasks = {
-        MachineLearningTasksEnum.classification: SkLearnClassificationStrategy,
-        MachineLearningTasksEnum.regression: SkLearnRegressionStrategy,
-        MachineLearningTasksEnum.auto_regression: StatsModelsAutoRegressionStrategy,
-        MachineLearningTasksEnum.clustering: SkLearnClusteringStrategy
+        MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy],
+        MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy],
+        MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
+        MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
+    }
+
+    models_for_strategies = {
+        SkLearnClassificationStrategy: [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
+                                        ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
+                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda],
+        AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
+        SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
+        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
+        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]
     }
 
     models_repo = ModelTypesRepository()
@@ -81,6 +90,11 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
             raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    eval_strategy = strategies_for_tasks[task_type_for_model](model_type)
+    eval_strategies = strategies_for_tasks[task_type_for_model]
 
-    return eval_strategy
+    for strategy in eval_strategies:
+        if model_type in models_for_strategies[strategy]:
+            eval_strategy = strategy(model_type)
+            return eval_strategy
+
+    return None
