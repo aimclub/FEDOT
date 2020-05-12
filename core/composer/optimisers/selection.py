@@ -29,8 +29,8 @@ def random_selection(pop_size: int, group_size: int) -> List[int]:
 
 
 def tournament_selection(fitness: List[float], population: List[Any], pop_size: int, num_of_parents=2,
-                         population_part_size=0.1) -> List[Tuple[Any]]:
-    group_size = math.ceil(len(fitness) * population_part_size)
+                         fraction=0.1) -> List[Tuple[Any]]:
+    group_size = math.ceil(len(fitness) * fraction)
     min_group_size = 2 if len(fitness) > 1 else 1
     group_size = max(group_size, min_group_size)
     chosen = []

@@ -124,10 +124,10 @@ class GPChainOptimiser:
     @property
     def best_individual_with_fitness(self) -> Tuple[Any, float]:
         best_ind_num = np.argmin(self.fitness)
-        simpler_equivalents = self.simpler_equivalents_of_best_ind(best_ind_num)
+        equivalents = self.simpler_equivalents_of_best_ind(best_ind_num)
 
-        if simpler_equivalents:
-            best_candidate = min(simpler_equivalents, key=simpler_equivalents.get)
+        if equivalents:
+            best_candidate = min(equivalents, key=equivalents.get)
             best = self.population[best_candidate]
             best_fitness = self.fitness[best_candidate]
         else:

@@ -39,7 +39,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
@@ -72,7 +71,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # Create GP-based composer
     composer = GPComposer()
 
-    # the optimal chain generation by composition - the most time-consuming task
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,

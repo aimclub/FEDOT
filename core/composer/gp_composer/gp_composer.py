@@ -11,7 +11,7 @@ from core.composer.composer import Composer, ComposerRequirements
 from core.composer.node import NodeGenerator
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from core.composer.visualisation import ComposerVisualiser
-from core.composer.wrire_history import write_composer_history_to_csv
+from core.composer.write_history import write_composer_history_to_csv
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
 

@@ -14,7 +14,6 @@ from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
 from core.composer.visualisation import ComposerVisualiser
-from core.debug.metrics import RandomMetric
 from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -56,10 +55,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # the choice of the metric for the chain quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-    # alternative can be used for experiments
-    alt_metric_function = RandomMetric.get_value
 
-    # the choice and initialisation of the random_search
     if gp_optimiser_params:
         optimiser_parameters = gp_optimiser_params
     else:
