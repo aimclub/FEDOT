@@ -42,8 +42,8 @@ class RocAucMetric(ChainMetric):
         try:
             validate(chain)
             results = chain.predict(reference_data)
-            score = roc_auc_score(y_score=results.predict,
-                                  y_true=reference_data.target)
+            score = round(roc_auc_score(y_score=results.predict,
+                                        y_true=reference_data.target), 3)
         except Exception as ex:
             print(ex)
             score = 0.5

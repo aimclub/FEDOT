@@ -5,7 +5,8 @@ from enum import Enum
 from typing import (
     List,
     Callable,
-    Optional
+    Optional,
+    Any
 )
 
 from core.composer.chain import Chain
@@ -19,8 +20,18 @@ class ComposerRequirements:
     primary: List[ModelTypesIdsEnum]
     secondary: List[ModelTypesIdsEnum]
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=30)
-    max_depth: Optional[int] = None
-    max_arity: Optional[int] = None
+    max_depth: int = 3
+    max_arity: int = 2
+    min_arity: int = 2
+
+    def __post_init__(self):
+        if self.max_depth < 0:
+            raise ValueError(f'invalid max_depth value')
+        if self.max_arity < 0:
+            raise ValueError(f'invalid max_arity value')
+        if self.min_arity < 0:
+            raise ValueError(f'invalid min_arity value')
+
 
 
 class Composer(ABC):
@@ -32,6 +43,7 @@ class Composer(ABC):
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Callable,
+                      optimiser_parameters: Any = None,
                       is_visualise: bool = False) -> Chain:
         raise NotImplementedError()
 
@@ -50,6 +62,7 @@ class DummyComposer(Composer):
                       initial_chain: Optional[Chain],
                       composer_requirements: ComposerRequirements,
                       metrics: Optional[Callable],
+                      optimiser_parameters=None,
                       is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 

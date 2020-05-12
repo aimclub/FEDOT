@@ -11,8 +11,8 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
-    def __init__(self):
-        self.nodes = []
+    def __init__(self, nodes=None):
+        self.nodes = [] if not nodes else nodes
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
@@ -40,22 +40,30 @@ class Chain:
         self.nodes.append(new_node)
 
     def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
-        old_node_offspring = self._node_childs(old_node)
+        old_node_offspring = self.node_childs(old_node)
         for old_node_child in old_node_offspring:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
 
     def replace_node_with_parents(self, old_node: Node, new_node: Node):
         new_node = deepcopy(new_node)
         self._actualise_old_node_childs(old_node, new_node)
-        new_nodes = [parent for parent in new_node.subtree_nodes if not parent in self.nodes]
-        old_nodes = [node for node in self.nodes if not node in old_node.subtree_nodes]
+        new_nodes = [parent for parent in new_node.ordered_subnodes_hierarchy if not parent in self.nodes]
+        old_nodes = [node for node in self.nodes if not node in old_node.ordered_subnodes_hierarchy]
         self.nodes = new_nodes + old_nodes
+        self.sort_nodes()
 
     def update_node(self, old_node: Node, new_node: Node):
         self._actualise_old_node_childs(old_node, new_node)
         new_node.nodes_from = old_node.nodes_from
         self.nodes.remove(old_node)
         self.nodes.append(new_node)
+        self.sort_nodes()
+
+    def delete_node(self, node: Node):
+        for node_child in self.node_childs(node):
+            node_child.nodes_from.remove(node)
+        for subtree_node in node.ordered_subnodes_hierarchy:
+            self.nodes.remove(subtree_node)
 
     def _clean_model_cache(self):
         for node in self.nodes:
@@ -65,12 +73,12 @@ class Chain:
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]
         return all(cache_status)
 
-    def _node_childs(self, node) -> List[Optional[Node]]:
-        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) if
+    def node_childs(self, node) -> List[Optional[Node]]:
+        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) and
                 node in other_node.nodes_from]
 
     def _is_node_has_child(self, node) -> bool:
-        return any(self._node_childs(node))
+        return any(self.node_childs(node))
 
     def import_cache(self, fitted_chain: 'Chain'):
         for node in self.nodes:
@@ -79,6 +87,12 @@ class Chain:
                     if fitted_node.descriptive_id == node.descriptive_id:
                         node.cache.import_from_other_cache(fitted_node.cache)
                         break
+
+    # TODO why trees visualisation is incorrect?
+    def sort_nodes(self):
+        """layer by layer sorting"""
+        nodes = self.root_node.ordered_subnodes_hierarchy
+        self.nodes = nodes
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -127,7 +141,6 @@ class SharedChain(Chain):
 
 def as_nx_graph(chain: Chain):
     graph = nx.DiGraph()
-
     node_labels = {}
     new_node_idx = {}
     for node in chain.nodes:

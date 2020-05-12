@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from copy import copy
-from typing import (List, Optional, Any, Tuple)
+from typing import (List, Optional)
 
 from core.models.data import Data, OutputData
 from core.models.data import (
@@ -81,11 +81,11 @@ class Node(ABC):
         return model_predict
 
     @property
-    def subtree_nodes(self) -> List['Node']:
+    def ordered_subnodes_hierarchy(self) -> List['Node']:
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.subtree_nodes
+                nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
 
@@ -239,25 +239,3 @@ class SecondaryNode(Node):
                           predict=evaluation_result,
                           task_type=input_data.task_type)
 
-
-def equivalent_subtree(root_of_tree_first: Node, root_of_tree_second: Node) -> List[Tuple[Any, Any]]:
-    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
-    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
-
-    def structural_equivalent_nodes(node_first, node_second):
-        nodes = []
-        is_same_type = type(node_first) == type(node_second)
-        node_first_childs = node_first.nodes_from
-        node_second_childs = node_second.nodes_from
-        if is_same_type and (isinstance(node_first, PrimaryNode) or len(node_first_childs) == len(node_second_childs)):
-            nodes.append((node_first, node_second))
-            if node_first.nodes_from:
-                for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):
-                    nodes_set = structural_equivalent_nodes(node1_child, node2_child)
-                    if nodes_set:
-                        nodes += nodes_set
-        return nodes
-
-    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
-    assert isinstance(pairs_set, list)
-    return pairs_set
