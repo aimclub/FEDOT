@@ -63,7 +63,7 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
     return chain
 
 
-def equivalent_subtree(root_of_tree_first: Any, root_of_tree_second: Any) -> List[Tuple[Any, Any]]:
+def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, Any]]:
     """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
     where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
 
@@ -81,6 +81,6 @@ def equivalent_subtree(root_of_tree_first: Any, root_of_tree_second: Any) -> Lis
                         nodes += nodes_set
         return nodes
 
-    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
+    pairs_set = structural_equivalent_nodes(chain_first.root_node, chain_second.root_node)
     assert isinstance(pairs_set, list)
     return pairs_set
