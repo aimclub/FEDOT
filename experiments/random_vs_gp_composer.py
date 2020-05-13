@@ -1,4 +1,5 @@
 from copy import copy
+from functools import partial
 from random import seed
 
 import numpy as np
@@ -11,7 +12,8 @@ from core.models.data import InputData
 from core.models.data import train_test_data_setup
 from core.models.preprocessing import Normalization
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+    ComplexityMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (chain_template_balanced_tree, fit_template,
                                         show_chain_template, real_chain)
@@ -131,11 +133,12 @@ def _distances_history(source_chain, chain_history):
 
 def compare_composers():
     runs = 1
-    iterations = 3
-    pop_size = 10
+    iterations = 5
+    pop_size = 5
     models_in_source_chain = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn]
     samples, features_amount, classes = 10000, 10, 2
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    default_metric = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    distance_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.chain_distance)
 
     history_random, history_gp = [], []
     random_dist, gp_dist = [], []
@@ -145,7 +148,7 @@ def compare_composers():
         data_full = data_generated_by(source, samples, features_amount, classes)
         data_to_compose, data_to_validate = train_test_data_setup(data_full)
         available_model_types = models_to_use()
-
+        metric = partial(distance_metric, source_chain=source)
         # Init and run RandomComposer
         print('Running RandomComposer:')
         random_composer = RandomSearchComposer(iter_num=iterations * pop_size)
@@ -154,7 +157,7 @@ def compare_composers():
         random_composed = random_composer.compose_chain(data=data_to_compose,
                                                         initial_chain=None,
                                                         composer_requirements=random_reqs,
-                                                        metrics=metric_function,
+                                                        metrics=metric,
                                                         history_callback=history_best_random)
         history_random.append(history_best_random.fitness_values)
         random_composed.fit(input_data=data_to_compose, verbose=True)
@@ -171,7 +174,7 @@ def compare_composers():
         gp_composed = gp_composer.compose_chain(data=data_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=gp_requirements,
-                                                metrics=metric_function, is_visualise=False)
+                                                metrics=metric, is_visualise=False)
         history_gp.append((gp_composer.history, source))
         gp_composed.fit(input_data=data_to_compose, verbose=True)
         roc_score(gp_composed, data_to_compose, data_to_validate)

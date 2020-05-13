@@ -4,12 +4,13 @@ from collections import Counter
 from copy import copy
 from random import uniform
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
-from core.models.preprocessing import Normalization
+from core.models.preprocessing import Normalization, DefaultStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (
@@ -79,6 +80,7 @@ def mixed_clusters_dataset(clusters, samples_total, features_amount, classes=2):
 
     mixed_dataset = copy(data_train)
     preprocessor = Normalization().fit(mixed_dataset.features)
+    preprocessor = DefaultStrategy().fit(mixed_dataset.features)
     mixed_dataset.features = preprocessor.apply(mixed_dataset.features)
 
     return mixed_dataset, preprocessor
@@ -109,7 +111,7 @@ def _cluster_labels(clusters_amount, classes_amount=2):
 
 def simple_chain_for_tests():
     samples, features, classes = 10000, 10, 2
-    template = chain_template_balanced_tree(model_types=models_to_use(), depth=2, models_per_level=[2, 1],
+    template = chain_template_balanced_tree(model_types=[ModelTypesIdsEnum.xgboost], depth=1, models_per_level=[1],
                                             samples=samples, features=features)
     show_chain_template(template)
 
@@ -134,16 +136,40 @@ def roc_score(chain, data_to_compose, data_to_validate):
     return roc_train, roc_test
 
 
+def mean_roc(runs=30):
+    roc_train_full, roc_test_full = [], []
+    for run in range(runs):
+        chain = simple_chain_for_tests()
+        data_fit, preprocessor = mixed_clusters_dataset(clusters=10, samples_total=10000, features_amount=2)
+
+        plt.figure()
+        plt.scatter(data_fit.features[:, 0], data_fit.features[:, 1], marker='o', c=data_fit.target[:, 0],
+                    s=25, edgecolor='k')
+        plt.savefig(f'mean_roc_figs/{run}.png')
+
+        cnt = Counter([value for value in data_fit.target.flatten()])
+        print(cnt)
+        data_to_compose, data_to_validate = train_test_data_setup(data_fit)
+        chain.fit_from_scratch(input_data=data_to_compose)
+        roc_train, roc_test = roc_score(chain=chain, data_to_compose=data_to_compose,
+                                        data_to_validate=data_to_validate)
+
+        roc_train_full.append(roc_train)
+        roc_test_full.append(roc_test)
+
+    mean_train = np.mean(roc_train_full)
+    std_train = np.std(roc_train_full)
+
+    mean_test = np.mean(roc_test_full)
+    std_test = np.std(roc_test_full)
+
+    print(f'ROC Train: {mean_train} +/ {std_train}')
+    print(f'ROC Test: {mean_test} +/ {std_test}')
+
+
 if __name__ == '__main__':
     samples, features, classes = 10000, 10, 2
     # source_chain, template = source_chain_and_template(model_types=models_to_use(),
     #                                                    samples=samples, features=features, classes=classes)
 
-    chain = simple_chain_for_tests()
-    data_fit, preprocessor = mixed_clusters_dataset(clusters=4, samples_total=10000, features_amount=10)
-    cnt = Counter([value for value in data_fit.target.flatten()])
-    print(cnt)
-    data_to_compose, data_to_validate = train_test_data_setup(data_fit)
-    chain.fit_from_scratch(input_data=data_to_compose)
-    roc_train, roc_test = roc_score(chain=chain, data_to_compose=data_to_compose,
-                                    data_to_validate=data_to_validate)
+    mean_roc(30)

@@ -16,7 +16,7 @@ def as_zss_tree(chain):
     root = chain.root_node
 
     def _as_zss_tree(node):
-        zss_node = ZssNode(label=node.descriptive_id)
+        zss_node = ZssNode(label=str(node.model))
         if node.nodes_from is not None:
             for child in node.nodes_from:
                 zss_node.addkid(node=_as_zss_tree(child))

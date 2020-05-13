@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import Callable
 
-from core.composer.metrics import RmseMetric, StructuralComplexityMetric, MaeMetric, RocAucMetric
+from core.composer.metrics import (
+    RmseMetric, StructuralComplexityMetric, MaeMetric,
+    RocAucMetric, ChainDistanceMetric)
 
 
 class MetricsEnum(Enum):
@@ -15,6 +17,7 @@ class QualityMetricsEnum(MetricsEnum):
 class ComplexityMetricsEnum(MetricsEnum):
     node_num = 'node_number'
     structural = 'structural'
+    chain_distance = 'distance'
 
 
 class ClassificationMetricsEnum(QualityMetricsEnum):
@@ -32,7 +35,8 @@ class MetricsRepository:
         ClassificationMetricsEnum.ROCAUC: RocAucMetric.get_value,
         RegressionMetricsEnum.MAE: MaeMetric.get_value,
         RegressionMetricsEnum.RMSE: RmseMetric.get_value,
-        ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value
+        ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value,
+        ComplexityMetricsEnum.chain_distance: ChainDistanceMetric.get_value
     }
 
     def metric_by_id(self, metric_id: MetricsEnum) -> Callable:
