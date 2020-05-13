@@ -134,11 +134,14 @@ class RandomSearchOptimiser:
         return new_set
 
 
-def _random_chain(requirements, depth=4, models_per_level=4):
+def _random_chain(requirements, depth=2, models_per_level=2):
     template = chain_template_random(model_types=requirements,
                                      depth=depth, models_per_level=models_per_level,
                                      samples=1000, features=10)
     fit_template(template, classes=2, skip_fit=True)
     final_chain = real_chain(template)
+
+    # for node in final_chain.nodes:
+    #    node.cache = FittedModelCache(node)
 
     return final_chain.nodes

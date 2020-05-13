@@ -144,7 +144,7 @@ class NodeGenerator:
 preprocessing_for_tasks = {
     MachineLearningTasksEnum.auto_regression: DefaultStrategy,
     MachineLearningTasksEnum.classification: Scaling,
-    MachineLearningTasksEnum.regression: Scaling,
+    MachineLearningTasksEnum.regression: DefaultStrategy,
     MachineLearningTasksEnum.clustering: Scaling
 }
 
@@ -208,7 +208,9 @@ class SecondaryNode(Node):
             print(f'Trying to fit secondary node with model: {self.model}')
 
         preprocessed_data = copy(secondary_input)
-        preprocessed_data.features = preprocessing.StandardScaler().fit_transform((preprocessed_data.features))
+
+        preprocessing_strategy = preprocessing_for_tasks[secondary_input.task_type]().fit(secondary_input.features)
+        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
         model_predict = self._fit_using_cache(input_data=preprocessed_data)
 

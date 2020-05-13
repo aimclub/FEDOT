@@ -1,4 +1,3 @@
-from copy import copy
 from functools import partial
 from random import seed
 
@@ -7,6 +6,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.composer import ComposerRequirements
 from core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposer
+from core.composer.node import preprocessing_for_tasks
 from core.composer.random_composer import RandomSearchComposer, History
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
@@ -56,10 +56,13 @@ def data_generated_by(chain, samples, features_amount, classes):
                                  features=features, target=synth_labels, task_type=task_type)
 
     # data_synth_train.features = Normalization().fit(data_synth_train.features).apply(data_synth_train.features)
-    preproc_data = copy(data_synth_train)
-    preprocessor = Normalization().fit(preproc_data.features)
-    preproc_data.features = preprocessor.apply(preproc_data.features)
-    chain.fit_from_scratch(input_data=preproc_data)
+    # preproc_data = copy(data_synth_train)
+    # preprocessor = Normalization().fit(preproc_data.features)
+    # preproc_data.features = preprocessor.apply(preproc_data.features)
+
+    preprocessing_for_tasks[MachineLearningTasksEnum.classification] = Normalization
+
+    chain.fit_from_scratch(input_data=data_synth_train)
 
     features, target = synthetic_dataset(samples_amount=samples,
                                          features_amount=features_amount,
