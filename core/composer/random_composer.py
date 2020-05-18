@@ -100,7 +100,8 @@ class RandomSearchOptimiser:
             print(f'Iter {i}')
             # new_nodeset = self._random_nodeset(primary_candidates, secondary_candidates)
             depth = random.choice([_ for _ in range(2, 5)])
-            models_per_level = 5
+            depth = 2
+            models_per_level = 2
             new_nodeset = _random_chain(primary_candidates, depth=depth,
                                         models_per_level=models_per_level)
             new_metric_value = round(metric_function_for_nodes(nodes=new_nodeset), 3)

@@ -33,7 +33,7 @@ def models_to_use():
 
 
 def source_chain(model_types, samples, features, classes):
-    template = chain_template_balanced_tree(model_types=model_types, depth=4, models_per_level=[8, 4, 2, 1],
+    template = chain_template_balanced_tree(model_types=model_types, depth=2, models_per_level=[2, 1],
                                             samples=samples, features=features)
     show_chain_template(template)
     fit_template(template, classes=classes, with_gaussian=True, skip_fit=False)
@@ -86,7 +86,7 @@ def _reduced_history_best(history_all, generations, pop_size):
         for individ in history_[gen * pop_size: (gen + 1) * pop_size]:
             chains.append(individ[0])
             fitness_values.append(abs(individ[1]))
-        best = max(fitness_values)
+        best = min(fitness_values)
         best_chain = chains[fitness_values.index(best)]
         print(f'Min in generation #{gen}: {best}')
         reduced_fitness.append(best)
