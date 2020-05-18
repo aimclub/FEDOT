@@ -6,7 +6,6 @@ Link to download: https://www.oracle.com/java/technologies/javase-jdk8-downloads
 import os
 
 import h2o
-from sklearn.metrics import roc_auc_score
 
 from benchmark.benchmark_utils import (get_scoring_case_data_paths,
                                        get_models_hyperparameters,
@@ -42,31 +41,11 @@ def run_h2o(train_file_path: str, test_file_path: str, task: MachineLearningTask
     test_frame = InputData.from_csv(test_file_path)
     true_target = test_frame.target
 
-    predictions = predict_h2o(imported_model, test_frame)
-
-    if task is MachineLearningTasksEnum.classification:
-        train_roc_auc_value = round(imported_model.auc(train=True), 3)
-        valid_roc_auc_value = round(imported_model.auc(valid=True), 3)
-        test_roc_auc_value = round(roc_auc_score(true_target, predictions), 3)
-
-        metrics = {'H2O_ROC_AUC_train': train_roc_auc_value, 'H2O_ROC_AUC_valid': valid_roc_auc_value,
-                   'H2O_ROC_AUC_test': test_roc_auc_value}
-
-        print(f"H2O_ROC_AUC_train: {metrics['H2O_ROC_AUC_train']}")
-        print(f"H2O_ROC_AUC_valid: {metrics['H2O_ROC_AUC_valid']}")
-        print(f"H2O_ROC_AUC_test: {metrics['H2O_ROC_AUC_test']}")
-    else:
-        mse_train = imported_model.mse()
-        rmse_train = imported_model.rmse()
-
-        metrics = {'H2O_MSE_train': mse_train, 'H2O_RMSE_train': rmse_train}
-
-        print(f"H2O_MSE_train: {metrics['H2O_MSE_train']}")
-        print(f"H2O_RMSE_train: {metrics['H2O_RMSE_train']}")
+    predicted = predict_h2o(imported_model, test_frame)
 
     h2o.shutdown(prompt=False)
 
-    return metrics
+    return true_target, predicted
 
 
 if __name__ == '__main__':

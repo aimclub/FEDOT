@@ -15,7 +15,8 @@ if __name__ == '__main__':
                                           BenchmarkModelTypesEnum.autokeras,
                                           BenchmarkModelTypesEnum.mlbox],
                                   target_name='default',
-                                  case_label='scoring').execute()
+                                  case_label='scoring',
+                                  metric_list=['roc_auc', 'f1']).execute()
 
     result_metrics['hyperparameters'] = get_models_hyperparameters()
 
