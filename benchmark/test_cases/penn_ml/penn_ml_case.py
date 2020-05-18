@@ -1,17 +1,19 @@
+from pathlib import Path
+
+import pandas as pd
+from pmlb import classification_dataset_names, regression_dataset_names, fetch_data
+from pmlb.write_metadata import imbalance_metrics
+
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.benchmark_utils import get_penn_case_data_paths, save_metrics_result_file, get_models_hyperparameters
 from benchmark.executor import CaseExecutor
 from core.repository.task_types import MachineLearningTasksEnum
-from pmlb import classification_dataset_names, regression_dataset_names, fetch_data
-import pandas as pd
-from pmlb.write_metadata import imbalance_metrics
-from pathlib import Path
 
 if __name__ == '__main__':
     penn_data = Path('./datasets.csv')
     dataset = []
     if penn_data.is_file():
-        df = pd.read_csv('./datasets.csv')
+        df = pd.read_csv(penn_data)
         dataset = df['dataset_names'].values
     else:
         print('Please create nonempty csv-file with datasets')
@@ -34,15 +36,12 @@ if __name__ == '__main__':
 
         train_file, test_file = get_penn_case_data_paths(name_of_dataset)
         config_models_data = get_models_hyperparameters()
-        case_name = f"penn_ml_{name_of_dataset}"
+        case_name = f'penn_ml_{name_of_dataset}'
 
         result_metrics = CaseExecutor(train_file=train_file,
                                       test_file=test_file,
                                       task=problem_class,
                                       models=[BenchmarkModelTypesEnum.tpot,
-                                              BenchmarkModelTypesEnum.h2o,
-                                              BenchmarkModelTypesEnum.autokeras,
-                                              BenchmarkModelTypesEnum.mlbox,
                                               BenchmarkModelTypesEnum.baseline,
                                               BenchmarkModelTypesEnum.fedot],
                                       target_name='target',
@@ -51,4 +50,4 @@ if __name__ == '__main__':
 
         result_metrics['hyperparameters'] = config_models_data
 
-        save_metrics_result_file(result_metrics, file_name=f"penn_ml_metrics_for_{name_of_dataset}")
+        save_metrics_result_file(result_metrics, file_name=f'penn_ml_metrics_for_{name_of_dataset}')

@@ -43,7 +43,6 @@ def run_h2o(train_file_path: str, test_file_path: str, task: MachineLearningTask
 
     predicted = predict_h2o(imported_model, test_frame)
 
-
     h2o.shutdown(prompt=False)
 
     return true_target, predicted
