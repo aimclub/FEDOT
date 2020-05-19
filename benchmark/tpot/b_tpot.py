@@ -1,10 +1,9 @@
 import os
-
 import joblib
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
 from core.models.data import InputData
-from core.models.evaluation.automl_eval import fit_tpot, predict_tpot
+from core.models.evaluation.automl_eval import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.repository.task_types import MachineLearningTasksEnum
 
 
@@ -19,7 +18,7 @@ def run_tpot(train_file_path: str, test_file_path: str, task: MachineLearningTas
     current_file_path = str(os.path.dirname(__file__))
     result_file_path = os.path.join(current_file_path, result_model_filename)
 
-    train_data = InputData.from_csv(train_file_path)
+    train_data = InputData.from_csv(train_file_path, task_type=task)
 
     if result_model_filename not in os.listdir(current_file_path):
         model = fit_tpot(train_data)
@@ -32,9 +31,15 @@ def run_tpot(train_file_path: str, test_file_path: str, task: MachineLearningTas
 
     imported_model = joblib.load(result_file_path)
 
-    predict_data = InputData.from_csv(test_file_path)
+    predict_data = InputData.from_csv(test_file_path, task_type=task)
     true_target = predict_data.target
-    predicted = predict_tpot(imported_model, predict_data)
+    if task is MachineLearningTasksEnum.regression:
+        predicted = predict_tpot_reg(imported_model, predict_data)
+    elif task is MachineLearningTasksEnum.classification:
+        predicted = predict_tpot_class(imported_model, predict_data)
+    else:
+        print('Incorrect type of ml task')
+        raise NotImplementedError()
 
     print(f'BEST_model: {imported_model}')
 

@@ -29,8 +29,16 @@ def fit_tpot(data: InputData):
     return model
 
 
-def predict_tpot(trained_model, predict_data):
-    return trained_model.predict_proba(predict_data.features)[:, 1]
+def predict_tpot_reg(trained_model, predict_data):
+    return trained_model.predict(predict_data.features)
+
+
+def predict_tpot_class(trained_model, predict_data):
+    try:
+        return trained_model.predict_proba(predict_data.features)[:, 1]
+    except AttributeError:
+        # sklearn workaround for tpot
+        return trained_model.predict(predict_data.features)
 
 
 def fit_h2o(train_data: InputData):
