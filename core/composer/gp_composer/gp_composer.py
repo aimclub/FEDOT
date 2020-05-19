@@ -26,7 +26,7 @@ class GPComposerRequirements(ComposerRequirements):
 
 class GPComposer(Composer):
     def __init__(self):
-        super(Composer, self).__init__()
+        super().__init__()
         self.shared_cache = {}
 
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
