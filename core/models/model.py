@@ -32,18 +32,10 @@ class Model:
         self._eval_strategy = \
             _eval_strategy_for_task(self.model_type, task)
 
-    def fit(self, data: InputData, with_tuning=False, tuning_iterations: int = 0):
+    def fit(self, data: InputData):
         self._init(data.task_type)
 
         fitted_model = self._eval_strategy.fit(train_data=data)
-        if with_tuning:
-            preprocessed_data = copy(data)
-            fitted_model = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
-                                                         iterations=tuning_iterations)
-            self.params = self._eval_strategy.params_for_fit
-            if self.params is None:
-                self.params = 'DEFAULT_PARAMS_STUB'
-
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
         return fitted_model, predict_train
@@ -58,6 +50,19 @@ class Model:
             print("Value error")
 
         return prediction
+
+    def fine_tune(self, data: InputData, iterations: int = 0):
+        self._init(data.task_type)
+        preprocessed_data = copy(data)
+        fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
+                                                                   iterations=iterations)
+        self.params = tuned_params
+        if self.params is None:
+            self.params = 'DEFAULT_PARAMS_STUB'
+
+        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
+                                                    predict_data=data)
+        return fitted_model, predict_train
 
     def __str__(self):
         return f'{self.model_type.name}'

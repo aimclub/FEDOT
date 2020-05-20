@@ -35,7 +35,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
                           y_score=test_predicted)
 
     knn_for_tune = Model(model_type=ModelTypesIdsEnum.knn)
-    model, _ = knn_for_tune.fit(data=train_data, with_tuning=True, tuning_iterations=10)
+    model, _ = knn_for_tune.fine_tune(data=train_data, iterations=10)
     test_predicted_tuned = knn.predict(fitted_model=model, data=test_data)
 
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
@@ -49,7 +49,7 @@ def test_arima_ar_tune_correct():
     train_data, test_data = train_test_data_setup(data=data)
 
     arima_for_tune = Model(model_type=ModelTypesIdsEnum.arima)
-    model, _ = arima_for_tune.fit(data=train_data, with_tuning=True, tuning_iterations=1)
+    model, _ = arima_for_tune.fine_tune(data=train_data, iterations=5)
     test_predicted_tuned = arima_for_tune.predict(fitted_model=model, data=test_data)
 
     rmse_on_test_tuned = mse(y_true=test_data.target,

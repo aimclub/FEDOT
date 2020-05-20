@@ -1,6 +1,7 @@
 import warnings
 
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
+from scipy.stats import uniform
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
@@ -13,6 +14,7 @@ from sklearn.linear_model import LinearRegression as SklearnLinReg
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.linear_model import Ridge as SklearnRidgeReg
 from sklearn.linear_model import SGDRegressor as SklearnSGD
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
@@ -24,12 +26,11 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
+from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
-from core.models.data import InputData, OutputData
 from core.models.tuners import SkLearnRandomTuner, CustomRandomTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from sklearn.model_selection import RandomizedSearchCV
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -74,8 +75,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     }
 
     __params_range_by_model = {
-        # SklearnKmeans: {'n_clusters': range(2, 10)},
-        SklearnKNN: {'n_neighbors': range(6, 50)}
+        SklearnKmeans: {'n_clusters': range(2, 5)},
+        SklearnKNN: {'n_neighbors': range(6, 50)},
+        SklearnLogReg: {'C': uniform(loc=0, scale=4),
+                        'penalty': ['l2', 'l1']},
+        XGBClassifier: {'max_depth': range(2, 6)}
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
@@ -98,17 +102,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             self.params_for_fit = None
             return trained_model
 
-        best_params = SkLearnRandomTuner().tune(trained_model=trained_model,
-                                                tune_data=train_data,
-                                                params_range=params_range,
-                                                iterations=iterations)
+        tuned_params = SkLearnRandomTuner().tune(trained_model=trained_model,
+                                                 tune_data=train_data,
+                                                 params_range=params_range,
+                                                 iterations=iterations)
 
-        if best_params:
-            for best_param_name in best_params:
-                setattr(trained_model, best_param_name, best_params[best_param_name])
+        if tuned_params:
+            for best_param_name in tuned_params:
+                setattr(trained_model, best_param_name, tuned_params[best_param_name])
             trained_model = trained_model.fit(train_data.features, train_data.target.ravel())
-            self.params_for_fit = best_params
-        return trained_model
+            self.params_for_fit = tuned_params
+        return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):
         if model_type in self.__model_by_types.keys():
@@ -157,7 +161,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
     }
     __params_range_by_model = {
         ModelTypesIdsEnum.arima: {'order': ((2, 0, 0), (5, 0, 5))},
-        ModelTypesIdsEnum.ar: {'lags': ([1, 2, 3, 4, 5, 6], [6, 12, 24, 24, 48, 96])}
+        ModelTypesIdsEnum.ar: {'lags': (range(1, 6), range(6, 96, 6))}
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
@@ -182,17 +186,17 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         return self._model_specific_predict(trained_model, predict_data)
 
     def fit_tuned(self, train_data: InputData, iterations: int = 10):
-        best_params = CustomRandomTuner().tune(fit=self._model_specific_fit,
-                                               predict=self._model_specific_predict,
-                                               tune_data=train_data,
-                                               params_range=self._params_range,
-                                               default_params=self._default_params,
-                                               iterations=iterations)
+        tuned_params = CustomRandomTuner().tune(fit=self._model_specific_fit,
+                                                predict=self._model_specific_predict,
+                                                tune_data=train_data,
+                                                params_range=self._params_range,
+                                                default_params=self._default_params,
+                                                iterations=iterations)
 
-        stats_model = self._model_specific_fit(train_data, best_params)
-        self.params_for_fit = best_params
+        stats_model = self._model_specific_fit(train_data, tuned_params)
+        self.params_for_fit = tuned_params
 
-        return stats_model
+        return stats_model, tuned_params
 
 
 class AutoMLEvaluationStrategy(EvaluationStrategy):

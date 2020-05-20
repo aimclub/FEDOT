@@ -19,10 +19,10 @@ class Chain:
         print('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def fit(self, input_data: InputData, with_tuning=False, use_cache=True, verbose=False):
+    def fit(self, input_data: InputData, use_cache=True, verbose=False):
         if not use_cache:
             self._clean_model_cache()
-        train_predicted = self.root_node.fit(input_data=input_data, with_tuning = with_tuning, verbose=verbose)
+        train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
 
         return train_predicted
 
@@ -31,6 +31,12 @@ class Chain:
             raise Exception('Trained model cache is not actual or empty')
         result = self.root_node.predict(input_data=input_data)
         return result
+
+    # TODO: discuss the feature
+    def fine_tune_primary_nodes(self, input_data: InputData, verbose=False):
+        # Select all primary nodes
+        # Perform fine-tuning for each model in node
+        raise NotImplementedError()
 
     def add_node(self, new_node: Node):
         """
@@ -79,7 +85,6 @@ class Chain:
 
     def _is_node_has_child(self, node) -> bool:
         return any(self.node_childs(node))
-
 
     def import_cache(self, fitted_chain: 'Chain'):
         for node in self.nodes:
