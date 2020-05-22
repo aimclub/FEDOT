@@ -1,5 +1,4 @@
 import math
-from copy import copy
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
@@ -8,21 +7,17 @@ from typing import (
     List,
     Callable,
     Any,
-    Optional,
-    Tuple
+    Optional
 )
 
 import numpy as np
 
-from core.composer.optimisers.crossover import CrossoverTypesEnum
-from core.composer.optimisers.crossover import crossover
+from core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.mutation import MutationTypesEnum
-from core.composer.optimisers.mutation import mutation
-from core.composer.optimisers.regularization import RegularizationTypesEnum
-from core.composer.optimisers.regularization import regularized_population
-from core.composer.optimisers.selection import SelectionTypesEnum
-from core.composer.optimisers.selection import selection, individuals_selection
+from core.composer.optimisers.heredity import direct_heredity, steady_state_heredity
+from core.composer.optimisers.mutation import MutationTypesEnum, mutation
+from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
+from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
 
 
@@ -54,8 +49,7 @@ class GPChainOptimiser:
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
-        self.best_individual = None
-        self.best_fitness = None
+        self.history = []
         self.chain_class = chain_class
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
         self.chain_generation_function = partial(random_chain, chain_class=chain_class, requirements=self.requirements,
@@ -71,94 +65,74 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
-    def optimise(self, metric_function_for_nodes, offspring_rate=0.5):
+    def optimise(self, objective_function, offspring_rate=0.5):
 
-        is_steady_state_scheme = self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state
+        if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
+            heredity = steady_state_heredity
+            num_of_new_individuals = math.ceil(self.requirements.pop_size * offspring_rate)
+        else:
+            heredity = direct_heredity
+            num_of_new_individuals = self.requirements.pop_size - 1
 
-        num_of_new_individuals = math.ceil(
-            self.requirements.pop_size * offspring_rate) if is_steady_state_scheme else self.requirements.pop_size - 1
         with CompositionTimer() as t:
 
-            history = []
+            self.history = []
 
-            self.fitness = [metric_function_for_nodes(chain) for chain in self.population]
+            for ind in self.population:
+                ind.fitness = objective_function(ind)
 
-            [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
-             range(self.requirements.pop_size)]
+            self._add_to_history(self.population)
 
             for generation_num in range(self.requirements.num_of_generations - 1):
-                print(f'GP generation num: {generation_num}')
+                print(f'Generation num: {generation_num}')
 
-                self.best_individual, self.best_fitness = self.best_individual_with_fitness
-                individuals_to_select, fitness = regularized_population(self.parameters.regularization_type,
-                                                                        self.population, self.fitness,
-                                                                        self.requirements,
-                                                                        metric_function_for_nodes,
-                                                                        self.chain_class)
+                individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
+                                                               population=self.population,
+                                                               objective_function=objective_function,
+                                                               chain_class=self.chain_class)
 
-                selected_individuals, _ = selection(self.parameters.selection_types, fitness, individuals_to_select,
-                                                    num_of_new_individuals * 2)
+                selected_individuals = selection(types=self.parameters.selection_types,
+                                                 population=individuals_to_select,
+                                                 pop_size=num_of_new_individuals * 2)
 
                 new_population = []
-                new_inds_fitness = []
 
                 for ind_num, parent_num in zip(range(num_of_new_individuals), range(0, len(selected_individuals), 2)):
-
                     new_population.append(
                         self.reproduce(selected_individuals[parent_num], selected_individuals[parent_num + 1]))
 
-                    if is_steady_state_scheme:
-                        new_inds_fitness.append(metric_function_for_nodes(new_population[ind_num]))
-                        print(f'Best metric is {np.min(self.fitness + new_inds_fitness)}')
-                    else:
-                        self.fitness[ind_num] = metric_function_for_nodes(new_population[ind_num])
-                        print(f'Best metric is {np.min(self.fitness)}')
-                        history.append((new_population[ind_num], self.fitness[ind_num]))
+                    new_population[ind_num].fitness = objective_function(new_population[ind_num])
 
-                if is_steady_state_scheme:
-                    self.population, self.fitness = individuals_selection(self.parameters.selection_types,
-                                                                          self.fitness + new_inds_fitness,
-                                                                          self.population + new_population,
-                                                                          self.requirements.pop_size - 1)
-                else:
-                    self.population = new_population
+                self.population = deepcopy(heredity(self.population, new_population, self.requirements.pop_size - 1))
 
                 self.population.append(self.best_individual)
 
-                if is_steady_state_scheme:
-                    self.fitness.append(self.best_fitness)
-                    [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
-                     range(self.requirements.pop_size)]
-                else:
-                    last_ind_num = self.requirements.pop_size - 1
-                    self.fitness[last_ind_num] = self.best_fitness
-                    history.append((self.population[last_ind_num], self.fitness[last_ind_num]))
-                print("spent time:", t.minutes_from_start)
+                self._add_to_history(self.population)
+
+                print('spent time:', t.minutes_from_start)
+                print(f'Best metric is {self.best_individual.fitness}')
+
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-        self.best_individual, _ = self.best_individual_with_fitness
-        return self.best_individual, history
+
+        return self.best_individual, self.history
 
     @property
-    def best_individual_with_fitness(self) -> Tuple[Any, float]:
-        best_ind_num = np.argmin(self.fitness)
-        equivalents = self.simpler_equivalents_of_best_ind(best_ind_num)
+    def best_individual(self) -> Any:
+        best_ind = min(self.population, key=lambda ind: ind.fitness)
+        equivalents = self.simpler_equivalents_of_best_ind(best_ind)
 
         if equivalents:
-            best_candidate = min(equivalents, key=equivalents.get)
-            best = deepcopy(self.population[best_candidate])
-            best_fitness = copy(self.fitness[best_candidate])
-        else:
-            best = deepcopy(self.population[best_ind_num])
-            best_fitness = copy(self.fitness[best_ind_num])
-        return best, best_fitness
+            best_candidate_id = min(equivalents, key=equivalents.get)
+            best_ind = self.population[best_candidate_id]
+        return best_ind
 
-    def simpler_equivalents_of_best_ind(self, best_ind_num: int) -> dict:
-        sort_inds = np.argsort(self.fitness)[1:]
+    def simpler_equivalents_of_best_ind(self, best_ind: Any) -> dict:
+        sort_inds = np.argsort([ind.fitness for ind in self.population])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
-            is_fitness_equals_to_best = self.fitness[best_ind_num] == self.fitness[i]
-            has_less_num_of_models_than_best = len(self.population[i].nodes) < len(self.population[best_ind_num].nodes)
+            is_fitness_equals_to_best = best_ind.fitness == self.population[i].fitness
+            has_less_num_of_models_than_best = len(self.population[i].nodes) < len(best_ind.nodes)
             if is_fitness_equals_to_best and has_less_num_of_models_than_best:
                 simpler_equivalents[i] = len(self.population[i].nodes)
         return simpler_equivalents
@@ -181,3 +155,6 @@ class GPChainOptimiser:
 
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self.chain_generation_function() for _ in range(pop_size)]
+
+    def _add_to_history(self, individuals: List[Any]):
+        [self.history.append(ind) for ind in individuals]

@@ -3,10 +3,7 @@ from enum import Enum
 from typing import (Optional,
                     List,
                     Any,
-                    Callable,
-                    Tuple)
-
-import numpy as np
+                    Callable)
 
 
 class RegularizationTypesEnum(Enum):
@@ -14,22 +11,21 @@ class RegularizationTypesEnum(Enum):
     decremental = 'decremental'
 
 
-def regularized_population(reg_id: RegularizationTypesEnum, population: List[Any], fitness: List[float], requirements,
-                           metric: Callable,
-                           chain_class: Any, size: Optional[int] = None) -> Tuple[List[Any], List[float]]:
-    if reg_id == RegularizationTypesEnum.decremental:
-        additional_inds, additional_fitness = decremental_regularization(population, requirements, metric, chain_class,
-                                                                         size)
-        return population + additional_inds, fitness + additional_fitness
-    elif reg_id == RegularizationTypesEnum.none:
-        return population, fitness
+def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
+                           objective_function: Callable,
+                           chain_class: Any, size: Optional[int] = None) -> List[Any]:
+    if reg_type == RegularizationTypesEnum.decremental:
+        additional_inds = decremental_regularization(population, objective_function, chain_class, size)
+        return population + additional_inds
+    elif reg_type == RegularizationTypesEnum.none:
+        return population
     else:
         raise ValueError(f'Required regularization type not found: {type}')
 
 
-def decremental_regularization(population: List[Any], requirements, metric: Callable, chain_class: Any,
-                               size: Optional[int] = None) -> Tuple[List[Any], List[float]]:
-    size = size if size else requirements.pop_size
+def decremental_regularization(population: List[Any], objective_function: Callable,
+                               chain_class: Any, size: Optional[int] = None) -> List[Any]:
+    size = size if size else len(population)
     additional_inds = []
     prev_nodes_ids = []
     for ind in population:
@@ -38,12 +34,14 @@ def decremental_regularization(population: List[Any], requirements, metric: Call
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
-    metrics = [metric(additional_ind) for additional_ind in additional_inds]
+
+    for additional_ind in additional_inds:
+        additional_ind.fitness = objective_function(additional_ind)
+
     if additional_inds and len(additional_inds) > size:
-        sort_metrics_ids = np.argsort(metrics)
-        metrics = [metrics[i] for i in sort_metrics_ids][:size]
-        additional_inds = [additional_inds[i] for i in sort_metrics_ids][:size]
-    return (additional_inds, metrics)
+        additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
+
+    return additional_inds
 
 
 def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:

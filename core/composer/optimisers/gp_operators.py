@@ -40,6 +40,7 @@ def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
 def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_func: Callable,
                  requirements, max_depth=None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
+
     def chain_growth(chain: Any, node_parent: Any):
         offspring_size = randint(requirements.min_arity, requirements.max_arity)
         for offspring_node in range(offspring_size):

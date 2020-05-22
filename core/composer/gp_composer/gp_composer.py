@@ -47,27 +47,22 @@ class GPComposer(Composer):
                                      parameters=optimiser_parameters)
 
         best_chain, self.history = optimiser.optimise(metric_function_for_nodes)
-
-        historical_chains, historical_fitness = [list(hist_tuple) for hist_tuple in list(zip(*self.history))]
+        historical_fitness = [chain.fitness for chain in self.history]
 
         if is_visualise:
-            ComposerVisualiser.visualise_history(historical_chains, historical_fitness)
+            ComposerVisualiser.visualise_history(self.history, historical_fitness)
 
-        write_composer_history_to_csv(historical_fitness=historical_fitness, historical_chains=historical_chains,
+        write_composer_history_to_csv(historical_fitness=historical_fitness, historical_chains=self.history,
                                       pop_size=composer_requirements.pop_size)
 
-        print("GP composition finished")
+        print('GP composition finished')
         return best_chain
 
     def metric_for_nodes(self, metric_function, train_data: InputData,
                          test_data: InputData, is_chain_shared: bool,
                          chain: Chain) -> float:
-
         validate(chain)
         if is_chain_shared:
             chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
         chain.fit(input_data=train_data)
         return metric_function(chain, test_data)
-
-
-
