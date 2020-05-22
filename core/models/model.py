@@ -7,7 +7,8 @@ from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AutoMLEvaluationStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, \
+    AutoMLEvaluationStrategy, AutoMLRegressionStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -58,7 +59,7 @@ class Model(ABC):
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
     strategies_for_tasks = {
         MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy],
-        MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy],
+        MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy, AutoMLRegressionStrategy],
         MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
         MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
     }
@@ -66,8 +67,9 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
     models_for_strategies = {
         SkLearnClassificationStrategy: [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
                                         ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
-                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda],
+                                        ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda, ModelTypesIdsEnum.svc],
         AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
+        AutoMLRegressionStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
         SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
         SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
         StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]
