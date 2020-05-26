@@ -38,17 +38,18 @@ def get_trend_resid_datasets(file_path):
     resids = ts[:, [-1]] - trend
 
     # concat features and trend for better prediction
-    features = np.c_[trend, ts[:, -1]]
+    features = np.c_[ts[:, :-1], trend]
 
     features_file = add_root('trend_features.npy')
-    target_file = add_root('trend_target.npy')
     # target are features with shift `prediction_len`
-    trend_sliding = ts_to_3d(features[:-prediction_len], window_len)
-    np.save(features_file, trend_sliding)
+    features_sliding = ts_to_3d(features[:-prediction_len], window_len)
+    np.save(features_file, features_sliding)
+
+    target_file = add_root('trend_target.npy')
     target_sliding = ts_to_3d(features[prediction_len:, [-1]], window_len)
     np.save(target_file, target_sliding)
 
-    index = np.arange(trend_sliding.shape[0])
+    index = np.arange(features_sliding.shape[0])
     trend_dataset = InputData.from_npy(features_file, target_file, index)
 
     # getting resid_dataset
@@ -81,9 +82,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData, na
     compare_plot(predicted, real, add_root(name+'.png'))
 
     # the quality assessment for the simulation results
-    rmse = mse(y_true=real,
-              y_pred=predicted,
-              squared=False)
+    rmse = mse(y_true=real, y_pred=predicted, squared=False)
 
     return rmse
 
