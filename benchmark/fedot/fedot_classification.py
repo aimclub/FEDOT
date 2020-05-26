@@ -1,7 +1,6 @@
 import datetime
 import random
 
-
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
@@ -79,4 +78,4 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     single = single_predicted.predict
     evo_composed = evo_predicted.predict
 
-    return static, single, evo_composed, dataset_to_validate.target
+    return single, static, evo_composed, dataset_to_validate.target

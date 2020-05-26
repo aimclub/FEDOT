@@ -13,12 +13,11 @@ from core.repository.quality_metrics_repository import MetricsRepository
 from core.repository.quality_metrics_repository import RegressionMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 
-
 random.seed(1)
 np.random.seed(1)
 
 
-def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
+def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int = 20, vis_flag: bool = False):
     problem_class = MachineLearningTasksEnum.regression
     dataset_to_compose = InputData.from_csv(train_file_path, task_type=problem_class)
     dataset_to_validate = InputData.from_csv(test_file_path, task_type=problem_class)
@@ -77,4 +76,4 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
     single = single_predicted.predict
     evo_composed = evo_predicted.predict
 
-    return static, single, evo_composed, dataset_to_validate.target
+    return single, static, evo_composed, dataset_to_validate.target

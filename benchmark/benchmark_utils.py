@@ -6,7 +6,7 @@ from typing import Tuple
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from pmlb import fetch_data
-
+from glob import glob
 
 
 def get_scoring_case_data_paths() -> Tuple[str, str]:
@@ -26,8 +26,9 @@ def get_cancer_case_data_paths() -> Tuple[str, str]:
 
     return full_train_file_path, full_test_file_path
 
+
 def init_penn_data_paths(name_of_dataset: str):
-    tmp_dir = os.path.join(str(project_root()), 'cases', 'data', 'penn', str(name_of_dataset))
+    tmp_dir = os.path.join(str(project_root()), 'benchmark', 'data', str(name_of_dataset))
     if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
     else:
@@ -38,13 +39,36 @@ def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> str:
     df = fetch_data(name_of_dataset)
     penn_train, penn_test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
     init_penn_data_paths(name_of_dataset)
-    train_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_train.csv')
-    test_file_path = os.path.join('cases', 'data', 'penn', str(name_of_dataset), 'penn_test.csv')
+    train_file_path = os.path.join('benchmark', 'data', str(name_of_dataset), 'train.csv')
+    test_file_path = os.path.join('benchmark', 'data', str(name_of_dataset), 'test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
     penn_train.to_csv(full_train_file_path, sep=',')
     penn_test.to_csv(full_test_file_path, sep=',')
     return full_train_file_path, full_test_file_path
+
+
+def convert_json_to_csv(dataset: list, include_hyper: bool = True, Dataset_name_column_place: int = 1):
+    list_of_df = []
+    new_col = []
+    for filename, name_of_dataset in zip(glob('*.json'), dataset):
+        with open(filename, 'r') as f:
+            data = json.load(f)
+            df = pd.json_normalize(data)
+            df.insert(Dataset_name_column_place, 'name_of_dataset', name_of_dataset, True)
+            list_of_df.append(df)
+
+    df_final = pd.concat(list_of_df)
+
+    for column_name in df_final.columns:
+        if 'hyper' not in column_name:
+            new_col.append(column_name)
+
+    if include_hyper:
+        df_final = df_final[new_col]
+
+    pd.DataFrame.to_csv(df_final, './final_combined.csv', sep=',', index=False)
+    return df_final
 
 
 def save_metrics_result_file(data: dict, file_name: str):
@@ -59,6 +83,11 @@ def get_models_hyperparameters(timedelta: int = 30) -> dict:
                    'GENERATIONS': 50,
                    'POPULATION_SIZE': 10
                    }
+
+    fedot_config = {'MAX_RUNTIME_MINS': timedelta,
+                    'GENERATIONS': 50,
+                    'POPULATION_SIZE': 10
+                    }
 
     h2o_config = {'MAX_MODELS': 20,
                   'MAX_RUNTIME_SECS': timedelta * 60}
@@ -84,7 +113,7 @@ def get_models_hyperparameters(timedelta: int = 30) -> dict:
 
     mlbox_config = {'space': space_for_mlbox, 'max_evals': 40}
 
-    config_dictionary = {'TPOT': tpot_config, 'H2O': h2o_config,
+    config_dictionary = {'TPOT': tpot_config, 'FEDOT': fedot_config, 'H2O': h2o_config,
                          'autokeras': autokeras_config, 'MLBox': mlbox_config}
     gc.collect()
 

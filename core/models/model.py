@@ -71,7 +71,10 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
         AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
         AutoMLRegressionStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
         SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
-        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
+        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso,
+                                    ModelTypesIdsEnum.xgbreg, ModelTypesIdsEnum.adareg, ModelTypesIdsEnum.gbr,
+                                    ModelTypesIdsEnum.knnreg, ModelTypesIdsEnum.dtreg, ModelTypesIdsEnum.treg,
+                                    ModelTypesIdsEnum.rfreg, ModelTypesIdsEnum.svr, ModelTypesIdsEnum.sgdr],
         StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]
     }
 
