@@ -46,7 +46,7 @@ class Model(ABC):
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
                                                  predict_data=data)
 
-        if any([np.isnan(_) for _ in prediction]):
+        if np.isnan(prediction).any():
             print("Value error")
 
         return prediction
