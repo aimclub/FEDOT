@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy import signal
 
 from sklearn.metrics import mean_squared_error as mse
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -21,16 +22,19 @@ from core.repository.quality_metrics_repository import MetricsRepository, Regres
 from core.repository.task_types import MachineLearningTasksEnum
 from core.utils import project_root, ts_to_3d
 
-# period can be estimated using statsmodels.graphics.tsaplots.plot_acf
+
 window_len = 64
 prediction_len = 1
-period = 860
 
 add_root = lambda file: os.path.join(str(project_root()), 'cases/out/'+ file)
 
-def get_trend_resid_datasets(file_path):
+def get_trend_resid_datasets(file_path, period=None):
     # load features and target (without index)
     ts = pd.read_csv(file_path, header=None).values[:, 1:]
+
+    if period is None:
+        f, Pxx_den = signal.welch(ts[:, -1], fs=1, scaling='spectrum', nfft = 1000, nperseg=1000)
+        period = int(1/f[np.argmax(Pxx_den)])
 
     # extract trend and resid from target
     decomposed = seasonal_decompose(ts[:, -1], period=period, extrapolate_trend='freq')
@@ -64,7 +68,7 @@ def get_trend_resid_datasets(file_path):
     pd.DataFrame(np.c_[resids_features, resids_target], index=index).to_csv(resids_file, header=False)
     resid_dataset = InputData.from_csv(resids_file, task_type=MachineLearningTasksEnum.regression)
 
-    return trend_dataset, resid_dataset
+    return period, trend_dataset, resid_dataset
 
 def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData, name: str) -> float:
     # the execution of the obtained composite models
@@ -99,13 +103,14 @@ def compare_plot(predicted, real, filepath):
 # specify problem type
 problem_class = MachineLearningTasksEnum.forecasting
 
-trend_train, resid_train = get_trend_resid_datasets(
+period, trend_train, resid_train = get_trend_resid_datasets(
     os.path.join(str(project_root()),
     'cases/data/ts/metocean_data_train.csv'))
 
-trend_test, resid_test = get_trend_resid_datasets(
+_, trend_test, resid_test = get_trend_resid_datasets(
     os.path.join(str(project_root()), 
-    'cases/data/ts/metocean_data_test.csv'))
+    'cases/data/ts/metocean_data_test.csv'),
+    period=period)
 
 
 metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
