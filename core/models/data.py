@@ -16,6 +16,8 @@ class Data:
     @staticmethod
     def from_csv(file_path, delimiter=',',
                  task_type: TaskTypesEnum = MachineLearningTasksEnum.classification):
+        if task_type == MachineLearningTasksEnum.forecasting:
+            raise ValueError('For forecasting, please use Data.from_npy method')
         data_frame = pd.read_csv(file_path, sep=delimiter)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
@@ -25,11 +27,46 @@ class Data:
         return InputData(idx=idx, features=features, target=target, task_type=task_type)
 
     @staticmethod
+    def from_npy(filepath_features, filepath_target, idx, prediction_len=1):
+        """
+        Use this function only for forecasting
+        filepath_features: str
+            Features file with 3d input array - (n, window_len, features_dim).
+
+        filepath_target: str
+            Target file with 3d input array - (n, window_len, target_dim).
+            After prediction for use only forecasting data get from last `prediction_len` timestamps.
+    
+        idx: str or np.array
+            Index of train/target data
+            If str, then tries to load from file with that path. Else uses np.array
+
+        prediction_len: int
+            Number of timestamps used as target
+        """
+        if prediction_len != 1:
+            raise NotImplementedError('For now only 1 value forecasting is supported')
+
+        features = np.load(filepath_features)
+        target = np.load(filepath_target)
+        assert features.ndim == target.ndim == 3, 'Features and target must be 3d datasets'
+        assert features.shape[:2] == target.shape[:2], 'First two dimensions of features and target must be equal'
+ 
+        if isinstance(idx, str):
+            idx = np.load(idx)
+
+        return InputData(idx=idx, features=features, target=target, task_type=MachineLearningTasksEnum.forecasting)
+
+    @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
         task_type = outputs[0].task_type
         idx = outputs[0].idx
-        features = list()
 
+        if task_type == MachineLearningTasksEnum.forecasting:
+            features = np.concatenate([output.predict for output in outputs], axis=-1)
+            return InputData(idx=idx, features=features, target=target, task_type=task_type)
+
+        features = list()
         expected_len = len(outputs[0].predict)
         for elem in outputs:
             if len(elem.predict) != expected_len:

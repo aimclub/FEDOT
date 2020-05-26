@@ -16,11 +16,13 @@ class ModelTypesIdsEnum(Enum):
     logit = 'logit',
     dt = 'decisiontree',
     rf = 'randomforest',
+    rfr = 'randomforestregressor',
     mlp = 'mlp',
     lda = 'lda',
     qda = 'qda',
     ar = 'ar',
     arima = 'arima',
+    lstm = 'lstm'
     linear = 'linear',
     ridge = 'ridge',
     lasso = 'lasso',
@@ -32,6 +34,7 @@ class ModelTypesIdsEnum(Enum):
 class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
     stat = 'Stat_models'
+    keras = 'Keras_models'
     all = 'Models'
 
 
@@ -97,14 +100,21 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
         stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
+        keras = ModelsGroup(ModelGroupsIdsEnum.keras, parent=root)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
                                       task_type=[MachineLearningTasksEnum.auto_regression],
                                       parent=stat)
 
+        # TODO: rewrite. Include 3d input to the models and enums
+        self._initialise_models_group(models=[ModelTypesIdsEnum.lstm],
+                                      task_type=[MachineLearningTasksEnum.forecasting],
+                                      parent=keras)
+
         self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
                                               ModelTypesIdsEnum.lasso,
-                                              ModelTypesIdsEnum.ridge],
+                                              ModelTypesIdsEnum.ridge,
+                                              ModelTypesIdsEnum.rfr],
                                       task_type=[MachineLearningTasksEnum.regression],
                                       parent=ml)
 

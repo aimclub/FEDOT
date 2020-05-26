@@ -10,6 +10,7 @@ class MachineLearningTasksEnum(TaskTypesEnum):
     classification = 'classification',
     regression = 'regression',
     auto_regression = 'auto_regression',
+    forecasting = 'forecasting'
     clustering = 'clustering'  # not applicable as main task yet
 
 

@@ -145,7 +145,8 @@ preprocessing_for_tasks = {
     MachineLearningTasksEnum.auto_regression: DefaultStrategy,
     MachineLearningTasksEnum.classification: Scaling,
     MachineLearningTasksEnum.regression: Scaling,
-    MachineLearningTasksEnum.clustering: Scaling
+    MachineLearningTasksEnum.clustering: Scaling,
+    MachineLearningTasksEnum.forecasting: TsScalingStrategy,
 }
 
 

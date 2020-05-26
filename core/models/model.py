@@ -7,7 +7,8 @@ from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AutoMLEvaluationStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, AutoMLEvaluationStrategy, \
+    KerasForecastingEvaluationStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
@@ -60,7 +61,8 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
         MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy],
         MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy],
         MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
-        MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
+        MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy],
+        MachineLearningTasksEnum.forecasting: [KerasForecastingEvaluationStrategy]
     }
 
     models_for_strategies = {
@@ -69,8 +71,10 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
                                         ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda],
         AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
         SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
-        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
-        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]
+        SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, 
+                                    ModelTypesIdsEnum.lasso, ModelTypesIdsEnum.rfr],
+        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima],
+        KerasForecastingEvaluationStrategy: [ModelTypesIdsEnum.lstm]
     }
 
     models_repo = ModelTypesRepository()

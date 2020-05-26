@@ -5,7 +5,7 @@ from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
     QuadraticDiscriminantAnalysis
 )
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso as SklearnLassoReg
 from sklearn.linear_model import LinearRegression as SklearnLinReg
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
@@ -20,6 +20,7 @@ from benchmark.tpot.b_tpot import fit_tpot, predict_tpot
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
+from core.models.evaluation.lstm_eval import fit_lstm, predict_lstm
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -43,6 +44,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.knn: SklearnKNN,
         ModelTypesIdsEnum.dt: DecisionTreeClassifier,
         ModelTypesIdsEnum.rf: RandomForestClassifier,
+        ModelTypesIdsEnum.rfr: RandomForestRegressor,
         ModelTypesIdsEnum.mlp: MLPClassifier,
         ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
         ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
@@ -143,6 +145,24 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
 
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
+
+    def tune(self, model, data_for_tune):
+        raise NotImplementedError()
+
+class KerasForecastingEvaluationStrategy(EvaluationStrategy):
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        self._init_lstm_model_functions(model_type)
+
+    def _init_lstm_model_functions(self, model_type):
+        if model_type != ModelTypesIdsEnum.lstm:
+            raise ValueError(f'Impossible to obtain forecasting strategy for {model_type}')
+    
+    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+        model = fit_lstm(train_data)
+        return model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return predict_lstm(trained_model, predict_data)
 
     def tune(self, model, data_for_tune):
         raise NotImplementedError()
