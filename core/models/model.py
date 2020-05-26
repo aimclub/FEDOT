@@ -1,29 +1,32 @@
-from abc import ABC
-from dataclasses import dataclass
+from copy import copy
+
+import numpy as np
 
 from core.models.data import (
     InputData,
 )
 from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    AutoMLEvaluationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, DataStrategy
+    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, \
+    AutoMLEvaluationStrategy
+from core.models.evaluation.data_strategies import DataStrategy
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
     compatible_task_types
 
+DEFAULT_PARAMS_STUB = 'default_params'
 
-@dataclass
-class Model(ABC):
 
+class Model:
     def __init__(self, model_type: ModelTypesIdsEnum):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
+        self.params = DEFAULT_PARAMS_STUB
 
     @property
     def description(self):
         model_type = self.model_type
-        model_params = 'defaultparams'
+        model_params = self.params
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: TaskTypesEnum):
@@ -33,8 +36,7 @@ class Model(ABC):
     def fit(self, data: InputData):
         self._init(data.task_type)
 
-        fitted_model = self._eval_strategy.fit(model_type=self.model_type,
-                                               train_data=data)
+        fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
         return fitted_model, predict_train
@@ -44,19 +46,32 @@ class Model(ABC):
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
                                                  predict_data=data)
+
         return prediction
+
+    def fine_tune(self, data: InputData, iterations: int = 100):
+        self._init(data.task_type)
+        preprocessed_data = copy(data)
+        fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
+                                                                   iterations=iterations)
+        self.params = tuned_params
+        if self.params is None:
+            self.params = 'DEFAULT_PARAMS_STUB'
+
+        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
+                                                    predict_data=data)
+        return fitted_model, predict_train
 
     def __str__(self):
         return f'{self.model_type.name}'
 
 
 def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: TaskTypesEnum):
-    # TODO refactor
     strategies_for_tasks = {
         MachineLearningTasksEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy,
                                                   DataStrategy],
         MachineLearningTasksEnum.regression: [SkLearnRegressionStrategy],
-        MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy],
+        MachineLearningTasksEnum.auto_regression: [StatsModelsAutoRegressionStrategy, DataStrategy],
         MachineLearningTasksEnum.clustering: [SkLearnClusteringStrategy]
     }
 
@@ -65,10 +80,12 @@ def _eval_strategy_for_task(model_type: ModelTypesIdsEnum, task_type_for_data: T
                                         ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
                                         ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda, ModelTypesIdsEnum.bernb],
         AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
-        DataStrategy: [ModelTypesIdsEnum.datamodel],
         SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
         SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso],
-        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima]
+        StatsModelsAutoRegressionStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima],
+        DataStrategy: [ModelTypesIdsEnum.datamodel,
+                       ModelTypesIdsEnum.diff_data_model,
+                       ModelTypesIdsEnum.add_data_model]
     }
 
     models_repo = ModelTypesRepository()

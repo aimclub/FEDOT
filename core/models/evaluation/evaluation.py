@@ -27,7 +27,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         raise NotImplementedError()
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
@@ -35,21 +35,6 @@ class EvaluationStrategy:
 
     def tune(self, model, data_for_tune: InputData):
         raise NotImplementedError()
-
-
-class DataStrategy(EvaluationStrategy):
-    def __init__(self, model_type: ModelTypesIdsEnum):
-        return
-
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        return None
-
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
-        return predict_data.features
-
-    def tune(self, model, data_for_tune: InputData):
-        return model
-
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     __model_by_types = {
@@ -71,7 +56,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
 
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         sklearn_model = self._sklearn_model_impl()
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
@@ -102,7 +87,7 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         sklearn_model = self._sklearn_model_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
@@ -127,7 +112,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')
 
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         stats_model = self._model_specific_fit(train_data)
         return stats_model
 
@@ -153,7 +138,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
 
-    def fit(self, model_type: BenchmarkModelTypesEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         benchmark_model = self._model_specific_fit(train_data)
         return benchmark_model
 

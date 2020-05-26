@@ -207,6 +207,12 @@ class SecondaryNode(Node):
         if verbose:
             print(f'Trying to fit secondary node with model: {self.model}')
 
+        #TODO refactor
+        if len(parent_results) == 1 and \
+                any([parent.model.model_type == ModelTypesIdsEnum.diff_data_model for parent in self.nodes_from]):
+            secondary_input = copy(secondary_input)
+            secondary_input.target = secondary_input.features[:, 0] - secondary_input.target
+
         model_predict = self._fit_using_cache(input_data=secondary_input)
 
         return OutputData(idx=input_data.idx,
@@ -238,4 +244,3 @@ class SecondaryNode(Node):
                           features=input_data.features,
                           predict=evaluation_result,
                           task_type=input_data.task_type)
-

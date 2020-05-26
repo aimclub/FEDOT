@@ -28,7 +28,9 @@ class ModelTypesIdsEnum(Enum):
     kmeans = 'kmeans'
     tpot = 'tpot'
     h2o = 'h2o'
-    datamodel = 'data_model'  # a pseudo_model that allow injecting raw input data to the secondary nodes
+    datamodel = 'data_model',  # a pseudo_model that allow injecting raw input data to the secondary nodes,
+    diff_data_model = 'diff_data_model', #model for scale-based decomposition
+    add_data_model = 'additive_model'
 
 
 class ModelGroupsIdsEnum(Enum):
@@ -135,8 +137,14 @@ class ModelTypesRepository:
                                     task_type=[], can_be_initial=True, can_be_secondary=False)
 
         group_meta = deepcopy(common_meta)
-        group_meta.task_type = [MachineLearningTasksEnum.classification]
+        group_meta.task_type = [MachineLearningTasksEnum.classification,
+                                MachineLearningTasksEnum.auto_regression]
         ModelType(ModelTypesIdsEnum.datamodel, deepcopy(group_meta), parent=root)
+
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = [MachineLearningTasksEnum.auto_regression]
+        ModelType(ModelTypesIdsEnum.diff_data_model, deepcopy(group_meta), parent=root)
+        ModelType(ModelTypesIdsEnum.add_data_model, deepcopy(group_meta), parent=root)
 
         return root
 
