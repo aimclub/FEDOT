@@ -110,3 +110,18 @@ def test_log_clustering_fit_correct(data_fixture, request):
     _, train_predicted = kmeans.fit(data=train_data)
 
     assert all(np.unique(train_predicted) == [0, 1])
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_svc_fit_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    data.features = Scaling().fit(data.features).apply(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    svc = Model(model_type=ModelTypesIdsEnum.svc)
+
+    _, train_predicted = svc.fit(data=train_data)
+    roc_on_train = roc_auc(y_true=train_data.target,
+                           y_score=train_predicted)
+    roc_threshold = 0.95
+    assert roc_on_train >= roc_threshold

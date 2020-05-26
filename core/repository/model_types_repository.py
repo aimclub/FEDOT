@@ -17,6 +17,7 @@ class ModelTypesIdsEnum(Enum):
     dt = 'decisiontree',
     rf = 'randomforest',
     rfr = 'randomforestregressor',
+    svc = 'linearsvc',
     mlp = 'mlp',
     lda = 'lda',
     qda = 'qda',
@@ -125,7 +126,8 @@ class ModelTypesRepository:
                                               ModelTypesIdsEnum.qda,
                                               ModelTypesIdsEnum.logit,
                                               ModelTypesIdsEnum.knn,
-                                              ModelTypesIdsEnum.xgboost],
+                                              ModelTypesIdsEnum.xgboost,
+                                              ModelTypesIdsEnum.svc],
                                       task_type=[MachineLearningTasksEnum.classification],
                                       parent=ml)
 
@@ -136,6 +138,7 @@ class ModelTypesRepository:
         self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
                                       task_type=[MachineLearningTasksEnum.clustering],
                                       parent=stat)
+
 
         return root
 

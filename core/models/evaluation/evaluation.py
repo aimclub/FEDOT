@@ -13,10 +13,11 @@ from sklearn.linear_model import Ridge as SklearnRidgeReg
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import LinearSVC as SklearnSVC
 from xgboost import XGBClassifier
 
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.tpot.b_tpot import fit_tpot, predict_tpot
+from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
@@ -51,7 +52,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.linear: SklearnLinReg,
         ModelTypesIdsEnum.ridge: SklearnRidgeReg,
         ModelTypesIdsEnum.lasso: SklearnLassoReg,
-        ModelTypesIdsEnum.kmeans: SklearnKmeans
+        ModelTypesIdsEnum.kmeans: SklearnKmeans,
+        ModelTypesIdsEnum.svc: SklearnSVC
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
@@ -76,8 +78,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
+    __models_without_prob = [SklearnSVC]
+
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
-        prediction = trained_model.predict_proba(predict_data.features)[:, 1]
+        if type(trained_model) in self.__models_without_prob:
+            prediction = trained_model.predict(predict_data.features)
+        else:
+            prediction = trained_model.predict_proba(predict_data.features)[:, 1]
         return prediction
 
 
@@ -126,7 +133,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
 
 class AutoMLEvaluationStrategy(EvaluationStrategy):
     _model_functions_by_type = {
-        ModelTypesIdsEnum.tpot: (fit_tpot, predict_tpot),
+        ModelTypesIdsEnum.tpot: (fit_tpot, predict_tpot_class),
         ModelTypesIdsEnum.h2o: (fit_h2o, predict_h2o)
     }
 
@@ -166,3 +173,9 @@ class KerasForecastingEvaluationStrategy(EvaluationStrategy):
 
     def tune(self, model, data_for_tune):
         raise NotImplementedError()
+
+class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
+    _model_functions_by_type = {
+        ModelTypesIdsEnum.tpot: (fit_tpot, predict_tpot_reg),
+        ModelTypesIdsEnum.h2o: (fit_h2o, predict_h2o)
+    }
