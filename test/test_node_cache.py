@@ -3,16 +3,16 @@ import pytest
 from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain, SharedChain
-from core.composer.node import FittedModelCache, SharedCache
-from core.composer.node import NodeGenerator
+from core.composer.node import FittedModelCache, NodeGenerator, SharedCache
 from core.models.data import InputData, split_train_test
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 @pytest.fixture()
 def data_setup():
-    task_type = MachineLearningTasksEnum.classification
+    task = Task(TaskTypesEnum.classification)
     predictors, response = load_breast_cancer(return_X_y=True)
     np.random.seed(1)
     np.random.shuffle(predictors)
@@ -23,10 +23,10 @@ def data_setup():
     train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=np.arange(0, len(train_data_y)),
-                           task_type=task_type)
+                           task=task, data_type=DataTypesEnum.table)
     test_data = InputData(features=test_data_x, target=test_data_y,
                           idx=np.arange(0, len(test_data_y)),
-                          task_type=task_type)
+                          task=task, data_type=DataTypesEnum.table)
     return train_data, test_data
 
 

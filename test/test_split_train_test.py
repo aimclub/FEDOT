@@ -6,11 +6,12 @@ from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
+from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.models.data import InputData, train_test_data_setup
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from core.repository.tasks import Task, TaskTypesEnum
 
 np.random.seed(1)
 random.seed(1)
@@ -47,7 +48,8 @@ def get_synthetic_input_data(n_samples=10000, n_features=10, random_state=None) 
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
                            target=synthetic_data[1],
-                           task_type=MachineLearningTasksEnum.classification)
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
     return input_data
 
 

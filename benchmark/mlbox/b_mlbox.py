@@ -3,10 +3,10 @@ import os
 import pandas as pd
 from mlbox.optimisation import Optimiser
 from mlbox.prediction import Predictor
-from mlbox.preprocessing import Reader, Drift_thresholder
+from mlbox.preprocessing import Drift_thresholder, Reader
 
-from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
-from core.repository.task_types import MachineLearningTasksEnum
+from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 def separate_target_column(file_path: str, target_name: str):
@@ -25,7 +25,7 @@ def separate_target_column(file_path: str, target_name: str):
 
 
 def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
-              task: MachineLearningTasksEnum):
+              task: TaskTypesEnum):
     config_data = get_models_hyperparameters()['MLBox']
     new_test_file_path, true_target = separate_target_column(test_file_path, target_name)
     paths = [train_file_path, new_test_file_path]
@@ -33,7 +33,7 @@ def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
     data = Reader(sep=",").train_test_split(paths, target_name)
     data = Drift_thresholder().fit_transform(data)
 
-    score = 'roc_auc' if task is MachineLearningTasksEnum.classification else 'neg_mean_squared_error'
+    score = 'roc_auc' if task is TaskTypesEnum.classification else 'neg_mean_squared_error'
 
     opt = Optimiser(scoring=score, n_folds=5)
     params = opt.optimise(config_data['space'], data, max_evals=config_data['max_evals'])
@@ -56,4 +56,4 @@ if __name__ == '__main__':
     run_mlbox(train_file_path=train_path,
               test_file_path=test_path,
               target_name='default',
-              task=MachineLearningTasksEnum.classification)
+              task=TaskTypesEnum.classification)

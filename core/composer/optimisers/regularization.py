@@ -4,6 +4,11 @@ from typing import (Optional,
                     List,
                     Any,
                     Callable)
+from typing import (Any, Callable, List, Optional, Tuple)
+
+import numpy as np
+
+from core.composer.constraint import constraint_function
 
 
 class RegularizationTypesEnum(Enum):
@@ -38,6 +43,7 @@ def decremental_regularization(population: List[Any], objective_function: Callab
     for additional_ind in additional_inds:
         additional_ind.fitness = objective_function(additional_ind)
 
+    additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
     if additional_inds and len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
 

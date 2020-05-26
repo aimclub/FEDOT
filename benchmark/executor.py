@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 from typing import List
+
 import numpy as np
+from sklearn.metrics import f1_score, mean_squared_error, r2_score, roc_auc_score
+
 from benchmark.H2O.b_h2o import run_h2o
 from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.mlbox.b_mlbox import run_mlbox
-from benchmark.tpot.b_tpot import run_tpot
 from benchmark.fedot.fedot_classification import run_classification_problem
 from benchmark.fedot.fedot_regression import run_regression_problem
-from core.repository.task_types import MachineLearningTasksEnum
-from sklearn.metrics import roc_auc_score, f1_score, r2_score, mean_squared_error
+from benchmark.mlbox.b_mlbox import run_mlbox
+from benchmark.tpot.b_tpot import run_tpot
+from core.repository.tasks import TaskTypesEnum, Task
 
 
 def calculate_metrics(metric_list: list, target: list, predicted: list):
@@ -39,7 +41,7 @@ class CaseExecutor:
     test_file: str
     case_label: str
     target_name: str
-    task: MachineLearningTasksEnum
+    task: TaskTypesEnum
     models: List[BenchmarkModelTypesEnum]
     metric_list: List[str]
 
@@ -53,7 +55,7 @@ class CaseExecutor:
             tpot_result = run_tpot(train_file_path=self.train_file,
                                    test_file_path=self.test_file,
                                    case_name=self.case_label,
-                                   task=self.task)
+                                   task=Task(self.task))
 
             result['tpot_metric'] = calculate_metrics(self.metric_list,
                                                       target=tpot_result[0],
@@ -78,14 +80,16 @@ class CaseExecutor:
                                                            predicted=autokeras_result[1])
         if BenchmarkModelTypesEnum.fedot in self.models:
             print('---------\nRUN FEDOT\n---------')
-            if self.task is MachineLearningTasksEnum.classification:
+
+            if self.task is TaskTypesEnum.classification:
                 fedot_problem_func = run_classification_problem
-            elif self.task is MachineLearningTasksEnum.regression:
+            elif self.task is TaskTypesEnum.regression:
                 fedot_problem_func = run_regression_problem
             else:
                 raise NotImplementedError()
             single, static, evo_composed, target = fedot_problem_func(train_file_path=self.train_file,
                                                                       test_file_path=self.test_file)
+
             result['fedot_metric'] = {'composed': calculate_metrics(self.metric_list,
                                                                     target=target,
                                                                     predicted=evo_composed),

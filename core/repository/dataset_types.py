@@ -2,21 +2,13 @@ from enum import Enum
 
 
 class DataTypesEnum(Enum):
-    pass
+    table = 'feature_table'
 
+    # 2d dataset with timeseries as target and external variables as features
+    ts = 'time_series'
 
-class NumericalDataTypesEnum(DataTypesEnum):
-    vector = 'numerical_vector'
-    table = 'numerical_table'
-    ts = 'numerical_timeseries'
+    # 2d dataset with lagged features - (n, window_len * features)
+    ts_lagged_table = 'time_series_lagged_table'
 
-
-class CategoricalDataTypesEnum(DataTypesEnum):
-    vector = 'categoriсal_vector'
-    table = 'categoriсal_table'
-    ts = 'categoriсal_timeseries'
-
-
-class SpecialDataTypesEnum(DataTypesEnum):
-    text = 'text'
-    binary = 'binary'
+    # 3d dataset with lagged features - (n, window_len, features)
+    ts_lagged_3d = 'time_series_lagged_3d'

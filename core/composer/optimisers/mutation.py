@@ -1,10 +1,11 @@
 from copy import deepcopy
 from enum import Enum
-from random import random, choice, randint
+from random import choice, randint, random
 from typing import (Any, Callable)
 
 from core.composer.chain import Chain, List
-from core.composer.optimisers.gp_operators import nodes_from_height, node_depth, random_chain
+from core.composer.constraint import constraint_function
+from core.composer.optimisers.gp_operators import node_depth, nodes_from_height, random_chain
 
 
 class MutationTypesEnum(Enum):
@@ -54,7 +55,25 @@ def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirem
     }
     type = choice(types)
     if type in mutation_by_type:
-        return mutation_by_type[type]
+
+        is_correct_chain = False
+        while not is_correct_chain:
+            mutation_by_type = {
+                MutationTypesEnum.simple: simple_mutation(chain=chain, secondary=requirements.secondary,
+                                                          primary=requirements.primary,
+                                                          secondary_node_func=secondary_node_func,
+                                                          primary_node_func=primary_node_func,
+                                                          node_mutate_type=node_mutate_type),
+                MutationTypesEnum.growth: growth_mutation(chain=chain, chain_class=chain_class,
+                                                          secondary_node_func=secondary_node_func,
+                                                          primary_node_func=primary_node_func,
+                                                          requirements=requirements),
+                MutationTypesEnum.reduce: reduce_mutation(chain=chain, primary_node_func=primary_node_func,
+                                                          requirements=requirements)
+            }
+            new_chain = mutation_by_type[type]
+            is_correct_chain = constraint_function(new_chain)
+        return new_chain
     else:
         raise ValueError(f'Required mutation not found: {type}')
 
@@ -112,4 +131,3 @@ def reduce_mutation(chain: Any, primary_node_func: Callable, requirements) -> An
         primary_node = primary_node_func(model_type=choice(requirements.primary))
         chain_copy.replace_node_with_parents(node_to_del, primary_node)
     return chain_copy
-

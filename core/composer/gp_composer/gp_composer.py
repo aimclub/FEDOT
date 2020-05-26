@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
+from sys import maxsize as max_int_value
 from typing import (
     Callable,
     Optional,
@@ -60,8 +61,12 @@ class GPComposer(Composer):
     def metric_for_nodes(self, metric_function, train_data: InputData,
                          test_data: InputData, is_chain_shared: bool,
                          chain: Chain) -> float:
-        validate(chain)
-        if is_chain_shared:
-            chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
-        chain.fit(input_data=train_data)
-        return metric_function(chain, test_data)
+        try:
+            validate(chain)
+            if is_chain_shared:
+                chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
+            chain.fit(input_data=train_data)
+            return metric_function(chain, test_data)
+        except Exception as ex:
+            print(f'Error in chain assessment during composition: {ex}')
+            return max_int_value

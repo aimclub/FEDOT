@@ -5,8 +5,9 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.models.preprocessing import Scaling
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 def get_roc_auc(train_data: InputData, train_predicted: list) -> float:
@@ -37,7 +38,8 @@ def classification_dataset():
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
     data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
-                     task_type=MachineLearningTasksEnum.classification)
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
 
     return data
 

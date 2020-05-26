@@ -13,10 +13,10 @@ from core.composer.node import PrimaryNode, SecondaryNode, FittedModelCache
 from core.models.model import InputData
 from core.models.model import Model
 from core.models.preprocessing import Normalization
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 from utilities.synthetic.data import classification_dataset as synthetic_dataset
 from utilities.synthetic.data import gauss_quantiles_dataset as gauss_quantiles
-
+from core.repository.dataset_types import DataTypesEnum
 
 @dataclass
 class ModelTemplate:
@@ -181,7 +181,8 @@ def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
         target = np.expand_dims(target, axis=1)
         data_train = InputData(idx=np.arange(0, samples),
                                features=features, target=target,
-                               task_type=MachineLearningTasksEnum.classification)
+                               data_type=DataTypesEnum.table,
+                               task=Task(TaskTypesEnum.classification))
 
         preproc_data = copy(data_train)
         preprocessor = Normalization().fit(preproc_data.features)

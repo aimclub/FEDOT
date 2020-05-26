@@ -1,12 +1,14 @@
-from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import get_penn_case_data_paths, save_metrics_result_file, \
-    get_models_hyperparameters, convert_json_to_csv
-from benchmark.executor import CaseExecutor
-from core.repository.task_types import MachineLearningTasksEnum
-from pmlb import classification_dataset_names, regression_dataset_names, fetch_data
-import pandas as pd
-from pmlb.write_metadata import imbalance_metrics
 from pathlib import Path
+
+import pandas as pd
+from pmlb import classification_dataset_names, fetch_data, regression_dataset_names
+from pmlb.write_metadata import imbalance_metrics
+
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
+from benchmark.benchmark_utils import convert_json_stats_to_csv, get_models_hyperparameters, get_penn_case_data_paths, \
+    save_metrics_result_file
+from benchmark.executor import CaseExecutor
+from core.repository.tasks import TaskTypesEnum
 
 if __name__ == '__main__':
     penn_data = Path('./datasets.csv')
@@ -24,10 +26,10 @@ if __name__ == '__main__':
         pmlb_data = fetch_data(name_of_dataset)
         num_classes, _ = imbalance_metrics(pmlb_data['target'].tolist())
         if num_classes == 2 and name_of_dataset in classification_dataset_names:
-            problem_class = MachineLearningTasksEnum.classification
+            problem_class = TaskTypesEnum.classification
             metric_name = ['roc_auc', 'f1']
         elif name_of_dataset in regression_dataset_names:
-            problem_class = MachineLearningTasksEnum.regression
+            problem_class = TaskTypesEnum.regression
             metric_name = ['mse', 'r2']
         else:
             print('Incorrect dataset')
@@ -42,9 +44,6 @@ if __name__ == '__main__':
                                           test_file=test_file,
                                           task=problem_class,
                                           models=[BenchmarkModelTypesEnum.tpot,
-                                                  BenchmarkModelTypesEnum.h2o,
-                                                  BenchmarkModelTypesEnum.autokeras,
-                                                  BenchmarkModelTypesEnum.mlbox,
                                                   BenchmarkModelTypesEnum.baseline,
                                                   BenchmarkModelTypesEnum.fedot],
                                           target_name='target',
@@ -58,4 +57,4 @@ if __name__ == '__main__':
 
         save_metrics_result_file(result_metrics, file_name=f'penn_ml_metrics_for_{name_of_dataset}')
 
-    convert_json_to_csv(dataset)
+    convert_json_stats_to_csv(dataset)

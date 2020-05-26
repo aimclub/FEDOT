@@ -7,15 +7,15 @@ from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
 from core.models.data import InputData
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import TaskTypesEnum
 
 
-def fit_tpot(data: InputData):
-    models_hyperparameters = _get_models_hyperparameters()['TPOT']
+def fit_tpot(data: InputData, max_run_time_min: int):
+    models_hyperparameters = _get_models_hyperparameters(max_run_time_min)['TPOT']
     estimator = None
-    if data.task_type is MachineLearningTasksEnum.classification:
+    if data.task.task_type is TaskTypesEnum.classification:
         estimator = TPOTClassifier
-    elif data.task_type is MachineLearningTasksEnum.regression:
+    elif data.task.task_type is TaskTypesEnum.regression:
         estimator = TPOTRegressor
 
     model = estimator(generations=models_hyperparameters['GENERATIONS'],
@@ -41,8 +41,8 @@ def predict_tpot_class(trained_model, predict_data):
         return trained_model.predict(predict_data.features)
 
 
-def fit_h2o(train_data: InputData):
-    model_hyperparameters = _get_models_hyperparameters()['H2O']
+def fit_h2o(train_data: InputData, max_run_time_min: int):
+    model_hyperparameters = _get_models_hyperparameters(max_run_time_min)['H2O']
 
     ip, port = _get_h2o_connect_config()
 

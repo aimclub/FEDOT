@@ -1,10 +1,10 @@
 from copy import deepcopy
 from enum import Enum
-from random import choice
-from random import random
+from random import choice, random
 from typing import Any, List
 
-from core.composer.optimisers.gp_operators import nodes_from_height, node_depth, equivalent_subtree, replace_subtrees
+from core.composer.constraint import constraint_function
+from core.composer.optimisers.gp_operators import equivalent_subtree, node_depth, nodes_from_height, replace_subtrees
 
 
 class CrossoverTypesEnum(Enum):
@@ -21,8 +21,14 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
     if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
         return [chain_first_copy, chain_second_copy]
     if type in crossover_by_type.keys():
-        new_individuals = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
-        return new_individuals
+        is_correct = False
+        is_correct_chains = []
+        while not is_correct:
+            new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
+            for new_chain in new_chains:
+                is_correct_chains.append(constraint_function(new_chain))
+            is_correct = all(is_correct_chains)
+        return new_chains
     else:
         raise ValueError(f'Required crossover not found: {type}')
 

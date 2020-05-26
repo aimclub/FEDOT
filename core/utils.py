@@ -4,11 +4,9 @@ from sklearn.model_selection import train_test_split
 import os
 import numpy as np
 
-
 def project_root() -> Path:
     """Returns project root folder."""
     return Path(__file__).parent.parent
-
 
 def labels_to_dummy_probs(prediction: np.array):
     """Returns converted predictions
@@ -52,7 +50,7 @@ def get_split_data_paths(directory_names: list):
     return full_train_file_path, full_test_file_path
 
 
-def ensure_directory_exist(dir_names: list):
+def ensure_directory_exists(dir_names: list):
     main_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1])
     dataset_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1], dir_names[2])
     if not os.path.exists(main_dir):
