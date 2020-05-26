@@ -17,7 +17,8 @@ class Data:
     def from_csv(file_path, delimiter=',',
                  task_type: TaskTypesEnum = MachineLearningTasksEnum.classification):
         if task_type == MachineLearningTasksEnum.forecasting:
-            raise ValueError('For forecasting, please use Data.from_npy method')
+            raise ValueError(
+                'For forecasting, please use Data.from_npy method')
         data_frame = pd.read_csv(file_path, sep=delimiter)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
@@ -36,7 +37,7 @@ class Data:
         filepath_target: str
             Target file with 3d input array - (n, window_len, target_dim).
             After prediction for use only forecasting data get from last `prediction_len` timestamps.
-    
+
         idx: str or np.array
             Index of train/target data
             If str, then tries to load from file with that path. Else uses np.array
@@ -45,13 +46,15 @@ class Data:
             Number of timestamps used as target
         """
         if prediction_len != 1:
-            raise NotImplementedError('For now only 1 value forecasting is supported')
+            raise NotImplementedError(
+                'For now only 1 value forecasting is supported')
 
         features = np.load(filepath_features)
         target = np.load(filepath_target)
         assert features.ndim == target.ndim == 3, 'Features and target must be 3d datasets'
-        assert features.shape[:2] == target.shape[:2], 'First two dimensions of features and target must be equal'
- 
+        assert features.shape[:2] == target.shape[:2], \
+            'First two dimensions of features and target must be equal'
+
         if isinstance(idx, str):
             idx = np.load(idx)
 
@@ -63,14 +66,16 @@ class Data:
         idx = outputs[0].idx
 
         if task_type == MachineLearningTasksEnum.forecasting:
-            features = np.concatenate([output.predict for output in outputs], axis=-1)
+            features = np.concatenate(
+                [output.predict for output in outputs], axis=-1)
             return InputData(idx=idx, features=features, target=target, task_type=task_type)
 
         features = list()
         expected_len = len(outputs[0].predict)
         for elem in outputs:
             if len(elem.predict) != expected_len:
-                raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
+                raise ValueError(
+                    f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
             features.append(elem.predict)
         return InputData(idx=idx, features=np.array(features).T, target=target, task_type=task_type)
 
@@ -105,5 +110,6 @@ def train_test_data_setup(data: InputData, split_ratio=0.8) -> Tuple[InputData, 
     train_idx, test_idx = split_train_test(data.idx, split_ratio)
     train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=train_idx, task_type=data.task_type)
-    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task_type=data.task_type)
+    test_data = InputData(features=test_data_x, target=test_data_y,
+                          idx=test_idx, task_type=data.task_type)
     return train_data, test_data

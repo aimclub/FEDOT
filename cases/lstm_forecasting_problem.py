@@ -26,18 +26,23 @@ from core.utils import project_root, ts_to_3d
 window_len = 64
 prediction_len = 1
 
-add_root = lambda file: os.path.join(str(project_root()), 'cases/out/'+ file)
+
+def add_root(file):
+    return os.path.join(str(project_root()), 'cases/out/' + file)
+
 
 def get_trend_resid_datasets(file_path, period=None):
     # load features and target (without index)
     ts = pd.read_csv(file_path, header=None).values[:, 1:]
 
     if period is None:
-        f, Pxx_den = signal.welch(ts[:, -1], fs=1, scaling='spectrum', nfft = 1000, nperseg=1000)
+        f, Pxx_den = signal.welch(
+            ts[:, -1], fs=1, scaling='spectrum', nfft=1000, nperseg=1000)
         period = int(1/f[np.argmax(Pxx_den)])
 
     # extract trend and resid from target
-    decomposed = seasonal_decompose(ts[:, -1], period=period, extrapolate_trend='freq')
+    decomposed = seasonal_decompose(
+        ts[:, -1], period=period, extrapolate_trend='freq')
     trend = decomposed.trend[:, None]
     resids = ts[:, [-1]] - trend
 
@@ -65,10 +70,13 @@ def get_trend_resid_datasets(file_path, period=None):
 
     resids_file = add_root('resids.csv')
     # add features for better prediction
-    pd.DataFrame(np.c_[resids_features, resids_target], index=index).to_csv(resids_file, header=False)
-    resid_dataset = InputData.from_csv(resids_file, task_type=MachineLearningTasksEnum.regression)
+    pd.DataFrame(np.c_[resids_features, resids_target],
+                 index=index).to_csv(resids_file, header=False)
+    resid_dataset = InputData.from_csv(
+        resids_file, task_type=MachineLearningTasksEnum.regression)
 
     return period, trend_dataset, resid_dataset
+
 
 def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData, name: str) -> float:
     # the execution of the obtained composite models
@@ -90,6 +98,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData, na
 
     return rmse
 
+
 def compare_plot(predicted, real, filepath):
     plt.clf()
     _, ax = plt.subplots()
@@ -105,11 +114,11 @@ problem_class = MachineLearningTasksEnum.forecasting
 
 period, trend_train, resid_train = get_trend_resid_datasets(
     os.path.join(str(project_root()),
-    'cases/data/ts/metocean_data_train.csv'))
+                 'cases/data/ts/metocean_data_train.csv'))
 
 _, trend_test, resid_test = get_trend_resid_datasets(
-    os.path.join(str(project_root()), 
-    'cases/data/ts/metocean_data_test.csv'),
+    os.path.join(str(project_root()),
+                 'cases/data/ts/metocean_data_test.csv'),
     period=period)
 
 
@@ -118,7 +127,7 @@ metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
 # 1 step - fit trend
 trend_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.lstm],
-                                                    secondary=[])
+                                                   secondary=[])
 
 trend = DummyComposer(
     DummyChainTypeEnum.flat).compose_chain(data=trend_train,
@@ -131,16 +140,15 @@ rmse_on_valid = calculate_validation_metric(trend, trend_test, 'trend')
 print(f'Trend RMSE: {rmse_on_valid}')
 
 
-
 # 2 step - fit resid
-resid_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.ridge],
+resid_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.rfr],
                                                    secondary=[ModelTypesIdsEnum.ridge])
 
 resid = DummyComposer(
     DummyChainTypeEnum.hierarchical).compose_chain(data=resid_train,
-                                           initial_chain=None,
-                                           composer_requirements=resid_composer_requirements,
-                                           metrics=metric_function)
+                                                   initial_chain=None,
+                                                   composer_requirements=resid_composer_requirements,
+                                                   metrics=metric_function)
 
 resid_prediction = resid.fit(input_data=resid_train, verbose=True)
 

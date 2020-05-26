@@ -55,10 +55,11 @@ class DefaultStrategy(DataStrategy):
         modified = self.imputer.transform(data)
         return modified
 
+
 class TsScalingStrategy(DataStrategy):
     def __init__(self):
         self.scaling = Scaling()
-    
+
     def fit(self, data_to_fit):
         # Make from (n, timestamps, features) input the (n, features)
         self.scaling.fit(data_to_fit[:, 0])
