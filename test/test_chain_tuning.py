@@ -37,8 +37,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # Chain tuning
-    chain.fine_tune_primary_nodes(train_data)
-    print(chain.nodes[0].model._eval_strategy)
+    chain.fine_tune_primary_nodes(train_data, iterations=50)
 
     # After tuning prediction
     chain.fit(train_data)
@@ -80,17 +79,14 @@ def test_fine_tune_root_node(data_fixture, request):
         pred = node.predict(train_data)
         primary_pred.append(pred.predict)
 
-    first_feature = np.array([primary_pred[0]]).T
-    second_feature = np.array([primary_pred[1]]).T
-
-    new_features = np.concatenate((first_feature, second_feature), axis=1)
+    new_features = np.array(primary_pred[::-1]).T
     final_data = InputData(features=new_features,
                            target=train_data.target,
                            idx=test_data.idx,
                            task_type=test_data.task_type)
 
     # root node tuning
-    chain.fine_tune_root_node(final_data)
+    chain.fine_tune_root_node(final_data, iterations=50)
     after_tun_root_node_predicted = chain.predict(test_data)
 
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)

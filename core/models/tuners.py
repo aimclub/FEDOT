@@ -9,11 +9,12 @@ from core.models.data import train_test_data_setup
 
 
 class SkLearnRandomTuner:
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int) -> Optional[dict]:
+    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int) -> (
+            Optional[dict], object):
         try:
             clf = RandomizedSearchCV(trained_model, params_range, n_iter=iterations)
             search = clf.fit(tune_data.features, tune_data.target.ravel())
-            return search.best_params_
+            return search.best_params_, search.best_estimator_
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')
             return None

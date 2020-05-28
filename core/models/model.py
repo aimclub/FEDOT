@@ -51,14 +51,14 @@ class Model:
 
         return prediction
 
-    def fine_tune(self, data: InputData, iterations: int = 0):
+    def fine_tune(self, data: InputData, iterations: int = 30):
         self._init(data.task_type)
         preprocessed_data = copy(data)
         fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
                                                                    iterations=iterations)
         self.params = tuned_params
         if self.params is None:
-            self.params = 'DEFAULT_PARAMS_STUB'
+            self.params = DEFAULT_PARAMS_STUB
 
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)

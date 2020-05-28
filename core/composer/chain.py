@@ -9,9 +9,7 @@ from core.composer.node import (
     SecondaryNode,
     PrimaryNode,
     SharedCache,
-    FittedModelCache,
-    preprocessing_for_tasks,
-    CachedState
+    FittedModelCache
 )
 from core.models.data import InputData
 
@@ -41,25 +39,28 @@ class Chain:
         return result
 
     # TODO: discuss the feature
-    def fine_tune_primary_nodes(self, input_data: InputData, verbose=False):
+    def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30, verbose=False):
         # Select all primary nodes
         # Perform fine-tuning for each model in node
-        all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-        all_primary_predictions = []
-        for node in all_primary_nodes:
-            fitted_model, predict_train = node.model.fine_tune(input_data)
-            node.model._eval_strategy = fitted_model
-            node.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
-                                          model=fitted_model))
+        if verbose:
+            print('Start tuning of primary nodes')
 
-    def fine_tune_root_node(self, input_data: InputData, verbose=False):
+        all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
+        for node in all_primary_nodes:
+            node.fine_tune(input_data, iterations=iterations)
+
+        if verbose:
+            print('End tuning')
+
+    def fine_tune_root_node(self, input_data: InputData, iterations: int = 30, verbose=False):
+        if verbose:
+            print('Start tuning of root node')
+
         node = self.root_node
-        fitted_model, predict_train = node.model.fine_tune(input_data)
-        node.model._eval_strategy = fitted_model
-        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-        node.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
-                                      model=fitted_model))
+        node.fine_tune(input_data, iterations=iterations)
+
+        if verbose:
+            print('End tuning')
 
     def add_node(self, new_node: Node):
         """

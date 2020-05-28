@@ -1,7 +1,7 @@
 import warnings
 
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
-from scipy.stats import uniform
+import numpy as np
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
@@ -76,10 +76,25 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     __params_range_by_model = {
         SklearnKmeans: {'n_clusters': range(2, 5)},
-        SklearnKNN: {'n_neighbors': range(6, 50)},
-        SklearnLogReg: {'C': uniform(loc=0, scale=4),
-                        'penalty': ['l2', 'l1']},
-        XGBClassifier: {'max_depth': range(2, 6)}
+        SklearnKNN: {
+            'n_neighbors': range(1, 50),
+            'weights': ["uniform", "distance"],
+            'p': [1, 2]},
+        SklearnLogReg: {
+            'C': [1e-2, 1e-1, 0.5, 0.9, 1., 2., 5., 10.]},
+        XGBClassifier: {
+            'n_estimators': [100],
+            'max_depth': range(1, 7),
+            'learning_rate': np.arange(0.1, 0.9, 0.1),
+            'min_child_weight': range(1, 10),
+            'nthread': [1]},
+        RandomForestClassifier: {
+            'n_estimators': [100],
+            'criterion': ["gini", "entropy"],
+            'max_features': np.arange(0.05, 1.01, 0.05),
+            'min_samples_split': range(2, 10),
+            'min_samples_leaf': range(1, 15),
+            'bootstrap': [True, False]},
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
@@ -95,22 +110,20 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
         trained_model = self.fit(train_data=train_data)
         params_range = self.__params_range_by_model.get(type(trained_model), None)
         if not params_range:
             self.params_for_fit = None
             return trained_model
 
-        tuned_params = SkLearnRandomTuner().tune(trained_model=trained_model,
-                                                 tune_data=train_data,
-                                                 params_range=params_range,
-                                                 iterations=iterations)
+        tuned_params, best_model = SkLearnRandomTuner().tune(trained_model=trained_model,
+                                                             tune_data=train_data,
+                                                             params_range=params_range,
+                                                             iterations=iterations)
 
-        if tuned_params:
-            for best_param_name in tuned_params:
-                setattr(trained_model, best_param_name, tuned_params[best_param_name])
-            trained_model = trained_model.fit(train_data.features, train_data.target.ravel())
+        if best_model:
+            trained_model = best_model
             self.params_for_fit = tuned_params
         return trained_model, tuned_params
 
@@ -221,7 +234,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def tune(self, model, data_for_tune):
+    def fit_tuned(self, train_data: InputData):
         raise NotImplementedError()
 
 

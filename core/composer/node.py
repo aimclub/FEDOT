@@ -88,6 +88,15 @@ class Node(ABC):
                 nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
+    def fine_tune(self, input_data: InputData, iterations: int = 30):
+        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
+        preprocessed_data = copy(input_data)
+        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+                                      model=fitted_model))
+
 
 class FittedModelCache:
     def __init__(self, related_node: Node):
