@@ -24,7 +24,7 @@ from core.utils import project_root, ts_to_3d
 
 
 window_len = 64
-prediction_len = 1
+prediction_len = 2
 
 
 def add_root(file):
@@ -55,7 +55,7 @@ def get_trend_resid_datasets(file_path, period=None):
     np.save(features_file, features_sliding)
 
     target_file = add_root('trend_target.npy')
-    target_sliding = ts_to_3d(features[prediction_len:, [-1]], window_len)
+    target_sliding = ts_to_3d(trend[prediction_len:], window_len)
     np.save(target_file, target_sliding)
 
     index = np.arange(features_sliding.shape[0])
@@ -84,17 +84,22 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData, na
     real = dataset_to_validate.target
 
     np.save(add_root(name+'.npy'), predicted)
-    # get only last value - forecasting.
-    # it's due 3d format of this problem
+
+    rmse = []
     if dataset_to_validate.task_type == MachineLearningTasksEnum.forecasting:
-        predicted = predicted[:, -1]
-        real = real[:, -1]
+        for i in range(prediction_len, 0, -1):
+        # it's due 3d format of this problem
+        # So return several values - forecasting at different timestamps
+            pred = predicted[:, -i]
+            r = real[:, -i]
+            # plot results
+            compare_plot(pred, r, add_root(name+str(i)+'.png'))
 
-    # plot results
-    compare_plot(predicted, real, add_root(name+'.png'))
-
-    # the quality assessment for the simulation results
-    rmse = mse(y_true=real, y_pred=predicted, squared=False)
+            # the quality assessment for the simulation results
+            rmse.append(mse(y_true=r, y_pred=pred, squared=False))
+    else:
+        compare_plot(predicted, real, add_root(name+'.png'))
+        rmse.append(mse(y_true=real, y_pred=predicted, squared=False))
 
     return rmse
 
