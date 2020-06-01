@@ -35,7 +35,8 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
-                               gp_optimiser_params: Optional[GPChainOptimiserParameters] = None, pop_size=None, generations=None):
+                               gp_optimiser_params: Optional[GPChainOptimiserParameters] = None, pop_size=None,
+                               generations=None):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 

@@ -3,8 +3,7 @@ from enum import Enum
 from random import randint, choice
 from typing import (
     List,
-    Any,
-    Tuple
+    Any
 )
 
 
@@ -45,7 +44,6 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
         chosen.append(individual[0])
         chosen_index_in_pop = individuals.index(individual[0])
         individuals.remove(individuals[chosen_index_in_pop])
-        # fitness.pop(chosen_index_in_pop)
     return chosen
 
 

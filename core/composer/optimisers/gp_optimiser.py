@@ -1,7 +1,5 @@
 import math
-from copy import deepcopy
 from dataclasses import dataclass
-from enum import Enum
 from functools import partial
 from typing import (
     List,
@@ -14,16 +12,11 @@ import numpy as np
 
 from core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.heredity import direct_heredity, steady_state_heredity
+from core.composer.optimisers.heredity import heredity, GeneticSchemeTypesEnum
 from core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
-
-
-class GeneticSchemeTypesEnum(Enum):
-    steady_state = 'steady_state'
-    generational = 'generational'
 
 
 @dataclass
@@ -68,10 +61,8 @@ class GPChainOptimiser:
     def optimise(self, objective_function, offspring_rate=0.5):
 
         if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
-            heredity = steady_state_heredity
             num_of_new_individuals = math.ceil(self.requirements.pop_size * offspring_rate)
         else:
-            heredity = direct_heredity
             num_of_new_individuals = self.requirements.pop_size - 1
 
         with CompositionTimer() as t:
@@ -103,7 +94,9 @@ class GPChainOptimiser:
 
                     new_population[ind_num].fitness = objective_function(new_population[ind_num])
 
-                self.population = deepcopy(heredity(self.population, new_population, self.requirements.pop_size - 1))
+                self.population = heredity(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                           self.population,
+                                           new_population, self.requirements.pop_size - 1)
 
                 self.population.append(self.best_individual)
 

@@ -30,7 +30,7 @@ def decremental_regularization(population: List[Any], objective_function: Callab
     prev_nodes_ids = []
     for ind in population:
         ind_subtrees = [node for node in ind.nodes if node != ind.root_node]
-        subtrees = [deepcopy(chain_class(node.ordered_subnodes_hierarchy)) for node in ind_subtrees if
+        subtrees = [chain_class(deepcopy(node.ordered_subnodes_hierarchy)) for node in ind_subtrees if
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
