@@ -14,4 +14,4 @@ TBD
 
 The documentation is available in [FEDOT.Docs](https://itmo-nss-team.github.io/FEDOT.Docs) repository.
 
-The description and source code of underlying algorithms is available in [FEDOT.Algs](https://github.com/ITMO-NSS-team/FEDOT.Algs) repository and its wiki (in Russian).
+The description and source code of underlying algorithms is available in [FEDOT.Algs](https://github.com/ITMO-NSS-team/FEDOT.Algs) repository and its [wiki pages](https://github.com/ITMO-NSS-team/FEDOT.Algs/wiki) (in Russian).
