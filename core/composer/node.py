@@ -11,6 +11,7 @@ from core.models.model import Model
 from core.models.preprocessing import *
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tuner_types_repository import TunerTypeEnum
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -88,12 +89,13 @@ class Node(ABC):
                 nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
-    def fine_tune(self, input_data: InputData, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, tuner_type: TunerTypeEnum, iterations: int = 30):
         preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
         preprocessed_data = copy(input_data)
         preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
-        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations,
+                                                           tuner_type=tuner_type)
         self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
                                       model=fitted_model))
 

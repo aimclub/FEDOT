@@ -17,11 +17,21 @@ def classification_dataset():
     return InputData.from_csv(os.path.join(test_file_path, file))
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_fine_tune_primary_nodes(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
+def get_logit_chain():
+    # Chain composition
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
+    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[first, second])
 
+    chain = Chain()
+    for node in [first, second, final]:
+        chain.add_node(node)
+
+    return chain
+
+
+def get_xgb_chain():
     # Chain composition
     first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
     second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
@@ -31,6 +41,17 @@ def test_fine_tune_primary_nodes(data_fixture, request):
     chain = Chain()
     for node in [first, second, final]:
         chain.add_node(node)
+
+    return chain
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_fine_tune_primary_nodes(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    # Chain composition
+    chain = get_logit_chain()
 
     # Before tuning prediction
     chain.fit(train_data, use_cache=False)
@@ -47,8 +68,8 @@ def test_fine_tune_primary_nodes(data_fixture, request):
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
     aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
 
-    print(bfr_tun_roc_auc)
-    print(aft_tun_roc_auc)
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
 
     assert aft_tun_roc_auc != bfr_tun_roc_auc
     assert list(before_tuning_predicted.predict) != list(after_tuning_predicted.predict)
@@ -60,14 +81,7 @@ def test_fine_tune_root_node(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Chain composition
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                         nodes_from=[first, second])
-
-    chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain = get_logit_chain()
 
     # Before tuning prediction
     chain.fit(train_data, use_cache=False)
@@ -92,8 +106,8 @@ def test_fine_tune_root_node(data_fixture, request):
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
     aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict)
 
-    print(bfr_tun_roc_auc)
-    print(aft_tun_roc_auc)
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
 
     assert bfr_tun_roc_auc != aft_tun_roc_auc
     assert list(before_tuning_predicted.predict) != list(after_tun_root_node_predicted.predict)

@@ -12,6 +12,7 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
     compatible_task_types
+from core.repository.tuner_types_repository import TunerTypeEnum, SklearnTunerTypeEnum
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -51,10 +52,10 @@ class Model:
 
         return prediction
 
-    def fine_tune(self, data: InputData, iterations: int = 30):
+    def fine_tune(self, data: InputData, tuner_type: TunerTypeEnum = SklearnTunerTypeEnum.rand, iterations: int = 30):
         self._init(data.task_type)
         preprocessed_data = copy(data)
-        fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
+        fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data, tuner_type=tuner_type,
                                                                    iterations=iterations)
         self.params = tuned_params
         if self.params is None:

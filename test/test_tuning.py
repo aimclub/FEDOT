@@ -89,7 +89,8 @@ def test_rf_class_tune_correct(data_fixture, request):
                                  y_score=test_predicted_tuned)
     roc_threshold = 0.7
 
-    assert test_roc_auc_tuned >= test_roc_auc > roc_threshold
+    assert test_roc_auc_tuned != test_roc_auc
+    assert test_roc_auc_tuned > roc_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['scoring_dataset'])

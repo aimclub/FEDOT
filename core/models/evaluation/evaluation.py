@@ -1,4 +1,5 @@
 import warnings
+from typing import Optional
 
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 import numpy as np
@@ -29,8 +30,10 @@ from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
-from core.models.tuners import SkLearnRandomTuner, CustomRandomTuner
+from core.models.tuners import SkLearnRandomTuner, CustomRandomTuner, SklearnGridSearchTuner, SklearnBayesSearchCV, \
+    SklearnTuner, SklearnCustomRandomSearch
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.tuner_types_repository import SklearnTunerTypeEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -43,7 +46,7 @@ class EvaluationStrategy:
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData):
+    def fit_tuned(self, train_data: InputData, tuner_type: SklearnTunerTypeEnum):
         raise NotImplementedError()
 
 
@@ -75,31 +78,39 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     }
 
     __params_range_by_model = {
-        SklearnKmeans: {'n_clusters': range(2, 5)},
+        SklearnKmeans: {'n_clusters': list(range(2, 5))},
         SklearnKNN: {
-            'n_neighbors': range(1, 50),
+            'n_neighbors': list(range(1, 50)),
             'weights': ["uniform", "distance"],
             'p': [1, 2]},
         SklearnLogReg: {
             'C': [1e-2, 1e-1, 0.5, 0.9, 1., 2., 5., 10.]},
         XGBClassifier: {
             'n_estimators': [100],
-            'max_depth': range(1, 7),
-            'learning_rate': np.arange(0.1, 0.9, 0.1),
-            'min_child_weight': range(1, 10),
+            'max_depth': list(range(1, 7)),
+            'learning_rate': list(np.arange(0.1, 0.9, 0.1)),
+            'subsample': list(np.arange(0.05, 1.01, 0.05)),
+            'min_child_weight': list(range(1, 21)),
             'nthread': [1]},
         RandomForestClassifier: {
             'n_estimators': [100],
             'criterion': ["gini", "entropy"],
             'max_features': np.arange(0.05, 1.01, 0.05),
-            'min_samples_split': range(2, 10),
-            'min_samples_leaf': range(1, 15),
+            'min_samples_split': list(range(2, 10)),
+            'min_samples_leaf': list(range(1, 15)),
             'bootstrap': [True, False]},
+    }
+
+    __tuners_by_type = {
+        SklearnTunerTypeEnum.grid: SklearnGridSearchTuner,
+        SklearnTunerTypeEnum.bayes: SklearnBayesSearchCV,
+        SklearnTunerTypeEnum.rand: SkLearnRandomTuner,
+        SklearnTunerTypeEnum.crand: SklearnCustomRandomSearch
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
-        self._tune_func = RandomizedSearchCV
+        self._tune_func: SklearnTuner = Optional[SklearnTuner]
         self.params_for_fit = None
 
     def fit(self, train_data: InputData):
@@ -110,17 +121,20 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+    def fit_tuned(self, train_data: InputData,
+                  tuner_type: SklearnTunerTypeEnum = SklearnTunerTypeEnum.rand,
+                  iterations: int = 30):
         trained_model = self.fit(train_data=train_data)
         params_range = self.__params_range_by_model.get(type(trained_model), None)
+        self._tune_func = self.__tuners_by_type.get(tuner_type, None)
         if not params_range:
             self.params_for_fit = None
             return trained_model
 
-        tuned_params, best_model = SkLearnRandomTuner().tune(trained_model=trained_model,
-                                                             tune_data=train_data,
-                                                             params_range=params_range,
-                                                             iterations=iterations)
+        tuned_params, best_model = self._tune_func().tune(trained_model=trained_model,
+                                                          tune_data=train_data,
+                                                          params_range=params_range,
+                                                          iterations=iterations)
 
         if best_model:
             trained_model = best_model
@@ -198,7 +212,7 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 10):
+    def fit_tuned(self, train_data: InputData, tuner_type: SklearnTunerTypeEnum, iterations: int = 10):
         tuned_params = CustomRandomTuner().tune(fit=self._model_specific_fit,
                                                 predict=self._model_specific_predict,
                                                 tune_data=train_data,
@@ -234,7 +248,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData):
+    def fit_tuned(self, train_data: InputData, tuner_type: SklearnTunerTypeEnum):
         raise NotImplementedError()
 
 
