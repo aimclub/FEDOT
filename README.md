@@ -1,4 +1,4 @@
-# THEODOR
+# FEDOT
 [![Build Status](https://travis-ci.com/J3FALL/THEODOR.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master)](https://travis-ci.com/J3FALL/THEODOR) [![Coverage Status](https://coveralls.io/repos/github/J3FALL/THEODOR/badge.svg?branch=master)](https://coveralls.io/github/J3FALL/THEODOR?branch=master)
 
 This repository contains the framework for the knowledge-enriched AutoML named FEDOT.
@@ -8,7 +8,12 @@ The project is maintained by the research team of Natural Systems Simulation Lab
 
 
 ## Short description
-TBD
+
+To combine the proposed concepts and methods with the existing state-of-the-art approaches and share the obtained experience with the community, we decided to develop the FEDOT framework.
+
+The framework kernel can be configured for different classes of tasks. The framework includes the library with implementations of intelligent algorithms to identify data-driven models with different requirements; and composite models (chains of models) for solving specific subject tasks (social and financial, metocean, physical, etc.).
+
+It is possible to obtain models with given parameters of quality, complexity, interpretability; to get an any-time result; to pause and resume model identification; to integrate many popular Python open source solutions for AutoML/meta-learning, optimization, quality assessment, etc.; re-use the models created by other users.
 
 ## Documentation
 
