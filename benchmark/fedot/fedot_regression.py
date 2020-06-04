@@ -12,15 +12,19 @@ from core.repository.model_types_repository import (
 from core.repository.quality_metrics_repository import MetricsRepository
 from core.repository.quality_metrics_repository import RegressionMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
+from benchmark.benchmark_utils import get_models_hyperparameters
 
 random.seed(1)
 np.random.seed(1)
 
 
-def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int = 20, vis_flag: bool = False):
+def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
     problem_class = MachineLearningTasksEnum.regression
     dataset_to_compose = InputData.from_csv(train_file_path, task_type=problem_class)
     dataset_to_validate = InputData.from_csv(test_file_path, task_type=problem_class)
+    models_hyperparameters = get_models_hyperparameters()['FEDOT']
+    generations = models_hyperparameters['GENERATIONS']
+    population_size = models_hyperparameters['POPULATION_SIZE']
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
@@ -36,7 +40,7 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
-        max_depth=2, pop_size=10, num_of_generations=10,
+        max_depth=2, pop_size=population_size, num_of_generations=generations,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
     single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.lasso, ModelTypesIdsEnum.ridge],

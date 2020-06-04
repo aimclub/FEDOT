@@ -48,14 +48,15 @@ def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> str:
     return full_train_file_path, full_test_file_path
 
 
-def convert_json_to_csv(dataset: list, include_hyper: bool = True, Dataset_name_column_place: int = 1):
+def convert_json_to_csv(dataset: list, include_hyper: bool = True):
     list_of_df = []
     new_col = []
+    dataset_name_column_place = 1
     for filename, name_of_dataset in zip(glob('*.json'), dataset):
         with open(filename, 'r') as f:
             data = json.load(f)
             df = pd.json_normalize(data)
-            df.insert(Dataset_name_column_place, 'name_of_dataset', name_of_dataset, True)
+            df.insert(dataset_name_column_place, 'name_of_dataset', name_of_dataset, True)
             list_of_df.append(df)
 
     df_final = pd.concat(list_of_df)
@@ -76,7 +77,7 @@ def save_metrics_result_file(data: dict, file_name: str):
         json.dump(data, file, indent=4)
 
 
-def get_models_hyperparameters(timedelta: int = 30) -> dict:
+def get_models_hyperparameters(timedelta: int = 10) -> dict:
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS
 
     tpot_config = {'MAX_RUNTIME_MINS': timedelta,
@@ -85,7 +86,7 @@ def get_models_hyperparameters(timedelta: int = 30) -> dict:
                    }
 
     fedot_config = {'MAX_RUNTIME_MINS': timedelta,
-                    'GENERATIONS': 50,
+                    'GENERATIONS': 10,
                     'POPULATION_SIZE': 10
                     }
 
