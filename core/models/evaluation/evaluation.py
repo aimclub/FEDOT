@@ -1,27 +1,30 @@
 import warnings
 
-from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.discriminant_analysis import (
-    LinearDiscriminantAnalysis,
-    QuadraticDiscriminantAnalysis
-)
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import Lasso as SklearnLassoReg
-from sklearn.linear_model import LinearRegression as SklearnLinReg
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-from sklearn.linear_model import Ridge as SklearnRidgeReg
-from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import LinearSVC as SklearnSVC
-from xgboost import XGBClassifier
-
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from sklearn.cluster import KMeans as SklearnKmeans
+from sklearn.discriminant_analysis import (
+    LinearDiscriminantAnalysis,
+    QuadraticDiscriminantAnalysis
+)
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, AdaBoostRegressor, \
+    GradientBoostingRegressor, ExtraTreesRegressor
+from sklearn.linear_model import Lasso as SklearnLassoReg
+from sklearn.linear_model import LinearRegression as SklearnLinReg
+from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.linear_model import Ridge as SklearnRidgeReg
+from sklearn.linear_model import SGDRegressor as SklearnSGD
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import LinearSVC as SklearnSVC
+from sklearn.svm import LinearSVR as SklearnSVR
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from xgboost import XGBClassifier, XGBRegressor
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -40,10 +43,17 @@ class EvaluationStrategy:
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     __model_by_types = {
         ModelTypesIdsEnum.xgboost: XGBClassifier,
+        ModelTypesIdsEnum.xgbreg: XGBRegressor,
+        ModelTypesIdsEnum.adareg: AdaBoostRegressor,
+        ModelTypesIdsEnum.gbr: GradientBoostingRegressor,
         ModelTypesIdsEnum.logit: SklearnLogReg,
         ModelTypesIdsEnum.knn: SklearnKNN,
+        ModelTypesIdsEnum.knnreg: SklearnKNNReg,
         ModelTypesIdsEnum.dt: DecisionTreeClassifier,
+        ModelTypesIdsEnum.dtreg: DecisionTreeRegressor,
+        ModelTypesIdsEnum.treg: ExtraTreesRegressor,
         ModelTypesIdsEnum.rf: RandomForestClassifier,
+        ModelTypesIdsEnum.rfreg: RandomForestRegressor,
         ModelTypesIdsEnum.mlp: MLPClassifier,
         ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
         ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
@@ -51,7 +61,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.ridge: SklearnRidgeReg,
         ModelTypesIdsEnum.lasso: SklearnLassoReg,
         ModelTypesIdsEnum.kmeans: SklearnKmeans,
-        ModelTypesIdsEnum.svc: SklearnSVC
+        ModelTypesIdsEnum.svc: SklearnSVC,
+        ModelTypesIdsEnum.svr: SklearnSVR,
+        ModelTypesIdsEnum.sgdr: SklearnSGD,
+
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):

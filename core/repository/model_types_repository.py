@@ -12,11 +12,20 @@ from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 
 class ModelTypesIdsEnum(Enum):
     xgboost = 'xgboost',
+    xgbreg = 'xgbreg'
+    gbr = 'gradientregressor',
+    adareg = 'adaregressor',
+    sgdr = 'stochasticregressor'
+    knnreg = 'knnregressor',
     knn = 'knn',
     logit = 'logit',
     dt = 'decisiontree',
+    dtreg = 'decisiontreeregressor',
+    treg = 'treeregressor'
     rf = 'randomforest',
+    rfreg = 'randomforestregressor'
     svc = 'linearsvc',
+    svr = 'linearsvr'
     mlp = 'mlp',
     lda = 'lda',
     qda = 'qda',
@@ -25,6 +34,7 @@ class ModelTypesIdsEnum(Enum):
     linear = 'linear',
     ridge = 'ridge',
     lasso = 'lasso',
+    elactic = 'elastic'
     kmeans = 'kmeans'
     tpot = 'tpot'
     h2o = 'h2o'
@@ -105,7 +115,16 @@ class ModelTypesRepository:
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
                                               ModelTypesIdsEnum.lasso,
-                                              ModelTypesIdsEnum.ridge],
+                                              ModelTypesIdsEnum.ridge,
+                                              ModelTypesIdsEnum.xgbreg,
+                                              ModelTypesIdsEnum.adareg,
+                                              ModelTypesIdsEnum.gbr,
+                                              ModelTypesIdsEnum.knnreg,
+                                              ModelTypesIdsEnum.dtreg,
+                                              ModelTypesIdsEnum.treg,
+                                              ModelTypesIdsEnum.rfreg,
+                                              ModelTypesIdsEnum.svr,
+                                              ModelTypesIdsEnum.sgdr],
                                       task_type=[MachineLearningTasksEnum.regression],
                                       parent=ml)
 

@@ -1,5 +1,6 @@
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import get_penn_case_data_paths, save_metrics_result_file, get_models_hyperparameters
+from benchmark.benchmark_utils import get_penn_case_data_paths, save_metrics_result_file, \
+    get_models_hyperparameters, convert_json_to_csv
 from benchmark.executor import CaseExecutor
 from core.repository.task_types import MachineLearningTasksEnum
 from pmlb import classification_dataset_names, regression_dataset_names, fetch_data
@@ -56,3 +57,5 @@ if __name__ == '__main__':
         result_metrics['hyperparameters'] = config_models_data
 
         save_metrics_result_file(result_metrics, file_name=f'penn_ml_metrics_for_{name_of_dataset}')
+
+    convert_json_to_csv(dataset)
