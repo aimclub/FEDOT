@@ -28,9 +28,13 @@ def get_cancer_case_data_paths() -> Tuple[str, str]:
 
 
 def init_penn_data_paths(name_of_dataset: str):
-    tmp_dir = os.path.join(str(project_root()), 'benchmark', 'data', str(name_of_dataset))
-    if not os.path.exists(tmp_dir):
-        os.mkdir(tmp_dir)
+    main_dir = os.path.join(str(project_root()), 'benchmark', 'data')
+    dataset_dir = os.path.join(str(project_root()), 'benchmark', 'data', str(name_of_dataset))
+    if not os.path.exists(main_dir):
+        os.mkdir(main_dir)
+        
+    if not os.path.exists(dataset_dir):
+        os.mkdir(dataset_dir)
     else:
         print('Dataset already exist')
 
