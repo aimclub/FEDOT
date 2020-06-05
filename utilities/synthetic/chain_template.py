@@ -37,7 +37,7 @@ def chain_template_random(model_types, depth, models_per_level,
     models_by_level = []
 
     for level in range(depth - 1):
-        selected_models = np.random.choice(model_types, models_per_level)
+        selected_models = np.random.choice(model_types, models_per_level[level])
         templates = [ModelTemplate(model_type=model_type) for model_type in selected_models]
         models_by_level.append(templates)
 

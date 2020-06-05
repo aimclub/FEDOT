@@ -4,7 +4,10 @@ import pytest
 from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
-from utilities.synthetic.chain import chain_with_random_links
+from utilities.synthetic.chain import (
+    chain_with_random_links,
+    chain_full_random
+)
 
 
 # TODO: get rid of duplicated code
@@ -30,5 +33,19 @@ def test_chain_with_random_links_correct(classification_dataset):
     chain = chain_with_random_links(depth=depth, models_per_level=models_per_level,
                                     used_models=used_models)
 
-    chain.fit_from_scratch(input_data=classification_dataset)
     assert chain.depth == depth
+    assert chain.length == sum(models_per_level)
+
+    chain.fit_from_scratch(input_data=classification_dataset)
+
+
+def test_chain_full_random_correct(classification_dataset):
+    depth = 3
+    max_lvl_size = 4
+    used_models = [ModelTypesIdsEnum.logit]
+    chain = chain_full_random(depth=depth, max_level_size=max_lvl_size,
+                              used_models=used_models)
+
+    assert chain.depth == depth
+
+    chain.fit_from_scratch(input_data=classification_dataset)
