@@ -20,7 +20,7 @@ from core.repository.task_types import MachineLearningTasksEnum
 from experiments.chain_template import (chain_template_balanced_tree, fit_template,
                                         show_chain_template, real_chain, with_calculated_shapes)
 from experiments.composer_benchmark import to_labels, predict_with_xgboost
-from experiments.generate_data import synthetic_dataset
+from experiments.exp_generate_data import synthetic_dataset
 from experiments.tree_dist import chain_distance
 
 

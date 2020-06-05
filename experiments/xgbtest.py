@@ -36,8 +36,8 @@ from experiments.chain_template import (
     real_chain, fit_template
 )
 from experiments.composer_benchmark import to_labels, predict_with_xgboost
-from experiments.generate_data import synthetic_dataset
-from experiments.generate_data import synthetic_dataset, gauss_quantiles
+from experiments.exp_generate_data import synthetic_dataset
+from experiments.exp_generate_data import synthetic_dataset, gauss_quantiles
 from experiments.viz import fitness_by_generations_boxplots, show_fitness_history_all
 
 np.random.seed(42)

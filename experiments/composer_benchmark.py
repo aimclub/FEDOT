@@ -18,7 +18,7 @@ from experiments.chain_template import (
     chain_template_balanced_tree, show_chain_template,
     real_chain, fit_template
 )
-from experiments.generate_data import synthetic_dataset, gauss_quantiles
+from experiments.exp_generate_data import synthetic_dataset, gauss_quantiles
 from experiments.viz import fitness_by_generations_boxplots, show_fitness_history_all
 
 

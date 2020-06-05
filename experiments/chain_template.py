@@ -12,7 +12,7 @@ from core.models.model import InputData
 from core.models.model import Model
 from core.models.preprocessing import Normalization
 from core.repository.task_types import MachineLearningTasksEnum
-from experiments.generate_data import synthetic_dataset, gauss_quantiles
+from experiments.exp_generate_data import synthetic_dataset, gauss_quantiles
 
 
 @dataclass

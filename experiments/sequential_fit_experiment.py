@@ -19,7 +19,7 @@ from experiments.chain_template import (
     fit_template,
     real_chain
 )
-from experiments.generate_data import gauss_quantiles
+from experiments.exp_generate_data import gauss_quantiles
 
 
 def models_to_use():
