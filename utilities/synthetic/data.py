@@ -46,7 +46,7 @@ def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
     :param full_shuffle: if true then all features and samples will be shuffled.
     :param kwargs: Optional params:
         - 'gauss_params': mean and covariance values of the distribution.
-    :return:
+    :return: features and target as numpy-arrays.
     """
     if 'gauss_params' in kwargs:
         mean, cov = kwargs['gauss_params']
