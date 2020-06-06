@@ -6,7 +6,8 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from utilities.synthetic.chain_template import (
     chain_template_random,
     fit_template,
-    real_chain
+    real_chain,
+    chain_template_balanced_tree
 )
 
 
@@ -55,12 +56,25 @@ def chain_full_random(depth: int, max_level_size,
     return resulted_chain
 
 
-def chain_balanced_tree() -> Chain:
+def chain_balanced_tree(depth: int, models_per_level: List[int],
+                        used_models: List[ModelTypesIdsEnum]) -> Chain:
     """
-    Generates chain with balanced tree-like structure
-    :return:
+    Generates chain with balanced tree-like structure. The average arity value
+    of the resulted tree is close to 2.
+    :param depth: Tree depth.
+    :param models_per_level: The amount of models at each layer.
+    :param used_models: The list of models to be randomly included into
+    the resulted chain.
+    :return: Chain with balanced tree-like structure.
     """
-    raise NotImplementedError()
+    template = chain_template_balanced_tree(model_types=used_models,
+                                            depth=depth,
+                                            models_per_level=models_per_level,
+                                            samples=100, features=10)
+    fit_template(chain_template=template, classes=2, skip_fit=True)
+    resulted_chain = real_chain(chain_template=template)
+
+    return resulted_chain
 
 
 def _random_models_per_lvl(depth, max_level_size):

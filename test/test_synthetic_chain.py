@@ -6,7 +6,8 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from utilities.synthetic.chain import (
     chain_with_random_links,
-    chain_full_random
+    chain_full_random,
+    chain_balanced_tree
 )
 
 
@@ -47,5 +48,18 @@ def test_chain_full_random_correct(classification_dataset):
                               used_models=used_models)
 
     assert chain.depth == depth
+
+    chain.fit_from_scratch(input_data=classification_dataset)
+
+
+def test_chain_balanced_tree_correct(classification_dataset):
+    depth = 3
+    models_per_level = [4, 2, 1]
+    used_models = [ModelTypesIdsEnum.logit]
+    chain = chain_balanced_tree(depth=depth, models_per_level=models_per_level,
+                                used_models=used_models)
+
+    assert chain.depth == depth
+    assert chain.length == sum(models_per_level)
 
     chain.fit_from_scratch(input_data=classification_dataset)
