@@ -77,6 +77,21 @@ def chain_balanced_tree(depth: int, models_per_level: List[int],
     return resulted_chain
 
 
+def separately_fit_chain(samples: int, features_amount: int, classes: int,
+                         chain: Chain = None):
+    if chain is None:
+        models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost,
+                  ModelTypesIdsEnum.knn]
+        template = chain_template_balanced_tree(model_types=models,
+                                                depth=3,
+                                                models_per_level=[4, 2, 1],
+                                                samples=samples, features=features_amount)
+        fit_template(chain_template=template, classes=classes, skip_fit=False)
+        chain = real_chain(chain_template=template)
+
+    return chain
+
+
 def _random_models_per_lvl(depth, max_level_size):
     models_per_level = []
     for _ in range(depth - 1):

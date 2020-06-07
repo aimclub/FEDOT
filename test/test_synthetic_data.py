@@ -1,6 +1,9 @@
 import numpy as np
+import pytest
 
-from utilities.synthetic.data import classification_dataset, gauss_quantiles_dataset
+from core.models.data import InputData
+from utilities.synthetic.data import (
+    classification_dataset, gauss_quantiles_dataset, synthetic_benchmark_dataset)
 
 
 def default_dataset_params():
@@ -44,3 +47,12 @@ def test_gauss_quantiles_dataset_correct():
 
     actual_classes = np.unique(target)
     assert len(actual_classes) == params['classes']
+
+
+@pytest.mark.skip('Fix preprocessing issues')
+def test_synthetic_benchmark_dataset_correct():
+    samples, features = 5000, 10
+    benchmark_data = synthetic_benchmark_dataset(samples_amount=samples,
+                                                 features_amount=features)
+
+    assert isinstance(benchmark_data, InputData)
