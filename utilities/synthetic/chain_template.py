@@ -42,8 +42,8 @@ def chain_template_random(model_types, depth, models_per_level,
         templates = [ModelTemplate(model_type=model_type) for model_type in selected_models]
         models_by_level.append(templates)
 
-    last_model = np.random.choice(model_types)
-    models_by_level.append([ModelTemplate(model_type=last_model)])
+    root_model = np.random.choice(model_types)
+    models_by_level.append([ModelTemplate(model_type=root_model)])
 
     models_by_level = with_random_links(models_by_level)
 
@@ -51,8 +51,8 @@ def chain_template_random(model_types, depth, models_per_level,
     # TODO: change target_shape later if non-classification problems will be used
     target_shape = [samples, 1]
     models_by_level = with_calculated_shapes(models_by_level,
-                                             source_features=features_shape,
-                                             source_target=target_shape)
+                                             features_shape=features_shape,
+                                             target_shape=target_shape)
     return models_by_level
 
 
@@ -66,8 +66,8 @@ def chain_template_balanced_tree(model_types, depth, models_per_level,
         models_by_level.append(templates)
 
     assert models_per_level[-1] == 1
-    last_model = np.random.choice(model_types)
-    models_by_level.append([ModelTemplate(model_type=last_model)])
+    root_model = np.random.choice(model_types)
+    models_by_level.append([ModelTemplate(model_type=root_model)])
 
     models_by_level = with_balanced_tree_links(models_by_level)
 
@@ -75,8 +75,8 @@ def chain_template_balanced_tree(model_types, depth, models_per_level,
     # TODO: change target_shape later if non-classification problems will be used
     target_shape = [samples, 1]
     models_by_level = with_calculated_shapes(models_by_level,
-                                             source_features=features_shape,
-                                             source_target=target_shape)
+                                             features_shape=features_shape,
+                                             target_shape=target_shape)
     return models_by_level
 
 
@@ -84,10 +84,11 @@ def chain_template_balanced_tree(model_types, depth, models_per_level,
 def with_random_links(models_by_level):
     for current_lvl in range(len(models_by_level) - 1):
         next_lvl = current_lvl + 1
-        models_on_lvl = models_by_level[current_lvl]
+        models_on_current_lvl = models_by_level[current_lvl]
 
-        for model in models_on_lvl:
-            links_amount = np.random.randint(1, len(models_by_level[next_lvl]) + 1)
+        for model in models_on_current_lvl:
+            models_on_next_lvl = models_by_level[next_lvl]
+            links_amount = np.random.randint(1, len(models_on_next_lvl) + 1)
             models_to_link = np.random.choice(models_by_level[next_lvl], links_amount, replace=False)
             for model_ in models_to_link:
                 model_.parents.append(model)
@@ -117,24 +118,25 @@ def with_balanced_tree_links(models_by_level):
     return models_by_level
 
 
-def with_calculated_shapes(models_by_level, source_features, source_target):
-    samples, classes = source_features[0], source_target[1]
+def with_calculated_shapes(models_by_level, features_shape, target_shape):
+    samples_idx, classes_idx = 0, 1
+    samples, classes = features_shape[samples_idx], target_shape[classes_idx]
 
     # Fill the first level
     for model in models_by_level[0]:
-        model.input_shape = source_features
-        model.output_shape = source_target
+        model.input_shape = features_shape
+        model.output_shape = target_shape
 
     for level in range(1, len(models_by_level)):
         for model in models_by_level[level]:
             if len(model.parents) == 0:
-                input_features = source_features[1]
+                input_features = features_shape[classes_idx]
             else:
-                input_features = sum([parent.output_shape[1] for parent in model.parents])
+                input_features = sum([parent.output_shape[classes_idx] for parent in model.parents])
 
             model.input_shape = [samples, input_features]
 
-            model.output_shape = source_target
+            model.output_shape = target_shape
 
     return models_by_level
 

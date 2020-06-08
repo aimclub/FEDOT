@@ -13,7 +13,7 @@ from utilities.synthetic.chain_template import (
 
 def chain_with_fixed_structure() -> Chain:
     """
-    Generates chain with a fixed structure of nodes and links
+    Generates chain with a fixed structure of nodes and links.
     :return:
     """
     raise NotImplementedError()

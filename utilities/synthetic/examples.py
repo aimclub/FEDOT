@@ -1,15 +1,18 @@
+from random import seed
+
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from utilities.synthetic.data_benchmark import synthetic_benchmark_dataset
 from utilities.synthetic.chain import separately_fit_chain
 from utilities.synthetic.data import (
     classification_dataset, gauss_quantiles_dataset
 )
+from utilities.synthetic.data_benchmark import synthetic_benchmark_dataset
 
 
 def data_generator_example():
@@ -26,13 +29,13 @@ def data_generator_example():
                                               noise_fraction=0.1, full_shuffle=False)
 
     plt.subplot(121)
-    plt.title("Two informative features, one cluster per class")
+    plt.title("The first two informative features, one cluster per class")
     plt.scatter(features[:, 0], features[:, 1], marker='o', c=target,
                 s=25, edgecolor='k')
 
     features, target = gauss_quantiles_dataset(samples_total, features_amount=2, classes_amount=classes)
     plt.subplot(122)
-    plt.title("Gaussian divided into three quantiles")
+    plt.title(f"Gaussian divided into {classes} quantiles")
     plt.scatter(features[:, 0], features[:, 1], marker='o', c=target,
                 s=25, edgecolor='k')
 
@@ -45,11 +48,15 @@ def synthetic_benchmark_composing_example():
     data = synthetic_benchmark_dataset(samples_amount=5000, features_amount=10,
                                        fitted_chain=fitted_chain)
 
+    print(f'Synthetic features: {data.features[:10]}')
+    print(f'Synthetic target: {data.target[:10]}')
+
     train, test = train_test_data_setup(data)
     simple_chain = two_level_chain()
     simple_chain.fit(input_data=train, use_cache=False)
-    train_predicted = simple_chain.predict(train)
-    test_predicted = simple_chain.predict(test)
+
+    print(f'ROC score on train: {roc_value(simple_chain, train)}')
+    print(f'ROC score on test {roc_value(simple_chain, test)}')
 
 
 def two_level_chain():
@@ -73,5 +80,7 @@ def roc_value(chain: Chain, dataset_to_validate) -> float:
 
 
 if __name__ == '__main__':
+    seed(15)
+    np.random.seed(15)
     data_generator_example()
     synthetic_benchmark_composing_example()

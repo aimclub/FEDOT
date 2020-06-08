@@ -38,7 +38,7 @@ def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
                             classes_amount: int, full_shuffle=True, **kwargs):
     """
     Generates a random dataset for n-class classification problem
-    based on multi-dimensional gaussian distribution quantiles.
+    based on multi-dimensional gaussian distribution quantiles
     using scikit-learn API.
     :param samples_amount: Total amount of samples in the resulted dataset.
     :param features_amount: Total amount of features per sample.
