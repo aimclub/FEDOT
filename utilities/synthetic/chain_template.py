@@ -2,11 +2,13 @@ import itertools
 import uuid
 from copy import copy
 from dataclasses import dataclass
+from typing import List
 
 import numpy as np
 
 from core.composer.chain import Chain
 from core.composer.node import CachedState
+from core.composer.node import Node
 from core.composer.node import PrimaryNode, SecondaryNode, FittedModelCache
 from core.models.model import InputData
 from core.models.model import Model
@@ -216,7 +218,7 @@ def real_chain(chain_template, with_cache=True):
     return chain
 
 
-def real_parents(nodes_by_templates, template_child):
+def real_parents(nodes_by_templates, template_child) -> List[Node]:
     parent_nodes = []
     for parent in template_child.parents:
         for node, template in nodes_by_templates:

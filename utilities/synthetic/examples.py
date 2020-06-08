@@ -29,13 +29,13 @@ def data_generator_example():
                                               noise_fraction=0.1, full_shuffle=False)
 
     plt.subplot(121)
-    plt.title("The first two informative features, one cluster per class")
+    plt.title('The first two informative features, one cluster per class')
     plt.scatter(features[:, 0], features[:, 1], marker='o', c=target,
                 s=25, edgecolor='k')
 
     features, target = gauss_quantiles_dataset(samples_total, features_amount=2, classes_amount=classes)
     plt.subplot(122)
-    plt.title(f"Gaussian divided into {classes} quantiles")
+    plt.title(f'Gaussian divided into {classes} quantiles')
     plt.scatter(features[:, 0], features[:, 1], marker='o', c=target,
                 s=25, edgecolor='k')
 
