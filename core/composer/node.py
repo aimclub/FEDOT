@@ -89,13 +89,7 @@ class Node(ABC):
         return nodes
 
     def fine_tune(self, input_data: InputData, iterations: int = 30):
-        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-        preprocessed_data = copy(input_data)
-        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
-
-        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
-        self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
-                                      model=fitted_model))
+        raise NotImplementedError()
 
 
 class FittedModelCache:
@@ -188,6 +182,15 @@ class PrimaryNode(Node):
                           features=input_data.features,
                           predict=predict_train, task_type=input_data.task_type)
 
+    def fine_tune(self, input_data: InputData, iterations: int = 30):
+        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
+        preprocessed_data = copy(input_data)
+        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+                                      model=fitted_model))
+
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
@@ -247,3 +250,21 @@ class SecondaryNode(Node):
                           features=input_data.features,
                           predict=evaluation_result,
                           task_type=input_data.task_type)
+
+    def fine_tune(self, input_data: InputData, iterations: int = 30):
+        parent_results = []
+        for parent in self._nodes_from_with_fixed_order():
+            parent_results.append(parent.predict(input_data=input_data))
+
+        target = input_data.target
+        secondary_input = Data.from_predictions(outputs=parent_results,
+                                                target=target)
+
+        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(secondary_input.features)
+        preprocessed_data = copy(secondary_input)
+        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+                                      model=fitted_model))
+

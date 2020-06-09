@@ -7,7 +7,7 @@ from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
-from core.models.tuners import CustomRandomTuner, SklearnTuner, SklearnCustomRandomTuner
+from core.models.tuners import ForecastingCustomRandomTuner, SklearnTuner, SklearnCustomRandomTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
@@ -124,7 +124,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             self.params_for_fit = None
             return trained_model
 
-        tuned_params, best_model = self._tune_func().tune(model=self,
+        tuned_params, best_model = self._tune_func().tune(eval_strategy=self,
                                                           tune_data=train_data,
                                                           params_range=params_range,
                                                           iterations=iterations,
@@ -208,12 +208,12 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         return self._model_specific_predict(trained_model, predict_data)
 
     def fit_tuned(self, train_data: InputData, iterations: int = 10):
-        tuned_params = CustomRandomTuner().tune(fit=self._model_specific_fit,
-                                                predict=self._model_specific_predict,
-                                                tune_data=train_data,
-                                                params_range=self._params_range,
-                                                default_params=self._default_params,
-                                                iterations=iterations)
+        tuned_params = ForecastingCustomRandomTuner().tune(fit=self._model_specific_fit,
+                                                           predict=self._model_specific_predict,
+                                                           tune_data=train_data,
+                                                           params_range=self._params_range,
+                                                           default_params=self._default_params,
+                                                           iterations=iterations)
 
         stats_model = self._model_specific_fit(train_data, tuned_params)
         self.params_for_fit = tuned_params

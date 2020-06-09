@@ -11,66 +11,60 @@ from core.models.data import train_test_data_setup
 
 
 class Tuner:
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
              scoring: Union[str, callable]):
         raise NotImplementedError()
 
 
 class SklearnTuner(Tuner):
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
              scoring: Union[str, callable]):
         raise NotImplementedError()
 
+    def _sklearn_tune(self, search_strategy, eval_strat, tune_data: InputData, params_range: dict, iterations: int,
+                      cv: int, scoring: Union[str, callable]):
+        estimator = eval_strat.fit(train_data=tune_data)
 
-class SkLearnRandomTuner(SklearnTuner):
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        estimator = model.fit(train_data=tune_data)
         try:
-            clf = RandomizedSearchCV(estimator, params_range, n_iter=iterations, cv=cv, scoring=scoring)
+            if search_strategy is GridSearchCV:
+                clf = search_strategy(estimator, params_range, cv=cv, scoring=scoring)
+            else:
+                clf = search_strategy(estimator, params_range, n_iter=iterations, cv=cv, scoring=scoring)
+
             search = clf.fit(tune_data.features, tune_data.target.ravel())
+
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')
             return None
+
+
+class SklearnRandomTuner(SklearnTuner):
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        return self._sklearn_tune(RandomizedSearchCV, eval_strategy, tune_data,
+                                  params_range, iterations, cv, scoring)
 
 
 class SklearnGridSearchTuner(SklearnTuner):
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
              scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        estimator = model.fit(train_data=tune_data)
-        try:
-            clf = GridSearchCV(estimator=estimator, param_grid=params_range, n_jobs=-1, scoring=scoring, cv=cv)
-            search = clf.fit(tune_data.features, tune_data.target.ravel())
-            return search.best_params_, search.best_estimator_
-        except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
-            return None
+        return self._sklearn_tune(GridSearchCV, eval_strategy, tune_data,
+                                  params_range, iterations, cv, scoring)
 
 
 class SklearnBayesSearchCV(SklearnTuner):
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
              scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        estimator = model.fit(train_data=tune_data)
-        try:
-            clf = BayesSearchCV(estimator=estimator,
-                                search_spaces=params_range,
-                                n_iter=iterations,
-                                n_jobs=-1,
-                                scoring=scoring,
-                                cv=cv, return_train_score=True)
-            search = clf.fit(tune_data.features, tune_data.target.ravel())
-            return search.best_params_, search.best_estimator_
-        except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
-            return None
+        return self._sklearn_tune(BayesSearchCV, eval_strategy, tune_data,
+                                  params_range, iterations, cv, scoring)
 
 
 class SklearnCustomRandomTuner(Tuner):
-    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
              scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         try:
-            trained_model = model.fit(tune_data)
+            trained_model = eval_strategy.fit(tune_data)
             best_score = scoring(estimator=trained_model, X=tune_data.features, y_true=tune_data.target)
             best_model = trained_model
             best_params = None
@@ -78,7 +72,7 @@ class SklearnCustomRandomTuner(Tuner):
                 params = {k: random.choice(v) for k, v in params_range.items()}
                 for param in params:
                     setattr(trained_model, param, params[param])
-                score = cross_val_score(trained_model, tune_data.features, tune_data.target, scoring='roc_auc',
+                score = cross_val_score(trained_model, tune_data.features, tune_data.target, scoring=scoring,
                                         cv=cv).mean()
                 if score > best_score:
                     best_params = params
@@ -91,7 +85,7 @@ class SklearnCustomRandomTuner(Tuner):
             return None
 
 
-class CustomRandomTuner:
+class ForecastingCustomRandomTuner:
     # TODO discuss
     def tune(self,
              fit: Callable,

@@ -31,20 +31,6 @@ def get_logit_chain():
     return chain
 
 
-def get_xgb_chain():
-    # Chain composition
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                         nodes_from=[first, second])
-
-    chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
-
-    return chain
-
-
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_fine_tune_primary_nodes(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -86,24 +72,12 @@ def test_fine_tune_root_node(data_fixture, request):
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    # root node tuning preprocessing
-    primary_pred = []
-    for node in chain.nodes[:2]:
-        pred = node.predict(train_data)
-        primary_pred.append(pred.predict)
-
-    new_features = np.array(primary_pred[::-1]).T
-    final_data = InputData(features=new_features,
-                           target=train_data.target,
-                           idx=test_data.idx,
-                           task_type=test_data.task_type)
-
     # root node tuning
-    chain.fine_tune_root_node(final_data, iterations=50)
+    chain.fine_tune_root_node(train_data, iterations=50)
     after_tun_root_node_predicted = chain.predict(test_data)
 
-    bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
-    aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict)
+    bfr_tun_roc_auc = round(roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 3)
+    aft_tun_roc_auc = round(roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 3)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')

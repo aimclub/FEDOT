@@ -14,50 +14,26 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData, test_d
 
     if nodes_to_tune == 'primary':
         print('primary_node_tuning')
-
-        for iteration in range(local_iter):
-            print(f'current local iteration {iteration}')
-            # Chain tuning
-            chain.fine_tune_primary_nodes(train_data, iterations=50)
-
-            # After tuning prediction
-            chain.fit(train_data)
-            after_tuning_predicted = chain.predict(test_data)
-
-            # Metrics
-            aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
-            several_iter_scores_test.append(aft_tun_roc_auc)
-
+        chain_tune_strategy = chain.fine_tune_primary_nodes
     elif nodes_to_tune == 'root':
         print('root_node_tuning')
-
-        # root node tuning preprocessing
-        primary_pred = []
-        for node in chain.nodes[:2]:
-            pred = node.predict(train_data)
-            primary_pred.append(pred.predict)
-
-        new_features = np.array(primary_pred[::-1]).T
-
-        root_node_input_data = InputData(features=new_features,
-                                         target=train_data.target,
-                                         idx=train_data.idx,
-                                         task_type=train_data.task_type)
-
-        for iteration in range(local_iter):
-            print(f'current local iteration {iteration}')
-
-            # root node tuning
-            chain.fine_tune_root_node(root_node_input_data, iterations=50)
-
-            # After tuning prediction
-            after_tun_root_node_predicted = chain.predict(test_data)
-
-            # Metrics
-            aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict)
-            several_iter_scores_test.append(aft_tun_roc_auc)
+        chain_tune_strategy = chain.fine_tune_root_node
     else:
         raise ValueError(f'Invalid type of nodes. Nodes must be primary or root')
+
+    for iteration in range(local_iter):
+        print(f'current local iteration {iteration}')
+
+        # Chain tuning
+        chain_tune_strategy(train_data, iterations=50)
+
+        # After tuning prediction
+        chain.fit(train_data)
+        after_tuning_predicted = chain.predict(test_data)
+
+        # Metrics
+        aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
+        several_iter_scores_test.append(aft_tun_roc_auc)
 
     return np.mean(several_iter_scores_test), several_iter_scores_test
 
@@ -83,7 +59,7 @@ if __name__ == '__main__':
     before_tuning_predicted = chain.predict(test_data)
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
 
-    local_iter = 5
+    local_iter = 2
     # Chain tuning
     aft_tun_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary', chain=chain,
                                                              train_data=train_data,
