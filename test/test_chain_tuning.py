@@ -71,8 +71,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc != bfr_tun_roc_auc
-    assert list(before_tuning_predicted.predict) != list(after_tuning_predicted.predict)
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -109,5 +108,4 @@ def test_fine_tune_root_node(data_fixture, request):
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert bfr_tun_roc_auc != aft_tun_roc_auc
-    assert list(before_tuning_predicted.predict) != list(after_tun_root_node_predicted.predict)
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc

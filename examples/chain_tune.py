@@ -6,82 +6,60 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.tuner_types_repository import SklearnTunerTypeEnum
 
 
-def scoring_chain_root_node_tune_correct(train_data: InputData, test_data: InputData, chain: Chain,
-                                         iterations: int = 1):
-    print('root_node_tuning')
-    # Before tuning prediction
-    chain.fit(train_data, use_cache=False)
-    before_tuning_predicted = chain.predict(test_data)
-
-    # root node tuning preprocessing
-    primary_pred = []
-    for node in chain.nodes[:2]:
-        pred = node.predict(train_data)
-        primary_pred.append(pred.predict)
-
-    new_features = np.array(primary_pred[::-1]).T
-
-    root_node_input_data = InputData(features=new_features,
-                                     target=train_data.target,
-                                     idx=train_data.idx,
-                                     task_type=train_data.task_type)
-
-    bfr_tun_roc_auc: float = 0.
-    aft_tun_roc_auc: float = 0.
+def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData, test_data: InputData, local_iter: int) -> (
+        int, list):
     several_iter_scores_test = []
-    local_iter = iterations
 
-    for iteration in range(local_iter):
-        print(f'current local iteration {iteration}')
+    if nodes_to_tune == 'primary':
+        print('primary_node_tuning')
 
-        # root node tuning
-        chain.fine_tune_root_node(root_node_input_data, iterations=50, tuner_type=SklearnTunerTypeEnum.rand)
+        for iteration in range(local_iter):
+            print(f'current local iteration {iteration}')
+            # Chain tuning
+            chain.fine_tune_primary_nodes(train_data, iterations=50)
 
-        after_tun_root_node_predicted = chain.predict(test_data)
+            # After tuning prediction
+            chain.fit(train_data)
+            after_tuning_predicted = chain.predict(test_data)
 
-        bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
-        aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict)
-        several_iter_scores_test.append(aft_tun_roc_auc)
+            # Metrics
+            aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
+            several_iter_scores_test.append(aft_tun_roc_auc)
 
-    print(f'Several test scores {several_iter_scores_test}')
-    print(f'Mean test score over {local_iter} iterations: {np.mean(several_iter_scores_test)}')
-    print(f'before tuning test {bfr_tun_roc_auc}')
-    print(f'after tuning test {aft_tun_roc_auc}', '\n')
+    elif nodes_to_tune == 'root':
+        print('root_node_tuning')
 
+        # root node tuning preprocessing
+        primary_pred = []
+        for node in chain.nodes[:2]:
+            pred = node.predict(train_data)
+            primary_pred.append(pred.predict)
 
-def scoring_chain_primary_nodes_tune_correct(train_data: InputData, test_data: InputData, chain: Chain,
-                                             iterations: int = 1):
-    print('primary_node_tuning')
-    # Before tuning prediction
-    chain.fit(train_data, use_cache=False)
-    before_tuning_predicted = chain.predict(test_data)
+        new_features = np.array(primary_pred[::-1]).T
 
-    bfr_tun_roc_auc: float = 0.
-    aft_tun_roc_auc: float = 0.
+        root_node_input_data = InputData(features=new_features,
+                                         target=train_data.target,
+                                         idx=train_data.idx,
+                                         task_type=train_data.task_type)
 
-    several_iter_scores_test = []
-    local_iter = iterations
-    for iteration in range(local_iter):
-        print(f'current local iteration {iteration}')
-        # Chain tuning
-        chain.fine_tune_primary_nodes(train_data, iterations=50, tuner_type=SklearnTunerTypeEnum.rand)
+        for iteration in range(local_iter):
+            print(f'current local iteration {iteration}')
 
-        # After tuning prediction
-        chain.fit(train_data)
-        after_tuning_predicted = chain.predict(test_data)
+            # root node tuning
+            chain.fine_tune_root_node(root_node_input_data, iterations=50)
 
-        # Metrics
-        bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
-        aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
-        several_iter_scores_test.append(aft_tun_roc_auc)
+            # After tuning prediction
+            after_tun_root_node_predicted = chain.predict(test_data)
 
-    print(f'Several test scores {several_iter_scores_test}')
-    print(f'Mean test score over {local_iter} iterations: {np.mean(several_iter_scores_test)}')
-    print(bfr_tun_roc_auc)
-    print(aft_tun_roc_auc)
+            # Metrics
+            aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict)
+            several_iter_scores_test.append(aft_tun_roc_auc)
+    else:
+        raise ValueError(f'Invalid type of nodes. Nodes must be primary or root')
+
+    return np.mean(several_iter_scores_test), several_iter_scores_test
 
 
 if __name__ == '__main__':
@@ -100,5 +78,18 @@ if __name__ == '__main__':
     for node in [first, second, final]:
         chain.add_node(node)
 
-    scoring_chain_primary_nodes_tune_correct(train_data, test_data, chain)
-    scoring_chain_root_node_tune_correct(train_data, test_data, chain, iterations=5)
+    # Before tuning prediction
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+    bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
+
+    local_iter = 5
+    # Chain tuning
+    aft_tun_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary', chain=chain,
+                                                             train_data=train_data,
+                                                             test_data=test_data, local_iter=local_iter)
+
+    print(f'Several test scores {several_iter_scores_test}')
+    print(f'Mean test score over {local_iter} iterations: {aft_tun_roc_auc}')
+    print(round(bfr_tun_roc_auc, 3))
+    print(round(float(aft_tun_roc_auc), 3))

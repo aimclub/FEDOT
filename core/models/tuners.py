@@ -1,31 +1,33 @@
 import random
 from random import uniform
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple, Union
 
-from sklearn.metrics import mean_squared_error as mse, roc_auc_score
+from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
 from skopt import BayesSearchCV
 
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
-import numpy as np
 
 
 class Tuner:
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]):
         raise NotImplementedError()
 
 
 class SklearnTuner(Tuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]):
         raise NotImplementedError()
 
 
 class SkLearnRandomTuner(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int) -> (
-            Optional[dict], object):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = model.fit(train_data=tune_data)
         try:
-            clf = RandomizedSearchCV(trained_model, params_range, n_iter=iterations)
+            clf = RandomizedSearchCV(estimator, params_range, n_iter=iterations, cv=cv, scoring=scoring)
             search = clf.fit(tune_data.features, tune_data.target.ravel())
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
@@ -34,10 +36,11 @@ class SkLearnRandomTuner(SklearnTuner):
 
 
 class SklearnGridSearchTuner(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int) -> (
-            Optional[dict], object):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = model.fit(train_data=tune_data)
         try:
-            clf = GridSearchCV(estimator=trained_model, param_grid=params_range, n_jobs=-1, scoring='roc_auc')
+            clf = GridSearchCV(estimator=estimator, param_grid=params_range, n_jobs=-1, scoring=scoring, cv=cv)
             search = clf.fit(tune_data.features, tune_data.target.ravel())
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
@@ -46,15 +49,16 @@ class SklearnGridSearchTuner(SklearnTuner):
 
 
 class SklearnBayesSearchCV(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int) -> (
-            Optional[dict], object):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = model.fit(train_data=tune_data)
         try:
-            clf = BayesSearchCV(estimator=trained_model,
+            clf = BayesSearchCV(estimator=estimator,
                                 search_spaces=params_range,
                                 n_iter=iterations,
-                                n_jobs=4,
-                                scoring='roc_auc',
-                                cv=5, return_train_score=True)
+                                n_jobs=-1,
+                                scoring=scoring,
+                                cv=cv, return_train_score=True)
             search = clf.fit(tune_data.features, tune_data.target.ravel())
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
@@ -62,29 +66,29 @@ class SklearnBayesSearchCV(SklearnTuner):
             return None
 
 
-class SklearnCustomRandomSearch(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int):
-        tune_train_data, tune_test_data = train_test_data_setup(tune_data, 0.8)
+class SklearnCustomRandomTuner(Tuner):
+    def tune(self, model, tune_data: InputData, params_range: dict, iterations: int, cv: int,
+             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        try:
+            trained_model = model.fit(tune_data)
+            best_score = scoring(estimator=trained_model, X=tune_data.features, y_true=tune_data.target)
+            best_model = trained_model
+            best_params = None
+            for i in range(iterations):
+                params = {k: random.choice(v) for k, v in params_range.items()}
+                for param in params:
+                    setattr(trained_model, param, params[param])
+                score = cross_val_score(trained_model, tune_data.features, tune_data.target, scoring='roc_auc',
+                                        cv=cv).mean()
+                if score > best_score:
+                    best_params = params
+                    best_model = trained_model
+                    best_score = score
 
-        trained_model.fit(tune_train_data.features, tune_train_data.target)
-        default_predict = trained_model.predict_proba(tune_test_data.features)[:, 1]
-        best_score = roc_auc_score(y_true=tune_test_data.target,
-                                   y_score=default_predict)
-        best_model = trained_model
-        best_params = None
-        for i in range(iterations):
-            params = {k: random.sample(v, 1)[0] for k, v in params_range.items()}
-            for param in params:
-                setattr(trained_model, param, params[param])
-            trained_model.fit(tune_train_data.features, tune_train_data.target)
-            predicted = trained_model.predict_proba(tune_test_data.features)[:, 1]
-            score = roc_auc_score(y_true=tune_test_data.target,
-                                  y_score=predicted)
-            if score > best_score:
-                best_params = params
-                best_model = trained_model
-
-        return best_params, best_model
+            return best_params, best_model
+        except ValueError as ex:
+            print(f'Unsuccessful fit because of {ex}')
+            return None
 
 
 class CustomRandomTuner:

@@ -1,3 +1,4 @@
+scikit-optimize==0.7.4
 mlbox==0.8.4
 autokeras==1.0.2
 tensorflow==2.1.0
