@@ -1,6 +1,6 @@
 import random
 from random import uniform
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union, TYPE_CHECKING
 
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
@@ -9,20 +9,23 @@ from skopt import BayesSearchCV
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
 
+if TYPE_CHECKING:
+    from core.models.evaluation.evaluation import EvaluationStrategy
+
 
 class Tuner:
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]):
         raise NotImplementedError()
 
 
 class SklearnTuner(Tuner):
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]):
         raise NotImplementedError()
 
-    def _sklearn_tune(self, search_strategy, eval_strat, tune_data: InputData, params_range: dict, iterations: int,
-                      cv: int, scoring: Union[str, callable]):
+    def _sklearn_tune(self, search_strategy, eval_strat: 'EvaluationStrategy', tune_data: InputData,
+                      params_range: dict, iterations: int, cv: int, scoring: Union[str, callable]):
         estimator = eval_strat.fit(train_data=tune_data)
 
         try:
@@ -40,29 +43,29 @@ class SklearnTuner(Tuner):
 
 
 class SklearnRandomTuner(SklearnTuner):
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         return self._sklearn_tune(RandomizedSearchCV, eval_strategy, tune_data,
                                   params_range, iterations, cv, scoring)
 
 
 class SklearnGridSearchTuner(SklearnTuner):
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         return self._sklearn_tune(GridSearchCV, eval_strategy, tune_data,
                                   params_range, iterations, cv, scoring)
 
 
 class SklearnBayesSearchCV(SklearnTuner):
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         return self._sklearn_tune(BayesSearchCV, eval_strategy, tune_data,
                                   params_range, iterations, cv, scoring)
 
 
 class SklearnCustomRandomTuner(Tuner):
-    def tune(self, eval_strategy, tune_data: InputData, params_range: dict, iterations: int, cv: int,
-             scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
+             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         try:
             trained_model = eval_strategy.fit(tune_data)
             best_score = scoring(estimator=trained_model, X=tune_data.features, y_true=tune_data.target)
