@@ -1,9 +1,7 @@
 import datetime
 import random
-
-from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
+import pandas as pd
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.visualisation import ComposerVisualiser
 from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
@@ -17,11 +15,14 @@ from benchmark.benchmark_utils import get_models_hyperparameters
 random.seed(1)
 np.random.seed(1)
 
+from benchmark.benchmark_utils import get_multi_clf_data_paths
 
-def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
+train_file_path, test_file_path = get_multi_clf_data_paths()
+
+
+def GetModel(train_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
     problem_class = MachineLearningTasksEnum.classification
     dataset_to_compose = InputData.from_csv(train_file_path)
-    dataset_to_validate = InputData.from_csv(test_file_path)
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     generations = models_hyperparameters['GENERATIONS']
     population_size = models_hyperparameters['POPULATION_SIZE']
@@ -53,34 +54,39 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
                                                 metrics=metric_function, is_visualise=vis_flag)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
-    # the choice and initialisation of the dummy_composer
-    dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
+    return chain_evo_composed
 
-    chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
-                                                initial_chain=None,
-                                                composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=vis_flag)
-    chain_static.fit(input_data=dataset_to_compose, verbose=True)
-    # the single-model variant of optimal chain
-    single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.mlp],
-                                                        secondary=[])
-    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(
-        data=dataset_to_compose,
-        initial_chain=None,
-        composer_requirements=single_composer_requirements,
-        metrics=metric_function)
-    chain_single.fit(input_data=dataset_to_compose, verbose=True)
 
-    if vis_flag:
-        ComposerVisualiser.visualise(chain_static)
-        ComposerVisualiser.visualise(chain_evo_composed)
+def ApplyModelToData(model, test_file_path):
+    """ Метод применения модели к данным.
+    Parameters
+    ----------
+    model : обученная/настроенная модель.
+    df : dataframe, к которому применяется модель
+    """
+    dataset_to_validate = InputData.from_csv(test_file_path)
+    evo_predicted = model.predict(dataset_to_validate)
+    # df['forecast'] = evo_predicted.predict(df)
 
-    static_predicted = chain_static.predict(dataset_to_validate)
-    single_predicted = chain_single.predict(dataset_to_validate)
-    evo_predicted = chain_evo_composed.predict(dataset_to_validate)
+    return evo_predicted.predict
 
-    static = static_predicted.predict
-    single = single_predicted.predict
-    evo_composed = evo_predicted.predict
 
-    return single, static, evo_composed, dataset_to_validate.target
+# получаем откуда-то данные (от другой модели или из файла)
+# df = pd.read_excel('example1.xlsx')
+
+# обучаем модель на входных данных
+model = GetModel(train_file_path)
+
+# получаем откуда-то другие данные (от другой модели или из файла)
+# df2 = pd.read_excel('example2.xlsx')
+
+# применяем модель к новым данным
+result = ApplyModelToData(model, test_file_path)
+print(result)
+# читаем еще один набор данных
+# df3 = pd.read_excel('example3.xlsx')
+
+# применяем модель еще раз к новым данным
+# ApplyModelToData(model,df3)
+
+# print(df3)

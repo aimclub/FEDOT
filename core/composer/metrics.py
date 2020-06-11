@@ -43,10 +43,16 @@ class RocAucMetric(ChainMetric):
             validate(chain)
             results = chain.predict(reference_data)
             score = round(roc_auc_score(y_score=results.predict,
-                                        y_true=reference_data.target), 3)
+                                        y_true=reference_data.target
+                                        ), 3)
         except Exception as ex:
             print(ex)
-            score = 0.5
+            validate(chain)
+            results = chain.predict(reference_data)
+            score = round(roc_auc_score(y_score=results.predict,
+                                        y_true=reference_data.target,
+                                        multi_class='ovo',
+                                        average='macro'), 3)
 
         return score
 
