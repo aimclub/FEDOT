@@ -40,6 +40,7 @@ class TsForecastingChain(Chain):
         pre_history_start = (len(initial_data_for_forecast.idx) -
                              initial_data_for_forecast.task.task_params.max_window_size)
         pre_history_end = len(initial_data_for_forecast.idx)
+
         data_for_forecast = initial_data_for_forecast.subset(start=pre_history_start, end=pre_history_end)
 
         full_prediction = []
@@ -65,16 +66,7 @@ class TsForecastingChain(Chain):
                 data_for_forecast.target = np.stack(predicted_ts)
                 data_for_forecast.features = data_for_forecast.target
 
-            # extend idx for prediction
-            if forecast_length > 1:
-                indices_for_forecast = (data_for_forecast.idx[-1] +
-                                        list(range(1, len(stepwise_prediction) + 1)))
-
-                data_for_forecast.idx = np.append(data_for_forecast.idx,
-                                                  indices_for_forecast)
-            else:
-                data_for_forecast.idx = np.append(data_for_forecast.idx,
-                                                  data_for_forecast.idx[-1] + 1)
+            data_for_forecast.idx = _extend_idx_for_prediction(data_for_forecast.idx, forecast_length)
 
         full_prediction = full_prediction[0:len(supplementary_data_for_forecast.idx)]
 
@@ -84,6 +76,18 @@ class TsForecastingChain(Chain):
                                  data_type=supplementary_data_for_forecast.data_type)
 
         return output_data
+
+
+def _extend_idx_for_prediction(exiting_idx, forecast_length):
+    if forecast_length > 1:
+        indices_for_forecast = (exiting_idx[-1] +
+                                list(range(1, forecast_length + 1)))
+
+    else:
+        indices_for_forecast = exiting_idx[-1] + 1
+
+    new_idx = np.append(exiting_idx, indices_for_forecast)
+    return new_idx
 
 
 def _prepare_exog_features(data_for_prediction: InputData,

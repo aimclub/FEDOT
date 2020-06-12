@@ -165,7 +165,7 @@ def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) 
 def _combine_datasets_ts(outputs: List[OutputData]):
     features_list = list()
 
-    expected_len = max([len(output.idx) for output in outputs])
+    expected_len = max([len(output.predict) for output in outputs])
 
     for elem in outputs:
         predict = elem.predict
