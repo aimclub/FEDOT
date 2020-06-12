@@ -11,20 +11,20 @@ from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.models.tuning.tuners import get_random_params
 from core.repository.tasks import Task, TaskTypesEnum
-from test.test_autoregression import get_synthetic_ts_data
+from test.tasks.test_autoregression import get_synthetic_ts_data
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/advanced_classification.csv'
+    file = '../data/advanced_classification.csv'
     return InputData.from_csv(os.path.join(test_file_path, file))
 
 
 @pytest.fixture()
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/advanced_regression.csv'
+    file = '../data/advanced_regression.csv'
     data = InputData.from_csv(os.path.join(test_file_path, file))
     data.task = Task(TaskTypesEnum.regression)
     return data
@@ -69,6 +69,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
     assert np.array(roc_on_test_tuned_list).any() >= roc_on_test > roc_threshold
 
 
+@pytest.mark.skip("Investigate performance")
 def test_arima_tune_correct():
     data = get_synthetic_ts_data()
     train_data, test_data = train_test_data_setup(data=data)
@@ -109,7 +110,7 @@ def test_rf_class_tune_correct(data_fixture, request):
                                  y_score=test_predicted_tuned)
     roc_threshold = 0.7
 
-    assert test_roc_auc_tuned != test_roc_auc
+    assert test_roc_auc_tuned >= test_roc_auc
     assert test_roc_auc_tuned > roc_threshold
 
 

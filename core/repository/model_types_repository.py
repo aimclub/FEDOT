@@ -1,8 +1,9 @@
 import json
 import os
 import warnings
-from dataclasses import dataclass
 from typing import Any, List, Optional
+
+from dataclasses import dataclass
 
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -25,18 +26,35 @@ class ModelMetaInfo:
         return self.supported_strategies
 
 
+def _set_repo_to_default_sate():
+    repo_folder_path = str(os.path.dirname(__file__))
+    file = 'data/model_repository.json'
+    repo_path = os.path.join(repo_folder_path, file)
+    ModelTypesRepository._repo = self._initialise_repo(repo_path)
+
+
 class ModelTypesRepository:
     _repo = None
 
     def __init__(self, repo_path=None):
-        if not repo_path:
-            repo_folder_path = str(os.path.dirname(__file__))
-            file = 'data/model_repository.json'
-            repo_path = os.path.join(repo_folder_path, file)
-
-        if not ModelTypesRepository._repo or repo_path:
+        if repo_path:
             ModelTypesRepository._repo = self._initialise_repo(repo_path)
+        if not repo_path and not ModelTypesRepository._repo:
+            self._set_repo_to_default_state()
+
         self._tags_excluded_by_default = ['non-default', 'expensive']
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._set_repo_to_default_state()
+
+    def _set_repo_to_default_state(self):
+        repo_folder_path = str(os.path.dirname(__file__))
+        file = 'data/model_repository.json'
+        repo_path = os.path.join(repo_folder_path, file)
+        ModelTypesRepository._repo = self._initialise_repo(repo_path)
 
     def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
         with open(repo_path) as repository_json_file:

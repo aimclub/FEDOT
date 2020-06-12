@@ -32,13 +32,7 @@ def get_difference(trained_model, predict_data: InputData):
     return predict_data.features[:, 0] - predict_data.target
 
 
-def get_sum(trained_model, predict_data: InputData):
-    if predict_data.features.shape[1] != 2:
-        raise ValueError('Wrong number of inputs for the additive model')
-    return np.sum(predict_data.features, axis=1)
-
-
-def fit_trend(train_data: InputData, params: Optional[dict]):
+def fit_decomposition(train_data: InputData, params: Optional[dict]):
     target = train_data.target
     period = _estimate_period(target)
     return period
@@ -46,13 +40,25 @@ def fit_trend(train_data: InputData, params: Optional[dict]):
 
 def get_trend(trained_model, predict_data: InputData):
     target = predict_data.target
-    period = trained_model
-    decomposed_target = seasonal_decompose(target, period=period, extrapolate_trend='freq')
+    decomposed_target = seasonal_decompose(target, period=trained_model, extrapolate_trend='freq')
     return decomposed_target.trend
 
 
-def fit_residual(train_data: InputData, params: Optional[dict]):
-    return fit_trend(train_data, params)
+def get_sum(trained_model, predict_data: InputData):
+    number_of_sources_to_sum = 2
+
+    # if pairwise sum can not be applied
+    if predict_data.features.shape[-1] % number_of_sources_to_sum != 0:
+        raise ValueError('Wrong number of inputs for the additive model')
+
+    features_step_for_sum = predict_data.features.shape[-1] // number_of_sources_to_sum
+    sum_features = np.zeros((*predict_data.features.shape[:-1], features_step_for_sum))
+
+    for i in range(number_of_sources_to_sum):
+        sum_features += \
+            predict_data.features[..., i * features_step_for_sum: (i + 1) * features_step_for_sum]
+
+    return sum_features
 
 
 def get_residual(trained_model, predict_data: InputData):
@@ -102,8 +108,8 @@ class DataModellingStrategy(EvaluationStrategy):
         'direct_data_model': (None, get_data),
         'diff_data_model': (None, get_difference),
         'additive_data_model': (None, get_sum),
-        'trend_data_model': (fit_residual, get_trend),
-        'residual_data_model': (fit_residual, get_residual),
+        'trend_data_model': (fit_decomposition, get_trend),
+        'residual_data_model': (fit_decomposition, get_residual),
         'pca_data_model': (fit_pca, predict_pca)
     }
 

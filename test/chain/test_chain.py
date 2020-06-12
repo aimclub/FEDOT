@@ -34,7 +34,7 @@ def data_setup():
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/simple_classification.csv'
+    file = '../data/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)
@@ -50,6 +50,7 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
+
     first = PrimaryNode(model_type='logit')
     second = SecondaryNode(model_type='lda', nodes_from=[first])
     third = SecondaryNode(model_type='qda', nodes_from=[first])
@@ -71,6 +72,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
 def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
+
     first = PrimaryNode(model_type='logit')
     second = SecondaryNode(model_type='logit', nodes_from=[first])
     third = SecondaryNode(model_type='logit', nodes_from=[first])
@@ -127,9 +129,11 @@ def test_chain_with_datamodel_fit_correct(data_setup):
     train_data, test_data = train_test_data_setup(data)
 
     chain = Chain()
+
     node_data = PrimaryNode('direct_data_model')
     node_first = PrimaryNode('bernb')
     node_second = SecondaryNode('rf')
+
     node_second.nodes_from = [node_first, node_data]
 
     chain.add_node(node_data)
@@ -145,6 +149,7 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
+
     first = PrimaryNode(model_type='logit')
     second = PrimaryNode(model_type='lda')
     third = PrimaryNode(model_type='knn')
@@ -158,6 +163,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = deepcopy(first)
     second = deepcopy(second)
     third = deepcopy(third)
+
     final_shuffled = SecondaryNode(model_type='xgboost',
                                    nodes_from=[third, first, second])
 

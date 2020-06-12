@@ -1,7 +1,6 @@
 from datetime import timedelta
 from typing import Optional
 
-import numpy as np
 import tensorflow as tf
 
 from core.models.data import InputData, OutputData
@@ -84,7 +83,7 @@ def _create_lstm(train_data: InputData):
             tf.keras.layers.Dropout(0.25),
             tf.keras.layers.Dense(train_data.target.shape[-1],
                                   kernel_regularizer=tf.keras.regularizers.l1(reg))
-        ]))(lstm_second_layer)
+        ]))(concatenation)
 
     return tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
@@ -99,15 +98,14 @@ def fit_lstm(train_data: InputData, epochs: int = 1):
 
     forecast_length = train_data.task.task_params.forecast_length
 
-    model.compile(tf.keras.optimizers.SGD(lr=0.01, momentum=0.9,
-                                          nesterov=True), loss='mae', metrics=[_rmse_only_last])
+    model.compile(tf.keras.optimizers.Adam(lr=0.02), loss='mse', metrics=[_rmse_only_last])
 
     percent = 5 * (train_data.target.max() - train_data.target.min()) / 100
     model.fit(train_data.features, train_data.target, epochs=epochs,
               callbacks=[
                   tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=percent, patience=5),
                   tf.keras.callbacks.ReduceLROnPlateau(
-                      monitor='_rmse_only_last', factor=0.2, patience=3, min_delta=0.1, verbose=False),
+                      monitor='_rmse_only_last', factor=0.2, patience=2, min_delta=0.1, verbose=False),
                   tf.keras.callbacks.TensorBoard(update_freq=ts_length // 10)
               ], verbose=0)
 
@@ -118,5 +116,4 @@ def predict_lstm(trained_model, predict_data: InputData) -> OutputData:
     window_len, prediction_len = extract_task_param(predict_data.task)
 
     pred = trained_model.predict(predict_data.features)
-    pred = np.r_[np.zeros(window_len + prediction_len - 1), pred[:, -1, 0]]
-    return pred
+    return pred[:, -forecast_length:, 0]

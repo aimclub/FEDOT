@@ -2,7 +2,6 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.impute import SimpleImputer
 
-from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 
 
@@ -15,25 +14,29 @@ class PreprocessingStrategy:
 
 
 class Scaling(PreprocessingStrategy):
-    def __init__(self):
-        self.default = DefaultStrategy()
+    def __init__(self, with_imputation=True):
+        if with_imputation:
+            self.default = ImputationStrategy()
+        self.with_imputation = with_imputation
         self.scaler = preprocessing.StandardScaler()
 
     def fit(self, data_to_fit):
-        self.default.fit(data_to_fit)
-        data_to_fit = self.default.apply(data_to_fit)
+        if self.with_imputation:
+            self.default.fit(data_to_fit)
+            data_to_fit = self.default.apply(data_to_fit)
         self.scaler.fit(data_to_fit)
         return self
 
     def apply(self, data):
-        data = self.default.apply(data)
+        if self.with_imputation:
+            data = self.default.apply(data)
         resulted = self.scaler.transform(data)
         return resulted
 
 
 class Normalization(PreprocessingStrategy):
     def __init__(self):
-        self.default = DefaultStrategy()
+        self.default = ImputationStrategy()
 
     def fit(self, data_to_fit):
         self.default.fit(data_to_fit)
@@ -46,7 +49,7 @@ class Normalization(PreprocessingStrategy):
         return resulted
 
 
-class DefaultStrategy(PreprocessingStrategy):
+class ImputationStrategy(PreprocessingStrategy):
     def __init__(self):
         self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
 
@@ -59,9 +62,22 @@ class DefaultStrategy(PreprocessingStrategy):
         return modified
 
 
-class LaggedTimeSeriesFeature3dStrategy(PreprocessingStrategy):
+class EmptyStrategy(PreprocessingStrategy):
+    def fit(self, data_to_fit):
+        return self
+
+    def apply(self, data):
+        return data
+
+
+class LaggedFeatureScalingStrategy(Scaling):
     def __init__(self):
-        self.scaling = Scaling()
+        super().__init__(with_imputation=False)
+
+
+class LaggedFeature3dScalingStrategy(PreprocessingStrategy):
+    def __init__(self):
+        self.scaling = Scaling(with_imputation=False)
 
     def fit(self, data_to_fit):
         # Make from (n, timestamps, features) input the (n, features)
@@ -82,15 +98,15 @@ class LaggedTimeSeriesFeature3dStrategy(PreprocessingStrategy):
 
 
 _preprocessing_for_input_data = {
-    DataTypesEnum.ts: DefaultStrategy,
+    DataTypesEnum.ts: EmptyStrategy,
     DataTypesEnum.table: Scaling,
-    DataTypesEnum.ts_lagged_table: Scaling,
-    DataTypesEnum.ts_lagged_3d: LaggedTimeSeriesFeature3dStrategy,
+    DataTypesEnum.ts_lagged_table: LaggedFeatureScalingStrategy,
+    DataTypesEnum.ts_lagged_3d: LaggedFeature3dScalingStrategy,
 }
 
 
-def preprocessing_func_for_data(data: InputData, node: 'Node'):
-    preprocessing_func = DefaultStrategy
+def preprocessing_func_for_data(data: 'InputData', node: 'Node'):
+    preprocessing_func = EmptyStrategy
     if 'without_preprocessing' not in node.model.metadata.tags:
         if node.manual_preprocessing_func:
             preprocessing_func = node.manual_preprocessing_func

@@ -2,6 +2,7 @@ import datetime
 import os
 import random
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
@@ -14,8 +15,6 @@ from core.repository.model_types_repository import (
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import project_root
-
-import numpy as np
 
 random.seed(1)
 np.random.seed(1)

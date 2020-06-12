@@ -6,6 +6,7 @@ import pandas as pd
 from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
 
+from core.models.preprocessing import ImputationStrategy
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
@@ -56,15 +57,17 @@ class Data:
             features = data_array[1:].T
             target = None
 
+        features = ImputationStrategy().fit(features).apply(features)
+
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
 
 @dataclass
 class InputData(Data):
     """
-    Data type for user input data
+    Data class for input data for the nodes
     """
-    target: np.array = None
+    target: Optional[np.array] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -75,14 +78,20 @@ class InputData(Data):
 
     @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
-        if len(set([output.data_type for output in outputs])) > 1:
-            raise ValueError('Inconsistent data types')
         if len(set([output.task.task_type for output in outputs])) > 1:
             raise ValueError('Inconsistent task types')
 
         task = outputs[0].task
         data_type = outputs[0].data_type
         idx = outputs[0].idx
+
+        # TODO process multivariate predict
+        if len(idx) < len(outputs[0].predict):
+            idx = np.asarray(list(idx) + [np.nan])
+
+        # TODO process multivariate target
+        if target is not None and len(target) < len(outputs[0].predict):
+            target = np.asarray(list(target) + [np.nan])
 
         dataset_merging_funcs = {
             DataTypesEnum.ts: _combine_datasets_ts,
@@ -95,11 +104,18 @@ class InputData(Data):
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
 
+    def subset(self, start: int, end: int):
+        new_features = None
+        if self.features is not None:
+            new_features = self.features[start:end]
+        return InputData(idx=self.idx[start:end], features=new_features,
+                         target=self.target[start:end], task=self.task, data_type=self.data_type)
+
 
 @dataclass
 class OutputData(Data):
     """
-    Data type for modified data with the prediction received
+    Data type for data predicted in the node
     """
     predict: np.array = None
 
@@ -125,7 +141,11 @@ def _convert_dtypes(data_frame: pd.DataFrame):
 
 
 def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) -> Tuple[InputData, InputData]:
-    train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag)
+    if data.features is not None:
+        train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag)
+    else:
+        train_data_x, test_data_x = None, None
+
     train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag)
     train_idx, test_idx = split_train_test(data.idx, split_ratio)
     train_data = InputData(features=train_data_x, target=train_data_y,
@@ -144,12 +164,12 @@ def _combine_datasets_ts(outputs: List[OutputData]):
             if isinstance(elem.predict, list):
                 predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
             else:
-                predict = np.concatenate((np.zeros(expected_len - len(elem.predict)),
-                                          elem.predict))
+                zeros = np.zeros((expected_len - len(predict), *predict.shape[1:]))
+                predict = np.concatenate((zeros, predict))
 
         features.append(predict)
 
-    features = np.array(features).T
+    features = np.column_stack(features)
 
     return features
 

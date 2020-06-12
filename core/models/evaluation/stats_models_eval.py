@@ -21,39 +21,47 @@ def fit_arima(train_data: InputData, params):
 
 
 def predict_ar(trained_model, predict_data: InputData) -> OutputData:
-    start, end = trained_model.nobs, \
-                 trained_model.nobs + len(predict_data.target) - 1
-    exog, exog_oos = None, predict_data.features
+    prediction = None
 
-    if trained_model.data.endog is predict_data.target:
-        # if train sample used
-        start, end = 0, len(predict_data.target)
-        exog, exog_oos = predict_data.features, \
-                         predict_data.features
+    for ts_step_id, target in enumerate(predict_data.features):
+        start, end = trained_model.nobs + ts_step_id, \
+                     trained_model.nobs + ts_step_id + predict_data.task.task_params.forecast_length
+        exog, exog_oos = None, predict_data.features[start:end]
 
-    prediction = trained_model.predict(start=start, end=end,
-                                       exog=exog, exog_oos=exog_oos)
+        if trained_model.data.endog is predict_data.target:
+            # if train sample used
+            start, end = 0 + ts_step_id, predict_data.task.task_params.forecast_length + ts_step_id
+            exog, exog_oos = (predict_data.features[start:end],
+                              predict_data.features[start:end])
 
-    diff = len(predict_data.target) - len(prediction)
-    if diff != 0:
-        prediction = np.append(prediction, prediction[-diff:])
+        prediction = trained_model.predict(start=start, end=end,
+                                           exog=exog, exog_oos=exog_oos)
 
     return prediction
 
 
-def predict_arima(trained_model, predict_data: InputData) -> OutputData:
-    start, end = trained_model.nobs, \
-                 trained_model.nobs + len(predict_data.target) - 1
-    exog = predict_data.features
+def predict_arima(trained_model, predict_data: InputData):
+    prediction = []
 
-    if trained_model.data.endog is predict_data.target:
-        # if train sample used
-        start, end = 0, len(predict_data.target)
+    forecast_length = predict_data.task.task_params.forecast_length
+    prediction_steps = len(predict_data.features) - predict_data.task.task_params.forecast_length + 1
+    for pred_step_id in range(prediction_steps):
 
-    prediction = trained_model.predict(start=start, end=end,
-                                       exog=exog)
+        start, end = trained_model.nobs + pred_step_id, \
+                     trained_model.nobs + pred_step_id + forecast_length - 1
 
-    return prediction[0:len(predict_data.target)]
+        exog = predict_data.features
+
+        if trained_model.data.endog is predict_data.target:
+            # if train sample used
+            start, end = 0 + pred_step_id, forecast_length + pred_step_id
+
+        prediction_for_step = trained_model.predict(start=start, end=end,
+                                                    exog=exog)
+
+        prediction.append(prediction_for_step[-forecast_length:])
+
+    return np.stack(prediction)
 
 
 class StatsModelsForecastingStrategy(EvaluationStrategy):
@@ -80,7 +88,6 @@ class StatsModelsForecastingStrategy(EvaluationStrategy):
         self._model_specific_fit, self._model_specific_predict = self._init_stats_model_functions(model_type)
         self._params_range = self.__params_range_by_model[model_type]
         self._default_params = self.__default_params_by_model[model_type]
-
         super().__init__(model_type, params)
 
     def _init_stats_model_functions(self, model_type: str):

@@ -13,7 +13,7 @@
 	"sklearn_regr": {
 	  "tasks": "[TaskTypesEnum.regression]",
 	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
@@ -33,7 +33,7 @@
 	"stats_ar": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.forecasted_ts]",
 	  "strategies": ["core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
 	  "tags": ["statistical", "autoreg"],
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
@@ -65,7 +65,7 @@
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts_lagged_3d]",
-	  "output_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.forecasted_ts]",
 	  "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"

@@ -1,3 +1,4 @@
+from copy import copy
 from datetime import timedelta
 
 import numpy as np
@@ -73,7 +74,7 @@ class Model:
                                                                                            params_for_fit)
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
-            raise Exception
+            raise ex
 
     def fit(self, data: InputData):
         """
@@ -85,12 +86,11 @@ class Model:
         """
         self._init(data.task)
 
-        fitted_model = self._eval_strategy.fit(train_data=data)
-        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=data)
+        data_for_fit = _drop_data_with_nan(data)
 
-        if np.array([np.isnan(_) for _ in predict_train]).any():
-            predict_train = np.nan_to_num(predict_train)
+        fitted_model = self._eval_strategy.fit(train_data=data_for_fit)
+
+        predict_train = self.predict(fitted_model, data)
 
         return fitted_model, predict_train
 
@@ -104,11 +104,12 @@ class Model:
         """
         self._init(data.task)
 
-        prediction = self._eval_strategy.predict(trained_model=fitted_model,
-                                                 predict_data=data)
+        data_for_predict = _drop_data_with_nan(data, ignore_nan_in_target=True)
 
-        if np.array([np.isnan(_) for _ in prediction]).any():
-            return np.nan_to_num(prediction)
+        prediction = self._eval_strategy.predict(trained_model=fitted_model,
+                                                 predict_data=data_for_predict)
+
+        prediction = _post_process_prediction(prediction, data.task, len(data.idx))
 
         return prediction
 
@@ -123,8 +124,10 @@ class Model:
         """
         self._init(data.task)
 
+        data_for_fit = _drop_data_with_nan(data, ignore_nan_in_target=True)
+
         try:
-            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
+            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data_for_fit,
                                                                        iterations=iterations,
                                                                        max_lead_time=max_lead_time)
             self.params = tuned_params
@@ -132,11 +135,14 @@ class Model:
                 self.params = DEFAULT_PARAMS_STUB
         except Exception as ex:
             print(f'Tuning failed because of {ex}')
-            fitted_model = self._eval_strategy.fit(train_data=data)
+            fitted_model = self._eval_strategy.fit(train_data=data_for_fit)
             self.params = DEFAULT_PARAMS_STUB
 
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=data)
+                                                    predict_data=data_for_fit)
+
+        predict_train = _post_process_prediction(predict_train, data.task, len(data.idx))
+
         return fitted_model, predict_train
 
     def __str__(self):
@@ -162,3 +168,80 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
 
     strategy = models_repo.model_info_by_id(model_type).current_strategy(task_type_for_model)
     return strategy
+
+
+def _post_process_prediction(prediction, task: Task, expected_length: int):
+    if np.array([np.isnan(_) for _ in prediction]).any():
+        prediction = np.nan_to_num(prediction)
+
+    if task.task_type == TaskTypesEnum.ts_forecasting:
+        prediction = _post_process_ts_prediction(prediction, task, expected_length)
+
+    return prediction
+
+
+def _post_process_ts_prediction(prediction, task: Task, expected_length: int):
+    if not task.task_params.return_all_steps and len(prediction.shape) > 1:
+        # choose last forecasting step only for each prediction
+        prediction = prediction[:, -1]
+
+    if not task.task_params.make_future_prediction:
+        # cut unwanted oos predection
+        length_of_cut = (task.task_params.forecast_length - 1)
+        if length_of_cut > 0:
+            prediction = prediction[:-length_of_cut]
+    # TODO add multivariate
+
+    # add zeros to preserve length
+    if len(prediction) < expected_length:
+        zeros = np.zeros((expected_length - len(prediction), *prediction.shape[1:]))
+        zeros = [np.nan] * len(zeros)
+
+        if len(prediction.shape) == 1:
+            prediction = np.concatenate((zeros, prediction))
+        else:
+            prediction_steps = []
+            for forecast_depth in range(prediction.shape[1]):
+                prediction_steps.append(np.concatenate((zeros, prediction[:, forecast_depth])))
+            prediction = np.stack(np.asarray(prediction_steps)).T
+    return prediction
+
+
+def _drop_data_with_nan(data_to_clean: InputData, ignore_nan_in_target: bool = False):
+    data_to_clean = _clean_nans(data_to_clean, data_to_clean.features)
+
+    if not ignore_nan_in_target:
+        # can be acceptable in prediction
+        data_to_clean = _clean_nans(data_to_clean, data_to_clean.target)
+
+    return data_to_clean
+
+
+def _clean_nans(data: InputData, array_with_nans: np.ndarray):
+    data_to_clean = copy(data)
+    if array_with_nans is None:
+        return data_to_clean
+    # remove all rows with nan in array_with_nans
+    if len(array_with_nans.shape) == 1:
+        data_to_clean.idx = data.idx[~np.isnan(array_with_nans)]
+        if data.features is not None:
+            data_to_clean.features = data.features[~np.isnan(array_with_nans)]
+        if data.target is not None:
+            data_to_clean.target = data.target[~np.isnan(array_with_nans)]
+    elif len(array_with_nans.shape) == 2:
+        data_to_clean.idx = data.idx[~np.isnan(array_with_nans).any(axis=1)]
+        if data.features is not None:
+            data_to_clean.features = data.features[~np.isnan(array_with_nans).any(axis=1)]
+        if data.target is not None:
+            data_to_clean.target = data.target[~np.isnan(array_with_nans).any(axis=1)]
+    elif len(array_with_nans.shape) == 3:
+        for dim in range(array_with_nans.shape[2]):
+            data_to_clean.idx = data.idx[~np.isnan(array_with_nans).any(axis=1).any(axis=1)]
+            if data.features is not None:
+                data_to_clean.features = \
+                    data.features[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
+            if data.target is not None:
+                data_to_clean.target = \
+                    data.target[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
+
+    return data_to_clean

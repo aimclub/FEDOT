@@ -4,7 +4,7 @@ from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.models.data import InputData, train_test_data_setup
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from test.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
+from test.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
 
 
 def compose_chain(data: InputData) -> Chain:
