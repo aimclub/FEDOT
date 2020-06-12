@@ -10,6 +10,7 @@ from benchmark.benchmark_utils import convert_json_stats_to_csv, get_models_hype
 from benchmark.executor import CaseExecutor
 from core.repository.tasks import TaskTypesEnum
 
+
 if __name__ == '__main__':
     penn_data = Path('./datasets.csv')
     dataset = []
@@ -49,8 +50,8 @@ if __name__ == '__main__':
                                           target_name='target',
                                           case_label=case_name,
                                           metric_list=metric_name).execute()
-        except ValueError:
-            print(f'problems_with_dataset_{name_of_dataset}')
+        except Exception as ex:
+            print(f'Exception on {name_of_dataset}: {ex}')
             continue
 
         result_metrics['hyperparameters'] = config_models_data

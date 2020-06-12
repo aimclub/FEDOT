@@ -2,23 +2,17 @@ import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    List,
-    Callable,
-    Optional,
-    Any
-)
+from typing import (Any, Callable, List, Optional)
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 @dataclass
 class ComposerRequirements:
-    primary: List[ModelTypesIdsEnum]
-    secondary: List[ModelTypesIdsEnum]
+    primary: List[str]
+    secondary: List[str]
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=30)
     max_depth: int = 3
     max_arity: int = 2

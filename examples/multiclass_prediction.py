@@ -9,7 +9,6 @@ from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirem
 from core.models.model import *
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
-    ModelMetaInfoTemplate,
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
@@ -28,11 +27,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=DataTypesEnum.table,
-                                               output_types=DataTypesEnum.table,
-                                               task_type=task.task_type,
-                                               can_be_secondary=True))
+    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 

@@ -2,7 +2,6 @@ import pytest
 from functools import partial
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.models.model import ModelTypesIdsEnum
 from core.composer.gp_composer.gp_composer import GPComposerRequirements
 from core.composer.optimisers.gp_operators import random_chain
 from core.composer.optimisers.selection import SelectionTypesEnum
@@ -12,8 +11,7 @@ from core.debug.metrics import RandomMetric
 
 
 def rand_population_gener_and_eval(pop_size=4):
-    models_set = [ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
-                  ModelTypesIdsEnum.rf]
+    models_set = ['knn', 'logit', 'rf']
     requirements = GPComposerRequirements(primary=models_set,
                                           secondary=models_set, max_depth=1)
     secondary_node_func = NodeGenerator.secondary_node

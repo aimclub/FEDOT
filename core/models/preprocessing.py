@@ -2,8 +2,6 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.impute import SimpleImputer
 
-from core.repository.model_types_repository import ModelTypesIdsEnum
-
 
 class PreprocessingStrategy:
     def fit(self, data_to_fit) -> 'PreprocessingStrategy':

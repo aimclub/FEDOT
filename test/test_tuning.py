@@ -9,7 +9,6 @@ from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.models.tuners import get_random_params
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from test.test_autoregression import get_synthetic_ts_data
 
 
@@ -35,14 +34,14 @@ def test_knn_classification_tune_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    knn = Model(model_type=ModelTypesIdsEnum.knn)
+    knn = Model(model_type='knn')
     model, _ = knn.fit(data=train_data)
     test_predicted = knn.predict(fitted_model=model, data=test_data)
 
     roc_on_test = roc_auc(y_true=test_data.target,
                           y_score=test_predicted)
 
-    knn_for_tune = Model(model_type=ModelTypesIdsEnum.knn)
+    knn_for_tune = Model(model_type='knn')
     model, _ = knn_for_tune.fine_tune(data=train_data, iterations=10)
     test_predicted_tuned = knn.predict(fitted_model=model, data=test_data)
 
@@ -56,7 +55,7 @@ def test_arima_tune_correct():
     data = get_synthetic_ts_data()
     train_data, test_data = train_test_data_setup(data=data)
 
-    arima_for_tune = Model(model_type=ModelTypesIdsEnum.arima)
+    arima_for_tune = Model(model_type='arima')
     model, _ = arima_for_tune.fine_tune(data=train_data, iterations=5)
     test_predicted_tuned = arima_for_tune.predict(fitted_model=model, data=test_data)
 
@@ -74,7 +73,7 @@ def test_rf_class_tune_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    rf = Model(model_type=ModelTypesIdsEnum.rf)
+    rf = Model(model_type='rf')
 
     model, _ = rf.fit(train_data)
     test_predicted = rf.predict(fitted_model=model, data=test_data)
@@ -100,7 +99,7 @@ def test_scoring_logreg_tune_correct(data_fixture, request):
     train_data.features = Scaling().fit(train_data.features).apply(train_data.features)
     test_data.features = Scaling().fit(test_data.features).apply(test_data.features)
 
-    logreg = Model(model_type=ModelTypesIdsEnum.logit)
+    logreg = Model(model_type='logit')
 
     model, _ = logreg.fit(train_data)
     test_predicted = logreg.predict(fitted_model=model, data=test_data)
@@ -108,7 +107,7 @@ def test_scoring_logreg_tune_correct(data_fixture, request):
     test_roc_auc = roc_auc(y_true=test_data.target,
                            y_score=test_predicted)
 
-    logreg_for_tune = Model(model_type=ModelTypesIdsEnum.logit)
+    logreg_for_tune = Model(model_type='logit')
 
     model_tuned, _ = logreg_for_tune.fine_tune(train_data, iterations=50)
     test_predicted_tuned = logreg_for_tune.predict(fitted_model=model_tuned, data=test_data)

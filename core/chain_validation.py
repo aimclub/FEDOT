@@ -6,7 +6,7 @@ from networkx.algorithms.isolate import isolates
 
 from core.composer.chain import Chain, as_nx_graph
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.repository.model_types_repository import ModelGroupsIdsEnum, ModelTypesIdsEnum, ModelTypesRepository
+from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -70,9 +70,8 @@ def has_correct_models(chain: Chain, task: Optional[Task] = None):
     # TODO pass task to this function
 
     models_repo = ModelTypesRepository()
-    data_models_types, _ = models_repo.search_models(desired_ids=[ModelGroupsIdsEnum.data_models])
-    composition_data_models_types, _ = models_repo.search_models(
-        desired_ids=[ModelGroupsIdsEnum.composition_data_models])
+    data_models_types, _ = ModelTypesRepository().models_with_tag(['data-models'])
+    composition_data_models_types, _ = models_repo.models_with_tag(['composition'])
 
     is_root_not_datamodel = chain.root_node.model.model_type not in data_models_types or \
                             chain.root_node.model.model_type in composition_data_models_types
@@ -80,7 +79,7 @@ def has_correct_models(chain: Chain, task: Optional[Task] = None):
     is_primary_not_composition_datamodel = all([(node.model.model_type not in composition_data_models_types)
                                                 for node in chain.nodes if isinstance(node, PrimaryNode)])
 
-    is_primary_not_direct_datamodel = all([(node.model.model_type != ModelTypesIdsEnum.direct_datamodel)
+    is_primary_not_direct_datamodel = all([(node.model.model_type != 'direct_datamodel')
                                            for node in chain.nodes if isinstance(node, PrimaryNode)])
     if task:
         is_root_satisfy_task_type = task.task_type not in chain.root_node.model.acceptable_task_types

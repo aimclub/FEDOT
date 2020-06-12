@@ -1,15 +1,12 @@
 import datetime
 import random
 
-import numpy as np
-
 from benchmark.benchmark_utils import get_models_hyperparameters
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
-    ModelMetaInfoTemplate,
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
@@ -28,13 +25,8 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
     generations = models_hyperparameters['GENERATIONS']
     population_size = models_hyperparameters['POPULATION_SIZE']
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
-                                               task_type=task.task_type,
-                                               can_be_initial=True,
-                                               can_be_secondary=True))
+    available_model_types, _ = ModelTypesRepository(). \
+        suitable_model(task_type=task.task_type)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
@@ -44,8 +36,8 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
         max_depth=2, pop_size=population_size, num_of_generations=generations,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
-    single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.lasso, ModelTypesIdsEnum.ridge],
-                                                        secondary=[ModelTypesIdsEnum.linear])
+    single_composer_requirements = ComposerRequirements(primary=['lasso', 'ridge'],
+                                                        secondary=['linear'])
     chain_static = DummyComposer(
         DummyChainTypeEnum.hierarchical).compose_chain(data=dataset_to_compose,
                                                        initial_chain=None,
@@ -65,7 +57,7 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=False)
 
     # the single-model variant of optimal chain
-    single_composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.lasso],
+    single_composer_requirements = ComposerRequirements(primary=['lasso'],
                                                         secondary=[])
     chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(
         data=dataset_to_compose,

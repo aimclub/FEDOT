@@ -3,8 +3,6 @@ from scipy import signal
 from statsmodels.tsa.seasonal import seasonal_decompose
 
 from core.models.data import InputData
-from core.models.evaluation.evaluation import EvaluationStrategy
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 def get_data(predict_data: InputData):
@@ -44,26 +42,3 @@ def get_residual(predict_data: InputData):
     target_trend = get_trend(predict_data)
     target_residual = predict_data.target - target_trend
     return target_residual
-
-
-class DataModellingStrategy(EvaluationStrategy):
-    _model_functions_by_type = {
-        ModelTypesIdsEnum.direct_datamodel: get_data,
-        ModelTypesIdsEnum.diff_data_model: get_difference,
-        ModelTypesIdsEnum.additive_data_model: get_sum,
-        ModelTypesIdsEnum.trend_data_model: get_trend,
-        ModelTypesIdsEnum.residual_data_model: get_residual
-    }
-
-    def __init__(self, model_type: ModelTypesIdsEnum):
-        self._model_specific_predict = self._model_functions_by_type[model_type]
-
-    def fit(self, train_data: InputData):
-        # fit is not necessary for data models
-        return None
-
-    def predict(self, trained_model, predict_data: InputData):
-        return self._model_specific_predict(predict_data)
-
-    def tune(self, model, data_for_tune: InputData):
-        return model

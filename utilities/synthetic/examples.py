@@ -7,7 +7,6 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import train_test_data_setup
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from utilities.synthetic.chain import separately_fit_chain
 from utilities.synthetic.data import (
     classification_dataset, gauss_quantiles_dataset
@@ -60,9 +59,9 @@ def synthetic_benchmark_composing_example():
 
 
 def two_level_chain():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.primary_node(model_type='knn')
+    third = NodeGenerator.secondary_node(model_type='xgboost',
                                          nodes_from=[first, second])
 
     chain = Chain()

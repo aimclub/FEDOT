@@ -6,15 +6,15 @@ from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
+from core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
 
 def compose_chain(data: InputData) -> Chain:
     dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
-                                                 secondary=[ModelTypesIdsEnum.linear])
+    composer_requirements = ComposerRequirements(primary=['arima', 'arima'],
+                                                 secondary=['linear'])
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 

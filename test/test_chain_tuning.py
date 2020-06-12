@@ -7,7 +7,6 @@ from sklearn.metrics import mean_squared_error as mse
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
 seed(1)
@@ -29,9 +28,9 @@ def classification_dataset():
 
 def get_regr_chain():
     # Chain composition
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgbreg)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knnreg)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.linear,
+    first = NodeGenerator.primary_node(model_type='xgbreg')
+    second = NodeGenerator.primary_node(model_type='knnreg')
+    final = NodeGenerator.secondary_node(model_type='linear',
                                          nodes_from=[first, second])
 
     chain = Chain()
@@ -43,9 +42,9 @@ def get_regr_chain():
 
 def get_class_chain():
     # Chain composition
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='xgboost')
+    second = NodeGenerator.primary_node(model_type='knn')
+    final = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[first, second])
 
     chain = Chain()

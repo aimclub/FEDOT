@@ -7,15 +7,14 @@ from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, Dum
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
 
 def compose_chain(data: InputData) -> Chain:
     dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.lasso, ModelTypesIdsEnum.ridge],
-                                                 secondary=[ModelTypesIdsEnum.linear])
+    composer_requirements = ComposerRequirements(primary=['lasso', 'ridge'],
+                                                 secondary=['linear'])
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
@@ -63,9 +62,9 @@ def test_regression_chain_with_datamodel_fit_correct():
     train_data, test_data = train_test_data_setup(data)
 
     chain = Chain()
-    node_data = NodeGenerator.primary_node(ModelTypesIdsEnum.direct_datamodel)
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.ridge)
-    node_second = NodeGenerator.secondary_node(ModelTypesIdsEnum.lasso)
+    node_data = NodeGenerator.primary_node('direct_datamodel')
+    node_first = NodeGenerator.primary_node('ridge')
+    node_second = NodeGenerator.secondary_node('lasso')
     node_second.nodes_from = [node_first, node_data]
 
     chain.add_node(node_data)

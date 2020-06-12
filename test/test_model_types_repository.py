@@ -1,74 +1,48 @@
-from unittest.mock import patch
+import os
 
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import (ModelGroupsIdsEnum, ModelMetaInfo, ModelMetaInfoTemplate, ModelType,
-                                                    ModelTypesIdsEnum, ModelTypesRepository, ModelsGroup)
-from core.repository.tasks import Task, TaskTypesEnum
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.tasks import TaskTypesEnum
 
 
-def default_mocked_tree():
-    root = ModelsGroup(ModelGroupsIdsEnum.all)
-
-    ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
-
-    xgboost_meta = ModelMetaInfo(
-        input_types=[DataTypesEnum.table, DataTypesEnum.table],
-        output_types=[DataTypesEnum.table, DataTypesEnum.table],
-        task_type=[TaskTypesEnum.classification,
-                   TaskTypesEnum.regression])
-
-    ModelType(ModelTypesIdsEnum.xgboost, xgboost_meta, parent=ml)
-
-    knn_meta = ModelMetaInfo(input_types=[DataTypesEnum.table],
-                             output_types=[DataTypesEnum.table],
-                             task_type=[TaskTypesEnum.classification])
-
-    ModelType(ModelTypesIdsEnum.knn, knn_meta, parent=ml)
-
-    logit_meta = ModelMetaInfo(
-        input_types=[DataTypesEnum.table, DataTypesEnum.table],
-        output_types=[DataTypesEnum.table],
-        task_type=[TaskTypesEnum.classification])
-
-    ModelType(ModelTypesIdsEnum.logit, logit_meta, parent=ml)
-
-    return root
+def mocked_path():
+    test_data_path = str(os.path.dirname(__file__))
+    repo_json_file_path = os.path.join(test_data_path, 'data/model_repository.json')
+    return repo_json_file_path
 
 
-@patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=default_mocked_tree)
-def test_search_in_repository_by_id_and_metainfo_correct(mock_init_tree):
-    repo = ModelTypesRepository()
+def test_search_in_repository_by_tag_and_metainfo_correct():
+    repo = ModelTypesRepository(mocked_path())
 
-    model_names, _ = repo.search_models(
-        desired_ids=[ModelGroupsIdsEnum.ml], desired_metainfo=ModelMetaInfoTemplate(
-            task_type=TaskTypesEnum.regression))
+    model_names, _ = repo.suitable_model(task_type=TaskTypesEnum.regression,
+                                         tags=['ml'])
 
-    assert ModelTypesIdsEnum.xgboost in model_names
+    assert 'linear' in model_names
+    assert len(model_names) == 3
+
+
+def test_search_in_repository_by_id_correct():
+    repo = ModelTypesRepository(mocked_path())
+
+    model = repo.model_info_by_id(id='tpot')
+
+    assert model.id == 'tpot'
+    assert 'automl' in model.tags
+
+
+def test_search_in_repository_by_tag_correct():
+    repo = ModelTypesRepository(mocked_path())
+
+    model_names, _ = repo.models_with_tag(tags=['automl'])
+    assert 'tpot' in model_names
     assert len(model_names) == 1
 
+    model_names, _ = repo.models_with_tag(tags=['simple', 'linear'], is_full_match=True)
+    assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
+    assert len(model_names) == 4
 
-@patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=default_mocked_tree)
-def test_search_in_repository_by_model_id_correct(mock_init_tree):
-    repo = ModelTypesRepository()
+    model_names, _ = repo.models_with_tag(tags=['simple', 'linear'])
+    assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge'}.issubset(model_names)
+    assert len(model_names) == 6
 
-    model_names, _ = repo.search_models(
-        desired_ids=[ModelGroupsIdsEnum.all])
-
-    assert ModelTypesIdsEnum.xgboost in model_names
-    assert len(model_names) == 3
-
-
-@patch('core.repository.model_types_repository.ModelTypesRepository._initialise_tree',
-       side_effect=default_mocked_tree)
-def test_search_in_repository_by_metainfo_correct(mock_init_tree):
-    repo = ModelTypesRepository()
-
-    model_names, _ = repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=DataTypesEnum.table,
-                                               output_types=DataTypesEnum.table,
-                                               task_type=TaskTypesEnum.classification))
-
-    assert ModelTypesIdsEnum.knn in model_names
-    assert len(model_names) == 3
+    model_names, _ = repo.models_with_tag(tags=['non_real_tag'])
+    assert len(model_names) == 0
