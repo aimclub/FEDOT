@@ -65,8 +65,7 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
 
 
 def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, Any]]:
-    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
-    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
+    """the function finds the list of nodes pairs of the maximal structurally equivalent rooted subtree of two trees"""
 
     def structural_equivalent_nodes(node_first, node_second):
         nodes = []

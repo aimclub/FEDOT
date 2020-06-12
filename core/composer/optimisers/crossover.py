@@ -9,7 +9,7 @@ from core.composer.optimisers.gp_operators import nodes_from_height, node_depth,
 
 class CrossoverTypesEnum(Enum):
     subtree = 'subtree'
-    onepoint = "onepoint"
+    one_point = "one_point"
     none = 'none'
 
 
@@ -28,13 +28,9 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
 
 
 def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
-    random_layer_in_chain_first = randint(0, chain_first.depth - 1)
-    random_layer_in_chain_second = randint(0, chain_second.depth - 1)
-    if random_layer_in_chain_first == 0 and random_layer_in_chain_second == 0:
-        if randint(0, 1):
-            random_layer_in_chain_first = randint(1, chain_first.depth - 1)
-        else:
-            random_layer_in_chain_second = randint(1, chain_second.depth - 1)
+    random_layer_in_chain_first = choice(range(chain_first.depth))
+    min_second_layer = 1 if random_layer_in_chain_first == 0 else 0
+    random_layer_in_chain_second = choice(range(min_second_layer, chain_second.depth))
 
     node_from_chain_first = choice(nodes_from_height(chain_first, random_layer_in_chain_first))
     node_from_chain_second = choice(nodes_from_height(chain_second, random_layer_in_chain_second))
@@ -46,7 +42,7 @@ def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> An
     return chain_first
 
 
-def onepoint_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
+def one_point_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
     pairs_of_nodes = equivalent_subtree(chain_first, chain_second)
     if pairs_of_nodes:
         node_from_chain_first, node_from_chain_second = choice(pairs_of_nodes)
@@ -59,5 +55,5 @@ def onepoint_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> A
 
 crossover_by_type = {
     CrossoverTypesEnum.subtree: subtree_crossover,
-    CrossoverTypesEnum.onepoint: onepoint_crossover,
+    CrossoverTypesEnum.one_point: one_point_crossover,
 }
