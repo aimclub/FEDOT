@@ -10,9 +10,9 @@ from core.repository.tasks import TaskTypesEnum
 
 def compose_chain() -> Chain:
     chain = Chain()
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.svc)
-    node_second = NodeGenerator.primary_node(ModelTypesIdsEnum.lda)
-    node_third = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_first = NodeGenerator.primary_node('svc')
+    node_second = NodeGenerator.primary_node('lda')
+    node_third = NodeGenerator.secondary_node('rf')
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)

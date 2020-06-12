@@ -9,7 +9,6 @@ from core.models.model import Model
 from core.models.preprocessing import *
 from core.models.transformation import transformation_function_for_data
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -149,11 +148,11 @@ class SharedCache(FittedModelCache):
 # TODO: discuss about the usage of NodeGenerator
 class NodeGenerator:
     @staticmethod
-    def primary_node(model_type: ModelTypesIdsEnum) -> Node:
+    def primary_node(model_type: str) -> Node:
         return PrimaryNode(model_type=model_type)
 
     @staticmethod
-    def secondary_node(model_type: ModelTypesIdsEnum,
+    def secondary_node(model_type: str,
                        nodes_from: Optional[List[Node]] = None) -> Node:
         return SecondaryNode(nodes_from=nodes_from, model_type=model_type)
 
@@ -165,14 +164,14 @@ def _preprocessing_strategy(dataset_type: DataTypesEnum, model: Model):
         DataTypesEnum.ts_lagged_table: Scaling,
         DataTypesEnum.ts_lagged_3d: LaggedTimeSeriesFeature3dStrategy,
     }
-    if not model.metadata.without_preprocessing:
+    if 'without_preprocessing' not in model.metadata.tags:
         return _preprocessing_for_tasks[dataset_type]
     else:
         return DefaultStrategy
 
 
 class PrimaryNode(Node):
-    def __init__(self, model_type: ModelTypesIdsEnum):
+    def __init__(self, model_type: str):
         model = Model(model_type=model_type)
         super().__init__(nodes_from=None, model=model)
 
@@ -223,7 +222,7 @@ class PrimaryNode(Node):
 
 class SecondaryNode(Node):
     def __init__(self, nodes_from: Optional[List['Node']],
-                 model_type: ModelTypesIdsEnum):
+                 model_type: str):
         model = Model(model_type=model_type)
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model=model)
@@ -242,7 +241,7 @@ class SecondaryNode(Node):
 
         target = input_data.target
         parent_nodes = self._nodes_from_with_fixed_order()
-        if any([parent_node.model.metadata.is_affects_target for parent_node in parent_nodes]):
+        if any(['affects_target' in parent_node.model.metadata.tags for parent_node in parent_nodes]):
             if len(parent_nodes) == 1:
                 # is the previous model is the model that changes target
                 parent_result = parent_nodes[0].fit(input_data=input_data)

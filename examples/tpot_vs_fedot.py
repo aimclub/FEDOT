@@ -36,9 +36,9 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     print(roc_auc_value)
 
     chain = Chain()
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.direct_datamodel)
-    node_second = NodeGenerator.primary_node(ModelTypesIdsEnum.bernb)
-    node_third = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_first = NodeGenerator.primary_node('direct_datamodel')
+    node_second = NodeGenerator.primary_node('bernb')
+    node_third = NodeGenerator.secondary_node('rf')
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)

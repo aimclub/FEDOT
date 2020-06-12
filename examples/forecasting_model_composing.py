@@ -12,7 +12,6 @@ from core.composer.visualisation import ComposerVisualiser
 from core.models.data import OutputData
 from core.models.model import *
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from core.utils import project_root
@@ -20,13 +19,13 @@ from core.utils import project_root
 
 def get_composite_lstm_chain():
     chain = Chain()
-    node_trend = NodeGenerator.primary_node(ModelTypesIdsEnum.linear)
-    node_lstm_trend = NodeGenerator.secondary_node(ModelTypesIdsEnum.linear, nodes_from=[node_trend])
+    node_trend = NodeGenerator.primary_node('linear')
+    node_lstm_trend = NodeGenerator.secondary_node('linear', nodes_from=[node_trend])
 
-    node_residual = NodeGenerator.primary_node(ModelTypesIdsEnum.linear)
-    node_ridge_residual = NodeGenerator.secondary_node(ModelTypesIdsEnum.linear, nodes_from=[node_residual])
+    node_residual = NodeGenerator.primary_node('linear')
+    node_ridge_residual = NodeGenerator.secondary_node('linear', nodes_from=[node_residual])
 
-    node_final = NodeGenerator.secondary_node(ModelTypesIdsEnum.additive_data_model,
+    node_final = NodeGenerator.secondary_node('additive_data_model',
                                               nodes_from=[node_ridge_residual, node_lstm_trend])
     chain.add_node(node_final)
     return chain
@@ -83,11 +82,11 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     ref_chain = get_composite_lstm_chain()
 
-    available_model_types_primary = [ModelTypesIdsEnum.trend_data_model,
-                                     ModelTypesIdsEnum.residual_data_model]
+    available_model_types_primary = ['trend_data_model',
+                                     'residual_data_model']
 
-    available_model_types_secondary = [ModelTypesIdsEnum.rfr, ModelTypesIdsEnum.linear,
-                                       ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso]
+    available_model_types_secondary = ['rfr', 'linear',
+                                       'ridge', 'lasso']
 
     composer = FixedStructureComposer()
 

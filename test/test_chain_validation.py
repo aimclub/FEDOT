@@ -1,27 +1,20 @@
 import pytest
 
-from core.chain_validation import (
-    has_no_cycle,
-    has_primary_nodes,
-    has_no_self_cycled_nodes,
-    has_no_isolated_nodes,
-    validate,
-    has_no_isolated_components,
-)
+from core.chain_validation import (has_no_cycle, has_no_isolated_components, has_no_isolated_nodes,
+                                   has_no_self_cycled_nodes, has_primary_nodes, validate)
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 def valid_chain():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    third = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[second])
-    last = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    last = NodeGenerator.secondary_node(model_type='logit',
                                         nodes_from=[third])
 
     chain = Chain()
@@ -32,10 +25,10 @@ def valid_chain():
 
 
 def chain_with_cycle():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    third = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[second, first])
     second.nodes_from.append(third)
     chain = Chain()
@@ -46,12 +39,12 @@ def chain_with_cycle():
 
 
 def chain_with_isolated_nodes():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    third = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[second])
-    isolated = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    isolated = NodeGenerator.secondary_node(model_type='logit',
                                             nodes_from=[])
     chain = Chain()
 
@@ -62,10 +55,10 @@ def chain_with_isolated_nodes():
 
 
 def chain_with_multiple_roots():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    root_first = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    root_first = NodeGenerator.secondary_node(model_type='logit',
                                               nodes_from=[first])
-    root_second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    root_second = NodeGenerator.secondary_node(model_type='logit',
                                                nodes_from=[first])
     chain = Chain()
 
@@ -76,9 +69,9 @@ def chain_with_multiple_roots():
 
 
 def chain_with_secondary_nodes_only():
-    first = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[])
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
     chain = Chain()
     chain.add_node(first)
@@ -88,8 +81,8 @@ def chain_with_secondary_nodes_only():
 
 
 def chain_with_self_cycle():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
     second.nodes_from.append(second)
 
@@ -101,12 +94,12 @@ def chain_with_self_cycle():
 
 
 def chain_with_isolated_components():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='logit')
+    second = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    third = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[])
-    fourth = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    fourth = NodeGenerator.secondary_node(model_type='logit',
                                           nodes_from=[third])
 
     chain = Chain()

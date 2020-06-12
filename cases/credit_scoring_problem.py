@@ -6,17 +6,15 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.composer import ComposerRequirements, DummyComposer, DummyChainTypeEnum
 from core.composer.visualisation import ComposerVisualiser
-from core.models.model import *
-from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
-    ModelMetaInfoTemplate,
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import project_root
-
+from core.models.data import InputData
 random.seed(1)
 np.random.seed(1)
 
@@ -38,26 +36,15 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    models_repo = ModelTypesRepository()
-    available_model_types_primary, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
-                                               task_type=[TaskTypesEnum.classification,
-                                                          TaskTypesEnum.clustering],
-                                               can_be_initial=True))
-
-    available_model_types_secondary, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
-                                               task_type=[TaskTypesEnum.classification,
-                                                          TaskTypesEnum.clustering],
-                                               can_be_secondary=True))
+    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
     # the choice of the metric for the chain quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
-        primary=available_model_types_primary,
-        secondary=available_model_types_secondary, max_arity=3,
+        primary=available_model_types,
+        secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
@@ -78,6 +65,24 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     if is_visualise:
         ComposerVisualiser.visualise(chain_evo_composed)
+
+    # the choice and initialisation of the dummy_composer
+    dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
+
+    chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
+                                                initial_chain=None,
+                                                composer_requirements=composer_requirements,
+                                                metrics=metric_function, is_visualise=True)
+    chain_static.fit(input_data=dataset_to_compose, verbose=True)
+    # the single-model variant of optimal chain
+    single_composer_requirements = ComposerRequirements(primary=['xgboost'],
+                                                        secondary=[])
+    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
+                                                                        initial_chain=None,
+                                                                        composer_requirements=single_composer_requirements,
+                                                                        metrics=metric_function)
+    chain_single.fit(input_data=dataset_to_compose, verbose=True)
+    print("Composition finished")
 
     # the quality assessment for the obtained composite models
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,

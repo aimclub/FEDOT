@@ -6,7 +6,6 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
@@ -38,16 +37,16 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
 
 def get_decomposed_chain():
     chain = Chain()
-    node_trend = NodeGenerator.primary_node(ModelTypesIdsEnum.trend_data_model)
-    node_lstm_trend = NodeGenerator.secondary_node(ModelTypesIdsEnum.lstm, nodes_from=[node_trend])
+    node_trend = NodeGenerator.primary_node('trend_data_model')
+    node_lstm_trend = NodeGenerator.secondary_node('lstm', nodes_from=[node_trend])
 
     # decrase the number of parameters
     node_lstm_trend.model.external_params = {'epochs': 1}
 
-    node_residual = NodeGenerator.primary_node(ModelTypesIdsEnum.residual_data_model)
-    node_ridge_residual = NodeGenerator.secondary_node(ModelTypesIdsEnum.ridge, nodes_from=[node_residual])
+    node_residual = NodeGenerator.primary_node('residual_data_model')
+    node_ridge_residual = NodeGenerator.secondary_node('ridge', nodes_from=[node_residual])
 
-    node_final = NodeGenerator.secondary_node(ModelTypesIdsEnum.additive_data_model,
+    node_final = NodeGenerator.secondary_node('additive_data_model',
                                               nodes_from=[node_ridge_residual, node_lstm_trend])
     chain.add_node(node_final)
     return chain
@@ -57,7 +56,7 @@ def test_arima_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_arima = NodeGenerator.primary_node(ModelTypesIdsEnum.arima)
+    node_arima = NodeGenerator.primary_node('arima')
     chain.add_node(node_arima)
 
     train_data, test_data = train_test_data_setup(data)
@@ -74,7 +73,7 @@ def test_regression_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_rfr = NodeGenerator.primary_node(ModelTypesIdsEnum.rfr)
+    node_rfr = NodeGenerator.primary_node('rfr')
     chain.add_node(node_rfr)
 
     train_data, test_data = train_test_data_setup(data)

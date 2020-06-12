@@ -55,8 +55,8 @@ if __name__ == '__main__':
                                                   BenchmarkModelTypesEnum.baseline,
                                                   BenchmarkModelTypesEnum.fedot],
                                           metric_list=metric_names).execute()
-        except ValueError as ex:
-            print(f'problems_with_dataset_{name_of_dataset}: {ex}')
+        except Exception as ex:
+            print(f'Exception on {name_of_dataset}: {ex}')
             continue
 
         result_metrics['hyperparameters'] = config_models_data

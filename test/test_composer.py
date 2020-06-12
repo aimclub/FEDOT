@@ -15,7 +15,7 @@ from core.composer.node import NodeGenerator, PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import (ModelMetaInfoTemplate, ModelTypesIdsEnum, ModelTypesRepository)
+from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 from test.test_chain_tuning import get_class_chain
@@ -41,8 +41,10 @@ def test_dummy_composer_hierarchical_chain_build_correct():
     empty_data = InputData(idx=np.zeros(1), features=np.zeros(1), target=np.zeros(1),
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
-    primary = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost]
-    secondary = [ModelTypesIdsEnum.logit]
+
+    primary = ['logit', 'xgboost']
+    secondary = ['logit']
+
     composer_requirements = ComposerRequirements(primary=primary,
                                                  secondary=secondary)
     new_chain = composer.compose_chain(data=empty_data,
@@ -63,8 +65,10 @@ def test_dummy_composer_flat_chain_build_correct():
     composer = DummyComposer(DummyChainTypeEnum.flat)
     empty_data = InputData(idx=np.zeros(1), features=np.zeros(1), target=np.zeros(1),
                            task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
-    primary = [ModelTypesIdsEnum.logit]
-    secondary = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost]
+
+    primary = ['logit']
+    secondary = ['logit', 'xgboost']
+
     composer_requirements = ComposerRequirements(primary=primary,
                                                  secondary=secondary)
     new_chain = composer.compose_chain(data=empty_data,
@@ -89,7 +93,8 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda, ModelTypesIdsEnum.knn]
+    available_model_types, _ = ModelTypesRepository().suitable_model(
+        task_type=TaskTypesEnum.classification)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
@@ -117,7 +122,7 @@ def test_fixed_structure_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda, ModelTypesIdsEnum.knn]
+    available_model_types = ['logit', 'lda', 'knn']
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
@@ -153,13 +158,9 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    models_repo = ModelTypesRepository()
+    available_model_types, _ = ModelTypesRepository().suitable_model(
+        task_type=TaskTypesEnum.classification)
 
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
-                                               task_type=TaskTypesEnum.classification,
-                                               can_be_initial=True,
-                                               can_be_secondary=True))
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     gp_composer = GPComposer()
@@ -182,9 +183,9 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
 
 def baseline_chain():
     chain = Chain()
-    last_node = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+    last_node = NodeGenerator.secondary_node(model_type='xgboost',
                                              nodes_from=[])
-    for requirement_model in [ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit]:
+    for requirement_model in ['knn', 'logit']:
         new_node = NodeGenerator.primary_node(requirement_model)
         chain.add_node(new_node)
         last_node.nodes_from.append(new_node)
@@ -199,7 +200,7 @@ def test_composition_time(data_fixture, request):
     np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
 
-    models_impl = [ModelTypesIdsEnum.mlp, ModelTypesIdsEnum.knn]
+    models_impl = ['mlp', 'knn']
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     gp_composer_terminated_evolution = GPComposer()

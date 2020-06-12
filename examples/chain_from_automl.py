@@ -16,11 +16,11 @@ def run_chain_from_automl(train_file_path: str, test_file_path: str,
     testing_target = test_data.target
 
     chain = Chain()
-    node_tpot = NodeGenerator.primary_node(ModelTypesIdsEnum.tpot)
+    node_tpot = NodeGenerator.primary_node('tpot')
     node_tpot.model.external_params = {'max_run_time_sec': max_run_time.seconds}
 
-    node_lda = NodeGenerator.primary_node(ModelTypesIdsEnum.lda)
-    node_rf = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_lda = NodeGenerator.primary_node('lda')
+    node_rf = NodeGenerator.secondary_node('rf')
 
     node_rf.nodes_from = [node_tpot, node_lda]
 

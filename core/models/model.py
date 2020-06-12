@@ -5,18 +5,16 @@ import numpy as np
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation.data_evaluation_strategies import DataModellingStrategy
-from core.models.evaluation.evaluation import AutoMLEvaluationStrategy, EvaluationStrategy, KerasForecastingStrategy, \
-    SkLearnClassificationStrategy, SkLearnClusteringStrategy, SkLearnRegressionStrategy, StatsModelsForecastingStrategy
+from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelMetaInfo, ModelTypesIdsEnum, ModelTypesRepository
+from core.repository.model_types_repository import ModelTypesRepository, ModelMetaInfo
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Model:
-    def __init__(self, model_type: ModelTypesIdsEnum):
+    def __init__(self, model_type: str):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
@@ -26,9 +24,8 @@ class Model:
 
     @property
     def acceptable_task_types(self):
-        _, model_info = ModelTypesRepository().search_models(
-            desired_ids=[self.model_type])
-        return model_info[0].task_type
+        model_info = ModelTypesRepository().model_info_by_id(self.model_type)
+        return model_info.task_type
 
     def compatible_task_type(self, base_task_type: TaskTypesEnum):
         # if the model can't be used directly for the task type from data
@@ -45,9 +42,10 @@ class Model:
 
     @property
     def metadata(self) -> ModelMetaInfo:
-        _, model_info = ModelTypesRepository().search_models(
-            desired_ids=[self.model_type])
-        return model_info[0]
+        model_info = ModelTypesRepository().model_info_by_id(self.model_type)
+        if not model_info:
+            raise ValueError(f'Model {self.model_type} not found')
+        return model_info
 
     def output_datatype(self, input_datatype: DataTypesEnum) -> DataTypesEnum:
         output_types = self.metadata.output_types
@@ -63,7 +61,7 @@ class Model:
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: Task):
-        self._eval_strategy = self._eval_strategy_for_task(task)
+        self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)
         self._eval_strategy = _insert_external_params(self._eval_strategy, self.external_params)
 
     def fit(self, data: InputData):
@@ -113,48 +111,7 @@ class Model:
         return fitted_model, predict_train
 
     def __str__(self):
-        return f'{self.model_type.name}'
-
-    def _eval_strategy_for_task(self, task: Task):
-        # TODO refactor
-        strategies_for_tasks = {
-            TaskTypesEnum.classification: [SkLearnClassificationStrategy, AutoMLEvaluationStrategy,
-                                           DataModellingStrategy],
-            TaskTypesEnum.regression: [SkLearnRegressionStrategy, DataModellingStrategy],
-            TaskTypesEnum.ts_forecasting: [StatsModelsForecastingStrategy, DataModellingStrategy,
-                                           KerasForecastingStrategy],
-            TaskTypesEnum.clustering: [SkLearnClusteringStrategy]
-        }
-
-        models_for_strategies = {
-            SkLearnClassificationStrategy: [ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
-                                            ModelTypesIdsEnum.dt, ModelTypesIdsEnum.rf, ModelTypesIdsEnum.mlp,
-                                            ModelTypesIdsEnum.lda, ModelTypesIdsEnum.qda, ModelTypesIdsEnum.svc,
-                                            ModelTypesIdsEnum.bernb],
-            AutoMLEvaluationStrategy: [ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
-            SkLearnClusteringStrategy: [ModelTypesIdsEnum.kmeans],
-            SkLearnRegressionStrategy: [ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge,
-                                        ModelTypesIdsEnum.lasso, ModelTypesIdsEnum.rfr,
-                                        ModelTypesIdsEnum.linear, ModelTypesIdsEnum.ridge, ModelTypesIdsEnum.lasso,
-                                        ModelTypesIdsEnum.xgbreg, ModelTypesIdsEnum.adareg, ModelTypesIdsEnum.gbr,
-                                        ModelTypesIdsEnum.knnreg, ModelTypesIdsEnum.dtreg, ModelTypesIdsEnum.treg,
-                                        ModelTypesIdsEnum.svr, ModelTypesIdsEnum.sgdr],
-            KerasForecastingStrategy: [ModelTypesIdsEnum.lstm],
-            StatsModelsForecastingStrategy: [ModelTypesIdsEnum.ar, ModelTypesIdsEnum.arima],
-            DataModellingStrategy: [ModelTypesIdsEnum.direct_datamodel,
-                                    ModelTypesIdsEnum.trend_data_model,
-                                    ModelTypesIdsEnum.residual_data_model,
-                                    ModelTypesIdsEnum.additive_data_model]
-        }
-
-        eval_strategies = strategies_for_tasks[self.compatible_task_type(task.task_type)]
-
-        for strategy in eval_strategies:
-            if self.model_type in models_for_strategies[strategy]:
-                eval_strategy = strategy(self.model_type)
-                return eval_strategy
-
-        raise ValueError(f'Strategy for the {self.model_type} in {task.task_type} not found')
+        return f'{self.model_type}'
 
 
 def _insert_external_params(strategy: EvaluationStrategy, ext_params: dict):
@@ -163,3 +120,24 @@ def _insert_external_params(strategy: EvaluationStrategy, ext_params: dict):
     if 'max_run_time_sec' in ext_params:
         strategy.max_time_min = ext_params['max_run_time_sec'] / 60
     return strategy
+
+
+def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
+    models_repo = ModelTypesRepository()
+    model_info = models_repo.model_info_by_id(model_type)
+
+    task_type_for_model = task_type_for_data
+    task_types_acceptable_for_model = model_info.task_type
+
+    # if the model can't be used directly for the task type from data
+    if task_type_for_model not in task_types_acceptable_for_model:
+        # search the supplementary task types, that can be included in chain which solves original task
+        globally_compatible_task_types = compatible_task_types(task_type_for_model)
+        compatible_task_types_acceptable_for_model = list(set(task_types_acceptable_for_model).intersection
+                                                          (set(globally_compatible_task_types)))
+        if len(compatible_task_types_acceptable_for_model) == 0:
+            raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
+        task_type_for_model = compatible_task_types_acceptable_for_model[0]
+
+    strategy = ModelTypesRepository().model_info_by_id(model_type).current_strategy(task_type_for_model)
+    return strategy(model_type)

@@ -1,0 +1,109 @@
+{
+  "metadata": {
+	"sklearn_class": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": "SkLearnClassificationStrategy",
+	  "tags": ["ml", "sklearn"]
+	},
+	"sklearn_regr": {
+	  "tasks": "[TaskTypesEnum.regression]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": "SkLearnRegressionStrategy",
+	  "tags": ["ml", "sklearn"]
+	},
+	"sklearn_clust": {
+	  "tasks": "[TaskTypesEnum.clustering]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": "SkLearnClusteringStrategy",
+	  "tags": ["ml", "sklearn"]
+	},
+	"automl": {
+	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["primary", "after-datamodel"],
+	  "forbidden_node_types": "[]",
+	  "strategies": {
+		"TaskTypesEnum.classification": "AutoMLEvaluationStrategy",
+		"TaskTypesEnum.regression": "AutoMLRegressionStrategy"
+	  },
+	  "tags": ["automl", "expensive"]
+	},
+	"stats_ar": {
+	  "tasks": "[TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": "StatsModelsForecastingStrategy",
+	  "tags": ["statistical", "autoreg"]
+	}
+  },
+  "models": {
+	"logit": {
+	  "meta": "sklearn_class",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"lda": {
+	  "meta": "sklearn_class",
+	  "tags": ["discriminant", "linear"]
+	},
+	"qda": {
+	  "meta": "sklearn_class",
+	  "tags": ["discriminant", "quadratic"]
+	},
+	"dt": {
+	  "meta": "sklearn_class",
+	  "tags": ["tree", "interpretable"]
+	},
+	"rf": {
+	  "meta": "sklearn_class",
+	  "tags": ["tree"]
+	},
+	"mlp": {
+	  "meta": "sklearn_class",
+	  "tags": ["neural"]
+	},
+	"knn": {
+	  "meta": "sklearn_class",
+	  "tags": ["simple"]
+	},
+	"svc": {
+	  "meta": "sklearn_class",
+	  "tags": ["no_prob"]
+	},
+	"xgboost": {
+	  "meta": "sklearn_class",
+	  "tags": ["boosting"]
+	},
+	"linear": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"lasso": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"ridge": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"arima": {
+	  "meta": "stats_ar"
+	},
+	"tpot": {
+	  "meta": "automl"
+	},
+	"kmeans": {
+	  "meta": "sklearn_clust"
+	}
+  }
+}

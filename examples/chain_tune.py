@@ -5,18 +5,16 @@ from benchmark.benchmark_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 def get_simple_chain():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+    first = NodeGenerator.primary_node(model_type='xgboost')
+    second = NodeGenerator.primary_node(model_type='knn')
+    final = NodeGenerator.secondary_node(model_type='logit',
                                          nodes_from=[first, second])
 
     chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain.add_node(final)
 
     return chain
 

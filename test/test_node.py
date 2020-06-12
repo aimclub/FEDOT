@@ -9,10 +9,8 @@ from core.models.data import (
     InputData,
     train_test_data_setup)
 from core.models.model import Model
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
-
+from core.repository.dataset_types import DataTypesEnum
 
 @pytest.fixture()
 def data_setup() -> InputData:
@@ -34,7 +32,7 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 
 def test_node_factory_log_reg_correct(data_setup):
-    model_type = ModelTypesIdsEnum.logit
+    model_type = 'logit'
     node = NodeGenerator().primary_node(model_type=model_type)
 
     expected_model = Model(model_type=model_type).__class__
@@ -52,7 +50,7 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)
 
-    test_model_node = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    test_model_node = NodeGenerator.primary_node(model_type='logit')
     test_model_node.fit(input_data=train)
     actual_result = test_model_node.predict(input_data=test)
 
