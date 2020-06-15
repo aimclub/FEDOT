@@ -38,7 +38,6 @@ class Chain:
         result = self.root_node.predict(input_data=input_data)
         return result
 
-    # TODO: discuss the feature
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30, verbose=False):
         # Select all primary nodes
         # Perform fine-tuning for each model in node

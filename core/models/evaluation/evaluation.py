@@ -1,7 +1,6 @@
 import warnings
 from typing import Optional
 
-import numpy as np
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.models.data import InputData, OutputData
@@ -29,6 +28,7 @@ from sklearn.svm import LinearSVC as SklearnSVC
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
+from core.models.evaluation.hyperparams import params_range_by_model
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -72,39 +72,16 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     }
 
-    __params_range_by_model = {
-        SklearnKmeans: {'n_clusters': list(range(2, 5))},
-        SklearnKNN: {
-            'n_neighbors': list(range(1, 50)),
-            'weights': ["uniform", "distance"],
-            'p': [1, 2]},
-        SklearnLogReg: {
-            'C': [1e-2, 1e-1, 0.5, 0.9, 1., 2., 5., 10.]},
-        XGBClassifier: {
-            'n_estimators': [100],
-            'max_depth': list(range(1, 7)),
-            'learning_rate': list(np.arange(0.1, 0.9, 0.1)),
-            'subsample': list(np.arange(0.05, 1.01, 0.05)),
-            'min_child_weight': list(range(1, 21)),
-            'nthread': [1]},
-        RandomForestClassifier: {
-            'n_estimators': [100],
-            'criterion': ["gini", "entropy"],
-            'max_features': np.arange(0.05, 1.01, 0.05),
-            'min_samples_split': list(range(2, 10)),
-            'min_samples_leaf': list(range(1, 15)),
-            'bootstrap': [True, False]},
-    }
-
     __metric_by_type = {
-        'classification': make_scorer(roc_auc_score),
-        'regression': make_scorer(mean_squared_error),
+        'classification': make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
+        'regression': make_scorer(mean_squared_error, greater_is_better=False),
     }
 
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
         self._tune_func: SklearnTuner = Optional[SklearnTuner]
         self.params_for_fit = None
+        self.model_type = model_type
 
     def fit(self, train_data: InputData):
         sklearn_model = self._sklearn_model_impl()
@@ -117,19 +94,19 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def fit_tuned(self, train_data: InputData,
                   iterations: int = 30):
         trained_model = self.fit(train_data=train_data)
-        params_range = self.__params_range_by_model.get(type(trained_model), None)
+        params_range = params_range_by_model.get(self.model_type, None)
         metric = self.__metric_by_type.get(train_data.task_type.name, None)
         self._tune_func = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
-            return trained_model
+            return trained_model, trained_model.get_params()
 
-        tuned_params, best_model = self._tune_func().tune(eval_strategy=self,
+        tuned_params, best_model = self._tune_func().tune(trained_model=trained_model,
                                                           tune_data=train_data,
                                                           params_range=params_range,
                                                           iterations=iterations,
                                                           cv_fold_num=5,
-                                                          scoring=metric)
+                                                          scorer=metric)
 
         if best_model:
             trained_model = best_model
