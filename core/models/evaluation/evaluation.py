@@ -128,7 +128,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                           tune_data=train_data,
                                                           params_range=params_range,
                                                           iterations=iterations,
-                                                          cv=5,
+                                                          cv_fold_num=5,
                                                           scoring=metric)
 
         if best_model:

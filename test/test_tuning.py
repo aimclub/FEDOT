@@ -11,6 +11,7 @@ from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from test.test_autoregression import get_synthetic_ts_data
+from core.models.tuners import get_random_params
 
 
 @pytest.fixture()
@@ -52,7 +53,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
     assert roc_on_test_tuned > roc_on_test > roc_threshold
 
 
-def test_arima_ar_tune_correct():
+def test_arima_tune_correct():
     data = get_synthetic_ts_data()
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -119,3 +120,15 @@ def test_scoring_logreg_tune_correct(data_fixture, request):
     roc_threshold = 0.6
 
     assert test_roc_auc_tuned >= test_roc_auc > roc_threshold
+
+
+def test_get_random_params_constant_length():
+    test_param_range = {'param': ((1, 2, 3), (4, 5, 6))}
+    random_param_range = get_random_params(test_param_range)
+    assert len(random_param_range['param']) == len(test_param_range['param'][0])
+
+
+def test_get_random_params_varied_length():
+    test_param_range = {'param': (list((1, 2, 3)), list((4, 5, 6)))}
+    random_param_range = get_random_params(test_param_range)
+    assert len(random_param_range['param']) != len(test_param_range['param'][0])

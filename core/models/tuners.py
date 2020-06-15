@@ -1,7 +1,6 @@
-import random
-from random import uniform
 from typing import Callable, Optional, Tuple, Union, TYPE_CHECKING
 
+from numpy.random import randint, choice as nprand_choice
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
 from skopt import BayesSearchCV
@@ -15,27 +14,21 @@ if TYPE_CHECKING:
 
 class Tuner:
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]):
+             cv_fold_num: int, scoring: Union[str, callable]):
         raise NotImplementedError()
 
 
 class SklearnTuner(Tuner):
+    def __init__(self):
+        self.search_strategy = None
+
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]):
+             cv_fold_num: int, scoring: Union[str, callable]):
         raise NotImplementedError()
 
-    def _sklearn_tune(self, search_strategy, eval_strat: 'EvaluationStrategy', tune_data: InputData,
-                      params_range: dict, iterations: int, cv: int, scoring: Union[str, callable]):
-        estimator = eval_strat.fit(train_data=tune_data)
-
+    def _sklearn_tune(self, search_strategy, tune_data: InputData):
         try:
-            if search_strategy is GridSearchCV:
-                clf = search_strategy(estimator, params_range, cv=cv, scoring=scoring)
-            else:
-                clf = search_strategy(estimator, params_range, n_iter=iterations, cv=cv, scoring=scoring)
-
-            search = clf.fit(tune_data.features, tune_data.target.ravel())
-
+            search = search_strategy.fit(tune_data.features, tune_data.target.ravel())
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')
@@ -44,39 +37,54 @@ class SklearnTuner(Tuner):
 
 class SklearnRandomTuner(SklearnTuner):
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        return self._sklearn_tune(RandomizedSearchCV, eval_strategy, tune_data,
-                                  params_range, iterations, cv, scoring)
+             cv_fold_num: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = eval_strategy.fit(train_data=tune_data)
+        self.search_strategy = RandomizedSearchCV(estimator=estimator,
+                                                  param_distributions=params_range,
+                                                  n_iter=iterations,
+                                                  cv=cv_fold_num,
+                                                  scoring=scoring)
+        return self._sklearn_tune(search_strategy=self.search_strategy,
+                                  tune_data=tune_data)
 
 
 class SklearnGridSearchTuner(SklearnTuner):
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        return self._sklearn_tune(GridSearchCV, eval_strategy, tune_data,
-                                  params_range, iterations, cv, scoring)
+             cv_fold_num: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = eval_strategy.fit(train_data=tune_data)
+        self.search_strategy = GridSearchCV(estimator=estimator,
+                                            param_grid=params_range,
+                                            cv=cv_fold_num,
+                                            scoring=scoring)
+        return self._sklearn_tune(GridSearchCV, tune_data)
 
 
 class SklearnBayesSearchCV(SklearnTuner):
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
-        return self._sklearn_tune(BayesSearchCV, eval_strategy, tune_data,
-                                  params_range, iterations, cv, scoring)
+             cv_fold_num: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+        estimator = eval_strategy.fit(train_data=tune_data)
+        self.search_strategy = BayesSearchCV(estimator=estimator,
+                                             search_spaces=params_range,
+                                             n_iter=iterations,
+                                             cv=cv_fold_num,
+                                             scoring=scoring)
+        return self._sklearn_tune(BayesSearchCV, tune_data)
 
 
 class SklearnCustomRandomTuner(Tuner):
     def tune(self, eval_strategy: 'EvaluationStrategy', tune_data: InputData, params_range: dict, iterations: int,
-             cv: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+             cv_fold_num: int, scoring: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
         try:
             trained_model = eval_strategy.fit(tune_data)
             best_score = scoring(estimator=trained_model, X=tune_data.features, y_true=tune_data.target)
             best_model = trained_model
             best_params = None
             for i in range(iterations):
-                params = {k: random.choice(v) for k, v in params_range.items()}
+                params = {k: nprand_choice(v) for k, v in params_range.items()}
                 for param in params:
                     setattr(trained_model, param, params[param])
                 score = cross_val_score(trained_model, tune_data.features, tune_data.target, scoring=scoring,
-                                        cv=cv).mean()
+                                        cv=cv_fold_num).mean()
                 if score > best_score:
                     best_params = params
                     best_model = trained_model
@@ -89,7 +97,6 @@ class SklearnCustomRandomTuner(Tuner):
 
 
 class ForecastingCustomRandomTuner:
-    # TODO discuss
     def tune(self,
              fit: Callable,
              predict: Callable,
@@ -105,7 +112,7 @@ class ForecastingCustomRandomTuner:
         best_params = default_params
 
         for _ in range(iterations):
-            random_params = _get_random_params(params_range)
+            random_params = get_random_params(params_range)
             try:
                 trained_model_candidate = fit(tune_train_data, random_params)
                 prediction_candidate = predict(trained_model_candidate,
@@ -119,30 +126,40 @@ class ForecastingCustomRandomTuner:
         return best_params
 
 
-def _get_random_params(params_range):
+def get_random_params(params_range):
     candidate_params = {}
     for param in params_range:
         param_range = params_range[param]
         param_range_left, param_range_right = param_range[0], param_range[1]
         if isinstance(param_range_left, tuple):
             # set-based params with constant length
-            candidate_param = list(param_range_left)
-            for sub_param_ind in range(len(candidate_param)):
-                candidate_param[sub_param_ind] = int(round(uniform(param_range_left[sub_param_ind],
-                                                                   param_range_right[sub_param_ind])))
-            candidate_param = tuple(candidate_param)
+            candidate_param = get_constant_length_range(param_range_left, param_range_right)
         elif isinstance(param_range_left, list):
             # set-based params with varied length
-            candidate_param = []
-            subparams_num = uniform(1, len(param_range_right))
-            for sub_param_ind in range(subparams_num):
-                new_sub_param = int(round(uniform(param_range_left[sub_param_ind],
-                                                  param_range_right[sub_param_ind])))
-                candidate_param.append(new_sub_param)
+            candidate_param = get_varied_length_range(param_range_left, param_range_right)
         else:
-            raise ValueError(f'Un-supported params range {type(param_range_left)}')
+            raise ValueError(f'Un-supported params range type {type(param_range_left)}')
         candidate_params[param] = candidate_param
     return candidate_params
+
+
+def get_constant_length_range(left_range, right_range):
+    candidate_param = []
+    for sub_param_ind in range(len(left_range)):
+        new_sub_param = randint(left_range[sub_param_ind],
+                                right_range[sub_param_ind]+1)
+        candidate_param.append(new_sub_param)
+    return tuple(candidate_param)
+
+
+def get_varied_length_range(left_range, right_range):
+    candidate_param = []
+    subparams_num = randint(1, len(right_range))
+    for sub_param_ind in range(subparams_num):
+        new_sub_param = randint(left_range[sub_param_ind],
+                                right_range[sub_param_ind]+1)
+        candidate_param.append(new_sub_param)
+    return candidate_param
 
 
 def _regression_prediction_quality(prediction, real):

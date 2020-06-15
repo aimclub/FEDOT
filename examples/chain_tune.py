@@ -8,8 +8,22 @@ from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
-def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData, test_data: InputData, local_iter: int) -> (
-        int, list):
+def compose_chain():
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
+    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
+                                         nodes_from=[first, second])
+
+    chain = Chain()
+    for node in [first, second, final]:
+        chain.add_node(node)
+
+    return chain
+
+
+def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData,
+                 test_data: InputData, local_iter: int,
+                 tuner_iter_num: int = 50) -> (float, list):
     several_iter_scores_test = []
 
     if nodes_to_tune == 'primary':
@@ -25,14 +39,15 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData, test_d
         print(f'current local iteration {iteration}')
 
         # Chain tuning
-        chain_tune_strategy(train_data, iterations=50)
+        chain_tune_strategy(train_data, iterations=tuner_iter_num)
 
         # After tuning prediction
         chain.fit(train_data)
         after_tuning_predicted = chain.predict(test_data)
 
         # Metrics
-        aft_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=after_tuning_predicted.predict)
+        aft_tun_roc_auc = roc_auc(y_true=test_data.target,
+                                  y_score=after_tuning_predicted.predict)
         several_iter_scores_test.append(aft_tun_roc_auc)
 
     return np.mean(several_iter_scores_test), several_iter_scores_test
@@ -45,27 +60,23 @@ if __name__ == '__main__':
     test_data = InputData.from_csv(test_file_path)
 
     # Chain composition
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[first, second])
-
-    chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain = compose_chain()
 
     # Before tuning prediction
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
-    bfr_tun_roc_auc = roc_auc(y_true=test_data.target, y_score=before_tuning_predicted.predict)
+    bfr_tun_roc_auc = roc_auc(y_true=test_data.target,
+                              y_score=before_tuning_predicted.predict)
 
     local_iter = 2
     # Chain tuning
-    aft_tun_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary', chain=chain,
-                                                             train_data=train_data,
-                                                             test_data=test_data, local_iter=local_iter)
+    after_tune_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary',
+                                                                chain=chain,
+                                                                train_data=train_data,
+                                                                test_data=test_data,
+                                                                local_iter=local_iter)
 
     print(f'Several test scores {several_iter_scores_test}')
-    print(f'Mean test score over {local_iter} iterations: {aft_tun_roc_auc}')
+    print(f'Mean test score over {local_iter} iterations: {after_tune_roc_auc}')
     print(round(bfr_tun_roc_auc, 3))
-    print(round(float(aft_tun_roc_auc), 3))
+    print(round(after_tune_roc_auc, 3))
