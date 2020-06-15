@@ -1,17 +1,17 @@
-import os
 import csv
 import datetime
 import gc
+import os
 import numpy as np
+from benchmark.experiments.credit_scoring_experiment import run_credit_scoring_problem
+from benchmark.experiments.viz import show_history_optimization_comparison
 from core.utils import project_root
 from core.composer.optimisers.crossover import CrossoverTypesEnum
+from core.composer.optimisers.gp_optimiser import GeneticSchemeTypesEnum
 from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
 from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
-from core.composer.optimisers.gp_optimiser import GeneticSchemeTypesEnum
-from benchmark.experimens.viz import show_history_optimization_comparison
-from benchmark.experimens.credit_scoring_experiment import run_credit_scoring_problem
 
 
 def write_header_to_csv(f):
@@ -33,7 +33,7 @@ def add_result_to_csv(f, t_opt, regular, auc, n_models, n_layers):
 def _reduced_history_best(history, generations, pop_size):
     reduced = []
     for gen in range(generations):
-        fitness_values = [abs(individ[1]) for individ in history[gen * pop_size: (gen + 1) * pop_size]]
+        fitness_values = [abs(individ) for individ in history[gen * pop_size: (gen + 1) * pop_size]]
         best = max(fitness_values)
         print(f'Min in generation #{gen}: {best}')
         reduced.append(best)
@@ -81,7 +81,8 @@ if __name__ == '__main__':
                 is_regular = regular_type == RegularizationTypesEnum.decremental
                 add_result_to_csv(file_path_result, time_amount, is_regular, round(roc_auc, 4), len(chain.nodes),
                                   chain.depth)
-                history_gp[type_num].append(composer.history)
+                historical_fitness = [chain.fitness for chain in composer.history]
+                history_gp[type_num].append(historical_fitness)
         time_amount += step
     reduced_fitness_gp = [[] for _ in range(len(history_gp))]
     for launch_num in range(len(history_gp)):
@@ -91,9 +92,7 @@ if __name__ == '__main__':
     np.save('reduced_fitness_gp', reduced_fitness_gp)
     print(reduced_fitness_gp)
     m = [_ * pop_size for _ in range(iterations)]
-    show_history_optimization_comparison(first=reduced_fitness_gp[0], second=reduced_fitness_gp[1],
-                                         third=reduced_fitness_gp[2], fourth=reduced_fitness_gp[3],
+    show_history_optimization_comparison(optimisers_fitness_history=reduced_fitness_gp,
                                          iterations=[_ for _ in range(iterations)],
-                                         label_first='Subtree crossover',
-                                         label_second='One-point crossover',
-                                         label_third='All crossover types', label_fourth='Without crossover')
+                                         labels=['Subtree crossover', 'One-point crossover', 'All crossover types',
+                                                 'Without crossover'])

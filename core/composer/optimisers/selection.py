@@ -19,23 +19,6 @@ def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: 
         raise ValueError(f'Required selection not found: {type}')
 
 
-def random_selection(pop_size: int, group_size: int) -> List[int]:
-    return [randint(0, pop_size - 1) for _ in range(group_size)]
-
-
-def tournament_selection(individuals: List[Any], pop_size: int, fraction=0.1) -> List[Any]:
-    group_size = math.ceil(len(individuals) * fraction)
-    min_group_size = 2 if len(individuals) > 1 else 1
-    group_size = max(group_size, min_group_size)
-    chosen = []
-    for _ in range(pop_size):
-        group_ids = random_selection(len(individuals), group_size)
-        group = [individuals[group_id] for group_id in group_ids]
-        best = min(group, key=lambda ind: ind.fitness)
-        chosen.append(best)
-    return chosen
-
-
 def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any], pop_size: int) -> List[Any]:
     chosen = []
     unselected_indexes = [i for i in range(len(individuals))]
@@ -46,6 +29,22 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
         chosen_index_in_pop = individuals.index(individual)
         unselected_indexes.remove(chosen_index_in_pop)
         unselected_individuals = [individuals[i] for i in unselected_indexes]
+    return chosen
+
+
+def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
+    return [individuals[randint(0, len(individuals) - 1)] for _ in range(pop_size)]
+
+
+def tournament_selection(individuals: List[Any], pop_size: int, fraction: float = 0.1) -> List[Any]:
+    group_size = math.ceil(len(individuals) * fraction)
+    min_group_size = 2 if len(individuals) > 1 else 1
+    group_size = max(group_size, min_group_size)
+    chosen = []
+    for _ in range(pop_size):
+        group = random_selection(individuals, group_size)
+        best = min(group, key=lambda ind: ind.fitness)
+        chosen.append(best)
     return chosen
 
 

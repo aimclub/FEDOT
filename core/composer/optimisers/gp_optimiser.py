@@ -5,7 +5,8 @@ from typing import (
     List,
     Callable,
     Any,
-    Optional
+    Optional,
+    Tuple
 )
 
 import numpy as np
@@ -21,13 +22,20 @@ from core.composer.timer import CompositionTimer
 
 @dataclass
 class GPChainOptimiserParameters:
-    selection_types: List[SelectionTypesEnum] = None
-    crossover_types: List[CrossoverTypesEnum] = None
-    mutation_types: List[MutationTypesEnum] = None
-    regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental
-    genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.steady_state
+    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
+                 crossover_types: List[CrossoverTypesEnum] = None,
+                 mutation_types: List[MutationTypesEnum] = None,
+                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental,
+                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.steady_state):
 
-    def __post_init__(self):
+        self.selection_types = selection_types
+        self.crossover_types = crossover_types
+        self.mutation_types = mutation_types
+        self.regularization_type = regularization_type
+        self.genetic_scheme_type = genetic_scheme_type
+        self.set_default_params()
+
+    def set_default_params(self):
         if not self.selection_types:
             self.selection_types = [SelectionTypesEnum.tournament]
         if not self.crossover_types:
@@ -82,17 +90,19 @@ class GPChainOptimiser:
                                                                objective_function=objective_function,
                                                                chain_class=self.chain_class)
 
+                num_of_parents = num_of_new_individuals if not num_of_new_individuals % 2 else num_of_new_individuals + 1
                 selected_individuals = selection(types=self.parameters.selection_types,
                                                  population=individuals_to_select,
-                                                 pop_size=num_of_new_individuals * 2)
+                                                 pop_size=num_of_parents)
 
                 new_population = []
 
-                for ind_num, parent_num in zip(range(num_of_new_individuals), range(0, len(selected_individuals), 2)):
-                    new_population.append(
-                        self.reproduce(selected_individuals[parent_num], selected_individuals[parent_num + 1]))
+                for parent_num in range(0, len(selected_individuals), 2):
+                    new_population += self.reproduce(selected_individuals[parent_num],
+                                                     selected_individuals[parent_num + 1])
 
-                    new_population[ind_num].fitness = objective_function(new_population[ind_num])
+                    new_population[parent_num].fitness = objective_function(new_population[parent_num])
+                    new_population[parent_num + 1].fitness = objective_function(new_population[parent_num + 1])
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
@@ -130,21 +140,21 @@ class GPChainOptimiser:
                 simpler_equivalents[i] = len(self.population[i].nodes)
         return simpler_equivalents
 
-    def reproduce(self, selected_individual_first, selected_individual_second) -> Any:
-        new_ind = crossover(self.parameters.crossover_types,
-                            selected_individual_first,
-                            selected_individual_second,
-                            crossover_prob=self.requirements.crossover_prob,
-                            max_depth=self.requirements.max_depth)
+    def reproduce(self, selected_individual_first, selected_individual_second) -> Tuple[Any]:
+        new_inds = crossover(self.parameters.crossover_types,
+                             selected_individual_first,
+                             selected_individual_second,
+                             crossover_prob=self.requirements.crossover_prob,
+                             max_depth=self.requirements.max_depth)
 
-        new_ind = mutation(types=self.parameters.mutation_types,
-                           chain_class=self.chain_class,
-                           chain=new_ind,
-                           requirements=self.requirements,
-                           secondary_node_func=self.secondary_node_func,
-                           primary_node_func=self.primary_node_func,
-                           mutation_prob=self.requirements.mutation_prob)
-        return new_ind
+        new_inds = tuple([mutation(types=self.parameters.mutation_types,
+                                   chain_class=self.chain_class,
+                                   chain=new_ind,
+                                   requirements=self.requirements,
+                                   secondary_node_func=self.secondary_node_func,
+                                   primary_node_func=self.primary_node_func,
+                                   mutation_prob=self.requirements.mutation_prob) for new_ind in new_inds])
+        return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self.chain_generation_function() for _ in range(pop_size)]

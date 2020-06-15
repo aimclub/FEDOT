@@ -1,5 +1,5 @@
 from itertools import cycle
-
+from typing import List
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -35,18 +35,16 @@ def show_fitness_history_all(history_runs, iterations, with_bands=False):
     plt.show()
 
 
-def show_history_optimization_comparison(first, second, third, fourth,
-                                         iterations,
-                                         label_first, label_second, label_third, label_fourth):
+def show_history_optimization_comparison(optimisers_fitness_history: List[List[int]], iterations: List[int],
+                                         labels: List[str]):
     color_to_take = cycle('bgrcmykw')
     plt.yticks(fontsize=12)
-    sns.tsplot(first, iterations, legend=True, color=next(color_to_take))
-    sns.tsplot(second, iterations, legend=True, color=next(color_to_take))
-    sns.tsplot(third, iterations, legend=True, color=next(color_to_take))
-    sns.tsplot(fourth, iterations, legend=True, color=next(color_to_take))
+    for fitness_history in optimisers_fitness_history:
+        sns.tsplot(fitness_history, iterations, legend=True, color=next(color_to_take))
+
     plt.xticks(range(0, max(iterations)), fontsize=13)
-    plt.legend(labels=[label_first, label_second, label_third, label_fourth], loc='lower right', fontsize=12)
+    plt.legend(labels=labels, loc='lower right', fontsize=12)
     plt.ylabel('Best fitness', fontsize=13)
-    plt.xlabel('Iteration, #', fontsize=13)
+    plt.xlabel('Generation, #', fontsize=13)
     plt.tight_layout()
     plt.show()

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from random import randint, choice
 from typing import (Any, List, Tuple, Callable)
 
@@ -65,7 +66,7 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
 
 
 def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, Any]]:
-    """the function finds the list of nodes pairs of the maximal structurally equivalent rooted subtree of two trees"""
+    """Finds the similar subtree in two given trees"""
 
     def structural_equivalent_nodes(node_first, node_second):
         nodes = []
@@ -84,3 +85,16 @@ def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, A
     pairs_set = structural_equivalent_nodes(chain_first.root_node, chain_second.root_node)
     assert isinstance(pairs_set, list)
     return pairs_set
+
+
+def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, node_from_second: Any,
+                     layer_in_first: int, layer_in_second: int, max_depth: int):
+    node_from_chain_first_copy = deepcopy(node_from_first)
+
+    summary_depth = layer_in_first + node_depth(node_from_second)
+    if summary_depth <= max_depth and summary_depth != 0:
+        chain_first.replace_node_with_parents(node_from_first, node_from_second)
+
+    summary_depth = layer_in_second + node_depth(node_from_first)
+    if summary_depth <= max_depth and summary_depth != 0:
+        chain_second.replace_node_with_parents(node_from_second, node_from_chain_first_copy)
