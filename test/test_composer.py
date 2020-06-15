@@ -114,7 +114,7 @@ def test_random_composer(data_fixture, request):
     predicted_random_composed = chain_random_composed.predict(dataset_to_validate)
 
     roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
-                                           y_score=predicted_random_composed.predict)
+                                           y_score=predicted_random_composed.predict[:, 1])
 
     assert roc_on_valid_random_composed > 0.6
 
@@ -147,10 +147,13 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
                                                   metrics=metric_function)
 
     chain_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
-    predicted_gp_composed = chain_gp_composed.predict(dataset_to_validate)
+    try:
+        predicted_gp_composed = chain_gp_composed.predict(dataset_to_validate)
+    except ValueError:
+        print('fff')
 
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
-                                       y_score=predicted_gp_composed.predict)
+                                       y_score=predicted_gp_composed.predict[:, 1])
 
     assert roc_on_valid_gp_composed > 0.6
 

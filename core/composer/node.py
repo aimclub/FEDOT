@@ -57,6 +57,13 @@ class Node(ABC):
 
     def _fit_using_cache(self, input_data, verbose=False):
 
+        if len(input_data.features.shape) >= 3:
+            num_samples = input_data.features.shape[1]
+            input_data.features = input_data.features.reshape(num_samples, -1)
+
+        if input_data.features.shape[0] != len(input_data.target):
+            input_data.features = input_data.features.T
+
         if not self.cache.actual_cached_state:
             if verbose:
                 print('Cache is not actual')

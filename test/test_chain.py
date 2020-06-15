@@ -65,7 +65,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
         'n_ModelTypesIdsEnum.qda_defaultparams;)/'
         'n_ModelTypesIdsEnum.knn_defaultparams')
 
-    assert train_predicted.predict.shape == train.target.shape
+    assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.cache.actual_cached_state is not None
 
 
@@ -95,7 +95,8 @@ def test_chain_hierarchy_fit_correct(data_setup):
 
     assert chain.length == 4
     assert chain.depth == 3
-    assert train_predicted.predict.shape == train.target.shape
+    assert train_predicted.predict.shape[0] == train.target.shape[0]
+    assert final.cache.actual_cached_state is not None
 
 
 def test_chain_sequential_fit_correct(data_setup):
@@ -124,7 +125,8 @@ def test_chain_sequential_fit_correct(data_setup):
 
     assert chain.length == 4
     assert chain.depth == 4
-    assert train_predicted.predict.shape == train.target.shape
+    assert train_predicted.predict.shape[0] == train.target.shape[0]
+    assert final.cache.actual_cached_state is not None
 
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
@@ -157,13 +159,13 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
 
     # train results should be invariant
     assert chain.root_node.descriptive_id == chain_shuffled.root_node.descriptive_id
-    assert all(np.equal(train_predicted.predict, train_predicted_shuffled.predict))
+    assert np.equal(train_predicted.predict, train_predicted_shuffled.predict).all()
 
     test_predicted = chain.predict(input_data=test)
     test_predicted_shuffled = chain_shuffled.predict(input_data=test)
 
     # predict results should be invariant
-    assert all(np.equal(test_predicted.predict, test_predicted_shuffled.predict))
+    assert np.equal(test_predicted.predict, test_predicted_shuffled.predict).all()
 
     # change parents order for the nodes fitted chain
     nodes_for_change = chain.nodes[3].nodes_from
@@ -173,4 +175,4 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     test_predicted_re_shuffled = chain.predict(input_data=test)
 
     # predict results should be invariant
-    assert all(np.equal(test_predicted.predict, test_predicted_re_shuffled.predict))
+    assert np.equal(test_predicted.predict, test_predicted_re_shuffled.predict).all()

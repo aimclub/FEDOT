@@ -29,13 +29,23 @@ class Data:
         task_type = outputs[0].task_type
         idx = outputs[0].idx
         features = list()
-
         expected_len = len(outputs[0].predict)
         for elem in outputs:
             if len(elem.predict) != expected_len:
                 raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
             features.append(elem.predict)
-        return InputData(idx=idx, features=np.array(features).T, target=target, task_type=task_type)
+
+        if task_type == MachineLearningTasksEnum.classification and len(outputs) >= 2:
+            try:
+                feat_final = np.concatenate(features, axis=1)
+            except IndexError:
+                feat_final = np.concatenate([x.reshape(-1, 1) for x in features], axis=1)
+        elif task_type == MachineLearningTasksEnum.regression or task_type == MachineLearningTasksEnum.auto_regression:
+            feat_final = np.array(features).T
+        else:
+            feat_final = features[0]
+
+        return InputData(idx=idx, features=feat_final, target=target, task_type=task_type)
 
 
 @dataclass

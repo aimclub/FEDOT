@@ -36,8 +36,8 @@ def compose_chain(data: InputData) -> Chain:
 def get_roc_auc_value(chain: Chain, train_data: InputData, test_data: InputData) -> (float, float):
     train_pred = chain.predict(input_data=train_data)
     test_pred = chain.predict(input_data=test_data)
-    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_pred.predict)
-    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_pred.predict)
+    roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_pred.predict[:, 1])
+    roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_pred.predict[:, 1])
 
     return roc_auc_value_train, roc_auc_value_test
 

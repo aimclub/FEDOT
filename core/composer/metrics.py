@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
-
+import numpy as np
 from core.chain_validation import validate
 from core.composer.chain import Chain
 from core.models.data import InputData
@@ -39,20 +39,22 @@ class RocAucMetric(ChainMetric):
     @staticmethod
     @from_maximised_metric
     def get_value(chain: Chain, reference_data: InputData) -> float:
+        n_classes = len(np.unique(reference_data.target))
         try:
             validate(chain)
             results = chain.predict(reference_data)
-            score = round(roc_auc_score(y_score=results.predict,
-                                        y_true=reference_data.target
-                                        ), 3)
+            if n_classes > 2:
+                score = round(roc_auc_score(y_score=results.predict,
+                                            y_true=reference_data.target,
+                                            multi_class='ovo',
+                                            average='macro'), 3)
+            else:
+                score = round(roc_auc_score(y_score=results.predict,
+                                            y_true=reference_data.target
+                                            ), 3)
         except Exception as ex:
             print(ex)
-            validate(chain)
-            results = chain.predict(reference_data)
-            score = round(roc_auc_score(y_score=results.predict,
-                                        y_true=reference_data.target,
-                                        multi_class='ovo',
-                                        average='macro'), 3)
+            score = 0.5
 
         return score
 

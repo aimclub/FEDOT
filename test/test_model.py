@@ -32,8 +32,16 @@ def test_log_regression_fit_correct(classification_dataset):
     log_reg = Model(model_type=ModelTypesIdsEnum.logit)
 
     _, train_predicted = log_reg.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
+
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -47,8 +55,15 @@ def test_random_forest_fit_correct(data_fixture, request):
     random_forest = Model(model_type=ModelTypesIdsEnum.rf)
 
     _, train_predicted = random_forest.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -63,8 +78,15 @@ def test_decision_tree_fit_correct(data_fixture, request):
 
     decision_tree.fit(data=train_data)
     _, train_predicted = decision_tree.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -78,8 +100,15 @@ def test_lda_fit_correct(data_fixture, request):
     lda = Model(model_type=ModelTypesIdsEnum.lda)
 
     _, train_predicted = lda.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -93,8 +122,15 @@ def test_qda_fit_correct(data_fixture, request):
     qda = Model(model_type=ModelTypesIdsEnum.qda)
 
     _, train_predicted = qda.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -121,7 +157,14 @@ def test_svc_fit_correct(data_fixture, request):
     svc = Model(model_type=ModelTypesIdsEnum.svc)
 
     _, train_predicted = svc.fit(data=train_data)
-    roc_on_train = roc_auc(y_true=train_data.target,
-                           y_score=train_predicted)
+    n_classes = len(np.unique(data.target))
+    if n_classes > 2:
+        roc_on_train = roc_auc(roc_auc_score(y_true=train_data.target,
+                                             y_score=train_predicted,
+                                             multi_class='ovo',
+                                             average='macro'), 3)
+    else:
+        roc_on_train = roc_auc(y_true=train_data.target,
+                               y_score=train_predicted[:, 1])
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold

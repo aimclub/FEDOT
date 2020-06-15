@@ -64,6 +64,7 @@ def ApplyModelToData(model, test_file_path):
     model : обученная/настроенная модель.
     df : dataframe, к которому применяется модель
     """
+    # df = InputData.from_csv(test_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
     evo_predicted = model.predict(dataset_to_validate)
     # df['forecast'] = evo_predicted.predict(df)
