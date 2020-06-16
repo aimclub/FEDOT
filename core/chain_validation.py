@@ -27,6 +27,7 @@ def has_no_cycle(chain: Chain):
     cycled = list(simple_cycles(graph))
     if len(cycled) > 0:
         raise ValueError(f'{ERROR_PREFIX} Chain has cycles')
+
     return True
 
 

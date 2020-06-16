@@ -1,5 +1,4 @@
-from abc import ABC
-from dataclasses import dataclass
+from copy import copy
 
 import numpy as np
 
@@ -14,18 +13,19 @@ from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
     compatible_task_types
 
+DEFAULT_PARAMS_STUB = 'default_params'
 
-@dataclass
-class Model(ABC):
 
+class Model:
     def __init__(self, model_type: ModelTypesIdsEnum):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
+        self.params = DEFAULT_PARAMS_STUB
 
     @property
     def description(self):
         model_type = self.model_type
-        model_params = 'defaultparams'
+        model_params = self.params
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: TaskTypesEnum):
@@ -35,8 +35,7 @@ class Model(ABC):
     def fit(self, data: InputData):
         self._init(data.task_type)
 
-        fitted_model = self._eval_strategy.fit(model_type=self.model_type,
-                                               train_data=data)
+        fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
         return fitted_model, predict_train
@@ -51,6 +50,19 @@ class Model(ABC):
             print("Value error")
 
         return prediction
+
+    def fine_tune(self, data: InputData, iterations: int = 30):
+        self._init(data.task_type)
+        preprocessed_data = copy(data)
+        fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=preprocessed_data,
+                                                                   iterations=iterations)
+        self.params = tuned_params
+        if self.params is None:
+            self.params = DEFAULT_PARAMS_STUB
+
+        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
+                                                    predict_data=data)
+        return fitted_model, predict_train
 
     def __str__(self):
         return f'{self.model_type.name}'

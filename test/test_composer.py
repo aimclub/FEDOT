@@ -29,7 +29,7 @@ from core.repository.task_types import MachineLearningTasksEnum
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/test_dataset2.csv'
+    file = 'data/test_dataset.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)

@@ -4,7 +4,13 @@ from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import Node, SecondaryNode, PrimaryNode, SharedCache, FittedModelCache
+from core.composer.node import (
+    Node,
+    SecondaryNode,
+    PrimaryNode,
+    SharedCache,
+    FittedModelCache
+)
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -31,6 +37,29 @@ class Chain:
             raise Exception('Trained model cache is not actual or empty')
         result = self.root_node.predict(input_data=input_data)
         return result
+
+    def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30, verbose=False):
+        # Select all primary nodes
+        # Perform fine-tuning for each model in node
+        if verbose:
+            print('Start tuning of primary nodes')
+
+        all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
+        for node in all_primary_nodes:
+            node.fine_tune(input_data, iterations=iterations)
+
+        if verbose:
+            print('End tuning')
+
+    def fine_tune_root_node(self, input_data: InputData, iterations: int = 30, verbose=False):
+        if verbose:
+            print('Start tuning of root node')
+
+        node = self.root_node
+        node.fine_tune(input_data, iterations=iterations)
+
+        if verbose:
+            print('End tuning')
 
     def add_node(self, new_node: Node):
         """

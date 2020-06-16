@@ -59,11 +59,11 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     train_predicted = final.fit(input_data=train)
 
     assert final.descriptive_id == (
-        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.lda_defaultparams;;(/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.qda_defaultparams;)/'
-        'n_ModelTypesIdsEnum.knn_defaultparams')
+        '((/n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.lda_default_params;;(/'
+        'n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.qda_default_params;)/'
+        'n_ModelTypesIdsEnum.knn_default_params')
 
     assert train_predicted.predict.shape == train.target.shape
     assert final.cache.actual_cached_state is not None
@@ -87,11 +87,11 @@ def test_chain_hierarchy_fit_correct(data_setup):
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
     assert chain.root_node.descriptive_id == (
-        '((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;;(/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams')
+        '((/n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params;;(/'
+        'n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params')
 
     assert chain.length == 4
     assert chain.depth == 3
@@ -117,10 +117,10 @@ def test_chain_sequential_fit_correct(data_setup):
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
     assert chain.root_node.descriptive_id == (
-        '(((/n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams;)/'
-        'n_ModelTypesIdsEnum.logit_defaultparams')
+        '(((/n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params;)/'
+        'n_ModelTypesIdsEnum.logit_default_params')
 
     assert chain.length == 4
     assert chain.depth == 4

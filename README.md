@@ -1,5 +1,5 @@
 # FEDOT
-[![Build Status](https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master)](https://travis-ci.com/nccr-itmo/FEDOT)
+[![Build Status](https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master)](https://travis-ci.com/nccr-itmo/FEDOT) [![Coverage Status](https://coveralls.io/repos/github/nccr-itmo/FEDOT/badge.svg?branch=master)](https://coveralls.io/github/nccr-itmo/FEDOT?branch=master)
 
 This repository contains the framework for the knowledge-enriched AutoML named FEDOT (Russian: Федот).
 It can be used to generate high-quality composite models for the classification, regression, clustering, time series forecasting, and other real-world problems in an automated way.
