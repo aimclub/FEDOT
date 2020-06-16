@@ -8,7 +8,7 @@ from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
-def compose_chain():
+def get_simple_chain():
     first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.xgboost)
     second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
     final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
@@ -50,7 +50,7 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData,
                                   y_score=after_tuning_predicted.predict)
         several_iter_scores_test.append(aft_tun_roc_auc)
 
-    return np.mean(several_iter_scores_test), several_iter_scores_test
+    return float(np.mean(several_iter_scores_test)), several_iter_scores_test
 
 
 if __name__ == '__main__':
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     test_data = InputData.from_csv(test_file_path)
 
     # Chain composition
-    chain = compose_chain()
+    chain = get_simple_chain()
 
     # Before tuning prediction
     chain.fit(train_data, use_cache=False)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target,
                               y_score=before_tuning_predicted.predict)
 
-    local_iter = 2
+    local_iter = 5
     # Chain tuning
     after_tune_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary',
                                                                 chain=chain,

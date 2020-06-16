@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Tuple, Union
 
 from numpy.random import randint, choice as nprand_choice
 from sklearn.metrics import mean_squared_error as mse
@@ -10,8 +10,10 @@ from core.models.data import train_test_data_setup
 
 
 class Tuner:
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
 
 
@@ -19,8 +21,10 @@ class SklearnTuner(Tuner):
     def __init__(self):
         self.search_strategy = None
 
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
 
     def _sklearn_tune(self, search_strategy, tune_data: InputData):
@@ -29,55 +33,65 @@ class SklearnTuner(Tuner):
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')
-            return None
+            return None, None
 
 
 class SklearnRandomTuner(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = RandomizedSearchCV(estimator=trained_model,
                                                   param_distributions=params_range,
                                                   n_iter=iterations,
-                                                  cv=cv_fold_num,
+                                                  cv=cross_val_fold_num,
                                                   scoring=scorer)
         return self._sklearn_tune(search_strategy=self.search_strategy,
                                   tune_data=tune_data)
 
 
 class SklearnGridSearchTuner(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = GridSearchCV(estimator=trained_model,
                                             param_grid=params_range,
-                                            cv=cv_fold_num,
+                                            cv=cross_val_fold_num,
                                             scoring=scorer)
         return self._sklearn_tune(GridSearchCV, tune_data)
 
 
 class SklearnBayesSearchCV(SklearnTuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = BayesSearchCV(estimator=trained_model,
                                              search_spaces=params_range,
                                              n_iter=iterations,
-                                             cv=cv_fold_num,
+                                             cv=cross_val_fold_num,
                                              scoring=scorer)
         return self._sklearn_tune(BayesSearchCV, tune_data)
 
 
 class SklearnCustomRandomTuner(Tuner):
-    def tune(self, trained_model, tune_data: InputData, params_range: dict, iterations: int,
-             cv_fold_num: int, scorer: Union[str, callable]) -> (Optional[Tuple[dict, object]]):
+    def tune(self, trained_model, tune_data: InputData,
+             params_range: dict, iterations: int,
+             cross_val_fold_num: int,
+             scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
-            best_score = scorer(estimator=trained_model, X=tune_data.features, y_true=tune_data.target)
+            best_score = scorer(estimator=trained_model, X=tune_data.features,
+                                y_true=tune_data.target)
             best_model = trained_model
             best_params = None
             for i in range(iterations):
                 params = {k: nprand_choice(v) for k, v in params_range.items()}
                 for param in params:
                     setattr(trained_model, param, params[param])
-                score = cross_val_score(trained_model, tune_data.features, tune_data.target, scoring=scorer,
-                                        cv=cv_fold_num).mean()
+                score = cross_val_score(trained_model, tune_data.features,
+                                        tune_data.target, scoring=scorer,
+                                        cv=cross_val_fold_num).mean()
                 if score > best_score:
                     best_params = params
                     best_model = trained_model
@@ -86,7 +100,7 @@ class SklearnCustomRandomTuner(Tuner):
             return best_params, best_model
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')
-            return None
+            return None, None
 
 
 class ForecastingCustomRandomTuner:

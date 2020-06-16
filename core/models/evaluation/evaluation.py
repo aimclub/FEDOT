@@ -105,10 +105,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                           tune_data=train_data,
                                                           params_range=params_range,
                                                           iterations=iterations,
-                                                          cv_fold_num=5,
+                                                          cross_val_fold_num=5,
                                                           scorer=metric)
 
-        if best_model:
+        if best_model and tuned_params:
             trained_model = best_model
             self.params_for_fit = tuned_params
         return trained_model, tuned_params
