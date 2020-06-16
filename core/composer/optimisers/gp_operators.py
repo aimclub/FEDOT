@@ -1,3 +1,4 @@
+from copy import deepcopy
 from random import randint, choice
 from typing import (Any, List, Tuple, Callable)
 
@@ -40,6 +41,7 @@ def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
 def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_func: Callable,
                  requirements, max_depth=None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
+
     def chain_growth(chain: Any, node_parent: Any):
         offspring_size = randint(requirements.min_arity, requirements.max_arity)
         for offspring_node in range(offspring_size):
@@ -63,9 +65,8 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
     return chain
 
 
-def equivalent_subtree(root_of_tree_first: Any, root_of_tree_second: Any) -> List[Tuple[Any, Any]]:
-    """returns the nodes set of the structurally equivalent subtree as: list of pairs [node_from_tree1, node_from_tree2]
-    where: node_from_tree1 and node_from_tree2 are equivalent nodes from tree1 and tree2 respectively"""
+def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, Any]]:
+    """Finds the similar subtree in two given trees"""
 
     def structural_equivalent_nodes(node_first, node_second):
         nodes = []
@@ -81,6 +82,19 @@ def equivalent_subtree(root_of_tree_first: Any, root_of_tree_second: Any) -> Lis
                         nodes += nodes_set
         return nodes
 
-    pairs_set = structural_equivalent_nodes(root_of_tree_first, root_of_tree_second)
+    pairs_set = structural_equivalent_nodes(chain_first.root_node, chain_second.root_node)
     assert isinstance(pairs_set, list)
     return pairs_set
+
+
+def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, node_from_second: Any,
+                     layer_in_first: int, layer_in_second: int, max_depth: int):
+    node_from_chain_first_copy = deepcopy(node_from_first)
+
+    summary_depth = layer_in_first + node_depth(node_from_second)
+    if summary_depth <= max_depth and summary_depth != 0:
+        chain_first.replace_node_with_parents(node_from_first, node_from_second)
+
+    summary_depth = layer_in_second + node_depth(node_from_first)
+    if summary_depth <= max_depth and summary_depth != 0:
+        chain_second.replace_node_with_parents(node_from_second, node_from_chain_first_copy)

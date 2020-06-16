@@ -33,7 +33,6 @@ class ComposerRequirements:
             raise ValueError(f'invalid min_arity value')
 
 
-
 class Composer(ABC):
     def __init__(self):
         self.history = None

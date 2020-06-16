@@ -11,29 +11,29 @@ from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
 
 
 class ModelTypesIdsEnum(Enum):
-    xgboost = 'xgboost',
+    xgboost = 'xgboost'
     xgbreg = 'xgbreg'
-    gbr = 'gradientregressor',
-    adareg = 'adaregressor',
+    gbr = 'gradientregressor'
+    adareg = 'adaregressor'
     sgdr = 'stochasticregressor'
-    knnreg = 'knnregressor',
-    knn = 'knn',
-    logit = 'logit',
-    dt = 'decisiontree',
-    dtreg = 'decisiontreeregressor',
+    knnreg = 'knnregressor'
+    knn = 'knn'
+    logit = 'logit'
+    dt = 'decisiontree'
+    dtreg = 'decisiontreeregressor'
     treg = 'treeregressor'
-    rf = 'randomforest',
+    rf = 'randomforest'
     rfreg = 'randomforestregressor'
-    svc = 'linearsvc',
+    svc = 'linearsvc'
     svr = 'linearsvr'
-    mlp = 'mlp',
-    lda = 'lda',
-    qda = 'qda',
-    ar = 'ar',
-    arima = 'arima',
-    linear = 'linear',
-    ridge = 'ridge',
-    lasso = 'lasso',
+    mlp = 'mlp'
+    lda = 'lda'
+    qda = 'qda'
+    ar = 'ar'
+    arima = 'arima'
+    linear = 'linear'
+    ridge = 'ridge'
+    lasso = 'lasso'
     elactic = 'elastic'
     kmeans = 'kmeans'
     tpot = 'tpot'

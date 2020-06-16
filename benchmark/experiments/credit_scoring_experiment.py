@@ -35,7 +35,8 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
-                               gp_optimiser_params: Optional[GPChainOptimiserParameters] = None):
+                               gp_optimiser_params: Optional[GPChainOptimiserParameters] = None, pop_size=None,
+                               generations=None):
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
@@ -65,7 +66,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=4,
-        max_depth=3, pop_size=20, num_of_generations=20,
+        max_depth=3, pop_size=pop_size, num_of_generations=generations,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
     # Create GP-based composer
@@ -82,4 +83,4 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 
-    return roc_on_valid_evo_composed, chain_evo_composed
+    return roc_on_valid_evo_composed, chain_evo_composed, composer
