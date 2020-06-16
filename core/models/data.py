@@ -14,14 +14,18 @@ class Data:
     task_type: TaskTypesEnum
 
     @staticmethod
-    def from_csv(file_path, delimiter=',',
+    def from_csv(file_path, delimiter=',', target_flag=False,
                  task_type: TaskTypesEnum = MachineLearningTasksEnum.classification):
         data_frame = pd.read_csv(file_path, sep=delimiter)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
         idx = data_array[0]
-        features = data_array[1:-1].T
-        target = data_array[-1].astype(np.float)
+        if target_flag:
+            features = data_array[1:].T
+            target = None
+        else:
+            features = data_array[1:-1].T
+            target = data_array[-1].astype(np.float)
         return InputData(idx=idx, features=features, target=target, task_type=task_type)
 
     @staticmethod
@@ -36,14 +40,17 @@ class Data:
             features.append(elem.predict)
 
         if task_type == MachineLearningTasksEnum.classification and len(outputs) >= 2:
-            try:
-                feat_final = np.concatenate(features, axis=1)
-            except IndexError:
-                feat_final = np.concatenate([x.reshape(-1, 1) for x in features], axis=1)
-        elif task_type == MachineLearningTasksEnum.regression or task_type == MachineLearningTasksEnum.auto_regression:
-            feat_final = np.array(features).T
+            for prediction in features:
+                if len(prediction.shape) >= 2:
+                    feat_final = np.concatenate(features, axis=1)
+                else:
+                    feat_final = np.concatenate([x.reshape(-1, 1) for x in features], axis=1)
         else:
-            feat_final = features[0]
+            feat_final = np.array(features).T
+
+        if len(feat_final.shape) >= 3:
+            num_of_samples = feat_final.shape[1]
+            feat_final = feat_final.reshape(num_of_samples, -1)
 
         return InputData(idx=idx, features=feat_final, target=target, task_type=task_type)
 
@@ -51,6 +58,13 @@ class Data:
 @dataclass
 class InputData(Data):
     target: np.array
+
+    @property
+    def num_classes(self):
+        if self.task_type == MachineLearningTasksEnum.classification:
+            return len(np.unique(self.target))
+        else:
+            return None
 
 
 @dataclass

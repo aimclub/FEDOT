@@ -39,7 +39,7 @@ class RocAucMetric(ChainMetric):
     @staticmethod
     @from_maximised_metric
     def get_value(chain: Chain, reference_data: InputData) -> float:
-        n_classes = len(np.unique(reference_data.target))
+        n_classes = reference_data.num_classes
         try:
             validate(chain)
             results = chain.predict(reference_data)

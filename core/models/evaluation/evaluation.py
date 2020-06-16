@@ -7,6 +7,7 @@ from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.utils import labels_to_dummy_probs
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
@@ -96,12 +97,15 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         n_classes = len(trained_model.classes_)
         if type(trained_model) in self.__models_without_prob:
             prediction = trained_model.predict(predict_data.features)
-            df_preds = pd.Series(prediction)
-            prediction = pd.get_dummies(df_preds).values
-        elif n_classes >= 2 and type(trained_model) not in self.__models_without_prob:
+            prediction = labels_to_dummy_probs(prediction)
+        else:
             prediction = trained_model.predict_proba(predict_data.features)
 
+        if n_classes <= 2:
+            prediction = prediction[:, 1]
+
         return prediction
+
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:

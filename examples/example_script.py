@@ -1,6 +1,5 @@
 import datetime
 import random
-import pandas as pd
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
@@ -11,13 +10,18 @@ from core.repository.model_types_repository import (
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from benchmark.benchmark_utils import get_models_hyperparameters
+from examples.utils import get_multi_clf_data_paths, save_csv
 
 random.seed(1)
 np.random.seed(1)
 
-from benchmark.benchmark_utils import get_multi_clf_data_paths
+file_path_first = r'./example1.xlsx'
+file_path_second = r'./example2.xlsx'
+name_of_dataset_second = 'example_2'
+file_path_third = r'./example3.xlsx'
+name_of_dataset_third = 'example_3'
 
-train_file_path, test_file_path = get_multi_clf_data_paths()
+train_file_path, test_file_path = get_multi_clf_data_paths(file_path_first)
 
 
 def GetModel(train_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
@@ -57,37 +61,17 @@ def GetModel(train_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
     return chain_evo_composed
 
 
-def ApplyModelToData(model, test_file_path):
-    """ Метод применения модели к данным.
-    Parameters
-    ----------
-    model : обученная/настроенная модель.
-    df : dataframe, к которому применяется модель
-    """
-    # df = InputData.from_csv(test_file_path)
-    dataset_to_validate = InputData.from_csv(test_file_path)
+def ApplyModelToData(model, initial_file_path, name_of_dataset):
+    df, test_file_path = save_csv(initial_file_path, name_of_dataset)
+    dataset_to_validate = InputData.from_csv(test_file_path, target_flag=True)
     evo_predicted = model.predict(dataset_to_validate)
-    # df['forecast'] = evo_predicted.predict(df)
+    df['forecast'] = evo_predicted.predict.tolist()
+    return df
 
-    return evo_predicted.predict
 
-
-# получаем откуда-то данные (от другой модели или из файла)
-# df = pd.read_excel('example1.xlsx')
-
-# обучаем модель на входных данных
 model = GetModel(train_file_path)
+result_first = ApplyModelToData(model, file_path_second, name_of_dataset_second)
+result_second = ApplyModelToData(model, file_path_third, name_of_dataset_third)
 
-# получаем откуда-то другие данные (от другой модели или из файла)
-# df2 = pd.read_excel('example2.xlsx')
-
-# применяем модель к новым данным
-result = ApplyModelToData(model, test_file_path)
-print(result)
-# читаем еще один набор данных
-# df3 = pd.read_excel('example3.xlsx')
-
-# применяем модель еще раз к новым данным
-# ApplyModelToData(model,df3)
-
-# print(df3)
+print(result_first)
+print(result_second)
