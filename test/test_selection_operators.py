@@ -11,7 +11,6 @@ from core.composer.optimisers.selection import tournament_selection, \
 from core.debug.metrics import RandomMetric
 
 
-@pytest.fixture()
 def rand_population_gener_and_eval(pop_size=4):
     models_set = [ModelTypesIdsEnum.knn, ModelTypesIdsEnum.logit,
                   ModelTypesIdsEnum.rf]
@@ -35,30 +34,27 @@ def obj_function(chain: Chain) -> float:
     return metric_function(chain)
 
 
-@pytest.mark.parametrize('pop_fixture', ['rand_population_gener_and_eval'])
-def test_tournament_selection(pop_fixture, request):
+def test_tournament_selection():
     num_of_inds = 2
-    population = request.getfixturevalue(pop_fixture)
+    population = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = tournament_selection(individuals=population,
                                                 pop_size=num_of_inds)
     assert all([ind in population for ind in selected_individuals]) and \
            len(selected_individuals) == num_of_inds
 
 
-@pytest.mark.parametrize('pop_fixture', ['rand_population_gener_and_eval'])
-def test_random_selection(pop_fixture, request):
+def test_random_selection():
     num_of_inds = 2
-    population = request.getfixturevalue(pop_fixture)
+    population = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = random_selection(individuals=population,
                                             pop_size=num_of_inds)
     assert all([ind in population for ind in selected_individuals]) and \
            len(selected_individuals) == num_of_inds
 
 
-@pytest.mark.parametrize('pop_fixture', ['rand_population_gener_and_eval'])
-def test_selection(pop_fixture, request):
+def test_selection():
     num_of_inds = 2
-    population = request.getfixturevalue(pop_fixture)
+    population = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = selection(types=[SelectionTypesEnum.tournament],
                                      population=population,
                                      pop_size=num_of_inds)
@@ -66,14 +62,26 @@ def test_selection(pop_fixture, request):
            len(selected_individuals) == num_of_inds
 
 
-@pytest.mark.parametrize('pop_fixture', ['rand_population_gener_and_eval'])
-def test_individuals_selection(pop_fixture, request):
+def test_individuals_selection_random_individuals():
     num_of_inds = 2
-    population = request.getfixturevalue(pop_fixture)
+    population = rand_population_gener_and_eval(pop_size=4)
     types = [SelectionTypesEnum.tournament]
     selected_individuals = individuals_selection(types=types,
                                                  individuals=population,
                                                  pop_size=num_of_inds)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
-    assert len(set(selected_individuals_ref)) == len(selected_individuals) \
-           and len(selected_individuals) == num_of_inds
+    assert len(set(selected_individuals_ref)) == len(selected_individuals) and \
+           len(selected_individuals) == num_of_inds
+
+
+def test_individuals_selection_equality_individuals():
+    num_of_inds = 4
+    population = rand_population_gener_and_eval(pop_size=1)
+    types = [SelectionTypesEnum.tournament]
+    population = [population[0] for _ in range(4)]
+    selected_individuals = individuals_selection(types=types,
+                                                 individuals=population,
+                                                 pop_size=num_of_inds)
+    selected_individuals_ref = [str(ind) for ind in selected_individuals]
+    assert len(selected_individuals) == num_of_inds and \
+           len(set(selected_individuals_ref)) == 1

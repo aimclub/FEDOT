@@ -26,7 +26,7 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
     for _ in range(pop_size):
         individual = selection(types, unselected_individuals, pop_size=1)[0]
         chosen.append(individual)
-        chosen_index_in_pop = individuals.index(individual)
+        chosen_index_in_pop = unselected_indexes[unselected_individuals.index(individual)]
         unselected_indexes.remove(chosen_index_in_pop)
         unselected_individuals = [individuals[i] for i in unselected_indexes]
     return chosen
