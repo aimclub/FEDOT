@@ -1,11 +1,12 @@
 import warnings
-import pandas as pd
+from typing import Optional
 
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
+from core.models.tuners import ForecastingCustomRandomTuner, SklearnTuner, SklearnCustomRandomTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.utils import labels_to_dummy_probs
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -20,6 +21,7 @@ from sklearn.linear_model import LinearRegression as SklearnLinReg
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.linear_model import Ridge as SklearnRidgeReg
 from sklearn.linear_model import SGDRegressor as SklearnSGD
+from sklearn.metrics import roc_auc_score, make_scorer, mean_squared_error
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
@@ -27,18 +29,20 @@ from sklearn.svm import LinearSVC as SklearnSVC
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
+from core.models.evaluation.hyperparams import params_range_by_model
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+
+    def fit(self, train_data: InputData):
         raise NotImplementedError()
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def tune(self, model, data_for_tune: InputData):
+    def fit_tuned(self, train_data: InputData):
         raise NotImplementedError()
 
 
@@ -69,10 +73,18 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     }
 
+    __metric_by_type = {
+        'classification': make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
+        'regression': make_scorer(mean_squared_error, greater_is_better=False),
+    }
+
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
+        self._tune_func: SklearnTuner = Optional[SklearnTuner]
+        self.params_for_fit = None
+        self.model_type = model_type
 
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         sklearn_model = self._sklearn_model_impl()
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
@@ -80,8 +92,27 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def tune(self, model, data_for_tune: InputData):
-        return model
+    def fit_tuned(self, train_data: InputData,
+                  iterations: int = 30):
+        trained_model = self.fit(train_data=train_data)
+        params_range = params_range_by_model.get(self.model_type, None)
+        metric = self.__metric_by_type.get(train_data.task_type.name, None)
+        self._tune_func = SklearnCustomRandomTuner
+        if not params_range:
+            self.params_for_fit = None
+            return trained_model, trained_model.get_params()
+
+        tuned_params, best_model = self._tune_func().tune(trained_model=trained_model,
+                                                          tune_data=train_data,
+                                                          params_range=params_range,
+                                                          iterations=iterations,
+                                                          cross_val_fold_num=5,
+                                                          scorer=metric)
+
+        if best_model and tuned_params:
+            trained_model = best_model
+            self.params_for_fit = tuned_params
+        return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):
         if model_type in self.__model_by_types.keys():
@@ -108,13 +139,13 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+    def predict(self, trained_model, predict_data: InputData):
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         sklearn_model = self._sklearn_model_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
@@ -130,8 +161,21 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.ar: (fit_ar, predict_ar)
     }
 
+    __default_params_by_model = {
+        ModelTypesIdsEnum.arima: {'order': (2, 0, 0)},
+        ModelTypesIdsEnum.ar: {'lags': (1, 2, 6, 12, 24)}
+    }
+    __params_range_by_model = {
+        ModelTypesIdsEnum.arima: {'order': ((2, 0, 0), (5, 0, 5))},
+        ModelTypesIdsEnum.ar: {'lags': (range(1, 6), range(6, 96, 6))}
+    }
+
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._model_specific_fit, self._model_specific_predict = self._init_stats_model_functions(model_type)
+        self._params_range = self.__params_range_by_model[model_type]
+        self._default_params = self.__default_params_by_model[model_type]
+
+        self.params_for_fit = None
 
     def _init_stats_model_functions(self, model_type: ModelTypesIdsEnum):
         if model_type in self._model_functions_by_types.keys():
@@ -139,15 +183,26 @@ class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')
 
-    def fit(self, model_type: ModelTypesIdsEnum, train_data: InputData):
-        stats_model = self._model_specific_fit(train_data)
+    def fit(self, train_data: InputData):
+        stats_model = self._model_specific_fit(train_data, self._default_params)
+        self.params_for_fit = self._default_params
         return stats_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
 
-    def tune(self, model, data_for_tune: InputData):
-        return model
+    def fit_tuned(self, train_data: InputData, iterations: int = 10):
+        tuned_params = ForecastingCustomRandomTuner().tune(fit=self._model_specific_fit,
+                                                           predict=self._model_specific_predict,
+                                                           tune_data=train_data,
+                                                           params_range=self._params_range,
+                                                           default_params=self._default_params,
+                                                           iterations=iterations)
+
+        stats_model = self._model_specific_fit(train_data, tuned_params)
+        self.params_for_fit = tuned_params
+
+        return stats_model, tuned_params
 
 
 class AutoMLEvaluationStrategy(EvaluationStrategy):
@@ -165,14 +220,14 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
 
-    def fit(self, model_type: BenchmarkModelTypesEnum, train_data: InputData):
+    def fit(self, train_data: InputData):
         benchmark_model = self._model_specific_fit(train_data)
         return benchmark_model
 
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def tune(self, model, data_for_tune):
+    def fit_tuned(self, train_data: InputData):
         raise NotImplementedError()
 
 

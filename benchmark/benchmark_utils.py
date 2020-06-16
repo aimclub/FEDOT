@@ -8,7 +8,6 @@ import pandas as pd
 from pmlb import fetch_data
 from glob import glob
 
-
 def get_scoring_case_data_paths() -> Tuple[str, str]:
     train_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_train.csv')
     test_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_test.csv')
@@ -39,7 +38,7 @@ def init_penn_data_paths(name_of_dataset: str):
         print('Dataset already exist')
 
 
-def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> str:
+def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> Tuple[str, str]:
     df = fetch_data(name_of_dataset)
     penn_train, penn_test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
     init_penn_data_paths(name_of_dataset)

@@ -12,7 +12,7 @@ from core.repository.task_types import MachineLearningTasksEnum
 
 def compose_chain(data: InputData) -> Chain:
     dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.arima],
+    composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
                                                  secondary=[ModelTypesIdsEnum.linear])
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)

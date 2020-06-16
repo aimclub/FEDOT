@@ -1,4 +1,4 @@
-from copy import deepcopy
+import math
 from dataclasses import dataclass
 from functools import partial
 from typing import (
@@ -11,26 +11,31 @@ from typing import (
 
 import numpy as np
 
-from core.composer.optimisers.crossover import CrossoverTypesEnum
-from core.composer.optimisers.crossover import crossover
+from core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.mutation import MutationTypesEnum
-from core.composer.optimisers.mutation import mutation
-from core.composer.optimisers.regularization import RegularizationTypesEnum
-from core.composer.optimisers.regularization import regularized_population
-from core.composer.optimisers.selection import SelectionTypesEnum
-from core.composer.optimisers.selection import selection
+from core.composer.optimisers.inheritance import inheritance, GeneticSchemeTypesEnum
+from core.composer.optimisers.mutation import MutationTypesEnum, mutation
+from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
+from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
 
 
 @dataclass
 class GPChainOptimiserParameters:
-    selection_types: List[SelectionTypesEnum] = None
-    crossover_types: List[CrossoverTypesEnum] = None
-    mutation_types: List[MutationTypesEnum] = None
-    regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental
+    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
+                 crossover_types: List[CrossoverTypesEnum] = None,
+                 mutation_types: List[MutationTypesEnum] = None,
+                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.decremental,
+                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.steady_state):
 
-    def __post_init__(self):
+        self.selection_types = selection_types
+        self.crossover_types = crossover_types
+        self.mutation_types = mutation_types
+        self.regularization_type = regularization_type
+        self.genetic_scheme_type = genetic_scheme_type
+        self.set_default_params()
+
+    def set_default_params(self):
         if not self.selection_types:
             self.selection_types = [SelectionTypesEnum.tournament]
         if not self.crossover_types:
@@ -45,8 +50,7 @@ class GPChainOptimiser:
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
-        self.best_individual = None
-        self.best_fitness = None
+        self.history = []
         self.chain_class = chain_class
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
         self.chain_generation_function = partial(random_chain, chain_class=chain_class, requirements=self.requirements,
@@ -62,88 +66,98 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 
-    def optimise(self, metric_function_for_nodes):
+    def optimise(self, objective_function, offspring_rate=0.5):
+
+        if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
+            num_of_new_individuals = math.ceil(self.requirements.pop_size * offspring_rate)
+        else:
+            num_of_new_individuals = self.requirements.pop_size - 1
 
         with CompositionTimer() as t:
 
-            history = []
+            self.history = []
 
-            self.fitness = [metric_function_for_nodes(chain) for chain in self.population]
+            for ind in self.population:
+                ind.fitness = objective_function(ind)
 
-            [history.append((self.population[ind_num], self.fitness[ind_num])) for ind_num in
-             range(self.requirements.pop_size)]
+            self._add_to_history(self.population)
 
             for generation_num in range(self.requirements.num_of_generations - 1):
-                print(f'GP generation num: {generation_num}')
+                print(f'Generation num: {generation_num}')
 
-                self.best_individual, self.best_fitness = self.best_individual_with_fitness
+                individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
+                                                               population=self.population,
+                                                               objective_function=objective_function,
+                                                               chain_class=self.chain_class)
 
-                additional_inds, fitness = regularized_population(self.parameters.regularization_type,
-                                                                  self.population, self.requirements,
-                                                                  metric_function_for_nodes,
-                                                                  self.chain_class)
+                num_of_parents = num_of_new_individuals if not num_of_new_individuals % 2 else num_of_new_individuals + 1
+                selected_individuals = selection(types=self.parameters.selection_types,
+                                                 population=individuals_to_select,
+                                                 pop_size=num_of_parents)
 
-                individuals_to_select = self.population + additional_inds
-                fitness = self.fitness + fitness
+                new_population = []
 
-                selected_individuals = selection(self.parameters.selection_types, fitness, individuals_to_select,
-                                                 self.requirements.pop_size)
+                for parent_num in range(0, len(selected_individuals), 2):
+                    new_population += self.reproduce(selected_individuals[parent_num],
+                                                     selected_individuals[parent_num + 1])
 
-                for ind_num in range(self.requirements.pop_size):
+                    new_population[parent_num].fitness = objective_function(new_population[parent_num])
+                    new_population[parent_num + 1].fitness = objective_function(new_population[parent_num + 1])
 
-                    if ind_num == self.requirements.pop_size - 1:
-                        self.population[ind_num] = deepcopy(self.best_individual)
-                        self.fitness[ind_num] = self.best_fitness
-                        history.append((self.population[ind_num], self.fitness[ind_num]))
-                        break
+                self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                              self.population,
+                                              new_population, self.requirements.pop_size - 1)
 
-                    self.population[ind_num] = crossover(self.parameters.crossover_types,
-                                                         *selected_individuals[ind_num],
-                                                         crossover_prob=self.requirements.crossover_prob,
-                                                         max_depth=self.requirements.max_depth)
+                self.population.append(self.best_individual)
 
-                    self.population[ind_num] = mutation(types=self.parameters.mutation_types,
-                                                        chain_class=self.chain_class,
-                                                        chain=self.population[ind_num],
-                                                        requirements=self.requirements,
-                                                        secondary_node_func=self.secondary_node_func,
-                                                        primary_node_func=self.primary_node_func,
-                                                        mutation_prob=self.requirements.mutation_prob)
+                self._add_to_history(self.population)
 
-                    self.fitness[ind_num] = metric_function_for_nodes(self.population[ind_num])
-                    print(f'Best metric is {np.min(self.fitness)}')
+                print('spent time:', t.minutes_from_start)
+                print(f'Best metric is {self.best_individual.fitness}')
 
-                    history.append((self.population[ind_num], self.fitness[ind_num]))
-
-                print("spent time:", t.minutes_from_start)
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-        self.best_individual, _ = self.best_individual_with_fitness
-        return self.best_individual, history
+
+        return self.best_individual, self.history
 
     @property
-    def best_individual_with_fitness(self) -> Tuple[Any, float]:
-        best_ind_num = np.argmin(self.fitness)
-        equivalents = self.simpler_equivalents_of_best_ind(best_ind_num)
+    def best_individual(self) -> Any:
+        best_ind = min(self.population, key=lambda ind: ind.fitness)
+        equivalents = self.simpler_equivalents_of_best_ind(best_ind)
 
         if equivalents:
-            best_candidate = min(equivalents, key=equivalents.get)
-            best = self.population[best_candidate]
-            best_fitness = self.fitness[best_candidate]
-        else:
-            best = deepcopy(self.population[best_ind_num])
-            best_fitness = self.fitness[best_ind_num]
-        return best, best_fitness
+            best_candidate_id = min(equivalents, key=equivalents.get)
+            best_ind = self.population[best_candidate_id]
+        return best_ind
 
-    def simpler_equivalents_of_best_ind(self, best_ind_num: int) -> dict:
-        sort_inds = np.argsort(self.fitness)[1:]
+    def simpler_equivalents_of_best_ind(self, best_ind: Any) -> dict:
+        sort_inds = np.argsort([ind.fitness for ind in self.population])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
-            is_fitness_equals_to_best = self.fitness[best_ind_num] == self.fitness[i]
-            has_less_num_of_models_than_best = len(self.population[i].nodes) < len(self.population[best_ind_num].nodes)
+            is_fitness_equals_to_best = best_ind.fitness == self.population[i].fitness
+            has_less_num_of_models_than_best = len(self.population[i].nodes) < len(best_ind.nodes)
             if is_fitness_equals_to_best and has_less_num_of_models_than_best:
                 simpler_equivalents[i] = len(self.population[i].nodes)
         return simpler_equivalents
 
+    def reproduce(self, selected_individual_first, selected_individual_second) -> Tuple[Any]:
+        new_inds = crossover(self.parameters.crossover_types,
+                             selected_individual_first,
+                             selected_individual_second,
+                             crossover_prob=self.requirements.crossover_prob,
+                             max_depth=self.requirements.max_depth)
+
+        new_inds = tuple([mutation(types=self.parameters.mutation_types,
+                                   chain_class=self.chain_class,
+                                   chain=new_ind,
+                                   requirements=self.requirements,
+                                   secondary_node_func=self.secondary_node_func,
+                                   primary_node_func=self.primary_node_func,
+                                   mutation_prob=self.requirements.mutation_prob) for new_ind in new_inds])
+        return new_inds
+
     def _make_population(self, pop_size: int) -> List[Any]:
         return [self.chain_generation_function() for _ in range(pop_size)]
+
+    def _add_to_history(self, individuals: List[Any]):
+        [self.history.append(ind) for ind in individuals]

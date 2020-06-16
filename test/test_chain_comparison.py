@@ -123,14 +123,14 @@ def test_chains_equivalent_subtree():
     c_second = chain_second()
     c_third = chain_third()
 
-    similar_nodes_first_and_second = equivalent_subtree(c_first.root_node, c_second.root_node)
+    similar_nodes_first_and_second = equivalent_subtree(c_first, c_second)
     assert len(similar_nodes_first_and_second) == 6
 
-    similar_nodes_first_and_third = equivalent_subtree(c_first.root_node, c_third.root_node)
+    similar_nodes_first_and_third = equivalent_subtree(c_first, c_third)
     assert not similar_nodes_first_and_third
 
-    similar_nodes_second_and_third = equivalent_subtree(c_second.root_node, c_third.root_node)
+    similar_nodes_second_and_third = equivalent_subtree(c_second, c_third)
     assert not similar_nodes_second_and_third
 
-    similar_nodes_third = equivalent_subtree(c_third.root_node, c_third.root_node)
+    similar_nodes_third = equivalent_subtree(c_third, c_third)
     assert len(similar_nodes_third) == 4
