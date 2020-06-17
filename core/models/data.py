@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum
-from core.utils import check_dimensions_of_features
+from core.utils import ensure_features_2d
 
 
 @dataclass
@@ -50,7 +50,7 @@ class Data:
         else:
             features_2d = np.array(features).T
 
-        features_2d = check_dimensions_of_features(features_2d)
+        features_2d = ensure_features_2d(features_2d)
 
         return InputData(idx=idx, features=features_2d, target=target, task_type=task_type)
 

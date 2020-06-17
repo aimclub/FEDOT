@@ -1,30 +1,22 @@
-from core.utils import project_root
-from sklearn.model_selection import train_test_split
+from core.utils import project_root, split_data, save_file_to_csv, ensure_directory_exist, get_split_data_paths
 import pandas as pd
 import os
 
 
-def get_multi_clf_data_paths(file_path: str, t_size: float = 0.2, name_of_dataset: str = 'Example',
-                             return_df: bool = False):
-    main_dir = os.path.join(str(project_root()), 'cases', 'data')
-    dataset_dir = os.path.join(str(project_root()), 'cases', 'data', 'multiclf')
-    if not os.path.exists(main_dir):
-        os.mkdir(main_dir)
-    if not os.path.exists(dataset_dir):
-        os.mkdir(dataset_dir)
-
+def create_multi_clf_data_examples(file_path: str, return_df: bool = False):
     df = pd.read_excel(file_path)
+    train, test = split_data(df)
+    file_dir_name = file_path.replace('.', '/').split('/')[-2]
+    file_csv_name = file_dir_name + '.csv'
+    directory_names = ['examples', 'data', file_dir_name]
+    ensure_directory_exist(directory_names)
     if return_df:
-        path = os.path.join('cases', 'data', 'multiclf', name_of_dataset)
+        path = os.path.join(directory_names[0], directory_names[1], directory_names[2], file_csv_name)
         full_file_path = os.path.join(str(project_root()), path)
-        df.to_csv(full_file_path, sep=',')
+        save_file_to_csv(df, full_file_path)
         return df, full_file_path
     else:
-        train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
-        train_file_path = os.path.join('cases', 'data', 'multiclf', 'multi_train.csv')
-        full_train_file_path = os.path.join(str(project_root()), train_file_path)
-        test_file_path = os.path.join('cases', 'data', 'multiclf', 'multi_test.csv')
-        full_test_file_path = os.path.join(str(project_root()), test_file_path)
-        train.to_csv(full_train_file_path, sep=',')
-        test.to_csv(full_test_file_path, sep=',')
+        full_train_file_path, full_test_file_path = get_split_data_paths(directory_names)
+        save_file_to_csv(train, full_train_file_path)
+        save_file_to_csv(train, full_test_file_path)
         return full_train_file_path, full_test_file_path

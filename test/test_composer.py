@@ -147,10 +147,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
                                                   metrics=metric_function)
 
     chain_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
-    try:
-        predicted_gp_composed = chain_gp_composed.predict(dataset_to_validate)
-    except ValueError:
-        print('fff')
+    predicted_gp_composed = chain_gp_composed.predict(dataset_to_validate)
 
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                        y_score=predicted_gp_composed.predict)

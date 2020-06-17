@@ -9,7 +9,7 @@ from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 
 
-def get_roc_auc_train(train_data: InputData, train_predicted: list) -> float:
+def get_roc_auc(train_data: InputData, train_predicted: list) -> float:
     n_classes = train_data.num_classes
     if n_classes > 2:
         additional_params = {'multi_class': 'ovo', 'average': 'macro'}
@@ -51,7 +51,7 @@ def test_log_regression_fit_correct(classification_dataset):
 
     _, train_predicted = log_reg.fit(data=train_data)
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -66,7 +66,7 @@ def test_random_forest_fit_correct(data_fixture, request):
 
     _, train_predicted = random_forest.fit(data=train_data)
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -82,7 +82,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
     decision_tree.fit(data=train_data)
     _, train_predicted = decision_tree.fit(data=train_data)
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -97,7 +97,7 @@ def test_lda_fit_correct(data_fixture, request):
 
     _, train_predicted = lda.fit(data=train_data)
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -111,9 +111,8 @@ def test_qda_fit_correct(data_fixture, request):
     qda = Model(model_type=ModelTypesIdsEnum.qda)
 
     _, train_predicted = qda.fit(data=train_data)
-    n_classes = len(np.unique(data.target))
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
 
@@ -141,6 +140,6 @@ def test_svc_fit_correct(data_fixture, request):
 
     _, train_predicted = svc.fit(data=train_data)
 
-    roc_on_train = get_roc_auc_train(train_data, train_predicted)
+    roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
