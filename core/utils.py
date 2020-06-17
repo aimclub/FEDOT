@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+import numpy as np
 
 
 def project_root() -> Path:
@@ -9,7 +10,7 @@ def project_root() -> Path:
     return Path(__file__).parent.parent
 
 
-def labels_to_dummy_probs(prediction):
+def labels_to_dummy_probs(prediction: np.array):
     """Returns converted predictions
     using one-hot probability encoding"""
     df = pd.Series(prediction)
@@ -17,7 +18,15 @@ def labels_to_dummy_probs(prediction):
     return pred_probas
 
 
-def ensure_features_2d(features):
+def probs_to_labels(prediction: np.array):
+    list_with_labels = []
+    for list_with_probs in prediction:
+        list_with_labels.append(list_with_probs.argmax() + 1.0)
+
+    return list_with_labels
+
+
+def ensure_features_2d(features: np.array):
     if len(features.shape) >= 3:
         num_of_samples = features.shape[1]
         features_2d = features.reshape(num_of_samples, -1)

@@ -14,6 +14,7 @@ from core.repository.model_types_repository import (
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.task_types import MachineLearningTasksEnum
 from examples.utils import create_multi_clf_examples_from_excel
+from core.utils import probs_to_labels
 
 random.seed(1)
 np.random.seed(1)
@@ -54,7 +55,7 @@ def apply_model_to_data(model: Chain, data_path: str):
     df, file_path = create_multi_clf_examples_from_excel(data_path, return_df=True)
     dataset_to_apply = InputData.from_csv(file_path, with_target=False)
     evo_predicted = model.predict(dataset_to_apply)
-    df['forecast'] = evo_predicted.predict.tolist()
+    df['forecast'] = probs_to_labels(evo_predicted.predict)
     return df
 
 
