@@ -83,7 +83,7 @@ class CaseExecutor:
             elif self.task is MachineLearningTasksEnum.regression:
                 fedot_problem_func = run_regression_problem
             else:
-                raise NonImplementedError()
+                raise NotImplementedError()
             single, static, evo_composed, target = fedot_problem_func(train_file_path=self.train_file,
                                                                       test_file_path=self.test_file)
             result['fedot_metric'] = {'composed': calculate_metrics(self.metric_list,

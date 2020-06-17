@@ -19,7 +19,7 @@ np.random.seed(1)
 
 
 def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
-    problem_class = MachineLearningTasksEnum.regression
+    problem_class = MachineLearningTasksEnum.classification
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
     models_hyperparameters = get_models_hyperparameters()['FEDOT']

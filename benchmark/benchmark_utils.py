@@ -1,9 +1,8 @@
 import os
 import gc
 import json
-from core.utils import project_root
+from core.utils import project_root, split_data, save_file_to_csv, ensure_directory_exist, get_split_data_paths
 from typing import Tuple
-from sklearn.model_selection import train_test_split
 import pandas as pd
 from pmlb import fetch_data
 from glob import glob
@@ -26,28 +25,14 @@ def get_cancer_case_data_paths() -> Tuple[str, str]:
     return full_train_file_path, full_test_file_path
 
 
-def init_penn_data_paths(name_of_dataset: str):
-    main_dir = os.path.join(str(project_root()), 'benchmark', 'data')
-    dataset_dir = os.path.join(str(project_root()), 'benchmark', 'data', str(name_of_dataset))
-    if not os.path.exists(main_dir):
-        os.mkdir(main_dir)
-        
-    if not os.path.exists(dataset_dir):
-        os.mkdir(dataset_dir)
-    else:
-        print('Dataset already exist')
-
-
-def get_penn_case_data_paths(name_of_dataset: str, t_size: float = 0.2) -> Tuple[str, str]:
+def get_penn_case_data_paths(name_of_dataset: str) -> Tuple[str, str]:
     df = fetch_data(name_of_dataset)
-    penn_train, penn_test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
-    init_penn_data_paths(name_of_dataset)
-    train_file_path = os.path.join('benchmark', 'data', str(name_of_dataset), 'train.csv')
-    test_file_path = os.path.join('benchmark', 'data', str(name_of_dataset), 'test.csv')
-    full_train_file_path = os.path.join(str(project_root()), train_file_path)
-    full_test_file_path = os.path.join(str(project_root()), test_file_path)
-    penn_train.to_csv(full_train_file_path, sep=',')
-    penn_test.to_csv(full_test_file_path, sep=',')
+    directory_names = ['benchmark', 'data', name_of_dataset]
+    penn_train, penn_test = split_data(df)
+    ensure_directory_exist(directory_names)
+    full_train_file_path, full_test_file_path = get_split_data_paths(directory_names)
+    save_file_to_csv(penn_train, full_train_file_path)
+    save_file_to_csv(penn_test, full_test_file_path)
     return full_train_file_path, full_test_file_path
 
 
