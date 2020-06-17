@@ -40,18 +40,16 @@ class RocAucMetric(ChainMetric):
     @from_maximised_metric
     def get_value(chain: Chain, reference_data: InputData) -> float:
         n_classes = reference_data.num_classes
+        if n_classes > 2:
+            additional_params = {'multi_class': 'ovo', 'average': 'macro'}
+        else:
+            additional_params = {}
         try:
             validate(chain)
             results = chain.predict(reference_data)
-            if n_classes > 2:
-                score = round(roc_auc_score(y_score=results.predict,
-                                            y_true=reference_data.target,
-                                            multi_class='ovo',
-                                            average='macro'), 3)
-            else:
-                score = round(roc_auc_score(y_score=results.predict,
-                                            y_true=reference_data.target
-                                            ), 3)
+            score = round(roc_auc_score(y_score=results.predict,
+                                        y_true=reference_data.target,
+                                        **additional_params), 3)
         except Exception as ex:
             print(ex)
             score = 0.5

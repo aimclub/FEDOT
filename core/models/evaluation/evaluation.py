@@ -132,7 +132,9 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         else:
             prediction = trained_model.predict_proba(predict_data.features)
 
-        if n_classes <= 2:
+        if n_classes < 2:
+            raise NotImplementedError()
+        elif n_classes == 2:
             prediction = prediction[:, 1]
 
         return prediction

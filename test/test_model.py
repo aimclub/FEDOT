@@ -12,13 +12,17 @@ from core.repository.task_types import MachineLearningTasksEnum
 def get_roc_auc_train(train_data: InputData, train_predicted: list) -> float:
     n_classes = train_data.num_classes
     if n_classes > 2:
-        roc_on_train = round(roc_auc(y_true=train_data.target,
-                                     y_score=train_predicted,
-                                     multi_class='ovo',
-                                     average='macro'), 3)
+        additional_params = {'multi_class': 'ovo', 'average': 'macro'}
     else:
-        roc_on_train = roc_auc(y_true=train_data.target,
-                               y_score=train_predicted)
+        additional_params = {}
+
+    try:
+        roc_on_train = round(roc_auc(y_score=train_predicted,
+                                     y_true=train_data.target,
+                                     **additional_params), 3)
+    except Exception as ex:
+        print(ex)
+        roc_on_train = 0.5
 
     return roc_on_train
 

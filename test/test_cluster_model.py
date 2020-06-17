@@ -36,5 +36,5 @@ def test_chain_with_clusters_fit_correct():
         _, roc_on_test = get_roc_auc_value(chain, train_data, test_data)
         mean_roc_on_test = np.mean([mean_roc_on_test, roc_on_test])
 
-    roc_threshold = 0.6
+    roc_threshold = 0.5
     assert mean_roc_on_test > roc_threshold

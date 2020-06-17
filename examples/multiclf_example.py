@@ -2,6 +2,7 @@ import datetime
 import random
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
+from core.composer.chain import Chain
 from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
@@ -10,21 +11,14 @@ from core.repository.model_types_repository import (
 from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
 from core.repository.task_types import MachineLearningTasksEnum
 from benchmark.benchmark_utils import get_models_hyperparameters
-from examples.utils import get_multi_clf_data_paths, save_csv
+from examples.utils import get_multi_clf_data_paths
+from sklearn.metrics import roc_auc_score as roc_auc
 
 random.seed(1)
 np.random.seed(1)
 
-file_path_first = r'./example1.xlsx'
-file_path_second = r'./example2.xlsx'
-name_of_dataset_second = 'example_2'
-file_path_third = r'./example3.xlsx'
-name_of_dataset_third = 'example_3'
 
-train_file_path, test_file_path = get_multi_clf_data_paths(file_path_first)
-
-
-def GetModel(train_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
+def GetModel(train_file_path: str, cur_lead_time: int = 10, vis_flag: bool = False):
     problem_class = MachineLearningTasksEnum.classification
     dataset_to_compose = InputData.from_csv(train_file_path)
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
@@ -61,17 +55,33 @@ def GetModel(train_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
     return chain_evo_composed
 
 
-def ApplyModelToData(model, initial_file_path, name_of_dataset):
-    df, test_file_path = save_csv(initial_file_path, name_of_dataset)
-    dataset_to_validate = InputData.from_csv(test_file_path, target_flag=True)
-    evo_predicted = model.predict(dataset_to_validate)
-    df['forecast'] = evo_predicted.predict.tolist()
-    return df
+def ApplyModelToData(model: Chain, initial_file_path: str, name_of_dataset: str = 'Example',
+                     download_file: bool = True, with_target: bool = False):
+    if download_file:
+        df, test_file_path = get_multi_clf_data_paths(initial_file_path, name_of_dataset, return_df=True)
+        dataset_to_validate = InputData.from_csv(test_file_path, with_target=with_target)
+        evo_predicted = model.predict(dataset_to_validate)
+        df['forecast'] = evo_predicted.predict.tolist()
+        return df
+    else:
+        dataset_to_validate = InputData.from_csv(initial_file_path)
+        evo_predicted = model.predict(dataset_to_validate)
+        return evo_predicted.predict
 
 
-model = GetModel(train_file_path)
-result_first = ApplyModelToData(model, file_path_second, name_of_dataset_second)
-result_second = ApplyModelToData(model, file_path_third, name_of_dataset_third)
+if __name__ == '__main__':
+    file_path_first = r'./data/example1.xlsx'
+    file_path_second = r'./data/example2.xlsx'
+    name_of_dataset = 'example_2'
 
-print(result_first)
-print(result_second)
+    train_file_path, test_file_path = get_multi_clf_data_paths(file_path_first)
+    test_data = InputData.from_csv(test_file_path)
+
+    model = GetModel(train_file_path)
+    test_prediction = ApplyModelToData(model, test_file_path, download_file=False)
+    df_with_forecast = ApplyModelToData(model, file_path_second, name_of_dataset)
+    roc_auc_on_test = roc_auc(y_true=test_data.target,
+                              y_score=test_prediction,
+                              multi_class='ovo',
+                              average='macro')
+    print(roc_auc_on_test)
