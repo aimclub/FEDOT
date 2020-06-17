@@ -1,13 +1,15 @@
-from core.utils import project_root, split_data, save_file_to_csv, ensure_directory_exist, get_split_data_paths
-import pandas as pd
 import os
 
+import pandas as pd
 
-def create_multi_clf_data_examples(file_path: str, return_df: bool = False):
+from core.utils import ensure_directory_exist, get_split_data_paths, project_root, save_file_to_csv, split_data
+
+
+def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):
     df = pd.read_excel(file_path)
     train, test = split_data(df)
     file_dir_name = file_path.replace('.', '/').split('/')[-2]
-    file_csv_name = file_dir_name + '.csv'
+    file_csv_name = f'{file_dir_name}.csv'
     directory_names = ['examples', 'data', file_dir_name]
     ensure_directory_exist(directory_names)
     if return_df:

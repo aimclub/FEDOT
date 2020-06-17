@@ -1,11 +1,11 @@
-from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.datasets import load_iris
+from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
+from core.models.data import InputData, train_test_data_setup
 from core.models.model import *
 from core.repository.task_types import MachineLearningTasksEnum
-from core.models.data import InputData, train_test_data_setup
 
 
 def compose_chain() -> Chain:
@@ -24,7 +24,7 @@ def compose_chain() -> Chain:
     return chain
 
 
-def get_synthetic_multiclassification_data() -> InputData:
+def get_iris_data() -> InputData:
     synthetic_data = load_iris()
     input_data = InputData(idx=np.arange(0, len(synthetic_data.target)),
                            features=synthetic_data.data,
@@ -34,7 +34,7 @@ def get_synthetic_multiclassification_data() -> InputData:
 
 
 def test_multiclassification_chain_fit_correct():
-    data = get_synthetic_multiclassification_data()
+    data = get_iris_data()
     chain = compose_chain()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 

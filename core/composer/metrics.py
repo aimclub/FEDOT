@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
-import numpy as np
+
 from core.chain_validation import validate
 from core.composer.chain import Chain
 from core.models.data import InputData
@@ -44,16 +44,19 @@ class RocAucMetric(ChainMetric):
             additional_params = {'multi_class': 'ovo', 'average': 'macro'}
         else:
             additional_params = {}
+
         try:
             validate(chain)
             results = chain.predict(reference_data)
-            score = round(roc_auc_score(y_score=results.predict,
-                                        y_true=reference_data.target,
-                                        **additional_params), 3)
+            try:
+                score = round(roc_auc_score(y_score=results.predict,
+                                            y_true=reference_data.target,
+                                            **additional_params), 3)
+            except ValueError:
+                score = 0.5
         except Exception as ex:
             print(ex)
             score = 0.5
-
         return score
 
 

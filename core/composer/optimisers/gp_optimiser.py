@@ -1,19 +1,13 @@
 import math
 from dataclasses import dataclass
 from functools import partial
-from typing import (
-    List,
-    Callable,
-    Any,
-    Optional,
-    Tuple
-)
+from typing import (Any, Callable, List, Optional, Tuple)
 
 import numpy as np
 
 from core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.inheritance import inheritance, GeneticSchemeTypesEnum
+from core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from core.composer.optimisers.selection import SelectionTypesEnum, selection
@@ -112,7 +106,7 @@ class GPChainOptimiser:
 
                 self._add_to_history(self.population)
 
-                print('spent time:', t.minutes_from_start)
+                print(f'spent time: {round(t.minutes_from_start, 1)} min')
                 print(f'Best metric is {self.best_individual.fitness}')
 
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):

@@ -5,13 +5,11 @@ import numpy as np
 from core.models.data import (
     InputData,
 )
-from core.models.evaluation.evaluation import SkLearnClassificationStrategy, \
-    StatsModelsAutoRegressionStrategy, SkLearnRegressionStrategy, SkLearnClusteringStrategy, \
-    AutoMLEvaluationStrategy, AutoMLRegressionStrategy
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.model_types_repository import ModelTypesRepository
-from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum, \
-    compatible_task_types
+from core.models.evaluation.evaluation import AutoMLEvaluationStrategy, AutoMLRegressionStrategy, \
+    SkLearnClassificationStrategy, SkLearnClusteringStrategy, SkLearnRegressionStrategy, \
+    StatsModelsAutoRegressionStrategy
+from core.repository.model_types_repository import ModelTypesIdsEnum, ModelTypesRepository
+from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -47,7 +45,7 @@ class Model:
                                                  predict_data=data)
 
         if np.array([np.isnan(_) for _ in prediction]).any():
-            print("Value error")
+            return np.nan_to_num(prediction)
 
         return prediction
 

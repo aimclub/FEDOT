@@ -1,35 +1,31 @@
 import warnings
 from typing import Optional
 
-from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_reg, predict_tpot_class
-from core.models.data import InputData, OutputData
-from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
-from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
-from core.models.tuners import ForecastingCustomRandomTuner, SklearnTuner, SklearnCustomRandomTuner
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.utils import labels_to_dummy_probs
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (
     LinearDiscriminantAnalysis,
     QuadraticDiscriminantAnalysis
 )
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, AdaBoostRegressor, \
-    GradientBoostingRegressor, ExtraTreesRegressor
-from sklearn.linear_model import Lasso as SklearnLassoReg
-from sklearn.linear_model import LinearRegression as SklearnLinReg
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-from sklearn.linear_model import Ridge as SklearnRidgeReg
-from sklearn.linear_model import SGDRegressor as SklearnSGD
-from sklearn.metrics import roc_auc_score, make_scorer, mean_squared_error
-from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
-from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
+from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, GradientBoostingRegressor, RandomForestClassifier, \
+    RandomForestRegressor
+from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
+    LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
+from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN, KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import LinearSVC as SklearnSVC
-from sklearn.svm import LinearSVR as SklearnSVR
+from sklearn.svm import LinearSVC as SklearnSVC, LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
+
+from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
+from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_class, predict_tpot_reg
+from core.models.data import InputData, OutputData
+from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.hyperparams import params_range_by_model
+from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
+from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner
+from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.utils import labels_to_dummy_probs
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -85,6 +81,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         self.model_type = model_type
 
     def fit(self, train_data: InputData):
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
         sklearn_model = self._sklearn_model_impl()
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model

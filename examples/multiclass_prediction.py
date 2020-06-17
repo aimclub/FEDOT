@@ -1,19 +1,19 @@
 import datetime
 import random
+
+from sklearn.metrics import roc_auc_score as roc_auc
+
+from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
-from core.composer.chain import Chain
-from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
+from core.repository.dataset_types import CategoricalDataTypesEnum, NumericalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
     ModelTypesRepository
 )
-from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
+from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.task_types import MachineLearningTasksEnum
-from examples.utils import create_multi_clf_data_examples
-from sklearn.metrics import roc_auc_score as roc_auc
-
-from core.models.data import InputData
+from examples.utils import create_multi_clf_examples_from_excel
 
 random.seed(1)
 np.random.seed(1)
@@ -29,16 +29,13 @@ def get_model(train_file_path: str, cur_lead_time: int = 10):
         desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
                                                output_type=CategoricalDataTypesEnum.vector,
                                                task_type=problem_class,
-                                               can_be_initial=True,
                                                can_be_secondary=True))
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     composer_requirements = GPComposerRequirements(
-        primary=available_model_types,
-        secondary=available_model_types, max_arity=2,
-        max_depth=3, pop_size=10, num_of_generations=10,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=cur_lead_time))
+        primary=available_model_types, secondary=available_model_types,
+        max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
     # Create GP-based composer
     composer = GPComposer()
@@ -48,36 +45,42 @@ def get_model(train_file_path: str, cur_lead_time: int = 10):
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function, is_visualise=False)
-    chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
+    chain_evo_composed.fit(input_data=dataset_to_compose)
 
     return chain_evo_composed
 
 
-def apply_model_to_data(model: Chain, initial_file_path: str, test_dataset_exist: bool = True):
-    if test_dataset_exist:
-        dataset_to_validate = InputData.from_csv(initial_file_path)
-        evo_predicted = model.predict(dataset_to_validate)
-        return evo_predicted.predict
-    else:
-        df, test_file_path = create_multi_clf_data_examples(initial_file_path, return_df=True)
-        dataset_to_validate = InputData.from_csv(test_file_path, with_target=False)
-        evo_predicted = model.predict(dataset_to_validate)
-        df['forecast'] = evo_predicted.predict.tolist()
-        return df
+def apply_model_to_data(model: Chain, data_path: str):
+    df, file_path = create_multi_clf_examples_from_excel(data_path, return_df=True)
+    dataset_to_apply = InputData.from_csv(file_path, with_target=False)
+    evo_predicted = model.predict(dataset_to_apply)
+    df['forecast'] = evo_predicted.predict.tolist()
+    return df
+
+
+def validate_model_quality(model: Chain, data_path: str):
+    dataset_to_validate = InputData.from_csv(data_path)
+    predicted_labels = model.predict(dataset_to_validate).predict
+
+    roc_auc_valid = round(roc_auc(y_true=test_data.target,
+                                  y_score=predicted_labels,
+                                  multi_class='ovo',
+                                  average='macro'), 3)
+
+    return roc_auc_valid
 
 
 if __name__ == '__main__':
     file_path_first = r'./data/example1.xlsx'
     file_path_second = r'./data/example2.xlsx'
 
-    train_file_path, test_file_path = create_multi_clf_data_examples(file_path_first)
+    train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
     test_data = InputData.from_csv(test_file_path)
 
     fitted_model = get_model(train_file_path)
-    test_prediction = apply_model_to_data(fitted_model, test_file_path)
-    final_prediction = apply_model_to_data(fitted_model, file_path_second, test_dataset_exist=False)
-    roc_auc_on_test = round(roc_auc(y_true=test_data.target,
-                                    y_score=test_prediction,
-                                    multi_class='ovo',
-                                    average='macro'), 3)
-    print(roc_auc_on_test)
+
+    roc_auc = validate_model_quality(fitted_model, test_file_path)
+    print(roc_auc)
+
+    final_prediction = apply_model_to_data(fitted_model, file_path_second)
+    print(final_prediction['forecast'])
