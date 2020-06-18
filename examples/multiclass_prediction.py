@@ -33,9 +33,10 @@ def get_model(train_file_path: str, cur_lead_time: int = 10):
                                                can_be_secondary=True))
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    available_model_types_for_multiclf = [x for x in available_model_types if x != ModelTypesIdsEnum.svc]
 
     composer_requirements = GPComposerRequirements(
-        primary=available_model_types, secondary=available_model_types,
+        primary=available_model_types_for_multiclf, secondary=available_model_types,
         max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
     # Create GP-based composer
@@ -74,6 +75,7 @@ def validate_model_quality(model: Chain, data_path: str):
 if __name__ == '__main__':
     file_path_first = r'./data/example1.xlsx'
     file_path_second = r'./data/example2.xlsx'
+    file_path_third = r'./data/example3.xlsx'
 
     train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
     test_data = InputData.from_csv(test_file_path)
@@ -83,5 +85,8 @@ if __name__ == '__main__':
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(roc_auc)
 
-    final_prediction = apply_model_to_data(fitted_model, file_path_second)
-    print(final_prediction['forecast'])
+    final_prediction_first = apply_model_to_data(fitted_model, file_path_second)
+    print(final_prediction_first['forecast'])
+
+    final_prediction_second = apply_model_to_data(fitted_model, file_path_third)
+    print(final_prediction_second['forecast'])
