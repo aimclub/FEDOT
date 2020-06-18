@@ -22,8 +22,8 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
         return [chain_first_copy, chain_second_copy]
     if type in crossover_by_type.keys():
         is_correct = False
-        is_correct_chains = []
         while not is_correct:
+            is_correct_chains = []
             new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
             for new_chain in new_chains:
                 is_correct_chains.append(constraint_function(new_chain))

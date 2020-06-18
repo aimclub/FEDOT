@@ -1,8 +1,6 @@
 import datetime
 import random
 
-import numpy as np
-
 from benchmark.benchmark_utils import get_models_hyperparameters
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
@@ -20,8 +18,7 @@ random.seed(1)
 np.random.seed(1)
 
 
-def run_classification_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
-
+def run_classification_problem(train_file_path, test_file_path, vis_flag: bool = False):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -29,6 +26,7 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     generations = models_hyperparameters['GENERATIONS']
     population_size = models_hyperparameters['POPULATION_SIZE']
+    cur_lead_time = models_hyperparameters['MAX_RUNTIME_MINS']
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
@@ -43,7 +41,7 @@ def run_classification_problem(train_file_path, test_file_path, cur_lead_time: i
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=2,
-        max_depth=3, pop_size=population_size, num_of_generations=generations,
+        max_depth=3, pop_size=population_size,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=cur_lead_time))
 
     # Create GP-based composer

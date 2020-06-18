@@ -18,8 +18,8 @@ from core.models.data import InputData, train_test_data_setup
 
 @dataclass
 class GPComposerRequirements(ComposerRequirements):
-    pop_size: Optional[int] = 10
-    num_of_generations: Optional[int] = 10
+    pop_size: Optional[int] = 20
+    num_of_generations: Optional[int] = 100
     crossover_prob: Optional[float] = 0.8
     mutation_prob: Optional[float] = 0.8
 
@@ -68,5 +68,5 @@ class GPComposer(Composer):
             chain.fit(input_data=train_data)
             return metric_function(chain, test_data)
         except Exception as ex:
-            print(f'Error in chain assessment during composition: {ex}')
+            print(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value

@@ -1,7 +1,8 @@
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths, save_metrics_result_file
+from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths, \
+    save_metrics_result_file
 from benchmark.executor import CaseExecutor
-from core.repository.tasks import Task, TaskTypesEnum
+from core.repository.tasks import TaskTypesEnum
 
 if __name__ == '__main__':
     train_file, test_file = get_scoring_case_data_paths()
@@ -10,10 +11,7 @@ if __name__ == '__main__':
                                   test_file=test_file,
                                   task=TaskTypesEnum.classification,
                                   models=[BenchmarkModelTypesEnum.tpot,
-                                          BenchmarkModelTypesEnum.h2o,
-                                          BenchmarkModelTypesEnum.fedot,
-                                          BenchmarkModelTypesEnum.autokeras,
-                                          BenchmarkModelTypesEnum.mlbox],
+                                          BenchmarkModelTypesEnum.fedot],
                                   target_name='default',
                                   case_label='scoring',
                                   metric_list=['roc_auc', 'f1']).execute()

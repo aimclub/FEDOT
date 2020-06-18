@@ -1,5 +1,6 @@
 from copy import deepcopy
 from enum import Enum
+from functools import partial
 from random import choice, randint, random
 from typing import (Any, Callable)
 
@@ -42,36 +43,22 @@ def mutation(types: List[MutationTypesEnum], chain_class, chain: Chain, requirem
         return deepcopy(chain)
 
     mutation_by_type = {
-        MutationTypesEnum.simple: simple_mutation(chain=chain, secondary=requirements.secondary,
-                                                  primary=requirements.primary,
-                                                  secondary_node_func=secondary_node_func,
-                                                  primary_node_func=primary_node_func,
-                                                  node_mutate_type=node_mutate_type),
-        MutationTypesEnum.growth: growth_mutation(chain=chain, chain_class=chain_class,
-                                                  secondary_node_func=secondary_node_func,
-                                                  primary_node_func=primary_node_func, requirements=requirements),
-        MutationTypesEnum.reduce: reduce_mutation(chain=chain, primary_node_func=primary_node_func,
-                                                  requirements=requirements)
+        MutationTypesEnum.simple: partial(simple_mutation, secondary=requirements.secondary,
+                                          primary=requirements.primary,
+                                          secondary_node_func=secondary_node_func,
+                                          primary_node_func=primary_node_func,
+                                          node_mutate_type=node_mutate_type),
+        MutationTypesEnum.growth: partial(growth_mutation, chain_class=chain_class,
+                                          secondary_node_func=secondary_node_func,
+                                          primary_node_func=primary_node_func, requirements=requirements),
+        MutationTypesEnum.reduce: partial(reduce_mutation, primary_node_func=primary_node_func,
+                                          requirements=requirements)
     }
     type = choice(types)
     if type in mutation_by_type:
-
         is_correct_chain = False
         while not is_correct_chain:
-            mutation_by_type = {
-                MutationTypesEnum.simple: simple_mutation(chain=chain, secondary=requirements.secondary,
-                                                          primary=requirements.primary,
-                                                          secondary_node_func=secondary_node_func,
-                                                          primary_node_func=primary_node_func,
-                                                          node_mutate_type=node_mutate_type),
-                MutationTypesEnum.growth: growth_mutation(chain=chain, chain_class=chain_class,
-                                                          secondary_node_func=secondary_node_func,
-                                                          primary_node_func=primary_node_func,
-                                                          requirements=requirements),
-                MutationTypesEnum.reduce: reduce_mutation(chain=chain, primary_node_func=primary_node_func,
-                                                          requirements=requirements)
-            }
-            new_chain = mutation_by_type[type]
+            new_chain = mutation_by_type[type](chain=chain)
             is_correct_chain = constraint_function(new_chain)
         return new_chain
     else:

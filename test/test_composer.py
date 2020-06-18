@@ -9,6 +9,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
+from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.node import NodeGenerator, PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
@@ -17,6 +18,7 @@ from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (ModelMetaInfoTemplate, ModelTypesIdsEnum, ModelTypesRepository)
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
+from test.test_chain_tuning import get_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -105,6 +107,41 @@ def test_random_composer(data_fixture, request):
                                            y_score=predicted_random_composed.predict)
 
     assert roc_on_valid_random_composed > 0.6
+
+
+@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
+def test_fixed_structure_composer(data_fixture, request):
+    random.seed(1)
+    np.random.seed(1)
+    data = request.getfixturevalue(data_fixture)
+    dataset_to_compose = data
+    dataset_to_validate = data
+
+    available_model_types = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.lda, ModelTypesIdsEnum.knn]
+
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+
+    composer = FixedStructureComposer()
+    req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
+                                 pop_size=2, num_of_generations=1,
+                                 crossover_prob=0.4, mutation_prob=0.5)
+
+    reference_chain = get_class_chain()
+
+    chain_composed = composer.compose_chain(data=dataset_to_compose,
+                                            initial_chain=reference_chain,
+                                            composer_requirements=req,
+                                            metrics=metric_function)
+    chain_composed.fit_from_scratch(input_data=dataset_to_compose)
+
+    predicted_random_composed = chain_composed.predict(dataset_to_validate)
+
+    roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
+                                           y_score=predicted_random_composed.predict)
+
+    assert roc_on_valid_random_composed > 0.6
+    assert chain_composed.depth == reference_chain.depth
+    assert chain_composed.length == reference_chain.length
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])

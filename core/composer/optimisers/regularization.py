@@ -1,12 +1,6 @@
 from copy import deepcopy
 from enum import Enum
-from typing import (Optional,
-                    List,
-                    Any,
-                    Callable)
-from typing import (Any, Callable, List, Optional, Tuple)
-
-import numpy as np
+from typing import (Any, Callable, List, Optional)
 
 from core.composer.constraint import constraint_function
 
@@ -40,10 +34,11 @@ def decremental_regularization(population: List[Any], objective_function: Callab
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
 
+    additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
+
     for additional_ind in additional_inds:
         additional_ind.fitness = objective_function(additional_ind)
 
-    additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
     if additional_inds and len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
 

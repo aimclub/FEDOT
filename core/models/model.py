@@ -1,3 +1,5 @@
+import numpy as np
+
 from core.models.data import (
     InputData,
 )
@@ -7,7 +9,6 @@ from core.models.evaluation.evaluation import AutoMLEvaluationStrategy, Evaluati
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesIdsEnum, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-import numpy as np
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -69,6 +70,10 @@ class Model:
         fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
+
+        if np.array([np.isnan(_) for _ in predict_train]).any():
+            predict_train = np.nan_to_num(predict_train)
+
         return fitted_model, predict_train
 
     def predict(self, fitted_model, data: InputData):
