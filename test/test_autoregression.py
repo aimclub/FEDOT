@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from sklearn.metrics import mean_squared_error as mse
 from statsmodels.tsa.arima_process import ArmaProcess
 
@@ -50,7 +49,6 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
     return rmse_value_train, rmse_value_test
 
 
-@pytest.mark.skip(reason="implementation should be changed")
 def test_autoregression_chain_fit_correct():
     data = get_synthetic_ts_data()
 

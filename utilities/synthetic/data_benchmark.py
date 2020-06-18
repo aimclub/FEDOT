@@ -4,7 +4,6 @@ import numpy as np
 
 from core.composer.chain import Chain
 from core.models.data import InputData
-from core.models.preprocessing import Normalization
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
 from utilities.synthetic.chain import separately_fit_chain
@@ -51,15 +50,16 @@ def synthetic_benchmark_dataset(samples_amount: int, features_amount: int,
     samples_idxs = np.arange(0, samples_amount)
 
     train = InputData(idx=samples_idxs,
-                      features=features, target=target, task=task)
+                      features=features, target=target, task=task,
+                      data_type=DataTypesEnum.table)
 
     synth_target = fitted_chain.predict(input_data=train).predict
     synth_labels = _to_labels(synth_target)
     data_synth_train = InputData(idx=np.arange(0, samples_amount),
-                                 features=features, target=synth_labels, task=task)
+                                 features=features, target=synth_labels, task=task,
+                                 data_type=DataTypesEnum.table)
 
-    ## TODO: fix preproc issues
-    # preprocessing_for_tasks[MachineLearningTasksEnum.classification] = Normalization
+    # TODO: fix preproc issues
 
     fitted_chain.fit_from_scratch(input_data=data_synth_train)
 
