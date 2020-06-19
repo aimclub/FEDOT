@@ -1,6 +1,8 @@
 import numpy as np
+
 from core.repository.model_types_repository import ModelTypesIdsEnum
 
+# the parameters ranges are partially derived from https://github.com/EpistasisLab/tpot
 params_range_by_model = {
     ModelTypesIdsEnum.kmeans: {'n_clusters': list(range(2, 5))},
     ModelTypesIdsEnum.knn: {
@@ -31,7 +33,7 @@ params_range_by_model = {
         'min_child_weight': range(1, 21),
         'objective': ['reg:squarederror']
     },
-    ModelTypesIdsEnum.rfreg: {
+    ModelTypesIdsEnum.rfr: {
         'n_estimators': [100],
         'max_features': np.arange(0.05, 1.01, 0.05),
         'min_samples_split': range(2, 21),

@@ -1,27 +1,29 @@
 import datetime
 import random
 
+import numpy as np
+
+from benchmark.benchmark_utils import get_models_hyperparameters
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
-from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
     ModelTypesRepository
 )
-from core.repository.quality_metrics_repository import MetricsRepository
-from core.repository.quality_metrics_repository import RegressionMetricsEnum
-from core.repository.task_types import MachineLearningTasksEnum
-from benchmark.benchmark_utils import get_models_hyperparameters
+from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)
 np.random.seed(1)
 
 
 def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int = 10, vis_flag: bool = False):
-    problem_class = MachineLearningTasksEnum.regression
-    dataset_to_compose = InputData.from_csv(train_file_path, task_type=problem_class)
-    dataset_to_validate = InputData.from_csv(test_file_path, task_type=problem_class)
+    task = Task(TaskTypesEnum.regression)
+    dataset_to_compose = InputData.from_csv(train_file_path, task=task)
+    dataset_to_validate = InputData.from_csv(test_file_path, task=task)
+
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     generations = models_hyperparameters['GENERATIONS']
     population_size = models_hyperparameters['POPULATION_SIZE']
@@ -29,9 +31,8 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=problem_class,
+        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
+                                               task_type=task.task_type,
                                                can_be_initial=True,
                                                can_be_secondary=True))
 
@@ -60,6 +61,7 @@ def run_regression_problem(train_file_path, test_file_path, cur_lead_time: int =
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function, is_visualise=vis_flag)
+    chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose, iterations=50)
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=False)
 
     # the single-model variant of optimal chain

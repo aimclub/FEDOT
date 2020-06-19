@@ -1,11 +1,11 @@
 import numpy as np
 
 from core.composer.chain import Chain
-from core.composer.composer import DummyComposer, DummyChainTypeEnum, ComposerRequirements
+from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from test.test_split_train_test import get_synthetic_input_data, get_roc_auc_value
+from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from test.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
 
 
 def compose_chain(data: InputData) -> Chain:
@@ -24,7 +24,7 @@ def compose_chain(data: InputData) -> Chain:
 
 def test_chain_with_clusters_fit_correct():
     mean_roc_on_test = 0
-    for _ in range(15):
+    for _ in range(5):
         # mean ROC AUC analysed because of stochastic clustering
 
         data = get_synthetic_input_data(n_samples=10000)

@@ -1,10 +1,11 @@
 import autokeras as ak
-from benchmark.benchmark_utils import get_scoring_case_data_paths, get_models_hyperparameters
+
+from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths
 from core.models.data import InputData
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
-def run_autokeras(train_file_path: str, test_file_path: str, task: MachineLearningTasksEnum,
+def run_autokeras(train_file_path: str, test_file_path: str, task: TaskTypesEnum,
                   case_name: str = 'default'):
     config_data = get_models_hyperparameters()['autokeras']
     max_trial = config_data['MAX_TRIAL']
@@ -15,7 +16,7 @@ def run_autokeras(train_file_path: str, test_file_path: str, task: MachineLearni
 
     # TODO Save model to file
 
-    if task is MachineLearningTasksEnum.classification:
+    if task is TaskTypesEnum.classification:
         estimator = ak.StructuredDataClassifier
     else:
         estimator = ak.StructuredDataRegressor
@@ -32,4 +33,4 @@ def run_autokeras(train_file_path: str, test_file_path: str, task: MachineLearni
 if __name__ == '__main__':
     train_file, test_file = get_scoring_case_data_paths()
 
-    run_autokeras(train_file, test_file, task=MachineLearningTasksEnum.classification)
+    run_autokeras(train_file, test_file, task=TaskTypesEnum.classification)

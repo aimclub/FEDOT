@@ -12,7 +12,7 @@ from core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
-
+from copy import deepcopy
 
 @dataclass
 class GPChainOptimiserParameters:
@@ -56,7 +56,7 @@ class GPChainOptimiser:
             raise AttributeError(f'Object chain_class has no required attributes for gp_optimizer')
 
         if initial_chain and type(initial_chain) != list:
-            self.population = [initial_chain] * requirements.pop_size
+            self.population = [deepcopy(initial_chain) for _ in range(requirements.pop_size)]
         else:
             self.population = initial_chain or self._make_population(self.requirements.pop_size)
 

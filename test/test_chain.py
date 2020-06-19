@@ -10,9 +10,10 @@ from sklearn.datasets import load_iris
 from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
-
+from core.repository.tasks import Task, TaskTypesEnum
+from core.utils import probs_to_labels
 seed(1)
 np.random.seed(1)
 
@@ -25,14 +26,15 @@ def data_setup():
     predictors = predictors[:100]
     response = response[:100]
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task_type=MachineLearningTasksEnum.classification)
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
     return data
 
 
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/test_dataset.csv'
+    file = 'data/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)
@@ -127,6 +129,26 @@ def test_chain_sequential_fit_correct(data_setup):
     assert chain.depth == 4
     assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.cache.actual_cached_state is not None
+
+
+def test_chain_with_datamodel_fit_correct(data_setup):
+    data = data_setup
+    train_data, test_data = train_test_data_setup(data)
+
+    chain = Chain()
+    node_data = NodeGenerator.primary_node(ModelTypesIdsEnum.direct_datamodel)
+    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.bernb)
+    node_second = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_second.nodes_from = [node_first, node_data]
+
+    chain.add_node(node_data)
+    chain.add_node(node_first)
+    chain.add_node(node_second)
+
+    chain.fit(train_data)
+    results = np.asarray(probs_to_labels(chain.predict(test_data).predict))
+
+    assert results.shape == test_data.target.shape
 
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):

@@ -81,11 +81,12 @@ class SklearnCustomRandomTuner(Tuner):
              cross_val_fold_num: int,
              scorer: Union[str, callable]) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
-            best_score = scorer(estimator=trained_model, X=tune_data.features,
-                                y_true=tune_data.target)
+            best_score = cross_val_score(trained_model, tune_data.features,
+                                         tune_data.target, scoring=scorer,
+                                         cv=cross_val_fold_num).mean()
             best_model = trained_model
             best_params = None
-            for i in range(iterations):
+            for _ in range(iterations):
                 params = {k: nprand_choice(v) for k, v in params_range.items()}
                 for param in params:
                     setattr(trained_model, param, params[param])
@@ -96,7 +97,6 @@ class SklearnCustomRandomTuner(Tuner):
                     best_params = params
                     best_model = trained_model
                     best_score = score
-
             return best_params, best_model
         except ValueError as ex:
             print(f'Unsuccessful fit because of {ex}')

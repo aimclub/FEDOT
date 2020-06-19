@@ -1,6 +1,8 @@
 from copy import deepcopy
-from random import randint, choice
-from typing import (Any, List, Tuple, Callable)
+from random import choice, randint
+from typing import (Any, Callable, List, Tuple)
+
+from core.composer.constraint import constraint_function
 
 
 def node_height(chain: Any, node: Any) -> int:
@@ -58,10 +60,13 @@ def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_f
                 node_parent.nodes_from.append(secondary_node)
                 chain_growth(chain, secondary_node)
 
-    chain = chain_class()
-    chain_root = secondary_node_func(model_type=choice(requirements.secondary))
-    chain.add_node(chain_root)
-    chain_growth(chain, chain_root)
+    is_correct_chain = False
+    while not is_correct_chain:
+        chain = chain_class()
+        chain_root = secondary_node_func(model_type=choice(requirements.secondary))
+        chain.add_node(chain_root)
+        chain_growth(chain, chain_root)
+        is_correct_chain = constraint_function(chain)
     return chain
 
 

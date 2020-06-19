@@ -3,14 +3,12 @@ from collections import namedtuple
 from copy import copy
 from typing import (List, Optional)
 
-from core.models.data import Data, OutputData
-from core.models.data import (
-    InputData,
-)
+from core.models.data import Data, InputData, OutputData
 from core.models.model import Model
 from core.models.preprocessing import *
+from core.models.transformation import transformation_function_for_data
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -55,15 +53,22 @@ class Node(ABC):
         model = f'{self.model}'
         return model
 
-    def _fit_using_cache(self, input_data, verbose=False):
+    def _fit_using_cache(self, input_data, with_preprocessing=True, verbose=False):
+
+        preprocessed_data = transformation_function_for_data \
+            (input_data_type=input_data.data_type,
+             required_data_type=self.model.metadata.input_types[0])(input_data)
 
         if not self.cache.actual_cached_state:
             if verbose:
                 print('Cache is not actual')
 
-            preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-            preprocessed_data = copy(input_data)
-            preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+            if with_preprocessing:
+                preprocessing_strategy = _preprocessing_strategy(preprocessed_data.data_type, self.model)().fit(
+                    preprocessed_data.features)
+                preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+            else:
+                preprocessing_strategy = None
 
             cached_model, model_predict = self.model.fit(data=preprocessed_data)
             self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
@@ -72,9 +77,9 @@ class Node(ABC):
             if verbose:
                 print('Model were obtained from cache')
 
-            preprocessing_strategy = self.cache.actual_cached_state.preprocessor
-            preprocessed_data = copy(input_data)
-            preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+            if with_preprocessing:
+                preprocessing_strategy = self.cache.actual_cached_state.preprocessor
+                preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
             model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
@@ -144,12 +149,17 @@ class NodeGenerator:
         return SecondaryNode(nodes_from=nodes_from, model_type=model_type)
 
 
-preprocessing_for_tasks = {
-    MachineLearningTasksEnum.auto_regression: DefaultStrategy,
-    MachineLearningTasksEnum.classification: Scaling,
-    MachineLearningTasksEnum.regression: Scaling,
-    MachineLearningTasksEnum.clustering: Scaling
-}
+def _preprocessing_strategy(dataset_type: DataTypesEnum, model: Model):
+    _preprocessing_for_tasks = {
+        DataTypesEnum.ts: DefaultStrategy,
+        DataTypesEnum.table: Scaling,
+        DataTypesEnum.ts_lagged_table: Scaling,
+        DataTypesEnum.ts_lagged_3d: LaggedTimeSeriesFeature3dStrategy,
+    }
+    if not model.metadata.without_preprocessing:
+        return _preprocessing_for_tasks[dataset_type]
+    else:
+        return DefaultStrategy
 
 
 class PrimaryNode(Node):
@@ -165,7 +175,8 @@ class PrimaryNode(Node):
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=model_predict, task_type=input_data.task_type)
+                          predict=model_predict, task=input_data.task,
+                          data_type=self.model.output_datatype(input_data.data_type))
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
@@ -173,18 +184,24 @@ class PrimaryNode(Node):
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        preprocessed_data = copy(input_data)
+        preprocessed_data = transformation_function_for_data(input_data.data_type,
+                                                             self.model.metadata.input_types[0])(input_data)
+
         preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
 
         predict_train = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                            data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
-                          predict=predict_train, task_type=input_data.task_type)
+                          predict=predict_train, task=input_data.task,
+                          data_type=self.model.output_datatype(input_data.data_type))
 
     def fine_tune(self, input_data: InputData, iterations: int = 30):
-        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(input_data.features)
-        preprocessed_data = copy(input_data)
+        preprocessed_data = transformation_function_for_data(input_data.data_type,
+                                                             self.model.metadata.input_types[0])(input_data)
+
+        preprocessing_strategy = _preprocessing_strategy(preprocessed_data.data_type, self.model)().fit(
+            preprocessed_data.features)
         preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
         fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
@@ -210,21 +227,34 @@ class SecondaryNode(Node):
 
         if verbose:
             print(f'Fit all parent nodes in secondary node with model: {self.model}')
-        for parent in self._nodes_from_with_fixed_order():
-            parent_results.append(parent.fit(input_data=input_data))
 
         target = input_data.target
+        parent_nodes = self._nodes_from_with_fixed_order()
+        if any([parent_node.model.metadata.is_affects_target for parent_node in parent_nodes]):
+            if len(parent_nodes) == 1:
+                # is the previous model is the model that changes target
+                parent_result = parent_nodes[0].fit(input_data=input_data)
+                target = parent_result.predict
+                parent_results.append(parent_result)
+            else:
+                raise NotImplementedError()
+
+        else:
+            for parent in parent_nodes:
+                parent_results.append(parent.fit(input_data=input_data))
+
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
         if verbose:
             print(f'Trying to fit secondary node with model: {self.model}')
 
-        model_predict = self._fit_using_cache(input_data=secondary_input)
+        model_predict = self._fit_using_cache(input_data=secondary_input, with_preprocessing=False)
 
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=model_predict,
-                          task_type=input_data.task_type)
+                          task=input_data.task,
+                          data_type=self.model.output_datatype(input_data.data_type))
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if len(self.nodes_from) == 0:
@@ -241,15 +271,16 @@ class SecondaryNode(Node):
         if verbose:
             print(f'Obtain prediction in secondary node with model: {self.model}')
 
-        preprocessed_data = copy(secondary_input)
-        preprocessed_data.features = self.cache.actual_cached_state.preprocessor.apply(preprocessed_data.features)
+        preprocessed_data = transformation_function_for_data(input_data.data_type,
+                                                             self.model.metadata.input_types[0])(secondary_input)
 
         evaluation_result = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
                           predict=evaluation_result,
-                          task_type=input_data.task_type)
+                          data_type=self.model.output_datatype(input_data.data_type),
+                          task=input_data.task)
 
     def fine_tune(self, input_data: InputData, iterations: int = 30):
         parent_results = []
@@ -260,11 +291,9 @@ class SecondaryNode(Node):
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
 
-        preprocessing_strategy = preprocessing_for_tasks[input_data.task_type]().fit(secondary_input.features)
-        preprocessed_data = copy(secondary_input)
-        preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
+        preprocessed_data = transformation_function_for_data(input_data.data_type,
+                                                             self.model.metadata.input_types[0])(secondary_input)
 
         fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
-        self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
+        self.cache.append(CachedState(preprocessor=None,
                                       model=fitted_model))
-

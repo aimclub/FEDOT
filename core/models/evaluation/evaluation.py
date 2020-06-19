@@ -11,18 +11,19 @@ from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, GradientBoo
 from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
     LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
 from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN, KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC as SklearnSVC, LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
-
-from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_class, predict_tpot_reg
+from sklearn.calibration import CalibratedClassifierCV
 from core.models.data import InputData, OutputData
-from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
+from core.models.evaluation.automl_eval import fit_h2o, fit_tpot, predict_h2o, predict_tpot_class, predict_tpot_reg
 from core.models.evaluation.hyperparams import params_range_by_model
-from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, predict_ar, predict_arima
+from core.models.evaluation.lstm_eval import fit_lstm, predict_lstm
+from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, \
+    predict_ar, predict_arima
 from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.utils import labels_to_dummy_probs
@@ -31,14 +32,13 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-
     def fit(self, train_data: InputData):
         raise NotImplementedError()
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
         raise NotImplementedError()
 
 
@@ -55,10 +55,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.dtreg: DecisionTreeRegressor,
         ModelTypesIdsEnum.treg: ExtraTreesRegressor,
         ModelTypesIdsEnum.rf: RandomForestClassifier,
-        ModelTypesIdsEnum.rfreg: RandomForestRegressor,
+        ModelTypesIdsEnum.rfr: RandomForestRegressor,
         ModelTypesIdsEnum.mlp: MLPClassifier,
         ModelTypesIdsEnum.lda: LinearDiscriminantAnalysis,
         ModelTypesIdsEnum.qda: QuadraticDiscriminantAnalysis,
+        ModelTypesIdsEnum.bernb: SklearnBernoulliNB,
         ModelTypesIdsEnum.linear: SklearnLinReg,
         ModelTypesIdsEnum.ridge: SklearnRidgeReg,
         ModelTypesIdsEnum.lasso: SklearnLassoReg,
@@ -83,6 +84,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def fit(self, train_data: InputData):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         sklearn_model = self._sklearn_model_impl()
+
+        if type(sklearn_model) == SklearnSVC and train_data.num_classes > 2:
+            sklearn_model = CalibratedClassifierCV(sklearn_model, cv=10)
+
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 
@@ -93,7 +98,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                   iterations: int = 30):
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
-        metric = self.__metric_by_type.get(train_data.task_type.name, None)
+        metric = self.__metric_by_type.get(train_data.task.task_type.name, None)
         self._tune_func = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
@@ -107,8 +112,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                           scorer=metric)
 
         if best_model and tuned_params:
-            trained_model = best_model
             self.params_for_fit = tuned_params
+            trained_model = self._sklearn_model_impl(**tuned_params)
+            trained_model.fit(train_data.features, train_data.target.ravel())
+
         return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):
@@ -154,7 +161,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         return prediction
 
 
-class StatsModelsAutoRegressionStrategy(EvaluationStrategy):
+class StatsModelsForecastingStrategy(EvaluationStrategy):
     _model_functions_by_types = {
         ModelTypesIdsEnum.arima: (fit_arima, predict_arima),
         ModelTypesIdsEnum.ar: (fit_ar, predict_ar)
@@ -210,8 +217,9 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.h2o: (fit_h2o, predict_h2o)
     }
 
-    def __init__(self, model_type: BenchmarkModelTypesEnum):
+    def __init__(self, model_type: ModelTypesIdsEnum):
         self._model_specific_fit, self._model_specific_predict = self._init_benchmark_model_functions(model_type)
+        self.max_time_min = 5
 
     def _init_benchmark_model_functions(self, model_type):
         if model_type in self._model_functions_by_type.keys():
@@ -220,13 +228,13 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
 
     def fit(self, train_data: InputData):
-        benchmark_model = self._model_specific_fit(train_data)
+        benchmark_model = self._model_specific_fit(train_data, self.max_time_min)
         return benchmark_model
 
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
         raise NotImplementedError()
 
 
@@ -235,3 +243,25 @@ class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
         ModelTypesIdsEnum.tpot: (fit_tpot, predict_tpot_reg),
         ModelTypesIdsEnum.h2o: (fit_h2o, predict_h2o)
     }
+
+
+# TODO inherit this and similar from custom strategy
+class KerasForecastingStrategy(EvaluationStrategy):
+
+    def __init__(self, model_type: ModelTypesIdsEnum):
+        self._init_lstm_model_functions(model_type)
+        self.epochs = 10
+
+    def _init_lstm_model_functions(self, model_type):
+        if model_type != ModelTypesIdsEnum.lstm:
+            raise ValueError(f'Impossible to obtain forecasting strategy for {model_type}')
+
+    def fit(self, train_data: InputData):
+        model = fit_lstm(train_data, epochs=self.epochs)
+        return model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return predict_lstm(trained_model, predict_data)
+
+    def tune(self, model, data_for_tune):
+        raise NotImplementedError()

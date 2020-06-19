@@ -1,9 +1,8 @@
 from copy import deepcopy
 from enum import Enum
-from typing import (Optional,
-                    List,
-                    Any,
-                    Callable)
+from typing import (Any, Callable, List, Optional)
+
+from core.composer.constraint import constraint_function
 
 
 class RegularizationTypesEnum(Enum):
@@ -34,6 +33,8 @@ def decremental_regularization(population: List[Any], objective_function: Callab
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
+
+    additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
 
     for additional_ind in additional_inds:
         additional_ind.fitness = objective_function(additional_ind)

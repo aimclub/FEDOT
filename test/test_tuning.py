@@ -2,22 +2,21 @@ import os
 
 import numpy as np
 import pytest
-from sklearn.metrics import mean_squared_error as mse
-from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc_auc
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.models.preprocessing import Scaling
+from core.models.tuners import get_random_params
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from test.test_autoregression import get_synthetic_ts_data
-from core.models.tuners import get_random_params
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/scoring_train_cat.csv'
+    file = 'data/advanced_classification.csv'
     return InputData.from_csv(os.path.join(test_file_path, file))
 
 
@@ -49,7 +48,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
 
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
                                 y_score=test_predicted_tuned)
-    roc_threshold = 0.7
+    roc_threshold = 0.6
     assert roc_on_test_tuned > roc_on_test > roc_threshold
 
 
@@ -119,7 +118,7 @@ def test_scoring_logreg_tune_correct(data_fixture, request):
 
     roc_threshold = 0.6
 
-    assert test_roc_auc_tuned >= test_roc_auc > roc_threshold
+    assert round(test_roc_auc_tuned, 2) >= round(test_roc_auc, 2) > roc_threshold
 
 
 def test_get_random_params_constant_length():

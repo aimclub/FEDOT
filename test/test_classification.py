@@ -5,20 +5,18 @@ from core.composer.chain import Chain
 from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import *
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import TaskTypesEnum
 
 
 def compose_chain() -> Chain:
     chain = Chain()
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.xgboost)
+    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.svc)
     node_second = NodeGenerator.primary_node(ModelTypesIdsEnum.lda)
     node_third = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)
 
-    chain.add_node(node_first)
-    chain.add_node(node_second)
     chain.add_node(node_third)
 
     return chain
@@ -29,7 +27,8 @@ def get_iris_data() -> InputData:
     input_data = InputData(idx=np.arange(0, len(synthetic_data.target)),
                            features=synthetic_data.data,
                            target=synthetic_data.target,
-                           task_type=MachineLearningTasksEnum.classification)
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
     return input_data
 
 

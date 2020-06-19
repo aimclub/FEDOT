@@ -3,12 +3,13 @@ import pytest
 
 from core.models.data import InputData
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 from utilities.synthetic.chain import (
     chain_with_random_links,
     chain_full_random,
     chain_balanced_tree
 )
+from core.repository.dataset_types import DataTypesEnum
 
 
 # TODO: get rid of duplicated code
@@ -22,7 +23,8 @@ def classification_dataset():
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
     data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
-                     task_type=MachineLearningTasksEnum.classification)
+                     data_type=DataTypesEnum.table,
+                     task=Task(TaskTypesEnum.classification))
 
     return data
 
