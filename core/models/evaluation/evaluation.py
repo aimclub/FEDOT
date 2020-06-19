@@ -126,12 +126,7 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         n_classes = len(trained_model.classes_)
-        if type(trained_model) in self.__models_without_prob:
-            prediction = trained_model.predict(predict_data.features)
-            prediction = labels_to_dummy_probs(prediction)
-        else:
-            prediction = trained_model.predict_proba(predict_data.features)
-
+        prediction = trained_model.predict_proba(predict_data.features)
         if n_classes < 2:
             raise NotImplementedError()
         elif n_classes == 2:
