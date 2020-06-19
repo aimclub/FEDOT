@@ -5,19 +5,23 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from core.repository.task_types import TaskTypesEnum, MachineLearningTasksEnum
 from core.utils import ensure_features_2d
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 @dataclass
 class Data:
     idx: np.array
     features: np.array
-    task_type: TaskTypesEnum
+    task: Task
+    data_type: DataTypesEnum
 
     @staticmethod
-    def from_csv(file_path, delimiter=',', with_target=True,
-                 task_type: TaskTypesEnum = MachineLearningTasksEnum.classification):
+    def from_csv(file_path, delimiter=',',
+                 task: Task = Task(TaskTypesEnum.classification),
+                 data_type: DataTypesEnum = DataTypesEnum.table,
+                 with_target=True):
         data_frame = pd.read_csv(file_path, sep=delimiter)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
@@ -28,40 +32,38 @@ class Data:
         else:
             features = data_array[1:].T
             target = None
-        return InputData(idx=idx, features=features, target=target, task_type=task_type)
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
     @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
-        task_type = outputs[0].task_type
+        if len(set([output.data_type for output in outputs])) > 1:
+            raise ValueError('Inconsistent data types')
+        if len(set([output.task.task_type for output in outputs])) > 1:
+            raise ValueError('Inconsistent task types')
+
+        task = outputs[0].task
+        data_type = outputs[0].data_type
         idx = outputs[0].idx
-        features = list()
-        expected_len = len(outputs[0].predict)
-        for elem in outputs:
-            if len(elem.predict) != expected_len:
-                raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
-            features.append(elem.predict)
 
-        if len(outputs) >= 2:
-            for prediction in features:
-                if len(prediction.shape) >= 2:
-                    features_2d = np.concatenate(features, axis=1)
-                else:
-                    features_2d = np.concatenate([x.reshape(-1, 1) for x in features], axis=1)
-        else:
-            features_2d = np.array(features).T
+        dataset_merging_funcs = {
+            DataTypesEnum.ts: _combine_datasets_ts,
+            DataTypesEnum.table: _combine_datasets_table
+        }
+        dataset_merging_funcs.setdefault(data_type, _combine_datasets_common)
 
-        features_2d = ensure_features_2d(features_2d)
+        features = dataset_merging_funcs[data_type](outputs)
 
-        return InputData(idx=idx, features=features_2d, target=target, task_type=task_type)
+        return InputData(idx=idx, features=features, target=target, task=task,
+                         data_type=data_type)
 
 
 @dataclass
 class InputData(Data):
-    target: np.array
+    target: np.array = None
 
     @property
     def num_classes(self):
-        if self.task_type == MachineLearningTasksEnum.classification:
+        if self.task.task_type == TaskTypesEnum.classification:
             return len(np.unique(self.target))
         else:
             return None
@@ -69,7 +71,7 @@ class InputData(Data):
 
 @dataclass
 class OutputData(Data):
-    predict: np.array
+    predict: np.array = None
 
 
 def split_train_test(data, split_ratio=0.8, with_shuffle=False):
@@ -95,6 +97,57 @@ def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) 
     train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag)
     train_idx, test_idx = split_train_test(data.idx, split_ratio)
     train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=train_idx, task_type=data.task_type)
-    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task_type=data.task_type)
+                           idx=train_idx, task=data.task, data_type=data.data_type)
+    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task=data.task,
+                          data_type=data.data_type)
     return train_data, test_data
+
+
+def _combine_datasets_ts(outputs: List[OutputData]):
+    features = list()
+    expected_len = max([len(output.predict) for output in outputs])
+    for elem in outputs:
+        predict = elem.predict
+        if len(elem.predict) != expected_len:
+            predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
+        features.append(predict)
+
+    features = np.array(features).T
+
+    return features
+
+
+def _combine_datasets_table(outputs: List[OutputData]):
+    features = list()
+    expected_len = len(outputs[0].predict)
+    for elem in outputs:
+        if len(elem.predict) != expected_len:
+            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
+        if len(elem.predict.shape) == 1:
+            features.append(elem.predict)
+        else:
+            # if the model prediction is multivariate
+            number_of_variables_in_prediction = elem.predict.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                features.append(elem.predict[:, i])
+
+    features = np.array(features).T
+
+    return features
+
+
+def _combine_datasets_common(outputs: List[OutputData]):
+    features = list()
+
+    for elem in outputs:
+        if len(elem.predict) != len(outputs[0].predict):
+            raise NotImplementedError(f'Non-equal prediction length: '
+                                      f'{len(elem.predict)} and {len(outputs[0].predict)}')
+        if len(elem.predict.shape) == 1:
+            features.append(elem.predict)
+        else:
+            # if the model prediction is multivariate
+            number_of_variables_in_prediction = elem.predict.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                features.append(elem.predict[:, i])
+    return features

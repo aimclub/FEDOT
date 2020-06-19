@@ -1,16 +1,10 @@
-from copy import deepcopy, copy
-from typing import Optional, List
+from copy import copy, deepcopy
+from typing import List, Optional
 from uuid import uuid4
 
 import networkx as nx
 
-from core.composer.node import (
-    Node,
-    SecondaryNode,
-    PrimaryNode,
-    SharedCache,
-    FittedModelCache
-)
+from core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -62,11 +56,12 @@ class Chain:
             print('End tuning')
 
     def add_node(self, new_node: Node):
-        """
-        Append new node to chain list
-
-        """
-        self.nodes.append(new_node)
+        if new_node not in self.nodes:
+            self.nodes.append(new_node)
+            if new_node.nodes_from:
+                for new_parent_node in new_node.nodes_from:
+                    if new_parent_node not in self.nodes:
+                        self.add_node(new_parent_node)
 
     def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
         old_node_offspring = self.node_childs(old_node)

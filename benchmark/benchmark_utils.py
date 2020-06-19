@@ -1,11 +1,16 @@
-import os
 import gc
 import json
-from core.utils import project_root, split_data, save_file_to_csv, ensure_directory_exist, get_split_data_paths
-from typing import Tuple
+import os
+from glob import glob
+from typing import Tuple, Tuple
+
 import pandas as pd
 from pmlb import fetch_data
-from glob import glob
+from sklearn.model_selection import train_test_split
+
+from core.utils import ensure_directory_exists, get_split_data_paths, project_root, project_root, save_file_to_csv, \
+    split_data
+
 
 def get_scoring_case_data_paths() -> Tuple[str, str]:
     train_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_train.csv')
@@ -29,14 +34,14 @@ def get_penn_case_data_paths(name_of_dataset: str) -> Tuple[str, str]:
     df = fetch_data(name_of_dataset)
     directory_names = ['benchmark', 'data', name_of_dataset]
     penn_train, penn_test = split_data(df)
-    ensure_directory_exist(directory_names)
+    ensure_directory_exists(directory_names)
     full_train_file_path, full_test_file_path = get_split_data_paths(directory_names)
     save_file_to_csv(penn_train, full_train_file_path)
     save_file_to_csv(penn_test, full_test_file_path)
     return full_train_file_path, full_test_file_path
 
 
-def convert_json_to_csv(dataset: list, include_hyper: bool = True):
+def convert_json_stats_to_csv(dataset: list, include_hyper: bool = True):
     list_of_df = []
     new_col = []
     dataset_name_column_place = 1

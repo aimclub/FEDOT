@@ -1,16 +1,9 @@
 from unittest.mock import patch
 
-from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
-from core.repository.model_types_repository import (
-    ModelsGroup,
-    ModelType,
-    ModelMetaInfo,
-    ModelMetaInfoTemplate,
-    ModelTypesRepository,
-    ModelGroupsIdsEnum,
-    ModelTypesIdsEnum
-)
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.model_types_repository import (ModelGroupsIdsEnum, ModelMetaInfo, ModelMetaInfoTemplate, ModelType,
+                                                    ModelTypesIdsEnum, ModelTypesRepository, ModelsGroup)
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 def default_mocked_tree():
@@ -19,23 +12,23 @@ def default_mocked_tree():
     ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
 
     xgboost_meta = ModelMetaInfo(
-        input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-        output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-        task_type=[MachineLearningTasksEnum.classification,
-                   MachineLearningTasksEnum.regression])
+        input_types=[DataTypesEnum.table, DataTypesEnum.table],
+        output_types=[DataTypesEnum.table, DataTypesEnum.table],
+        task_type=[TaskTypesEnum.classification,
+                   TaskTypesEnum.regression])
 
     ModelType(ModelTypesIdsEnum.xgboost, xgboost_meta, parent=ml)
 
-    knn_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table],
-                             output_type=[CategoricalDataTypesEnum.vector],
-                             task_type=[MachineLearningTasksEnum.classification])
+    knn_meta = ModelMetaInfo(input_types=[DataTypesEnum.table],
+                             output_types=[DataTypesEnum.table],
+                             task_type=[TaskTypesEnum.classification])
 
     ModelType(ModelTypesIdsEnum.knn, knn_meta, parent=ml)
 
     logit_meta = ModelMetaInfo(
-        input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-        output_type=[CategoricalDataTypesEnum.vector],
-        task_type=[MachineLearningTasksEnum.classification])
+        input_types=[DataTypesEnum.table, DataTypesEnum.table],
+        output_types=[DataTypesEnum.table],
+        task_type=[TaskTypesEnum.classification])
 
     ModelType(ModelTypesIdsEnum.logit, logit_meta, parent=ml)
 
@@ -49,7 +42,7 @@ def test_search_in_repository_by_id_and_metainfo_correct(mock_init_tree):
 
     model_names, _ = repo.search_models(
         desired_ids=[ModelGroupsIdsEnum.ml], desired_metainfo=ModelMetaInfoTemplate(
-            task_type=MachineLearningTasksEnum.regression))
+            task_type=TaskTypesEnum.regression))
 
     assert ModelTypesIdsEnum.xgboost in model_names
     assert len(model_names) == 1
@@ -73,9 +66,9 @@ def test_search_in_repository_by_metainfo_correct(mock_init_tree):
     repo = ModelTypesRepository()
 
     model_names, _ = repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=MachineLearningTasksEnum.classification))
+        desired_metainfo=ModelMetaInfoTemplate(input_types=DataTypesEnum.table,
+                                               output_types=DataTypesEnum.table,
+                                               task_type=TaskTypesEnum.classification))
 
     assert ModelTypesIdsEnum.knn in model_names
     assert len(model_names) == 3

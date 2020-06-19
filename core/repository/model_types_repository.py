@@ -1,13 +1,12 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
-from typing import (
-    List, Optional, Union, Tuple)
+from typing import (List, Optional, Tuple, Union)
 
 from anytree import Node, RenderTree, findall
 
-from core.repository.dataset_types import NumericalDataTypesEnum, DataTypesEnum, CategoricalDataTypesEnum
-from core.repository.task_types import MachineLearningTasksEnum, TaskTypesEnum
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import TaskTypesEnum
 
 
 class ModelTypesIdsEnum(Enum):
@@ -22,46 +21,62 @@ class ModelTypesIdsEnum(Enum):
     dt = 'decisiontree'
     dtreg = 'decisiontreeregressor'
     treg = 'treeregressor'
-    rf = 'randomforest'
-    rfreg = 'randomforestregressor'
-    svc = 'linearsvc'
+    rf = 'randomforest',
+    svc = 'linearsvc',
     svr = 'linearsvr'
-    mlp = 'mlp'
-    lda = 'lda'
-    qda = 'qda'
-    ar = 'ar'
-    arima = 'arima'
-    linear = 'linear'
-    ridge = 'ridge'
-    lasso = 'lasso'
+    rfr = 'randomforestregressor',
+    mlp = 'mlp',
+    lda = 'lda',
+    qda = 'qda',
+    ar = 'ar',
+    bernb = 'bernoullinb'
+    arima = 'arima',
+    lstm = 'lstm'
+    linear = 'linear',
+    ridge = 'ridge',
+    lasso = 'lasso',
     elactic = 'elastic'
     kmeans = 'kmeans'
     tpot = 'tpot'
     h2o = 'h2o'
+    direct_datamodel = 'data_model',  # a pseudo_model that allow injecting raw input data to the secondary nodes,
+    diff_data_model = 'diff_data_model',  # model for scale-based decomposition
+    additive_data_model = 'additive_model',
+    trend_data_model = 'trend_data_model',
+    residual_data_model = 'residual_data_model'
 
 
 class ModelGroupsIdsEnum(Enum):
     ml = 'ML_models'
+    data_models = 'data_models'
+    decomposition_data_models = 'decomposition_data_models'
+    composition_data_models = 'composition_data_models'
+
     stat = 'Stat_models'
+    keras = 'Keras_models'
     all = 'Models'
 
 
 @dataclass
 class ModelMetaInfo:
-    input_type: List[DataTypesEnum]
-    output_type: List[DataTypesEnum]
+    input_types: List[DataTypesEnum]
+    output_types: List[DataTypesEnum]
     task_type: List[TaskTypesEnum]
     can_be_initial: bool = True
     can_be_secondary: bool = True
+    is_affects_target: bool = False
+    without_preprocessing: bool = False
 
 
 @dataclass
 class ModelMetaInfoTemplate:
-    input_type: DataTypesEnum = None
-    output_type: DataTypesEnum = None
+    input_types: [DataTypesEnum] = None
+    output_types: [DataTypesEnum] = None
     task_type: Union[List[TaskTypesEnum], TaskTypesEnum] = None
     can_be_initial: bool = None
     can_be_secondary: bool = None
+    is_affects_target: bool = None
+    without_preprocessing: bool = None
 
     @staticmethod
     def _is_field_suitable(candidate_field, template_field) -> bool:
@@ -108,9 +123,15 @@ class ModelTypesRepository:
 
         ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
         stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
+        keras = ModelsGroup(ModelGroupsIdsEnum.keras, parent=root)
+        data_models = ModelsGroup(ModelGroupsIdsEnum.data_models, parent=root)
+        decomposition_data_models = ModelsGroup(ModelGroupsIdsEnum.decomposition_data_models, parent=data_models)
+        composition_data_models = ModelsGroup(ModelGroupsIdsEnum.data_models.composition_data_models,
+                                              parent=data_models)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
-                                      task_type=[MachineLearningTasksEnum.auto_regression],
+                                      task_type=[TaskTypesEnum.ts_forecasting],
+                                      input_types=[DataTypesEnum.ts],
                                       parent=stat)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
@@ -122,10 +143,12 @@ class ModelTypesRepository:
                                               ModelTypesIdsEnum.knnreg,
                                               ModelTypesIdsEnum.dtreg,
                                               ModelTypesIdsEnum.treg,
-                                              ModelTypesIdsEnum.rfreg,
+                                              ModelTypesIdsEnum.rfr,
                                               ModelTypesIdsEnum.svr,
                                               ModelTypesIdsEnum.sgdr],
-                                      task_type=[MachineLearningTasksEnum.regression],
+                                      task_type=[TaskTypesEnum.regression],
+                                      input_types=[DataTypesEnum.table, DataTypesEnum.table.ts_lagged_table],
+                                      output_types=[DataTypesEnum.table, DataTypesEnum.table.ts],
                                       parent=ml)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.rf,
@@ -136,28 +159,67 @@ class ModelTypesRepository:
                                               ModelTypesIdsEnum.logit,
                                               ModelTypesIdsEnum.knn,
                                               ModelTypesIdsEnum.xgboost,
-                                              ModelTypesIdsEnum.svc],
-                                      task_type=[MachineLearningTasksEnum.classification],
+                                              ModelTypesIdsEnum.svc,
+                                              ModelTypesIdsEnum.bernb],
+                                      task_type=[TaskTypesEnum.classification],
+                                      input_types=[DataTypesEnum.table],
+                                      output_types=[DataTypesEnum.table],
                                       parent=ml)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
-                                      task_type=[MachineLearningTasksEnum.classification],
+                                      task_type=[TaskTypesEnum.classification],
                                       parent=ml, is_initial=False, is_secondary=False)
 
         self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
-                                      task_type=[MachineLearningTasksEnum.clustering],
+                                      task_type=[TaskTypesEnum.clustering],
                                       parent=stat)
 
+        common_meta = ModelMetaInfo(input_types=[DataTypesEnum.table],
+                                    output_types=[DataTypesEnum.table],
+                                    task_type=[], can_be_initial=True)
+
+        group_meta = deepcopy(common_meta)
+        group_meta.input_types = [DataTypesEnum.table, DataTypesEnum.ts, DataTypesEnum.ts_lagged_table]
+        group_meta.output_types = [DataTypesEnum.table, DataTypesEnum.ts, DataTypesEnum.ts_lagged_table]
+        group_meta.task_type = [TaskTypesEnum.classification,
+                                TaskTypesEnum.regression,
+                                TaskTypesEnum.ts_forecasting]
+        group_meta.without_preprocessing = True
+        group_meta.can_be_initial = False
+        ModelType(ModelTypesIdsEnum.direct_datamodel, deepcopy(group_meta), parent=data_models)
+
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = [TaskTypesEnum.ts_forecasting]
+        group_meta.input_types = [DataTypesEnum.ts]
+        group_meta.output_types = [DataTypesEnum.ts]
+        group_meta.is_affects_target = True
+        group_meta.without_preprocessing = True
+        ModelType(ModelTypesIdsEnum.additive_data_model, deepcopy(group_meta), parent=composition_data_models)
+        ModelType(ModelTypesIdsEnum.trend_data_model, deepcopy(group_meta), parent=decomposition_data_models)
+        ModelType(ModelTypesIdsEnum.residual_data_model, deepcopy(group_meta), parent=decomposition_data_models)
+
+        group_meta = deepcopy(common_meta)
+        group_meta.task_type = [TaskTypesEnum.ts_forecasting]
+        group_meta.input_types = [DataTypesEnum.ts_lagged_3d]
+        group_meta.output_types = [DataTypesEnum.ts]
+        ModelType(ModelTypesIdsEnum.lstm, deepcopy(group_meta), parent=keras)
 
         return root
 
+    # TODO refactor
     def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
-                                 task_type: List[MachineLearningTasksEnum],
-                                 parent: ModelsGroup, is_initial=True, is_secondary=True):
+                                 task_type: List[TaskTypesEnum],
+                                 parent: ModelsGroup, is_initial=True, is_secondary=True,
+                                 output_types=None, input_types=None):
+        if not output_types:
+            output_types = [DataTypesEnum.table]
+        if not input_types:
+            input_types = [DataTypesEnum.table]
+        common_meta = ModelMetaInfo(input_types=input_types,
+                                    output_types=output_types,
+                                    task_type=[], can_be_initial=is_initial, can_be_secondary=is_secondary,
+                                    is_affects_target=False)
 
-        common_meta = ModelMetaInfo(input_type=[NumericalDataTypesEnum.table, CategoricalDataTypesEnum.table],
-                                    output_type=[NumericalDataTypesEnum.vector, CategoricalDataTypesEnum.vector],
-                                    task_type=[], can_be_initial=is_initial, can_be_secondary=is_secondary)
         group_meta = deepcopy(common_meta)
         group_meta.task_type = task_type
 

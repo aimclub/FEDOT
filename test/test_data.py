@@ -4,13 +4,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from core.models.data import Data, OutputData, InputData
-from core.repository.task_types import MachineLearningTasksEnum
+from core.models.data import Data, InputData, OutputData
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 @pytest.fixture()
 def output_dataset():
-    task_type = MachineLearningTasksEnum.classification
+    task = Task(TaskTypesEnum.classification)
+
     samples = 1000
     x = 10.0 * np.random.rand(samples, ) - 5.0
     x = np.expand_dims(x, axis=1)
@@ -19,15 +21,15 @@ def output_dataset():
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
     data = OutputData(idx=np.arange(0, 100), features=x, predict=classes,
-                      task_type=task_type)
+                      task=task, data_type=DataTypesEnum.table)
 
     return data
 
 
 def test_data_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/test_dataset.csv'
-    task_type = MachineLearningTasksEnum.classification
+    file = 'data/simple_classification.csv'
+    task = Task(TaskTypesEnum.classification)
     df = pd.read_csv(os.path.join(test_file_path, file))
     data_array = np.array(df).T
     features = data_array[1:-1].T
@@ -35,7 +37,8 @@ def test_data_from_csv():
     idx = data_array[0]
     expected_features = InputData(features=features, target=target,
                                   idx=idx,
-                                  task_type=task_type).features.all()
+                                  task=task,
+                                  data_type=DataTypesEnum.table).features.all()
     actual_features = InputData.from_csv(
         os.path.join(test_file_path, file)).features.all()
     assert expected_features == actual_features
@@ -54,7 +57,7 @@ def test_data_from_predictions(output_dataset):
 
 def test_string_features_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/scoring_train_cat.csv'
+    file = 'data/classification_with_categorial.csv'
     expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
 
     assert expected_features.dtype == float

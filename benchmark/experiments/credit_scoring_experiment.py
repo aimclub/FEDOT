@@ -2,6 +2,7 @@ import datetime
 import random
 from typing import Optional
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
@@ -12,13 +13,13 @@ from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
 from core.models.model import *
-from core.repository.dataset_types import NumericalDataTypesEnum, CategoricalDataTypesEnum
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
     ModelTypesRepository
 )
-from core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)
 np.random.seed(1)
@@ -42,10 +43,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=[MachineLearningTasksEnum.classification,
-                                                          MachineLearningTasksEnum.clustering],
+        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
+                                               task_type=[TaskTypesEnum.classification,
+                                                          TaskTypesEnum.clustering],
                                                can_be_initial=True,
                                                can_be_secondary=True))
 

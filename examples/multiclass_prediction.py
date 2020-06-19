@@ -6,37 +6,34 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
-from core.repository.dataset_types import CategoricalDataTypesEnum, NumericalDataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.task_types import MachineLearningTasksEnum
-from examples.utils import create_multi_clf_examples_from_excel
+from core.repository.tasks import TaskTypesEnum
 from core.utils import probs_to_labels
+from examples.utils import create_multi_clf_examples_from_excel
 
 random.seed(1)
 np.random.seed(1)
 
 
-def get_model(train_file_path: str, cur_lead_time: int = 10):
-    problem_class = MachineLearningTasksEnum.classification
+def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = datetime.timedelta(minutes=10)):
+    task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path)
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_type=NumericalDataTypesEnum.table,
-                                               output_type=CategoricalDataTypesEnum.vector,
-                                               task_type=problem_class,
+        desired_metainfo=ModelMetaInfoTemplate(task_type=task.task_type,
                                                can_be_secondary=True))
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
-        max_lead_time=datetime.timedelta(minutes=cur_lead_time))
+        max_lead_time=cur_lead_time)
 
     # Create GP-based composer
     composer = GPComposer()

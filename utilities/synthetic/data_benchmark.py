@@ -3,10 +3,9 @@ from typing import Dict
 import numpy as np
 
 from core.composer.chain import Chain
-from core.composer.node import preprocessing_for_tasks
 from core.models.data import InputData
-from core.models.preprocessing import Normalization
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
 from utilities.synthetic.chain import separately_fit_chain
 from utilities.synthetic.data import classification_dataset
 
@@ -47,19 +46,20 @@ def synthetic_benchmark_dataset(samples_amount: int, features_amount: int,
                                               features_options=features_options)
     target = np.expand_dims(target, axis=1)
 
-    task_type = MachineLearningTasksEnum.classification
+    task = Task(TaskTypesEnum.classification)
     samples_idxs = np.arange(0, samples_amount)
 
     train = InputData(idx=samples_idxs,
-                      features=features, target=target, task_type=task_type)
+                      features=features, target=target, task=task,
+                      data_type=DataTypesEnum.table)
 
     synth_target = fitted_chain.predict(input_data=train).predict
     synth_labels = _to_labels(synth_target)
     data_synth_train = InputData(idx=np.arange(0, samples_amount),
-                                 features=features, target=synth_labels, task_type=task_type)
+                                 features=features, target=synth_labels, task=task,
+                                 data_type=DataTypesEnum.table)
 
     # TODO: fix preproc issues
-    preprocessing_for_tasks[MachineLearningTasksEnum.classification] = Normalization
 
     fitted_chain.fit_from_scratch(input_data=data_synth_train)
 
@@ -69,11 +69,14 @@ def synthetic_benchmark_dataset(samples_amount: int, features_amount: int,
                                               features_options=features_options)
     target = np.expand_dims(target, axis=1)
     test = InputData(idx=samples_idxs,
-                     features=features, target=target, task_type=task_type)
+                     features=features, target=target,
+                     data_type=DataTypesEnum.table, task=task)
     synth_target = fitted_chain.predict(input_data=test).predict
     synth_labels = _to_labels(synth_target)
     data_synth_final = InputData(idx=samples_idxs,
-                                 features=features, target=synth_labels, task_type=task_type)
+                                 features=features,
+                                 data_type=DataTypesEnum.table,
+                                 target=synth_labels, task=task)
 
     return data_synth_final
 

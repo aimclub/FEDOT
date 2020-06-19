@@ -4,13 +4,14 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from core.composer.node import PrimaryNode, NodeGenerator
+from core.composer.node import NodeGenerator, PrimaryNode
 from core.models.data import (
     InputData,
     train_test_data_setup)
 from core.models.model import Model
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.task_types import MachineLearningTasksEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 @pytest.fixture()
@@ -22,7 +23,7 @@ def data_setup() -> InputData:
     predictors = predictors[:100]
     response = response[:100]
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task_type=MachineLearningTasksEnum.classification)
+                     task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
     return data
 
 
