@@ -17,7 +17,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC as SklearnSVC, LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
-
+from sklearn.calibration import CalibratedClassifierCV
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, fit_tpot, predict_h2o, predict_tpot_class, predict_tpot_reg
 from core.models.evaluation.hyperparams import params_range_by_model
@@ -84,6 +84,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def fit(self, train_data: InputData):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         sklearn_model = self._sklearn_model_impl()
+
+        if type(sklearn_model) == SklearnSVC and train_data.num_classes > 2:
+            sklearn_model = CalibratedClassifierCV(sklearn_model, cv=10)
+
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 

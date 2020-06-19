@@ -10,7 +10,7 @@ from core.repository.tasks import TaskTypesEnum
 
 def compose_chain() -> Chain:
     chain = Chain()
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.xgboost)
+    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.svc)
     node_second = NodeGenerator.primary_node(ModelTypesIdsEnum.lda)
     node_third = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
 
