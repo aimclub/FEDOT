@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
 from pmlb import classification_dataset_names, fetch_data, regression_dataset_names
 from pmlb.write_metadata import imbalance_metrics
@@ -9,6 +9,16 @@ from benchmark.benchmark_utils import convert_json_stats_to_csv, get_models_hype
     save_metrics_result_file
 from benchmark.executor import CaseExecutor
 from core.repository.tasks import TaskTypesEnum
+
+
+def _problem_and_metric_for_dataset(name_of_dataset: str, num_classes: int):
+    if num_classes == 2 and name_of_dataset in classification_dataset_names:
+        return TaskTypesEnum.classification, ['roc_auc', 'f1']
+    elif name_of_dataset in regression_dataset_names:
+        return TaskTypesEnum.regression, ['mse', 'r2']
+    else:
+        return None, None
+
 
 if __name__ == '__main__':
     penn_data = Path('./datasets.csv')
@@ -25,13 +35,8 @@ if __name__ == '__main__':
     for name_of_dataset in dataset:
         pmlb_data = fetch_data(name_of_dataset)
         num_classes, _ = imbalance_metrics(pmlb_data['target'].tolist())
-        if num_classes == 2 and name_of_dataset in classification_dataset_names:
-            problem_class = TaskTypesEnum.classification
-            metric_name = ['roc_auc', 'f1']
-        elif name_of_dataset in regression_dataset_names:
-            problem_class = TaskTypesEnum.regression
-            metric_name = ['mse', 'r2']
-        else:
+        problem_class, metric_names = _problem_and_metric_for_dataset(name_of_dataset, num_classes)
+        if not problem_class or not metric_names:
             print('Incorrect dataset')
             continue
 
@@ -48,7 +53,7 @@ if __name__ == '__main__':
                                                   BenchmarkModelTypesEnum.fedot],
                                           target_name='target',
                                           case_label=case_name,
-                                          metric_list=metric_name).execute()
+                                          metric_list=metric_names).execute()
         except ValueError:
             print(f'problems_with_dataset_{name_of_dataset}')
             continue

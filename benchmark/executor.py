@@ -8,8 +8,8 @@ from benchmark.H2O.b_h2o import run_h2o
 from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.fedot.fedot_classification import run_classification_problem
-from benchmark.fedot.fedot_regression import run_regression_problem
+
+from benchmark.fedot.b_fedot import run_fedot_for_problem
 from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
 from core.repository.tasks import TaskTypesEnum, Task
@@ -81,24 +81,15 @@ class CaseExecutor:
         if BenchmarkModelTypesEnum.fedot in self.models:
             print('---------\nRUN FEDOT\n---------')
 
-            if self.task is TaskTypesEnum.classification:
-                fedot_problem_func = run_classification_problem
-            elif self.task is TaskTypesEnum.regression:
-                fedot_problem_func = run_regression_problem
-            else:
-                raise NotImplementedError()
-            single, static, evo_composed, target = fedot_problem_func(train_file_path=self.train_file,
-                                                                      test_file_path=self.test_file)
+            fedot_result = run_fedot_for_problem(train_file_path=self.train_file,
+                                                 test_file_path=self.test_file,
+                                                 case_name=self.case_label,
+                                                 task_type=self.task)
 
             result['fedot_metric'] = {'composed': calculate_metrics(self.metric_list,
-                                                                    target=target,
-                                                                    predicted=evo_composed),
-                                      'static': calculate_metrics(self.metric_list,
-                                                                  target=target,
-                                                                  predicted=static),
-                                      'single': calculate_metrics(self.metric_list,
-                                                                  target=target,
-                                                                  predicted=single)}
+                                                                    target=fedot_result[0],
+                                                                    predicted=fedot_result[1])}
+
         if BenchmarkModelTypesEnum.mlbox in self.models:
             print('---------\nRUN MLBOX\n---------')
             mlbox_result = run_mlbox(train_file_path=self.train_file,
