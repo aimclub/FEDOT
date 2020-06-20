@@ -1,11 +1,13 @@
 import datetime
 import random
+from datetime import timedelta
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
+from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
     ModelMetaInfoTemplate,
     ModelTypesRepository
@@ -19,14 +21,17 @@ random.seed(1)
 np.random.seed(1)
 
 
-def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = datetime.timedelta(minutes=10)):
-    task = Task(TaskTypesEnum.classification)
-    dataset_to_compose = InputData.from_csv(train_file_path)
+def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelta(seconds=60)):
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose = InputData.from_csv(train_file_path, task=task)
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+    # the search of the models provided by the framework
+    # that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
     available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(task_type=task.task_type,
+        desired_metainfo=ModelMetaInfoTemplate(input_types=DataTypesEnum.table,
+                                               output_types=DataTypesEnum.table,
+                                               task_type=task.task_type,
                                                can_be_secondary=True))
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
@@ -35,10 +40,11 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = datetime
         primary=available_model_types, secondary=available_model_types,
         max_lead_time=cur_lead_time)
 
-    # Create GP-based composer
+    # Create the genetic programming-based composer, that allow to find
+    # the optimal structure of the composite model
     composer = GPComposer()
 
-    # the optimal chain generation by composition - the most time-consuming task
+    # run the search of best suitable model
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
                                                 initial_chain=None,
                                                 composer_requirements=composer_requirements,
@@ -64,13 +70,13 @@ def validate_model_quality(model: Chain, data_path: str):
                                   y_score=predicted_labels,
                                   multi_class='ovo',
                                   average='macro'), 3)
-
     return roc_auc_valid
 
 
 if __name__ == '__main__':
     file_path_first = r'./data/example1.xlsx'
     file_path_second = r'./data/example2.xlsx'
+    file_path_third = r'./data/example3.xlsx'
 
     train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
     test_data = InputData.from_csv(test_file_path)
@@ -78,7 +84,10 @@ if __name__ == '__main__':
     fitted_model = get_model(train_file_path)
 
     roc_auc = validate_model_quality(fitted_model, test_file_path)
-    print(roc_auc)
+    print(f'ROC AUC metric is {roc_auc}')
 
-    final_prediction = apply_model_to_data(fitted_model, file_path_second)
-    print(final_prediction['forecast'])
+    final_prediction_first = apply_model_to_data(fitted_model, file_path_second)
+    print(final_prediction_first['forecast'])
+
+    final_prediction_second = apply_model_to_data(fitted_model, file_path_third)
+    print(final_prediction_second['forecast'])

@@ -14,10 +14,10 @@ from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN, KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
-from sklearn.svm import LinearSVC as SklearnSVC, LinearSVR as SklearnSVR
+from sklearn.svm import LinearSVR as SklearnSVR
+from core.models.evaluation.custom_models.models import CustomSVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
-
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, fit_tpot, predict_h2o, predict_tpot_class, predict_tpot_reg
 from core.models.evaluation.hyperparams import params_range_by_model
@@ -64,7 +64,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         ModelTypesIdsEnum.ridge: SklearnRidgeReg,
         ModelTypesIdsEnum.lasso: SklearnLassoReg,
         ModelTypesIdsEnum.kmeans: SklearnKmeans,
-        ModelTypesIdsEnum.svc: SklearnSVC,
+        ModelTypesIdsEnum.svc: CustomSVC,
         ModelTypesIdsEnum.svr: SklearnSVR,
         ModelTypesIdsEnum.sgdr: SklearnSGD,
 
@@ -122,16 +122,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
-    __models_without_prob = [SklearnSVC]
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         n_classes = len(trained_model.classes_)
-        if type(trained_model) in self.__models_without_prob:
-            prediction = trained_model.predict(predict_data.features)
-            prediction = labels_to_dummy_probs(prediction)
-        else:
-            prediction = trained_model.predict_proba(predict_data.features)
-
+        prediction = trained_model.predict_proba(predict_data.features)
         if n_classes < 2:
             raise NotImplementedError()
         elif n_classes == 2:
