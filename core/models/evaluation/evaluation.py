@@ -122,7 +122,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
-    __models_without_prob = [CustomSVC]
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         n_classes = len(trained_model.classes_)

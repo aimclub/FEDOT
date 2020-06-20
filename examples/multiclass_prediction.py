@@ -1,8 +1,8 @@
 import datetime
+from datetime import timedelta
 import random
 
 from sklearn.metrics import roc_auc_score as roc_auc
-
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.models.model import *
@@ -20,7 +20,7 @@ random.seed(1)
 np.random.seed(1)
 
 
-def get_model(train_file_path: str, cur_lead_time: int = 10):
+def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelta(seconds=60)):
     problem_class = TaskTypesEnum.classification
     dataset_to_compose = InputData.from_csv(train_file_path)
 
@@ -37,7 +37,7 @@ def get_model(train_file_path: str, cur_lead_time: int = 10):
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
-        max_lead_time=datetime.timedelta(minutes=cur_lead_time))
+        max_lead_time=cur_lead_time)
 
     # Create GP-based composer
     composer = GPComposer()

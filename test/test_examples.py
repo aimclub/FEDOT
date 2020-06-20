@@ -38,5 +38,5 @@ def test_multiclass_example():
     test_file_path = str(os.path.dirname(__file__))
     file_path_train = os.path.join(test_file_path, 'data/multiclass_classification.csv')
 
-    chain = get_model(file_path_train, cur_lead_time=1)
+    chain = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
     assert chain is not None
