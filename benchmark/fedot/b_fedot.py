@@ -2,7 +2,9 @@ import datetime
 import os
 import random
 from pickle import dump, load
+
 import numpy as np
+
 from benchmark.benchmark_utils import get_models_hyperparameters
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser

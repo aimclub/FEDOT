@@ -8,11 +8,10 @@ from benchmark.H2O.b_h2o import run_h2o
 from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-
 from benchmark.fedot.b_fedot import run_fedot_for_problem
 from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
-from core.repository.tasks import TaskTypesEnum, Task
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 def calculate_metrics(metric_list: list, target: list, predicted: list):
