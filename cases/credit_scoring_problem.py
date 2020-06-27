@@ -5,16 +5,17 @@ import random
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
+from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.composer import ComposerRequirements, DummyComposer, DummyChainTypeEnum
 from core.composer.visualisation import ComposerVisualiser
+from core.models.data import InputData
 from core.repository.model_types_repository import (
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import project_root
-from core.models.data import InputData
+
 random.seed(1)
 np.random.seed(1)
 
@@ -77,10 +78,11 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # the single-model variant of optimal chain
     single_composer_requirements = ComposerRequirements(primary=['xgboost'],
                                                         secondary=[])
-    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(data=dataset_to_compose,
-                                                                        initial_chain=None,
-                                                                        composer_requirements=single_composer_requirements,
-                                                                        metrics=metric_function)
+    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(
+        data=dataset_to_compose,
+        initial_chain=None,
+        composer_requirements=single_composer_requirements,
+        metrics=metric_function)
     chain_single.fit(input_data=dataset_to_compose, verbose=True)
     print("Composition finished")
 
