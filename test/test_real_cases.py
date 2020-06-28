@@ -7,10 +7,10 @@ import pytest
 
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
 from benchmark.benchmark_utils import get_cancer_case_data_paths
-from benchmark.executor import CaseExecutor
+from benchmark.executor import CaseExecutor, ExecutionParams
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
-from core.repository.tasks import Task, TaskTypesEnum
+from core.repository.tasks import TaskTypesEnum
 from core.utils import project_root
 
 random.seed(1)
@@ -45,11 +45,11 @@ def test_metocean_forecasting_scoring_problem():
 def test_benchmarks_executor():
     train_file, test_file = get_cancer_case_data_paths()
 
-    result_metrics = CaseExecutor(train_file=train_file,
-                                  test_file=test_file,
-                                  task=TaskTypesEnum.classification,
-                                  case_label='cancer',
-                                  target_name='target',
+    result_metrics = CaseExecutor(params=ExecutionParams(train_file=train_file,
+                                                         test_file=test_file,
+                                                         task=TaskTypesEnum.classification,
+                                                         case_label='cancer',
+                                                         target_name='target'),
                                   models=[BenchmarkModelTypesEnum.fedot,
                                           BenchmarkModelTypesEnum.baseline],
                                   metric_list=['roc_auc', 'f1']).execute()

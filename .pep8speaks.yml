@@ -1,0 +1,7 @@
+scanner:
+  diff_only: True
+  linter: pycodestyle
+
+pycodestyle:
+  max-line-length: 120  # Default is 79 in PEP 8
+

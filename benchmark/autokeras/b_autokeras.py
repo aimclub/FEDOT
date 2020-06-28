@@ -1,12 +1,15 @@
 import autokeras as ak
 
-from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths
+from benchmark.benchmark_utils import get_models_hyperparameters
 from core.models.data import InputData
-from core.repository.tasks import Task, TaskTypesEnum
+from core.repository.tasks import TaskTypesEnum
 
 
-def run_autokeras(train_file_path: str, test_file_path: str, task: TaskTypesEnum,
-                  case_name: str = 'default'):
+def run_autokeras(params: 'ExecutionParams'):
+    train_file_path = params.train_file
+    test_file_path = params.test_file
+    task = params.task
+
     config_data = get_models_hyperparameters()['autokeras']
     max_trial = config_data['MAX_TRIAL']
     epoch = config_data['EPOCH']
@@ -28,9 +31,3 @@ def run_autokeras(train_file_path: str, test_file_path: str, task: TaskTypesEnum
     predicted = model.predict(test_data.features)
 
     return test_data.target, predicted
-
-
-if __name__ == '__main__':
-    train_file, test_file = get_scoring_case_data_paths()
-
-    run_autokeras(train_file, test_file, task=TaskTypesEnum.classification)

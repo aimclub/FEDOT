@@ -8,11 +8,10 @@ from benchmark.H2O.b_h2o import run_h2o
 from benchmark.autokeras.b_autokeras import run_autokeras
 from benchmark.baseline.b_xgboost import run_xgboost
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.fedot.fedot_classification import run_classification_problem
-from benchmark.fedot.fedot_regression import run_regression_problem
+from benchmark.fedot.b_fedot import run_fedot
 from benchmark.mlbox.b_mlbox import run_mlbox
 from benchmark.tpot.b_tpot import run_tpot
-from core.repository.tasks import TaskTypesEnum, Task
+from core.repository.tasks import TaskTypesEnum
 
 
 def calculate_metrics(metric_list: list, target: list, predicted: list):
@@ -36,86 +35,42 @@ def calculate_metrics(metric_list: list, target: list, predicted: list):
 
 
 @dataclass
-class CaseExecutor:
+class ExecutionParams:
     train_file: str
     test_file: str
     case_label: str
     target_name: str
     task: TaskTypesEnum
+
+
+@dataclass
+class CaseExecutor:
     models: List[BenchmarkModelTypesEnum]
     metric_list: List[str]
+    params: ExecutionParams
+
+    _strategy_by_type = {
+        BenchmarkModelTypesEnum.tpot: run_tpot,
+        BenchmarkModelTypesEnum.h2o: run_h2o,
+        BenchmarkModelTypesEnum.autokeras: run_autokeras,
+        BenchmarkModelTypesEnum.mlbox: run_mlbox,
+        BenchmarkModelTypesEnum.fedot: run_fedot,
+        BenchmarkModelTypesEnum.baseline: run_xgboost
+    }
 
     def execute(self):
         print('START EXECUTION')
 
-        result = {'task': self.task.value}
+        result = {'task': self.params.task.value}
 
-        if BenchmarkModelTypesEnum.tpot in self.models:
-            print('---------\nRUN TPOT\n---------')
-            tpot_result = run_tpot(train_file_path=self.train_file,
-                                   test_file_path=self.test_file,
-                                   case_name=self.case_label,
-                                   task=Task(self.task))
+        strategies = {model_type: self._strategy_by_type[model_type] for
+                      model_type in self.models}
 
-            result['tpot_metric'] = calculate_metrics(self.metric_list,
-                                                      target=tpot_result[0],
-                                                      predicted=tpot_result[1])
-        if BenchmarkModelTypesEnum.h2o in self.models:
-            print('---------\nRUN H2O\n---------')
-            h2o_result = run_h2o(train_file_path=self.train_file,
-                                 test_file_path=self.test_file,
-                                 case_name=self.case_label,
-                                 task=self.task)
-            result['h2o_metric'] = calculate_metrics(self.metric_list,
-                                                     target=h2o_result[0],
-                                                     predicted=h2o_result[1])
-        if BenchmarkModelTypesEnum.autokeras in self.models:
-            print('---------\nRUN AUTOKERAS\n---------')
-            autokeras_result = run_autokeras(train_file_path=self.train_file,
-                                             test_file_path=self.test_file,
-                                             case_name=self.case_label,
-                                             task=self.task)
-            result['autokeras_metric'] = calculate_metrics(self.metric_list,
-                                                           target=autokeras_result[0],
-                                                           predicted=autokeras_result[1])
-        if BenchmarkModelTypesEnum.fedot in self.models:
-            print('---------\nRUN FEDOT\n---------')
-
-            if self.task is TaskTypesEnum.classification:
-                fedot_problem_func = run_classification_problem
-            elif self.task is TaskTypesEnum.regression:
-                fedot_problem_func = run_regression_problem
-            else:
-                raise NotImplementedError()
-            single, static, evo_composed, target = fedot_problem_func(train_file_path=self.train_file,
-                                                                      test_file_path=self.test_file)
-
-            result['fedot_metric'] = {'composed': calculate_metrics(self.metric_list,
+        for model_type, strategy_func in strategies.items():
+            print(f'---------\nRUN {model_type.name}\n---------')
+            target, predicted = strategy_func(self.params)
+            result[f'{model_type.name}_metric'] = calculate_metrics(self.metric_list,
                                                                     target=target,
-                                                                    predicted=evo_composed),
-                                      'static': calculate_metrics(self.metric_list,
-                                                                  target=target,
-                                                                  predicted=static),
-                                      'single': calculate_metrics(self.metric_list,
-                                                                  target=target,
-                                                                  predicted=single)}
-        if BenchmarkModelTypesEnum.mlbox in self.models:
-            print('---------\nRUN MLBOX\n---------')
-            mlbox_result = run_mlbox(train_file_path=self.train_file,
-                                     test_file_path=self.test_file,
-                                     target_name=self.target_name,
-                                     task=self.task)
-
-            result['mlbox_metric'] = calculate_metrics(self.metric_list,
-                                                       target=mlbox_result[0],
-                                                       predicted=mlbox_result[1])
-
-        if BenchmarkModelTypesEnum.baseline in self.models:
-            print('---------\nRUN BASELINE\n---------')
-            xgboost_result = run_xgboost(train_file_path=self.train_file, test_file_path=self.test_file,
-                                         target_name=self.target_name, task=self.task)
-            result['baseline_metric'] = calculate_metrics(self.metric_list,
-                                                          target=xgboost_result[0],
-                                                          predicted=xgboost_result[1])
+                                                                    predicted=predicted)
 
         return result

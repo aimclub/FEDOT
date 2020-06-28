@@ -1,9 +1,10 @@
 import os
 from copy import deepcopy
 from glob import glob, iglob
-from math import log2, ceil
+from math import ceil, log2
 from os import remove
 from time import time
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -24,7 +25,7 @@ class ComposerVisualiser:
     gif_prefix = 'for_gif_'
 
     @staticmethod
-    def visualise(chain: Chain):
+    def visualise(chain: Chain, save_path: Optional[str] = None):
         try:
             graph, node_labels = as_nx_graph(chain=chain)
             pos = node_positions(graph.to_undirected())
@@ -34,7 +35,10 @@ class ComposerVisualiser:
                     font_size=12, font_family='calibri', font_weight='bold',
                     node_size=7000, width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
-            plt.show()
+            if not save_path:
+                plt.show()
+            else:
+                plt.savefig(save_path)
         except Exception as ex:
             print(f'Visualisation failed with {ex}')
 

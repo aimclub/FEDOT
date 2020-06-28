@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
-from sklearn.metrics import mean_squared_error, roc_auc_score
+import numpy as np
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
 
 from core.chain_validation import validate
 from core.composer.chain import Chain
@@ -28,6 +29,16 @@ class RmseMetric(ChainMetric):
         return mean_squared_error(y_true=reference_data.target, y_pred=results.predict)
 
 
+class F1Metric(ChainMetric):
+    @staticmethod
+    @from_maximised_metric
+    def get_value(chain: Chain, reference_data: InputData) -> float:
+        results = chain.predict(reference_data)
+        bound = np.mean(results.predict)
+        predicted_labels = [1 if x >= bound else 0 for x in results.predict]
+        return f1_score(y_true=reference_data.target, y_pred=predicted_labels)
+
+
 class MaeMetric(ChainMetric):
     @staticmethod
     def get_value(chain: Chain, reference_data: InputData) -> float:
@@ -52,10 +63,11 @@ class RocAucMetric(ChainMetric):
                 score = round(roc_auc_score(y_score=results.predict,
                                             y_true=reference_data.target,
                                             **additional_params), 3)
-            except ValueError:
+            except ValueError as ex:
+                print(f'ROC AUC can not be calculated: {ex}')
                 score = 0.5
         except Exception as ex:
-            print(ex)
+            print(f'Metric evaluation error: {ex}')
             score = 0.5
         return score
 
