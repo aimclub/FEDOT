@@ -7,26 +7,30 @@ import os
 
 import h2o
 
-from benchmark.benchmark_utils import (get_h2o_connect_config, get_models_hyperparameters, get_scoring_case_data_paths)
+from benchmark.benchmark_utils import (get_h2o_connect_config, get_models_hyperparameters)
 from core.models.data import InputData
 from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
-from core.repository.tasks import Task, TaskTypesEnum
 
 CURRENT_PATH = str(os.path.dirname(__file__))
 
 
-def run_h2o(train_file_path: str, test_file_path: str, task: TaskTypesEnum, case_name='h2o_default'):
+def run_h2o(params: 'ExecutionParams'):
+    train_file_path = params.train_file
+    test_file_path = params.test_file
+    case_label = params.case_label
+    task = params.task
+
     config_data = get_models_hyperparameters()['H2O']
     max_models = config_data['MAX_MODELS']
     max_runtime_secs = config_data['MAX_RUNTIME_SECS']
 
-    result_filename = f'{case_name}_m{max_models}_rs{max_runtime_secs}_{task.name}'
+    result_filename = f'{case_label}_m{max_models}_rs{max_runtime_secs}_{task.name}'
     exported_model_path = os.path.join(CURRENT_PATH, result_filename)
 
     # TODO Regression
     if result_filename not in os.listdir(CURRENT_PATH):
         train_data = InputData.from_csv(train_file_path)
-        best_model = fit_h2o(train_data, round(max_runtime_secs/60))
+        best_model = fit_h2o(train_data, round(max_runtime_secs / 60))
         temp_exported_model_path = h2o.save_model(model=best_model, path=CURRENT_PATH)
 
         os.renames(temp_exported_model_path, exported_model_path)
@@ -44,9 +48,3 @@ def run_h2o(train_file_path: str, test_file_path: str, task: TaskTypesEnum, case
     h2o.shutdown(prompt=False)
 
     return true_target, predicted
-
-
-if __name__ == '__main__':
-    train_file, test_file = get_scoring_case_data_paths()
-
-    run_h2o(train_file, test_file, task=TaskTypesEnum.classification)

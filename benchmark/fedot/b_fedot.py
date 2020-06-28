@@ -36,7 +36,12 @@ def load_fedot_model(path_to_file):
         return None
 
 
-def run_fedot_for_problem(train_file_path, test_file_path, case_name, task_type: TaskTypesEnum):
+def run_fedot(params: 'ExecutionParams'):
+    train_file_path = params.train_file
+    test_file_path = params.test_file
+    case_label = params.case_label
+    task_type = params.task
+
     task = Task(task_type)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -44,7 +49,7 @@ def run_fedot_for_problem(train_file_path, test_file_path, case_name, task_type:
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     cur_lead_time = models_hyperparameters['MAX_RUNTIME_MINS']
 
-    saved_model_name = f'fedot_{case_name}_{task_type}_{cur_lead_time}'
+    saved_model_name = f'fedot_{case_label}_{task_type}_{cur_lead_time}'
     loaded_model = load_fedot_model(saved_model_name)
 
     if not loaded_model:
@@ -81,7 +86,7 @@ def run_fedot_for_problem(train_file_path, test_file_path, case_name, task_type:
                                                     metrics=metric_function, is_visualise=False)
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose, iterations=50)
         chain_evo_composed.fit(input_data=dataset_to_compose, verbose=False)
-        save_fedot_model(chain_evo_composed, f'fedot_{case_name}_{task_type}_{cur_lead_time}')
+        save_fedot_model(chain_evo_composed, f'fedot_{case_label}_{task_type}_{cur_lead_time}')
     else:
         chain_evo_composed = loaded_model
 

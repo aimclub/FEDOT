@@ -5,8 +5,8 @@ from mlbox.optimisation import Optimiser
 from mlbox.prediction import Predictor
 from mlbox.preprocessing import Drift_thresholder, Reader
 
-from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths
-from core.repository.tasks import Task, TaskTypesEnum
+from benchmark.benchmark_utils import get_models_hyperparameters
+from core.repository.tasks import TaskTypesEnum
 
 
 def separate_target_column(file_path: str, target_name: str):
@@ -24,8 +24,12 @@ def separate_target_column(file_path: str, target_name: str):
     return new_file_path, target
 
 
-def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
-              task: TaskTypesEnum):
+def run_mlbox(params: 'ExecutionParams'):
+    train_file_path = params.train_file
+    test_file_path = params.test_file
+    target_name = params.target_name
+    task = params.task
+
     config_data = get_models_hyperparameters()['MLBox']
     new_test_file_path, true_target = separate_target_column(test_file_path, target_name)
     paths = [train_file_path, new_test_file_path]
@@ -49,11 +53,3 @@ def run_mlbox(train_file_path: str, test_file_path: str, target_name: str,
     os.remove(new_test_file_path)
 
     return true_target, predicted
-
-
-if __name__ == '__main__':
-    train_path, test_path = get_scoring_case_data_paths()
-    run_mlbox(train_file_path=train_path,
-              test_file_path=test_path,
-              target_name='default',
-              task=TaskTypesEnum.classification)
