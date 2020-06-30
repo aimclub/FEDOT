@@ -16,6 +16,8 @@ from core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import project_root
 
+import numpy as np
+
 random.seed(1)
 np.random.seed(1)
 

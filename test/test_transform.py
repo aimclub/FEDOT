@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 
 from core.models.data import InputData
-from core.models.transformation import direct, ts_lagged_3d_to_ts, ts_to_lagged_3d, ts_to_lagged_table
+from core.models.transformation import direct, ts_lagged_3d_to_ts, \
+    ts_to_lagged_3d, ts_to_lagged_table
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 

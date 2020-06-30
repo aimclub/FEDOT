@@ -105,11 +105,16 @@ def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) 
 
 def _combine_datasets_ts(outputs: List[OutputData]):
     features = list()
-    expected_len = max([len(output.predict) for output in outputs])
+    expected_len = max([len(output.idx) for output in outputs])
     for elem in outputs:
         predict = elem.predict
         if len(elem.predict) != expected_len:
-            predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
+            if isinstance(elem.predict, list):
+                predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
+            else:
+                predict = np.concatenate((np.zeros(expected_len - len(elem.predict)),
+                                         elem.predict))
+
         features.append(predict)
 
     features = np.array(features).T

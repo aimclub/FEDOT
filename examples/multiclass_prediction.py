@@ -8,12 +8,11 @@ from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
 from core.models.model import *
-from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
     ModelTypesRepository
 )
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import TaskTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import probs_to_labels
 from examples.utils import create_multi_clf_examples_from_excel
 

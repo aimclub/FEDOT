@@ -1,5 +1,5 @@
 from copy import copy
-
+from typing import List
 import numpy as np
 import pandas as pd
 
@@ -61,7 +61,6 @@ def ts_to_lagged_3d(input_data: InputData) -> InputData:
 
 
 def ts_to_lagged_table(input_data: InputData) -> InputData:
-    # TODO check is window size is also necessary
     _, prediction_len = extract_task_param(input_data.task)
 
     transformed_data = ts_to_lagged_3d(input_data)
@@ -149,19 +148,23 @@ _transformation_functions_for_data_types = {
     (DataTypesEnum.ts_lagged_3d, DataTypesEnum.ts):
         ts_lagged_3d_to_ts,
     (DataTypesEnum.ts_lagged_3d, DataTypesEnum.ts_lagged_table):
-        ts_lagged_3d_to_lagged_table,
-    (DataTypesEnum.ts, DataTypesEnum.table):
-        direct
+        ts_lagged_3d_to_lagged_table
 }
 
 
-def transformation_function_for_data(input_data_type: DataTypesEnum, required_data_type: DataTypesEnum):
-    if input_data_type == required_data_type:
+def transformation_function_for_data(input_data_type: DataTypesEnum,
+                                     required_data_types: List[DataTypesEnum]):
+    if input_data_type in required_data_types:
         return direct
 
-    transformation = _transformation_functions_for_data_types.get(
-        (input_data_type, required_data_type), None)
+    transformation = None
+    for required_data_type in required_data_types:
+        transformation = _transformation_functions_for_data_types.get(
+            (input_data_type, required_data_type), None)
+        if transformation:
+            break
+
     if not transformation:
         raise ValueError(
-            f'The {input_data_type} cannot be converted to {required_data_type}')
+            f'The {input_data_type} cannot be converted to {required_data_types}')
     return transformation

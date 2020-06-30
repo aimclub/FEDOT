@@ -66,30 +66,34 @@ def has_no_isolated_components(chain: Chain):
     return True
 
 
+def _is_data_merged(chain: Chain):
+    data_not_merged = 'composition' not in chain.root_node.model.metadata.tags and \
+                      any('decomposition' in node.model.metadata.tags for node in chain.nodes)
+    return not data_not_merged
+
+
+def _is_primary_not_composition_datamodel(chain: Chain):
+    is_primary_not_composition_datamodel = all(['composition' not in node.model.metadata.tags
+                                                for node in chain.nodes if isinstance(node, PrimaryNode)])
+    return is_primary_not_composition_datamodel
+
+
+def _is_root_not_datamodel(chain: Chain):
+    return 'data_model' not in chain.root_node.model.metadata.tags and \
+           'decomposition' not in chain.root_node.model.metadata.tags
+
+
 def has_correct_models(chain: Chain, task: Optional[Task] = None):
     # TODO pass task to this function
 
-    models_repo = ModelTypesRepository()
-    data_models_types, _ = ModelTypesRepository().models_with_tag(['data-models'])
-    composition_data_models_types, _ = models_repo.models_with_tag(['composition'])
-
-    is_root_not_datamodel = chain.root_node.model.model_type not in data_models_types or \
-                            chain.root_node.model.model_type in composition_data_models_types
-
-    is_primary_not_composition_datamodel = all([(node.model.model_type not in composition_data_models_types)
-                                                for node in chain.nodes if isinstance(node, PrimaryNode)])
-
-    is_primary_not_direct_datamodel = all([(node.model.model_type != 'direct_datamodel')
-                                           for node in chain.nodes if isinstance(node, PrimaryNode)])
+    is_root_satisfy_task_type = True
     if task:
         is_root_satisfy_task_type = task.task_type not in chain.root_node.model.acceptable_task_types
-    else:
-        is_root_satisfy_task_type = True
 
-    if not (is_root_not_datamodel and
-            is_root_satisfy_task_type and
-            is_primary_not_composition_datamodel and
-            is_primary_not_direct_datamodel):
+    if not (_is_root_not_datamodel(chain) and
+            _is_primary_not_composition_datamodel(chain) and
+            _is_data_merged(chain) and
+            is_root_satisfy_task_type):
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect models positions')
 
     return True

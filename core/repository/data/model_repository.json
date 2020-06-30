@@ -20,8 +20,8 @@
 	},
 	"sklearn_clust": {
 	  "tasks": "[TaskTypesEnum.clustering]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": "SkLearnClusteringStrategy",
@@ -29,8 +29,8 @@
 	},
 	"automl": {
 	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["primary", "after-datamodel"],
 	  "forbidden_node_types": "[]",
 	  "strategies": {
@@ -41,8 +41,8 @@
 	},
 	"stats_ar": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.ts]",
 	  "strategies": "StatsModelsForecastingStrategy",
 	  "tags": ["statistical", "autoreg"]
 	},
@@ -58,7 +58,7 @@
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.ts]",
 	  "strategies": "DataModellingStrategy",
-	  "tags": ["without_preprocessing", "data_model"]
+	  "tags": ["without_preprocessing"]
 	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
@@ -172,19 +172,19 @@
 	},
 	"diff_data_model": {
 	  "meta": "ts_data_model",
-	  "tags": ["affects_target"]
+	  "tags": ["merges_target", "composition"]
 	},
 	"additive_data_model": {
 	  "meta": "ts_data_model",
-	  "tags": ["affects_target"]
+	  "tags": ["merges_target", "composition"]
 	},
 	"trend_data_model": {
 	  "meta": "ts_data_model",
-	  "tags": ["affects_target"]
+	  "tags": ["affects_target", "decomposition"]
 	},
 	"residual_data_model": {
 	  "meta": "ts_data_model",
-	  "tags": ["affects_target"]
+	  "tags": ["affects_target", "decomposition"]
 	},
 	"lstm": {
 	  "meta": "keras_forecasting",
