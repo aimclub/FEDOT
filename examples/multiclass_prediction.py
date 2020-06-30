@@ -83,6 +83,10 @@ if __name__ == '__main__':
 
     fitted_model = get_model(train_file_path)
 
+    from core.composer.visualisation import ComposerVisualiser
+
+    ComposerVisualiser.visualise(fitted_model)
+
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc}')
 

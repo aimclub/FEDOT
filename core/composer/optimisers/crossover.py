@@ -18,20 +18,23 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
     type = choice(types)
     chain_first_copy = deepcopy(chain_first)
     chain_second_copy = deepcopy(chain_second)
-    if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
-        return [chain_first_copy, chain_second_copy]
-    if type in crossover_by_type.keys():
-        is_correct = False
-        while not is_correct:
-            is_correct_chains = []
-            new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
-            for new_chain in new_chains:
-                is_correct_chains.append(constraint_function(new_chain))
-            is_correct = all(is_correct_chains)
-        return new_chains
-    else:
-        raise ValueError(f'Required crossover not found: {type}')
-
+    try:
+        if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
+            return [chain_first_copy, chain_second_copy]
+        if type in crossover_by_type.keys():
+            is_correct = False
+            while not is_correct:
+                is_correct_chains = []
+                new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
+                for new_chain in new_chains:
+                    is_correct_chains.append(constraint_function(new_chain))
+                is_correct = all(is_correct_chains)
+            return new_chains
+        else:
+            raise ValueError(f'Required crossover not found: {type}')
+    except Exception as ex:
+        print(f'Crossover ex: {ex}')
+        return chain_first_copy, chain_second_copy
 
 def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
     """Performed by the replacement of random subtree

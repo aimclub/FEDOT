@@ -1,10 +1,12 @@
 import math
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple)
 
 import numpy as np
 
+from core.composer.constraint import constraint_function
 from core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from core.composer.optimisers.gp_operators import random_chain
 from core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
@@ -12,7 +14,7 @@ from core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
-from copy import deepcopy
+
 
 @dataclass
 class GPChainOptimiserParameters:
@@ -71,6 +73,11 @@ class GPChainOptimiser:
 
             self.history = []
 
+            if self.requirements.force_single_model:
+                best_single_model, self.requirements.primary = \
+                    self._best_single_models(objective_function)
+                self.history.append(best_single_model)
+
             for ind in self.population:
                 ind.fitness = objective_function(ind)
 
@@ -111,8 +118,11 @@ class GPChainOptimiser:
 
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
-
-        return self.best_individual, self.history
+            best = self.best_individual
+            if best_single_model.fitness <= best.fitness or \
+                    (best_single_model.fitness - best.fitness) / best.fitness < 0.01:
+                best = best_single_model
+        return best, self.history
 
     @property
     def best_individual(self) -> Any:
@@ -151,7 +161,21 @@ class GPChainOptimiser:
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
-        return [self.chain_generation_function() for _ in range(pop_size)]
+        model_chains = []
+        while len(model_chains) < pop_size:
+            chain = self.chain_generation_function()
+            if constraint_function(chain):
+                model_chains.append(chain)
+        return model_chains
 
     def _add_to_history(self, individuals: List[Any]):
         [self.history.append(ind) for ind in individuals]
+
+    def _best_single_models(self, objective_function: Callable, num_best: int = 5):
+        single_models_inds = []
+        for model in self.requirements.primary:
+            single_models_ind = self.chain_class([self.primary_node_func(model)])
+            single_models_ind.fitness = objective_function(single_models_ind)
+            single_models_inds.append(single_models_ind)
+        best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
+        return best_inds[0], [i.nodes[0].model.model_type for i in best_inds][:num_best]

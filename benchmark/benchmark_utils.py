@@ -2,13 +2,12 @@ import gc
 import json
 import os
 from glob import glob
-from typing import Tuple, Tuple
+from typing import Tuple
 
 import pandas as pd
 from pmlb import fetch_data
-from sklearn.model_selection import train_test_split
 
-from core.utils import ensure_directory_exists, get_split_data_paths, project_root, project_root, save_file_to_csv, \
+from core.utils import ensure_directory_exists, get_split_data_paths, project_root, save_file_to_csv, \
     split_data
 
 
