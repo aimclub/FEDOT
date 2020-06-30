@@ -47,12 +47,12 @@ class GPComposer(Composer):
                                      parameters=optimiser_parameters)
 
         best_chain, self.history = optimiser.optimise(metric_function_for_nodes)
-        historical_fitness = [chain.fitness for chain in self.history]
+        self.historical_fitness = [chain.fitness for chain in self.history]
 
         if is_visualise:
-            ComposerVisualiser.visualise_history(self.history, historical_fitness)
+            ComposerVisualiser.visualise_history(self.history, self.historical_fitness)
 
-        write_composer_history_to_csv(historical_fitness=historical_fitness, historical_chains=self.history,
+        write_composer_history_to_csv(historical_fitness=self.historical_fitness, historical_chains=self.history,
                                       pop_size=composer_requirements.pop_size)
 
         print('GP composition finished')

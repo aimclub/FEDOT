@@ -1,11 +1,9 @@
-import datetime
 import os
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse
 
 from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.node import NodeGenerator
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData, OutputData
@@ -18,12 +16,15 @@ from core.utils import project_root
 def get_composite_lstm_chain():
     chain = Chain()
     node_trend = NodeGenerator.primary_node('trend_data_model')
+    node_trend.labels = ["fixed"]
     node_lstm_trend = NodeGenerator.secondary_node('linear', nodes_from=[node_trend])
+    node_trend.labels = ["fixed"]
     node_residual = NodeGenerator.primary_node('residual_data_model')
-    node_ridge_residual = NodeGenerator.secondary_node('linear', nodes_from=[node_residual])
+    node_ridge_residual = NodeGenerator.secondary_node('rfr', nodes_from=[node_residual])
 
     node_final = NodeGenerator.secondary_node('additive_data_model',
                                               nodes_from=[node_ridge_residual, node_lstm_trend])
+    node_final.labels = ["fixed"]
     chain.add_node(node_final)
     return chain
 
@@ -78,8 +79,6 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
-    ref_chain = get_composite_lstm_chain()
-
     available_model_types_primary = ['trend_data_model',
                                      'residual_data_model']
 
@@ -88,41 +87,67 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                        'lasso', 'gbr',
                                        'additive_data_model']
 
-    # available_model_types_primary, _ = ModelTypesRepository(). \
-    #    suitable_model(task_to_solve.task_type,
-    #                   forbidden_tags=['deep'])
-    # available_model_types_secondary, _ = ModelTypesRepository(). \
-    #    suitable_model(task_to_solve.task_type,
-    #                   forbidden_tags=['decomposition', 'deep'])
+    history = []
 
-    composer = GPComposer()
+    chain = Chain()
+    chain.add_node(NodeGenerator.primary_node('linear'))
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    composer_requirements = GPComposerRequirements(
-        primary=available_model_types_primary,
-        secondary=available_model_types_secondary, max_arity=3,
-        max_depth=5, pop_size=10, num_of_generations=5,
-        crossover_prob=0, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=20))
+    chain = Chain()
+    chain.add_node(NodeGenerator.primary_node('rfr'))
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    chain = composer.compose_chain(data=dataset_to_train,
-                                   initial_chain=ref_chain,
-                                   composer_requirements=composer_requirements,
-                                   metrics=metric_function,
-                                   is_visualise=False)
+    chain = Chain()
+    chain.add_node(NodeGenerator.primary_node('ridge'))
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    if with_visualisation:
-        ComposerVisualiser.visualise_history_ts(composer.history, composer.historical_fitness,
-                                                dataset_to_train)
-        ComposerVisualiser.visualise(chain)
+    chain = Chain()
+    node1 = NodeGenerator.primary_node('rfr')
+    node2 = NodeGenerator.primary_node('dtreg')
+    chain.add_node(NodeGenerator.secondary_node('linear', nodes_from=[node1, node2]))
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    chain.fit(input_data=dataset_to_train, verbose=False)
-    rmse_on_valid = calculate_validation_metric(
-        chain.predict(dataset_to_validate), dataset_to_validate,
-        f'full-composite_{forecast_length}',
-        is_visualise=with_visualisation)
+    chain = Chain()
+    node1 = NodeGenerator.primary_node('rfr')
+    node2 = NodeGenerator.primary_node('dtreg')
+    node3 = NodeGenerator.primary_node('lasso')
+    chain.add_node(NodeGenerator.secondary_node('linear', nodes_from=[node1, node2, node3]))
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    print(f'RMSE composite: {rmse_on_valid}')
+    chain = Chain()
+    node_trend = NodeGenerator.primary_node('trend_data_model')
+    node_trend2 = NodeGenerator.secondary_node('linear', nodes_from=[node_trend])
+    chain.add_node(node_trend2)
+    chain.fit(dataset_to_train)
+    history.append(chain)
 
-    return rmse_on_valid
+    chain = Chain()
+    node_trend = NodeGenerator.primary_node('residual_data_model')
+    node_trend2 = NodeGenerator.secondary_node('dtreg', nodes_from=[node_trend])
+    chain.add_node(node_trend2)
+    chain.fit(dataset_to_train)
+    history.append(chain)
+
+    chain = Chain()
+    node1 = NodeGenerator.primary_node('rfr')
+    node2 = NodeGenerator.primary_node('dtreg')
+    chain.add_node(NodeGenerator.secondary_node('ridge', nodes_from=[node1, node2]))
+    chain.fit(dataset_to_train)
+    history.append(chain)
+
+    chain = get_composite_lstm_chain()
+    chain.fit(dataset_to_train)
+    history.append(chain)
+
+    historical_fitness = [0.31, 0.3, 0.32, 0.2, 0.23, 0.5, 0.46, 0.15, 0.14]
+
+    ComposerVisualiser.visualise_history_ts(history, historical_fitness,
+                                            dataset_to_validate)
 
 
 if __name__ == '__main__':

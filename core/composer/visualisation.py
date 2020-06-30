@@ -1,7 +1,7 @@
 import os
 from copy import deepcopy
 from glob import glob, iglob
-from math import log2, ceil
+from math import ceil, log2
 from os import remove
 from time import time
 
@@ -31,7 +31,7 @@ class ComposerVisualiser:
             plt.figure(figsize=(10, 16))
             nx.draw(graph, pos=pos,
                     with_labels=True, labels=node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
+                    font_size=36, font_family='calibri', font_weight='bold',
                     node_size=7000, width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             plt.show()
@@ -52,13 +52,22 @@ class ComposerVisualiser:
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
             plt.title('Current chain')
+
+            for key in list(node_labels.keys()):
+                if node_labels[key] == 'residual_data_model':
+                    node_labels[key] = 'resid'
+                if node_labels[key] == 'trend_data_model':
+                    node_labels[key] = "trend"
+                if node_labels[key] == 'additive_data_model':
+                    node_labels[key] = "add"
+
             nx.draw(graph, pos=pos,
                     with_labels=True, labels=node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
+                    font_size=36, font_family='calibri', font_weight='bold',
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
-            plt.savefig(path, bbox_inches='tight')
+            plt.savefig(path, bbox_inches=None, dpi=300)
 
             plt.cla()
             plt.clf()
@@ -73,6 +82,15 @@ class ComposerVisualiser:
             prev_fit = fitnesses[ch_id]
 
             best_graph, best_node_labels = as_nx_graph(chain=last_best_chain)
+
+            for key in list(best_node_labels.keys()):
+                if best_node_labels[key] == 'residual_data_model':
+                    best_node_labels[key] = 'resid'
+                if best_node_labels[key] == 'trend_data_model':
+                    best_node_labels[key] = "trend"
+                if best_node_labels[key] == 'additive_data_model':
+                    best_node_labels[key] = "add"
+
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
@@ -80,18 +98,18 @@ class ComposerVisualiser:
             plt.title(f'Best chain after {round(ch_id)} evals')
             nx.draw(best_graph, pos=pos,
                     with_labels=True, labels=best_node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
+                    font_size=36, font_family='calibri', font_weight='bold',
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
-            plt.savefig(path_best, bbox_inches='tight')
+            plt.savefig(path_best, bbox_inches=None, dpi=300)
 
             plt.cla()
             plt.clf()
             plt.close('all')
 
     @staticmethod
-    def _visualise_convergence(fitness_history):
+    def _visualise_convergence(fitness_history, metric_name='ROC AUC'):
         fitness_history = deepcopy(fitness_history)
         prev_fit = fitness_history[0]
         for fit_id, fit in enumerate(fitness_history):
@@ -99,8 +117,12 @@ class ComposerVisualiser:
                 fitness_history[fit_id] = prev_fit
             prev_fit = fitness_history[fit_id]
         ts_set = list(range(len(fitness_history)))
+        if metric_name == 'ROC AUC':
+            metrics = [-f for f in fitness_history]
+        else:
+            metrics = fitness_history
         df = pd.DataFrame(
-            {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
+            {'ts': ts_set, 'fitness': metrics})
 
         ind = 0
         for ts in ts_set:
@@ -108,16 +130,40 @@ class ComposerVisualiser:
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
 
-            ind = ind + 1
             plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
-            plt.ylabel('Best ROC AUC', fontsize=18)
+            plt.ylabel(f'Best {metric_name}', fontsize=18)
 
             plt.axvline(x=ts, color='black')
             plt.legend(loc='upper left')
 
             path = f'{ComposerVisualiser.temp_path}{ind}.png'
-            plt.savefig(path, bbox_inches='tight')
+            plt.savefig(path, bbox_inches=None, dpi=300)
+
+            plt.cla()
+            plt.clf()
+            plt.close('all')
+
+            ind = ind + 1
+
+    @staticmethod
+    def _visualise_ts(chains, data):
+        for ind, chain in enumerate(chains):
+            plt.rcParams['axes.titlesize'] = 20
+            plt.rcParams['axes.labelsize'] = 20
+            plt.rcParams['figure.figsize'] = [10, 10]
+
+            path = f'{ComposerVisualiser.temp_path}ts_{ind}.png'
+
+            _, ax = plt.subplots(figsize=(10, 10))
+            plt.plot(data.target, linewidth=1, label="Observed", alpha=0.4)
+            plt.plot(chain.predict(data).predict, linewidth=1, label="Predicted", alpha=0.6)
+            ax.legend()
+            plt.xlabel('Time, h')
+            plt.ylabel('SSH, cm')
+            plt.ylim((min(data.target) * 0.9, max(data.target) * 1.1))
+
+            plt.savefig(path, bbox_inches=None, dpi=300)
 
             plt.cla()
             plt.clf()
@@ -137,11 +183,46 @@ class ComposerVisualiser:
             print(f'Visualisation failed with {ex}')
 
     @staticmethod
+    def visualise_history_ts(chains, fitnesses, data):
+        print('START VISUALISATION')
+        try:
+            ComposerVisualiser._clean(with_gif=True)
+            ComposerVisualiser._visualise_chains(chains, fitnesses)
+            ComposerVisualiser._visualise_convergence(fitnesses, 'MSE, m')
+            ComposerVisualiser._visualise_ts(chains, data)
+            ComposerVisualiser._merge_images_ts(len(chains))
+            ComposerVisualiser._combine_gifs()
+            # ComposerVisualiser._clean()
+        except Exception as ex:
+            print(f'Visualisation failed with {ex}')
+
+    @staticmethod
     def _merge_images(num_images):
-        for img_idx in (range(1, num_images)):
+        for img_idx in (range(0, num_images)):
             images = list(map(Image.open, [f'{ComposerVisualiser.temp_path}ch_{img_idx}.png',
                                            f'{ComposerVisualiser.temp_path}best_ch_{img_idx}.png',
                                            f'{ComposerVisualiser.temp_path}{img_idx}.png']))
+            widths, heights = zip(*(i.size for i in images))
+
+            total_width = sum(widths)
+            max_height = max(heights)
+
+            new_im = Image.new('RGB', (total_width, max_height))
+
+            x_offset = 0
+            for im in images:
+                new_im.paste(im, (x_offset, 0))
+                x_offset += im.size[0]
+
+            new_im.save(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}{img_idx}.png')
+
+    @staticmethod
+    def _merge_images_ts(num_images):
+        for img_idx in (range(0, num_images)):
+            images = list(map(Image.open, [f'{ComposerVisualiser.temp_path}ch_{img_idx}.png',
+                                           f'{ComposerVisualiser.temp_path}best_ch_{img_idx}.png',
+                                           f'{ComposerVisualiser.temp_path}{img_idx}.png',
+                                           f'{ComposerVisualiser.temp_path}ts_{img_idx}.png']))
             widths, heights = zip(*(i.size for i in images))
 
             total_width = sum(widths)
@@ -166,7 +247,7 @@ class ComposerVisualiser:
                      iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
         files = [file for _, file in sorted(zip(files_idx, files))]
 
-        with get_writer(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif', mode='I', duration=0.5) as writer:
+        with get_writer(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif', mode='I', duration=1) as writer:
             for filename in files:
                 image = imread(filename)
                 writer.append_data(image)
@@ -189,7 +270,7 @@ def colors_by_node_labels(node_labels: dict):
 
 
 def scaled_node_size(nodes_amount):
-    size = int(7000.0 / ceil(log2(nodes_amount)))
+    size = int(28000.0 / (ceil(log2(nodes_amount)) + 1))
     return size
 
 
