@@ -44,7 +44,7 @@ def calculate_validation_metric(pred: OutputData, valid: InputData, name: str, i
                      model_name=name)
 
     # the quality assessment for the simulation results
-    rmse = mse(y_true=real, y_pred=predicted, squared=False)
+    rmse = mse(y_true=real[len(real) - len(predicted):], y_pred=predicted, squared=True)
 
     return rmse
 
@@ -77,20 +77,10 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     dataset_to_validate = InputData.from_csv(
         full_path_test, task=task_to_solve, data_type=DataTypesEnum.ts)
 
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-
-    available_model_types_primary = ['trend_data_model',
-                                     'residual_data_model']
-
-    available_model_types_secondary = ['rfr', 'linear',
-                                       'ridge', 'lasso',
-                                       'lasso', 'gbr',
-                                       'additive_data_model']
-
     history = []
 
     chain = Chain()
-    chain.add_node(NodeGenerator.primary_node('linear'))
+    chain.add_node(NodeGenerator.primary_node('lasso'))
     chain.fit(dataset_to_train)
     history.append(chain)
 
@@ -100,7 +90,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     history.append(chain)
 
     chain = Chain()
-    chain.add_node(NodeGenerator.primary_node('ridge'))
+    chain.add_node(NodeGenerator.primary_node('dtreg'))
     chain.fit(dataset_to_train)
     history.append(chain)
 
@@ -144,7 +134,11 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     chain.fit(dataset_to_train)
     history.append(chain)
 
-    historical_fitness = [0.31, 0.3, 0.32, 0.2, 0.23, 0.5, 0.46, 0.15, 0.14]
+    # historical_fitness = [0.31, 0.3, 0.32, 0.2, 0.23, 0.5, 0.46, 0.15, 0.14]
+
+    historical_fitness = [calculate_validation_metric(_.predict(dataset_to_validate),
+                                                      dataset_to_validate, "", False)
+                          for _ in history]
 
     ComposerVisualiser.visualise_history_ts(history, historical_fitness,
                                             dataset_to_validate)

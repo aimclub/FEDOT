@@ -14,6 +14,9 @@ from imageio import get_writer, imread
 from core.composer.chain import Chain, as_nx_graph
 from core.utils import project_root
 
+NODE_SIZE = 36000
+FONT_SIZE = 42
+
 
 class ComposerVisualiser:
     root_parent_path = os.path.join('../', str(project_root()))
@@ -31,7 +34,7 @@ class ComposerVisualiser:
             plt.figure(figsize=(10, 16))
             nx.draw(graph, pos=pos,
                     with_labels=True, labels=node_labels,
-                    font_size=36, font_family='calibri', font_weight='bold',
+                    font_size=12, font_family='calibri', font_weight='bold',
                     node_size=7000, width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             plt.show()
@@ -63,7 +66,7 @@ class ComposerVisualiser:
 
             nx.draw(graph, pos=pos,
                     with_labels=True, labels=node_labels,
-                    font_size=36, font_family='calibri', font_weight='bold',
+                    font_size=FONT_SIZE, font_family='calibri', font_weight='bold',
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
@@ -98,7 +101,7 @@ class ComposerVisualiser:
             plt.title(f'Best chain after {round(ch_id)} evals')
             nx.draw(best_graph, pos=pos,
                     with_labels=True, labels=best_node_labels,
-                    font_size=36, font_family='calibri', font_weight='bold',
+                    font_size=FONT_SIZE, font_family='calibri', font_weight='bold',
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
@@ -156,11 +159,12 @@ class ComposerVisualiser:
             path = f'{ComposerVisualiser.temp_path}ts_{ind}.png'
 
             _, ax = plt.subplots(figsize=(10, 10))
-            plt.plot(data.target, linewidth=1, label="Observed", alpha=0.4)
-            plt.plot(chain.predict(data).predict, linewidth=1, label="Predicted", alpha=0.6)
+            pred = chain.predict(data).predict
+            plt.plot(data.target[len(data.target) - len(pred):], linewidth=1, label="Observed", alpha=0.4)
+            plt.plot(pred, linewidth=1, label="Predicted", alpha=0.6)
             ax.legend()
             plt.xlabel('Time, h')
-            plt.ylabel('SSH, cm')
+            plt.ylabel('Sea surface height, cm')
             plt.ylim((min(data.target) * 0.9, max(data.target) * 1.1))
 
             plt.savefig(path, bbox_inches=None, dpi=300)
@@ -188,7 +192,7 @@ class ComposerVisualiser:
         try:
             ComposerVisualiser._clean(with_gif=True)
             ComposerVisualiser._visualise_chains(chains, fitnesses)
-            ComposerVisualiser._visualise_convergence(fitnesses, 'MSE, m')
+            ComposerVisualiser._visualise_convergence(fitnesses, 'Mean squared error, cm')
             ComposerVisualiser._visualise_ts(chains, data)
             ComposerVisualiser._merge_images_ts(len(chains))
             ComposerVisualiser._combine_gifs()
@@ -241,6 +245,7 @@ class ComposerVisualiser:
     def _combine_gifs():
         files = [file_name for file_name in
                  iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
+
         files_idx = [int(file_name[len(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}'):(
                 len(file_name) - len('.png'))]) for
                      file_name in
@@ -248,6 +253,10 @@ class ComposerVisualiser:
         files = [file for _, file in sorted(zip(files_idx, files))]
 
         with get_writer(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif', mode='I', duration=1) as writer:
+            files.append(files[-1])
+            files.append(files[-1])
+            files.append(files[-1])
+
             for filename in files:
                 image = imread(filename)
                 writer.append_data(image)
@@ -270,7 +279,7 @@ def colors_by_node_labels(node_labels: dict):
 
 
 def scaled_node_size(nodes_amount):
-    size = int(28000.0 / (ceil(log2(nodes_amount)) + 1))
+    size = int(NODE_SIZE / (ceil(log2(nodes_amount)) + 1))
     return size
 
 
