@@ -70,12 +70,14 @@ def simple_mutation(chain: Any, secondary: Any, primary: Any,
                     node_mutate_type=MutationPowerEnum.mean) -> Any:
     result = deepcopy(chain)
 
-    node_mutation_probability = get_mutation_prob(mut_id=node_mutate_type.value, root_node=result.root_node)
+    node_mutation_probability = get_mutation_prob(mut_id=node_mutate_type.value,
+                                                  root_node=result.root_node)
 
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                secondary_node = secondary_node_func(model_type=choice(secondary), nodes_from=node.nodes_from)
+                secondary_node = secondary_node_func(model_type=choice(secondary),
+                                                     nodes_from=node.nodes_from)
                 result.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
