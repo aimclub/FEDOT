@@ -120,8 +120,8 @@ class GPChainOptimiser:
                     break
             best = self.best_individual
             if self.requirements.force_single_model and \
-                    best_single_model.fitness <= best.fitness or \
-                    (best_single_model.fitness - best.fitness) / best.fitness < 0.01:
+                    (best_single_model.fitness <= best.fitness or
+                     (best_single_model.fitness - best.fitness) / best.fitness < 0.01):
                 best = best_single_model
         return best, self.history
 
