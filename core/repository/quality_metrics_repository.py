@@ -19,20 +19,24 @@ class ComplexityMetricsEnum(MetricsEnum):
 
 class ClassificationMetricsEnum(QualityMetricsEnum):
     ROCAUC = 'roc_auc'
+    ROCAUC_penalty = 'roc_auc_pen'
     precision = 'precision'
     f1 = 'f1'
 
 
 class RegressionMetricsEnum(QualityMetricsEnum):
     RMSE = 'rmse'
+    RMSE_penalty = 'roc_auc_pen'
     MAE = 'mae'
 
 
 class MetricsRepository:
     __metrics_implementations = {
         ClassificationMetricsEnum.ROCAUC: RocAucMetric.get_value,
+        ClassificationMetricsEnum.ROCAUC_penalty: RocAucMetric.get_value_with_penalty,
         RegressionMetricsEnum.MAE: MaeMetric.get_value,
         RegressionMetricsEnum.RMSE: RmseMetric.get_value,
+        RegressionMetricsEnum.RMSE_penalty: RmseMetric.get_value_with_penalty,
         ClassificationMetricsEnum.f1: F1Metric.get_value,
         ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value
     }

@@ -29,11 +29,13 @@ def save_fedot_model(chain, path_to_file):
 
 
 def load_fedot_model(path_to_file):
-    if os.path.exists(path_to_file):
-        with open(f'{path_to_file}.pkl', 'rb') as pickle_file:
-            return load(pickle_file)
-    else:
-        return None
+    try:
+        if os.path.exists(f'{path_to_file}.pkl'):
+            with open(f'{path_to_file}.pkl', 'rb') as pickle_file:
+                return load(pickle_file)
+    except Exception as ex:
+        print(f'Model load error {ex}')
+    return None
 
 
 def run_fedot(params: 'ExecutionParams'):
@@ -64,9 +66,9 @@ def run_fedot(params: 'ExecutionParams'):
                                                    can_be_secondary=True))
 
         if task_type == TaskTypesEnum.classification:
-            metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+            metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
         elif task_type == TaskTypesEnum.regression:
-            metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+            metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE_penalty)
         else:
             raise NotImplementedError()
 
@@ -92,4 +94,4 @@ def run_fedot(params: 'ExecutionParams'):
 
     evo_predicted = chain_evo_composed.predict(dataset_to_validate)
 
-    return evo_predicted.predict, dataset_to_validate.target
+    return dataset_to_validate.target, evo_predicted.predict

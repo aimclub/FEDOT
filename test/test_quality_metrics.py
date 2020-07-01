@@ -52,7 +52,7 @@ def test_structural_quality_correct():
     metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
 
     expected_metric_value = 13
-    actual_metric_value = metric_functions(chain, None)
+    actual_metric_value = metric_functions(chain)
     assert actual_metric_value == expected_metric_value
 
 

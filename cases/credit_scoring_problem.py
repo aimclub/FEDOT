@@ -2,7 +2,6 @@ import datetime
 import os
 import random
 
-import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
@@ -53,7 +52,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                                can_be_secondary=True))
 
     # the choice of the metric for the chain quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
@@ -71,13 +70,18 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                                 composer_requirements=composer_requirements,
                                                 metrics=metric_function,
                                                 is_visualise=False)
+
+    chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
+                                               iterations=50)
+
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     if is_visualise:
         ComposerVisualiser.visualise(chain_evo_composed)
 
     # the quality assessment for the obtained composite models
-    roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed, dataset_to_validate)
+    roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
+                                                            dataset_to_validate)
 
     print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 
