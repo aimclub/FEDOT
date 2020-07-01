@@ -36,8 +36,7 @@ class RmseMetric(ChainMetric):
         structural_norm_constant = 30
         max_rmse_penalty_part = 0.01
 
-        penalty = structural_metric / structural_norm_constant * \
-                  rmse * max_rmse_penalty_part
+        penalty = structural_metric / structural_norm_constant * rmse * max_rmse_penalty_part
 
         return rmse + min(penalty,
                           rmse * max_rmse_penalty_part)

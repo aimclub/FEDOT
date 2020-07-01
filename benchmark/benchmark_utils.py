@@ -73,13 +73,13 @@ def get_models_hyperparameters(timedelta: int = 10) -> dict:
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS
 
     tpot_config = {'MAX_RUNTIME_MINS': timedelta,
-                   'GENERATIONS': 50,
-                   'POPULATION_SIZE': 10
+                   'GENERATIONS': 100,
+                   'POPULATION_SIZE': 20
                    }
 
     fedot_config = {'MAX_RUNTIME_MINS': timedelta,
-                    'GENERATIONS': 10,
-                    'POPULATION_SIZE': 10
+                    'GENERATIONS': 100,
+                    'POPULATION_SIZE': 20
                     }
 
     h2o_config = {'MAX_MODELS': 20,
