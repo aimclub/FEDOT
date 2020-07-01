@@ -124,7 +124,8 @@ def test_fixed_structure_composer(data_fixture, request):
     composer = FixedStructureComposer()
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5)
+                                 crossover_prob=0.4, mutation_prob=0.5,
+                                 force_single_model=False)
 
     reference_chain = get_class_chain()
 

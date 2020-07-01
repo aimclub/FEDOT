@@ -119,7 +119,8 @@ class GPChainOptimiser:
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
             best = self.best_individual
-            if best_single_model.fitness <= best.fitness or \
+            if self.requirements.force_single_model and \
+                    best_single_model.fitness <= best.fitness or \
                     (best_single_model.fitness - best.fitness) / best.fitness < 0.01:
                 best = best_single_model
         return best, self.history

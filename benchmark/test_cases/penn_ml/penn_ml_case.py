@@ -48,7 +48,7 @@ if __name__ == '__main__':
         try:
             result_metrics = CaseExecutor(params=ExecutionParams(train_file=train_file,
                                                                  test_file=test_file,
-                                                                  task=problem_class,
+                                                                 task=problem_class,
                                                                  target_name='target',
                                                                  case_label=case_name),
                                           models=[BenchmarkModelTypesEnum.tpot,
