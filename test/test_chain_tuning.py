@@ -71,7 +71,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
         before_tuning_predicted = chain.predict(test_data)
 
         # Chain tuning
-        chain.fine_tune_primary_nodes(train_data, iterations=1)
+        chain.fine_tune_primary_nodes(train_data, max_lead_time=1)
 
         # After tuning prediction
         chain.fit(train_data)
@@ -87,6 +87,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
 
     assert any(result_list)
 
+
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_fine_tune_root_node(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -100,7 +101,7 @@ def test_fine_tune_root_node(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # root node tuning
-    chain.fine_tune_root_node(train_data, iterations=25)
+    chain.fine_tune_root_node(train_data, max_lead_time=1)
     after_tun_root_node_predicted = chain.predict(test_data)
 
     bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 3)

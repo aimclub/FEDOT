@@ -10,6 +10,7 @@ from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.models.tuners import get_random_params
 from core.repository.model_types_repository import ModelTypesIdsEnum
+from core.repository.tasks import TaskTypesEnum, Task
 from test.test_autoregression import get_synthetic_ts_data
 
 
@@ -18,6 +19,15 @@ def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
     file = 'data/advanced_classification.csv'
     return InputData.from_csv(os.path.join(test_file_path, file))
+
+
+@pytest.fixture()
+def regression_dataset():
+    test_file_path = str(os.path.dirname(__file__))
+    file = 'data/advanced_regression.csv'
+    data = InputData.from_csv(os.path.join(test_file_path, file))
+    data.task = Task(TaskTypesEnum.regression)
+    return data
 
 
 @pytest.fixture()
@@ -43,7 +53,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
                           y_score=test_predicted)
 
     knn_for_tune = Model(model_type=ModelTypesIdsEnum.knn)
-    model, _ = knn_for_tune.fine_tune(data=train_data, iterations=10)
+    model, _ = knn_for_tune.fine_tune(data=train_data, iterations=10, max_lead_time=1)
     test_predicted_tuned = knn.predict(fitted_model=model, data=test_data)
 
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
@@ -57,7 +67,7 @@ def test_arima_tune_correct():
     train_data, test_data = train_test_data_setup(data=data)
 
     arima_for_tune = Model(model_type=ModelTypesIdsEnum.arima)
-    model, _ = arima_for_tune.fine_tune(data=train_data, iterations=5)
+    model, _ = arima_for_tune.fine_tune(data=train_data, iterations=5, max_lead_time=1)
     test_predicted_tuned = arima_for_tune.predict(fitted_model=model, data=test_data)
 
     rmse_on_test_tuned = mse(y_true=test_data.target,
@@ -82,7 +92,7 @@ def test_rf_class_tune_correct(data_fixture, request):
     test_roc_auc = roc_auc(y_true=test_data.target,
                            y_score=test_predicted)
 
-    model_tuned, _ = rf.fine_tune(data=train_data, iterations=12)
+    model_tuned, _ = rf.fine_tune(data=train_data, iterations=12, max_lead_time=1)
     test_predicted_tuned = rf.predict(fitted_model=model_tuned, data=test_data)
 
     test_roc_auc_tuned = roc_auc(y_true=test_data.target,
@@ -110,7 +120,7 @@ def test_scoring_logreg_tune_correct(data_fixture, request):
 
     logreg_for_tune = Model(model_type=ModelTypesIdsEnum.logit)
 
-    model_tuned, _ = logreg_for_tune.fine_tune(train_data, iterations=50)
+    model_tuned, _ = logreg_for_tune.fine_tune(train_data, iterations=50, max_lead_time=1)
     test_predicted_tuned = logreg_for_tune.predict(fitted_model=model_tuned, data=test_data)
 
     test_roc_auc_tuned = roc_auc(y_true=test_data.target,
@@ -131,3 +141,19 @@ def test_get_random_params_varied_length():
     test_param_range = {'param': (list((1, 2, 3)), list((4, 5, 6)))}
     random_param_range = get_random_params(test_param_range)
     assert len(random_param_range['param']) != len(test_param_range['param'][0])
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_timedelta_in_tune_process(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    data.features = Scaling().fit(data.features).apply(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    knn_for_tune = Model(model_type=ModelTypesIdsEnum.knn)
+    model, _ = knn_for_tune.fine_tune(data=train_data, max_lead_time=1)
+    test_predicted_tuned = knn_for_tune.predict(fitted_model=model, data=test_data)
+
+    roc_on_test_tuned = roc_auc(y_true=test_data.target,
+                                y_score=test_predicted_tuned)
+    roc_threshold = 0.6
+    assert roc_on_test_tuned > roc_threshold

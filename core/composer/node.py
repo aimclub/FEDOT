@@ -93,7 +93,7 @@ class Node(ABC):
                 nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
-    def fine_tune(self, input_data: InputData, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
         raise NotImplementedError()
 
 
@@ -196,7 +196,7 @@ class PrimaryNode(Node):
                           predict=predict_train, task=input_data.task,
                           data_type=self.model.output_datatype(input_data.data_type))
 
-    def fine_tune(self, input_data: InputData, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
         preprocessed_data = transformation_function_for_data(input_data.data_type,
                                                              self.model.metadata.input_types[0])(input_data)
 
@@ -204,7 +204,9 @@ class PrimaryNode(Node):
             preprocessed_data.features)
         preprocessed_data.features = preprocessing_strategy.apply(preprocessed_data.features)
 
-        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data,
+                                                           max_lead_time=max_lead_time,
+                                                           iterations=iterations)
         self.cache.append(CachedState(preprocessor=copy(preprocessing_strategy),
                                       model=fitted_model))
 
@@ -282,7 +284,7 @@ class SecondaryNode(Node):
                           data_type=self.model.output_datatype(input_data.data_type),
                           task=input_data.task)
 
-    def fine_tune(self, input_data: InputData, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
         parent_results = []
         for parent in self._nodes_from_with_fixed_order():
             parent_results.append(parent.predict(input_data=input_data))
@@ -294,6 +296,7 @@ class SecondaryNode(Node):
         preprocessed_data = transformation_function_for_data(input_data.data_type,
                                                              self.model.metadata.input_types[0])(secondary_input)
 
-        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations)
+        fitted_model, predict_train = self.model.fine_tune(preprocessed_data, iterations=iterations,
+                                                           max_lead_time=max_lead_time)
         self.cache.append(CachedState(preprocessor=None,
                                       model=fitted_model))

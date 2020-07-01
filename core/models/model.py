@@ -87,12 +87,13 @@ class Model:
 
         return prediction
 
-    def fine_tune(self, data: InputData, iterations: int = 30):
+    def fine_tune(self, data: InputData, max_lead_time: int, iterations: int = 30):
         self._init(data.task)
 
         try:
             fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
-                                                                       iterations=iterations)
+                                                                       iterations=iterations,
+                                                                       max_lead_time=max_lead_time)
             self.params = tuned_params
             if self.params is None:
                 self.params = DEFAULT_PARAMS_STUB

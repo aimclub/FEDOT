@@ -43,3 +43,26 @@ class CompositionTimer(object):
             print(f'Composition time: {round(self.minutes_from_start, 3)} min')
             if self.evo_terminated:
                 print('Algorithm was terminated due to processing time limit')
+
+
+class TunerTimer:
+    def __init__(self, verbose=False):
+        self.verbose = verbose
+        self.tune_terminated: bool = False
+
+    def __enter__(self):
+        self.start = datetime.datetime.now()
+        return self
+
+    def is_time_limit_reached(self, limit) -> bool:
+        if datetime.datetime.now() - self.start >= limit:
+            self.tune_terminated = True
+            if self.verbose:
+                print('Tuning completed because of the time limit reached')
+            return True
+        else:
+            return False
+
+    def __exit__(self, *args):
+        if self.tune_terminated:
+            return True

@@ -1,3 +1,4 @@
+import datetime
 import warnings
 from typing import Optional
 
@@ -24,9 +25,8 @@ from core.models.evaluation.hyperparams import params_range_by_model
 from core.models.evaluation.lstm_eval import fit_lstm, predict_lstm
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, \
     predict_ar, predict_arima
-from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner
+from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner, SklearnRandomTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.utils import labels_to_dummy_probs
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -38,7 +38,7 @@ class EvaluationStrategy:
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30, max_lead_time: int = 10):
         raise NotImplementedError()
 
 
@@ -77,7 +77,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, model_type: ModelTypesIdsEnum):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
-        self._tune_func: SklearnTuner = Optional[SklearnTuner]
+        self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
         self.params_for_fit = None
         self.model_type = model_type
 
@@ -90,22 +90,22 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData,
-                  iterations: int = 30):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
+                  max_lead_time: int = 10):
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
         metric = self.__metric_by_type.get(train_data.task.task_type.name, None)
-        self._tune_func = SklearnCustomRandomTuner
+        self._tune_strategy = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
             return trained_model, trained_model.get_params()
 
-        tuned_params, best_model = self._tune_func().tune(trained_model=trained_model,
-                                                          tune_data=train_data,
-                                                          params_range=params_range,
-                                                          iterations=iterations,
-                                                          cross_val_fold_num=5,
-                                                          scorer=metric)
+        tuned_params, best_model = self._tune_strategy(trained_model=trained_model,
+                                                       tune_data=train_data,
+                                                       params_range=params_range,
+                                                       cross_val_fold_num=5,
+                                                       scorer=metric,
+                                                       time_limit_minutes=max_lead_time).tune()
 
         if best_model and tuned_params:
             self.params_for_fit = tuned_params
@@ -187,7 +187,7 @@ class StatsModelsForecastingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int = 10, max_lead_time: int = 10):
         tuned_params = ForecastingCustomRandomTuner().tune(fit=self._model_specific_fit,
                                                            predict=self._model_specific_predict,
                                                            tune_data=train_data,
@@ -224,7 +224,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30, max_lead_time: int = 10):
         raise NotImplementedError()
 
 
