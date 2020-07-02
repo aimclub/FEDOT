@@ -1,10 +1,7 @@
 import math
 from enum import Enum
-from random import randint, choice
-from typing import (
-    List,
-    Any
-)
+from random import choice, randint
+from typing import (Any, List)
 
 
 class SelectionTypesEnum(Enum):
@@ -12,6 +9,10 @@ class SelectionTypesEnum(Enum):
 
 
 def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: int) -> List[Any]:
+    selection_by_type = {
+        SelectionTypesEnum.tournament: tournament_selection,
+    }
+
     type = choice(types)
     if type in selection_by_type.keys():
         return selection_by_type[type](population, pop_size)
@@ -46,8 +47,3 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
         best = min(group, key=lambda ind: ind.fitness)
         chosen.append(best)
     return chosen
-
-
-selection_by_type = {
-    SelectionTypesEnum.tournament: tournament_selection,
-}

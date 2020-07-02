@@ -18,7 +18,7 @@ class ComposerRequirements:
     max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
-    force_single_model: bool = True
+    add_single_model_chains: bool = True
 
     def __post_init__(self):
         if self.max_depth < 0:

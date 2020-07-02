@@ -16,6 +16,8 @@ def from_maximised_metric(metric_func):
 
 
 class ChainMetric:
+    max_penalty_part = 0.01
+
     @staticmethod
     @abstractmethod
     def get_value(chain: Chain, reference_data: InputData) -> float:
@@ -33,13 +35,11 @@ class RmseMetric(ChainMetric):
         rmse = RmseMetric.get_value(chain, reference_data)
         structural_metric = StructuralComplexityMetric.get_value(chain)
 
-        structural_norm_constant = 30
-        max_rmse_penalty_part = 0.01
-
-        penalty = structural_metric / structural_norm_constant * rmse * max_rmse_penalty_part
+        penalty = (structural_metric / StructuralComplexityMetric.norm_constant *
+                   rmse * ChainMetric.max_penalty_part)
 
         return rmse + min(penalty,
-                          rmse * max_rmse_penalty_part)
+                          rmse * ChainMetric.max_penalty_part)
 
 
 class F1Metric(ChainMetric):
@@ -89,15 +89,15 @@ class RocAucMetric(ChainMetric):
         roc_auc = RocAucMetric.get_value(chain, reference_data)
         structural_metric = StructuralComplexityMetric.get_value(chain)
 
-        max_auc_penalty_part = 0.01
-        structural_norm_constant = 30
-        penalty = structural_metric / structural_norm_constant * max_auc_penalty_part
+        penalty = (structural_metric /
+                   StructuralComplexityMetric.norm_constant * ChainMetric.max_penalty_part)
         return roc_auc + min(penalty,
-                             max_auc_penalty_part)
+                             ChainMetric.max_penalty_part)
 
 
-# TODO: reference_data = None ?
 class StructuralComplexityMetric(ChainMetric):
+    norm_constant = 30
+
     @staticmethod
     def get_value(chain: Chain, **args) -> float:
         return chain.depth ** 2 + chain.length

@@ -73,7 +73,7 @@ class GPChainOptimiser:
 
             self.history = []
 
-            if self.requirements.force_single_model:
+            if self.requirements.add_single_model_chains:
                 best_single_model, self.requirements.primary = \
                     self._best_single_models(objective_function)
                 self.history.append(best_single_model)
@@ -119,7 +119,7 @@ class GPChainOptimiser:
                 if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
                     break
             best = self.best_individual
-            if self.requirements.force_single_model and \
+            if self.requirements.add_single_model_chains and \
                     (best_single_model.fitness <= best.fitness):
                 best = best_single_model
         return best, self.history
