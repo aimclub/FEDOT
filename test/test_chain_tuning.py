@@ -55,6 +55,26 @@ def get_class_chain():
     return chain
 
 
+def get_three_layer_chain():
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    third = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+
+    fourth = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+                                          nodes_from=[first, second])
+    fifth = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
+                                         nodes_from=[third])
+
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
+                                         nodes_from=[fifth, fourth])
+
+    chain = Chain()
+    for node in [first, second, third, fourth, fifth, final]:
+        chain.add_node(node)
+
+    return chain
+
+
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
 def test_fine_tune_primary_nodes(data_fixture, request):
     # TODO still stochatic
@@ -101,11 +121,11 @@ def test_fine_tune_root_node(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # root node tuning
-    chain.fine_tune_root_node(train_data, max_lead_time=1)
+    chain.fine_tune_whole_chain(train_data, max_lead_time=1)
     after_tun_root_node_predicted = chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 3)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 3)
+    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')

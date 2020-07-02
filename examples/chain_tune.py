@@ -31,7 +31,7 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData,
         chain_tune_strategy = chain.fine_tune_primary_nodes
     elif nodes_to_tune == 'root':
         print('root_node_tuning')
-        chain_tune_strategy = chain.fine_tune_root_node
+        chain_tune_strategy = chain.fine_tune_whole_chain
     else:
         raise ValueError(f'Invalid type of nodes. Nodes must be primary or root')
 

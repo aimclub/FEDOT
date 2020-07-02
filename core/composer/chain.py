@@ -46,8 +46,8 @@ class Chain:
         if verbose:
             print('End tuning')
 
-    def fine_tune_root_node(self, input_data: InputData, max_lead_time: int,
-                            iterations: int = 30, verbose=False):
+    def fine_tune_whole_chain(self, input_data: InputData, max_lead_time: int,
+                              iterations: int = 30, verbose=False):
         if verbose:
             print('Start tuning of root node')
 

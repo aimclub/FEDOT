@@ -284,12 +284,18 @@ class SecondaryNode(Node):
                           data_type=self.model.output_datatype(input_data.data_type),
                           task=input_data.task)
 
-    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30,
+                  verbose: bool = False):
         parent_results = []
-        for parent in self._nodes_from_with_fixed_order():
-            parent_results.append(parent.predict(input_data=input_data))
+
+        if verbose:
+            print(f'Tune all parent nodes in secondary node with model: {self.model}')
 
         target = input_data.target
+        for parent in self._nodes_from_with_fixed_order():
+            parent.fine_tune(input_data=input_data, max_lead_time=max_lead_time)
+            parent_results.append(parent.predict(input_data=input_data))
+
         secondary_input = Data.from_predictions(outputs=parent_results,
                                                 target=target)
 
