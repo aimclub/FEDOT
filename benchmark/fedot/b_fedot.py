@@ -22,16 +22,18 @@ random.seed(1)
 np.random.seed(1)
 
 
-def save_fedot_model(chain, path_to_file):
-    with open(f'{path_to_file}.pkl', 'wb') as pickle_file:
+def save_fedot_model(chain, file_name: str):
+    path_to_file = str(os.path.dirname(__file__))
+    with open(f'{path_to_file}/{file_name}.pkl', 'wb') as pickle_file:
         dump(chain, pickle_file)
-    ComposerVisualiser.visualise(chain, f'{path_to_file}.png')
+    ComposerVisualiser.visualise(chain, f'{path_to_file}/{file_name}.png')
 
 
-def load_fedot_model(path_to_file):
+def load_fedot_model(file_name):
+    path_to_file = str(os.path.dirname(__file__))
     try:
-        if os.path.exists(f'{path_to_file}.pkl'):
-            with open(f'{path_to_file}.pkl', 'rb') as pickle_file:
+        if os.path.exists(f'{path_to_file}/{file_name}.pkl'):
+            with open(f'{path_to_file}/{file_name}.pkl', 'rb') as pickle_file:
                 return load(pickle_file)
     except Exception as ex:
         print(f'Model load error {ex}')
