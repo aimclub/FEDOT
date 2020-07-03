@@ -1,10 +1,7 @@
 from random import randint
 
-from core.composer.chain import Chain
-from core.composer.metrics import ChainMetric
 
-
-class RandomMetric(ChainMetric):
+class RandomMetric:
     @staticmethod
-    def get_value(chain: Chain) -> float:
+    def get_value() -> float:
         return randint(0, 1000)

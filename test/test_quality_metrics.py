@@ -8,7 +8,7 @@ from core.models.data import InputData, split_train_test
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricsEnum,
-                                                        MetricsRepository)
+                                                        MetricsRepository, RegressionMetricsEnum)
 from core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -49,19 +49,43 @@ def default_valid_chain():
 
 def test_structural_quality_correct():
     chain = default_valid_chain()
-    metric_functions = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
-
+    metric_function = MetricsRepository().metric_by_id(ComplexityMetricsEnum.structural)
     expected_metric_value = 13
-    actual_metric_value = metric_functions(chain)
-    assert actual_metric_value == expected_metric_value
+    actual_metric_value = metric_function(chain)
+    assert actual_metric_value <= expected_metric_value
 
 
 def test_classification_quality_metric(data_setup):
     train, _ = data_setup
-
-    metric_functions = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-
     chain = default_valid_chain()
     chain.fit(input_data=train)
-    metric_value = metric_functions(chain=chain, reference_data=train)
-    assert 0.0 < abs(metric_value) < 1.0
+
+    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    metric_value = metric_function(chain=chain, reference_data=train)
+
+    metric_function_with_penalty = \
+        MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_value_with_penalty = \
+        metric_function_with_penalty(chain=chain, reference_data=train)
+
+    assert 0.5 < abs(metric_value) < 1.0
+    assert 0.5 < abs(metric_value_with_penalty) < 1.0
+    assert metric_value < metric_value_with_penalty
+
+
+def test_regression_quality_metric(data_setup):
+    train, _ = data_setup
+    chain = default_valid_chain()
+    chain.fit(input_data=train)
+
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    metric_value = metric_function(chain=chain, reference_data=train)
+
+    metric_function_with_penalty = \
+        MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE_penalty)
+    metric_value_with_penalty = \
+        metric_function_with_penalty(chain=chain, reference_data=train)
+
+    assert metric_value > 0
+    assert metric_value_with_penalty > 0
+    assert metric_value < metric_value_with_penalty

@@ -171,7 +171,7 @@ class GPChainOptimiser:
     def _add_to_history(self, individuals: List[Any]):
         [self.history.append(ind) for ind in individuals]
 
-    def _best_single_models(self, objective_function: Callable, num_best: int = 5):
+    def _best_single_models(self, objective_function: Callable, num_best: int = 7):
         single_models_inds = []
         for model in self.requirements.primary:
             single_models_ind = self.chain_class([self.primary_node_func(model)])

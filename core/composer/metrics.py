@@ -1,11 +1,11 @@
+import sys
 from abc import abstractmethod
 
 import numpy as np
 from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
 
-from core.chain_validation import validate
 from core.composer.chain import Chain
-from core.models.data import InputData
+from core.models.data import InputData, OutputData
 
 
 def from_maximised_metric(metric_func):
@@ -15,95 +15,99 @@ def from_maximised_metric(metric_func):
     return wrapper
 
 
-class ChainMetric:
-    max_penalty_part = 0.01
-
-    @staticmethod
+class Metric:
+    @classmethod
     @abstractmethod
-    def get_value(chain: Chain, reference_data: InputData) -> float:
+    def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         raise NotImplementedError()
 
 
-class RmseMetric(ChainMetric):
-    @staticmethod
-    def get_value(chain: Chain, reference_data: InputData) -> float:
-        results = chain.predict(reference_data)
-        return mean_squared_error(y_true=reference_data.target, y_pred=results.predict)
+class QualityMetric:
+    max_penalty_part = 0.01
+    default_value = None
 
-    @staticmethod
-    def get_value_with_penalty(chain: Chain, reference_data: InputData) -> float:
-        rmse = RmseMetric.get_value(chain, reference_data)
+    @classmethod
+    def get_value(cls, chain: Chain, reference_data: InputData) -> float:
+        metric = cls.default_value
+        try:
+            results = chain.predict(reference_data)
+            metric = cls.metric(reference_data, results)
+        except Exception as ex:
+            print(f'Metric evaluation error: {ex}')
+        return metric
+
+    @classmethod
+    def get_value_with_penalty(cls, chain: Chain, reference_data: InputData) -> float:
+        quality_metric = cls.get_value(chain, reference_data)
         structural_metric = StructuralComplexityMetric.get_value(chain)
 
-        penalty = (structural_metric / StructuralComplexityMetric.norm_constant *
-                   rmse * ChainMetric.max_penalty_part)
+        penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
+        metric_with_penalty = (quality_metric +
+                               min(penalty, abs(quality_metric * cls.max_penalty_part)))
+        return metric_with_penalty
 
-        return rmse + min(penalty,
-                          rmse * ChainMetric.max_penalty_part)
+    @staticmethod
+    @abstractmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        raise NotImplementedError()
 
 
-class F1Metric(ChainMetric):
+class RmseMetric(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return mean_squared_error(y_true=reference.target,
+                                  y_pred=predicted.predict)
+
+
+class F1Metric(QualityMetric):
+    default_value = 0
+
     @staticmethod
     @from_maximised_metric
-    def get_value(chain: Chain, reference_data: InputData) -> float:
-        results = chain.predict(reference_data)
-        bound = np.mean(results.predict)
-        predicted_labels = [1 if x >= bound else 0 for x in results.predict]
-        return f1_score(y_true=reference_data.target, y_pred=predicted_labels)
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        bound = np.mean(predicted.predict)
+        predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
+        return f1_score(y_true=reference.target, y_pred=predicted_labels)
 
 
-class MaeMetric(ChainMetric):
+class MaeMetric(QualityMetric):
+    default_value = sys.maxsize
+
     @staticmethod
-    def get_value(chain: Chain, reference_data: InputData) -> float:
-        results = chain.predict(reference_data)
-        return mean_squared_error(y_true=reference_data.target, y_pred=results.predict)
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return mean_squared_error(y_true=reference.target, y_pred=predicted.predict)
 
 
-class RocAucMetric(ChainMetric):
+class RocAucMetric(QualityMetric):
+    default_value = 0.5
+
     @staticmethod
     @from_maximised_metric
-    def get_value(chain: Chain, reference_data: InputData) -> float:
-        n_classes = reference_data.num_classes
+    def metric(reference: InputData, predicted: OutputData) -> float:
+
+        n_classes = reference.num_classes
         if n_classes > 2:
             additional_params = {'multi_class': 'ovo', 'average': 'macro'}
         else:
             additional_params = {}
 
-        try:
-            validate(chain)
-            results = chain.predict(reference_data)
-            try:
-                score = round(roc_auc_score(y_score=results.predict,
-                                            y_true=reference_data.target,
-                                            **additional_params), 3)
-            except ValueError as ex:
-                print(f'ROC AUC can not be calculated: {ex}')
-                score = 0.5
-        except Exception as ex:
-            print(f'Metric evaluation error: {ex}')
-            score = 0.5
+        score = round(roc_auc_score(y_score=predicted.predict,
+                                    y_true=reference.target,
+                                    **additional_params), 3)
         return score
 
-    @staticmethod
-    def get_value_with_penalty(chain: Chain, reference_data: InputData) -> float:
-        roc_auc = RocAucMetric.get_value(chain, reference_data)
-        structural_metric = StructuralComplexityMetric.get_value(chain)
 
-        penalty = (structural_metric /
-                   StructuralComplexityMetric.norm_constant * ChainMetric.max_penalty_part)
-        return roc_auc + min(penalty,
-                             ChainMetric.max_penalty_part)
+class StructuralComplexityMetric(Metric):
+    @classmethod
+    def get_value(cls, chain: Chain, **args) -> float:
+        norm_constant = 30
+        return (chain.depth ** 2 + chain.length) / norm_constant
 
 
-class StructuralComplexityMetric(ChainMetric):
-    norm_constant = 30
-
-    @staticmethod
-    def get_value(chain: Chain, **args) -> float:
-        return chain.depth ** 2 + chain.length
-
-
-class NodeNum(ChainMetric):
-    @staticmethod
-    def get_value(chain: Chain, **args) -> float:
-        return chain.length
+class NodeNum(Metric):
+    @classmethod
+    def get_value(cls, chain: Chain, **args) -> float:
+        norm_constant = 10
+        return chain.length / norm_constant
