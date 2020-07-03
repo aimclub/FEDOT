@@ -83,7 +83,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        sklearn_model = self._sklearn_model_impl()
+        if self.params_for_fit:
+            sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
+        else:
+            sklearn_model = self._sklearn_model_impl()
         sklearn_model.fit(train_data.features, train_data.target.ravel())
         return sklearn_model
 
@@ -107,12 +110,16 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                        scorer=metric,
                                                        time_limit_minutes=max_lead_time).tune()
 
+        # TODO Why not best_model but new one?
         if best_model and tuned_params:
             self.params_for_fit = tuned_params
             trained_model = self._sklearn_model_impl(**tuned_params)
             trained_model.fit(train_data.features, train_data.target.ravel())
 
         return trained_model, tuned_params
+
+    def _set_custom_params(self):
+        self._sklearn_model_impl()
 
     def _convert_to_sklearn(self, model_type: ModelTypesIdsEnum):
         if model_type in self.__model_by_types.keys():

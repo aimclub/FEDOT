@@ -55,26 +55,6 @@ def get_class_chain():
     return chain
 
 
-def get_three_layer_chain():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    third = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-
-    fourth = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                          nodes_from=[first, second])
-    fifth = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                         nodes_from=[third])
-
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
-                                         nodes_from=[fifth, fourth])
-
-    chain = Chain()
-    for node in [first, second, third, fourth, fifth, final]:
-        chain.add_node(node)
-
-    return chain
-
-
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
 def test_fine_tune_primary_nodes(data_fixture, request):
     # TODO still stochatic

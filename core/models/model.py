@@ -67,6 +67,9 @@ class Model:
     def fit(self, data: InputData):
         self._init(data.task)
 
+        if self.params != DEFAULT_PARAMS_STUB:
+            self._eval_strategy.params_for_fit = self.params
+
         fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
@@ -105,6 +108,9 @@ class Model:
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
         return fitted_model, predict_train
+
+    def set_custom_params(self, params: dict):
+        self.params = params
 
     def __str__(self):
         return f'{self.model_type.name}'
