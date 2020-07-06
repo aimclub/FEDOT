@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from sklearn.metrics import mean_squared_error as mse
 from statsmodels.tsa.arima_process import ArmaProcess
 
@@ -10,7 +11,6 @@ from core.repository.dataset_types import DataTypesEnum
 from core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-import pytest
 
 
 def compose_chain(data: InputData) -> Chain:
