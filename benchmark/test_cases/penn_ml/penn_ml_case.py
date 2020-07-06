@@ -5,7 +5,8 @@ from pmlb import classification_dataset_names, fetch_data, regression_dataset_na
 from pmlb.write_metadata import imbalance_metrics
 
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import convert_json_stats_to_csv, get_models_hyperparameters, get_penn_case_data_paths, \
+from benchmark.benchmark_utils import convert_json_stats_to_csv, \
+    get_models_hyperparameters, get_penn_case_data_paths, \
     save_metrics_result_file
 from benchmark.executor import CaseExecutor, ExecutionParams
 from core.repository.tasks import TaskTypesEnum
@@ -54,8 +55,8 @@ if __name__ == '__main__':
                                                   BenchmarkModelTypesEnum.baseline,
                                                   BenchmarkModelTypesEnum.fedot],
                                           metric_list=metric_names).execute()
-        except ValueError:
-            print(f'problems_with_dataset_{name_of_dataset}')
+        except ValueError as ex:
+            print(f'problems_with_dataset_{name_of_dataset}: {ex}')
             continue
 
         result_metrics['hyperparameters'] = config_models_data

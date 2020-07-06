@@ -6,6 +6,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.visualisation import ComposerVisualiser
 from core.models.model import *
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import (
@@ -34,7 +35,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
                                                task_type=task.task_type,
                                                can_be_secondary=True))
 
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+    metric_function = MetricsRepository(). \
+        metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
@@ -82,6 +84,8 @@ if __name__ == '__main__':
     test_data = InputData.from_csv(test_file_path)
 
     fitted_model = get_model(train_file_path)
+
+    ComposerVisualiser.visualise(fitted_model)
 
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc}')

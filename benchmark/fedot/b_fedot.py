@@ -22,18 +22,22 @@ random.seed(1)
 np.random.seed(1)
 
 
-def save_fedot_model(chain, path_to_file):
-    with open(f'{path_to_file}.pkl', 'wb') as pickle_file:
+def save_fedot_model(chain, file_name: str):
+    path_to_file = str(os.path.dirname(__file__))
+    with open(f'{path_to_file}/{file_name}.pkl', 'wb') as pickle_file:
         dump(chain, pickle_file)
-    ComposerVisualiser.visualise(chain, f'{path_to_file}.png')
+    ComposerVisualiser.visualise(chain, f'{path_to_file}/{file_name}.png')
 
 
-def load_fedot_model(path_to_file):
-    if os.path.exists(path_to_file):
-        with open(f'{path_to_file}.pkl', 'rb') as pickle_file:
-            return load(pickle_file)
-    else:
-        return None
+def load_fedot_model(file_name):
+    path_to_file = str(os.path.dirname(__file__))
+    try:
+        if os.path.exists(f'{path_to_file}/{file_name}.pkl'):
+            with open(f'{path_to_file}/{file_name}.pkl', 'rb') as pickle_file:
+                return load(pickle_file)
+    except Exception as ex:
+        print(f'Model load error {ex}')
+    return None
 
 
 def run_fedot(params: 'ExecutionParams'):
@@ -42,6 +46,13 @@ def run_fedot(params: 'ExecutionParams'):
     case_label = params.case_label
     task_type = params.task
 
+    if task_type == TaskTypesEnum.classification:
+        metric = ClassificationMetricsEnum.ROCAUC
+    elif task_type == TaskTypesEnum.regression:
+        metric = RegressionMetricsEnum.RMSE
+    else:
+        raise NotImplementedError()
+
     task = Task(task_type)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -49,7 +60,7 @@ def run_fedot(params: 'ExecutionParams'):
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     cur_lead_time = models_hyperparameters['MAX_RUNTIME_MINS']
 
-    saved_model_name = f'fedot_{case_label}_{task_type}_{cur_lead_time}'
+    saved_model_name = f'fedot_{case_label}_{task_type}_{cur_lead_time}_{metric}'
     loaded_model = load_fedot_model(saved_model_name)
 
     if not loaded_model:
@@ -63,12 +74,7 @@ def run_fedot(params: 'ExecutionParams'):
                                                    task_type=task.task_type,
                                                    can_be_secondary=True))
 
-        if task_type == TaskTypesEnum.classification:
-            metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-        elif task_type == TaskTypesEnum.regression:
-            metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-        else:
-            raise NotImplementedError()
+        metric_function = MetricsRepository().metric_by_id(metric)
 
         composer_requirements = GPComposerRequirements(
             primary=available_model_types,
@@ -86,10 +92,10 @@ def run_fedot(params: 'ExecutionParams'):
                                                     metrics=metric_function, is_visualise=False)
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose, iterations=50)
         chain_evo_composed.fit(input_data=dataset_to_compose, verbose=False)
-        save_fedot_model(chain_evo_composed, f'fedot_{case_label}_{task_type}_{cur_lead_time}')
+        save_fedot_model(chain_evo_composed, saved_model_name)
     else:
         chain_evo_composed = loaded_model
 
     evo_predicted = chain_evo_composed.predict(dataset_to_validate)
 
-    return evo_predicted.predict, dataset_to_validate.target
+    return dataset_to_validate.target, evo_predicted.predict

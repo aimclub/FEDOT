@@ -2,13 +2,12 @@ import gc
 import json
 import os
 from glob import glob
-from typing import Tuple, Tuple
+from typing import Tuple
 
 import pandas as pd
 from pmlb import fetch_data
-from sklearn.model_selection import train_test_split
 
-from core.utils import ensure_directory_exists, get_split_data_paths, project_root, project_root, save_file_to_csv, \
+from core.utils import ensure_directory_exists, get_split_data_paths, project_root, save_file_to_csv, \
     split_data
 
 
@@ -74,13 +73,13 @@ def get_models_hyperparameters(timedelta: int = 10) -> dict:
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS
 
     tpot_config = {'MAX_RUNTIME_MINS': timedelta,
-                   'GENERATIONS': 50,
-                   'POPULATION_SIZE': 10
+                   'GENERATIONS': 100,
+                   'POPULATION_SIZE': 20
                    }
 
     fedot_config = {'MAX_RUNTIME_MINS': timedelta,
-                    'GENERATIONS': 10,
-                    'POPULATION_SIZE': 10
+                    'GENERATIONS': 100,
+                    'POPULATION_SIZE': 20
                     }
 
     h2o_config = {'MAX_MODELS': 20,

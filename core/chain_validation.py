@@ -39,7 +39,7 @@ def has_no_cycle(chain: Chain):
 def has_no_isolated_nodes(chain: Chain):
     graph, _ = as_nx_graph(chain)
     isolated = list(isolates(graph))
-    if len(isolated) > 0:
+    if len(isolated) > 0 and chain.length != 1:
         raise ValueError(f'{ERROR_PREFIX} Chain has isolated nodes')
     return True
 

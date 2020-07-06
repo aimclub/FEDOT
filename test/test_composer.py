@@ -124,7 +124,8 @@ def test_fixed_structure_composer(data_fixture, request):
     composer = FixedStructureComposer()
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5)
+                                 crossover_prob=0.4, mutation_prob=0.5,
+                                 add_single_model_chains=False)
 
     reference_chain = get_class_chain()
 
@@ -208,7 +209,7 @@ def test_composition_time(data_fixture, request):
         secondary=models_impl, max_arity=2,
         max_depth=2,
         pop_size=2, num_of_generations=5, crossover_prob=0.9,
-        mutation_prob=0.9, max_lead_time=datetime.timedelta(minutes=0.01))
+        mutation_prob=0.9, max_lead_time=datetime.timedelta(minutes=0.000001))
 
     _ = gp_composer_terminated_evolution.compose_chain(data=data,
                                                        initial_chain=None,
@@ -229,5 +230,4 @@ def test_composition_time(data_fixture, request):
                                                       composer_requirements=req_completed_evolution,
                                                       metrics=metric_function)
 
-    assert len(gp_composer_terminated_evolution.history) == 4
-    assert len(gp_composer_completed_evolution.history) == 4
+    assert len(gp_composer_terminated_evolution.history) == len(gp_composer_completed_evolution.history)
