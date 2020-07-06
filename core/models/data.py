@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from core.utils import ensure_features_2d
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
@@ -113,7 +112,7 @@ def _combine_datasets_ts(outputs: List[OutputData]):
                 predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
             else:
                 predict = np.concatenate((np.zeros(expected_len - len(elem.predict)),
-                                         elem.predict))
+                                          elem.predict))
 
         features.append(predict)
 

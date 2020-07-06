@@ -4,7 +4,7 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from core.composer.node import NodeGenerator, PrimaryNode
+from core.composer.node import SecondaryNode, PrimaryNode
 from core.models.data import (
     InputData,
     train_test_data_setup)
@@ -33,7 +33,7 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 def test_node_factory_log_reg_correct(data_setup):
     model_type = 'logit'
-    node = NodeGenerator().primary_node(model_type=model_type)
+    node = PrimaryNode(model_type=model_type)
 
     expected_model = Model(model_type=model_type).__class__
     actual_model = node.model.__class__
@@ -50,7 +50,7 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)
 
-    test_model_node = NodeGenerator.primary_node(model_type='logit')
+    test_model_node = PrimaryNode(model_type='logit')
     test_model_node.fit(input_data=train)
     actual_result = test_model_node.predict(input_data=test)
 

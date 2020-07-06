@@ -8,7 +8,7 @@ import pytest
 from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
@@ -50,12 +50,12 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type='logit')
-    second = NodeGenerator.secondary_node(model_type='lda',
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='lda',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type='qda',
+    third = SecondaryNode(model_type='qda',
                                          nodes_from=[first])
-    final = NodeGenerator.secondary_node(model_type='knn',
+    final = SecondaryNode(model_type='knn',
                                          nodes_from=[second, third])
 
     train_predicted = final.fit(input_data=train)
@@ -74,12 +74,12 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
 def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type='logit')
-    second = NodeGenerator.secondary_node(model_type='logit',
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type='logit',
+    third = SecondaryNode(model_type='logit',
                                          nodes_from=[first])
-    final = NodeGenerator.secondary_node(model_type='logit',
+    final = SecondaryNode(model_type='logit',
                                          nodes_from=[second, third])
 
     chain = Chain()
@@ -105,12 +105,12 @@ def test_chain_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = NodeGenerator.primary_node(model_type='logit')
-    second = NodeGenerator.secondary_node(model_type='logit',
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit',
                                           nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type='logit',
+    third = SecondaryNode(model_type='logit',
                                          nodes_from=[second])
-    final = NodeGenerator.secondary_node(model_type='logit',
+    final = SecondaryNode(model_type='logit',
                                          nodes_from=[third])
 
     chain = Chain()
@@ -136,9 +136,9 @@ def test_chain_with_datamodel_fit_correct(data_setup):
     train_data, test_data = train_test_data_setup(data)
 
     chain = Chain()
-    node_data = NodeGenerator.primary_node('direct_datamodel')
-    node_first = NodeGenerator.primary_node('bernb')
-    node_second = NodeGenerator.secondary_node('rf')
+    node_data = PrimaryNode('direct_data_model')
+    node_first = PrimaryNode('bernb')
+    node_second = SecondaryNode('rf')
     node_second.nodes_from = [node_first, node_data]
 
     chain.add_node(node_data)
@@ -154,10 +154,10 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type='logit')
-    second = NodeGenerator.primary_node(model_type='lda')
-    third = NodeGenerator.primary_node(model_type='knn')
-    final = NodeGenerator.secondary_node(model_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
                                          nodes_from=[first, second, third])
 
     chain = Chain()
@@ -167,7 +167,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = deepcopy(first)
     second = deepcopy(second)
     third = deepcopy(third)
-    final_shuffled = NodeGenerator.secondary_node(model_type='xgboost',
+    final_shuffled = SecondaryNode(model_type='xgboost',
                                                   nodes_from=[third, first, second])
 
     chain_shuffled = Chain()

@@ -1,4 +1,5 @@
 import warnings
+from abc import abstractmethod
 from datetime import timedelta
 from typing import Optional
 
@@ -21,31 +22,30 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from benchmark.tpot.b_tpot import fit_tpot, predict_tpot_class, predict_tpot_reg
 from core.models.data import InputData, OutputData
-from core.models.evaluation.automl_eval import fit_h2o, predict_h2o
 from core.models.evaluation.custom_models.models import CustomSVC
-from core.models.evaluation.data_evaluation_strategies import get_data, get_difference, get_residual, get_sum, get_trend
 from core.models.evaluation.hyperparams import params_range_by_model
-from core.models.evaluation.lstm_eval import fit_lstm, predict_lstm
-from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, \
-    predict_ar, predict_arima
-from core.models.tuners import ForecastingCustomRandomTuner, \
-    SklearnCustomRandomTuner, SklearnTuner
+from core.models.tuners import SklearnCustomRandomTuner, SklearnTuner
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
+    @abstractmethod
     def fit(self, train_data: InputData):
         raise NotImplementedError()
 
+    @abstractmethod
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
+
+    @property
+    def implementation_info(self) -> str:
+        return 'No description'
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
@@ -134,6 +134,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             if model_impl == impl:
                 return model
 
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_sklearn(self.model_type))
+
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
@@ -163,135 +167,6 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
-
-class StatsModelsForecastingStrategy(EvaluationStrategy):
-    _model_functions_by_types = {
-        'arima': (fit_arima, predict_arima),
-        'ar': (fit_ar, predict_ar)
-    }
-
-    __default_params_by_model = {
-        'arima': {'order': (2, 0, 0)},
-        'ar': {'lags': (1, 2, 6, 12, 24)}
-    }
-    __params_range_by_model = {
-        'arima': {'order': ((2, 0, 0), (5, 0, 5))},
-        'ar': {'lags': (range(1, 6), range(6, 96, 6))}
-    }
-
-    def __init__(self, model_type: str):
-        self._model_specific_fit, self._model_specific_predict = self._init_stats_model_functions(model_type)
-        self._params_range = self.__params_range_by_model[model_type]
-        self._default_params = self.__default_params_by_model[model_type]
-
-        self.params_for_fit = None
-
-    def _init_stats_model_functions(self, model_type: str):
-        if model_type in self._model_functions_by_types.keys():
-            return self._model_functions_by_types[model_type]
-        else:
-            raise ValueError(f'Impossible to obtain Stats strategy for {model_type}')
-
-    def fit(self, train_data: InputData):
-        stats_model = self._model_specific_fit(train_data, self._default_params)
-        self.params_for_fit = self._default_params
-        return stats_model
-
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
-        return self._model_specific_predict(trained_model, predict_data)
-
-    def fit_tuned(self, train_data: InputData, iterations: int = 10,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        tuned_params = ForecastingCustomRandomTuner().tune(fit=self._model_specific_fit,
-                                                           predict=self._model_specific_predict,
-                                                           tune_data=train_data,
-                                                           params_range=self._params_range,
-                                                           default_params=self._default_params,
-                                                           iterations=iterations)
-
-        stats_model = self._model_specific_fit(train_data, tuned_params)
-        self.params_for_fit = tuned_params
-
-        return stats_model, tuned_params
-
-
-class AutoMLEvaluationStrategy(EvaluationStrategy):
-    _model_functions_by_type = {
-        'tpot': (fit_tpot, predict_tpot_class),
-        'h2o': (fit_h2o, predict_h2o)
-    }
-
-    def __init__(self, model_type: 'str'):
-        self._model_specific_fit, self._model_specific_predict = \
-            self._init_benchmark_model_functions(model_type)
-        self.max_time_min = 5
-
-    def _init_benchmark_model_functions(self, model_type):
-        if model_type in self._model_functions_by_type.keys():
-            return self._model_functions_by_type[model_type]
-        else:
-            raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
-
-    def fit(self, train_data: InputData):
-        benchmark_model = self._model_specific_fit(train_data, self.max_time_min)
-        return benchmark_model
-
-    def predict(self, trained_model, predict_data: InputData):
-        return self._model_specific_predict(trained_model, predict_data)
-
     def fit_tuned(self, train_data: InputData, iterations: int = 30,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
-
-
-class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
-    _model_functions_by_type = {
-        'tpot': (fit_tpot, predict_tpot_reg),
-        'h2o': (fit_h2o, predict_h2o)
-    }
-
-
-# TODO inherit this and similar from custom strategy
-class KerasForecastingStrategy(EvaluationStrategy):
-
-    def __init__(self, model_type: str):
-        self._init_lstm_model_functions(model_type)
-        self.epochs = 10
-
-    def _init_lstm_model_functions(self, model_type):
-        if model_type != 'lstm':
-            raise ValueError(f'Impossible to obtain forecasting strategy for {model_type}')
-
-    def fit(self, train_data: InputData):
-        model = fit_lstm(train_data, epochs=self.epochs)
-        return model
-
-    def predict(self, trained_model, predict_data: InputData):
-        return predict_lstm(trained_model, predict_data)
-
-    def tune(self, model, data_for_tune):
-        raise NotImplementedError()
-
-
-class DataModellingStrategy(EvaluationStrategy):
-    _model_functions_by_type = {
-        'direct_datamodel': get_data,
-        'diff_data_model': get_difference,
-        'additive_data_model': get_sum,
-        'trend_data_model': get_trend,
-        'residual_data_model': get_residual
-    }
-
-    def __init__(self, model_type: str):
-        self._model_specific_predict = self._model_functions_by_type[model_type]
-
-    def fit(self, train_data: InputData):
-        # fit is not necessary for data models
-        return None
-
-    def predict(self, trained_model, predict_data: InputData):
-        return self._model_specific_predict(predict_data)
-
-    def fit_tuned(self, train_data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        return None, None

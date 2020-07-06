@@ -7,7 +7,7 @@ from core.models.data import (
 )
 from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesRepository, ModelMetaInfo
+from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -139,5 +139,5 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
             raise ValueError(f'Model {model_type} can not be used as a part of {task_type_for_model}.')
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
-    strategy = ModelTypesRepository().model_info_by_id(model_type).current_strategy(task_type_for_model)
+    strategy = models_repo.model_info_by_id(model_type).current_strategy(task_type_for_model)
     return strategy(model_type)

@@ -2,9 +2,32 @@ import numpy as np
 import tensorflow as tf
 
 from core.models.data import InputData, OutputData
+from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.tasks import extract_task_param
 
 forecast_length = 1
+
+# TODO inherit this and similar from custom strategy
+class KerasForecastingStrategy(EvaluationStrategy):
+
+    def __init__(self, model_type: str):
+        self._init_lstm_model_functions(model_type)
+        self.epochs = 10
+
+    def _init_lstm_model_functions(self, model_type):
+        if model_type != 'lstm':
+            raise ValueError(f'Impossible to obtain forecasting strategy for {model_type}')
+
+    def fit(self, train_data: InputData):
+        model = fit_lstm(train_data, epochs=self.epochs)
+        return model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return predict_lstm(trained_model, predict_data)
+
+    def tune(self, model, data_for_tune):
+        raise NotImplementedError()
+
 
 def _rmse_only_last(y_true, y_pred):
     """

@@ -3,7 +3,7 @@ from sklearn.metrics import mean_squared_error as mse
 from statsmodels.tsa.arima_process import ArmaProcess
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -37,17 +37,17 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
 
 def get_decomposed_chain(model_trend='lstm', model_residual='ridge'):
     chain = Chain()
-    node_trend = NodeGenerator.primary_node('trend_data_model')
-    node_first_trend = NodeGenerator.secondary_node('lstm', nodes_from=[node_trend])
+    node_trend = PrimaryNode('trend_data_model')
+    node_first_trend = SecondaryNode('lstm', nodes_from=[node_trend])
 
     if model_trend == 'lstm':
         # decrease the number of epochs to fit
         node_first_trend.model.external_params = {model_trend: 1}
 
-    node_residual = NodeGenerator.primary_node('residual_data_model')
-    node_model_residual = NodeGenerator.secondary_node(model_residual, nodes_from=[node_residual])
+    node_residual = PrimaryNode('residual_data_model')
+    node_model_residual = SecondaryNode(model_residual, nodes_from=[node_residual])
 
-    node_final = NodeGenerator.secondary_node('additive_data_model',
+    node_final = SecondaryNode('additive_data_model',
                                               nodes_from=[node_model_residual, node_first_trend])
     chain.add_node(node_final)
     return chain
@@ -57,7 +57,7 @@ def test_arima_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_arima = NodeGenerator.primary_node('arima')
+    node_arima = PrimaryNode('arima')
     chain.add_node(node_arima)
 
     train_data, test_data = train_test_data_setup(data)
@@ -74,7 +74,7 @@ def test_regression_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_rfr = NodeGenerator.primary_node('rfr')
+    node_rfr = PrimaryNode('rfr')
     chain.add_node(node_rfr)
 
     train_data, test_data = train_test_data_setup(data)

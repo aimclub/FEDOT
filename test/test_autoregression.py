@@ -12,6 +12,7 @@ from core.repository.quality_metrics_repository import \
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 import pytest
 
+
 def compose_chain(data: InputData) -> Chain:
     dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
     composer_requirements = ComposerRequirements(primary=['arima', 'arima'],
@@ -54,6 +55,7 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
                            squared=False)
 
     return rmse_value_train, rmse_value_test
+
 
 @pytest.mark.skip("AR should be refactored")
 def test_autoregression_chain_fit_correct():

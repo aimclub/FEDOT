@@ -5,7 +5,7 @@ import pytest
 from sklearn.metrics import mean_squared_error as mse
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.tasks import Task, TaskTypesEnum
 from datetime import timedelta
@@ -29,9 +29,9 @@ def classification_dataset():
 
 def get_regr_chain():
     # Chain composition
-    first = NodeGenerator.primary_node(model_type='xgbreg')
-    second = NodeGenerator.primary_node(model_type='knnreg')
-    final = NodeGenerator.secondary_node(model_type='linear',
+    first = PrimaryNode(model_type='xgbreg')
+    second = PrimaryNode(model_type='knnreg')
+    final = SecondaryNode(model_type='linear',
                                          nodes_from=[first, second])
 
     chain = Chain()
@@ -42,9 +42,9 @@ def get_regr_chain():
 
 def get_class_chain():
     # Chain composition
-    first = NodeGenerator.primary_node(model_type='xgboost')
-    second = NodeGenerator.primary_node(model_type='knn')
-    final = NodeGenerator.secondary_node(model_type='logit',
+    first = PrimaryNode(model_type='xgboost')
+    second = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='logit',
                                          nodes_from=[first, second])
 
     chain = Chain()

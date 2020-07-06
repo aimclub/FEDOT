@@ -3,6 +3,7 @@ from scipy import signal
 from statsmodels.tsa.seasonal import seasonal_decompose
 
 from core.models.data import InputData
+from core.models.evaluation.evaluation import EvaluationStrategy
 
 
 def get_data(predict_data: InputData):
@@ -42,3 +43,26 @@ def get_residual(predict_data: InputData):
     target_trend = get_trend(predict_data)
     target_residual = predict_data.target - target_trend
     return target_residual
+
+
+class DataModellingStrategy(EvaluationStrategy):
+    _model_functions_by_type = {
+        'direct_data_model': get_data,
+        'diff_data_model': get_difference,
+        'additive_data_model': get_sum,
+        'trend_data_model': get_trend,
+        'residual_data_model': get_residual
+    }
+
+    def __init__(self, model_type: str):
+        self._model_specific_predict = self._model_functions_by_type[model_type]
+
+    def fit(self, train_data: InputData):
+        # fit is not necessary for data models
+        return None
+
+    def predict(self, trained_model, predict_data: InputData):
+        return self._model_specific_predict(predict_data)
+
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+        return None, None

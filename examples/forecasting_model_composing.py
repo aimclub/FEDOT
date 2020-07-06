@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error as mse
 from core.composer.chain import Chain
 from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
 from core.composer.gp_composer.gp_composer import GPComposerRequirements
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import OutputData
 from core.models.model import *
@@ -19,14 +19,14 @@ from core.utils import project_root
 
 def get_composite_lstm_chain():
     chain = Chain()
-    node_trend = NodeGenerator.primary_node('trend_data_model')
+    node_trend = PrimaryNode('trend_data_model')
     node_trend.labels = ["fixed"]
-    node_lstm_trend = NodeGenerator.secondary_node('linear', nodes_from=[node_trend])
+    node_lstm_trend = SecondaryNode('linear', nodes_from=[node_trend])
     node_trend.labels = ["fixed"]
-    node_residual = NodeGenerator.primary_node('residual_data_model')
-    node_ridge_residual = NodeGenerator.secondary_node('linear', nodes_from=[node_residual])
+    node_residual = PrimaryNode('residual_data_model')
+    node_ridge_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
-    node_final = NodeGenerator.secondary_node('additive_data_model',
+    node_final = SecondaryNode('additive_data_model',
                                               nodes_from=[node_ridge_residual, node_lstm_trend])
     node_final.labels = ["fixed"]
     chain.add_node(node_final)

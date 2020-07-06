@@ -4,7 +4,7 @@ from copy import deepcopy
 import pytest
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.optimisers.gp_operators import equivalent_subtree
 
 
@@ -17,12 +17,12 @@ def chain_first():
     chain = Chain()
 
     root_of_tree, root_child_first, root_child_second = \
-        [NodeGenerator.secondary_node(model) for model in ('xgboost', 'xgboost',
+        [SecondaryNode(model) for model in ('xgboost', 'xgboost',
                                                            'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
-            new_node = NodeGenerator.primary_node(requirement_model)
+            new_node = PrimaryNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
             chain.add_node(new_node)
         chain.add_node(root_node_child)
@@ -40,9 +40,9 @@ def chain_second():
     # LR XG   LR   LDA
     #    |  \
     #   KNN  LDA
-    new_node = NodeGenerator.secondary_node('xgboost')
+    new_node = SecondaryNode('xgboost')
     for model_type in ('knn', 'lda'):
-        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+        new_node.nodes_from.append(PrimaryNode(model_type))
     chain = chain_first()
     chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[1], new_node)
 
@@ -53,9 +53,9 @@ def chain_third():
     #      XG
     #   |  |  \
     #  KNN LDA KNN
-    root_of_tree = NodeGenerator.secondary_node('xgboost')
+    root_of_tree = SecondaryNode('xgboost')
     for model_type in ('knn', 'lda', 'knn'):
-        root_of_tree.nodes_from.append(NodeGenerator.primary_node(model_type))
+        root_of_tree.nodes_from.append(PrimaryNode(model_type))
     chain = Chain()
 
     for node in root_of_tree.nodes_from:
@@ -73,8 +73,8 @@ def chain_fourth():
     #    KNN   KNN
 
     chain = chain_third()
-    new_node = NodeGenerator.secondary_node('xgboost')
-    [new_node.nodes_from.append(NodeGenerator.primary_node('knn')) for _ in range(2)]
+    new_node = SecondaryNode('xgboost')
+    [new_node.nodes_from.append(PrimaryNode('knn')) for _ in range(2)]
     chain.replace_node_with_parents(chain.root_node.nodes_from[1], new_node)
 
     return chain

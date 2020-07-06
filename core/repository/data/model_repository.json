@@ -6,7 +6,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": "SkLearnClassificationStrategy",
+	  "strategies": ["core.models.evaluation.evaluation", "SkLearnClassificationStrategy"],
 	  "tags": ["ml", "sklearn"]
 	},
 	"sklearn_regr": {
@@ -15,7 +15,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": "SkLearnRegressionStrategy",
+	  "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
 	  "tags": ["ml", "sklearn"]
 	},
 	"sklearn_clust": {
@@ -24,7 +24,7 @@
 	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": "SkLearnClusteringStrategy",
+	  "strategies": ["core.models.evaluation.evaluation", "SkLearnClusteringStrategy"],
 	  "tags": ["ml", "sklearn"]
 	},
 	"automl": {
@@ -34,8 +34,8 @@
 	  "accepted_node_types": ["primary", "after-datamodel"],
 	  "forbidden_node_types": "[]",
 	  "strategies": {
-		"TaskTypesEnum.classification": "AutoMLEvaluationStrategy",
-		"TaskTypesEnum.regression": "AutoMLRegressionStrategy"
+		"TaskTypesEnum.classification": ["core.models.evaluation.automl_eval", "AutoMLEvaluationStrategy"],
+		"TaskTypesEnum.regression": ["core.models.evaluation.automl_eval", "AutoMLRegressionStrategy"]
 	  },
 	  "tags": ["automl", "expensive", "non-default"]
 	},
@@ -43,28 +43,28 @@
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": "StatsModelsForecastingStrategy",
+	  "strategies": ["core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
 	  "tags": ["statistical", "autoreg"]
 	},
 	"data_model": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
 	  "input_type": "[DataTypesEnum.table]",
 	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": "DataModellingStrategy",
+	  "strategies": ["core.models.evaluation.data_evaluation", "DataModellingStrategy"],
 	  "tags": ["without_preprocessing", "data_model"]
 	},
 	"ts_data_model": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": "DataModellingStrategy",
+	  "strategies": ["core.models.evaluation.data_evaluation", "DataModellingStrategy"],
 	  "tags": ["without_preprocessing"]
 	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts_lagged_3d]",
 	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": "KerasForecastingStrategy",
+	  "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"]
 	}
   },
@@ -167,7 +167,7 @@
 	"kmeans": {
 	  "meta": "sklearn_clust"
 	},
-	"direct_datamodel": {
+	"direct_data_model": {
 	  "meta": "data_model"
 	},
 	"diff_data_model": {

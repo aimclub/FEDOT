@@ -2,7 +2,7 @@ from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import *
 from core.repository.tasks import TaskTypesEnum
@@ -10,9 +10,9 @@ from core.repository.tasks import TaskTypesEnum
 
 def compose_chain() -> Chain:
     chain = Chain()
-    node_first = NodeGenerator.primary_node('svc')
-    node_second = NodeGenerator.primary_node('lda')
-    node_third = NodeGenerator.secondary_node('rf')
+    node_first = PrimaryNode('svc')
+    node_second = PrimaryNode('lda')
+    node_third = SecondaryNode('rf')
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)

@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from benchmark.benchmark_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.model import *
 
 
@@ -16,11 +16,11 @@ def run_chain_from_automl(train_file_path: str, test_file_path: str,
     testing_target = test_data.target
 
     chain = Chain()
-    node_tpot = NodeGenerator.primary_node('tpot')
+    node_tpot = PrimaryNode('tpot')
     node_tpot.model.external_params = {'max_run_time_sec': max_run_time.seconds}
 
-    node_lda = NodeGenerator.primary_node('lda')
-    node_rf = NodeGenerator.secondary_node('rf')
+    node_lda = PrimaryNode('lda')
+    node_rf = SecondaryNode('rf')
 
     node_rf.nodes_from = [node_tpot, node_lda]
 

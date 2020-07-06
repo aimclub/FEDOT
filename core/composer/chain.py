@@ -1,6 +1,6 @@
 from copy import copy, deepcopy
 from datetime import timedelta
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import uuid4
 
 import networkx as nx
@@ -12,8 +12,14 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
-    def __init__(self, nodes=None):
-        self.nodes = [] if not nodes else nodes
+    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
+        self.nodes = []
+        if nodes:
+            if isinstance(nodes, list):
+                for node in nodes:
+                    self.add_node(node)
+            else:
+                self.add_node(nodes)
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models

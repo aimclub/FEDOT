@@ -11,7 +11,7 @@ from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.node import NodeGenerator, PrimaryNode, SecondaryNode
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.random_composer import RandomSearchComposer
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
@@ -183,10 +183,10 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
 
 def baseline_chain():
     chain = Chain()
-    last_node = NodeGenerator.secondary_node(model_type='xgboost',
+    last_node = SecondaryNode(model_type='xgboost',
                                              nodes_from=[])
     for requirement_model in ['knn', 'logit']:
-        new_node = NodeGenerator.primary_node(requirement_model)
+        new_node = PrimaryNode(requirement_model)
         chain.add_node(new_node)
         last_node.nodes_from.append(new_node)
     chain.add_node(last_node)

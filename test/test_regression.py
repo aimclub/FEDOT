@@ -4,7 +4,7 @@ from sklearn.metrics import mean_squared_error as mse
 
 from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
@@ -62,9 +62,9 @@ def test_regression_chain_with_datamodel_fit_correct():
     train_data, test_data = train_test_data_setup(data)
 
     chain = Chain()
-    node_data = NodeGenerator.primary_node('direct_datamodel')
-    node_first = NodeGenerator.primary_node('ridge')
-    node_second = NodeGenerator.secondary_node('lasso')
+    node_data = PrimaryNode('direct_data_model')
+    node_first = PrimaryNode('ridge')
+    node_second = SecondaryNode('lasso')
     node_second.nodes_from = [node_first, node_data]
 
     chain.add_node(node_data)

@@ -2,7 +2,7 @@ from functools import partial
 
 from core.composer.chain import Chain
 from core.composer.gp_composer.gp_composer import GPComposerRequirements
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.optimisers.gp_operators import random_chain
 from core.composer.optimisers.selection import (
     SelectionTypesEnum,
@@ -18,8 +18,8 @@ def rand_population_gener_and_eval(pop_size=4):
     models_set = ['knn', 'logit', 'rf']
     requirements = GPComposerRequirements(primary=models_set,
                                           secondary=models_set, max_depth=1)
-    secondary_node_func = NodeGenerator.secondary_node
-    primary_node_func = NodeGenerator.primary_node
+    secondary_node_func = SecondaryNode
+    primary_node_func = PrimaryNode
     random_chain_function = partial(random_chain, chain_class=Chain,
                                     secondary_node_func=secondary_node_func,
                                     primary_node_func=primary_node_func,

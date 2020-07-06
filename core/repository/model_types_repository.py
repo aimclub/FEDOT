@@ -2,14 +2,11 @@ import json
 import os
 import warnings
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, List, List, Optional, Optional, Tuple, Union, Union
-
-from anytree import Node, RenderTree, findall
-from core.repository.tasks import TaskTypesEnum
+from typing import Any, List, Optional
 
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
+from core.repository.tasks import TaskTypesEnum
 
 
 @dataclass
@@ -29,7 +26,19 @@ class ModelMetaInfo:
 
 
 class ModelTypesRepository:
-    def _initialise_repo(self, repo_path: str):
+    _repo = None
+
+    def __init__(self, repo_path=None):
+        if not repo_path:
+            repo_folder_path = str(os.path.dirname(__file__))
+            file = 'data/model_repository.json'
+            repo_path = os.path.join(repo_folder_path, file)
+
+        if not ModelTypesRepository._repo or repo_path:
+            ModelTypesRepository._repo = self._initialise_repo(repo_path)
+        self._tags_excluded_by_default = ['non-default', 'expensive']
+
+    def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
         with open(repo_path) as repository_json_file:
             repository_json = json.load(repository_json_file)
 
@@ -48,7 +57,7 @@ class ModelTypesRepository:
             output_type = eval_field_str(model_metadata['output_type'])
 
             strategies_json = model_metadata['strategies']
-            if isinstance(strategies_json, str):
+            if isinstance(strategies_json, list):
                 supported_strategies = eval_strategy_str(strategies_json)
             else:
                 supported_strategies = {}
@@ -80,16 +89,12 @@ class ModelTypesRepository:
 
         return models_list
 
-    def __init__(self, repo_path=None):
-        if not repo_path:
-            repo_folder_path = str(os.path.dirname(__file__))
-            file = 'data/model_repository.json'
-            repo_path = os.path.join(repo_folder_path, file)
-        self._repo = self._initialise_repo(repo_path)
-        self._tags_excluded_by_default = ['non-default', 'expensive']
+    @property
+    def models(self):
+        return ModelTypesRepository._repo
 
     def model_info_by_id(self, id: str) -> Optional[ModelMetaInfo]:
-        models_with_id = [m for m in self._repo if m.id == id]
+        models_with_id = [m for m in ModelTypesRepository._repo if m.id == id]
         if len(models_with_id) > 1:
             raise ValueError('Several models with same id in repository')
         if len(models_with_id) == 0:
@@ -98,7 +103,7 @@ class ModelTypesRepository:
         return models_with_id[0]
 
     def models_with_tag(self, tags: List[str], is_full_match: bool = False):
-        models_info = [m for m in self._repo if _is_tags_contains_in_model(tags, m.tags, is_full_match)]
+        models_info = [m for m in ModelTypesRepository._repo if _is_tags_contains_in_model(tags, m.tags, is_full_match)]
         return [m.id for m in models_info], models_info
 
     def suitable_model(self, task_type: TaskTypesEnum,
@@ -112,7 +117,7 @@ class ModelTypesRepository:
             if not tags or excluded_default_tag not in tags:
                 forbidden_tags.append(excluded_default_tag)
 
-        models_info = [m for m in self._repo if task_type in m.task_type and
+        models_info = [m for m in ModelTypesRepository._repo if task_type in m.task_type and
                        (not tags or _is_tags_contains_in_model(tags, m.tags, is_full_match)) and
                        (not forbidden_tags or not _is_tags_contains_in_model(forbidden_tags, m.tags, False))]
         return [m.id for m in models_info], models_info

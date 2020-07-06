@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import train_test_data_setup
 from utilities.synthetic.chain import separately_fit_chain
 from utilities.synthetic.data import (
@@ -59,9 +59,9 @@ def synthetic_benchmark_composing_example():
 
 
 def two_level_chain():
-    first = NodeGenerator.primary_node(model_type='logit')
-    second = NodeGenerator.primary_node(model_type='knn')
-    third = NodeGenerator.secondary_node(model_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='knn')
+    third = SecondaryNode(model_type='xgboost',
                                          nodes_from=[first, second])
 
     chain = Chain()

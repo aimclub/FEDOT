@@ -6,7 +6,7 @@ from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.model import *
 
 
@@ -36,9 +36,9 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     print(roc_auc_value)
 
     chain = Chain()
-    node_first = NodeGenerator.primary_node('direct_datamodel')
-    node_second = NodeGenerator.primary_node('bernb')
-    node_third = NodeGenerator.secondary_node('rf')
+    node_first = PrimaryNode('direct_data_model')
+    node_second = PrimaryNode('bernb')
+    node_third = SecondaryNode('rf')
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)

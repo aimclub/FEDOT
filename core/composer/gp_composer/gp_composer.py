@@ -9,7 +9,7 @@ from typing import (
 from core.chain_validation import validate
 from core.composer.chain import Chain, SharedChain
 from core.composer.composer import Composer, ComposerRequirements
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from core.composer.visualisation import ComposerVisualiser
 from core.composer.write_history import write_composer_history_to_csv
@@ -42,8 +42,8 @@ class GPComposer(Composer):
 
         optimiser = GPChainOptimiser(initial_chain=initial_chain,
                                      requirements=composer_requirements,
-                                     primary_node_func=NodeGenerator.primary_node,
-                                     secondary_node_func=NodeGenerator.secondary_node, chain_class=Chain,
+                                     primary_node_func=PrimaryNode,
+                                     secondary_node_func=SecondaryNode, chain_class=Chain,
                                      parameters=optimiser_parameters)
 
         best_chain, self.history = optimiser.optimise(metric_function_for_nodes)

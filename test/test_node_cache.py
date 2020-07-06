@@ -3,10 +3,12 @@ import pytest
 from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain, SharedChain
-from core.composer.node import FittedModelCache, NodeGenerator, SharedCache
+from core.composer.node import FittedModelCache, \
+    PrimaryNode, SecondaryNode, SharedCache
 from core.models.data import InputData, split_train_test
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
+
 
 @pytest.fixture()
 def data_setup():
@@ -37,12 +39,12 @@ def chain_first():
     chain = Chain()
 
     root_of_tree, root_child_first, root_child_second = \
-        [NodeGenerator.secondary_node(model) for model in ('xgboost', 'xgboost',
-                                                           'knn')]
+        [SecondaryNode(model) for model in ('xgboost', 'xgboost',
+                                            'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
-            new_node = NodeGenerator.primary_node(requirement_model)
+            new_node = PrimaryNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
             chain.add_node(new_node)
         chain.add_node(root_node_child)
@@ -59,9 +61,9 @@ def chain_second():
     # |  \    |  \
     # KNN KNN LR  LDA
     chain = chain_first()
-    new_node = NodeGenerator.secondary_node('dt')
+    new_node = SecondaryNode('dt')
     for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+        new_node.nodes_from.append(PrimaryNode(model_type))
     chain.replace_node_with_parents(chain.root_node.nodes_from[0], new_node)
     return chain
 
@@ -71,9 +73,9 @@ def chain_third():
     #  |     \
     # RF     RF
     chain = Chain()
-    new_node = NodeGenerator.secondary_node('qda')
+    new_node = SecondaryNode('qda')
     for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+        new_node.nodes_from.append(PrimaryNode(model_type))
     chain.add_node(new_node)
     [chain.add_node(node_from) for node_from in new_node.nodes_from]
     return chain
@@ -88,13 +90,13 @@ def chain_fourth():
     # |  \    |    \
     # RF  RF  KNN KNN
     chain = chain_first()
-    new_node = NodeGenerator.secondary_node('qda')
+    new_node = SecondaryNode('qda')
     for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+        new_node.nodes_from.append(PrimaryNode(model_type))
     chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[1], new_node)
-    new_node = NodeGenerator.secondary_node('knn')
+    new_node = SecondaryNode('knn')
     for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(NodeGenerator.primary_node(model_type))
+        new_node.nodes_from.append(PrimaryNode(model_type))
     chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], new_node)
     return chain
 
@@ -106,9 +108,9 @@ def chain_fifth():
     # |  \    |  \
     # LR LDA KNN  KNN
     chain = chain_first()
-    new_node = NodeGenerator.secondary_node('knn')
+    new_node = SecondaryNode('knn')
     chain.update_node(chain.root_node, new_node)
-    new_node = NodeGenerator.primary_node('knn')
+    new_node = PrimaryNode('knn')
     chain.update_node(chain.root_node.nodes_from[1].nodes_from[0], new_node)
     chain.update_node(chain.root_node.nodes_from[1].nodes_from[1], new_node)
 
@@ -120,7 +122,7 @@ def test_cache_actuality_after_model_change(data_setup):
     chain = chain_first()
     train, _ = data_setup
     chain.fit(input_data=train)
-    new_node = NodeGenerator.secondary_node(model_type='logit')
+    new_node = SecondaryNode(model_type='logit')
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=new_node)
 
@@ -180,7 +182,7 @@ def test_cache_historical_state_using(data_setup):
 
     # chain fitted, model goes to cache
     chain.fit(input_data=train)
-    new_node = NodeGenerator.secondary_node(model_type='logit')
+    new_node = SecondaryNode(model_type='logit')
     old_node = chain.root_node.nodes_from[0]
 
     # change child node to new one
