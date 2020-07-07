@@ -33,8 +33,9 @@ class Chain:
         result = self.root_node.predict(input_data=input_data)
         return result
 
-    def fine_tune_primary_nodes(self, input_data: InputData, max_lead_time: timedelta,
-                                iterations: int, verbose=False):
+    def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
+                                max_lead_time: timedelta = timedelta(minutes=5),
+                                verbose=False):
         # Select all primary nodes
         # Perform fine-tuning for each model in node
         if verbose:
@@ -47,8 +48,9 @@ class Chain:
         if verbose:
             print('End tuning')
 
-    def fine_tune_all_nodes(self, input_data: InputData, max_lead_time: timedelta,
-                            iterations: int, verbose=False):
+    def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
+                            max_lead_time: timedelta = timedelta(minutes=5),
+                            verbose=False):
         if verbose:
             print('Start tuning of chain')
 
