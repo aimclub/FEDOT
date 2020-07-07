@@ -14,8 +14,10 @@ from imageio import get_writer, imread
 from core.composer.chain import Chain, as_nx_graph
 from core.utils import project_root
 
-NODE_SIZE = 36000
-FONT_SIZE = 42
+NODE_SIZE = 10000
+FONT_SIZE = 30
+DPI = 128
+FIG_SIZE = (8, 8)
 
 
 class ComposerVisualiser:
@@ -53,7 +55,7 @@ class ComposerVisualiser:
             pos = node_positions(graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
+            plt.rcParams['figure.figsize'] = FIG_SIZE
             plt.title('Current chain')
 
             for key in list(node_labels.keys()):
@@ -70,7 +72,7 @@ class ComposerVisualiser:
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(node_labels), cmap='Set3')
             path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
-            plt.savefig(path, bbox_inches=None, dpi=300)
+            plt.savefig(path, bbox_inches=None, dpi=DPI)
 
             plt.cla()
             plt.clf()
@@ -97,7 +99,7 @@ class ComposerVisualiser:
             pos = node_positions(best_graph.to_undirected())
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
+            plt.rcParams['figure.figsize'] = FIG_SIZE
             plt.title(f'Best chain after {round(ch_id)} evals')
             nx.draw(best_graph, pos=pos,
                     with_labels=True, labels=best_node_labels,
@@ -105,7 +107,7 @@ class ComposerVisualiser:
                     node_size=scaled_node_size(chain.length), width=2.0,
                     node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
 
-            plt.savefig(path_best, bbox_inches=None, dpi=300)
+            plt.savefig(path_best, bbox_inches=None, dpi=DPI)
 
             plt.cla()
             plt.clf()
@@ -131,7 +133,7 @@ class ComposerVisualiser:
         for ts in ts_set:
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
+            plt.rcParams['figure.figsize'] = FIG_SIZE
 
             plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
@@ -141,7 +143,7 @@ class ComposerVisualiser:
             plt.legend(loc='upper left')
 
             path = f'{ComposerVisualiser.temp_path}{ind}.png'
-            plt.savefig(path, bbox_inches=None, dpi=300)
+            plt.savefig(path, bbox_inches=None, dpi=DPI)
 
             plt.cla()
             plt.clf()
@@ -154,11 +156,11 @@ class ComposerVisualiser:
         for ind, chain in enumerate(chains):
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
+            plt.rcParams['figure.figsize'] = FIG_SIZE
 
             path = f'{ComposerVisualiser.temp_path}ts_{ind}.png'
 
-            _, ax = plt.subplots(figsize=(10, 10))
+            _, ax = plt.subplots(figsize=FIG_SIZE)
             pred = chain.predict(data).predict
             plt.plot(data.target[len(data.target) - len(pred):], linewidth=1, label="Observed", alpha=0.4)
             plt.plot(pred, linewidth=1, label="Predicted", alpha=0.6)
@@ -167,7 +169,7 @@ class ComposerVisualiser:
             plt.ylabel('Sea surface height, cm')
             plt.ylim((min(data.target) * 0.9, max(data.target) * 1.1))
 
-            plt.savefig(path, bbox_inches=None, dpi=300)
+            plt.savefig(path, bbox_inches=None, dpi=DPI)
 
             plt.cla()
             plt.clf()
@@ -227,17 +229,31 @@ class ComposerVisualiser:
                                            f'{ComposerVisualiser.temp_path}best_ch_{img_idx}.png',
                                            f'{ComposerVisualiser.temp_path}{img_idx}.png',
                                            f'{ComposerVisualiser.temp_path}ts_{img_idx}.png']))
-            widths, heights = zip(*(i.size for i in images))
+            # widths, heights = zip(*(i.size for i in images))
 
-            total_width = sum(widths)
-            max_height = max(heights)
+            total_width = images[0].size[0] * 2
+            max_height = images[0].size[1] * 2
 
             new_im = Image.new('RGB', (total_width, max_height))
 
             x_offset = 0
-            for im in images:
-                new_im.paste(im, (x_offset, 0))
-                x_offset += im.size[0]
+            y_offset = 0
+            im = images[0]
+            new_im.paste(im, (x_offset, y_offset))
+
+            x_offset += im.size[0]
+            y_offset = 0
+            im = images[1]
+            new_im.paste(im, (x_offset, y_offset))
+
+            x_offset = 0
+            y_offset += im.size[1]
+            im = images[2]
+            new_im.paste(im, (x_offset, y_offset))
+
+            x_offset += im.size[0]
+            im = images[3]
+            new_im.paste(im, (x_offset, y_offset))
 
             new_im.save(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}{img_idx}.png')
 
