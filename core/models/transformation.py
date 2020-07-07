@@ -67,9 +67,11 @@ def ts_to_lagged_table(input_data: InputData) -> InputData:
 
     transformed_data.features = transformed_data.features.reshape(
         transformed_data.features.shape[0], -1)
+
+    target_shape = input_data.target.shape[-1] if input_data.target.ndim > 1 else 1
     # take last prediction_len features
     transformed_data.target = transformed_data.target[:, -prediction_len:] \
-        .reshape(-1, transformed_data.target.shape[-1])
+        .reshape(-1, prediction_len * target_shape)
 
     transformed_data.data_type = DataTypesEnum.ts_lagged_table
     return transformed_data
@@ -79,11 +81,16 @@ def ts_lagged_table_to_3d(input_data: InputData) -> InputData:
     window_len, prediction_len = extract_task_param(input_data.task)
 
     transformed_data = copy(input_data)
+    features_shape = transformed_data.features.shape[-1] // window_len
     transformed_data.features = transformed_data.features.reshape(
-        -1, window_len, transformed_data.features.shape[-1])
+        -1, window_len, features_shape)
+    
+    target_shape = transformed_data.target.shape[-1] // prediction_len
     target = transformed_data.target.reshape(
-        -1, prediction_len, transformed_data.target.shape[-1])
-    transformed_data.target = np.c_[transformed_data.features[:, prediction_len:], target]
+        -1, prediction_len, target_shape)
+    transformed_data.target = np.concatenate([transformed_data.features[:, prediction_len:, -target_shape:], 
+                                              target],
+                                             axis=1)
 
     transformed_data.data_type = DataTypesEnum.ts_lagged_3d
     return transformed_data
@@ -104,7 +111,7 @@ def ts_lagged_3d_to_ts(input_data: InputData) -> InputData:
         input_data.features[:prediction_len, 0, -target_shape:],
         input_data.target[0, :-1],
         input_data.target[:, -1]
-    ]
+    ].squeeze()
 
     transformed_data.data_type = DataTypesEnum.ts
     return transformed_data
@@ -124,9 +131,9 @@ def ts_lagged_3d_to_lagged_table(input_data: InputData) -> InputData:
 
     transformed_data.features = transformed_data.features.reshape(
         transformed_data.features.shape[0], -1)
-    # return predicted value only
+    # return forecast values only
     transformed_data.target = transformed_data.target[:, -prediction_len:] \
-        .reshape(-1, transformed_data.target.shape[-1])
+        .reshape(-1, transformed_data.target.shape[-1] * prediction_len)
     transformed_data.data_type = DataTypesEnum.ts_lagged_table
     return transformed_data
 
