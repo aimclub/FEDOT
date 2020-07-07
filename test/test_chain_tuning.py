@@ -70,7 +70,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
         before_tuning_predicted = chain.predict(test_data)
 
         # Chain tuning
-        chain.fine_tune_primary_nodes(train_data, max_lead_time=timedelta(minutes=0.5), iterations=30)
+        chain.fine_tune_primary_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=10)
 
         # After tuning prediction
         chain.fit(train_data)
@@ -100,7 +100,7 @@ def test_fine_tune_root_node(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # root node tuning
-    chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=0.5), iterations=30)
+    chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
     after_tun_root_node_predicted = chain.predict(test_data)
 
     bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)

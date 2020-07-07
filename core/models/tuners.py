@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Callable, Tuple, Union
 
 from numpy.random import randint, choice as nprand_choice
@@ -29,6 +29,17 @@ class Tuner:
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
+
+    def _is_score_better(self, previous, current):
+        __compare = {
+            'classification': is_grater,
+            'regression': is_lower
+        }
+        comparison = __compare.get(self.tune_data.task.task_type.name)
+        try:
+            return comparison(previous, current)
+        except ValueError as ex:
+            print(f'Score comparison can not be held because {ex}')
 
 
 class SklearnTuner(Tuner):
@@ -102,7 +113,7 @@ class SklearnCustomRandomTuner(Tuner):
                     score = cross_val_score(self.trained_model, self.tune_data.features,
                                             self.tune_data.target, scoring=self.scorer,
                                             cv=self.cross_val_fold_num).mean()
-                    if score > best_score:
+                    if self._is_score_better(previous=best_score, current=score):
                         best_params = params
                         best_model = self.trained_model
                         best_score = score
@@ -184,3 +195,11 @@ def get_varied_length_range(left_range, right_range):
 
 def _regression_prediction_quality(prediction, real):
     return mse(y_true=real, y_pred=prediction, squared=False)
+
+
+def is_grater(previous, current):
+    return current >= previous
+
+
+def is_lower(previous, current):
+    return current < previous
