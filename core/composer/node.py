@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from copy import copy
+from datetime import timedelta
 from typing import (List, Optional)
 
 from core.models.data import Data, InputData, OutputData
@@ -93,7 +94,7 @@ class Node(ABC):
                 nodes += parent.ordered_subnodes_hierarchy
         return nodes
 
-    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
+    def fine_tune(self, input_data: InputData, max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
         raise NotImplementedError()
 
 
@@ -196,7 +197,8 @@ class PrimaryNode(Node):
                           predict=predict_train, task=input_data.task,
                           data_type=self.model.output_datatype(input_data.data_type))
 
-    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30):
+    def fine_tune(self, input_data: InputData,
+                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
         preprocessed_data = transformation_function_for_data(input_data.data_type,
                                                              self.model.metadata.input_types[0])(input_data)
 
@@ -284,7 +286,8 @@ class SecondaryNode(Node):
                           data_type=self.model.output_datatype(input_data.data_type),
                           task=input_data.task)
 
-    def fine_tune(self, input_data: InputData, max_lead_time: int, iterations: int = 30,
+    def fine_tune(self, input_data: InputData,
+                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
                   verbose: bool = False):
         parent_results = []
 

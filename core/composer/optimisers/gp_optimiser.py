@@ -116,7 +116,7 @@ class GPChainOptimiser:
                 print(f'spent time: {round(t.minutes_from_start, 1)} min')
                 print(f'Best metric is {self.best_individual.fitness}')
 
-                if t.is_max_time_reached(self.requirements.max_lead_time, generation_num):
+                if t.is_time_limit_reached(self.requirements.max_lead_time, generation_num):
                     break
             best = self.best_individual
             if self.requirements.add_single_model_chains and \

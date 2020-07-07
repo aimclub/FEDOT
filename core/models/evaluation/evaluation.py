@@ -27,7 +27,7 @@ from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, \
     predict_ar, predict_arima
 from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner, SklearnRandomTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
-
+from datetime import timedelta
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -38,7 +38,8 @@ class EvaluationStrategy:
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30, max_lead_time: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
 
 
@@ -93,8 +94,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
         metric = self.__metric_by_type.get(train_data.task.task_type.name, None)
@@ -108,7 +109,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                        params_range=params_range,
                                                        cross_val_fold_num=5,
                                                        scorer=metric,
-                                                       time_limit_minutes=max_lead_time).tune()
+                                                       time_limit_minutes=max_lead_time,
+                                                       iterations=iterations).tune()
 
         # TODO Why not best_model but new one?
         if best_model and tuned_params:
@@ -194,7 +196,8 @@ class StatsModelsForecastingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 10, max_lead_time: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int = 10,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         tuned_params = ForecastingCustomRandomTuner().tune(fit=self._model_specific_fit,
                                                            predict=self._model_specific_predict,
                                                            tune_data=train_data,
@@ -231,7 +234,8 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30, max_lead_time: int = 10):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
 
 

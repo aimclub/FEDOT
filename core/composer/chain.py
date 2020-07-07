@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+from datetime import timedelta
 from typing import List, Optional
 from uuid import uuid4
 
@@ -32,8 +33,8 @@ class Chain:
         result = self.root_node.predict(input_data=input_data)
         return result
 
-    def fine_tune_primary_nodes(self, input_data: InputData, max_lead_time: int = 10,
-                                iterations: int = 30, verbose=False):
+    def fine_tune_primary_nodes(self, input_data: InputData, max_lead_time: timedelta,
+                                iterations: int, verbose=False):
         # Select all primary nodes
         # Perform fine-tuning for each model in node
         if verbose:
@@ -46,10 +47,10 @@ class Chain:
         if verbose:
             print('End tuning')
 
-    def fine_tune_whole_chain(self, input_data: InputData, max_lead_time: int,
-                              iterations: int = 30, verbose=False):
+    def fine_tune_all_nodes(self, input_data: InputData, max_lead_time: timedelta,
+                            iterations: int, verbose=False):
         if verbose:
-            print('Start tuning of root node')
+            print('Start tuning of chain')
 
         node = self.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)

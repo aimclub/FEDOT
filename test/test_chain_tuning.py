@@ -9,6 +9,7 @@ from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
+from datetime import timedelta
 
 seed(1)
 
@@ -35,8 +36,7 @@ def get_regr_chain():
                                          nodes_from=[first, second])
 
     chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain.add_node(final)
 
     return chain
 
@@ -49,8 +49,7 @@ def get_class_chain():
                                          nodes_from=[first, second])
 
     chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain.add_node(final)
 
     return chain
 
@@ -71,7 +70,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
         before_tuning_predicted = chain.predict(test_data)
 
         # Chain tuning
-        chain.fine_tune_primary_nodes(train_data, max_lead_time=1)
+        chain.fine_tune_primary_nodes(train_data, max_lead_time=timedelta(minutes=0.5), iterations=30)
 
         # After tuning prediction
         chain.fit(train_data)
@@ -101,7 +100,7 @@ def test_fine_tune_root_node(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # root node tuning
-    chain.fine_tune_whole_chain(train_data, max_lead_time=1)
+    chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=0.5), iterations=30)
     after_tun_root_node_predicted = chain.predict(test_data)
 
     bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)

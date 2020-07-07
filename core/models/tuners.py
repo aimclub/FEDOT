@@ -1,4 +1,4 @@
-import datetime
+from datetime import timedelta
 from typing import Callable, Tuple, Union
 
 from numpy.random import randint, choice as nprand_choice
@@ -16,15 +16,16 @@ class Tuner:
                  params_range: dict,
                  cross_val_fold_num: int,
                  scorer: Union[str, callable],
-                 time_limit_minutes):
-        self.time_limit_minutes: datetime.timedelta \
-            = datetime.timedelta(seconds=time_limit_minutes)
+                 time_limit_minutes,
+                 iterations: int):
+        self.time_limit_minutes: timedelta \
+            = time_limit_minutes
         self.trained_model = trained_model
         self.tune_data = tune_data
         self.params_range = params_range
         self.cross_val_fold_num = cross_val_fold_num
         self.scorer = scorer
-        self.max_iterations = 1000000
+        self.max_iterations = iterations
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
@@ -55,17 +56,12 @@ class SklearnTuner(Tuner):
             print(f'Unsuccessful fit because of {ex}')
             return None, None
 
-    def _convert_time_to_iterations(self):
-        """There is approximatly 4 iterations in 1 second for sklearn tuners"""
-        return self.time_limit_minutes.seconds * 4
-
 
 class SklearnRandomTuner(SklearnTuner):
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        iterations = self._convert_time_to_iterations()
         self.search_strategy = RandomizedSearchCV(estimator=self.trained_model,
                                                   param_distributions=self.params_range,
-                                                  n_iter=iterations,
+                                                  n_iter=self.max_iterations,
                                                   cv=self.cross_val_fold_num,
                                                   scoring=self.scorer)
         return self._sklearn_tune(tune_data=self.tune_data)
@@ -82,10 +78,9 @@ class SklearnGridSearchTuner(SklearnTuner):
 
 class SklearnBayesSearchCV(SklearnTuner):
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        iterations = self._convert_time_to_iterations()
         self.search_strategy = BayesSearchCV(estimator=self.trained_model,
                                              search_spaces=self.params_range,
-                                             n_iter=iterations,
+                                             n_iter=self.max_iterations,
                                              cv=self.cross_val_fold_num,
                                              scoring=self.scorer)
         return self._sklearn_tune(self.tune_data)

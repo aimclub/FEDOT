@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 
 from core.models.data import (
@@ -90,7 +92,8 @@ class Model:
 
         return prediction
 
-    def fine_tune(self, data: InputData, max_lead_time: int, iterations: int = 30):
+    def fine_tune(self, data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         self._init(data.task)
 
         try:
