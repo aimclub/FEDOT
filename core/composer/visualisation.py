@@ -248,11 +248,11 @@ class ComposerVisualiser:
 
             x_offset = 0
             y_offset += im.size[1]
-            im = images[2]
+            im = images[3]
             new_im.paste(im, (x_offset, y_offset))
 
             x_offset += im.size[0]
-            im = images[3]
+            im = images[2]
             new_im.paste(im, (x_offset, y_offset))
 
             new_im.save(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}{img_idx}.png')
