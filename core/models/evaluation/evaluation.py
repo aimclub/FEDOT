@@ -1,5 +1,5 @@
-import datetime
 import warnings
+from datetime import timedelta
 from typing import Optional
 
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -16,18 +16,18 @@ from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.neighbors import KNeighborsClassifier as SklearnKNN, KNeighborsRegressor as SklearnKNNReg
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
-from core.models.evaluation.custom_models.models import CustomSVC
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
+
 from core.models.data import InputData, OutputData
 from core.models.evaluation.automl_eval import fit_h2o, fit_tpot, predict_h2o, predict_tpot_class, predict_tpot_reg
+from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.evaluation.hyperparams import params_range_by_model
 from core.models.evaluation.lstm_eval import fit_lstm, predict_lstm
 from core.models.evaluation.stats_models_eval import fit_ar, fit_arima, \
     predict_ar, predict_arima
-from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner, SklearnRandomTuner
+from core.models.tuners import ForecastingCustomRandomTuner, SklearnCustomRandomTuner, SklearnTuner
 from core.repository.model_types_repository import ModelTypesIdsEnum
-from datetime import timedelta
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

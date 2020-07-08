@@ -101,7 +101,7 @@ class Model:
                                                                        iterations=iterations,
                                                                        max_lead_time=max_lead_time)
             self.params = tuned_params
-            if self.params is None:
+            if not self.params:
                 self.params = DEFAULT_PARAMS_STUB
         except Exception as ex:
             print(f'Tuning failed because of {ex}')
