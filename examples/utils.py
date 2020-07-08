@@ -4,7 +4,8 @@ import pandas as pd
 
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.tasks import TaskTypesEnum
-from core.utils import ensure_directory_exists, get_split_data_paths, project_root, save_file_to_csv, split_data
+from core.utils import ensure_directory_exists, get_split_data_paths, \
+    project_root, save_file_to_csv, split_data
 
 
 def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):

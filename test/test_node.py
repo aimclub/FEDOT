@@ -4,13 +4,13 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from core.composer.node import SecondaryNode, PrimaryNode
+from core.composer.node import PrimaryNode
 from core.models.data import (
-    InputData,
-    train_test_data_setup)
+    InputData, train_test_data_setup)
 from core.models.model import Model
-from core.repository.tasks import Task, TaskTypesEnum
 from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
+
 
 @pytest.fixture()
 def data_setup() -> InputData:
@@ -21,7 +21,8 @@ def data_setup() -> InputData:
     predictors = predictors[:100]
     response = response[:100]
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
     return data
 
 
@@ -45,7 +46,8 @@ def test_node_factory_log_reg_correct(data_setup):
 def test_eval_strategy_logreg(data_setup):
     data_set = data_setup
     train, test = train_test_data_setup(data=data_set)
-    test_skl_model = LogisticRegression(C=10., random_state=1, solver='liblinear',
+    test_skl_model = LogisticRegression(C=10., random_state=1,
+                                        solver='liblinear',
                                         max_iter=10000, verbose=0)
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)
@@ -55,6 +57,3 @@ def test_eval_strategy_logreg(data_setup):
     actual_result = test_model_node.predict(input_data=test)
 
     assert len(actual_result.predict) == len(expected_result)
-
-
-

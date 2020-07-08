@@ -4,7 +4,6 @@ from statsmodels.tsa.arima_model import ARIMA
 
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
-
 from core.models.tuners import ForecastingCustomRandomTuner
 from datetime import timedelta
 

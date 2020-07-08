@@ -11,10 +11,9 @@ def get_simple_chain():
     first = PrimaryNode(model_type='xgboost')
     second = PrimaryNode(model_type='knn')
     final = SecondaryNode(model_type='logit',
-                                         nodes_from=[first, second])
+                          nodes_from=[first, second])
 
-    chain = Chain()
-    chain.add_node(final)
+    chain = Chain(final)
 
     return chain
 

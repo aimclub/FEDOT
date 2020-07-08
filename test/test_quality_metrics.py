@@ -35,16 +35,11 @@ def data_setup():
 
 def default_valid_chain():
     first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
-                                          nodes_from=[first])
-    third = SecondaryNode(model_type='logit',
-                                         nodes_from=[first])
-    final = SecondaryNode(model_type='logit',
-                                         nodes_from=[second, third])
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[first])
+    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
 
-    chain = Chain()
-    for node in [first, second, third, final]:
-        chain.add_node(node)
+    chain = Chain(final)
 
     return chain
 

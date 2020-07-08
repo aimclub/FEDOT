@@ -1,11 +1,12 @@
+import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
-from core.models.model import *
-from core.repository.tasks import TaskTypesEnum
+from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
 
 
 def compose_chain() -> Chain:

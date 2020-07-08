@@ -2,8 +2,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import (Any, List)
 
-from core.composer.optimisers.selection import SelectionTypesEnum
-from core.composer.optimisers.selection import individuals_selection
+from core.composer.optimisers.selection import SelectionTypesEnum, individuals_selection
 
 
 class GeneticSchemeTypesEnum(Enum):

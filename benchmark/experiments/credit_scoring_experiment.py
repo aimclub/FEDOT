@@ -2,6 +2,7 @@ import datetime
 import random
 from typing import Optional
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
@@ -11,8 +12,10 @@ from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
 from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
-from core.models.model import *
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from core.models.data import InputData
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    (ClassificationMetricsEnum, MetricsRepository)
 from core.repository.tasks import TaskTypesEnum
 
 random.seed(1)

@@ -234,8 +234,8 @@ class SecondaryNode(Node):
         target = input_data.target
         parent_nodes = self._nodes_from_with_fixed_order()
 
-        is_nodes_affect_target = ['affects_target' in parent_node.model_tags for parent_node in parent_nodes]
-        if any(is_nodes_affect_target):
+        are_nodes_affect_target = ['affects_target' in parent_node.model_tags for parent_node in parent_nodes]
+        if any(are_nodes_affect_target):
             if len(parent_nodes) == 1:
                 # is the previous model is the model that changes target
                 parent_result = parent_nodes[0].fit(input_data=input_data)

@@ -38,17 +38,20 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
 def get_decomposed_chain(model_trend='lstm', model_residual='ridge'):
     chain = Chain()
     node_trend = PrimaryNode('trend_data_model')
-    node_first_trend = SecondaryNode('lstm', nodes_from=[node_trend])
+    node_first_trend = SecondaryNode('lstm',
+                                     nodes_from=[node_trend])
 
     if model_trend == 'lstm':
         # decrease the number of epochs to fit
         node_first_trend.model.external_params = {model_trend: 1}
 
     node_residual = PrimaryNode('residual_data_model')
-    node_model_residual = SecondaryNode(model_residual, nodes_from=[node_residual])
+    node_model_residual = SecondaryNode(model_residual,
+                                        nodes_from=[node_residual])
 
     node_final = SecondaryNode('additive_data_model',
-                                              nodes_from=[node_model_residual, node_first_trend])
+                               nodes_from=[node_model_residual,
+                                           node_first_trend])
     chain.add_node(node_final)
     return chain
 

@@ -7,6 +7,7 @@ from core.repository.tasks import extract_task_param
 
 forecast_length = 1
 
+
 # TODO inherit this and similar from custom strategy
 class KerasForecastingStrategy(EvaluationStrategy):
 
@@ -25,7 +26,7 @@ class KerasForecastingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return predict_lstm(trained_model, predict_data)
 
-    def tune(self, model, data_for_tune):
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
         raise NotImplementedError()
 
 
@@ -87,7 +88,7 @@ def fit_lstm(train_data: InputData, epochs: int = 1):
     ts_length = train_data.features.shape[0]
     # train_data.task.task_params.
     model = _create_lstm(train_data)
-    
+
     forecast_length = train_data.task.task_params.forecast_length
 
     model.compile(tf.keras.optimizers.SGD(lr=0.01, momentum=0.9,

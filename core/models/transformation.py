@@ -1,5 +1,6 @@
 from copy import copy
 from typing import List
+
 import numpy as np
 import pandas as pd
 
@@ -84,11 +85,11 @@ def ts_lagged_table_to_3d(input_data: InputData) -> InputData:
     features_shape = transformed_data.features.shape[-1] // window_len
     transformed_data.features = transformed_data.features.reshape(
         -1, window_len, features_shape)
-    
+
     target_shape = transformed_data.target.shape[-1] // prediction_len
     target = transformed_data.target.reshape(
         -1, prediction_len, target_shape)
-    transformed_data.target = np.concatenate([transformed_data.features[:, prediction_len:, -target_shape:], 
+    transformed_data.target = np.concatenate([transformed_data.features[:, prediction_len:, -target_shape:],
                                               target],
                                              axis=1)
 

@@ -1,15 +1,14 @@
 from datetime import timedelta
 from typing import Callable, Tuple, Union
 
-from numpy.random import randint, choice as nprand_choice
+from numpy.random import choice as nprand_choice, randint
 from sklearn.metrics import mean_squared_error as mse
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
 from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
-from core.models.data import InputData
-from core.models.data import train_test_data_setup
 import operator
+from core.models.data import InputData, train_test_data_setup
 
 
 class Tuner:

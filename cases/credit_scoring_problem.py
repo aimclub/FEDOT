@@ -5,7 +5,6 @@ import random
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
@@ -68,25 +67,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     if is_visualise:
         ComposerVisualiser.visualise(chain_evo_composed)
-
-    # the choice and initialisation of the dummy_composer
-    dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-
-    chain_static = dummy_composer.compose_chain(data=dataset_to_compose,
-                                                initial_chain=None,
-                                                composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=True)
-    chain_static.fit(input_data=dataset_to_compose, verbose=True)
-    # the single-model variant of optimal chain
-    single_composer_requirements = ComposerRequirements(primary=['xgboost'],
-                                                        secondary=[])
-    chain_single = DummyComposer(DummyChainTypeEnum.flat).compose_chain(
-        data=dataset_to_compose,
-        initial_chain=None,
-        composer_requirements=single_composer_requirements,
-        metrics=metric_function)
-    chain_single.fit(input_data=dataset_to_compose, verbose=True)
-    print("Composition finished")
 
     # the quality assessment for the obtained composite models
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,

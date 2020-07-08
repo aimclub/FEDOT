@@ -9,12 +9,11 @@ from benchmark.benchmark_utils import get_models_hyperparameters
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
 from core.models.data import InputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import (
-    ModelTypesRepository
-)
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    (ClassificationMetricsEnum,
+     MetricsRepository,
+     RegressionMetricsEnum)
 from core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)

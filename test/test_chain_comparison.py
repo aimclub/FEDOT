@@ -17,8 +17,7 @@ def chain_first():
     chain = Chain()
 
     root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost',
-                                                           'knn')]
+        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):

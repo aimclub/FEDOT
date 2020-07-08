@@ -9,8 +9,7 @@ from core.composer.gp_composer.fixed_structure_composer import FixedStructureCom
 from core.composer.gp_composer.gp_composer import GPComposerRequirements
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.visualisation import ComposerVisualiser
-from core.models.data import OutputData
-from core.models.model import *
+from core.models.data import InputData, OutputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -27,13 +26,14 @@ def get_composite_lstm_chain():
     node_ridge_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
     node_final = SecondaryNode('additive_data_model',
-                                              nodes_from=[node_ridge_residual, node_lstm_trend])
+                               nodes_from=[node_ridge_residual, node_lstm_trend])
     node_final.labels = ["fixed"]
     chain.add_node(node_final)
     return chain
 
 
-def calculate_validation_metric(pred: OutputData, valid: InputData, name: str, is_visualise: bool) -> float:
+def calculate_validation_metric(pred: OutputData, valid: InputData,
+                                name: str, is_visualise: bool) -> float:
     window_size = valid.task.task_params.max_window_size
     forecast_length = valid.task.task_params.forecast_length
 
@@ -98,7 +98,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         primary=available_model_types_primary,
         secondary=available_model_types_secondary, max_arity=2,
         max_depth=4, pop_size=10, num_of_generations=10,
-        crossover_prob=0, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=20))
+        crossover_prob=0, mutation_prob=0.8,
+        max_lead_time=datetime.timedelta(minutes=20))
 
     chain = composer.compose_chain(data=dataset_to_train,
                                    initial_chain=ref_chain,

@@ -2,16 +2,17 @@ import datetime
 import random
 from datetime import timedelta
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.gp_composer.gp_composer import \
+    GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
-from core.models.model import *
-from core.repository.model_types_repository import (
-    ModelTypesRepository
-)
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from core.models.data import InputData
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import probs_to_labels
 from examples.utils import create_multi_clf_examples_from_excel

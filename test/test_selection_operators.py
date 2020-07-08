@@ -41,8 +41,8 @@ def test_tournament_selection():
     population = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = tournament_selection(individuals=population,
                                                 pop_size=num_of_inds)
-    assert all([ind in population for ind in selected_individuals]) and \
-           len(selected_individuals) == num_of_inds
+    assert (all([ind in population for ind in selected_individuals]) and
+            len(selected_individuals) == num_of_inds)
 
 
 def test_random_selection():
@@ -50,8 +50,8 @@ def test_random_selection():
     population = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = random_selection(individuals=population,
                                             pop_size=num_of_inds)
-    assert all([ind in population for ind in selected_individuals]) and \
-           len(selected_individuals) == num_of_inds
+    assert (all([ind in population for ind in selected_individuals]) and
+            len(selected_individuals) == num_of_inds)
 
 
 def test_selection():
@@ -60,8 +60,8 @@ def test_selection():
     selected_individuals = selection(types=[SelectionTypesEnum.tournament],
                                      population=population,
                                      pop_size=num_of_inds)
-    assert all([ind in population for ind in selected_individuals]) and \
-           len(selected_individuals) == num_of_inds
+    assert (all([ind in population for ind in selected_individuals]) and
+            len(selected_individuals) == num_of_inds)
 
 
 def test_individuals_selection_random_individuals():
@@ -72,8 +72,8 @@ def test_individuals_selection_random_individuals():
                                                  individuals=population,
                                                  pop_size=num_of_inds)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
-    assert len(set(selected_individuals_ref)) == len(selected_individuals) and \
-           len(selected_individuals) == num_of_inds
+    assert (len(set(selected_individuals_ref)) == len(selected_individuals) and
+            len(selected_individuals) == num_of_inds)
 
 
 def test_individuals_selection_equality_individuals():
@@ -85,5 +85,5 @@ def test_individuals_selection_equality_individuals():
                                                  individuals=population,
                                                  pop_size=num_of_inds)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
-    assert len(selected_individuals) == num_of_inds and \
-           len(set(selected_individuals_ref)) == 1
+    assert (len(selected_individuals) == num_of_inds and
+            len(set(selected_individuals_ref)) == 1)

@@ -4,6 +4,7 @@ from typing import Union
 from core.repository.dataset_types import *
 from core.repository.tasks import *
 
+
 def read_field(source, field_name, default):
     if field_name in source.keys():
         field_value = source[field_name]

@@ -61,15 +61,12 @@ def test_regression_chain_with_datamodel_fit_correct():
     data = get_synthetic_regression_data()
     train_data, test_data = train_test_data_setup(data)
 
-    chain = Chain()
     node_data = PrimaryNode('direct_data_model')
     node_first = PrimaryNode('ridge')
     node_second = SecondaryNode('lasso')
     node_second.nodes_from = [node_first, node_data]
 
-    chain.add_node(node_data)
-    chain.add_node(node_first)
-    chain.add_node(node_second)
+    chain = Chain(node_second)
 
     chain.fit(train_data)
     results = chain.predict(test_data)

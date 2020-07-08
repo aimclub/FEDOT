@@ -103,7 +103,8 @@ class ModelTypesRepository:
         return models_with_id[0]
 
     def models_with_tag(self, tags: List[str], is_full_match: bool = False):
-        models_info = [m for m in ModelTypesRepository._repo if _is_tags_contains_in_model(tags, m.tags, is_full_match)]
+        models_info = [m for m in ModelTypesRepository._repo if
+                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
         return [m.id for m in models_info], models_info
 
     def suitable_model(self, task_type: TaskTypesEnum,
