@@ -14,6 +14,7 @@ from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import probs_to_labels
+
 seed(1)
 np.random.seed(1)
 
@@ -198,3 +199,29 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
 
     # predict results should be invariant
     assert np.equal(test_predicted.predict, test_predicted_re_shuffled.predict).all()
+
+
+def test_chain_with_custom_params_for_model(data_setup):
+    data = data_setup
+    custom_params = dict(n_neighbors=1,
+                         weights='uniform',
+                         p=1)
+
+    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
+    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.lda)
+    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
+                                         nodes_from=[first, second])
+
+    chain = Chain()
+    chain.add_node(final)
+    chain_default_params = deepcopy(chain)
+
+    chain.root_node.model.set_custom_params(custom_params)
+
+    chain_default_params.fit(data)
+    chain.fit(data)
+
+    custom_params_prediction = chain.predict(data).predict
+    default_params_prediction = chain_default_params.predict(data).predict
+
+    assert not np.array_equal(custom_params_prediction, default_params_prediction)
