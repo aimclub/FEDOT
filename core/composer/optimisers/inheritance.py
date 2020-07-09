@@ -2,8 +2,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import (Any, List)
 
-from core.composer.optimisers.selection import SelectionTypesEnum
-from core.composer.optimisers.selection import individuals_selection
+from core.composer.optimisers.selection import SelectionTypesEnum, individuals_selection
 
 
 class GeneticSchemeTypesEnum(Enum):
@@ -11,17 +10,20 @@ class GeneticSchemeTypesEnum(Enum):
     generational = 'generational'
 
 
-def inheritance(type: GeneticSchemeTypesEnum, selection_types: List[SelectionTypesEnum], prev_population: List[Any],
-                new_population: List[Any], max_size: int) -> List[Any]:
+def inheritance(type: GeneticSchemeTypesEnum, selection_types: List[SelectionTypesEnum],
+                prev_population: List[Any], new_population: List[Any], max_size: int) -> List[Any]:
     genetic_scheme_by_type = {
-        GeneticSchemeTypesEnum.steady_state: steady_state_inheritance(selection_types, prev_population, new_population,
+        GeneticSchemeTypesEnum.steady_state: steady_state_inheritance(selection_types,
+                                                                      prev_population,
+                                                                      new_population,
                                                                       max_size),
         GeneticSchemeTypesEnum.generational: direct_heredity(new_population, max_size)
     }
     return genetic_scheme_by_type[type]
 
 
-def steady_state_inheritance(selection_types: List[SelectionTypesEnum], prev_population: List[Any],
+def steady_state_inheritance(selection_types: List[SelectionTypesEnum],
+                             prev_population: List[Any],
                              new_population: List[Any], max_size: int):
     return individuals_selection(types=selection_types,
                                  individuals=prev_population + new_population,

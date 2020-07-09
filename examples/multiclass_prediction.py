@@ -2,19 +2,18 @@ import datetime
 import random
 from datetime import timedelta
 
+import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from core.composer.gp_composer.gp_composer import \
+    GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
-from core.models.model import *
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import (
-    ModelMetaInfoTemplate,
-    ModelTypesRepository
-)
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import TaskTypesEnum
+from core.models.data import InputData
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    ClassificationMetricsEnum, MetricsRepository
+from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import probs_to_labels
 from examples.utils import create_multi_clf_examples_from_excel
 
@@ -29,11 +28,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=DataTypesEnum.table,
-                                               output_types=DataTypesEnum.table,
-                                               task_type=task.task_type,
-                                               can_be_secondary=True))
+    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type)
 
     metric_function = MetricsRepository(). \
         metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)

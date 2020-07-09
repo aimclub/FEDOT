@@ -2,7 +2,10 @@ import os
 
 import pandas as pd
 
-from core.utils import ensure_directory_exists, get_split_data_paths, project_root, save_file_to_csv, split_data
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.tasks import TaskTypesEnum
+from core.utils import ensure_directory_exists, get_split_data_paths, \
+    project_root, save_file_to_csv, split_data
 
 
 def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):
@@ -22,3 +25,13 @@ def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False
         save_file_to_csv(train, full_train_file_path)
         save_file_to_csv(train, full_test_file_path)
         return full_train_file_path, full_test_file_path
+
+
+def print_models_info(repository: ModelTypesRepository, task=TaskTypesEnum.classification):
+    for model in repository.models:
+        print(f'{model.id}, {model.current_strategy(task)}, '
+              f'{model.current_strategy(task)(model.id).implementation_info}')
+
+
+if __name__ == '__main__':
+    print_models_info(ModelTypesRepository())

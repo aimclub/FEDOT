@@ -3,10 +3,9 @@ from sklearn.metrics import mean_squared_error as mse
 from statsmodels.tsa.arima_process import ArmaProcess
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
@@ -36,19 +35,23 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
     return rmse_value_train, rmse_value_test
 
 
-def get_decomposed_chain():
+def get_decomposed_chain(model_trend='lstm', model_residual='ridge'):
     chain = Chain()
-    node_trend = NodeGenerator.primary_node(ModelTypesIdsEnum.trend_data_model)
-    node_lstm_trend = NodeGenerator.secondary_node(ModelTypesIdsEnum.lstm, nodes_from=[node_trend])
+    node_trend = PrimaryNode('trend_data_model')
+    node_first_trend = SecondaryNode('lstm',
+                                     nodes_from=[node_trend])
 
-    # decrase the number of parameters
-    node_lstm_trend.model.external_params = {'epochs': 1}
+    if model_trend == 'lstm':
+        # decrease the number of epochs to fit
+        node_first_trend.model.external_params = {model_trend: 1}
 
-    node_residual = NodeGenerator.primary_node(ModelTypesIdsEnum.residual_data_model)
-    node_ridge_residual = NodeGenerator.secondary_node(ModelTypesIdsEnum.ridge, nodes_from=[node_residual])
+    node_residual = PrimaryNode('residual_data_model')
+    node_model_residual = SecondaryNode(model_residual,
+                                        nodes_from=[node_residual])
 
-    node_final = NodeGenerator.secondary_node(ModelTypesIdsEnum.additive_data_model,
-                                              nodes_from=[node_ridge_residual, node_lstm_trend])
+    node_final = SecondaryNode('additive_data_model',
+                               nodes_from=[node_model_residual,
+                                           node_first_trend])
     chain.add_node(node_final)
     return chain
 
@@ -57,7 +60,7 @@ def test_arima_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_arima = NodeGenerator.primary_node(ModelTypesIdsEnum.arima)
+    node_arima = PrimaryNode('arima')
     chain.add_node(node_arima)
 
     train_data, test_data = train_test_data_setup(data)
@@ -74,13 +77,31 @@ def test_regression_chain_fit_correct():
     data = get_synthetic_ts_data()
 
     chain = Chain()
-    node_rfr = NodeGenerator.primary_node(ModelTypesIdsEnum.rfr)
+    node_rfr = PrimaryNode('rfr')
     chain.add_node(node_rfr)
 
     train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+
+    rmse_threshold = np.std(data.target) * 1.5
+
+    assert rmse_on_test < rmse_threshold
+
+
+def test_regression_composite_fit_correct():
+    data = get_synthetic_ts_data()
+
+    chain = get_decomposed_chain(model_trend='linear',
+                                 model_residual='linear')
+
+    train_data, test_data = train_test_data_setup(data)
+
+    chain.fit(input_data=train_data)
+    _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+
+    print(rmse_on_test)
 
     rmse_threshold = np.std(data.target) * 1.5
 

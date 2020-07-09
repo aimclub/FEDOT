@@ -2,16 +2,17 @@ import csv
 import datetime
 import gc
 import os
+
 import numpy as np
+
 from benchmark.experiments.credit_scoring_experiment import run_credit_scoring_problem
 from benchmark.experiments.viz import show_history_optimization_comparison
-from core.utils import project_root
 from core.composer.optimisers.crossover import CrossoverTypesEnum
-from core.composer.optimisers.gp_optimiser import GeneticSchemeTypesEnum
-from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
+from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
+from core.utils import project_root
 
 
 def write_header_to_csv(f):

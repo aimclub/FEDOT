@@ -1,18 +1,13 @@
 from copy import copy
 from functools import partial
 from random import randint
-from typing import (
-    List,
-    Callable,
-    Optional,
-    Any
-)
+from typing import (Any, Callable, List, Optional)
 
 from numpy import random
 
 from core.composer.chain import Chain, Node
 from core.composer.composer import ComposerRequirements
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 
 
@@ -32,9 +27,7 @@ class RandomSearchComposer:
                                             train_data=train_data,
                                             test_data=test_data)
 
-        optimiser = RandomSearchOptimiser(self.__iter_num,
-                                          NodeGenerator.primary_node,
-                                          NodeGenerator.secondary_node)
+        optimiser = RandomSearchOptimiser(self.__iter_num, PrimaryNode, SecondaryNode)
         best_nodes_set, history = optimiser.optimise(metric_function_for_nodes,
                                                      composer_requirements.primary,
                                                      composer_requirements.secondary)

@@ -7,7 +7,9 @@ from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
 from core.models.data import InputData
+from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.tasks import TaskTypesEnum
+from datetime import timedelta
 
 
 def fit_tpot(data: InputData, max_run_time_min: int):
@@ -91,8 +93,7 @@ def _get_models_hyperparameters(timedelta: int = 5) -> dict:
 
     tpot_config = {'MAX_RUNTIME_MINS': timedelta,
                    'GENERATIONS': 50,
-                   'POPULATION_SIZE': 10
-                   }
+                   'POPULATION_SIZE': 10}
 
     h2o_config = {'MAX_MODELS': 20,
                   'MAX_RUNTIME_SECS': timedelta * 60}
@@ -101,7 +102,6 @@ def _get_models_hyperparameters(timedelta: int = 5) -> dict:
                         'EPOCH': 100}
 
     space_for_mlbox = {
-
         'ne__numerical_strategy': {"space": [0, 'mean']},
 
         'ce__strategy': {"space": ["label_encoding", "random_projection", "entity_embedding"]},
@@ -129,3 +129,39 @@ def _get_h2o_connect_config():
     IP = '127.0.0.1'
     PORT = 8888
     return IP, PORT
+
+
+class AutoMLEvaluationStrategy(EvaluationStrategy):
+    _model_functions_by_type = {
+        'tpot': (fit_tpot, predict_tpot_class),
+        'h2o': (fit_h2o, predict_h2o)
+    }
+
+    def __init__(self, model_type: 'str'):
+        self._model_specific_fit, self._model_specific_predict = \
+            self._init_benchmark_model_functions(model_type)
+        self.max_time_min = 5
+
+    def _init_benchmark_model_functions(self, model_type):
+        if model_type in self._model_functions_by_type.keys():
+            return self._model_functions_by_type[model_type]
+        else:
+            raise ValueError(f'Impossible to obtain benchmark strategy for {model_type}')
+
+    def fit(self, train_data: InputData):
+        benchmark_model = self._model_specific_fit(train_data, self.max_time_min)
+        return benchmark_model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return self._model_specific_predict(trained_model, predict_data)
+
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
+        raise NotImplementedError()
+
+
+class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
+    _model_functions_by_type = {
+        'tpot': (fit_tpot, predict_tpot_reg),
+        'h2o': (fit_h2o, predict_h2o)
+    }

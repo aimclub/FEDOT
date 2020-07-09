@@ -4,7 +4,6 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
-from core.repository.model_types_repository import ModelTypesIdsEnum
 
 
 def get_data(predict_data: InputData):
@@ -48,14 +47,14 @@ def get_residual(predict_data: InputData):
 
 class DataModellingStrategy(EvaluationStrategy):
     _model_functions_by_type = {
-        ModelTypesIdsEnum.direct_datamodel: get_data,
-        ModelTypesIdsEnum.diff_data_model: get_difference,
-        ModelTypesIdsEnum.additive_data_model: get_sum,
-        ModelTypesIdsEnum.trend_data_model: get_trend,
-        ModelTypesIdsEnum.residual_data_model: get_residual
+        'direct_data_model': get_data,
+        'diff_data_model': get_difference,
+        'additive_data_model': get_sum,
+        'trend_data_model': get_trend,
+        'residual_data_model': get_residual
     }
 
-    def __init__(self, model_type: ModelTypesIdsEnum):
+    def __init__(self, model_type: str):
         self._model_specific_predict = self._model_functions_by_type[model_type]
 
     def fit(self, train_data: InputData):
@@ -65,5 +64,5 @@ class DataModellingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(predict_data)
 
-    def tune(self, model, data_for_tune: InputData):
-        return model
+    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+        return None, None

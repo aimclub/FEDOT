@@ -4,7 +4,9 @@ from random import choice, random
 from typing import Any, List
 
 from core.composer.constraint import constraint_function
-from core.composer.optimisers.gp_operators import equivalent_subtree, node_depth, nodes_from_height, replace_subtrees
+from core.composer.optimisers.gp_operators import \
+    (equivalent_subtree, node_depth,
+     nodes_from_height, replace_subtrees)
 
 
 class CrossoverTypesEnum(Enum):

@@ -2,14 +2,12 @@ import numpy as np
 import pytest
 
 from core.models.data import InputData
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.tasks import Task, TaskTypesEnum
-from utilities.synthetic.chain import (
-    chain_with_random_links,
-    chain_full_random,
-    chain_balanced_tree
-)
 from core.repository.dataset_types import DataTypesEnum
+from core.repository.tasks import Task, TaskTypesEnum
+from utilities.synthetic.chain import \
+    (chain_balanced_tree,
+     chain_full_random,
+     chain_with_random_links)
 
 
 # TODO: get rid of duplicated code
@@ -32,7 +30,7 @@ def classification_dataset():
 def test_chain_with_random_links_correct(classification_dataset):
     depth = 3
     models_per_level = [3, 2, 1]
-    used_models = [ModelTypesIdsEnum.logit]
+    used_models = ['logit']
     chain = chain_with_random_links(depth=depth, models_per_level=models_per_level,
                                     used_models=used_models)
 
@@ -45,7 +43,7 @@ def test_chain_with_random_links_correct(classification_dataset):
 def test_chain_full_random_correct(classification_dataset):
     depth = 3
     max_lvl_size = 4
-    used_models = [ModelTypesIdsEnum.logit]
+    used_models = ['logit']
     chain = chain_full_random(depth=depth, max_level_size=max_lvl_size,
                               used_models=used_models)
 
@@ -57,7 +55,7 @@ def test_chain_full_random_correct(classification_dataset):
 def test_chain_balanced_tree_correct(classification_dataset):
     depth = 3
     models_per_level = [4, 2, 1]
-    used_models = [ModelTypesIdsEnum.logit]
+    used_models = ['logit']
     chain = chain_balanced_tree(depth=depth, models_per_level=models_per_level,
                                 used_models=used_models)
 

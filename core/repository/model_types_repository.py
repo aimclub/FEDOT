@@ -1,259 +1,132 @@
-from copy import deepcopy
+import json
+import os
+import warnings
 from dataclasses import dataclass
-from enum import Enum
-from typing import (List, Optional, Tuple, Union)
-
-from anytree import Node, RenderTree, findall
+from typing import Any, List, Optional
 
 from core.repository.dataset_types import DataTypesEnum
+from core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from core.repository.tasks import TaskTypesEnum
-
-
-class ModelTypesIdsEnum(Enum):
-    xgboost = 'xgboost'
-    xgbreg = 'xgbreg'
-    gbr = 'gradientregressor'
-    adareg = 'adaregressor'
-    sgdr = 'stochasticregressor'
-    knnreg = 'knnregressor'
-    knn = 'knn'
-    logit = 'logit'
-    dt = 'decisiontree'
-    dtreg = 'decisiontreeregressor'
-    treg = 'treeregressor'
-    rf = 'randomforest',
-    svc = 'linearsvc',
-    svr = 'linearsvr'
-    rfr = 'randomforestregressor',
-    mlp = 'mlp',
-    lda = 'lda',
-    qda = 'qda',
-    ar = 'ar',
-    bernb = 'bernoullinb'
-    arima = 'arima',
-    lstm = 'lstm'
-    linear = 'linear',
-    ridge = 'ridge',
-    lasso = 'lasso',
-    elactic = 'elastic'
-    kmeans = 'kmeans'
-    tpot = 'tpot'
-    h2o = 'h2o'
-    direct_datamodel = 'data_model',  # a pseudo_model that allow injecting raw input data to the secondary nodes,
-    diff_data_model = 'diff_data_model',  # model for scale-based decomposition
-    additive_data_model = 'additive_model',
-    trend_data_model = 'trend_data_model',
-    residual_data_model = 'residual_data_model'
-
-
-class ModelGroupsIdsEnum(Enum):
-    ml = 'ML_models'
-    data_models = 'data_models'
-    decomposition_data_models = 'decomposition_data_models'
-    composition_data_models = 'composition_data_models'
-
-    stat = 'Stat_models'
-    keras = 'Keras_models'
-    all = 'Models'
 
 
 @dataclass
 class ModelMetaInfo:
+    id: str
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
     task_type: List[TaskTypesEnum]
-    can_be_initial: bool = True
-    can_be_secondary: bool = True
-    is_affects_target: bool = False
-    without_preprocessing: bool = False
+    supported_strategies: Any
+    allowed_positions: List[str]
+    tags: Optional[List[str]] = None
 
-
-@dataclass
-class ModelMetaInfoTemplate:
-    input_types: [DataTypesEnum] = None
-    output_types: [DataTypesEnum] = None
-    task_type: Union[List[TaskTypesEnum], TaskTypesEnum] = None
-    can_be_initial: bool = None
-    can_be_secondary: bool = None
-    is_affects_target: bool = None
-    without_preprocessing: bool = None
-
-    @staticmethod
-    def _is_field_suitable(candidate_field, template_field) -> bool:
-        if template_field is None:
-            return True
-
-        listed_candidate_field = candidate_field if isinstance(candidate_field, list) else [candidate_field]
-
-        if isinstance(template_field, list):
-            return any([template_field_item in listed_candidate_field for template_field_item in template_field])
-        else:
-            return template_field in listed_candidate_field
-
-    def is_suits_for_template(self, candidate: ModelMetaInfo) -> bool:
-        fields = vars(self)
-
-        fields_suitability = [self._is_field_suitable(getattr(candidate, field), getattr(self, field))
-                              for field in fields]
-
-        return all(fields_suitability)
-
-
-class ModelsGroup(Node):
-    def __init__(self, name: ModelGroupsIdsEnum, parent: Optional['ModelsGroup'] = None):
-        super(Node, self).__init__()
-        self.name = name
-        self.parent = parent
-
-
-class ModelType(Node):
-    def __init__(self, name: ModelTypesIdsEnum, meta_info,
-                 parent: Union[Optional['ModelsGroup'], Optional['ModelType']]):
-        super(Node, self).__init__()
-        self.name = name
-        self.meta_info = meta_info
-        self.parent = parent
+    def current_strategy(self, task: TaskTypesEnum):
+        if isinstance(self.supported_strategies, dict):
+            return self.supported_strategies.get(task, None)
+        return self.supported_strategies
 
 
 class ModelTypesRepository:
-    model_types = {type_: type_.value for type_ in ModelTypesIdsEnum}
+    _repo = None
 
-    def _initialise_tree(self):
-        root = ModelsGroup(ModelGroupsIdsEnum.all)
+    def __init__(self, repo_path=None):
+        if not repo_path:
+            repo_folder_path = str(os.path.dirname(__file__))
+            file = 'data/model_repository.json'
+            repo_path = os.path.join(repo_folder_path, file)
 
-        ml = ModelsGroup(ModelGroupsIdsEnum.ml, parent=root)
-        stat = ModelsGroup(ModelGroupsIdsEnum.stat, parent=root)
-        keras = ModelsGroup(ModelGroupsIdsEnum.keras, parent=root)
-        data_models = ModelsGroup(ModelGroupsIdsEnum.data_models, parent=root)
-        decomposition_data_models = ModelsGroup(ModelGroupsIdsEnum.decomposition_data_models, parent=data_models)
-        composition_data_models = ModelsGroup(ModelGroupsIdsEnum.data_models.composition_data_models,
-                                              parent=data_models)
+        if not ModelTypesRepository._repo or repo_path:
+            ModelTypesRepository._repo = self._initialise_repo(repo_path)
+        self._tags_excluded_by_default = ['non-default', 'expensive']
 
-        self._initialise_models_group(models=[ModelTypesIdsEnum.arima, ModelTypesIdsEnum.ar],
-                                      task_type=[TaskTypesEnum.ts_forecasting],
-                                      input_types=[DataTypesEnum.ts],
-                                      parent=stat)
+    def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
+        with open(repo_path) as repository_json_file:
+            repository_json = json.load(repository_json_file)
 
-        self._initialise_models_group(models=[ModelTypesIdsEnum.linear,
-                                              ModelTypesIdsEnum.lasso,
-                                              ModelTypesIdsEnum.ridge,
-                                              ModelTypesIdsEnum.xgbreg,
-                                              ModelTypesIdsEnum.adareg,
-                                              ModelTypesIdsEnum.gbr,
-                                              ModelTypesIdsEnum.knnreg,
-                                              ModelTypesIdsEnum.dtreg,
-                                              ModelTypesIdsEnum.treg,
-                                              ModelTypesIdsEnum.rfr,
-                                              ModelTypesIdsEnum.svr,
-                                              ModelTypesIdsEnum.sgdr],
-                                      task_type=[TaskTypesEnum.regression],
-                                      input_types=[DataTypesEnum.table, DataTypesEnum.table.ts_lagged_table],
-                                      output_types=[DataTypesEnum.table, DataTypesEnum.table.ts],
-                                      parent=ml)
+        metadata_json = repository_json['metadata']
+        models_json = repository_json['models']
 
-        self._initialise_models_group(models=[ModelTypesIdsEnum.rf,
-                                              ModelTypesIdsEnum.dt,
-                                              ModelTypesIdsEnum.mlp,
-                                              ModelTypesIdsEnum.lda,
-                                              ModelTypesIdsEnum.qda,
-                                              ModelTypesIdsEnum.logit,
-                                              ModelTypesIdsEnum.knn,
-                                              ModelTypesIdsEnum.xgboost,
-                                              ModelTypesIdsEnum.svc,
-                                              ModelTypesIdsEnum.bernb],
-                                      task_type=[TaskTypesEnum.classification],
-                                      input_types=[DataTypesEnum.table],
-                                      output_types=[DataTypesEnum.table],
-                                      parent=ml)
+        models_list = []
 
-        self._initialise_models_group(models=[ModelTypesIdsEnum.tpot, ModelTypesIdsEnum.h2o],
-                                      task_type=[TaskTypesEnum.classification],
-                                      parent=ml, is_initial=False, is_secondary=False)
+        for current_model_key in models_json:
+            model_properties = [model_properties for model_key, model_properties in list(models_json.items())
+                                if model_key == current_model_key][0]
+            model_metadata = metadata_json[model_properties['meta']]
 
-        self._initialise_models_group(models=[ModelTypesIdsEnum.kmeans],
-                                      task_type=[TaskTypesEnum.clustering],
-                                      parent=stat)
+            task_types = eval_field_str(model_metadata['tasks'])
+            input_type = eval_field_str(model_metadata['input_type'])
+            output_type = eval_field_str(model_metadata['output_type'])
 
-        common_meta = ModelMetaInfo(input_types=[DataTypesEnum.table],
-                                    output_types=[DataTypesEnum.table],
-                                    task_type=[], can_be_initial=True)
+            strategies_json = model_metadata['strategies']
+            if isinstance(strategies_json, list):
+                supported_strategies = eval_strategy_str(strategies_json)
+            else:
+                supported_strategies = {}
+                for strategy_dict_key in strategies_json.keys():
+                    supported_strategies[eval_field_str(strategy_dict_key)] = eval_strategy_str(
+                        strategies_json[strategy_dict_key])
 
-        group_meta = deepcopy(common_meta)
-        group_meta.input_types = [DataTypesEnum.table, DataTypesEnum.ts, DataTypesEnum.ts_lagged_table]
-        group_meta.output_types = [DataTypesEnum.table, DataTypesEnum.ts, DataTypesEnum.ts_lagged_table]
-        group_meta.task_type = [TaskTypesEnum.classification,
-                                TaskTypesEnum.regression,
-                                TaskTypesEnum.ts_forecasting]
-        group_meta.without_preprocessing = True
-        group_meta.can_be_initial = False
-        ModelType(ModelTypesIdsEnum.direct_datamodel, deepcopy(group_meta), parent=data_models)
+            accepted_node_types = read_field(model_metadata, 'accepted_node_types', ['any'])
+            forbidden_node_types = read_field(model_metadata, 'forbidden_node_types', [])
+            meta_tags = read_field(model_metadata, 'tags', [])
 
-        group_meta = deepcopy(common_meta)
-        group_meta.task_type = [TaskTypesEnum.ts_forecasting]
-        group_meta.input_types = [DataTypesEnum.ts]
-        group_meta.output_types = [DataTypesEnum.ts]
-        group_meta.is_affects_target = True
-        group_meta.without_preprocessing = True
-        ModelType(ModelTypesIdsEnum.additive_data_model, deepcopy(group_meta), parent=composition_data_models)
-        ModelType(ModelTypesIdsEnum.trend_data_model, deepcopy(group_meta), parent=decomposition_data_models)
-        ModelType(ModelTypesIdsEnum.residual_data_model, deepcopy(group_meta), parent=decomposition_data_models)
+            model_tags = read_field(model_properties, 'tags', [])
 
-        group_meta = deepcopy(common_meta)
-        group_meta.task_type = [TaskTypesEnum.ts_forecasting]
-        group_meta.input_types = [DataTypesEnum.ts_lagged_3d]
-        group_meta.output_types = [DataTypesEnum.ts]
-        ModelType(ModelTypesIdsEnum.lstm, deepcopy(group_meta), parent=keras)
+            allowed_positions = ['primary', 'secondary', 'root']
 
-        return root
+            if accepted_node_types and accepted_node_types != 'all':
+                allowed_positions = accepted_node_types
+            if forbidden_node_types:
+                allowed_positions = [pos for pos in allowed_positions if pos not in forbidden_node_types]
 
-    # TODO refactor
-    def _initialise_models_group(self, models: List[ModelTypesIdsEnum],
-                                 task_type: List[TaskTypesEnum],
-                                 parent: ModelsGroup, is_initial=True, is_secondary=True,
-                                 output_types=None, input_types=None):
-        if not output_types:
-            output_types = [DataTypesEnum.table]
-        if not input_types:
-            input_types = [DataTypesEnum.table]
-        common_meta = ModelMetaInfo(input_types=input_types,
-                                    output_types=output_types,
-                                    task_type=[], can_be_initial=is_initial, can_be_secondary=is_secondary,
-                                    is_affects_target=False)
+            tags = list(set(meta_tags + model_tags))
 
-        group_meta = deepcopy(common_meta)
-        group_meta.task_type = task_type
+            model = ModelMetaInfo(id=current_model_key,
+                                  input_types=input_type, output_types=output_type, task_type=task_types,
+                                  supported_strategies=supported_strategies,
+                                  allowed_positions=allowed_positions,
+                                  tags=tags)
+            models_list.append(model)
 
-        for model_type in models:
-            ModelType(model_type, deepcopy(group_meta), parent=parent)
+        return models_list
 
-    def __init__(self):
-        self._tree = self._initialise_tree()
+    @property
+    def models(self):
+        return ModelTypesRepository._repo
 
-    def _is_in_path(self, node, desired_ids):
-        return any(node_from_path.name in desired_ids for node_from_path in
-                   node.path)
+    def model_info_by_id(self, id: str) -> Optional[ModelMetaInfo]:
+        models_with_id = [m for m in ModelTypesRepository._repo if m.id == id]
+        if len(models_with_id) > 1:
+            raise ValueError('Several models with same id in repository')
+        if len(models_with_id) == 0:
+            warnings.warn('Model {id} not found in the repository')
+            return None
+        return models_with_id[0]
 
-    def search_models(self,
-                      desired_ids:
-                      Optional[List[Union[ModelGroupsIdsEnum, ModelTypesIdsEnum]]] = None,
-                      desired_metainfo:
-                      Optional[ModelMetaInfoTemplate] = None) -> Tuple[List[ModelTypesIdsEnum], List[ModelMetaInfo]]:
+    def models_with_tag(self, tags: List[str], is_full_match: bool = False):
+        models_info = [m for m in ModelTypesRepository._repo if
+                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
+        return [m.id for m in models_info], models_info
 
-        desired_ids = [ModelGroupsIdsEnum.all] if desired_ids is None or not desired_ids else desired_ids
+    def suitable_model(self, task_type: TaskTypesEnum,
+                       tags: List[str] = None, is_full_match: bool = False,
+                       forbidden_tags: List[str] = None):
 
-        results = findall(self._tree, filter_=lambda node: isinstance(node, ModelType) and
-                                                           self._is_in_path(node, desired_ids))
+        if not forbidden_tags:
+            forbidden_tags = []
 
-        if desired_metainfo is not None:
-            results = [result for result in results
-                       if isinstance(result, ModelType) and
-                       desired_metainfo.is_suits_for_template(result.meta_info)]
+        for excluded_default_tag in self._tags_excluded_by_default:
+            if not tags or excluded_default_tag not in tags:
+                forbidden_tags.append(excluded_default_tag)
 
-        models_ids = [result.name for result in results if (result.name in self.model_types)]
-        models_metainfo = [result.meta_info for result in results if (result.name in self.model_types)]
+        models_info = [m for m in ModelTypesRepository._repo if task_type in m.task_type and
+                       (not tags or _is_tags_contains_in_model(tags, m.tags, is_full_match)) and
+                       (not forbidden_tags or not _is_tags_contains_in_model(forbidden_tags, m.tags, False))]
+        return [m.id for m in models_info], models_info
 
-        return models_ids, models_metainfo
 
-    def print_structure(self):
-        for pre, node in RenderTree(self._tree):
-            print(f'{pre}{node.name}')
+def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str], is_full_match: bool):
+    matches = ([(tag in model_tags) for tag in candidate_tags])
+    if is_full_match:
+        return all(matches)
+    else:
+        return any(matches)

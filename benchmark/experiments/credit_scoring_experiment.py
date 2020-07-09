@@ -12,14 +12,11 @@ from core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
 from core.composer.optimisers.mutation import MutationTypesEnum
 from core.composer.optimisers.regularization import RegularizationTypesEnum
 from core.composer.optimisers.selection import SelectionTypesEnum
-from core.models.model import *
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import (
-    ModelMetaInfoTemplate,
-    ModelTypesRepository
-)
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import Task, TaskTypesEnum
+from core.models.data import InputData
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    (ClassificationMetricsEnum, MetricsRepository)
+from core.repository.tasks import TaskTypesEnum
 
 random.seed(1)
 np.random.seed(1)
@@ -41,13 +38,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_compose = InputData.from_csv(train_file_path)
     dataset_to_validate = InputData.from_csv(test_file_path)
 
-    models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.search_models(
-        desired_metainfo=ModelMetaInfoTemplate(input_types=[DataTypesEnum.table],
-                                               task_type=[TaskTypesEnum.classification,
-                                                          TaskTypesEnum.clustering],
-                                               can_be_initial=True,
-                                               can_be_secondary=True))
+    available_model_types, _ = ModelTypesRepository(). \
+        suitable_model(task_type=TaskTypesEnum.classification)
 
     # the choice of the metric for the chain quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)

@@ -2,13 +2,9 @@ import random
 from typing import List
 
 from core.composer.chain import Chain
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from utilities.synthetic.chain_template import (
-    chain_template_random,
-    fit_template,
-    real_chain,
-    chain_template_balanced_tree
-)
+from utilities.synthetic.chain_template import \
+    (chain_template_balanced_tree, chain_template_random,
+     fit_template, real_chain)
 
 
 def chain_with_fixed_structure() -> Chain:
@@ -20,7 +16,7 @@ def chain_with_fixed_structure() -> Chain:
 
 
 def chain_with_random_links(depth: int, models_per_level: List[int],
-                            used_models: List[ModelTypesIdsEnum]) -> Chain:
+                            used_models: List[str]) -> Chain:
     """
     Generates chain with a fixed structure of nodes but random links.
     :param depth: Tree depth.
@@ -39,7 +35,7 @@ def chain_with_random_links(depth: int, models_per_level: List[int],
 
 
 def chain_full_random(depth: int, max_level_size,
-                      used_models: List[ModelTypesIdsEnum]) -> Chain:
+                      used_models: List[str]) -> Chain:
     """
     Generates chain with random amount of nodes and links.
     :param depth: Tree depth.
@@ -57,7 +53,7 @@ def chain_full_random(depth: int, max_level_size,
 
 
 def chain_balanced_tree(depth: int, models_per_level: List[int],
-                        used_models: List[ModelTypesIdsEnum]) -> Chain:
+                        used_models: List[str]) -> Chain:
     """
     Generates chain with balanced tree-like structure. The average arity value
     of the resulted tree is close to 2.
@@ -80,8 +76,8 @@ def chain_balanced_tree(depth: int, models_per_level: List[int],
 def separately_fit_chain(samples: int, features_amount: int, classes: int,
                          chain: Chain = None):
     if chain is None:
-        models = [ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost,
-                  ModelTypesIdsEnum.knn]
+        models = ['logit', 'xgboost',
+                  'knn']
         template = chain_template_balanced_tree(model_types=models,
                                                 depth=3,
                                                 models_per_level=[4, 2, 1],
@@ -104,6 +100,6 @@ def _random_models_per_lvl(depth, max_level_size):
 
 if __name__ == '__main__':
     chain = chain_with_random_links(depth=3, models_per_level=[3, 2, 1],
-                                    used_models=[ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.logit])
+                                    used_models=['xgboost', 'logit'])
     full_random_chain = chain_full_random(depth=4, max_level_size=4,
-                                          used_models=[ModelTypesIdsEnum.xgboost, ModelTypesIdsEnum.logit])
+                                          used_models=['xgboost', 'logit'])

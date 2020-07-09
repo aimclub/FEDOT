@@ -29,7 +29,7 @@ def test_credit_scoring_problem():
     assert roc_auc_test > 0.5
 
 
-def test_metocean_forecasting_scoring_problem():
+def test_metocean_forecasting_problem():
     test_file_path = str(os.path.dirname(__file__))
     file_path_train = os.path.join(test_file_path, 'data/simple_time_series.csv')
     file_path_test = file_path_train

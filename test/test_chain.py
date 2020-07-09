@@ -8,10 +8,9 @@ import pytest
 from sklearn.datasets import load_iris
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 from core.utils import probs_to_labels
 
@@ -51,22 +50,19 @@ def _to_numerical(categorical_ids: np.ndarray):
 def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.lda,
-                                          nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.qda,
-                                         nodes_from=[first])
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
-                                         nodes_from=[second, third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='lda', nodes_from=[first])
+    third = SecondaryNode(model_type='qda', nodes_from=[first])
+    final = SecondaryNode(model_type='knn', nodes_from=[second, third])
 
     train_predicted = final.fit(input_data=train)
 
     assert final.descriptive_id == (
-        '((/n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.lda_default_params;;(/'
-        'n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.qda_default_params;)/'
-        'n_ModelTypesIdsEnum.knn_default_params')
+        '((/n_logit_default_params;)/'
+        'n_lda_default_params;;(/'
+        'n_logit_default_params;)/'
+        'n_qda_default_params;)/'
+        'n_knn_default_params')
 
     assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.cache.actual_cached_state is not None
@@ -75,13 +71,10 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
 def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                          nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[first])
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[second, third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[first])
+    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -90,11 +83,11 @@ def test_chain_hierarchy_fit_correct(data_setup):
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
     assert chain.root_node.descriptive_id == (
-        '((/n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params;;(/'
-        'n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params')
+        '((/n_logit_default_params;)/'
+        'n_logit_default_params;;(/'
+        'n_logit_default_params;)/'
+        'n_logit_default_params;)/'
+        'n_logit_default_params')
 
     assert chain.length == 4
     assert chain.depth == 3
@@ -106,13 +99,10 @@ def test_chain_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                          nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[second])
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[second])
+    final = SecondaryNode(model_type='logit', nodes_from=[third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -121,10 +111,10 @@ def test_chain_sequential_fit_correct(data_setup):
     train_predicted = chain.fit(input_data=train, use_cache=False)
 
     assert chain.root_node.descriptive_id == (
-        '(((/n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params;)/'
-        'n_ModelTypesIdsEnum.logit_default_params')
+        '(((/n_logit_default_params;)/'
+        'n_logit_default_params;)/'
+        'n_logit_default_params;)/'
+        'n_logit_default_params')
 
     assert chain.length == 4
     assert chain.depth == 4
@@ -137,9 +127,9 @@ def test_chain_with_datamodel_fit_correct(data_setup):
     train_data, test_data = train_test_data_setup(data)
 
     chain = Chain()
-    node_data = NodeGenerator.primary_node(ModelTypesIdsEnum.direct_datamodel)
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.bernb)
-    node_second = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_data = PrimaryNode('direct_data_model')
+    node_first = PrimaryNode('bernb')
+    node_second = SecondaryNode('rf')
     node_second.nodes_from = [node_first, node_data]
 
     chain.add_node(node_data)
@@ -155,11 +145,11 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.lda)
-    third = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.knn)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                         nodes_from=[first, second, third])
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[first, second, third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -168,8 +158,8 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = deepcopy(first)
     second = deepcopy(second)
     third = deepcopy(third)
-    final_shuffled = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.xgboost,
-                                                  nodes_from=[third, first, second])
+    final_shuffled = SecondaryNode(model_type='xgboost',
+                                   nodes_from=[third, first, second])
 
     chain_shuffled = Chain()
     # change order of nodes in list
@@ -207,10 +197,9 @@ def test_chain_with_custom_params_for_model(data_setup):
                          weights='uniform',
                          p=1)
 
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.lda)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
-                                         nodes_from=[first, second])
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    final = SecondaryNode(model_type='knn', nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)

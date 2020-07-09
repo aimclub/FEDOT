@@ -6,7 +6,6 @@ from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -49,7 +48,7 @@ def test_log_regression_fit_correct(classification_dataset):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    log_reg = Model(model_type=ModelTypesIdsEnum.logit)
+    log_reg = Model(model_type='logit')
 
     _, train_predicted = log_reg.fit(data=train_data)
 
@@ -64,7 +63,7 @@ def test_random_forest_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    random_forest = Model(model_type=ModelTypesIdsEnum.rf)
+    random_forest = Model(model_type='rf')
 
     _, train_predicted = random_forest.fit(data=train_data)
 
@@ -79,7 +78,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    decision_tree = Model(model_type=ModelTypesIdsEnum.dt)
+    decision_tree = Model(model_type='dt')
 
     decision_tree.fit(data=train_data)
     _, train_predicted = decision_tree.fit(data=train_data)
@@ -95,7 +94,7 @@ def test_lda_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    lda = Model(model_type=ModelTypesIdsEnum.lda)
+    lda = Model(model_type='lda')
 
     _, train_predicted = lda.fit(data=train_data)
 
@@ -110,7 +109,7 @@ def test_qda_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    qda = Model(model_type=ModelTypesIdsEnum.qda)
+    qda = Model(model_type='qda')
 
     _, train_predicted = qda.fit(data=train_data)
 
@@ -125,7 +124,7 @@ def test_log_clustering_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    kmeans = Model(model_type=ModelTypesIdsEnum.kmeans)
+    kmeans = Model(model_type='kmeans')
 
     _, train_predicted = kmeans.fit(data=train_data)
 
@@ -138,7 +137,7 @@ def test_svc_fit_correct(data_fixture, request):
     data.features = Scaling().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    svc = Model(model_type=ModelTypesIdsEnum.svc)
+    svc = Model(model_type='svc')
 
     _, train_predicted = svc.fit(data=train_data)
 

@@ -6,8 +6,8 @@ from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
-from core.models.model import *
+from core.composer.node import PrimaryNode, SecondaryNode
+from core.models.data import InputData
 
 
 def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
@@ -19,7 +19,7 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     training_target = train_data.target
     testing_target = test_data.target
 
-    # Average CV score on the training set was: 0.9375499999999999
+    # Average CV score on the training set was: 0.93755
     exported_pipeline = make_pipeline(
         StackingEstimator(estimator=BernoulliNB()),
         RandomForestClassifier()
@@ -36,9 +36,9 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     print(roc_auc_value)
 
     chain = Chain()
-    node_first = NodeGenerator.primary_node(ModelTypesIdsEnum.direct_datamodel)
-    node_second = NodeGenerator.primary_node(ModelTypesIdsEnum.bernb)
-    node_third = NodeGenerator.secondary_node(ModelTypesIdsEnum.rf)
+    node_first = PrimaryNode('direct_data_model')
+    node_second = PrimaryNode('bernb')
+    node_third = SecondaryNode('rf')
 
     node_third.nodes_from.append(node_first)
     node_third.nodes_from.append(node_second)

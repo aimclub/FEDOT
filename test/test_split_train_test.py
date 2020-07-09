@@ -9,7 +9,6 @@ from core.composer.chain import Chain
 from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
 
@@ -22,8 +21,8 @@ CORRECT_MODEL_AUC_THR = 0.25
 
 def compose_chain(data: InputData) -> Chain:
     dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
-    composer_requirements = ComposerRequirements(primary=[ModelTypesIdsEnum.logit],
-                                                 secondary=[ModelTypesIdsEnum.logit, ModelTypesIdsEnum.xgboost])
+    composer_requirements = ComposerRequirements(primary=['logit'],
+                                                 secondary=['logit', 'xgboost'])
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 

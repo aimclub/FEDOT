@@ -3,12 +3,14 @@ import pytest
 from sklearn.datasets import load_breast_cancer
 
 from core.composer.chain import Chain
-from core.composer.node import NodeGenerator
+from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, split_train_test
 from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesIdsEnum
-from core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ComplexityMetricsEnum,
-                                                        MetricsRepository, RegressionMetricsEnum)
+from core.repository.quality_metrics_repository import \
+    (ClassificationMetricsEnum,
+     ComplexityMetricsEnum,
+     MetricsRepository,
+     RegressionMetricsEnum)
 from core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -32,17 +34,12 @@ def data_setup():
 
 
 def default_valid_chain():
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                          nodes_from=[first])
-    third = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[first])
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.logit,
-                                         nodes_from=[second, third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[first])
+    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
 
-    chain = Chain()
-    for node in [first, second, third, final]:
-        chain.add_node(node)
+    chain = Chain(final)
 
     return chain
 

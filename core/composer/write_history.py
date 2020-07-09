@@ -1,7 +1,7 @@
 import csv
 import math
 import os
-from typing import (List, Any)
+from typing import (Any, List)
 
 
 def write_composer_history_to_csv(historical_fitness: List[int], historical_chains: List[Any], pop_size: int,

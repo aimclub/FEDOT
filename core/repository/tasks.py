@@ -39,9 +39,9 @@ def compatible_task_types(main_task_type: TaskTypesEnum) -> List[TaskTypesEnum]:
     return _compatible_task_types[main_task_type]
 
 
-def extract_task_param(task_type: TaskTypesEnum) -> Any:
+def extract_task_param(task: Task) -> Any:
     try:
-        task_params = task_type.task_params
+        task_params = task.task_params
         if isinstance(task_params, TsForecastingParams):
             window_len = task_params.max_window_size
             prediction_len = task_params.forecast_length
@@ -49,4 +49,4 @@ def extract_task_param(task_type: TaskTypesEnum) -> Any:
         else:
             raise ValueError('Incorrect parameters type for data')
     except AttributeError as ex:
-        raise AttributeError(f'Params are required for the {task_type} task: {ex}')
+        raise AttributeError(f'Params are required for the {task} task: {ex}')
