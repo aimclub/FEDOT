@@ -4,19 +4,22 @@ from datetime import timedelta
 from typing import Optional
 
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.discriminant_analysis import (
-    LinearDiscriminantAnalysis,
-    QuadraticDiscriminantAnalysis
-)
-from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, \
-    GradientBoostingRegressor, RandomForestClassifier, \
-    RandomForestRegressor
-from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
-    LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
+from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
+                                           QuadraticDiscriminantAnalysis)
+from sklearn.ensemble import (AdaBoostRegressor,
+                              ExtraTreesRegressor,
+                              GradientBoostingRegressor,
+                              RandomForestClassifier,
+                              RandomForestRegressor)
+from sklearn.linear_model import (Lasso as SklearnLassoReg,
+                                  LinearRegression as SklearnLinReg,
+                                  LogisticRegression as SklearnLogReg,
+                                  Ridge as SklearnRidgeReg,
+                                  SGDRegressor as SklearnSGD)
 from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
-from sklearn.neighbors import KNeighborsClassifier as SklearnKNN, \
-    KNeighborsRegressor as SklearnKNNReg
+from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
+                               KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor

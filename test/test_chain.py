@@ -197,10 +197,9 @@ def test_chain_with_custom_params_for_model(data_setup):
                          weights='uniform',
                          p=1)
 
-    first = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.logit)
-    second = NodeGenerator.primary_node(model_type=ModelTypesIdsEnum.lda)
-    final = NodeGenerator.secondary_node(model_type=ModelTypesIdsEnum.knn,
-                                         nodes_from=[first, second])
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    final = SecondaryNode(model_type='knn', nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)
