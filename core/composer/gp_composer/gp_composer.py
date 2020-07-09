@@ -32,7 +32,7 @@ class GPComposer(Composer):
     def compose_chain(self, data: InputData, initial_chain: Optional[Chain],
                       composer_requirements: Optional[GPComposerRequirements],
                       metrics: Optional[Callable], optimiser_parameters: GPChainOptimiserParameters = None,
-                      is_visualise: bool = False) -> Chain:
+                      is_visualise: bool = False, is_tune: bool = False) -> Chain:
 
         train_data, test_data = train_test_data_setup(data, 0.8)
         self.shared_cache.clear()
@@ -56,6 +56,9 @@ class GPComposer(Composer):
                                       pop_size=composer_requirements.pop_size)
 
         print('GP composition finished')
+
+        if is_tune:
+            self.tune_chain(best_chain, data, composer_requirements.max_lead_time)
         return best_chain
 
     def metric_for_nodes(self, metric_function, train_data: InputData,
@@ -70,3 +73,7 @@ class GPComposer(Composer):
         except Exception as ex:
             print(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
+
+    @staticmethod
+    def tune_chain(chain: Chain, data: InputData, time_limit):
+        chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)

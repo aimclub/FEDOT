@@ -9,6 +9,7 @@ from core.composer.node import NodeGenerator
 from core.models.data import InputData, train_test_data_setup
 from core.repository.model_types_repository import ModelTypesIdsEnum
 from core.repository.tasks import Task, TaskTypesEnum
+from datetime import timedelta
 
 seed(1)
 
@@ -35,8 +36,7 @@ def get_regr_chain():
                                          nodes_from=[first, second])
 
     chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain.add_node(final)
 
     return chain
 
@@ -49,8 +49,7 @@ def get_class_chain():
                                          nodes_from=[first, second])
 
     chain = Chain()
-    for node in [first, second, final]:
-        chain.add_node(node)
+    chain.add_node(final)
 
     return chain
 
@@ -71,7 +70,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
         before_tuning_predicted = chain.predict(test_data)
 
         # Chain tuning
-        chain.fine_tune_primary_nodes(train_data, iterations=1)
+        chain.fine_tune_primary_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=10)
 
         # After tuning prediction
         chain.fit(train_data)
@@ -87,6 +86,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
 
     assert any(result_list)
 
+
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_fine_tune_root_node(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -100,13 +100,27 @@ def test_fine_tune_root_node(data_fixture, request):
     before_tuning_predicted = chain.predict(test_data)
 
     # root node tuning
-    chain.fine_tune_root_node(train_data, iterations=25)
+    chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
     after_tun_root_node_predicted = chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 3)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 3)
+    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
     assert aft_tun_roc_auc <= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_custom_params_setter(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    chain = get_class_chain()
+
+    custom_params = dict(C=10)
+
+    chain.root_node.custom_params = custom_params
+    chain.fit(data)
+    params = chain.root_node.cache.actual_cached_state.model.get_params()
+
+    assert params['C'] == 10

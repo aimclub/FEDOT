@@ -4,9 +4,11 @@ from sklearn.model_selection import train_test_split
 import os
 import numpy as np
 
+
 def project_root() -> Path:
     """Returns project root folder."""
     return Path(__file__).parent.parent
+
 
 def labels_to_dummy_probs(prediction: np.array):
     """Returns converted predictions

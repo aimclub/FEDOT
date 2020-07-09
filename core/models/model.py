@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 
 from core.models.data import (
@@ -67,6 +69,9 @@ class Model:
     def fit(self, data: InputData):
         self._init(data.task)
 
+        if self.params != DEFAULT_PARAMS_STUB:
+            self._eval_strategy.params_for_fit = self.params
+
         fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data)
@@ -87,14 +92,16 @@ class Model:
 
         return prediction
 
-    def fine_tune(self, data: InputData, iterations: int = 30):
+    def fine_tune(self, data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         self._init(data.task)
 
         try:
             fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
-                                                                       iterations=iterations)
+                                                                       iterations=iterations,
+                                                                       max_lead_time=max_lead_time)
             self.params = tuned_params
-            if self.params is None:
+            if not self.params:
                 self.params = DEFAULT_PARAMS_STUB
         except Exception as ex:
             print(f'Tuning failed because of {ex}')
