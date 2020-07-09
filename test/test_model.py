@@ -145,20 +145,3 @@ def test_svc_fit_correct(data_fixture, request):
     roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_sklearn_model_set_custom_params(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    custom_params = dict(n_neighbors=10,
-                         weights='uniform',
-                         p=1)
-
-    model = Model(model_type=ModelTypesIdsEnum.knn)
-
-    model.set_custom_params(custom_params)
-
-    fitted_model, _ = model.fit(data=data)
-    model_params = fitted_model.get_params()
-
-    assert model_params.get('n_neighbors') == 10

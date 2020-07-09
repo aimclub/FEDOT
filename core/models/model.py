@@ -112,9 +112,6 @@ class Model:
                                                     predict_data=data)
         return fitted_model, predict_train
 
-    def set_custom_params(self, params: dict):
-        self.params = params
-
     def __str__(self):
         return f'{self.model_type.name}'
 
