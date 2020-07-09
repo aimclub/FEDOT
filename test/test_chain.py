@@ -216,7 +216,7 @@ def test_chain_with_custom_params_for_model(data_setup):
     chain.add_node(final)
     chain_default_params = deepcopy(chain)
 
-    chain.root_node.model.set_custom_params(custom_params)
+    chain.root_node.custom_params = custom_params
 
     chain_default_params.fit(data)
     chain.fit(data)
