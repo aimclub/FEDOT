@@ -110,3 +110,17 @@ def test_fine_tune_root_node(data_fixture, request):
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
     assert aft_tun_roc_auc <= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_custom_params_setter(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    chain = get_class_chain()
+
+    custom_params = dict(C=10)
+
+    chain.root_node.custom_params = custom_params
+    chain.fit(data)
+    params = chain.root_node.cache.actual_cached_state.model.get_params()
+
+    assert params['C'] == 10

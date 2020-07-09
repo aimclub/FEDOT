@@ -97,6 +97,14 @@ class Node(ABC):
     def fine_tune(self, input_data: InputData, max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
         raise NotImplementedError()
 
+    @property
+    def custom_params(self) -> dict:
+        return self.model.params
+
+    @custom_params.setter
+    def custom_params(self, params):
+        self.model.params = params
+
 
 class FittedModelCache:
     def __init__(self, related_node: Node):
