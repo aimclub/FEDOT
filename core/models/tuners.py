@@ -9,6 +9,7 @@ from skopt import BayesSearchCV
 from core.composer.timer import TunerTimer
 from core.models.data import InputData
 from core.models.data import train_test_data_setup
+import operator
 
 
 class Tuner:
@@ -16,10 +17,10 @@ class Tuner:
                  params_range: dict,
                  cross_val_fold_num: int,
                  scorer: Union[str, callable],
-                 time_limit_minutes,
+                 time_limit,
                  iterations: int):
-        self.time_limit_minutes: timedelta \
-            = time_limit_minutes
+        self.time_limit: timedelta \
+            = time_limit
         self.trained_model = trained_model
         self.tune_data = tune_data
         self.params_range = params_range
@@ -32,12 +33,12 @@ class Tuner:
 
     def _is_score_better(self, previous, current):
         __compare = {
-            'classification': is_grater,
-            'regression': is_lower
+            'classification': operator.gt,
+            'regression': operator.lt
         }
         comparison = __compare.get(self.tune_data.task.task_type.name)
         try:
-            return comparison(previous, current)
+            return comparison(current, previous)
         except ValueError as ex:
             print(f'Score comparison can not be held because {ex}')
 
@@ -47,13 +48,14 @@ class SklearnTuner(Tuner):
                  params_range: dict,
                  cross_val_fold_num: int,
                  scorer: Union[str, callable],
-                 time_limit_minutes):
+                 time_limit, iterations):
         super().__init__(trained_model=trained_model,
                          tune_data=tune_data,
                          params_range=params_range,
                          cross_val_fold_num=cross_val_fold_num,
                          scorer=scorer,
-                         time_limit_minutes=time_limit_minutes)
+                         time_limit=time_limit,
+                         iterations=iterations)
         self.search_strategy = None
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
@@ -118,7 +120,7 @@ class SklearnCustomRandomTuner(Tuner):
                         best_model = self.trained_model
                         best_score = score
 
-                    if timer.is_time_limit_reached(self.time_limit_minutes):
+                    if timer.is_time_limit_reached(self.time_limit):
                         break
                 return best_params, best_model
         except ValueError as ex:
@@ -195,11 +197,3 @@ def get_varied_length_range(left_range, right_range):
 
 def _regression_prediction_quality(prediction, real):
     return mse(y_true=real, y_pred=prediction, squared=False)
-
-
-def is_grater(previous, current):
-    return current >= previous
-
-
-def is_lower(previous, current):
-    return current < previous

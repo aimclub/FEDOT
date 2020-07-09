@@ -110,7 +110,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                        params_range=params_range,
                                                        cross_val_fold_num=5,
                                                        scorer=metric,
-                                                       time_limit_minutes=max_lead_time,
+                                                       time_limit=max_lead_time,
                                                        iterations=iterations).tune()
 
         if best_model or tuned_params:
