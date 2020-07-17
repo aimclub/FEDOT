@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from core.models.data import Data, InputData, OutputData
+from core.models.data import InputData, OutputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
@@ -49,8 +49,8 @@ def test_data_from_predictions(output_dataset):
     data_2 = output_dataset
     data_3 = output_dataset
     target = output_dataset.predict
-    new_input_data = Data.from_predictions(outputs=[data_1, data_2, data_3],
-                                           target=target)
+    new_input_data = InputData.from_predictions(outputs=[data_1, data_2, data_3],
+                                                target=target)
     assert new_input_data.features.all() == np.array(
         [data_1.predict, data_2.predict, data_3.predict]).all()
 

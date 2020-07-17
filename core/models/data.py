@@ -33,6 +33,18 @@ class Data:
             target = None
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
+
+@dataclass
+class InputData(Data):
+    target: np.array = None
+
+    @property
+    def num_classes(self):
+        if self.task.task_type == TaskTypesEnum.classification:
+            return len(np.unique(self.target))
+        else:
+            return None
+
     @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
         if len(set([output.data_type for output in outputs])) > 1:
@@ -57,21 +69,8 @@ class Data:
 
 
 @dataclass
-class InputData(Data):
-    target: np.array = None
-
-    @property
-    def num_classes(self):
-        if self.task.task_type == TaskTypesEnum.classification:
-            return len(np.unique(self.target))
-        else:
-            return None
-
-
-@dataclass
 class OutputData(Data):
     predict: np.array = None
-
 
 def split_train_test(data, split_ratio=0.8, with_shuffle=False):
     if with_shuffle:
