@@ -12,7 +12,8 @@ if __name__ == '__main__':
                                                          task=TaskTypesEnum.classification,
                                                          target_name='default',
                                                          case_label='scoring'),
-                                  models=[BenchmarkModelTypesEnum.tpot,
+                                  models=[BenchmarkModelTypesEnum.baseline,
+                                          BenchmarkModelTypesEnum.tpot,
                                           BenchmarkModelTypesEnum.fedot],
                                   metric_list=['roc_auc', 'f1']).execute()
 
