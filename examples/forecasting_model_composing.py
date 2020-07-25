@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot.core.composer.chain import Chain
-from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
+from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
 from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.visualisation import ComposerVisualiser
@@ -91,8 +91,6 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     available_model_types_secondary = ['rfr', 'linear',
                                        'ridge', 'lasso']
 
-    composer = FixedStructureComposer()
-
     composer_requirements = GPComposerRequirements(
         primary=available_model_types_primary,
         secondary=available_model_types_secondary, max_arity=2,
@@ -100,10 +98,11 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         crossover_prob=0, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=20))
 
+    builder = FixedStructureComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_initial_chain(ref_chain)
+    composer = builder.build()
+
     chain = composer.compose_chain(data=dataset_to_train,
-                                   initial_chain=ref_chain,
-                                   composer_requirements=composer_requirements,
-                                   metrics=metric_function,
                                    is_visualise=False)
 
     if with_visualisation:

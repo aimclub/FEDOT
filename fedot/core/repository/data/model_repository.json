@@ -101,7 +101,7 @@
 	},
 	"svc": {
 	  "meta": "sklearn_class",
-	  "tags": ["no_prob"]
+	  "tags": ["no_prob", "expensive"]
 	},
 	"xgboost": {
 	  "meta": "sklearn_class",

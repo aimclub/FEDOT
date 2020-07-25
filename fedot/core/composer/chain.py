@@ -19,6 +19,10 @@ class Chain:
 
     :param nodes: Node object(s)
     :param log: Log object to record messages
+
+    .. note::
+        fitted_on_data stores the data which were used in last chain fitting (equals None if chain hasn't been
+        fitted yet)
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
@@ -32,6 +36,7 @@ class Chain:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
+        self.fitted_on_data = None
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         """
@@ -44,6 +49,14 @@ class Chain:
         self.log.info('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
+    def cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
+        if self.fitted_on_data is not None and self.fitted_on_data is not new_input_data:
+            if cache_status:
+                self.log.warn('Trained model cache is not actual because you are using new dataset for training. '
+                              'Parameter use_cache value changed to False')
+                cache_status = False
+        return cache_status
+
     def fit(self, input_data: InputData, use_cache=True, verbose=False):
         """
         Run training process in all nodes in chain starting with root.
@@ -52,10 +65,13 @@ class Chain:
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param verbose: flag used for status printing to console, default False
         """
+        use_cache = self.cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
+
         if not use_cache:
             self._clean_model_cache()
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
-
+        if not use_cache or self.fitted_on_data is None:
+            self.fitted_on_data = input_data
         return train_predicted
 
     def predict(self, input_data: InputData):
@@ -157,7 +173,7 @@ class Chain:
 
     def _clean_model_cache(self):
         for node in self.nodes:
-            node.cache.clear()
+            node.cache = FittedModelCache(node)
 
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]

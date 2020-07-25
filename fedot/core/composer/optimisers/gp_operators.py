@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, Callable, List, Tuple)
+from typing import (Any, List, Tuple)
 
 from fedot.core.composer.constraint import constraint_function
 
@@ -40,8 +40,10 @@ def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
     return nodes
 
 
-def random_chain(chain_class: Any, secondary_node_func: Callable, primary_node_func: Callable,
-                 requirements, max_depth=None) -> Any:
+def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
+    secondary_node_func = chain_generation_params.secondary_node_func
+    primary_node_func = chain_generation_params.primary_node_func
+    chain_class = chain_generation_params.chain_class
     max_depth = max_depth if max_depth else requirements.max_depth
 
     def chain_growth(chain: Any, node_parent: Any):
@@ -103,3 +105,7 @@ def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, 
     summary_depth = layer_in_second + node_depth(node_from_first)
     if summary_depth <= max_depth and summary_depth != 0:
         chain_second.replace_node_with_parents(node_from_second, node_from_chain_first_copy)
+
+
+def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
+    return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1

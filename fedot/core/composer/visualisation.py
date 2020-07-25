@@ -192,7 +192,7 @@ def colors_by_node_labels(node_labels: dict):
 
 
 def scaled_node_size(nodes_amount):
-    size = int(7000.0 / ceil(log2(nodes_amount)))
+    size = int(7000.0 / max(ceil(log2(nodes_amount)), 1))
     return size
 
 
