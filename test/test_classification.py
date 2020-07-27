@@ -10,7 +10,7 @@ from core.repository.tasks import Task, TaskTypesEnum
 from test.test_model import classification_dataset_with_redunant_features
 
 
-def compose_chain() -> Chain:
+def chain_simple() -> Chain:
     node_first = PrimaryNode('svc')
     node_second = PrimaryNode('lda')
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
@@ -20,7 +20,7 @@ def compose_chain() -> Chain:
     return chain
 
 
-def compose_chain_pca() -> Chain:
+def chain_with_pca() -> Chain:
     node_first = PrimaryNode('pca_data_model')
     node_second = PrimaryNode('lda')
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
@@ -42,7 +42,7 @@ def get_iris_data() -> InputData:
 
 def test_multiclassification_chain_fit_correct():
     data = get_iris_data()
-    chain = compose_chain()
+    chain = chain_simple()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     chain.fit(input_data=train_data)
@@ -58,8 +58,8 @@ def test_multiclassification_chain_fit_correct():
 
 def test_classification_with_pca_chain_fit_correct():
     data = classification_dataset_with_redunant_features()
-    chain_pca = compose_chain_pca()
-    chain = compose_chain()
+    chain_pca = chain_with_pca()
+    chain = chain_simple()
 
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 

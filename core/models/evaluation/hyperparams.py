@@ -78,5 +78,4 @@ params_range_by_model = {
         'min_samples_leaf': range(1, 21),
         'bootstrap': [True, False]
     }
-
 }

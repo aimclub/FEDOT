@@ -161,7 +161,7 @@ def test_svc_fit_correct(data_fixture, request):
     assert roc_on_train >= roc_threshold
 
 
-def test_pca_datamodel():
+def test_pca_model_removes_redunant_features_correct():
     n_informative = 5
     data = classification_dataset_with_redunant_features(n_samples=1000, n_features=100,
                                                          n_informative=n_informative)

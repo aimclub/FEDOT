@@ -2,13 +2,12 @@ from abc import ABC
 from collections import namedtuple
 from copy import copy
 from datetime import timedelta
-from typing import (Callable, List, Optional)
+from typing import (List, Optional)
 
 from core.models.data import InputData, OutputData
 from core.models.model import Model
-from core.models.preprocessing import *
+from core.models.preprocessing import preprocessing_func_for_data
 from core.models.transformation import transformation_function_for_data
-from core.repository.dataset_types import DataTypesEnum
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -59,26 +58,17 @@ class Node(ABC):
         return transformed_data
 
     def _preprocess(self, data: InputData):
-        preprocessing_func = DefaultStrategy
-        if 'without_preprocessing' not in self.model.metadata.tags:
-            if self.manual_preprocessing_func:
-                preprocessing_func = self.manual_preprocessing_func
-            else:
-                _preprocessing_for_input_data = {
-                    DataTypesEnum.ts: DefaultStrategy,
-                    DataTypesEnum.table: Scaling,
-                    DataTypesEnum.ts_lagged_table: Scaling,
-                    DataTypesEnum.ts_lagged_3d: LaggedTimeSeriesFeature3dStrategy,
-                }
-                preprocessing_func = _preprocessing_for_input_data[data.data_type]
+        preprocessing_func = preprocessing_func_for_data(data, self)
 
         if not self.cache.actual_cached_state:
+            # if fitted preprocessor not found in cache
             preprocessing_strategy = \
                 preprocessing_func().fit(data.features)
-            data.features = preprocessing_strategy.apply(data.features)
         else:
+            # if fitted preprocessor already exists
             preprocessing_strategy = self.cache.actual_cached_state.preprocessor
-            data.features = preprocessing_strategy.apply(data.features)
+
+        data.features = preprocessing_strategy.apply(data.features)
 
         return data, preprocessing_strategy
 
@@ -210,58 +200,6 @@ class SecondaryNode(Node):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type)
 
-    def _nodes_from_with_fixed_order(self):
-        if self.nodes_from is not None:
-            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-
-    def _input_from_parents(self, input_data: InputData,
-                            parent_operation: str,
-                            max_tune_time: Optional[timedelta] = None,
-                            verbose=False) -> InputData:
-        if len(self.nodes_from) == 0:
-            raise ValueError()
-
-        parent_results = []
-
-        if verbose:
-            print(f'Fit all parent nodes in secondary node with model: {self.model}')
-
-        target = input_data.target
-        parent_nodes = self._nodes_from_with_fixed_order()
-
-        are_prev_nodes_affect_target = ['affects_target' in parent_node.model_tags for parent_node in parent_nodes]
-        if any(are_prev_nodes_affect_target):
-            if len(parent_nodes) == 1:
-                # is the previous model is the model that changes target
-                if parent_operation == 'predict':
-                    parent_result = parent_nodes[0].predict(input_data=input_data)
-                elif parent_operation == 'fit' or parent_operation == 'fine_tune':
-                    parent_result = parent_nodes[0].fit(input_data=input_data)
-                else:
-                    raise NotImplementedError()
-                target = parent_result.predict
-
-                parent_results.append(parent_result)
-            else:
-                raise NotImplementedError()
-
-        else:
-            for parent in parent_nodes:
-                if parent_operation == 'predict':
-                    parent_results.append(parent.predict(input_data=input_data))
-                elif parent_operation == 'fit':
-                    parent_results.append(parent.fit(input_data=input_data))
-                elif parent_operation == 'fine_tune':
-                    parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
-                    parent_results.append(parent.predict(input_data=input_data))
-                else:
-                    raise NotImplementedError()
-
-        secondary_input = InputData.from_predictions(outputs=parent_results,
-                                                     target=target)
-
-        return secondary_input
-
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
             print(f'Trying to fit secondary node with model: {self.model}')
@@ -292,3 +230,71 @@ class SecondaryNode(Node):
                                                    max_tune_time=max_lead_time, verbose=verbose)
 
         return super().fine_tune(input_data=secondary_input)
+
+    def _nodes_from_with_fixed_order(self):
+        if self.nodes_from is not None:
+            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
+
+    def _input_from_parents(self, input_data: InputData,
+                            parent_operation: str,
+                            max_tune_time: Optional[timedelta] = None,
+                            verbose=False) -> InputData:
+        if len(self.nodes_from) == 0:
+            raise ValueError()
+
+        if verbose:
+            print(f'Fit all parent nodes in secondary node with model: {self.model}')
+
+        parent_nodes = self._nodes_from_with_fixed_order()
+
+        are_prev_nodes_affect_target = \
+            ['affects_target' in parent_node.model_tags for parent_node in parent_nodes]
+        if any(are_prev_nodes_affect_target):
+            # is the previous model is the model that changes target
+            parent_results, target = _combine_parents_that_affects_target(parent_nodes, input_data,
+                                                                          parent_operation)
+        else:
+            parent_results, target = _combine_parents_simple(parent_nodes, input_data,
+                                                             parent_operation, max_tune_time)
+
+        secondary_input = InputData.from_predictions(outputs=parent_results,
+                                                     target=target)
+
+        return secondary_input
+
+
+def _combine_parents_that_affects_target(parent_nodes: List[Node],
+                                         input_data: InputData,
+                                         parent_operation: str):
+    if len(parent_nodes) > 1:
+        raise NotImplementedError()
+
+    if parent_operation == 'predict':
+        parent_result = parent_nodes[0].predict(input_data=input_data)
+    elif parent_operation == 'fit' or parent_operation == 'fine_tune':
+        parent_result = parent_nodes[0].fit(input_data=input_data)
+    else:
+        raise NotImplementedError()
+
+    target = parent_result.predict
+    return [parent_result], target
+
+
+def _combine_parents_simple(parent_nodes: List[Node],
+                            input_data: InputData,
+                            parent_operation: str,
+                            max_tune_time: Optional[timedelta]):
+    target = input_data.target
+    parent_results = []
+    for parent in parent_nodes:
+        if parent_operation == 'predict':
+            parent_results.append(parent.predict(input_data=input_data))
+        elif parent_operation == 'fit':
+            parent_results.append(parent.fit(input_data=input_data))
+        elif parent_operation == 'fine_tune':
+            parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
+            parent_results.append(parent.predict(input_data=input_data))
+        else:
+            raise NotImplementedError()
+
+    return parent_results, target
