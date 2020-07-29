@@ -8,8 +8,8 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 
-DEFAULT_DIM_REDUCTION_EXPLAINED_VARIANCE_THR = 0.9
-DEFAULT_DIM_REDUCTION_MIN_EXPLAINED_VARIANCE = 0.01
+DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
+DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
 
 
 def _estimate_period(variable):
@@ -72,21 +72,19 @@ def fit_pca(train_data: InputData, params: Optional[dict]):
 
     cum_variance = np.cumsum(pca.explained_variance_ratio_)
 
-    dim_reduction_explained_variance_thr = DEFAULT_DIM_REDUCTION_EXPLAINED_VARIANCE_THR
-    dim_reduction_min_explained_variance = DEFAULT_DIM_REDUCTION_MIN_EXPLAINED_VARIANCE
+    explained_variance_thr = DEFAULT_EXPLAINED_VARIANCE_THR
+    min_explained_variance = DEFAULT_MIN_EXPLAINED_VARIANCE
 
     if params:
-        dim_reduction_explained_variance_thr = params.get('dim_reduction_expl_thr',
-                                                          dim_reduction_explained_variance_thr)
-        dim_reduction_min_explained_variance = params.get('dim_reduction_min_expl',
-                                                          dim_reduction_min_explained_variance)
+        explained_variance_thr = params.get('dim_reduction_expl_thr', explained_variance_thr)
+        min_explained_variance = params.get('dim_reduction_min_expl', min_explained_variance)
 
-    components_before_thr = np.where(cum_variance > dim_reduction_explained_variance_thr)[0]
+    components_before_thr = np.where(cum_variance > explained_variance_thr)[0]
 
     last_ind_cum = min(components_before_thr) if len(components_before_thr) > 0 else 1
 
     significant_components = \
-        np.where(pca.explained_variance_ratio_ < dim_reduction_min_explained_variance)[0]
+        np.where(pca.explained_variance_ratio_ < min_explained_variance)[0]
 
     last_ind = min(significant_components) if len(significant_components) > 0 else 1
 
