@@ -5,8 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
 from core.composer.node import PrimaryNode
-from core.models.data import (
-    InputData, train_test_data_setup)
+from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum

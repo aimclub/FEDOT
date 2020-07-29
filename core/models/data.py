@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,6 +33,18 @@ class Data:
             target = None
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
+
+@dataclass
+class InputData(Data):
+    target: np.array = None
+
+    @property
+    def num_classes(self) -> Optional[int]:
+        if self.task.task_type == TaskTypesEnum.classification:
+            return len(np.unique(self.target))
+        else:
+            return None
+
     @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
         if len(set([output.data_type for output in outputs])) > 1:
@@ -54,18 +66,6 @@ class Data:
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
-
-
-@dataclass
-class InputData(Data):
-    target: np.array = None
-
-    @property
-    def num_classes(self):
-        if self.task.task_type == TaskTypesEnum.classification:
-            return len(np.unique(self.target))
-        else:
-            return None
 
 
 @dataclass

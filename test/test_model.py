@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from core.models.data import InputData, train_test_data_setup
@@ -41,6 +42,20 @@ def classification_dataset():
                      data_type=DataTypesEnum.table)
 
     return data
+
+
+def classification_dataset_with_redunant_features(
+        n_samples=1000, n_features=100, n_informative=5) -> InputData:
+    synthetic_data = make_classification(n_samples=n_samples,
+                                         n_features=n_features,
+                                         n_informative=n_informative)
+
+    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
+                           features=synthetic_data[0],
+                           target=synthetic_data[1],
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    return input_data
 
 
 def test_log_regression_fit_correct(classification_dataset):
@@ -144,3 +159,15 @@ def test_svc_fit_correct(data_fixture, request):
     roc_on_train = get_roc_auc(train_data, train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
+
+
+def test_pca_model_removes_redunant_features_correct():
+    n_informative = 5
+    data = classification_dataset_with_redunant_features(n_samples=1000, n_features=100,
+                                                         n_informative=n_informative)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    pca = Model(model_type='pca_data_model')
+    _, train_predicted = pca.fit(data=train_data)
+
+    assert train_predicted.shape[1] < data.features.shape[1]

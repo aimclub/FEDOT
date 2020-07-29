@@ -2,6 +2,9 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.impute import SimpleImputer
 
+from core.models.data import InputData
+from core.repository.dataset_types import DataTypesEnum
+
 
 class PreprocessingStrategy:
     def fit(self, data_to_fit) -> 'PreprocessingStrategy':
@@ -76,3 +79,21 @@ class LaggedTimeSeriesFeature3dStrategy(PreprocessingStrategy):
         scaled = self.scaling.apply(temp)
         resulted = scaled.reshape(data.shape)
         return resulted
+
+
+_preprocessing_for_input_data = {
+    DataTypesEnum.ts: DefaultStrategy,
+    DataTypesEnum.table: Scaling,
+    DataTypesEnum.ts_lagged_table: Scaling,
+    DataTypesEnum.ts_lagged_3d: LaggedTimeSeriesFeature3dStrategy,
+}
+
+
+def preprocessing_func_for_data(data: InputData, node: 'Node'):
+    preprocessing_func = DefaultStrategy
+    if 'without_preprocessing' not in node.model.metadata.tags:
+        if node.manual_preprocessing_func:
+            preprocessing_func = node.manual_preprocessing_func
+        else:
+            preprocessing_func = _preprocessing_for_input_data[data.data_type]
+    return preprocessing_func

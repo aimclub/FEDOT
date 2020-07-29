@@ -1,3 +1,6 @@
+from datetime import timedelta
+from typing import Optional
+
 import numpy as np
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima_model import ARIMA
@@ -5,7 +8,7 @@ from statsmodels.tsa.arima_model import ARIMA
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 from core.models.tuners import ForecastingCustomRandomTuner
-from datetime import timedelta
+
 
 def fit_ar(train_data: InputData, params):
     return AutoReg(train_data.target, **params,
@@ -73,12 +76,12 @@ class StatsModelsForecastingStrategy(EvaluationStrategy):
         'ar': {'lags': (range(1, 6), range(6, 96, 6))}
     }
 
-    def __init__(self, model_type: str):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
         self._model_specific_fit, self._model_specific_predict = self._init_stats_model_functions(model_type)
         self._params_range = self.__params_range_by_model[model_type]
         self._default_params = self.__default_params_by_model[model_type]
 
-        self.params_for_fit = None
+        super().__init__(model_type, params)
 
     def _init_stats_model_functions(self, model_type: str):
         if model_type in self.__model_functions_by_types.keys():

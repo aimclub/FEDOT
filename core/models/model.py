@@ -1,11 +1,9 @@
 from datetime import timedelta
+from typing import Optional
 
 import numpy as np
 
-from core.models.data import (
-    InputData,
-)
-from core.models.evaluation.evaluation import EvaluationStrategy
+from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -18,9 +16,6 @@ class Model:
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
-
-        # additional params that can be changed for test and debug purposes (num of fitting epoch, etc)
-        self.external_params = {}
 
     @property
     def acceptable_task_types(self):
@@ -61,14 +56,15 @@ class Model:
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: Task):
-        self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)
-        self._eval_strategy = _insert_external_params(self._eval_strategy, self.external_params)
+
+        params_for_fit = None
+        if self.params != DEFAULT_PARAMS_STUB:
+            params_for_fit = self.params
+
+        self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type, params_for_fit)
 
     def fit(self, data: InputData):
         self._init(data.task)
-
-        if self.params != DEFAULT_PARAMS_STUB:
-            self._eval_strategy.params_for_fit = self.params
 
         fitted_model = self._eval_strategy.fit(train_data=data)
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
@@ -114,14 +110,6 @@ class Model:
         return f'{self.model_type}'
 
 
-def _insert_external_params(strategy: EvaluationStrategy, ext_params: dict):
-    if 'epochs' in ext_params:
-        strategy.epochs = ext_params['epochs']
-    if 'max_run_time_sec' in ext_params:
-        strategy.max_time_min = ext_params['max_run_time_sec'] / 60
-    return strategy
-
-
 def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
     models_repo = ModelTypesRepository()
     model_info = models_repo.model_info_by_id(model_type)
@@ -140,4 +128,4 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
         task_type_for_model = compatible_task_types_acceptable_for_model[0]
 
     strategy = models_repo.model_info_by_id(model_type).current_strategy(task_type_for_model)
-    return strategy(model_type)
+    return strategy

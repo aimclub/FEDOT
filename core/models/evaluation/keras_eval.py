@@ -1,3 +1,6 @@
+from datetime import timedelta
+from typing import Optional
+
 import numpy as np
 import tensorflow as tf
 
@@ -10,10 +13,14 @@ forecast_length = 1
 
 # TODO inherit this and similar from custom strategy
 class KerasForecastingStrategy(EvaluationStrategy):
-
-    def __init__(self, model_type: str):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
         self._init_lstm_model_functions(model_type)
+
         self.epochs = 10
+        if params:
+            self.epochs = params.get('epochs', self.epochs)
+
+        super().__init__(model_type, params)
 
     def _init_lstm_model_functions(self, model_type):
         if model_type != 'lstm':
@@ -26,7 +33,8 @@ class KerasForecastingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return predict_lstm(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30):
+    def fit_tuned(self, train_data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
 
 
