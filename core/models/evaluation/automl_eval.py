@@ -1,4 +1,6 @@
 import gc
+from datetime import timedelta
+from typing import Optional
 
 import h2o
 import numpy as np
@@ -9,7 +11,6 @@ from tpot import TPOTClassifier, TPOTRegressor
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.tasks import TaskTypesEnum
-from datetime import timedelta
 
 
 def fit_tpot(data: InputData, max_run_time_min: int):
@@ -137,10 +138,15 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         'h2o': (fit_h2o, predict_h2o)
     }
 
-    def __init__(self, model_type: 'str'):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
         self._model_specific_fit, self._model_specific_predict = \
             self._init_benchmark_model_functions(model_type)
+
         self.max_time_min = 5
+        if params:
+            self.max_time_min = params.get('max_run_time_sec', self.max_time_min * 60) / 60
+
+        super().__init__(model_type, params)
 
     def _init_benchmark_model_functions(self, model_type):
         if model_type in self._model_functions_by_type.keys():

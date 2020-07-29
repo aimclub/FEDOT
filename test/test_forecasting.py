@@ -43,7 +43,7 @@ def get_decomposed_chain(model_trend='lstm', model_residual='ridge'):
 
     if model_trend == 'lstm':
         # decrease the number of epochs to fit
-        node_first_trend.model.external_params = {model_trend: 1}
+        node_first_trend.model.params = {'epochs': 1}
 
     node_residual = PrimaryNode('residual_data_model')
     node_model_residual = SecondaryNode(model_residual,

@@ -34,6 +34,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
+    def __init__(self, model_type: str, params: Optional[dict] = None):
+        self.params_for_fit = params
+        self.model_type = model_type
+
     @abstractmethod
     def fit(self, train_data: InputData):
         raise NotImplementedError()
@@ -83,11 +87,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'regression': make_scorer(mean_squared_error, greater_is_better=False),
     }
 
-    def __init__(self, model_type: str):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
         self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
-        self.params_for_fit = None
-        self.model_type = model_type
+        super().__init__(model_type, params)
 
     def fit(self, train_data: InputData):
         warnings.filterwarnings("ignore", category=RuntimeWarning)

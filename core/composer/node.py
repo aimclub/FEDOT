@@ -2,7 +2,7 @@ from abc import ABC
 from collections import namedtuple
 from copy import copy
 from datetime import timedelta
-from typing import (List, Optional)
+from typing import Callable, List, Optional
 
 from core.models.data import InputData, OutputData
 from core.models.model import Model
@@ -14,11 +14,12 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 
 class Node(ABC):
 
-    def __init__(self, nodes_from: Optional[List['Node']], model_type: str):
+    def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
+                 manual_preprocessing_func: Optional[Callable] = None):
         self.nodes_from = nodes_from
         self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
-        self.manual_preprocessing_func = None
+        self.manual_preprocessing_func = manual_preprocessing_func
 
     @property
     def descriptive_id(self):
@@ -26,6 +27,8 @@ class Node(ABC):
 
     def _descriptive_id_recursive(self, visited_nodes):
         node_label = self.model.description
+        if self.manual_preprocessing_func:
+            node_label = f'{node_label}_custom_preprocessing={self.manual_preprocessing_func.__name__}'
         full_path = ''
         if self in visited_nodes:
             return 'ID_CYCLED'
@@ -179,8 +182,9 @@ class SharedCache(FittedModelCache):
 
 
 class PrimaryNode(Node):
-    def __init__(self, model_type: str):
-        super().__init__(nodes_from=None, model_type=model_type)
+    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None):
+        super().__init__(nodes_from=None, model_type=model_type,
+                         manual_preprocessing_func=manual_preprocessing_func)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
@@ -196,9 +200,11 @@ class PrimaryNode(Node):
 
 
 class SecondaryNode(Node):
-    def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None):
+    def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
+                 manual_preprocessing_func: Optional[Callable] = None):
         nodes_from = [] if nodes_from is None else nodes_from
-        super().__init__(nodes_from=nodes_from, model_type=model_type)
+        super().__init__(nodes_from=nodes_from, model_type=model_type,
+                         manual_preprocessing_func=manual_preprocessing_func)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:

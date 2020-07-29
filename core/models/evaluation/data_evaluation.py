@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 from scipy import signal
 from sklearn.decomposition import PCA
@@ -6,8 +8,8 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 
-DIM_REDUCTION_EXPLAINED_VARIANCE_THR = 0.9
-DIM_REDUCTION_MIN_EXPLAINED_VARIANCE = 0.01
+DEFAULT_DIM_REDUCTION_EXPLAINED_VARIANCE_THR = 0.9
+DEFAULT_DIM_REDUCTION_MIN_EXPLAINED_VARIANCE = 0.01
 
 
 def _estimate_period(variable):
@@ -36,7 +38,7 @@ def get_sum(trained_model, predict_data: InputData):
     return np.sum(predict_data.features, axis=1)
 
 
-def fit_trend(train_data: InputData):
+def fit_trend(train_data: InputData, params: Optional[dict]):
     target = train_data.target
     period = _estimate_period(target)
     return period
@@ -49,8 +51,8 @@ def get_trend(trained_model, predict_data: InputData):
     return decomposed_target.trend
 
 
-def fit_residual(train_data: InputData):
-    return fit_trend(train_data)
+def fit_residual(train_data: InputData, params: Optional[dict]):
+    return fit_trend(train_data, params)
 
 
 def get_residual(trained_model, predict_data: InputData):
@@ -59,18 +61,42 @@ def get_residual(trained_model, predict_data: InputData):
     return target_residual
 
 
-def fit_pca(train_data: InputData):
-    pca = PCA(svd_solver='randomized', iterated_power='auto')
+def fit_pca(train_data: InputData, params: Optional[dict]):
+    if not params:
+        pca = PCA(svd_solver='randomized', iterated_power='auto')
+    else:
+        pca_params = {k: params[k] for k in ['svd_solver', 'iterated_power']}
+        pca = PCA(**pca_params)
+
     pca.fit(train_data.features)
+
+    cum_variance = np.cumsum(pca.explained_variance_ratio_)
+
+    dim_reduction_explained_variance_thr = DEFAULT_DIM_REDUCTION_EXPLAINED_VARIANCE_THR
+    dim_reduction_min_explained_variance = DEFAULT_DIM_REDUCTION_MIN_EXPLAINED_VARIANCE
+
+    if params:
+        dim_reduction_explained_variance_thr = params.get('dim_reduction_expl_thr',
+                                                          dim_reduction_explained_variance_thr)
+        dim_reduction_min_explained_variance = params.get('dim_reduction_min_expl',
+                                                          dim_reduction_min_explained_variance)
+
+    components_before_thr = np.where(cum_variance > dim_reduction_explained_variance_thr)[0]
+
+    last_ind_cum = min(components_before_thr) if len(components_before_thr) > 0 else 1
+
+    significant_components = \
+        np.where(pca.explained_variance_ratio_ < dim_reduction_min_explained_variance)[0]
+
+    last_ind = min(significant_components) if len(significant_components) > 0 else 1
+
+    pca.last_component_ind = min(last_ind, last_ind_cum)
+
     return pca
 
 
 def predict_pca(pca_model, predict_data: InputData):
-    cum_variance = np.cumsum(pca_model.explained_variance_ratio_)
-    last_ind_cum = min(np.where(cum_variance > DIM_REDUCTION_EXPLAINED_VARIANCE_THR)[0])
-    last_ind = min(np.where(pca_model.explained_variance_ratio_ < DIM_REDUCTION_MIN_EXPLAINED_VARIANCE)[0])
-
-    return pca_model.transform(predict_data.features)[:, :min(last_ind, last_ind_cum)]
+    return pca_model.transform(predict_data.features)[:, :pca_model.last_component_ind]
 
 
 class DataModellingStrategy(EvaluationStrategy):
@@ -83,15 +109,16 @@ class DataModellingStrategy(EvaluationStrategy):
         'pca_data_model': (fit_pca, predict_pca)
     }
 
-    def __init__(self, model_type: str):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
         self._model_specific_fit = self._model_functions_by_type[model_type][0]
         self._model_specific_predict = self._model_functions_by_type[model_type][1]
+        super().__init__(model_type, params)
 
     def fit(self, train_data: InputData):
         if not self._model_specific_fit:
             return None
         else:
-            return self._model_specific_fit(train_data)
+            return self._model_specific_fit(train_data, self.params_for_fit)
 
     def predict(self, trained_model, predict_data: InputData):
         return self._model_specific_predict(trained_model, predict_data)

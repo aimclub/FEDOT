@@ -55,7 +55,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
     knn_for_tune = Model(model_type='knn')
     model, _ = knn_for_tune.fine_tune(data=train_data, iterations=10, max_lead_time=timedelta(minutes=1))
 
-    test_predicted_tuned = knn.predict(fitted_model=model, data=test_data)
+    test_predicted_tuned = knn_for_tune.predict(fitted_model=model, data=test_data)
 
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
                                 y_score=test_predicted_tuned)
@@ -165,3 +165,45 @@ def test_max_lead_time_in_tune_process(data_fixture, request):
 
     assert roc_on_test_tuned > roc_threshold
     assert spent_time == 3
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_classification_manual_tuning_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    data.features = Scaling().fit(data.features).apply(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    knn = Model(model_type='knn')
+    model, _ = knn.fit(data=train_data)
+    test_predicted = knn.predict(fitted_model=model, data=test_data)
+
+    knn_for_tune = Model(model_type='knn')
+    knn_for_tune.params = {'n_neighbors': 1}
+    model, _ = knn_for_tune.fit(data=train_data)
+
+    test_predicted_tuned = knn_for_tune.predict(fitted_model=model, data=test_data)
+
+    assert not np.array_equal(test_predicted, test_predicted_tuned)
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_pca_manual_tuning_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    data.features = Scaling().fit(data.features).apply(data.features)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    pca = Model(model_type='pca_data_model')
+    model, _ = pca.fit(data=train_data)
+    test_predicted = pca.predict(fitted_model=model, data=test_data)
+
+    pca_for_tune = Model(model_type='pca_data_model')
+
+    pca_for_tune.params = {'svd_solver': 'randomized',
+                           'iterated_power': 'auto',
+                           'dim_reduction_expl_thr': 0.7,
+                           'dim_reduction_min_expl': 0.001}
+
+    model, _ = pca_for_tune.fit(data=train_data)
+    test_predicted_tuned = pca_for_tune.predict(fitted_model=model, data=test_data)
+
+    assert not np.array_equal(test_predicted, test_predicted_tuned)

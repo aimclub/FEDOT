@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -39,7 +39,7 @@ class InputData(Data):
     target: np.array = None
 
     @property
-    def num_classes(self):
+    def num_classes(self) -> Optional[int]:
         if self.task.task_type == TaskTypesEnum.classification:
             return len(np.unique(self.target))
         else:
@@ -71,6 +71,7 @@ class InputData(Data):
 @dataclass
 class OutputData(Data):
     predict: np.array = None
+
 
 def split_train_test(data, split_ratio=0.8, with_shuffle=False):
     if with_shuffle:
