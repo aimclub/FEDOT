@@ -7,6 +7,7 @@ import tensorflow as tf
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.tasks import extract_task_param
+from datetime import timedelta
 
 forecast_length = 1
 
@@ -33,7 +34,7 @@ class KerasForecastingStrategy(EvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         return predict_lstm(trained_model, predict_data)
 
-    def fit_tuned(self, train_data: InputData, iterations: int,
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         raise NotImplementedError()
 

@@ -58,7 +58,7 @@ def run_fedot(params: 'ExecutionParams'):
     models_hyperparameters = get_models_hyperparameters()['FEDOT']
     cur_lead_time = models_hyperparameters['MAX_RUNTIME_MINS']
 
-    saved_model_name = f'fedot_{case_label}_{task_type}_{cur_lead_time}_{metric}'
+    saved_model_name = f'fedot_{case_label}_{task_type.name}_{cur_lead_time}_{metric.name}'
     loaded_model = load_fedot_model(saved_model_name)
 
     if not loaded_model:

@@ -27,8 +27,8 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
-from core.models.evaluation.hyperparams import params_range_by_model
-from core.models.tuners import SklearnCustomRandomTuner, SklearnTuner
+from core.models.tuning.hyperparams import params_range_by_model
+from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

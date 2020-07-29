@@ -38,7 +38,7 @@ if __name__ == '__main__':
         num_classes, _ = imbalance_metrics(pmlb_data['target'].tolist())
         problem_class, metric_names = _problem_and_metric_for_dataset(name_of_dataset, num_classes)
         if not problem_class or not metric_names:
-            print('Incorrect dataset')
+            print(f'Incorrect dataset: {name_of_dataset}')
             continue
 
         train_file, test_file = get_penn_case_data_paths(name_of_dataset)

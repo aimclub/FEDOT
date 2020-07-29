@@ -9,6 +9,9 @@ from skopt import BayesSearchCV
 from core.composer.timer import TunerTimer
 import operator
 from core.models.data import InputData, train_test_data_setup
+from core.models.tuning.tuner_adapter import HyperoptAdapter
+
+TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
 
 
 class Tuner:
@@ -65,7 +68,7 @@ class SklearnTuner(Tuner):
             search = self.search_strategy.fit(tune_data.features, tune_data.target.ravel())
             return search.best_params_, search.best_estimator_
         except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
+            print(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -123,7 +126,7 @@ class SklearnCustomRandomTuner(Tuner):
                         break
                 return best_params, best_model
         except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
+            print(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -196,3 +199,14 @@ def get_varied_length_range(left_range, right_range):
 
 def _regression_prediction_quality(prediction, real):
     return mse(y_true=real, y_pred=prediction, squared=False)
+
+
+class TPE(Tuner):
+    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
+        try:
+            adapter = HyperoptAdapter(self)
+            best_params, best_model = adapter.tune(iterations=self.max_iterations)
+            return best_params, best_model
+        except ValueError as ex:
+            print(f'{TUNER_ERROR_PREFIX} {ex}')
+            return None, None
