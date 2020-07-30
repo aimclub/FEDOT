@@ -33,7 +33,7 @@ class HyperoptAdapter(TunerAdapter):
                                  self.data.target,
                                  cv=5, scoring=self.scorer).mean()
 
-        if self.data.task.task_type == TaskTypesEnum.classification:
+        if self.greater_is_better():
             return 1 - metric
         else:
             return metric
@@ -52,3 +52,11 @@ class HyperoptAdapter(TunerAdapter):
     @property
     def best_model(self):
         return self.model_to_adapt.set_params(**self.best_params)
+
+    def greater_is_better(self):
+        """
+        Extracting the private field of scorer to check
+        whether the metric has a property of greater_is_better
+        """
+        is_greater = True if self.scorer._sign == 1 else False
+        return is_greater
