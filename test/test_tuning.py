@@ -61,7 +61,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
                                 y_score=test_predicted_tuned)
     roc_threshold = 0.6
-    assert roc_on_test_tuned > roc_on_test > roc_threshold
+    assert roc_on_test_tuned >= roc_on_test > roc_threshold
 
 
 def test_arima_tune_correct():
@@ -159,16 +159,15 @@ def test_max_lead_time_in_tune_process(data_fixture, request):
 
     knn_for_tune = Model(model_type='knn')
     model, _ = knn_for_tune.fine_tune(data=train_data, max_lead_time=timedelta(minutes=0.05), iterations=100)
+    spent_time = (datetime.now() - start).seconds
     test_predicted_tuned = knn_for_tune.predict(fitted_model=model, data=test_data)
 
     roc_on_test_tuned = roc_auc(y_true=test_data.target,
                                 y_score=test_predicted_tuned)
     roc_threshold = 0.6
 
-    spent_time = (datetime.now() - start).seconds
-
     assert roc_on_test_tuned > roc_threshold
-    assert spent_time == 3
+    assert spent_time <= 13
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
