@@ -36,9 +36,46 @@ The framework kernel can be configured for different classes of tasks. The frame
 
 It is possible to obtain models with given parameters of quality, complexity, interpretability; to get an any-time result; to pause and resume model identification; to integrate many popular Python open source solutions for AutoML/meta-learning, optimization, quality assessment, etc.; re-use the models created by other users.
 
-## Examples/How To Use
-// Тут будут короткие примеры кода, как запустить FEDOT
+##How to use
 
+The main purpose of FEDOT is to identify a suitable composite model for a given dataset.
+The model is obtained via optimization process (we also call it 'composing').\
+Firstly, you need to prepare datasets for fit and validate and specify a task
+that you going to solve:
+```python
+task = Task(TaskTypesEnum.classification)
+dataset_to_compose = InputData.from_csv(train_file_path, task=task)
+dataset_to_validate = InputData.from_csv(test_file_path, task=task)
+```
+Then, chose a set of models that can be included in the composite model, and the optimized metric function:
+```python
+available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+```
+Next, you need to specify requirements for composer.
+In this case, GPComposer is chosen that is based on evolutionary algorithm.
+```python
+composer_requirements = GPComposerRequirements(
+    primary=available_model_types,
+    secondary=available_model_types, max_arity=3,
+    max_depth=3, pop_size=20, num_of_generations=20,
+    crossover_prob=0.8, mutation_prob=0.8, max_lead_time=20)
+composer = GPComposer()
+```
+Now you can run the optimization and obtain a composite model:
+```python
+chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+                                            initial_chain=None,
+                                            composer_requirements=composer_requirements,
+                                            metrics=metric_function,
+                                            is_visualise=False)
+```
+Finally, you can test the resulted model on the validation dataset:
+```python
+roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
+                                                        dataset_to_validate)
+print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
+```
 // Можно добавить ссылок на видео туториалы, еще что-то
 
 ## Project structure
