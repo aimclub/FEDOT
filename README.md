@@ -36,7 +36,7 @@ The framework kernel can be configured for different classes of tasks. The frame
 
 It is possible to obtain models with given parameters of quality, complexity, interpretability; to get an any-time result; to pause and resume model identification; to integrate many popular Python open source solutions for AutoML/meta-learning, optimization, quality assessment, etc.; re-use the models created by other users.
 
-##How to use
+## How to use
 
 The main purpose of FEDOT is to identify a suitable composite model for a given dataset.
 The model is obtained via optimization process (we also call it 'composing').\
