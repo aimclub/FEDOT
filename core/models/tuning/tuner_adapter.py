@@ -34,7 +34,7 @@ class HyperoptAdapter(TunerAdapter):
                                  cv=5, scoring=self.scorer).mean()
 
         if self.greater_is_better():
-            return 1 - metric
+            return -metric
         else:
             return metric
 

@@ -150,27 +150,6 @@ def test_get_random_params_varied_length():
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_max_lead_time_in_tune_process(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    start = datetime.now()
-
-    knn_for_tune = Model(model_type='knn')
-    model, _ = knn_for_tune.fine_tune(data=train_data, max_lead_time=timedelta(minutes=0.05), iterations=100)
-    spent_time = (datetime.now() - start).seconds
-    test_predicted_tuned = knn_for_tune.predict(fitted_model=model, data=test_data)
-
-    roc_on_test_tuned = roc_auc(y_true=test_data.target,
-                                y_score=test_predicted_tuned)
-    roc_threshold = 0.6
-
-    assert roc_on_test_tuned > roc_threshold
-    assert spent_time <= 13
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_classification_manual_tuning_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     data.features = Scaling().fit(data.features).apply(data.features)
