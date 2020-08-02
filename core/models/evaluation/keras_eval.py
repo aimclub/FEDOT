@@ -7,7 +7,6 @@ import tensorflow as tf
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 from core.repository.tasks import extract_task_param
-from datetime import timedelta
 
 forecast_length = 1
 

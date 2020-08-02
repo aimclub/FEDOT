@@ -1,8 +1,7 @@
-from hyperopt import tpe, fmin, Trials, space_eval, hp
-from sklearn.model_selection import cross_val_score
 from copy import deepcopy
 
-from core.repository.tasks import TaskTypesEnum
+from hyperopt import tpe, fmin, Trials, space_eval, hp
+from sklearn.model_selection import cross_val_score
 
 
 def _search_space_transform(params):
