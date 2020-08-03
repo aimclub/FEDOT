@@ -21,3 +21,6 @@ class CustomSVC:
 
     def predict_proba(self, data_to_predict: np.array):
         return self.fitted_model.predict_proba(data_to_predict)
+
+    def get_params(self):
+        return self.fitted_model.get_params()
