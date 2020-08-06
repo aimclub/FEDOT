@@ -9,14 +9,14 @@
 [![Build Status](https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master)](https://travis-ci.com/nccr-itmo/FEDOT) [![Coverage Status](https://coveralls.io/repos/github/nccr-itmo/FEDOT/badge.svg?branch=master)](https://coveralls.io/github/nccr-itmo/FEDOT?branch=master)
 
 
+This repository contains Fedot - a framework for automated modeling and machine learning. 
+It can build composite models for the different real-world processes in an automated way using an evolutionary approach. 
 
-// Здесь надо переписать, чтобы получился мини-абстракт того, что умеет FEDOT
+Composite models - the models with heterogeneous graph-based structure, that can consist of ML models, domain-specific models, equation-based models, statistical, and even other composite models. Composite modelling allows obtaining efficient multi-scale solutions for various applied problems.
 
-This repository contains the framework for the knowledge-enriched AutoML named FEDOT (Russian: Федот).
-It can be used to generate high-quality composite models for the classification, regression, clustering, time series forecasting, and other real-world problems in an automated way.
+Fedot can be used for classification, regression, clustering, time series forecasting, and other similar tasks. Also, the derived solutions for other problems (e.g. bayesian generation of synthetic data) can be build using Fedot.Core.
 
 The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
-
 
 ## Installation
 
@@ -28,13 +28,10 @@ pip install -r requirements.txt
 ## FEDOT features
 
 
-// Здесь перечислим буллетпоинты, что (а) Федот позволяет делать и (б) что он делает хорошо
-
-To combine the proposed concepts and methods with the existing state-of-the-art approaches and share the obtained experience with the community, we decided to develop the FEDOT framework.
-
-The framework kernel can be configured for different classes of tasks. The framework includes the library with implementations of intelligent algorithms to identify data-driven models with different requirements; and composite models (chains of models) for solving specific subject tasks (social and financial, metocean, physical, etc.).
-
-It is possible to obtain models with given parameters of quality, complexity, interpretability; to get an any-time result; to pause and resume model identification; to integrate many popular Python open source solutions for AutoML/meta-learning, optimization, quality assessment, etc.; re-use the models created by other users.
+- The generation of high-quality variable-shaped machine learning pipelines for various tasks: binary/multiclass classification, regression, clustering, time series forecasting;
+- The structural learning of composite models with different nature (hybrid, bayesian, deep learning, etc) using custom metrics;
+- The seamless integration of the custom models (including domain-specific), frameworks and algorithms into pipelines;
+- Benchmarking utilities that can run real-world cases  (the ready-to-use examples are provided for credit scoring, sea surface height forecasting, oil production forecasting, etc), state-of-the-art-datasets (like PMLB) and synthetic data.;
 
 ## How to use
 
