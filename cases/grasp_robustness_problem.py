@@ -70,10 +70,6 @@ if __name__ == '__main__':
     # the dataset was obtained from https://www.kaggle.com/ugocupcic/grasping-dataset
 
     # a dataset that will be used as a train and test set during composition
-
-    #    dataset = np.loadtxt("../input/grasping-dataset/shadow_robot_dataset.csv", skiprows=1, usecols=range(1, 30),
-    #                                    delimiter = ",")
-
     file_path_train = 'cases/data/robotics/robotics_data_train.csv'
     full_path_train = os.path.join(str(project_root()), file_path_train)
 
