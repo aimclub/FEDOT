@@ -161,4 +161,4 @@ latex-ссылка на основную статью про фреймворк 
 
 .. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
     :alt: Supported Python Versions
-    :target: https://img.shields.io/github/license/nccr-itmo/FEDOT
+    :target: https://github.com/nccr-itmo/FEDOT/blob/master/LICENSE.md
