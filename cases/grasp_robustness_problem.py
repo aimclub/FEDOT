@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+from sklearn.model_selection import train_test_split
 
 from cases.credit_scoring_problem import calculate_validation_metric
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
@@ -18,6 +19,56 @@ import numpy as np
 random.seed(1)
 np.random.seed(1)
 
+
+def csv_preparation(dataset_path):
+    dataset = np.loadtxt(dataset_path, skiprows=1, usecols=range(1, 30), delimiter=",")
+    with open(dataset_path, 'r') as f:
+        header = f.readline()
+    header = header.strip("\n").split(',')
+    header = [i.strip(" ") for i in header]
+    saved_cols = []
+    for index, col in enumerate(header[1:]):
+        if ("vel" in col) or ("eff" in col):
+            saved_cols.append(index)
+    new_X = []
+    for x in dataset:
+        new_X.append([x[i] for i in saved_cols])
+    X = np.array(new_X)
+    Y = np.array(dataset[:, 0]).reshape((X.shape[0], 1))
+
+    # decreasing the number of lines to check time execution
+    arr = np.hstack((X, Y))
+    np.random.shuffle(arr)
+    arr = arr[0:50000, :]
+
+    seed = 7
+    np.random.seed(seed)
+    X_train, X_test, Y_train, Y_test = train_test_split(arr[:, 0:-1], arr[:, -1], test_size=0.20, random_state=seed)
+
+    # this is a sensible grasp threshold for stability
+    GOOD_GRASP_THRESHOLD = 100
+
+    # we're also storing the best and worst grasps of the test set to do some sanity checks on them
+    itemindex = np.where(Y_test > 1.05 * GOOD_GRASP_THRESHOLD)
+    best_grasps = X_test[itemindex[0]]
+    itemindex = np.where(Y_test <= 0.95 * GOOD_GRASP_THRESHOLD)
+    bad_grasps = X_test[itemindex[0]]
+
+    # discretizing the grasp quality for stable or unstable grasps
+    Y_train = np.array([int(i > GOOD_GRASP_THRESHOLD) for i in Y_train]).reshape((Y_train.shape[0], 1))
+    Y_test = np.array([int(i > GOOD_GRASP_THRESHOLD) for i in Y_test]).reshape((Y_test.shape[0], 1))
+    data_train = np.hstack((np.arange(1, X_train.shape[0] + 1).reshape((X_train.shape[0], 1)), X_train, Y_train))
+    data_test = np.hstack((np.arange(1, X_test.shape[0] + 1).reshape((X_test.shape[0], 1)), X_test, Y_test))
+
+    # dump appropriate arrays to .\cases\data\robotics
+    file_path_train = 'cases/data/robotics/robotics_data_train.csv'
+    full_path_train = os.path.join(str(project_root()), file_path_train)
+    file_path_test = 'cases/data/robotics/robotics_data_test.csv'
+    full_path_test = os.path.join(str(project_root()), file_path_test)
+    np.savetxt(full_path_train, data_train, delimiter=",")
+    np.savetxt(full_path_test, data_test, delimiter=",")
+
+
 def run_grasp_robustness_problem(train_file_path, test_file_path,
                                  max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
                                  is_visualise=False):
@@ -34,8 +85,8 @@ def run_grasp_robustness_problem(train_file_path, test_file_path,
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
-        secondary=available_model_types, max_arity=3,
-        max_depth=3, pop_size=20, num_of_generations=20,
+        secondary=available_model_types, max_arity=2,
+        max_depth=3, pop_size=10, num_of_generations=15,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
     # Create GP-based composer
@@ -67,6 +118,11 @@ def run_grasp_robustness_problem(train_file_path, test_file_path,
 
 if __name__ == '__main__':
     # the dataset was obtained from https://www.kaggle.com/ugocupcic/grasping-dataset
+
+    # download and preprocessing dataset
+    dataset_path = 'cases/data/robotics/dataset.csv'
+    full_dataset_path = os.path.join(str(project_root()), dataset_path)
+    csv_preparation(full_dataset_path)
 
     # a dataset that will be used as a train and test set during composition
     file_path_train = 'cases/data/robotics/robotics_data_train.csv'
