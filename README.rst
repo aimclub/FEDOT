@@ -91,8 +91,8 @@ Finally, you can test the resulted model on the validation dataset:
 
 Extended examples:
 
-- Credit scoring problem, i.e. binary classification task - `here <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
-- Time series forecasting, i.e. regression - `here <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
+- Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
+- Time series forecasting, i.e. `regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 
 // Можно добавить ссылок на видео туториалы, еще что-то
 
