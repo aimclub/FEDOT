@@ -1,8 +1,3 @@
-.. FEDOT documentation master file, created by
-   sphinx-quickstart on Tue Aug 11 14:46:58 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 FEDOT
 ============
 
@@ -168,17 +163,3 @@ latex-ссылка на основную статью про фреймворк 
 .. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
     :alt: Supported Python Versions
     :target: https://github.com/nccr-itmo/FEDOT/blob/master/LICENSE.md
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
