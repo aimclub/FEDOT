@@ -35,7 +35,7 @@ FEDOT features
 - The generation of high-quality variable-shaped machine learning pipelines for various tasks: binary/multiclass classification, regression, clustering, time series forecasting;
 - The structural learning of composite models with different nature (hybrid, bayesian, deep learning, etc) using custom metrics;
 - The seamless integration of the custom models (including domain-specific), frameworks and algorithms into pipelines;
-- Benchmarking utilities that can run real-world cases (the ready-to-use examples are provided for credit scoring, sea surface height forecasting, oil production forecasting, etc), state-of-the-art-datasets (like PMLB) and synthetic data.;
+- Benchmarking utilities that can run real-world cases (the ready-to-use examples are provided for credit scoring, sea surface height forecasting, oil production forecasting, etc), state-of-the-art-datasets (like PMLB) and synthetic data.
 
 
 How to use
