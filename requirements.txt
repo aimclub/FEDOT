@@ -6,7 +6,7 @@ tpot==0.11.1
 h2o==3.28.1.2
 statsmodels==0.11.1
 pandas==1.0.1
-dataclasses==0.7; python_version < '3.7'
+dataclasses==0.6; python_version < '3.7'
 ete3==3.1.1
 numpy==1.18.0
 pytest==5.2.0
