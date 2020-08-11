@@ -90,6 +90,7 @@ Finally, you can test the resulted model on the validation dataset:
   print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 
 Extended examples:
+
 - Credit scoring problem, i.e. binary classification task - `here <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. regression - `here <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 
