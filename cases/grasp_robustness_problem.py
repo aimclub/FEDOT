@@ -115,9 +115,9 @@ def run_grasp_robustness_problem(train_file_path, test_file_path,
     acc_on_valid_evo_composed = AccuracyScore.get_value(chain_evo_composed,
                                                             dataset_to_validate)
     print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
-    print(f'Composed ROC AUC is {acc_on_valid_evo_composed}')
+    print(f'Composed accuracy is {acc_on_valid_evo_composed}')
 
-    return roc_on_valid_evo_composed
+    return [chain_evo_composed, roc_on_valid_evo_composed, acc_on_valid_evo_composed]
 
 
 if __name__ == '__main__':
