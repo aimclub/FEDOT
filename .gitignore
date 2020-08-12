@@ -64,3 +64,6 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+# Sphinx Documentation
+docs/_build
