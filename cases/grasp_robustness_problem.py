@@ -3,6 +3,7 @@ import os
 import random
 from sklearn.model_selection import train_test_split
 
+from core.composer.metrics import AccuracyScore
 from cases.credit_scoring_problem import calculate_validation_metric
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
 from core.composer.visualisation import ComposerVisualiser
@@ -111,7 +112,10 @@ def run_grasp_robustness_problem(train_file_path, test_file_path,
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
                                                             dataset_to_validate)
 
+    acc_on_valid_evo_composed = AccuracyScore.get_value(chain_evo_composed,
+                                                            dataset_to_validate)
     print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
+    print(f'Composed ROC AUC is {acc_on_valid_evo_composed}')
 
     return roc_on_valid_evo_composed
 

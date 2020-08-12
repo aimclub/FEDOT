@@ -2,7 +2,7 @@ import sys
 from abc import abstractmethod
 
 import numpy as np
-from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, accuracy_score
 
 from core.composer.chain import Chain
 from core.models.data import InputData, OutputData
@@ -98,6 +98,21 @@ class RocAucMetric(QualityMetric):
                                     **additional_params), 3)
         return score
 
+class AccuracyScore(Chain):
+    @staticmethod
+    @from_maximised_metric
+    def get_value(chain: Chain, reference_data: InputData) -> float:
+        try:
+            # validate(chain)
+            results = chain.predict(reference_data)
+            y_pred = [round(predict) for predict in results.predict]
+            score = round(accuracy_score(y_true=reference_data.target.round().astype(int).tolist(),
+                                         y_pred=y_pred), 3)
+        except Exception as ex:
+            print(ex)
+            score = 0.5
+
+        return score
 
 class StructuralComplexityMetric(Metric):
     @classmethod
