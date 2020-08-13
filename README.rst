@@ -105,7 +105,21 @@ Project structure
 Basic Concepts
 ===============
 
-// Здесь можно описать основные термины и концепты, которые мы включаем в FEDOT: композер, primary/secondary узлы, цепочки,
+The main process of FEDOT work is *composing* leading to the production of the composite models.
+
+**Composer** is a block that takes meta-requirements and an evolutionary algorithm as an optimization one
+and get different chains of models to find the most appropriate solution for the case.
+
+The result of composing and basic object user works with is the Chain:
+
+**Chain** is the tree-based structure of any composite model. It keeps the information of nodes relations
+and everything referred to chain properties and restructure.
+
+In fact, any chain has two kinds of nodes:
+ - **Primary nodes**: edge (leaf) nodes of the tree where initial case data is located.
+ - **Secondary nodes**: all other nodes which transform data during the composing and fitting, including root node with result data.
+
+Meanwhile every node holds the *Model* which could be ML or any other kind of model.
 
 // можно добавить ссылки на всякие наши статьи
 
@@ -122,7 +136,7 @@ The documentation is available in `FEDOT.Docs <https://itmo-nss-team.github.io/F
 
 The description and source code of underlying algorithms is available in `FEDOT.Algs <https://github.com/ITMO-NSS-team/FEDOT.Algs>`__ repository and its `wiki pages <https://github.com/ITMO-NSS-team/FEDOT.Algs/wiki>`__ (in Russian).
 
-// Дополнительно будет ссылка на readthedocs
+Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
 
 Contribution Guide
 ==================
