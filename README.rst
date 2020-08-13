@@ -107,19 +107,18 @@ Basic Concepts
 
 The main process of FEDOT work is *composing* leading to the production of the composite models.
 
-**Composer** is a block that takes meta-requirements and an evolutionary algorithm as an optimization one
+**Composer** is a block that takes meta-requirements and the evolutionary algorithm as an optimization one
 and get different chains of models to find the most appropriate solution for the case.
 
 The result of composing and basic object user works with is the Chain:
-
 **Chain** is the tree-based structure of any composite model. It keeps the information of nodes relations
 and everything referred to chain properties and restructure.
 
 In fact, any chain has two kinds of nodes:
- - **Primary nodes**: edge (leaf) nodes of the tree where initial case data is located.
- - **Secondary nodes**: all other nodes which transform data during the composing and fitting, including root node with result data.
+ - **Primary nodes** are edge (leaf) nodes of the tree where initial case data is located.
+ - **Secondary nodes** are all other nodes which transform data during the composing and fitting, including root node with result data.
 
-Meanwhile every node holds the *Model* which could be ML or any other kind of model.
+Meanwhile, every node holds the *Model* which could be ML or any other kind of model.
 
 // можно добавить ссылки на всякие наши статьи
 
