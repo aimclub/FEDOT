@@ -15,23 +15,31 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    target: np.array
 
     @staticmethod
-    def from_csv(file_path, delimiter=',',
+    def from_csv(file_path, headers=[], delimiter=',',
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
-                 with_target=True):
+                 with_target=True, target_header=''):
         data_frame = pd.read_csv(file_path, sep=delimiter)
+        data_frame.columns = [i.strip(" ") for i in data_frame.keys()]
+        data_frame.drop(headers, axis='columns', inplace=True)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
         idx = data_array[0]
         if with_target:
-            features = data_array[1:-1].T
-            target = data_array[-1].astype(np.float)
+            if target_header:
+                target = np.array(data_frame[target_header]).astype(np.float)
+                pos = list(data_frame.keys()).index(target_header)
+                features = np.delete(data_array.T, pos, axis=1)
+            else:
+                target = data_array[-1].astype(np.float)
+                features = data_array[1:-1].T
         else:
             features = data_array[1:].T
             target = None
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+        return [InputData(idx=idx, features=features, target=target, task=task, data_type=data_type), data_frame]
 
 
 @dataclass
