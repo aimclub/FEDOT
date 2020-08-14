@@ -57,7 +57,7 @@ Then, chose a set of models that can be included in the composite model, and the
 .. code-block:: python
 
   available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
-  metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC
+  metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
 Next, you need to specify requirements for composer.
 In this case, GPComposer is chosen that is based on evolutionary algorithm.
