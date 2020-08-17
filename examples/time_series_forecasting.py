@@ -54,7 +54,7 @@ def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bo
     # to avoid data leak
     test_data_for_pred.target = None
 
-    full_prediction = chain.forecast(initial_data=train_data, supplementary_data=test_data_for_pred)
+    full_prediction = chain.forecast(initial_data=train_data, supplementary_data=test_data_for_pred).predict
     if is_visualise:
         plot_prediction(full_prediction, test_data, desc)
 

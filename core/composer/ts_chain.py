@@ -1,7 +1,9 @@
+from copy import copy
+
 import numpy as np
 
 from core.composer.chain import Chain
-from core.models.data import InputData
+from core.models.data import InputData, OutputData
 from core.repository.tasks import TaskTypesEnum
 
 
@@ -13,12 +15,17 @@ class TsForecastingChain(Chain):
         if supplementary_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError('TsForecastingChain can be used for the ts_forecasting task only.')
 
+        supplementary_data = copy(supplementary_data)
+
+        # to avoid data leak
+        supplementary_data.target = None
+        supplementary_data.task.task_params.make_future_prediction = True
+
         # predict_data contains task description and additional (exogenous) variables
         forecast_length = supplementary_data.task.task_params.forecast_length
 
         # check if predict features contains additional (exogenous) variables
-        with_exog = (supplementary_data.features is not None and
-                     not np.array_equal(supplementary_data.features, supplementary_data.target))
+        with_exog = supplementary_data.features is not None
 
         # initial data for the first prediction
         pre_history_start = len(initial_data.idx) - initial_data.task.task_params.max_window_size
@@ -60,7 +67,13 @@ class TsForecastingChain(Chain):
                 data_for_forecast.idx = np.append(data_for_forecast.idx,
                                                   data_for_forecast.idx[-1] + 1)
 
-        return full_prediction
+        full_prediction = full_prediction[0:len(supplementary_data.idx)]
+
+        output_data = OutputData(idx=supplementary_data.idx, features=supplementary_data.features,
+                                 predict=np.asarray(full_prediction), task=supplementary_data.task,
+                                 data_type=supplementary_data.data_type)
+
+        return output_data
 
 
 def _prepare_exog_features(data_for_prediction: InputData,

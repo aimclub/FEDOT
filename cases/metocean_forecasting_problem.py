@@ -4,21 +4,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error as mse
 
-from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.data import InputData, OutputData
+from core.composer.ts_chain import TsForecastingChain
+from core.models.data import InputData, OutputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from core.utils import project_root
 
 
 def get_composite_chain():
-    chain = Chain()
+    chain = TsForecastingChain()
     node_trend = PrimaryNode('trend_data_model')
-    node_model_trend = SecondaryNode('lstm', nodes_from=[node_trend])
+    node_model_trend = SecondaryNode('linear', nodes_from=[node_trend])
 
     node_residual = PrimaryNode('residual_data_model')
-    node_model_residual = SecondaryNode('rfr', nodes_from=[node_residual])
+    node_model_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
     node_final = SecondaryNode('additive_data_model',
                                nodes_from=[node_model_residual, node_model_trend])
@@ -59,6 +59,23 @@ def compare_plot(predicted, real, forecast_length, model_name):
     plt.show()
 
 
+def get_synthetic_ts_data_linear(n_steps=1000, forecast_length=1, max_window_size=50):
+    simulated_data = np.asarray([float(_) for _ in (np.arange(0, n_steps))])
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length,
+                                    max_window_size=max_window_size,
+                                    return_all_steps=False,
+                                    make_future_prediction=False))
+
+    input_data = InputData(idx=np.arange(0, n_steps),
+                           features=simulated_data,
+                           target=simulated_data,
+                           task=task,
+                           data_type=DataTypesEnum.ts)
+    return train_test_data_setup(input_data)
+
+
 def run_metocean_forecasting_problem(train_file_path, test_file_path,
                                      forecast_length=1, max_window_size=32,
                                      is_visualise=False):
@@ -76,7 +93,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(
         full_path_test, task=task_to_solve, data_type=DataTypesEnum.ts)
 
-    chain_simple = Chain(PrimaryNode('lasso'))
+    chain_simple = TsForecastingChain(PrimaryNode('linear'))
     chain_simple.fit(input_data=dataset_to_train, verbose=False)
     rmse_on_valid_simple = calculate_validation_metric(
         chain_simple.predict(dataset_to_validate), dataset_to_validate,
@@ -107,4 +124,4 @@ if __name__ == '__main__':
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
     run_metocean_forecasting_problem(full_path_train, full_path_test,
-                                     forecast_length=16, max_window_size=16, is_visualise=True)
+                                     forecast_length=72, max_window_size=72, is_visualise=True)

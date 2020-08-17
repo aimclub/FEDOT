@@ -9,7 +9,7 @@ from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def get_synthetic_ts_data_period(n_steps=1000, forecast_length=1, max_window_size=50) -> InputData:
+def get_synthetic_ts_data_period(n_steps=1000, forecast_length=1, max_window_size=50):
     simulated_data = ArmaProcess().generate_sample(nsample=n_steps)
     x1 = np.arange(0, n_steps)
     x2 = np.arange(0, n_steps) + 1
@@ -25,15 +25,16 @@ def get_synthetic_ts_data_period(n_steps=1000, forecast_length=1, max_window_siz
                                     max_window_size=max_window_size,
                                     return_all_steps=False))
 
-    input_data = InputData(idx=np.arange(0, n_steps),
-                           features=np.asarray([x1, x2]).T,
-                           target=simulated_data,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
-    return input_data
+    data = InputData(idx=np.arange(0, n_steps),
+                     features=np.asarray([x1, x2]).T,
+                     target=simulated_data,
+                     task=task,
+                     data_type=DataTypesEnum.ts)
+
+    return train_test_data_setup(data)
 
 
-def get_synthetic_ts_data_linear(n_steps=1000, forecast_length=1, max_window_size=50) -> InputData:
+def get_synthetic_ts_data_linear(n_steps=1000, forecast_length=1, max_window_size=50):
     simulated_data = np.asarray([float(_) for _ in (np.arange(0, n_steps))])
 
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -42,12 +43,13 @@ def get_synthetic_ts_data_linear(n_steps=1000, forecast_length=1, max_window_siz
                                     return_all_steps=False,
                                     make_future_prediction=False))
 
-    input_data = InputData(idx=np.arange(0, n_steps),
-                           features=simulated_data,
-                           target=simulated_data,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
-    return input_data
+    data = InputData(idx=np.arange(0, n_steps),
+                     features=simulated_data,
+                     target=simulated_data,
+                     task=task,
+                     data_type=DataTypesEnum.ts)
+
+    return train_test_data_setup(data)
 
 
 def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) -> (float, float):
@@ -60,11 +62,6 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
     rmse_value_train = mse(y_true=train_data.target[~np.isnan(train_pred.predict)],
                            y_pred=train_pred.predict[~np.isnan(train_pred.predict)],
                            squared=False)
-
-    import matplotlib.pyplot as plt
-    plt.plot(train_data.target)
-    plt.plot(train_pred.predict)
-    plt.show()
 
     return rmse_value_train, rmse_value_test
 
@@ -92,56 +89,48 @@ def get_decomposed_chain(model_trend='lstm', model_residual='ridge'):
 
 
 def test_arima_chain_fit_correct():
-    data = get_synthetic_ts_data_linear(forecast_length=12)
+    train_data, test_data = get_synthetic_ts_data_linear(forecast_length=12)
 
     chain = Chain(PrimaryNode('arima'))
-
-    train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(data.target)
+    rmse_threshold = np.std(test_data.target)
 
     assert rmse_on_test < rmse_threshold
 
 
 def test_regression_chain_forecast_onestep_correct():
-    data = get_synthetic_ts_data_linear(forecast_length=1, max_window_size=10)
+    train_data, test_data = get_synthetic_ts_data_linear(forecast_length=1, max_window_size=10)
 
     chain = Chain(PrimaryNode('ridge'))
-
-    train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(data.target)
+    rmse_threshold = np.std(test_data.target)
 
     assert rmse_on_test < rmse_threshold
 
 
 def test_regression_chain_forecast_multistep_correct():
-    data = get_synthetic_ts_data_period(forecast_length=20, max_window_size=30)
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=20, max_window_size=30)
 
     chain = Chain(PrimaryNode('ridge'))
-
-    train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(data.target)
+    rmse_threshold = np.std(test_data.target)
 
     assert rmse_on_test < rmse_threshold
 
 
 def test_regression_chain_linear_forecast_multistep_correct():
-    data = get_synthetic_ts_data_linear(forecast_length=20, max_window_size=30)
+    train_data, test_data = get_synthetic_ts_data_linear(forecast_length=20, max_window_size=30)
 
     chain = Chain(PrimaryNode('linear'))
-
-    train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
@@ -151,30 +140,26 @@ def test_regression_chain_linear_forecast_multistep_correct():
 
 
 def test_forecasting_regression_composite_fit_correct():
-    data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
 
     chain = get_decomposed_chain(model_trend='linear',
                                  model_residual='linear')
 
-    train_data, test_data = train_test_data_setup(data)
-
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(data.target)
+    rmse_threshold = np.std(test_data.target)
 
     assert rmse_on_test < rmse_threshold
 
 
 def test_forecasting_composite_lstm_chain_fit_correct():
-    data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
 
     chain = get_decomposed_chain()
-
-    train_data, test_data = train_test_data_setup(data)
 
     chain.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(data.target)
+    rmse_threshold = np.std(test_data.target)
     assert rmse_on_test < rmse_threshold
