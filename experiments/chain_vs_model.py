@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Tuple
 
 import numpy as np
@@ -9,7 +10,11 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import TaskTypesEnum, Task
+from experiments.synth_generator.deap_example import run_evolution, chain_vs_single_model_fitness_diff, \
+    individ_to_params, show_fitness_history
+from experiments.synth_generator.fit_models import knn_score
 from experiments.synth_generator.generators.mdc import generated_dataset
+from experiments.synth_generator.mdc_gen_example import show_clusters
 
 
 def default_mdc_dataset():
@@ -63,11 +68,34 @@ def accuracy(fitted_chain, data_true):
     return score
 
 
-if __name__ == '__main__':
-    generated_data = fedot_input_data_format(default_mdc_dataset())
-    data_compose, data_validate = train_test_data_setup(generated_data)
+def chain_score(dataset: Tuple, chain) -> Tuple[float, float]:
+    samples, labels = dataset
 
-    chain = default_fedot_chain()
-
+    input_data = fedot_input_data_format(mdc_dataset=(samples, labels))
+    data_compose, data_validate = train_test_data_setup(input_data)
     chain.fit(data_compose)
-    print(accuracy(chain, data_validate))
+    print(f'Score on train: {accuracy(chain, data_compose)}')
+    score = accuracy(fitted_chain=chain, data_true=data_validate)
+    return score, 0.5
+
+
+def chain_vs_single_eval_fitness(individual, chain):
+    score = chain_vs_single_model_fitness_diff(individual,
+                                               single_model_score=knn_score,
+                                               chain_score=partial(chain_score, chain=chain))
+
+    return score,
+
+
+if __name__ == '__main__':
+    chain = default_fedot_chain()
+    top10, history = run_evolution(generations=10,
+                                   fitness_eval=partial(chain_vs_single_eval_fitness, chain=chain))
+    print(top10)
+    best_params = top10[0]
+
+    params_ = individ_to_params(best_params)
+    params_['n_feat'] = 2
+    samples, labels = generated_dataset(params=params_)
+    show_clusters(samples=samples, labels=labels)
+    show_fitness_history(history=history)
