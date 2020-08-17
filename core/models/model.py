@@ -1,10 +1,9 @@
-from copy import copy
 from datetime import timedelta
 
 import numpy as np
 
-from core.log import default_log, Log
-from core.models.data import InputData
+from core.log import Log, default_log
+from core.models.data import InputData, clean_nans_in_data
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -19,6 +18,7 @@ class Model:
     :param model_type: str type of the model defined in model repository
     :param log: Log object to record messages
     """
+
     def __init__(self, model_type: str, log: Log = default_log(__name__)):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
@@ -208,40 +208,10 @@ def _post_process_ts_prediction(prediction, task: Task, expected_length: int):
 
 
 def _drop_data_with_nan(data_to_clean: InputData, ignore_nan_in_target: bool = False):
-    data_to_clean = _clean_nans(data_to_clean, data_to_clean.features)
+    data_to_clean = clean_nans_in_data(data_to_clean, data_to_clean.features)
 
     if not ignore_nan_in_target:
         # can be acceptable in prediction
-        data_to_clean = _clean_nans(data_to_clean, data_to_clean.target)
-
-    return data_to_clean
-
-
-def _clean_nans(data: InputData, array_with_nans: np.ndarray):
-    data_to_clean = copy(data)
-    if array_with_nans is None:
-        return data_to_clean
-    # remove all rows with nan in array_with_nans
-    if len(array_with_nans.shape) == 1:
-        data_to_clean.idx = data.idx[~np.isnan(array_with_nans)]
-        if data.features is not None:
-            data_to_clean.features = data.features[~np.isnan(array_with_nans)]
-        if data.target is not None:
-            data_to_clean.target = data.target[~np.isnan(array_with_nans)]
-    elif len(array_with_nans.shape) == 2:
-        data_to_clean.idx = data.idx[~np.isnan(array_with_nans).any(axis=1)]
-        if data.features is not None:
-            data_to_clean.features = data.features[~np.isnan(array_with_nans).any(axis=1)]
-        if data.target is not None:
-            data_to_clean.target = data.target[~np.isnan(array_with_nans).any(axis=1)]
-    elif len(array_with_nans.shape) == 3:
-        for dim in range(array_with_nans.shape[2]):
-            data_to_clean.idx = data.idx[~np.isnan(array_with_nans).any(axis=1).any(axis=1)]
-            if data.features is not None:
-                data_to_clean.features = \
-                    data.features[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
-            if data.target is not None:
-                data_to_clean.target = \
-                    data.target[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
+        data_to_clean = clean_nans_in_data(data_to_clean, data_to_clean.target)
 
     return data_to_clean
