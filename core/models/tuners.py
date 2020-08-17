@@ -8,7 +8,7 @@ from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
 import operator
-from core.models.data import InputData, train_test_data_setup
+from core.models.data import InputData, split_train_test
 
 
 class Tuner:
@@ -135,7 +135,7 @@ class ForecastingCustomRandomTuner:
              tune_data: InputData, params_range: dict,
              default_params: dict, iterations: int) -> dict:
 
-        tune_train_data, tune_test_data = train_test_data_setup(tune_data, 0.5)
+        tune_train_data, tune_test_data = split_train_test(tune_data, 0.5)
 
         trained_model_default = fit(tune_test_data, default_params)
         prediction_default = predict(trained_model_default, tune_test_data)

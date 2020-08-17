@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,10 +15,9 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
-    target: np.array
 
     @staticmethod
-    def from_csv(file_path, headers=[], delimiter=',',
+    def from_csv(file_path=None, headers=[], delimiter=',',
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  with_target=True, target_header=''):
@@ -32,14 +31,14 @@ class Data:
             if target_header:
                 target = np.array(data_frame[target_header]).astype(np.float)
                 pos = list(data_frame.keys()).index(target_header)
-                features = np.delete(data_array.T, pos, axis=1)
+                features = np.delete(data_array.T, [0, pos], axis=1)
             else:
                 target = data_array[-1].astype(np.float)
                 features = data_array[1:-1].T
         else:
             features = data_array[1:].T
             target = None
-        return [InputData(idx=idx, features=features, target=target, task=task, data_type=data_type), data_frame]
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
 
 @dataclass
@@ -81,12 +80,14 @@ class OutputData(Data):
     predict: np.array = None
 
 
-def split_train_test(data, split_ratio=0.8, with_shuffle=False):
-    if with_shuffle:
-        data_train, data_test = train_test_split(data, test_size=0.2, random_state=42)
-    else:
-        split_point = int(len(data) * split_ratio)
-        data_train, data_test = data[:split_point], data[split_point:]
+def split_train_test(data: InputData, split_ratio=0.8, with_shuffle=True):
+    x = np.hstack([data.idx.reshape((data.idx.shape[0], 1)), data.features])
+    x_train, x_test, y_train, y_test = train_test_split(x, data.target, train_size=split_ratio,
+                                                        shuffle=with_shuffle)
+    data_train = InputData(idx=x_train[:, 0], features=x_train[:, 1:],
+                           target=y_train, task=data.task, data_type=data.data_type)
+    data_test = InputData(idx=x_test[:, 0], features=x_test[:, 1:],
+                          target=y_test, task=data.task, data_type=data.data_type)
     return data_train, data_test
 
 
@@ -97,17 +98,6 @@ def _convert_dtypes(data_frame: pd.DataFrame):
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)
     return data_frame
-
-
-def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) -> Tuple[InputData, InputData]:
-    train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag)
-    train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag)
-    train_idx, test_idx = split_train_test(data.idx, split_ratio)
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=train_idx, task=data.task, data_type=data.data_type)
-    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task=data.task,
-                          data_type=data.data_type)
-    return train_data, test_data
 
 
 def _combine_datasets_ts(outputs: List[OutputData]):

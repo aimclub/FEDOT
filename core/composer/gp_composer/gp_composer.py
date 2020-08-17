@@ -13,7 +13,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from core.composer.visualisation import ComposerVisualiser
 from core.composer.write_history import write_composer_history_to_csv
-from core.models.data import InputData, train_test_data_setup
+from core.models.data import InputData, split_train_test
 
 
 @dataclass
@@ -34,7 +34,7 @@ class GPComposer(Composer):
                       metrics: Optional[Callable], optimiser_parameters: GPChainOptimiserParameters = None,
                       is_visualise: bool = False, is_tune: bool = False) -> Chain:
 
-        train_data, test_data = train_test_data_setup(data, 0.8)
+        train_data, test_data = split_train_test(data)
         self.shared_cache.clear()
 
         metric_function_for_nodes = partial(self.metric_for_nodes,
