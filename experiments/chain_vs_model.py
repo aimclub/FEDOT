@@ -8,10 +8,11 @@ from sklearn.metrics import accuracy_score
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
+from core.models.preprocessing import DefaultStrategy
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import TaskTypesEnum, Task
-from experiments.synth_generator.deap_example import run_evolution, chain_vs_single_model_fitness_diff, \
-    individ_to_params, show_fitness_history
+from experiments.synth_generator.deap_example import run_evolution, individ_to_params, show_fitness_history, \
+    chain_outperforms_single_fitness
 from experiments.synth_generator.fit_models import knn_score
 from experiments.synth_generator.generators.mdc import generated_dataset
 from experiments.synth_generator.mdc_gen_example import show_clusters
@@ -49,13 +50,22 @@ def fedot_input_data_format(mdc_dataset: Tuple[ndarray, ndarray]):
 
 
 def default_fedot_chain():
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='knn')
-    third = SecondaryNode(model_type='xgboost', nodes_from=[first, second])
+    first = PrimaryNode(model_type='logit', manual_preprocessing_func=DefaultStrategy)
+    second = PrimaryNode(model_type='knn', manual_preprocessing_func=DefaultStrategy)
+    third = SecondaryNode(model_type='xgboost', nodes_from=[first, second],
+                          manual_preprocessing_func=DefaultStrategy)
 
     chain = Chain()
     for node in [first, second, third]:
         chain.add_node(node)
+
+    return chain
+
+
+def single_model_chain():
+    first = PrimaryNode(model_type='logit', manual_preprocessing_func=DefaultStrategy)
+    chain = Chain()
+    chain.add_node(first)
 
     return chain
 
@@ -72,25 +82,36 @@ def chain_score(dataset: Tuple, chain) -> Tuple[float, float]:
     samples, labels = dataset
 
     input_data = fedot_input_data_format(mdc_dataset=(samples, labels))
-    data_compose, data_validate = train_test_data_setup(input_data)
+    data_compose, data_validate = train_test_data_setup(input_data, shuffle_flag=True)
     chain.fit(data_compose)
-    print(f'Score on train: {accuracy(chain, data_compose)}')
+    # print(f'Score on train: {accuracy(chain, data_compose)}')
     score = accuracy(fitted_chain=chain, data_true=data_validate)
     return score, 0.5
 
 
 def chain_vs_single_eval_fitness(individual, chain):
-    score = chain_vs_single_model_fitness_diff(individual,
-                                               single_model_score=knn_score,
-                                               chain_score=partial(chain_score, chain=chain))
+    score = chain_outperforms_single_fitness(individual,
+                                             single_model_score=knn_score,
+                                             chain_score=partial(chain_score, chain=chain))
+
+    return score,
+
+
+def chain_vs_single_chain_eval_fitness(individual, chain_single,
+                                       chain_full):
+    score = chain_outperforms_single_fitness(individual,
+                                             single_model_score=partial(chain_score, chain=chain_single),
+                                             chain_score=partial(chain_score, chain=chain_full))
 
     return score,
 
 
 if __name__ == '__main__':
-    chain = default_fedot_chain()
+    chain_full = default_fedot_chain()
+    chain_single = single_model_chain()
     top10, history = run_evolution(generations=10,
-                                   fitness_eval=partial(chain_vs_single_eval_fitness, chain=chain))
+                                   fitness_eval=partial(chain_vs_single_chain_eval_fitness,
+                                                        chain_single=chain_single, chain_full=chain_full))
     print(top10)
     best_params = top10[0]
 
