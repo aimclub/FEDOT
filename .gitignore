@@ -37,6 +37,7 @@
 
 # CMake
 cmake-build-*/
+**/**.ipynb_checkpoints/
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml

@@ -51,7 +51,7 @@ class pyfluxModelsForecastingStrategy(EvaluationStrategy):
         fit_garch: 'pyflux.GARCH'
     }
     __default_params_by_model = {
-        'garch': {'p': (1, 1),
+        'garch': {'p': (1, 1)},
         'var': {'q': (1, 1)}
     }
     __params_range_by_model = {
