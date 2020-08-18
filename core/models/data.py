@@ -74,8 +74,9 @@ class OutputData(Data):
 
 
 def split_train_test(data, split_ratio=0.8, with_shuffle=False):
+    assert 0. <= split_ratio <= 1.
     if with_shuffle:
-        data_train, data_test = train_test_split(data, test_size=0.2, random_state=42)
+        data_train, data_test = train_test_split(data, test_size=1. - split_ratio, random_state=42)
     else:
         split_point = int(len(data) * split_ratio)
         data_train, data_test = data[:split_point], data[split_point:]
