@@ -1,4 +1,4 @@
-  "models": {
+  "models" : {
 	"garch": {
 	  "meta": "ts_data_model",
 	  "tags": ["simple", "interpretable"]
