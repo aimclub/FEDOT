@@ -26,8 +26,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
-from core.models.tuning.hyperparams import params_range_by_model
-from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
+from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner, get_params_range
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -102,8 +101,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         trained_model = self.fit(train_data=train_data)
-        params_range = params_range_by_model.get(self.model_type, None)
         self._tune_strategy = SklearnCustomRandomTuner
+        params_range = get_params_range(self._tune_strategy, self.model_type)
         if not params_range:
             self.params_for_fit = None
             return trained_model, trained_model.get_params()

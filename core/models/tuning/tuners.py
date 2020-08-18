@@ -10,10 +10,18 @@ from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
 from core.models.data import InputData, train_test_data_setup
-from core.models.tuning.tuner_adapter import HyperoptAdapter
+from core.models.tuning.tuner_adapter import HyperoptAdapter, FLOAdapter
 from core.repository.tasks import TaskTypesEnum
+from core.models.tuning.hyperparams import flo_params_range_by_model, params_range_by_model
 
 TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
+
+
+def get_params_range(tuner_type, model_type):
+    if tuner_type == FLOTuner:
+        return flo_params_range_by_model.get(model_type, None)
+    else:
+        return params_range_by_model.get(model_type, None)
 
 
 class Tuner:
@@ -43,7 +51,7 @@ class Tuner:
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
 
-    def _is_score_better(self, previous, current):
+    def is_score_better(self, previous, current):
         __compare = {
             TaskTypesEnum.classification: operator.gt,
             TaskTypesEnum.regression: operator.lt
@@ -55,12 +63,12 @@ class Tuner:
             print(f'Score comparison can not be held because {ex}')
 
     def is_better_than_default(self, score):
-        return self._is_score_better(self.default_score, score)
+        return self.is_score_better(self.default_score, score)
 
     def get_cross_val_score_and_params(self, model):
-        score = cross_val_score(model, self.tune_data.features,
-                                self.tune_data.target, scoring=self.scorer,
-                                cv=self.cross_val_fold_num).mean()
+        score = abs(cross_val_score(model, self.tune_data.features,
+                                    self.tune_data.target, scoring=self.scorer,
+                                    cv=self.cross_val_fold_num).mean())
         params = model.get_params()
 
         return score, params
@@ -134,7 +142,7 @@ class SklearnCustomRandomTuner(Tuner):
                     params = {k: nprand_choice(v) for k, v in self.params_range.items()}
                     self.trained_model.set_params(**params)
                     score, _ = self.get_cross_val_score_and_params(self.trained_model)
-                    if self._is_score_better(previous=best_score, current=score):
+                    if self.is_score_better(previous=best_score, current=score):
                         best_params = params
                         best_model = self.trained_model
                         best_score = score
@@ -230,6 +238,25 @@ class TPETuner(Tuner):
                 return best_params, best_model
             else:
                 return self.default_params, self.trained_model
+        except ValueError as ex:
+            print(f'{TUNER_ERROR_PREFIX} {ex}')
+            return None, None
+
+
+class FLOTuner(Tuner):
+    def tune(self):
+        try:
+            adapter = FLOAdapter(self)
+            best_params, best_model = adapter.tune()
+
+            new_score, _ = self.get_cross_val_score_and_params(best_model)
+
+            if self.is_better_than_default(new_score):
+                return best_params, best_model
+            else:
+                return self.default_params, self.trained_model
+
+            # return best_params, best_model
         except ValueError as ex:
             print(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None

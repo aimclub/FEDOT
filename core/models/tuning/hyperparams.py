@@ -79,3 +79,36 @@ params_range_by_model = {
         'bootstrap': [True, False]
     }
 }
+
+flo_params_range_by_model = {
+    'knn': {'space_r': {'n_neighbors': [3, 150]},
+            'space_nr': {'weights': ["uniform", "distance"],
+                         'p': [1, 2]}},
+    'xgboost': {'space_r': {'n_estimators': [20, 120],
+                            'max_depth': [1, 7], },
+                'space_nr': {'learning_rate': list(np.arange(0.1, 0.9, 0.1)),
+                             'subsample': list(np.arange(0.05, 1.01, 0.05)),
+                             'min_child_weight': list(range(1, 21)),
+                             'nthread': [1]}},
+    'xgbreg': {'space_r': {'n_estimators': [20, 150],
+                           'max_depth': [3, 11]},
+               'space_nr': {'learning_rate': [1e-3, 1e-2, 1e-1, 0.5, 1.],
+                            'subsample': np.arange(0.05, 1.01, 0.05),
+                            'min_child_weight': range(1, 21)}},
+    'knnreg': {'space_r': {'n_neighbors': [1, 101]},
+               'space_nr': {'weights': ["uniform", "distance"],
+                            'p': [1, 2]}},
+    'rf': {'space_r': {'n_estimators': [20, 100],
+                       'min_samples_leaf': [1, 15], },
+           'space_nr': {'criterion': ["gini", "entropy"],
+                        'max_features': np.arange(0.05, 1.01, 0.05),
+                        'min_samples_split': list(range(2, 10)),
+                        'bootstrap': [True, False]}, },
+
+    'rfr': {'space_r': {'n_estimators': [20, 100],
+                        'min_samples_leaf': [1, 21]},
+            'space_nr': {'max_features': np.arange(0.05, 1.01, 0.05),
+                         'min_samples_split': range(2, 21),
+                         'bootstrap': [True, False], }
+            }
+}

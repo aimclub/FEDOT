@@ -189,3 +189,57 @@ def test_pca_manual_tuning_correct(data_fixture, request):
     test_predicted_tuned = pca_for_tune.predict(fitted_model=model, data=test_data)
 
     assert not np.array_equal(test_predicted, test_predicted_tuned)
+
+
+# @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
+# def test_xgb_regression_tune_correct(data_fixture, request):
+#     data = request.getfixturevalue(data_fixture)
+#     data.features = Scaling().fit(data.features).apply(data.features)
+#     train_data, test_data = train_test_data_setup(data=data)
+#
+#     xgb = Model(model_type='xgbreg')
+#     model, _ = xgb.fit(data=train_data)
+#     test_predicted = xgb.predict(fitted_model=model, data=test_data)
+#
+#     roc_on_test = mse(y_true=test_data.target,
+#                       y_pred=test_predicted)
+#
+#     xgb_for_tune = Model(model_type='xgbreg')
+#     model, _ = xgb_for_tune.fine_tune(data=train_data, iterations=10,
+#                                       max_lead_time=timedelta(minutes=1))
+#
+#     test_predicted_tuned = xgb_for_tune.predict(fitted_model=model, data=test_data)
+#
+#     roc_on_test_tuned = mse(y_true=test_data.target,
+#                             y_pred=test_predicted_tuned)
+#     roc_threshold = 0.6
+#     print(roc_on_test)
+#     print(roc_on_test_tuned)
+#     assert roc_on_test_tuned >= roc_on_test > roc_threshold
+#
+#
+# @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+# def test_xgb_classification_tune_correct(data_fixture, request):
+#     data = request.getfixturevalue(data_fixture)
+#     data.features = Scaling().fit(data.features).apply(data.features)
+#     train_data, test_data = train_test_data_setup(data=data)
+#
+#     xgb = Model(model_type='xgboost')
+#     model, _ = xgb.fit(data=train_data)
+#     test_predicted = xgb.predict(fitted_model=model, data=test_data)
+#
+#     roc_on_test = roc_auc(y_true=test_data.target,
+#                           y_score=test_predicted)
+#
+#     xgb_for_tune = Model(model_type='xgboost')
+#     model, _ = xgb_for_tune.fine_tune(data=train_data, iterations=10,
+#                                       max_lead_time=timedelta(minutes=1))
+#
+#     test_predicted_tuned = xgb_for_tune.predict(fitted_model=model, data=test_data)
+#
+#     roc_on_test_tuned = roc_auc(y_true=test_data.target,
+#                                 y_score=test_predicted_tuned)
+#     roc_threshold = 0.6
+#     print(roc_on_test)
+#     print(roc_on_test_tuned)
+#     assert roc_on_test_tuned >= roc_on_test > roc_threshold
