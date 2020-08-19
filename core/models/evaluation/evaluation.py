@@ -28,8 +28,11 @@ from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.tuning.hyperparams import params_range_by_model
 from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
+from core.log import Logger
 
 warnings.filterwarnings("ignore", category=UserWarning)
+
+module_logger = Logger(__name__)
 
 
 class EvaluationStrategy:
@@ -122,10 +125,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: str):
-        if model_type in self.__model_by_types.keys():
+        try:
             return self.__model_by_types[model_type]
-        else:
-            raise ValueError(f'Impossible to obtain SKlearn strategy for {model_type}')
+        except KeyError:
+            raise
+        except Exception:
+            module_logger.error(f'Impossible to obtain SKlearn strategy for {model_type}')
 
     def _find_model_by_impl(self, impl):
         for model, model_impl in self.__model_by_types.items():

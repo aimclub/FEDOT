@@ -12,8 +12,10 @@ from core.composer.timer import TunerTimer
 from core.models.data import InputData, train_test_data_setup
 from core.models.tuning.tuner_adapter import HyperoptAdapter
 from core.repository.tasks import TaskTypesEnum
+from core.log import Logger
 
 TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
+module_logger = Logger(__name__)
 
 
 class Tuner:
@@ -51,8 +53,11 @@ class Tuner:
         comparison = __compare.get(self.tune_data.task.task_type)
         try:
             return comparison(current, previous)
-        except ValueError as ex:
-            print(f'Score comparison can not be held because {ex}')
+        except ValueError:
+            raise
+        except Exception as ex:
+            module_logger.error(f'Score comparison can not be held because {ex}')
+            return None, None
 
     def is_better_than_default(self, score):
         return self._is_score_better(self.default_score, score)
@@ -90,8 +95,10 @@ class SklearnTuner(Tuner):
                 return search.best_params_, search.best_estimator_
             else:
                 return self.default_params, self.trained_model
-        except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+        except ValueError:
+            raise
+        except Exception as ex:
+            module_logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -142,8 +149,10 @@ class SklearnCustomRandomTuner(Tuner):
                     if timer.is_time_limit_reached(self.time_limit):
                         break
                 return best_params, best_model
-        except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+        except ValueError:
+            raise
+        except Exception as ex:
+            module_logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -174,7 +183,9 @@ class ForecastingCustomRandomTuner:
                 if quality_metric < best_quality_metric:
                     best_params = random_params
             except ValueError:
-                pass
+                raise
+            except Exception as ex:
+                module_logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
         return best_params
 
 
@@ -231,5 +242,5 @@ class TPETuner(Tuner):
             else:
                 return self.default_params, self.trained_model
         except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+            module_logger.error(f'{TUNER_ERROR_PREFIX} {ex}', exc_info=True)
             return None, None
