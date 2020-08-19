@@ -9,6 +9,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_
 from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
+from core.log import default_log, Log
 from core.models.data import InputData, train_test_data_setup
 from core.models.tuning.tuner_adapter import HyperoptAdapter
 from core.repository.tasks import TaskTypesEnum
@@ -28,7 +29,8 @@ class Tuner:
                  params_range: dict,
                  cross_val_fold_num: int,
                  time_limit,
-                 iterations: int):
+                 iterations: int,
+                 log: Log = default_log(__name__)):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model
@@ -39,6 +41,7 @@ class Tuner:
         self.max_iterations = iterations
         self.default_score, self.default_params = \
             self.get_cross_val_score_and_params(self.trained_model)
+        self.log = log
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
@@ -51,8 +54,9 @@ class Tuner:
         comparison = __compare.get(self.tune_data.task.task_type)
         try:
             return comparison(current, previous)
-        except ValueError as ex:
-            print(f'Score comparison can not be held because {ex}')
+        except Exception as ex:
+            self.log.error(f'Score comparison can not be held because {ex}')
+            return None, None
 
     def is_better_than_default(self, score):
         return self._is_score_better(self.default_score, score)
@@ -90,8 +94,8 @@ class SklearnTuner(Tuner):
                 return search.best_params_, search.best_estimator_
             else:
                 return self.default_params, self.trained_model
-        except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -142,12 +146,18 @@ class SklearnCustomRandomTuner(Tuner):
                     if timer.is_time_limit_reached(self.time_limit):
                         break
                 return best_params, best_model
-        except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
 class ForecastingCustomRandomTuner:
+    def __init__(self, **kwargs):
+        if 'log' not in kwargs:
+            self.logger = default_log(__name__)
+        else:
+            self.logger = kwargs['log']
+
     # TODO discuss
     def tune(self,
              fit: Callable,
@@ -173,8 +183,8 @@ class ForecastingCustomRandomTuner:
                                                                 real=tune_test_data.target)
                 if quality_metric < best_quality_metric:
                     best_params = random_params
-            except ValueError:
-                pass
+            except Exception as ex:
+                self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
         return best_params
 
 
@@ -230,6 +240,6 @@ class TPETuner(Tuner):
                 return best_params, best_model
             else:
                 return self.default_params, self.trained_model
-        except ValueError as ex:
-            print(f'{TUNER_ERROR_PREFIX} {ex}')
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
