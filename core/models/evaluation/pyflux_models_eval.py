@@ -2,8 +2,8 @@ from datetime import timedelta
 from typing import Optional
 
 import numpy as np
-from ... import GARCH
-from ... import VAR
+from pyflux import GARCH
+from pyflux import VAR
 
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
