@@ -1,23 +1,45 @@
 import json
 import logging
-from logging.handlers import RotatingFileHandler
 import os
 import sys
 from logging.config import dictConfig
+from logging.handlers import RotatingFileHandler
 
-main_log_file_path = os.path.dirname(__file__)
+
+def default_logger(logger_name):
+    main_log_file_path = os.path.dirname(__file__)
+    logger = Logger(logger_name=logger_name,
+                    config_json_file='default',
+                    log_file=os.path.join(main_log_file_path, 'log.log')
+                    )
+    return logger
 
 
 class Logger:
-    def __init__(self, logger_name,
-                 path=os.path.join(main_log_file_path, 'logging.json')):
-        self.logger = logging.getLogger(logger_name)
-        self._setup_logger(path)
+    """A class provides with basic logging object"""
 
-    def _config(self):
-        self.main_log_file = os.path.join(main_log_file_path, 'log.log')
+    def __init__(self, logger_name: str,
+                 config_json_file: str,
+                 log_file: str = os.path.join(os.path.dirname(__file__), 'log.log')):
+        """
+
+        :param logger_name:
+        :param config_json_file:
+        :param log_file:
+        """
+        self.name = logger_name
+        self.log_file = log_file
+        self.config_file = config_json_file
+        self.logger = logging.getLogger(self.name)
+
+        if self.config_file != 'default':
+            self._setup_logger_from_json_file()
+        else:
+            self._setup_logger_from_default()
+
+    def _setup_logger_from_default(self):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler = RotatingFileHandler(self.main_log_file)
+        file_handler = RotatingFileHandler(self.log_file)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         console_handler = logging.StreamHandler(sys.stdout)
@@ -25,14 +47,14 @@ class Logger:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
-    def _setup_logger(self, path):
+    def _setup_logger_from_json_file(self):
         """Setup logging configuration from file"""
-        if os.path.exists(path):
-            with open(path, 'rt') as file:
+        try:
+            with open(self.config_file, 'rt') as file:
                 config = json.load(file)
             dictConfig(config)
-        else:
-            self._config()
+        except Exception as ex:
+            raise Exception(f'Can not open the log config file because of {ex}')
 
     def info(self, message):
         self.logger.info(message)

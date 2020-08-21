@@ -13,6 +13,6 @@
     }
   },
   "root": {
-    "level": "INFO"
+    "level": "ERROR"
   }
 }

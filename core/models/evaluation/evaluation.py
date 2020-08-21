@@ -28,17 +28,20 @@ from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.tuning.hyperparams import params_range_by_model
 from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
-from core.log import Logger
+from core.log import default_logger
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-module_logger = Logger(__name__)
-
 
 class EvaluationStrategy:
-    def __init__(self, model_type: str, params: Optional[dict] = None):
+    def __init__(self, model_type: str, params: Optional[dict] = None, **kwargs):
         self.params_for_fit = params
         self.model_type = model_type
+
+        if 'logger' not in kwargs:
+            self.logger = default_logger(__name__)
+        else:
+            self.logger = kwargs['logger']
 
     @abstractmethod
     def fit(self, train_data: InputData):
@@ -127,10 +130,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def _convert_to_sklearn(self, model_type: str):
         try:
             return self.__model_by_types[model_type]
-        except KeyError:
-            raise
         except Exception:
-            module_logger.error(f'Impossible to obtain SKlearn strategy for {model_type}')
+            self.logger.error(f'Impossible to obtain SKlearn strategy for {model_type}')
+            raise Exception
 
     def _find_model_by_impl(self, impl):
         for model, model_impl in self.__model_by_types.items():
