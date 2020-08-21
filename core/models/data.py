@@ -80,10 +80,18 @@ class OutputData(Data):
     predict: np.array = None
 
 
-def split_train_test(data: InputData, split_ratio=0.8, with_shuffle=True):
+def split_train_test(data, split_ratio=0.8, with_shuffle=False):
+    if with_shuffle:
+        data_train, data_test = train_test_split(data, test_size=0.2, random_state=42)
+    else:
+        split_point = int(len(data) * split_ratio)
+        data_train, data_test = data[:split_point], data[split_point:]
+    return data_train, data_test
+
+def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=True):
     x = np.hstack([data.idx.reshape((data.idx.shape[0], 1)), data.features])
     x_train, x_test, y_train, y_test = train_test_split(x, data.target, train_size=split_ratio,
-                                                        shuffle=with_shuffle)
+                                                        shuffle=shuffle_flag)
     data_train = InputData(idx=x_train[:, 0], features=x_train[:, 1:],
                            target=y_train, task=data.task, data_type=data.data_type)
     data_test = InputData(idx=x_test[:, 0], features=x_test[:, 1:],
