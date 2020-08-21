@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
 from sklearn.metrics import accuracy_score
@@ -15,7 +16,7 @@ from experiments.synth_generator.deap_example import run_evolution, individ_to_p
     chain_outperforms_single_fitness
 from experiments.synth_generator.fit_models import knn_score
 from experiments.synth_generator.generators.mdc import generated_dataset
-from experiments.synth_generator.mdc_gen_example import show_clusters
+from experiments.synth_generator.mdc_gen_example import color_labels
 
 
 def default_mdc_dataset():
@@ -106,10 +107,28 @@ def chain_vs_single_chain_eval_fitness(individual, chain_single,
     return score,
 
 
+def visualize_clusters(samples, labels, chain):
+    fig, axs = plt.subplots(2, 2)
+
+    input_data = fedot_input_data_format(mdc_dataset=(samples, labels))
+    data_compose, data_validate = train_test_data_setup(input_data, shuffle_flag=True)
+    chain.fit(data_compose)
+    print(f'Score on valid: {accuracy(chain, data_validate)}')
+
+    colors = color_labels(labels)
+    axs[0, 0].scatter(samples[:, 0], samples[:, 1], color=colors, s=10)
+    axs[0, 1].scatter(data_compose.features[:, 0], data_compose.features[:, 1],
+                      color='green', s=10)
+    axs[0, 1].scatter(data_validate.features[:, 0], data_validate.features[:, 1],
+                      color='red', s=10)
+
+    plt.show()
+
+
 if __name__ == '__main__':
     chain_full = default_fedot_chain()
     chain_single = single_model_chain()
-    top10, history = run_evolution(generations=10,
+    top10, history = run_evolution(generations=1,
                                    fitness_eval=partial(chain_vs_single_chain_eval_fitness,
                                                         chain_single=chain_single, chain_full=chain_full))
     print(top10)
@@ -118,5 +137,5 @@ if __name__ == '__main__':
     params_ = individ_to_params(best_params)
     params_['n_feat'] = 2
     samples, labels = generated_dataset(params=params_)
-    show_clusters(samples=samples, labels=labels)
+    visualize_clusters(samples, labels, chain_full)
     show_fitness_history(history=history)
