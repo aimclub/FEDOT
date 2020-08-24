@@ -71,6 +71,15 @@ class Logger:
     def exception(self, message):
         self.logger.exception(message)
 
+    @property
+    def handlers(self):
+        return self.logger.handlers
+
     def release_handlers(self):
-        for handler in self.logger.handlers:
+        for handler in self.handlers:
             handler.close()
+
+    def __getstate__(self):
+        self.release_handlers()
+        state = dict(self.__dict__)
+        return state
