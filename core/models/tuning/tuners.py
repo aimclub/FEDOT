@@ -30,7 +30,7 @@ class Tuner:
                  cross_val_fold_num: int,
                  time_limit,
                  iterations: int,
-                 **kwargs):
+                 logger=default_logger(__name__)):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model
@@ -41,11 +41,7 @@ class Tuner:
         self.max_iterations = iterations
         self.default_score, self.default_params = \
             self.get_cross_val_score_and_params(self.trained_model)
-
-        if 'logger' not in kwargs:
-            self.logger = default_logger(__name__)
-        else:
-            self.logger = kwargs['logger']
+        self.logger = logger
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()

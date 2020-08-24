@@ -34,14 +34,11 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-    def __init__(self, model_type: str, params: Optional[dict] = None, **kwargs):
+    def __init__(self, model_type: str, params: Optional[dict] = None,
+                 logger=default_logger(__name__)):
         self.params_for_fit = params
         self.model_type = model_type
-
-        if 'logger' not in kwargs:
-            self.logger = default_logger(__name__)
-        else:
-            self.logger = kwargs['logger']
+        self.logger = logger
 
     @abstractmethod
     def fit(self, train_data: InputData):

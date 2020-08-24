@@ -30,13 +30,9 @@ class ComposerRequirements:
 
 
 class Composer(ABC):
-    def __init__(self, **kwargs):
+    def __init__(self, logger=default_logger(__name__)):
         self.history = None
-
-        if 'logger' not in kwargs:
-            self.logger = default_logger(__name__)
-        else:
-            self.logger = kwargs['logger']
+        self.logger = logger
 
     @abstractmethod
     def compose_chain(self, data: InputData,

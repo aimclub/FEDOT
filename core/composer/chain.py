@@ -13,19 +13,16 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None, **kwargs):
+    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
+                 logger=default_logger(__name__)):
         self.nodes = []
+        self.logger = logger
         if nodes:
             if isinstance(nodes, list):
                 for node in nodes:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
-
-        if 'logger' not in kwargs:
-            self.logger = default_logger(__name__)
-        else:
-            self.logger = kwargs['logger']
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
