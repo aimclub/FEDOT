@@ -58,8 +58,6 @@ class Tuner:
         comparison = __compare.get(self.tune_data.task.task_type)
         try:
             return comparison(current, previous)
-        except ValueError:
-            raise
         except Exception as ex:
             self.logger.error(f'Score comparison can not be held because {ex}')
             return None, None

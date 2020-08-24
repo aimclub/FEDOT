@@ -6,12 +6,12 @@ from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 
 
-def default_logger(logger_name):
-    main_log_file_path = os.path.dirname(__file__)
+def default_logger(logger_name,
+                   log_file=os.path.join(os.path.dirname(__file__), 'log.log')):
+    # main_log_file_path = os.path.dirname(__file__)
     logger = Logger(logger_name=logger_name,
                     config_json_file='default',
-                    log_file=os.path.join(main_log_file_path, 'log.log')
-                    )
+                    log_file=log_file)
     return logger
 
 
@@ -35,9 +35,9 @@ class Logger:
         if self.config_file != 'default':
             self._setup_logger_from_json_file()
         else:
-            self._setup_logger_from_default()
+            self._setup_default_logger()
 
-    def _setup_logger_from_default(self):
+    def _setup_default_logger(self):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler = RotatingFileHandler(self.log_file)
         file_handler.setLevel(logging.INFO)
@@ -70,3 +70,7 @@ class Logger:
 
     def exception(self, message):
         self.logger.exception(message)
+
+    def release_handlers(self):
+        for handler in self.logger.handlers:
+            handler.close()

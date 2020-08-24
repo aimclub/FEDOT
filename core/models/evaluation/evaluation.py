@@ -128,11 +128,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: str):
-        try:
+        if model_type in self.__model_by_types.keys():
             return self.__model_by_types[model_type]
-        except Exception:
-            self.logger.error(f'Impossible to obtain SKlearn strategy for {model_type}')
-            raise Exception
+        else:
+            raise ValueError(f'Impossible to obtain SKlearn strategy for {model_type}')
 
     def _find_model_by_impl(self, impl):
         for model, model_impl in self.__model_by_types.items():

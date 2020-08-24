@@ -6,15 +6,21 @@ from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from core.log import default_logger
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Model:
-    def __init__(self, model_type: str):
+    def __init__(self, model_type: str, **kwargs):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
+
+        if 'logger' not in kwargs:
+            self.logger = default_logger(__name__)
+        else:
+            self.logger = kwargs['logger']
 
     @property
     def acceptable_task_types(self):
@@ -60,7 +66,11 @@ class Model:
         if self.params != DEFAULT_PARAMS_STUB:
             params_for_fit = self.params
 
-        self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type, params_for_fit)
+        try:
+            self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type, params_for_fit)
+        except Exception as ex:
+            self.logger.error(f'Can not find evaluation strategy because of {ex}')
+            raise Exception
 
     def fit(self, data: InputData):
         self._init(data.task)

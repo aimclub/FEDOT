@@ -6,13 +6,14 @@ from uuid import uuid4
 import networkx as nx
 
 from core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from core.log import default_logger
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
+    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None, **kwargs):
         self.nodes = []
         if nodes:
             if isinstance(nodes, list):
@@ -20,6 +21,11 @@ class Chain:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
+
+        if 'logger' not in kwargs:
+            self.logger = default_logger(__name__)
+        else:
+            self.logger = kwargs['logger']
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
