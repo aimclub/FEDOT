@@ -9,10 +9,10 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_
 from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
+from core.log import default_log
 from core.models.data import InputData, train_test_data_setup
 from core.models.tuning.tuner_adapter import HyperoptAdapter
 from core.repository.tasks import TaskTypesEnum
-from core.log import default_logger
 
 TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
 
@@ -30,7 +30,7 @@ class Tuner:
                  cross_val_fold_num: int,
                  time_limit,
                  iterations: int,
-                 logger=default_logger(__name__)):
+                 log=default_log(__name__)):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model
@@ -41,7 +41,7 @@ class Tuner:
         self.max_iterations = iterations
         self.default_score, self.default_params = \
             self.get_cross_val_score_and_params(self.trained_model)
-        self.logger = logger
+        self.log = log
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
@@ -55,7 +55,7 @@ class Tuner:
         try:
             return comparison(current, previous)
         except Exception as ex:
-            self.logger.error(f'Score comparison can not be held because {ex}')
+            self.log.error(f'Score comparison can not be held because {ex}')
             return None, None
 
     def is_better_than_default(self, score):
@@ -95,7 +95,7 @@ class SklearnTuner(Tuner):
             else:
                 return self.default_params, self.trained_model
         except Exception as ex:
-            self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -147,16 +147,16 @@ class SklearnCustomRandomTuner(Tuner):
                         break
                 return best_params, best_model
         except Exception as ex:
-            self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
 class ForecastingCustomRandomTuner:
     def __init__(self, **kwargs):
-        if 'logger' not in kwargs:
-            self.logger = default_logger(__name__)
+        if 'log' not in kwargs:
+            self.logger = default_log(__name__)
         else:
-            self.logger = kwargs['logger']
+            self.logger = kwargs['log']
 
     # TODO discuss
     def tune(self,
@@ -241,5 +241,5 @@ class TPETuner(Tuner):
             else:
                 return self.default_params, self.trained_model
         except Exception as ex:
-            self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None

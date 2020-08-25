@@ -6,12 +6,12 @@ from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 
 
-def default_logger(logger_name,
-                   log_file=os.path.join(os.path.dirname(__file__), 'log.log')):
-    logger = Log(logger_name=logger_name,
-                 config_json_file='default',
-                 log_file=log_file)
-    return logger
+def default_log(logger_name,
+                log_file=os.path.join(os.path.dirname(__file__), 'log.log')):
+    log = Log(logger_name=logger_name,
+              config_json_file='default',
+              log_file=log_file)
+    return log
 
 
 class Log:
@@ -79,10 +79,21 @@ class Log:
             handler.close()
 
     def __getstate__(self):
+        """
+        Define the attributes to be pickled via deepcopy or pickle
+
+        :return: dict: state
+        """
         state = dict(self.__dict__)
         del state['logger']
         return state
 
     def __setstate__(self, state):
+        """
+        Restore an unpickled dict state and assign state items
+        to the new instance’s dictionary.
+
+        :param state: pickled class attributes
+        """
         self.__dict__.update(state)
         self.logger = logging.getLogger(self.name)

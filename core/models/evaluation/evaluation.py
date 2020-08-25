@@ -24,21 +24,21 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from core.log import default_log
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.tuning.hyperparams import params_range_by_model
 from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
-from core.log import default_logger
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
     def __init__(self, model_type: str, params: Optional[dict] = None,
-                 logger=default_logger(__name__)):
+                 log=default_log(__name__)):
         self.params_for_fit = params
         self.model_type = model_type
-        self.logger = logger
+        self.log = log
 
     @abstractmethod
     def fit(self, train_data: InputData):

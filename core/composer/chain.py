@@ -6,7 +6,7 @@ from uuid import uuid4
 import networkx as nx
 
 from core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
-from core.log import default_logger
+from core.log import default_log
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -14,9 +14,9 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 class Chain:
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 logger=default_logger(__name__)):
+                 log=default_log(__name__)):
         self.nodes = []
-        self.logger = logger
+        self.log = log
         if nodes:
             if isinstance(nodes, list):
                 for node in nodes:

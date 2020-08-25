@@ -6,8 +6,8 @@ from typing import (Any, Callable, List, Optional)
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
+from core.log import default_log
 from core.models.data import InputData
-from core.log import default_logger
 
 
 @dataclass
@@ -30,9 +30,9 @@ class ComposerRequirements:
 
 
 class Composer(ABC):
-    def __init__(self, logger=default_logger(__name__)):
+    def __init__(self, log=default_log(__name__)):
         self.history = None
-        self.logger = logger
+        self.log = log
 
     @abstractmethod
     def compose_chain(self, data: InputData,

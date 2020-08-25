@@ -8,6 +8,7 @@ from core.models.data import InputData, OutputData
 from core.models.model import Model
 from core.models.preprocessing import preprocessing_func_for_data
 from core.models.transformation import transformation_function_for_data
+from core.log import default_log
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -15,11 +16,13 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 class Node(ABC):
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
-                 manual_preprocessing_func: Optional[Callable] = None):
+                 manual_preprocessing_func: Optional[Callable] = None,
+                 log=default_log(__name__)):
         self.nodes_from = nodes_from
         self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
+        self.log = log
 
     @property
     def descriptive_id(self):

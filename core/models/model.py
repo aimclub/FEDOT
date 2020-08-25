@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import numpy as np
 
-from core.log import default_logger
+from core.log import default_log
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
@@ -12,11 +12,11 @@ DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Model:
-    def __init__(self, model_type: str, logger=default_logger(__name__)):
+    def __init__(self, model_type: str, log=default_log(__name__)):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
-        self.logger = logger
+        self.log = log
 
     @property
     def acceptable_task_types(self):
@@ -66,7 +66,7 @@ class Model:
             self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type,
                                                                                            params_for_fit)
         except Exception as ex:
-            self.logger.error(f'Can not find evaluation strategy because of {ex}')
+            self.log.error(f'Can not find evaluation strategy because of {ex}')
             raise Exception
 
     def fit(self, data: InputData):
