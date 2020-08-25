@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from core.log import Logger, default_logger
+from core.log import Log, default_logger
 from core.models.data import train_test_data_setup, InputData
 from core.models.model import Model
 
@@ -32,7 +32,7 @@ def test_default_logger_setup_correctly():
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
     expected_logger_error_level = 40
     test_file = request.getfixturevalue(data_fixture)
-    logger = Logger('test_logger', config_json_file=test_file)
+    logger = Log('test_logger', config_json_file=test_file)
     root_logger = logger.logger.parent
 
     assert root_logger.level == expected_logger_error_level

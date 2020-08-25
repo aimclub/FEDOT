@@ -8,14 +8,13 @@ from logging.handlers import RotatingFileHandler
 
 def default_logger(logger_name,
                    log_file=os.path.join(os.path.dirname(__file__), 'log.log')):
-    # main_log_file_path = os.path.dirname(__file__)
-    logger = Logger(logger_name=logger_name,
-                    config_json_file='default',
-                    log_file=log_file)
+    logger = Log(logger_name=logger_name,
+                 config_json_file='default',
+                 log_file=log_file)
     return logger
 
 
-class Logger:
+class Log:
     """A class provides with basic logging object"""
 
     def __init__(self, logger_name: str,
@@ -80,6 +79,10 @@ class Logger:
             handler.close()
 
     def __getstate__(self):
-        self.release_handlers()
         state = dict(self.__dict__)
+        del state['logger']
         return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.logger = logging.getLogger(self.name)
