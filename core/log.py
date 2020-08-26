@@ -6,8 +6,8 @@ from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 
 
-def default_log(logger_name,
-                log_file=os.path.join(os.path.dirname(__file__), 'log.log')):
+def default_log(logger_name: str,
+                log_file=os.path.join(os.path.dirname(__file__), 'log.log')) -> 'Log':
     log = Log(logger_name=logger_name,
               config_json_file='default',
               log_file=log_file)

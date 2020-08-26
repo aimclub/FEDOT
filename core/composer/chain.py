@@ -6,7 +6,7 @@ from uuid import uuid4
 import networkx as nx
 
 from core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
-from core.log import default_log
+from core.log import default_log, Log
 from core.models.data import InputData
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -14,7 +14,7 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 class Chain:
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log=default_log(__name__)):
+                 log: Log =default_log(__name__)):
         self.nodes = []
         self.log = log
         if nodes:
@@ -38,7 +38,9 @@ class Chain:
 
     def predict(self, input_data: InputData):
         if not self.is_all_cache_actual():
-            raise Exception('Trained model cache is not actual or empty')
+            ex = 'Trained model cache is not actual or empty'
+            self.log.error(ex)
+            raise Exception(ex)
         result = self.root_node.predict(input_data=input_data)
         return result
 
@@ -48,26 +50,26 @@ class Chain:
         # Select all primary nodes
         # Perform fine-tuning for each model in node
         if verbose:
-            print('Start tuning of primary nodes')
+            self.log.info('Start tuning of primary nodes')
 
         all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
         for node in all_primary_nodes:
             node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
         if verbose:
-            print('End tuning')
+            self.log.info('End tuning')
 
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5),
                             verbose=False):
         if verbose:
-            print('Start tuning of chain')
+            self.log.info('Start tuning of chain')
 
         node = self.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
         if verbose:
-            print('End tuning')
+            self.log.info('End tuning')
 
     def add_node(self, new_node: Node):
         if new_node not in self.nodes:

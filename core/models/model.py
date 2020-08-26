@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import numpy as np
 
-from core.log import default_log
+from core.log import default_log, Log
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
@@ -12,7 +12,7 @@ DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Model:
-    def __init__(self, model_type: str, log=default_log(__name__)):
+    def __init__(self, model_type: str, log: Log = default_log(__name__)):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB

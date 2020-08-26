@@ -9,7 +9,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_
 from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
-from core.log import default_log
+from core.log import default_log, Log
 from core.models.data import InputData, train_test_data_setup
 from core.models.tuning.tuner_adapter import HyperoptAdapter
 from core.repository.tasks import TaskTypesEnum
@@ -30,7 +30,7 @@ class Tuner:
                  cross_val_fold_num: int,
                  time_limit,
                  iterations: int,
-                 log=default_log(__name__)):
+                 log: Log = default_log(__name__)):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model

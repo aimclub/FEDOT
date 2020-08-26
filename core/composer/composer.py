@@ -6,7 +6,7 @@ from typing import (Any, Callable, List, Optional)
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.log import default_log
+from core.log import default_log, Log
 from core.models.data import InputData
 
 
@@ -30,7 +30,7 @@ class ComposerRequirements:
 
 
 class Composer(ABC):
-    def __init__(self, log=default_log(__name__)):
+    def __init__(self, log: Log = default_log(__name__)):
         self.history = None
         self.log = log
 

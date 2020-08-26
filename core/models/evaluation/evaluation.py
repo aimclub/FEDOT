@@ -24,7 +24,7 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from core.log import default_log
+from core.log import default_log, Log
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.tuning.hyperparams import params_range_by_model
@@ -38,7 +38,7 @@ class EvaluationStrategy:
                  log=default_log(__name__)):
         self.params_for_fit = params
         self.model_type = model_type
-        self.log = log
+        self.log: Log = log
 
     @abstractmethod
     def fit(self, train_data: InputData):
