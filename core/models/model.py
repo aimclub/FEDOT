@@ -109,7 +109,7 @@ class Model:
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
                                                  predict_data=data_for_predict)
 
-        prediction = _post_process_prediction(prediction, data.task, len(data.idx))
+        prediction = _post_process_prediction(prediction, data.task, len(data.idx), data.data_type)
 
         return prediction
 
@@ -141,7 +141,7 @@ class Model:
         predict_train = self._eval_strategy.predict(trained_model=fitted_model,
                                                     predict_data=data_for_fit)
 
-        predict_train = _post_process_prediction(predict_train, data.task, len(data.idx))
+        predict_train = _post_process_prediction(predict_train, data.task, len(data.idx), data.data_type)
 
         return fitted_model, predict_train
 
@@ -170,22 +170,23 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
     return strategy
 
 
-def _post_process_prediction(prediction, task: Task, expected_length: int):
+def _post_process_prediction(prediction, task: Task, expected_length: int, data_type: DataTypesEnum):
     if np.array([np.isnan(_) for _ in prediction]).any():
         prediction = np.nan_to_num(prediction)
 
     if task.task_type == TaskTypesEnum.ts_forecasting:
-        prediction = _post_process_ts_prediction(prediction, task, expected_length)
+        prediction = _post_process_ts_prediction(prediction, task, expected_length, data_type)
 
     return prediction
 
 
-def _post_process_ts_prediction(prediction, task: Task, expected_length: int):
+def _post_process_ts_prediction(prediction, task: Task, expected_length: int, data_type: DataTypesEnum):
     if not task.task_params.return_all_steps and len(prediction.shape) > 1:
         # choose last forecasting step only for each prediction
         prediction = prediction[:, -1]
 
-    if not task.task_params.make_future_prediction:
+    if not task.task_params.make_future_prediction and \
+            (data_type == DataTypesEnum.ts_lagged_3d or data_type == DataTypesEnum.ts_lagged_table):
         # cut unwanted oos predection
         length_of_cut = (task.task_params.forecast_length - 1)
         if length_of_cut > 0:
