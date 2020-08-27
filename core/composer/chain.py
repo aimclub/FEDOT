@@ -14,7 +14,7 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 class Chain:
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log =default_log(__name__)):
+                 log: Log = default_log(__name__)):
         self.nodes = []
         self.log = log
         if nodes:
@@ -26,7 +26,7 @@ class Chain:
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         # Clean all cache and fit all models
-        print('Fit chain from scratch')
+        self.log.info('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
     def fit(self, input_data: InputData, use_cache=True, verbose=False):
