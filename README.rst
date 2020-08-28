@@ -129,8 +129,13 @@ In fact, any chain has two kinds of nodes:
 
 Meanwhile, every node holds the *Model* which could be ML or any other kind of model.
 
-// можно добавить ссылки на всякие наши статьи
+The referenced papers:
 
+- Kalyuzhnaya A. V. et al. Automatic evolutionary learning of composite models with knowledge enrichment //Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion. – 2020. – P. 43-44.
+- Kovalchuk S. V. et al. A conceptual approach to complex model management with generalized modelling patterns and evolutionary identification //Complexity. – 2018. – V. 2018.
+- Nikitin N. O. et al. Deadline-driven approach for multi-fidelity surrogate-assisted environmental model calibration: SWAN wind wave model case study //Proceedings of the Genetic and Evolutionary Computation Conference Companion. – 2019. – С. 1583-1591.
+- Vychuzhanin P., Nikitin N. O., Kalyuzhnaya A. V. Robust Ensemble-Based Evolutionary Calibration of the Numerical Wind Wave Model //International Conference on Computational Science. – Springer, Cham, 2019. – P. 614-627.
+- Nikitin N. O. et al. Evolutionary ensemble approach for behavioral credit scoring //International Conference on Computational Science. – Springer, Cham, 2018. – P. 825-831.
 
 Current R&D and future plans
 ============================
