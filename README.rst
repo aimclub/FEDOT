@@ -93,14 +93,22 @@ Finally, you can test the resulted model on the validation dataset:
 Extended examples:
 
 - Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
-- Time series forecasting, i.e. `regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
+- Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 
-// Можно добавить ссылок на видео туториалы, еще что-то
-
+Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>` (in Russian).
 Project structure
 =================
 
-// Здесь, наверное, можно коротко описать основные модули, архитектуру и сослаться на документацию
+The latest stable release of FEDOT is on the [master branch](https://github.com/nccr-itmo/FEDOT/tree/master). Make sure you are looking at and working on the actual code if you're looking to contribute code.
+
+In terms of directory structure:
+
+* All of benchmarks for FEDOT are in the `benchmark` directory
+* The domain-specific case studies are in the `cases` directory
+* Core classes area in the `core` directory
+* Documentation are in the `docs` directory
+* Unit tests for FEDOT are in the `test` directory
+* Supplementary utilities are in the `test` directory
 
 
 Basic Concepts
@@ -127,7 +135,11 @@ Meanwhile, every node holds the *Model* which could be ML or any other kind of m
 Current R&D and future plans
 ============================
 
-// Здесь можно коротко описать, над чем мы сейчас работаем
+At the moment, we execute an extensive set of experiments to determine the most suitable approaches for evolutionary chain optimization, hyperparameters tuning, benchmarking, etc.
+The different case studies from different subject areas (metocean science, oil production, seismic, robotics, economics, etc) are in progress now.
+The various features are planned to be implemented: multi-data chains, Bayesian networks optimization, domain-specific, equation-based models involvement, model export and atomization, interpretable surrogate models, etc.
+
+Any support and contribution are welcome.
 
 Documentation
 =============
@@ -140,6 +152,8 @@ Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
 
 Contribution Guide
 ==================
+
+- The contribution guide is available in the `repository <docs/contribution.md>`_.
 
 Acknowledgements
 ================
@@ -159,8 +173,7 @@ Citation
   author={Kalyuzhnaya, Anna V and Nikitin, Nikolay O and Vychuzhanin, Pavel and Hvatov, Alexander and Boukhanovsky, Alexander},
   booktitle={Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion},
   pages={43--44},
-  year={2020}
-}
+  year={2020}}
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
     :target: https://itmo-nss-team.github.io/FEDOT.Docs/
