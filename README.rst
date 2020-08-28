@@ -144,6 +144,8 @@ Contribution Guide
 Acknowledgements
 ================
 
+We acknowledge the contributors for their important impact and the participants of the numerous scientific conferences and workshops for their valuable advice and suggestions.
+
 Supported by
 ============
 
@@ -152,7 +154,13 @@ Supported by
 Citation
 ========
 
-latex-ссылка на основную статью про фреймворк (когда она появится)
+@inproceedings{kalyuzhnaya2020automatic,
+  title={Automatic evolutionary learning of composite models with knowledge enrichment},
+  author={Kalyuzhnaya, Anna V and Nikitin, Nikolay O and Vychuzhanin, Pavel and Hvatov, Alexander and Boukhanovsky, Alexander},
+  booktitle={Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion},
+  pages={43--44},
+  year={2020}
+}
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
     :target: https://itmo-nss-team.github.io/FEDOT.Docs/
