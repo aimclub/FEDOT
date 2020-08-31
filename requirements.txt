@@ -16,3 +16,9 @@ imageio==2.8.0
 pydot==1.4.1
 pmlb==1.0
 seaborn==0.9.0
+mlbox==0.8.4
+autokeras==1.0.2
+tensorflow==2.1.0
+tpot==0.11.1
+h2o==3.28.1.2
+pmlb==0.3
