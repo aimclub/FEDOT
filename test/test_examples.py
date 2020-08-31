@@ -5,8 +5,10 @@ from examples.chain_from_automl import run_chain_from_automl
 from examples.forecasting_model_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
 from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
+import pytest
 
 
+@pytest.mark.skip('TPOT excluded for req.txt')
 def test_chain_from_automl_example():
     test_file_path = str(os.path.dirname(__file__))
     file_path_train = os.path.join(test_file_path, 'data/simple_classification.csv')
