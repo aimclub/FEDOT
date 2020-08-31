@@ -56,25 +56,27 @@ class Log:
             raise Exception(f'Can not open the log config file because of {ex}')
 
     def info(self, message):
+        """Record the INFO log massage"""
         self.logger.info(message)
 
     def debug(self, message):
+        """Record the DEBUG log massage"""
         self.logger.debug(message)
 
     def warn(self, message):
+        """Record the WARN log massage"""
         self.logger.warning(message)
 
     def error(self, message):
+        """Record the ERROR log massage"""
         self.logger.error(message, exc_info=True)
-
-    def exception(self, message):
-        self.logger.exception(message)
 
     @property
     def handlers(self):
         return self.logger.handlers
 
     def release_handlers(self):
+        """This function closes handlers of logger"""
         for handler in self.handlers:
             handler.close()
 

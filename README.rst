@@ -96,6 +96,7 @@ Extended examples:
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
+
 Project structure
 =================
 
@@ -158,7 +159,7 @@ Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
 Contribution Guide
 ==================
 
-- The contribution guide is available in the `repository <docs/contribution.rst>`_.
+- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/improve-readme/docs/contributing.rst>`__.
 
 Acknowledgements
 ================
