@@ -95,11 +95,11 @@ Extended examples:
 - Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 
-Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>` (in Russian).
+Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
 Project structure
 =================
 
-The latest stable release of FEDOT is on the [master branch](https://github.com/nccr-itmo/FEDOT/tree/master). Make sure you are looking at and working on the actual code if you're looking to contribute code.
+The latest stable release of FEDOT is on the `master branch <https://github.com/nccr-itmo/FEDOT/tree/master>`__. Make sure you are looking at and working on the actual code if you're looking to contribute code.
 
 In terms of directory structure:
 
@@ -158,7 +158,7 @@ Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
 Contribution Guide
 ==================
 
-- The contribution guide is available in the `repository <docs/contribution.md>`_.
+- The contribution guide is available in the `repository <docs/contribution.rst>`_.
 
 Acknowledgements
 ================
