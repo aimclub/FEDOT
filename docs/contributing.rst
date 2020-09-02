@@ -1,5 +1,5 @@
-Contribution Guide
-==================
+Contribution
+============
 
 We welcome you to `check the existing
 issues <https://github.com/nccr-itmo/FEDOT/issues>`__ for bugs or

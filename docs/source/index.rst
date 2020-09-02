@@ -6,15 +6,26 @@
 Welcome to FEDOT's documentation!
 =================================
 
-.. include:: ../../README.rst
+This site contains documentation for the `Fedot framework <https://github.com/nccr-itmo/FEDOT>`__, its description, tutorials, and application examples.
 
+Fedot is a framework for automated modelling and machine learning, aimed to create the complex composite models that allow the obtain the efficient solution of various applied problems.
+
+The main aim of the Fedot - to improve the quality of analysis of various natural, technical, and social processes by the automated identification of the composite models from available data sets.
+
+.. figure::  ../img/idea.png
+   :align:   center
 
 Content
 =======
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   autolearning/index
+   fedot/index
    api/index
+   contribution
+   faq
+   about
 
 
 Indices and tables
