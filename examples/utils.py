@@ -10,7 +10,7 @@ from core.utils import ensure_directory_exists, get_split_data_paths, \
 
 def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):
     df = pd.read_csv(file_path)
-    train, test = split_data(df)
+    train, test = split_data(df, t_size = 0.2)
     file_dir_name = file_path.replace('.', '/').split('/')[-2]
     file_csv_name = f'{file_dir_name}.csv'
     directory_names = ['examples', 'data', file_dir_name]

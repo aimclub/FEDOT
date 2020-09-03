@@ -51,7 +51,7 @@
 	  "tags": ["statistical", "autoreg"],
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
 	},
-	"stats_var": {
+    "stats_var": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.ts]",
@@ -185,7 +185,7 @@
 	  "meta": "stats_ar",
 	  "tags": ["simple", "interpretable"]
 	},
-	"garch": {
+    "garch": {
 	  "meta": "stats_var",
 	  "tags": ["simple", "interpretable"]
 	},

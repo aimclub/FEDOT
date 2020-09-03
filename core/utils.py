@@ -37,7 +37,7 @@ def ensure_features_2d(features: np.array):
         return features
 
 
-def split_data(df: pd.DataFrame, t_size: float = 0.2):
+def split_data(df: pd.DataFrame, t_size: float = 0.3):
     train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
     return train, test
 
