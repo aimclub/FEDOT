@@ -9,9 +9,9 @@ except NameError:
 if __PYFLUX_SETUP__:
     sys.stderr.write('Partial import of PyFlux during the build process.\n')
 else:
-    from . import __check_build
+    pass
 	
-from .arma import *
+
 from .var import *
 from .ensembles import *
 from .families import *
@@ -22,4 +22,3 @@ from .inference import *
 from .ssm import *
 from .covariances import *
 from .output import *
-from .tests import *
