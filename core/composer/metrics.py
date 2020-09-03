@@ -2,7 +2,7 @@ import sys
 from abc import abstractmethod
 
 import numpy as np
-from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, accuracy_score
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, accuracy_score, precision_score, recall_score
 
 from core.composer.chain import Chain
 from core.models.data import InputData, OutputData
@@ -70,6 +70,21 @@ class F1Metric(QualityMetric):
         bound = np.mean(predicted.predict)
         predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
         return f1_score(y_true=reference.target, y_pred=predicted_labels)
+
+
+class PrecisionMetric(QualityMetric):
+    @staticmethod
+    @from_maximised_metric
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        predicted_labels = [1 if x >= 0.5 else 0 for x in predicted.predict]
+        return precision_score(y_true=reference.target, y_pred=predicted_labels)
+
+class RecallMetric(QualityMetric):
+    @staticmethod
+    @from_maximised_metric
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        predicted_labels = [1 if x >= 0.5 else 0 for x in predicted.predict]
+        return recall_score(y_true=reference.target, y_pred=predicted_labels)
 
 
 class MaeMetric(QualityMetric):
