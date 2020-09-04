@@ -22,4 +22,4 @@ pydot==1.4.1
 pmlb==0.3
 seaborn==0.9.0
 Cython
-git+git://github.com/timur9831/pyflux/@master#egg=pyflux
+-e git+https://github.com/timur9831/pyflux#egg=pyflux
