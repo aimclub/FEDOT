@@ -1,22 +1,22 @@
 Tuning
 ======
 .. autoclass:: core.models.tuning.tuners.Tuner
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.SklearnTuner
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.SklearnRandomTuner
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.SklearnGridSearchTuner
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.SklearnBayesSearchCV
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.ForecastingCustomRandomTuner
-   :members:
+    :members:
 
 .. autoclass:: core.models.tuning.tuners.TPETuner
-   :members:
+    :members:
