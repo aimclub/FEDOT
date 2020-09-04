@@ -1,1 +1,0 @@
-from .var import VAR
