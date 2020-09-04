@@ -7,12 +7,14 @@ from logging.handlers import RotatingFileHandler
 
 
 def default_log(logger_name: str,
-                log_file=os.path.join(os.path.dirname(__file__), 'log.log')) -> 'Log':
+                log_file=None) -> 'Log':
     """
     :param logger_name: string name for logger
     :param log_file: path to the file where log messages will be recorded to
     :return Log: Log object
     """
+    if not log_file:
+        log_file = os.path.join('../../', 'log.log')
     log = Log(logger_name=logger_name,
               config_json_file='default',
               log_file=log_file)
@@ -32,7 +34,7 @@ class Log:
         :param str log_file: file where log messages are recorded to
         """
         if not log_file:
-            self.log_file = os.path.join(os.path.dirname(__file__), 'log.log')
+            self.log_file = os.path.join('../../', 'log.log')
         else:
             self.log_file = log_file
 

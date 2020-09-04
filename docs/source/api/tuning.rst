@@ -1,8 +1,5 @@
 Tuning
 ======
-
-Tuning strategies can be used to find the most appropriate hyperparameter values for the task
-
 .. autoclass:: core.models.tuning.tuners.Tuner
    :members:
 
