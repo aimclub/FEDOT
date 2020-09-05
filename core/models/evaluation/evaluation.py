@@ -16,7 +16,6 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
@@ -25,18 +24,21 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from core.log import default_log, Log
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
-from core.models.evaluation.hyperparams import params_range_by_model
-from core.models.tuners import SklearnCustomRandomTuner, SklearnTuner
+from core.models.tuning.hyperparams import params_range_by_model
+from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-    def __init__(self, model_type: str, params: Optional[dict] = None):
+    def __init__(self, model_type: str, params: Optional[dict] = None,
+                 log=default_log(__name__)):
         self.params_for_fit = params
         self.model_type = model_type
+        self.log: Log = log
 
     @abstractmethod
     def fit(self, train_data: InputData):
@@ -82,11 +84,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'bernb': SklearnBernoulliNB
     }
 
-    __metric_by_type = {
-        'classification': make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
-        'regression': make_scorer(mean_squared_error, greater_is_better=False),
-    }
-
     def __init__(self, model_type: str, params: Optional[dict] = None):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
         self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
@@ -109,7 +106,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                   max_lead_time: timedelta = timedelta(minutes=5)):
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
-        metric = self.__metric_by_type.get(train_data.task.task_type.name, None)
         self._tune_strategy = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
@@ -119,7 +115,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                        tune_data=train_data,
                                                        params_range=params_range,
                                                        cross_val_fold_num=5,
-                                                       scorer=metric,
                                                        time_limit=max_lead_time,
                                                        iterations=iterations).tune()
 

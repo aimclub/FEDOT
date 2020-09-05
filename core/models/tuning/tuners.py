@@ -1,58 +1,84 @@
+import operator
 from datetime import timedelta
 from typing import Callable, Tuple, Union
 
 from numpy.random import choice as nprand_choice, randint
+from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
 from skopt import BayesSearchCV
 
 from core.composer.timer import TunerTimer
-import operator
+from core.log import default_log, Log
 from core.models.data import InputData, train_test_data_setup
+from core.models.tuning.tuner_adapter import HyperoptAdapter
+from core.repository.tasks import TaskTypesEnum
+
+TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
 
 
 class Tuner:
+    __tuning_metric_by_type = {
+        TaskTypesEnum.classification:
+            make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
+        TaskTypesEnum.regression:
+            make_scorer(mean_squared_error, greater_is_better=False),
+    }
+
     def __init__(self, trained_model, tune_data: InputData,
                  params_range: dict,
                  cross_val_fold_num: int,
-                 scorer: Union[str, callable],
                  time_limit,
-                 iterations: int):
+                 iterations: int,
+                 log: Log = default_log(__name__)):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model
         self.tune_data = tune_data
         self.params_range = params_range
         self.cross_val_fold_num = cross_val_fold_num
-        self.scorer = scorer
+        self.scorer = self.__tuning_metric_by_type.get(self.tune_data.task.task_type, None)
         self.max_iterations = iterations
+        self.default_score, self.default_params = \
+            self.get_cross_val_score_and_params(self.trained_model)
+        self.log = log
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         raise NotImplementedError()
 
     def _is_score_better(self, previous, current):
         __compare = {
-            'classification': operator.gt,
-            'regression': operator.lt
+            TaskTypesEnum.classification: operator.gt,
+            TaskTypesEnum.regression: operator.lt
         }
-        comparison = __compare.get(self.tune_data.task.task_type.name)
+        comparison = __compare.get(self.tune_data.task.task_type)
         try:
             return comparison(current, previous)
-        except ValueError as ex:
-            print(f'Score comparison can not be held because {ex}')
+        except Exception as ex:
+            self.log.error(f'Score comparison can not be held because {ex}')
+            return None, None
+
+    def is_better_than_default(self, score):
+        return self._is_score_better(self.default_score, score)
+
+    def get_cross_val_score_and_params(self, model):
+        score = cross_val_score(model, self.tune_data.features,
+                                self.tune_data.target, scoring=self.scorer,
+                                cv=self.cross_val_fold_num).mean()
+        params = model.get_params()
+
+        return score, params
 
 
 class SklearnTuner(Tuner):
     def __init__(self, trained_model, tune_data: InputData,
                  params_range: dict,
                  cross_val_fold_num: int,
-                 scorer: Union[str, callable],
                  time_limit, iterations):
         super().__init__(trained_model=trained_model,
                          tune_data=tune_data,
                          params_range=params_range,
                          cross_val_fold_num=cross_val_fold_num,
-                         scorer=scorer,
                          time_limit=time_limit,
                          iterations=iterations)
         self.search_strategy = None
@@ -63,9 +89,13 @@ class SklearnTuner(Tuner):
     def _sklearn_tune(self, tune_data: InputData):
         try:
             search = self.search_strategy.fit(tune_data.features, tune_data.target.ravel())
-            return search.best_params_, search.best_estimator_
-        except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
+            new_score, _ = self.get_cross_val_score_and_params(search.best_estimator_)
+            if self.is_better_than_default(new_score):
+                return search.best_params_, search.best_estimator_
+            else:
+                return self.default_params, self.trained_model
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
@@ -102,18 +132,12 @@ class SklearnCustomRandomTuner(Tuner):
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
             with TunerTimer() as timer:
-                best_score = cross_val_score(self.trained_model, self.tune_data.features,
-                                             self.tune_data.target, scoring=self.scorer,
-                                             cv=self.cross_val_fold_num).mean()
                 best_model = self.trained_model
-                best_params = None
+                best_score, best_params = self.get_cross_val_score_and_params(best_model)
                 for iteration in range(self.max_iterations):
                     params = {k: nprand_choice(v) for k, v in self.params_range.items()}
-                    for param in params:
-                        setattr(self.trained_model, param, params[param])
-                    score = cross_val_score(self.trained_model, self.tune_data.features,
-                                            self.tune_data.target, scoring=self.scorer,
-                                            cv=self.cross_val_fold_num).mean()
+                    self.trained_model.set_params(**params)
+                    score, _ = self.get_cross_val_score_and_params(self.trained_model)
                     if self._is_score_better(previous=best_score, current=score):
                         best_params = params
                         best_model = self.trained_model
@@ -122,12 +146,18 @@ class SklearnCustomRandomTuner(Tuner):
                     if timer.is_time_limit_reached(self.time_limit):
                         break
                 return best_params, best_model
-        except ValueError as ex:
-            print(f'Unsuccessful fit because of {ex}')
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
             return None, None
 
 
 class ForecastingCustomRandomTuner:
+    def __init__(self, **kwargs):
+        if 'log' not in kwargs:
+            self.logger = default_log(__name__)
+        else:
+            self.logger = kwargs['log']
+
     # TODO discuss
     def tune(self,
              fit: Callable,
@@ -153,8 +183,8 @@ class ForecastingCustomRandomTuner:
                                                                 real=tune_test_data.target)
                 if quality_metric < best_quality_metric:
                     best_params = random_params
-            except ValueError:
-                pass
+            except Exception as ex:
+                self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
         return best_params
 
 
@@ -196,3 +226,20 @@ def get_varied_length_range(left_range, right_range):
 
 def _regression_prediction_quality(prediction, real):
     return mse(y_true=real, y_pred=prediction, squared=False)
+
+
+class TPETuner(Tuner):
+    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
+        try:
+            adapter = HyperoptAdapter(self)
+            best_params, best_model = adapter.tune(iterations=self.max_iterations,
+                                                   timeout_sec=self.time_limit.seconds)
+            new_score, _ = self.get_cross_val_score_and_params(best_model)
+
+            if self.is_better_than_default(new_score):
+                return best_params, best_model
+            else:
+                return self.default_params, self.trained_model
+        except Exception as ex:
+            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
+            return None, None

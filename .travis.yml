@@ -12,7 +12,7 @@ notifications:
   email: false
 
 script:
-  - coverage run --source=. -m py.test
+  - coverage run --source=. -m py.test -s
 
 after_success:
   COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
