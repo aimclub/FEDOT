@@ -79,6 +79,7 @@ class PrecisionMetric(QualityMetric):
         predicted_labels = [1 if x >= 0.5 else 0 for x in predicted.predict]
         return precision_score(y_true=reference.target, y_pred=predicted_labels)
 
+
 class RecallMetric(QualityMetric):
     @staticmethod
     @from_maximised_metric
@@ -113,6 +114,7 @@ class RocAucMetric(QualityMetric):
                                     **additional_params), 3)
         return score
 
+
 class AccuracyScore(Chain):
     @staticmethod
     @from_maximised_metric
@@ -128,6 +130,7 @@ class AccuracyScore(Chain):
             score = 0.5
 
         return score
+
 
 class StructuralComplexityMetric(Metric):
     @classmethod

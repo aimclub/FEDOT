@@ -3,6 +3,7 @@ import os
 import random
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.chain import Chain
+from pathlib import Path
 
 from core.composer.metrics import AccuracyScore, F1Metric, PrecisionMetric, RecallMetric, RocAucMetric
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
@@ -30,7 +31,7 @@ def copy(data: InputData) -> InputData:
     :param data: InputData class instance data will be copied.
     :return: InputData
     """
-    data_copied = InputData(idx=data.idx, features=data.features, target=data.target,
+    data_copied = InputData(idx=data.idx.copy(), features=data.features.copy(), target=data.target.copy(),
                             task=data.task, data_type=data.data_type)
     return data_copied
 
@@ -292,9 +293,9 @@ def run_grasp_robustness_problem(dataset_path, list_of_nodes: list,
 
     start_time = datetime.datetime.now()
     if not full_dataset:
-        chain_evo_composed.fit(input_data=dataset_train_fit, verbose=True, use_cache=False)
+        chain_evo_composed.fit_from_scratch(input_data=dataset_train_fit, verbose=True)
     else:
-        chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True, use_cache=False)
+        chain_evo_composed.fit_from_scratch(input_data=dataset_to_compose, verbose=True)
     time = datetime.datetime.now() - start_time
     print(f'Required time for fitting composed chain with fit method: {time}')
 
@@ -323,7 +324,7 @@ def run_grasp_robustness_problem(dataset_path, list_of_nodes: list,
 if __name__ == '__main__':
     # the dataset was obtained from https://www.kaggle.com/ugocupcic/grasping-dataset
 
-    # dataset path definition with respect to the project root
+    # downloaded dataset have to be manually moved to the undermentioned relative path
     relative_dataset_path = 'cases/data/robotics/dataset.csv'
     full_dataset_path = os.path.join(str(project_root()), relative_dataset_path)
 
@@ -334,5 +335,6 @@ if __name__ == '__main__':
                                            max_lead_time=datetime.timedelta(minutes=180))
 
     # evolution visualisation
-    history_file = 'C:\\Users\\Михаил\\PycharmProjects\\tmp\\history.csv'
+    path_to_dir_of_project_root = Path(project_root()).parent
+    history_file = os.path.join(str(path_to_dir_of_project_root), 'tmp\\history.csv')
     evolution_visualisation(history_file)

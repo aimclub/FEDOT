@@ -103,6 +103,7 @@ class Chain:
     def _clean_model_cache(self):
         for node in self.nodes:
             node.cache.clear()
+            node.cache = FittedModelCache(node)
 
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]

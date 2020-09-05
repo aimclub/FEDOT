@@ -88,6 +88,7 @@ def split_train_test(data, split_ratio=0.8, with_shuffle=False):
         data_train, data_test = data[:split_point], data[split_point:]
     return data_train, data_test
 
+
 def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=True):
     x = np.hstack([data.idx.reshape((data.idx.shape[0], 1)), data.features])
     x_train, x_test, y_train, y_test = train_test_split(x, data.target, train_size=split_ratio,
