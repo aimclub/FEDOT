@@ -5,5 +5,10 @@ API
    :glob:
    :maxdepth: 1
 
-   logging
+   composer
+   chain
+   node
+   model
+   eval_strategy
    tuning
+   logging

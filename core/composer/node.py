@@ -14,7 +14,16 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
 class Node(ABC):
+    """
+    Base class for Node definition in Chain structure
 
+    :param nodes_from: parent nodes which information comes from
+    :param model_type: str type of the model defined in model repository
+    :param manual_preprocessing_func: optional function for data preprocessing. \
+    If not defined one of the available preprocessing strategies is used. \
+    See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
+    :param log: Log object to record messages
+    """
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
                  log=default_log(__name__)):
@@ -79,6 +88,12 @@ class Node(ABC):
         return data, preprocessing_strategy
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Run training process in the node
+
+        :param input_data: data used for model training
+        :param verbose: flag used for status printing to console, default False
+        """
         transformed = self._transform(input_data)
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
 
@@ -99,6 +114,12 @@ class Node(ABC):
         return self.output_from_prediction(input_data, model_predict)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Run prediction process in the node
+
+        :param input_data: data used for prediction
+        :param verbose: flag used for status printing to console, default False
+        """
         transformed = self._transform(input_data)
         preprocessed_data, _ = self._preprocess(transformed)
 
@@ -112,6 +133,13 @@ class Node(ABC):
 
     def fine_tune(self, input_data: InputData,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
+        """
+        Run the process of hyperparameter optimization for the node
+
+        :param input_data: data used for tuning
+        :param iterations: max number of iterations
+        :param max_lead_time: max time available for tuning process
+        """
 
         transformed = self._transform(input_data)
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
@@ -185,6 +213,13 @@ class SharedCache(FittedModelCache):
 
 
 class PrimaryNode(Node):
+    """
+    The class defines the interface of Primary nodes where initial task data is located
+
+    :param model_type: str type of the model defined in model repository
+    :param manual_preprocessing_func: optional function for data preprocessing.
+    :param kwargs: optional arguments (i.e. logger)
+    """
     def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
                  **kwargs):
         super().__init__(nodes_from=None, model_type=model_type,
@@ -192,12 +227,24 @@ class PrimaryNode(Node):
                          **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Fit the model located in the primary node
+
+        :param input_data: data used for model training
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info(f'Trying to fit primary node with model: {self.model}')
 
         return super().fit(input_data, verbose)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Predict using the model located in the primary node
+
+        :param input_data: data used for prediction
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info(f'Predict in primary node by model: {self.model}')
 
@@ -205,6 +252,14 @@ class PrimaryNode(Node):
 
 
 class SecondaryNode(Node):
+    """
+    The class defines the interface of Secondary nodes modifying tha data flow in Chain
+
+    :param model_type: str type of the model defined in model repository
+    :param nodes_from: parent nodes where data comes from
+    :param manual_preprocessing_func: optional function for data preprocessing.
+    :param kwargs: optional arguments (i.e. logger)
+    """
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
                  manual_preprocessing_func: Optional[Callable] = None,
                  **kwargs):
@@ -214,6 +269,12 @@ class SecondaryNode(Node):
                          **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Fit the model located in the secondary node
+
+        :param input_data: data used for model training
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info(f'Trying to fit secondary node with model: {self.model}')
 
@@ -223,6 +284,12 @@ class SecondaryNode(Node):
         return super().fit(input_data=secondary_input)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
+        """
+        Predict using the model located in the secondary node
+
+        :param input_data: data used for prediction
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info(f'Obtain prediction in secondary node with model: {self.model}')
 
@@ -235,6 +302,14 @@ class SecondaryNode(Node):
     def fine_tune(self, input_data: InputData,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
                   verbose: bool = False):
+        """
+        Run the process of hyperparameter optimization for the node
+
+        :param input_data: data used for tuning
+        :param max_lead_time: max time available for tuning process
+        :param iterations: max number of iterations
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}')
 

@@ -22,10 +22,10 @@ class Tuner:
     Base class for tuning strategy
 
     :param trained_model: trained model object
-    :param InputData tune_data: data used in hyperparameter searching
+    :param tune_data: data used for hyperparameter searching
     :param dict params_range: search space for hyperparameters
     :param int cross_val_fold_num: number of folds used in cross validation
-    :param timedelta time_limit: max time available for tuning process
+    :param time_limit: max time available for tuning process
     :param int iterations: max number of iterations
     :param Log log: Log object to record messages
     """

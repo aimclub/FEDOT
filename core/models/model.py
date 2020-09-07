@@ -12,6 +12,12 @@ DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Model:
+    """
+    Base object with fit/predict methods defining the evaluation strategy for the task
+
+    :param model_type: str type of the model defined in model repository
+    :param log: Log object to record messages
+    """
     def __init__(self, model_type: str, log: Log = default_log(__name__)):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
@@ -70,6 +76,13 @@ class Model:
             raise Exception
 
     def fit(self, data: InputData):
+        """
+        This method is used for defining and running of the evaluation strategy
+        to train the model with the data provided
+
+        :param data: data used for model training
+        :return: tuple of trained model and prediction on train data
+        """
         self._init(data.task)
 
         fitted_model = self._eval_strategy.fit(train_data=data)
@@ -82,6 +95,13 @@ class Model:
         return fitted_model, predict_train
 
     def predict(self, fitted_model, data: InputData):
+        """
+        This method is used for defining and running of the evaluation strategy
+        to predict with the data provided
+
+        :param fitted_model: trained model object
+        :param data: data used for prediction
+        """
         self._init(data.task)
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
@@ -94,6 +114,13 @@ class Model:
 
     def fine_tune(self, data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        This method is used for hyperparameter searching
+
+        :param data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        """
         self._init(data.task)
 
         try:

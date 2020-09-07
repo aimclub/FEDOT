@@ -182,7 +182,7 @@ Citation
   year={2020}}
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
-    :target: https://itmo-nss-team.github.io/FEDOT.Docs/
+    :target: https://fedot.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 .. |build| image:: https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master

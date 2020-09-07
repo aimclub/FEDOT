@@ -31,6 +31,11 @@ class ComposerRequirements:
 
 class Composer(ABC):
     def __init__(self, log: Log = default_log(__name__)):
+        """
+        Base class used for receiving composite models via optimization
+
+        :param log: optional parameter for log oject
+        """
         self.history = None
         self.log = log
 
@@ -41,6 +46,17 @@ class Composer(ABC):
                       metrics: Callable,
                       optimiser_parameters: Any = None,
                       is_visualise: bool = False) -> Chain:
+        """
+        Base method to run the compositioin process
+
+        :param data: data used for problem solving
+        :param initial_chain:
+        :param composer_requirements:
+        :param metrics:
+        :param optimiser_parameters:
+        :param is_visualise:
+        :return:
+        """
         raise NotImplementedError()
 
 

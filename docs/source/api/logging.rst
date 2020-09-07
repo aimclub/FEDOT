@@ -4,3 +4,6 @@ Logging
     :members:
 
 .. autofunction:: core.log.default_log
+
+.. toctree::
+   :glob:
