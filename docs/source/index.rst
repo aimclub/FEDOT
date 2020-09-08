@@ -22,10 +22,10 @@ Content
 
    autolearning/index
    fedot/index
-   api/index
    contribution
    faq
    about
+   modules
 
 
 Indices and tables
