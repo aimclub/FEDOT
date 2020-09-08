@@ -73,7 +73,7 @@ https://www.kaggle.com/c/GiveMeSomeCredit
 +-------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 10    | NumberOfTime60-89DaysPastDueNotWorse | Number of times the borrower had payment delays for 60-89 days (not more than 2-3 months) for the last 2 years                                                    |
 +-------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| 11    | NumberOfDependents                   | Number of dependants in the family not including the borrower himself:raw-latex:`herself `(spouse, children etc.)                                                 |
+| 11    | NumberOfDependents                   | Number of dependants in the family not including the borrower himself/herself (spouse, children etc.)                                                             |
 +-------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 **Approaches to solving scoring task**

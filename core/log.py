@@ -22,17 +22,17 @@ def default_log(logger_name: str,
 
 
 class Log:
-    """This class provides with basic logging object"""
+    """
+    This class provides with basic logging object
+
+    :param str logger_name: name of the logger object
+    :param str config_json_file: json file with configuration for logger setup
+    :param str log_file: file where log messages are recorded to
+    """
 
     def __init__(self, logger_name: str,
                  config_json_file: str,
                  log_file: str = None):
-        """
-
-        :param str logger_name: name of the logger object
-        :param str config_json_file: json file with configuration for logger setup
-        :param str log_file: file where log messages are recorded to
-        """
         if not log_file:
             self.log_file = os.path.join('../../', 'log.log')
         else:
