@@ -35,7 +35,9 @@ extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.autodoc.typehints',
 ]
+autodoc_typehints = 'description'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

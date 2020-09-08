@@ -11,6 +11,9 @@ from core.repository.tasks import Task, TaskTypesEnum
 
 @dataclass
 class Data:
+    """
+    Base Data type class
+    """
     idx: np.array
     features: np.array
     task: Task
@@ -36,6 +39,9 @@ class Data:
 
 @dataclass
 class InputData(Data):
+    """
+    Data type for user input data
+    """
     target: np.array = None
 
     @property
@@ -70,6 +76,9 @@ class InputData(Data):
 
 @dataclass
 class OutputData(Data):
+    """
+    Data type for modified data with the prediction received
+    """
     predict: np.array = None
 
 
