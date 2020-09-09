@@ -4,6 +4,7 @@ import random
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.chain import Chain
 from pathlib import Path
+from copy import deepcopy
 
 from core.composer.metrics import AccuracyScore, F1Metric, PrecisionMetric, RecallMetric, RocAucMetric
 from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
@@ -24,32 +25,18 @@ random.seed(1)
 np.random.seed(1)
 
 
-def copy(data: InputData) -> InputData:
-    """
-    Make copy of passed data.
-
-    :param data: InputData class instance data will be copied.
-    :return: InputData
-    """
-    data_copied = InputData(idx=data.idx.copy(), features=data.features.copy(), target=data.target.copy(),
-                            task=data.task, data_type=data.data_type)
-    return data_copied
-
-
-def create_performance_model(dataset: InputData, path_to_save: str,
-                             time_limit: int, list_of_nodes: list,
-                             percent: float, top_percent: float,
+def create_performance_model(dataset: InputData, chain: Chain, path_to_save: str,
+                             time_limit: int, percent: float, top_percent: float,
                              percent_step: float, feature_top=None, feature_step: int = 1,
-                             path_to_save_figure: str = None) -> pd.DataFrame:
+                             path_to_save_figure: str = None, n: int = 1) -> pd.DataFrame:
     """
     Visualise function time=f(dataset_size, features_number).
 
+    :param n: the number of times to fit chain in a fixed (x, y) point of the performance model
     :param dataset: InputData instance which used to fit given chain.
+    :param chain: Chain class instance which is used to plot performance model.
     :param path_to_save: Path to save csv-file with the return value.
     :param time_limit: Time limit of execution in minutes.
-    :param list_of_nodes: List of model_id strings or a single model_id string
-        from which the fixed structure chain will be constructed. The last model in the list_of_nodes is a chain root,
-        the others are his children. Max chain depth is equal to 2.
     :param percent: The low border of the input data to start tuning. It has to be float in range from 0.0 to 1.0.
         It should be mentioned that this is not initial data to fit because of the prior data splitting into train and
         validation samples.
@@ -62,18 +49,18 @@ def create_performance_model(dataset: InputData, path_to_save: str,
     :param feature_step: Step in features. Default value is 1.
     :param path_to_save_figure: Path to save visualisation result. The default value is None which means that
         the plot will not be saved in any file but visualisation will be available in the console.
-    :return: pd.DataFrame: table with the following columns: 'time', 'num_lines', 'num_features', 'roc_auc',
-                                         'accuracy', 'f1', 'precision', 'recall'.
+    :return: pd.DataFrame: table with the following columns: 'time', 'num_lines', 'num_features'.
     """
     initial_time = datetime.datetime.now()
     current_time = 0
     arr = []
+    massive = []
     features_count = dataset.features.shape[1]
     if feature_top is None:
         feature_top = features_count
     if feature_top > features_count:
         raise ValueError('Invalid value of param feature_top')
-    dataset_original = copy(dataset)
+    dataset_original = deepcopy(dataset)
     initial_percent = percent
     for i in np.arange(1, feature_top+1, feature_step):
         dataset.features = dataset_original.features[:, :i]
@@ -85,40 +72,37 @@ def create_performance_model(dataset: InputData, path_to_save: str,
             dataset_to_compose, dataset_to_validate = train_test_data_setup(dat)
             num_lines = dataset_to_compose.target.shape[0]
 
-            # calculate parameters optimization time
-            chain = fixed_chain(list_of_nodes)
-            start_time = datetime.datetime.now()
-            chain.fit(input_data=dataset_to_compose, verbose=True)
-            time = datetime.datetime.now() - start_time
-            roc_on_valid_evo_composed = RocAucMetric.get_value(chain, dataset_to_validate)
-            acc_on_valid_evo_composed = AccuracyScore.get_value(chain, dataset_to_validate)
-            f1_on_valid_evo_composed = F1Metric.get_value(chain, dataset_to_validate)
-            precis_on_valid_evo_composed = PrecisionMetric.get_value(chain, dataset_to_validate)
-            recall_on_valid_evo_composed = RecallMetric.get_value(chain, dataset_to_validate)
-            arr.append([time.total_seconds(), num_lines, i, -roc_on_valid_evo_composed, -acc_on_valid_evo_composed,
-                        -f1_on_valid_evo_composed, -precis_on_valid_evo_composed, -recall_on_valid_evo_composed])
+            # n-times fitting in a fixed (x, y) point of performance model
+            time_local = []
+            for j in range(n):
+                # calculate parameters optimization time for a given chain
+                start_time = datetime.datetime.now()
+                chain.fit(input_data=dataset_to_compose, verbose=True)
+                time = datetime.datetime.now() - start_time
+                arr.append([time.total_seconds(), num_lines, i, j])
+                time_local.append(time.total_seconds())
+            time_mean = np.array(time_local).mean()
+            massive.append([time_mean, num_lines, i])
             print(f'Dataset size: {percent * 100}%, number of features: {i},'
-                  f' required time: {time}, elapsed time: {datetime.datetime.now() - initial_time}')
+                  f' required time (mean value of {n} measurements): {time_mean}, '
+                  f'elapsed time: {datetime.datetime.now() - initial_time}')
             print('--------------------')
             percent += percent_step
             current_time = round((datetime.datetime.now() - initial_time).seconds / 60)
         percent = initial_percent
         print('===============================')
-    if len(list_of_nodes) == 1:
-        print(f'Time is up or process has finished for model: {list_of_nodes[0]}')
-    else:
-        print(f'Time is up or process has finished for chain: {list_of_nodes}')
+    print(f'Time is up or process has finished for a given chain')
     print('===============================')
-    results = pd.DataFrame(arr, columns=['time', 'num_lines', 'num_features', 'roc_auc',
-                                         'accuracy', 'f1', 'precision', 'recall'])
+    results = pd.DataFrame(arr, columns=['time', 'num_lines', 'num_features', 'id'])
     results.to_csv(path_to_save, index=False)
+    massive = np.array(massive)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(results['num_lines'], results['num_features'], results['time'], c='r')
-    ax.set_title(f'Performance model for {list_of_nodes}')
+    ax.scatter(massive[:, 1], massive[:, 2], massive[:, 0], c='r')
+    ax.set_title(f'Performance model')
     ax.set_xlabel('num_lines')
     ax.set_ylabel('num_features')
-    ax.set_zlabel('time [seconds]')
+    ax.set_zlabel('mean time [seconds]')
     ax.grid()
     plt.show()
     if path_to_save_figure:
