@@ -6,7 +6,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-
 def project_root() -> Path:
     """Returns project root folder."""
     return Path(__file__).parent.parent
