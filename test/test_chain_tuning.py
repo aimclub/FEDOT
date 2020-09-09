@@ -2,7 +2,7 @@ import os
 from random import seed
 
 import pytest
-from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
@@ -32,7 +32,7 @@ def get_regr_chain():
     first = PrimaryNode(model_type='xgbreg')
     second = PrimaryNode(model_type='knnreg')
     final = SecondaryNode(model_type='linear',
-                                         nodes_from=[first, second])
+                          nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)
@@ -45,7 +45,7 @@ def get_class_chain():
     first = PrimaryNode(model_type='xgboost')
     second = PrimaryNode(model_type='knn')
     final = SecondaryNode(model_type='logit',
-                                         nodes_from=[first, second])
+                          nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)
@@ -87,7 +87,7 @@ def test_fine_tune_primary_nodes(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_fine_tune_root_node(data_fixture, request):
+def test_fine_tune_all_nodes(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 

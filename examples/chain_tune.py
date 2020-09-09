@@ -7,6 +7,14 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 
 
+def get_case_train_test_data():
+    train_file_path, test_file_path = get_scoring_case_data_paths()
+
+    train_data = InputData.from_csv(train_file_path)
+    test_data = InputData.from_csv(test_file_path)
+    return train_data, test_data
+
+
 def get_simple_chain():
     first = PrimaryNode(model_type='xgboost')
     second = PrimaryNode(model_type='knn')
@@ -53,8 +61,7 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData,
 if __name__ == '__main__':
     train_file_path, test_file_path = get_scoring_case_data_paths()
 
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
+    train_data, test_data = get_case_train_test_data()
 
     # Chain composition
     chain = get_simple_chain()
