@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.autodoc.typehints',
 ]
 autodoc_typehints = 'description'
+autodoc_mock_imports = ['numpy', 'skleran']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
