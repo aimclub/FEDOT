@@ -106,9 +106,9 @@ The repository includes the following directories:
 
 * Package `core <https://github.com/nccr-itmo/FEDOT/tree/master/core>`__  contains the main classes and scripts. It is a *core* of FEDOT framework
 * Package `examples <https://github.com/nccr-itmo/FEDOT/tree/master/examples>`__ includes several *how-to-use-cases* where you can start to discover how FEDOT works
-* All *unit tests* can be observed in the `examples <https://github.com/nccr-itmo/FEDOT/tree/master/test>`__ directory
+* All *unit tests* can be observed in the `test <https://github.com/nccr-itmo/FEDOT/tree/master/test>`__ directory
 * The sources of documentation are in the `docs <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__
-* Package `benchmark <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__ was developed to show the comparison of FEDOT against the well-known AutoML frameworks 
+* Package `benchmark <https://github.com/nccr-itmo/FEDOT/tree/master/benchmark>`__ was developed to show the comparison of FEDOT against the well-known AutoML frameworks 
 
 Basic Concepts
 ===============
@@ -152,7 +152,7 @@ The documentation is available in `FEDOT.Docs <https://itmo-nss-team.github.io/F
 
 The description and source code of underlying algorithms is available in `FEDOT.Algs <https://github.com/ITMO-NSS-team/FEDOT.Algs>`__ repository and its `wiki pages <https://github.com/ITMO-NSS-team/FEDOT.Algs/wiki>`__ (in Russian).
 
-Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
+Also, FEDOT API in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 
 Contribution Guide
 ==================
