@@ -164,6 +164,6 @@ X, then do your best to address the errors.
 Acknowledgements
 ----------------
 
-This document guide is based at well-written `TPOT Framerork
+This document guide is based at well-written `TPOT Framework
 contribution
 guide <https://github.com/EpistasisLab/tpot/blob/master/docs_sources/contributing.md>`__.
