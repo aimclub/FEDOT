@@ -111,6 +111,45 @@ If your contribution requires a new library dependency:
 -  Add the required version of the library to
    `requirements.txt <https://github.com/nccr-itmo/FEDOT/blob/master/requirements.txt>`__
 
+Contribute to the documentation
+-------------------------------
+Take care of the documentation.
+
+All the documentation is created with the Sphinx autodoc feature. Use ..
+automodule:: <module_name> section which describes all the code in the module.
+
+-  If a new package with several scripts.
+
+   1. Go to docs/source/api and create new your_name_for_file.rst file
+
+   2. Add a Header underlined with “=” sign. It’s crusial.
+
+   3. Add automodule description for each of your scripts ::
+
+       .. automodule:: core.your.first.script.path
+          :members:
+          :undoc-members:
+          :show-inheritance:
+
+       .. automodule:: core.your.second.script.path
+          :members:
+          :undoc-members:
+          :show-inheritance:
+       ...
+
+-  If a new module to the existed package.
+
+    Most of the sections are already described in docs/source/api, so you can:
+
+   -  choose the most appropriate and repeate 3-d step from the
+      previouse section.
+   -  or create a new one and repeate 2-3 steps from the previouse
+      section.
+
+-  If a new function or a class to the existing module.
+
+    Be happy. Everything is already done for you.
+
 After submitting your pull request
 ----------------------------------
 
