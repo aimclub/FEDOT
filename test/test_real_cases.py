@@ -3,14 +3,9 @@ import random
 from datetime import timedelta
 
 import numpy as np
-import pytest
 
-from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import get_cancer_case_data_paths
-from benchmark.executor import CaseExecutor, ExecutionParams
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
-from core.repository.tasks import TaskTypesEnum
 from core.utils import project_root
 
 random.seed(1)
@@ -39,19 +34,3 @@ def test_metocean_forecasting_problem():
     rmse = run_metocean_forecasting_problem(full_path_train, full_path_test,
                                             forecast_length=1, max_window_size=1)
     assert rmse < 50
-
-
-@pytest.mark.skip('Max run time should be implemented for the caseExecutor')
-def test_benchmarks_executor():
-    train_file, test_file = get_cancer_case_data_paths()
-
-    result_metrics = CaseExecutor(params=ExecutionParams(train_file=train_file,
-                                                         test_file=test_file,
-                                                         task=TaskTypesEnum.classification,
-                                                         case_label='cancer',
-                                                         target_name='target'),
-                                  models=[BenchmarkModelTypesEnum.fedot,
-                                          BenchmarkModelTypesEnum.baseline],
-                                  metric_list=['roc_auc', 'f1']).execute()
-
-    assert result_metrics is not None

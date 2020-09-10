@@ -30,6 +30,11 @@ class ComposerRequirements:
 
 
 class Composer(ABC):
+    """
+    Base class used for receiving composite models via optimization
+
+    :param log: optional parameter for log oject
+    """
     def __init__(self, log: Log = default_log(__name__)):
         self.history = None
         self.log = log
@@ -41,6 +46,17 @@ class Composer(ABC):
                       metrics: Callable,
                       optimiser_parameters: Any = None,
                       is_visualise: bool = False) -> Chain:
+        """
+        Base method to run the composition process
+
+        :param data: data used for problem solving
+        :param initial_chain: defines the initial state of the population. If None then initial population is random.
+        :param composer_requirements: requirements for composition process
+        :param metrics: metrics used to define the quality of found solution
+        :param optimiser_parameters: parameters used by optimization process (i.e. GPComposerRequirements)
+        :param is_visualise: flag to enable visualization. Default False.
+        :return: Chain object
+        """
         raise NotImplementedError()
 
 

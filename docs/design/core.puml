@@ -1,0 +1,130 @@
+@startuml
+
+class Chain {
+     nodes
+    {static} Chain load_atomic_model(file_path: String)
+    Data evaluate()
+    add_node(new_node: Node)
+    update_node(new_node: Node)
+    AtomicModel save_as_atomic_model()
+}
+
+interface Composer {
+
+    Chain compose_chain(initial_chain, requirements, metrics)
+
+}
+
+class ComposerRequirements {
+    List[Model] models
+    List[AtomicModel] atomic_models
+    DataTypesEnum input_type
+    DataTypesEnum output_type
+}
+
+interface MeanSquaredMetric {
+    Float mse(Data predicted, Data real)
+}
+
+class EvoComposer {
+    Float sparsity_rate
+    List[Chain] __initial_population(Int pop_size)
+    Chain __mutated_chain(Chain source_chain)
+    __crossover_chain(Chain parent_first, Chain parent_second)
+}
+
+abstract class Node {
+    List[Node] nodes_from
+    List[Node] nodes_to
+    List[Id] last_parents_ids
+    Data cached_result
+    EvaluationStrategy evaluation_strategy
+
+    Data apply()
+}
+
+abstract class Model {
+    DataTypesEnum input_type
+    DataTypesEnum output_type
+    Data predict(Data input)
+    fit(Data input)
+    __tune()
+}
+
+enum DataTypesEnum {
+
+}
+
+class Data {
+    {static} Data from_csv(file_path)
+    numpy.array features
+    numpy.array target
+}
+
+class Nemo {
+    initial_conditions : Data
+    boundary_conditions: Data
+    download_inputs()
+    update_model_params(new_model_params)
+    tune_with_rebec(Data observations, List[Data] bounds)
+    Data compute()
+}
+
+class PrimaryNode {
+
+}
+
+class SecondaryNode {
+
+}
+
+class XGBoost {
+
+}
+
+class LogRegression {
+
+}
+
+
+class LinRegression {
+
+}
+
+class NodeFactory {
+    Node log_reg()
+    Node default_xgb()
+    Node lin_reg()
+    Node nemo()
+}
+
+abstract class EvaluationStrategy {
+    Model model
+    Data evaluate(Data input)
+}
+
+Chain *-down- Node
+NodeFactory .-right-.> Node
+SecondaryNode .left.|> Node
+PrimaryNode .left.|> Node
+
+Composer .down.> ComposerRequirements
+Composer .right.> Chain
+Composer .down.> MeanSquaredMetric
+EvoComposer ..|> Composer
+
+Node *-- EvaluationStrategy
+
+EvaluationStrategy *-left- Model
+EvaluationStrategy ..> Data
+
+Nemo ..up|> Model
+LinRegression ..-right-|> Model
+LogRegression ..-right-|> Model
+XGBoost .up.|> Model
+Model .right.> Data
+Model .down> DataTypesEnum
+
+
+
+@enduml

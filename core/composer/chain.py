@@ -13,6 +13,12 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 class Chain:
+    """
+    Base class used for composite model structure definition
+
+    :param nodes: Node object(s)
+    :param log: Log object to record messages
+    """
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = default_log(__name__)):
         self.nodes = []
@@ -25,11 +31,24 @@ class Chain:
                 self.add_node(nodes)
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
+        """
+        Method used for training the chain without using cached information
+
+        :param input_data: data used for model training
+        :param verbose: flag used for status printing to console, default False
+        """
         # Clean all cache and fit all models
         self.log.info('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
     def fit(self, input_data: InputData, use_cache=True, verbose=False):
+        """
+        Run training process in all nodes in chain starting with root.
+
+        :param input_data: data used for model training
+        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param verbose: flag used for status printing to console, default False
+        """
         if not use_cache:
             self._clean_model_cache()
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
@@ -37,6 +56,12 @@ class Chain:
         return train_predicted
 
     def predict(self, input_data: InputData):
+        """
+        Run the predict process in all nodes in chain starting with root.
+
+        :param input_data: data for prediction
+        :return: array of predicted target values
+        """
         if not self.is_all_cache_actual():
             ex = 'Trained model cache is not actual or empty'
             self.log.error(ex)
@@ -47,6 +72,14 @@ class Chain:
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
                                 max_lead_time: timedelta = timedelta(minutes=5),
                                 verbose=False):
+        """
+        Optimize hyperparameters in primary nodes models
+
+        :param input_data: data used for tuning
+        :param iterations: max number of iterations
+        :param max_lead_time: max time available for tuning process
+        :param verbose: flag used for status printing to console, default False
+        """
         # Select all primary nodes
         # Perform fine-tuning for each model in node
         if verbose:
@@ -62,6 +95,14 @@ class Chain:
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5),
                             verbose=False):
+        """
+        Optimize hyperparameters in all nodes models
+
+        :param input_data: data used for tuning
+        :param iterations: max number of iterations
+        :param max_lead_time: max time available for tuning process
+        :param verbose: flag used for status printing to console, default False
+        """
         if verbose:
             self.log.info('Start tuning of chain')
 
@@ -72,6 +113,11 @@ class Chain:
             self.log.info('End tuning')
 
     def add_node(self, new_node: Node):
+        """
+        Add new node to the Chain
+
+        :param new_node: new Node object
+        """
         if new_node not in self.nodes:
             self.nodes.append(new_node)
             if new_node.nodes_from:

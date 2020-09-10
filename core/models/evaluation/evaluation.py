@@ -34,22 +34,56 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
+    """
+    Base class to define the evaluation strategy of Model object:
+    the certain sklearn or any other model with fit/predict methods.
+
+    :param model_type: str type of the model defined in model repository
+    :param dict params: hyperparamters to fit the model with
+    :param Log log: Log object to record messages
+    """
+
     def __init__(self, model_type: str, params: Optional[dict] = None,
-                 log=default_log(__name__)):
+                 log=None):
         self.params_for_fit = params
         self.model_type = model_type
-        self.log: Log = log
+
+        if not log:
+            self.log: Log = default_log(__name__)
+        else:
+            self.log: Log = log
 
     @abstractmethod
     def fit(self, train_data: InputData):
+        """
+        Main method to train the model with the data provided
+
+        :param InputData train_data: data used for model training
+        :return:
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        """
+        Main method to predict the target data.
+
+        :param trained_model: trained model object
+        :param InputData predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
         raise NotImplementedError()
 
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        Main method used for hyperparameter searching
+
+        :param train_data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        :return:
+        """
         raise NotImplementedError()
 
     @property
@@ -58,6 +92,12 @@ class EvaluationStrategy:
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
+    """
+    This class defines the certain model implementation for the sklearn models defined in model repository
+
+    :param str model_type: str type of the model defined in model repository
+    :param dict params: hyperparameters to fit the model with
+    """
     __model_by_types = {
         'xgboost': XGBClassifier,
         'xgbreg': XGBRegressor,
@@ -90,6 +130,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         super().__init__(model_type, params)
 
     def fit(self, train_data: InputData):
+        """
+        This method is used for model training with the data provided
+
+        :param InputData train_data: data used for model training
+        :return:
+        """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
             sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
@@ -100,10 +146,25 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data.
+
+        :param trained_model: model object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
         raise NotImplementedError()
 
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        This method is used for hyperparameter searching
+
+        :param train_data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        :return tuple(object, dict): model with found hyperparameters and dictionary with found hyperparameters
+        """
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
         self._tune_strategy = SklearnCustomRandomTuner
@@ -142,6 +203,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
+        """
+        Predict method for classification task
+
+        :param trained_model: model object
+        :param predict_data: data used for prediction
+        :return: prediction target
+        """
         n_classes = len(trained_model.classes_)
         prediction = trained_model.predict_proba(predict_data.features)
         if n_classes < 2:
@@ -154,20 +222,47 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
+        """
+        Predict method for regression task
+
+        :param trained_model: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     def fit(self, train_data: InputData):
+        """
+        Fit method for clustering task
+
+        :param train_data: data used for model training
+        :return:
+        """
         sklearn_model = self._sklearn_model_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        """
+        Predict method for clustering task
+        :param trained_model: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
         prediction = trained_model.predict(predict_data.features)
         return prediction
 
     def fit_tuned(self, train_data: InputData, iterations: int = 30,
                   max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        This method is used for hyperparameter searching
+
+        :param train_data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        :return:
+        """
         raise NotImplementedError()
