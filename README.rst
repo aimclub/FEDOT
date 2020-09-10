@@ -102,15 +102,13 @@ Project structure
 
 The latest stable release of FEDOT is on the `master branch <https://github.com/nccr-itmo/FEDOT/tree/master>`__. Make sure you are looking at and working on the actual code if you're looking to contribute code.
 
-In terms of directory structure:
+The repository includes the following directories:
 
-* All of benchmarks for FEDOT are in the `benchmark` directory
-* The domain-specific case studies are in the `cases` directory
-* Core classes area in the `core` directory
-* Documentation are in the `docs` directory
-* Unit tests for FEDOT are in the `test` directory
-* Supplementary utilities are in the `test` directory
-
+* Package `core <https://github.com/nccr-itmo/FEDOT/tree/master/core>`__  contains the main classes and scripts. It is a *core* of FEDOT framework
+* Package `examples <https://github.com/nccr-itmo/FEDOT/tree/master/examples>`__ includes several *how-to-use-cases* where you can start to discover how FEDOT works
+* All *unit tests* can be observed in the `examples <https://github.com/nccr-itmo/FEDOT/tree/master/test>`__ directory
+* The sources of documentation are in the `docs <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__
+* Package `benchmark <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__ was developed to show the comparison of FEDOT against the well-known AutoML frameworks 
 
 Basic Concepts
 ===============
