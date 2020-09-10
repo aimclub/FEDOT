@@ -16,8 +16,7 @@ def fit_ar(train_data: InputData, params):
 
 
 def fit_arima(train_data: InputData, params):
-    return ARIMA(train_data.target, **params,
-                 exog=train_data.features).fit(disp=0)
+    return ARIMA(train_data.target, **params).fit(disp=0)
 
 
 def predict_ar(trained_model, predict_data: InputData) -> OutputData:
@@ -44,22 +43,20 @@ def predict_arima(trained_model, predict_data: InputData):
     prediction = []
 
     forecast_length = predict_data.task.task_params.forecast_length
-    prediction_steps = len(predict_data.features) - predict_data.task.task_params.forecast_length + 1
+    prediction_steps = len(predict_data.features) + 1
     for pred_step_id in range(prediction_steps):
 
         start, end = trained_model.nobs + pred_step_id, \
                      trained_model.nobs + pred_step_id + forecast_length - 1
 
-        exog = predict_data.features
-
         if trained_model.data.endog is predict_data.target:
             # if train sample used
             start, end = 0 + pred_step_id, forecast_length + pred_step_id
 
-        prediction_for_step = trained_model.predict(start=start, end=end,
-                                                    exog=exog)
-
-        prediction.append(prediction_for_step[-forecast_length:])
+        # TODO take exog into account
+        prediction_for_step = trained_model.predict(start=start, end=end)
+        prediction_for_step = prediction_for_step[-forecast_length:]
+        prediction.append(prediction_for_step)
 
     return np.stack(prediction)
 

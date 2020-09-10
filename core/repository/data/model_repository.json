@@ -39,9 +39,9 @@
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
 	},
 	"data_model": {
-	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table]",
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
 	  "strategies": ["core.models.evaluation.data_evaluation", "DataModellingStrategy"],
 	  "tags": ["without_preprocessing", "data_model"],
 	  "description": "Implementations of the models for the data injection into features of secondary nodes"
@@ -64,7 +64,7 @@
 	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts_lagged_3d]",
+	  "input_type": "[DataTypesEnum.ts_lagged_table]",
 	  "output_type": "[DataTypesEnum.forecasted_ts]",
 	  "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],

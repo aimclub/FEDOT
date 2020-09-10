@@ -1,5 +1,3 @@
-from copy import copy
-
 import numpy as np
 
 from core.composer.chain import Chain
@@ -8,20 +6,26 @@ from core.repository.tasks import TaskTypesEnum
 
 
 class TsForecastingChain(Chain):
-    def forecast(self, initial_data: InputData, supplementary_data: InputData):
+
+    def forecast(self, initial_data: InputData, supplementary_data: InputData) -> OutputData:
+        """Generates the time series forecast with a sliding window using pre-fitted chain.
+        :param initial_data: the initial condition for the forecasting (should be greater or equals to max_window_size)
+        :param supplementary_data: the data that should be available during the forecast:
+            idx for the forecasted steps and optional exogenous variables
+            (variables that are received from an external source instead of forecasting in place and
+            used to increase the quality of of forecast)
+        :return: forecasted time series
+        """
+
         if not self.is_all_cache_actual():
             raise ValueError('Chain for the time series forecasting was not fitted yet.')
 
         if supplementary_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError('TsForecastingChain can be used for the ts_forecasting task only.')
 
-        supplementary_data = copy(supplementary_data)
-
-        # to avoid data leak
-        supplementary_data.target = None
         supplementary_data.task.task_params.make_future_prediction = True
+        initial_data.task.task_params.make_future_prediction = True
 
-        # predict_data contains task description and additional (exogenous) variables
         forecast_length = supplementary_data.task.task_params.forecast_length
 
         # check if predict features contains additional (exogenous) variables
@@ -29,21 +33,20 @@ class TsForecastingChain(Chain):
 
         # initial data for the first prediction
         pre_history_start = len(initial_data.idx) - initial_data.task.task_params.max_window_size
-        pre_history_end = len(initial_data.idx) + 1
+        pre_history_end = len(initial_data.idx)
         data_for_forecast = initial_data.subset(start=pre_history_start, end=pre_history_end)
 
         full_prediction = []
         forecast_steps_num = int(np.ceil(len(supplementary_data.idx) / forecast_length))
         for forecast_step in range(forecast_steps_num):
-            # prediction for forecast_length steps
             stepwise_prediction = self.predict(data_for_forecast).predict
             if len(stepwise_prediction.shape) > 1:
-                # multi-step prediction
+                # multi-dim prediction
                 stepwise_prediction = stepwise_prediction[-1, :]
                 full_prediction.extend(stepwise_prediction)
             else:
-                # single-step prediction
-                stepwise_prediction = stepwise_prediction[-1]
+                # single-dim prediction
+                # stepwise_prediction = stepwise_prediction[-1]
                 full_prediction.append(stepwise_prediction)
 
             # add additional variable from external source

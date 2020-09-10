@@ -6,7 +6,7 @@ from sklearn.metrics import mean_squared_error as mse
 
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.composer.ts_chain import TsForecastingChain
-from core.models.data import InputData, OutputData, train_test_data_setup
+from core.models.data import InputData, OutputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from core.utils import project_root
@@ -57,23 +57,6 @@ def compare_plot(predicted, real, forecast_length, model_name):
     plt.ylabel('SSH, cm')
     plt.title(f'Sea surface height forecast for {forecast_length} hours with {model_name}')
     plt.show()
-
-
-def get_synthetic_ts_data_linear(n_steps=1000, forecast_length=1, max_window_size=50):
-    simulated_data = np.asarray([float(_) for _ in (np.arange(0, n_steps))])
-
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length,
-                                    max_window_size=max_window_size,
-                                    return_all_steps=False,
-                                    make_future_prediction=False))
-
-    input_data = InputData(idx=np.arange(0, n_steps),
-                           features=simulated_data,
-                           target=simulated_data,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
-    return train_test_data_setup(input_data)
 
 
 def run_metocean_forecasting_problem(train_file_path, test_file_path,

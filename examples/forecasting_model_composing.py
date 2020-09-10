@@ -25,7 +25,7 @@ def get_composite_lstm_chain():
     node_residual = PrimaryNode('residual_data_model')
     node_ridge_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
-    node_final = SecondaryNode('additive_data_model',
+    node_final = SecondaryNode('linear',
                                nodes_from=[node_ridge_residual, node_lstm_trend])
     node_final.labels = ["fixed"]
     chain.add_node(node_final)

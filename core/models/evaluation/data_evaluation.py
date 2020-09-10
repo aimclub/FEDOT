@@ -1,24 +1,14 @@
 from typing import Optional
 
 import numpy as np
-from scipy import signal
 from sklearn.decomposition import PCA
-from statsmodels.tsa.seasonal import seasonal_decompose
 
+from core.algorithms.time_series.scale import estimate_period, split_ts_to_components
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
-
-
-def _estimate_period(variable):
-    analyse_ratio = 10
-    f, pxx_den = signal.welch(variable, fs=1, scaling='spectrum',
-                              nfft=int(len(variable) / analyse_ratio),
-                              nperseg=int(len(variable) / analyse_ratio))
-    period = int(1 / f[np.argmax(pxx_den)])
-    return period
 
 
 def get_data(trained_model, predict_data: InputData):
@@ -34,14 +24,18 @@ def get_difference(trained_model, predict_data: InputData):
 
 def fit_decomposition(train_data: InputData, params: Optional[dict]):
     target = train_data.target
-    period = _estimate_period(target)
+    period = estimate_period(target)
     return period
 
 
+def get_residual(trained_model, predict_data: InputData):
+    _, target_residual = split_ts_to_components(trained_model, predict_data)
+    return target_residual
+
+
 def get_trend(trained_model, predict_data: InputData):
-    target = predict_data.target
-    decomposed_target = seasonal_decompose(target, period=trained_model, extrapolate_trend='freq')
-    return decomposed_target.trend
+    target_trend, _ = split_ts_to_components(trained_model, predict_data)
+    return target_trend
 
 
 def get_sum(trained_model, predict_data: InputData):
@@ -59,12 +53,6 @@ def get_sum(trained_model, predict_data: InputData):
             predict_data.features[..., i * features_step_for_sum: (i + 1) * features_step_for_sum]
 
     return sum_features
-
-
-def get_residual(trained_model, predict_data: InputData):
-    target_trend = get_trend(trained_model, predict_data)
-    target_residual = predict_data.target - target_trend
-    return target_residual
 
 
 def fit_pca(train_data: InputData, params: Optional[dict]):

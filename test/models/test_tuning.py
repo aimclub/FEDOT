@@ -11,7 +11,7 @@ from core.models.model import Model
 from core.models.preprocessing import Scaling
 from core.models.tuning.tuners import get_random_params
 from core.repository.tasks import Task, TaskTypesEnum
-from test.tasks.test_autoregression import get_synthetic_ts_data
+from test.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
 @pytest.fixture()
@@ -71,7 +71,7 @@ def test_knn_classification_tune_correct(data_fixture, request):
 
 @pytest.mark.skip("Investigate performance")
 def test_arima_tune_correct():
-    data = get_synthetic_ts_data()
+    data = get_synthetic_ts_data_period()
     train_data, test_data = train_test_data_setup(data=data)
 
     arima_for_tune = Model(model_type='arima')

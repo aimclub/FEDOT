@@ -1,5 +1,4 @@
 import warnings
-from copy import copy
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -7,6 +6,7 @@ import pandas as pd
 from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
 
+from core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
 from core.models.preprocessing import ImputationStrategy
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
@@ -86,15 +86,8 @@ class InputData(Data):
         data_type = outputs[0].data_type
         idx = outputs[0].idx
 
-        # TODO process multivariate predict
-        if len(idx) < len(outputs[0].predict):
-            idx = np.asarray(list(idx) + [np.nan])
-
-        # TODO process multivariate target
-        if target is not None and len(target) < len(outputs[0].predict):
-            target = np.asarray(list(target) + [np.nan])
-
         dataset_merging_funcs = {
+            DataTypesEnum.forecasted_ts: _combine_datasets_ts,
             DataTypesEnum.ts: _combine_datasets_ts,
             DataTypesEnum.table: _combine_datasets_table
         }
@@ -106,11 +99,23 @@ class InputData(Data):
                          data_type=data_type)
 
     def subset(self, start: int, end: int):
+        if not (0 <= start <= end <= len(self.idx)):
+            raise ValueError('Incorrect boundaries for subset')
         new_features = None
         if self.features is not None:
-            new_features = self.features[start:end]
-        return InputData(idx=self.idx[start:end], features=new_features,
-                         target=self.target[start:end], task=self.task, data_type=self.data_type)
+            new_features = self.features[start:end + 1]
+        return InputData(idx=self.idx[start:end + 1], features=new_features,
+                         target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
+
+    def prepare_for_modelling(self, is_for_fit: bool = False):
+        prepared_data = self
+        if self.data_type == DataTypesEnum.ts_lagged_table:
+            prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
+        elif self.data_type == DataTypesEnum.table or self.data_type == DataTypesEnum.forecasted_ts:
+            # TODO implement NaN filling here
+            pass
+
+        return prepared_data
 
 
 @dataclass
@@ -157,15 +162,20 @@ def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) 
 
 
 def _combine_datasets_ts(outputs: List[OutputData]):
-    features = list()
+    features_list = list()
+
     expected_len = max([len(output.idx) for output in outputs])
+
     for elem in outputs:
         predict = elem.predict
         if len(elem.predict) != expected_len:
             raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
-        features.append(predict)
+        features_list.append(predict)
 
-    features = np.column_stack(features)
+    if len(features_list) > 1:
+        features = np.column_stack(features_list)
+    else:
+        features = features_list[0]
 
     return features
 
@@ -173,6 +183,7 @@ def _combine_datasets_ts(outputs: List[OutputData]):
 def _combine_datasets_table(outputs: List[OutputData]):
     features = list()
     expected_len = len(outputs[0].predict)
+
     for elem in outputs:
         if len(elem.predict) != expected_len:
             raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
@@ -204,42 +215,3 @@ def _combine_datasets_common(outputs: List[OutputData]):
             for i in range(number_of_variables_in_prediction):
                 features.append(elem.predict[:, i])
     return features
-
-
-def clean_nans_in_data(data: InputData, array_with_nans: np.ndarray):
-    data_to_clean = copy(data)
-    if array_with_nans is None:
-        return data_to_clean
-
-    nans = np.isnan(array_with_nans)
-
-    idx = data_to_clean.idx
-    features = data_to_clean.features
-    target = data_to_clean.target
-
-    # remove all rows with nan in array_with_nans
-    if len(array_with_nans.shape) == 1:
-        idx = idx[~nans]
-        features = features[~nans] if data.features is not None else features
-        target = target[~nans] if data.target is not None else target
-    elif len(array_with_nans.shape) == 2:
-        idx = idx[~nans.any(axis=1)]
-        features = features[~nans.any(axis=1)] if features is not None else features
-        target = target[~nans.any(axis=1)] if target is not None else target
-    elif len(array_with_nans.shape) == 3:
-        for dim in range(array_with_nans.shape[2]):
-            idx = data.idx[~nans.any(axis=1).any(axis=1)]
-            if data.features is not None:
-                features = \
-                    data.features[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
-            if data.target is not None:
-                target = \
-                    data.target[~np.isnan(array_with_nans[:, :, dim]).any(axis=1)]
-    else:
-        raise NotImplementedError('Dimensionality not supported')
-
-    data_to_clean.idx = idx
-    data_to_clean.features = features
-    data_to_clean.target = target
-
-    return data_to_clean

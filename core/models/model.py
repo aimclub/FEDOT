@@ -3,7 +3,8 @@ from datetime import timedelta
 import numpy as np
 
 from core.log import Log, default_log
-from core.models.data import InputData, clean_nans_in_data
+from core.algorithms.time_series.prediction import post_process_forecasted_ts
+from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -30,19 +31,6 @@ class Model:
         model_info = ModelTypesRepository().model_info_by_id(self.model_type)
         return model_info.task_type
 
-    def compatible_task_type(self, base_task_type: TaskTypesEnum):
-        # if the model can't be used directly for the task type from data
-        if base_task_type not in self.acceptable_task_types:
-            # search the supplementary task types, that can be included in chain which solves original task
-            globally_compatible_task_types = compatible_task_types(base_task_type)
-            compatible_task_types_acceptable_for_model = list(set(self.acceptable_task_types).intersection
-                                                              (set(globally_compatible_task_types)))
-            if len(compatible_task_types_acceptable_for_model) == 0:
-                raise ValueError(f'Model {self.model_type} can not be used as a part of {base_task_type}.')
-            task_type_for_model = compatible_task_types_acceptable_for_model[0]
-            return task_type_for_model
-        return base_task_type
-
     @property
     def metadata(self) -> ModelMetaInfo:
         model_info = ModelTypesRepository().model_info_by_id(self.model_type)
@@ -64,7 +52,6 @@ class Model:
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: Task):
-
         params_for_fit = None
         if self.params != DEFAULT_PARAMS_STUB:
             params_for_fit = self.params
@@ -86,9 +73,9 @@ class Model:
         """
         self._init(data.task)
 
-        data_for_fit = _drop_data_with_nan(data)
+        prepared_data = data.prepare_for_modelling(is_for_fit=True)
 
-        fitted_model = self._eval_strategy.fit(train_data=data_for_fit)
+        fitted_model = self._eval_strategy.fit(train_data=prepared_data)
 
         predict_train = self.predict(fitted_model, data)
 
@@ -104,12 +91,12 @@ class Model:
         """
         self._init(data.task)
 
-        data_for_predict = _drop_data_with_nan(data, ignore_nan_in_target=True)
+        prepared_data = data.prepare_for_modelling(is_for_fit=False)
 
         prediction = self._eval_strategy.predict(trained_model=fitted_model,
-                                                 predict_data=data_for_predict)
+                                                 predict_data=prepared_data)
 
-        prediction = _post_process_prediction(prediction, data.task, len(data.idx), data.data_type)
+        prediction = _post_process_prediction_using_original_input(prediction=prediction, input_data=data)
 
         return prediction
 
@@ -124,10 +111,10 @@ class Model:
         """
         self._init(data.task)
 
-        data_for_fit = _drop_data_with_nan(data, ignore_nan_in_target=True)
+        prepared_data = data.prepare_for_modelling(is_for_fit=True)
 
         try:
-            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data_for_fit,
+            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=prepared_data,
                                                                        iterations=iterations,
                                                                        max_lead_time=max_lead_time)
             self.params = tuned_params
@@ -135,13 +122,10 @@ class Model:
                 self.params = DEFAULT_PARAMS_STUB
         except Exception as ex:
             print(f'Tuning failed because of {ex}')
-            fitted_model = self._eval_strategy.fit(train_data=data_for_fit)
+            fitted_model = self._eval_strategy.fit(train_data=data)
             self.params = DEFAULT_PARAMS_STUB
 
-        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=data_for_fit)
-
-        predict_train = _post_process_prediction(predict_train, data.task, len(data.idx), data.data_type)
+        predict_train = self.predict(fitted_model, data)
 
         return fitted_model, predict_train
 
@@ -170,49 +154,12 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
     return strategy
 
 
-def _post_process_prediction(prediction, task: Task, expected_length: int, data_type: DataTypesEnum):
-    if np.array([np.isnan(_) for _ in prediction]).any():
-        prediction = np.nan_to_num(prediction)
+def _post_process_prediction_using_original_input(prediction, input_data: InputData):
+    processed_predict = prediction
+    if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+        processed_predict = post_process_forecasted_ts(prediction, input_data)
+    else:
+        if np.array([np.isnan(_) for _ in prediction]).any():
+            processed_predict = np.nan_to_num(prediction)
 
-    if task.task_type == TaskTypesEnum.ts_forecasting:
-        prediction = _post_process_ts_prediction(prediction, task, expected_length, data_type)
-
-    return prediction
-
-
-def _post_process_ts_prediction(prediction, task: Task, expected_length: int, data_type: DataTypesEnum):
-    if not task.task_params.return_all_steps and len(prediction.shape) > 1:
-        # choose last forecasting step only for each prediction
-        prediction = prediction[:, -1]
-
-    if not task.task_params.make_future_prediction and \
-            (data_type == DataTypesEnum.ts_lagged_3d or data_type == DataTypesEnum.ts_lagged_table):
-        # cut unwanted oos predection
-        length_of_cut = (task.task_params.forecast_length - 1)
-        if length_of_cut > 0:
-            prediction = prediction[:-length_of_cut]
-    # TODO add multivariate
-
-    # add zeros to preserve length
-    if len(prediction) < expected_length:
-        zeros = np.zeros((expected_length - len(prediction), *prediction.shape[1:]))
-        zeros = [np.nan] * len(zeros)
-
-        if len(prediction.shape) == 1:
-            prediction = np.concatenate((zeros, prediction))
-        else:
-            prediction_steps = []
-            for forecast_depth in range(prediction.shape[1]):
-                prediction_steps.append(np.concatenate((zeros, prediction[:, forecast_depth])))
-            prediction = np.stack(np.asarray(prediction_steps)).T
-    return prediction
-
-
-def _drop_data_with_nan(data_to_clean: InputData, ignore_nan_in_target: bool = False):
-    data_to_clean = clean_nans_in_data(data_to_clean, data_to_clean.features)
-
-    if not ignore_nan_in_target:
-        # can be acceptable in prediction
-        data_to_clean = clean_nans_in_data(data_to_clean, data_to_clean.target)
-
-    return data_to_clean
+    return processed_predict
