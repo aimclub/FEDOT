@@ -152,7 +152,7 @@ The documentation is available in `FEDOT.Docs <https://itmo-nss-team.github.io/F
 
 The description and source code of underlying algorithms is available in `FEDOT.Algs <https://github.com/ITMO-NSS-team/FEDOT.Algs>`__ repository and its `wiki pages <https://github.com/ITMO-NSS-team/FEDOT.Algs/wiki>`__ (in Russian).
 
-Also, FEDOT on `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__
+Also, FEDOT API in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 
 Contribution Guide
 ==================
