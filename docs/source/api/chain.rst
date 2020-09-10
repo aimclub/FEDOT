@@ -1,8 +1,10 @@
 Chain
 =====
 
-.. autoclass:: core.composer.chain.Chain
-    :members:
+.. automodule:: core.composer.chain
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. toctree::
    :glob:

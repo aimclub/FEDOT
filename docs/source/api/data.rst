@@ -1,7 +1,7 @@
-Composer
-========
+Data
+====
 
-.. automodule:: core.composer.composer
+.. automodule:: core.models.data
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,9 +1,10 @@
 Logging
 =======
-.. autoclass:: core.log.Log
-    :members:
 
-.. autofunction:: core.log.default_log
+.. automodule:: core.log
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. toctree::
    :glob:

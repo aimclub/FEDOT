@@ -25,7 +25,7 @@ Content
    contribution
    faq
    about
-   modules
+   api/index
 
 
 Indices and tables

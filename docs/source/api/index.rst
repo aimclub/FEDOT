@@ -11,4 +11,6 @@ API
    model
    eval_strategy
    tuning
+   repository
+   data
    logging

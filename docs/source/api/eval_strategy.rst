@@ -1,10 +1,25 @@
 Evaluation Strategy
 ===================
-.. autoclass:: core.models.evaluation.evaluation.EvaluationStrategy
-    :members:
 
-.. autoclass:: core.models.evaluation.evaluation.SkLearnEvaluationStrategy
-    :members:
+.. automodule:: core.models.evaluation.evaluation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: core.models.evaluation.keras_eval
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: core.models.evaluation.stats_models_eval
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: core.models.evaluation.data_evaluation
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. toctree::
    :glob:
