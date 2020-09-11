@@ -66,18 +66,15 @@ def create_performance_model(dataset: InputData, chain: Chain, path_to_save: str
         dataset.features = dataset_original.features[:, :i]
         while current_time <= time_limit and percent <= top_percent:
             # decreasing number of dataset lines
-            dat, _ = train_test_data_setup(dataset, split_ratio=percent)
-
-            # split dataset to train and test sets
-            dataset_to_compose, dataset_to_validate = train_test_data_setup(dat)
-            num_lines = dataset_to_compose.target.shape[0]
+            data, _ = train_test_data_setup(dataset, split_ratio=percent)
+            num_lines = data.target.shape[0]
 
             # n-times fitting in a fixed (x, y) point of performance model
             time_local = []
             for j in range(n):
                 # calculate parameters optimization time for a given chain
                 start_time = datetime.datetime.now()
-                chain.fit(input_data=dataset_to_compose, verbose=True)
+                chain.fit(input_data=data, verbose=True)
                 time = datetime.datetime.now() - start_time
                 arr.append([time.total_seconds(), num_lines, i, j])
                 time_local.append(time.total_seconds())
