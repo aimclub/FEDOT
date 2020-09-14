@@ -2,10 +2,13 @@ language: python
 
 python:
   - "3.6"
+  - "3.7"
+  - "3.8"
 
 install:
   - pip install netcdf4
   - pip install -r requirements.txt
+  - pip install -r b_requirements.txt
   - pip install coveralls
   - pip install pytest-cov
 notifications:
