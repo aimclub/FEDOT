@@ -1,7 +1,7 @@
 scikit-optimize==0.7.4
 statsmodels==0.11.1
 pandas==1.1.0
-dataclasses==0.7; python_version < '3.7'
+dataclasses==0.7; python_version < '3.8'
 ete3==3.1.1
 numpy==1.18.0
 pytest==5.2.0
@@ -15,4 +15,5 @@ Pillow==7.1.0
 imageio==2.8.0
 pydot==1.4.1
 seaborn==0.9.0
-tensorflow==2.1.0
+tensorflow==2.1.0; python_version < '3.8'
+tensorflow==2.3.0; python_version == '3.8'
