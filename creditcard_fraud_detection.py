@@ -1,5 +1,36 @@
+import pandas as pd
+from sklearn.utils import shuffle
+from imblearn.under_sampling import RandomUnderSampler
 
 
+import datetime
+import random
+from datetime import timedelta
+
+from sklearn.preprocessing import StandardScaler, RobustScaler
+
+from core.composer.gp_composer.gp_composer import \
+    GPComposer, GPComposerRequirements
+from core.composer.visualisation import ComposerVisualiser
+from core.repository.model_types_repository import ModelTypesRepository
+from core.repository.quality_metrics_repository import \
+    ClassificationMetricsEnum, MetricsRepository
+from core.repository.tasks import Task, TaskTypesEnum
+from core.utils import probs_to_labels
+from examples.utils import create_multi_clf_examples_from_excel
+
+
+import pandas as pd
+import numpy as np
+from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, classification_report, confusion_matrix
+from benchmark.benchmark_utils import get_scoring_case_data_paths
+from core.composer.chain import Chain
+from core.composer.node import PrimaryNode, SecondaryNode
+from core.models.data import InputData
+
+random.seed(1)
+np.random.seed(1)
 
 
 
@@ -37,9 +68,49 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     return chain_evo_composed
 
 
+def validate_model_quality(model: Chain, data_path: str):
+    dataset_to_validate = InputData.from_csv(data_path)
+    predicted_labels = model.predict(dataset_to_validate).predict
+
+    
+    roc_auc_st = roc_auc(y_true=test_data.target,y_score=predicted_labels)
+                              
+    p = precision_score(y_true=test_data.target,y_pred=predicted_labels.round())
+    r = recall_score(y_true=test_data.target, y_pred=predicted_labels.round())
+    a = accuracy_score(y_true=test_data.target, y_pred=predicted_labels.round())
+    
+    return roc_auc_st, p, r, a
 
 
 
+def balance_class(file_path):
+    df = pd.read_csv(file_path)
+    
+    X = df.drop(columns=['Class'])
+    y = df.iloc[:,[-1]]
+
+    rus = RandomUnderSampler(sampling_strategy = 'all', random_state=42)
+    
+    X_res, y_res = rus.fit_resample(X, y)
+    X_res['Class'] = y_res
+    
+    df_balanced = shuffle(X_res, random_state = 42).reset_index().drop(columns='index')
+    
+    df_balanced.to_csv(r'./creditcard_overSample.csv', index=False)
+    
+    return r'./creditcard_overSample.csv'
 
 if __name__ == "__main__":
-    pass
+    file_path = r'./creditcard.csv'
+    
+    file_path_first = balance_class(file_path)
+    
+    train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
+    test_data = InputData.from_csv(test_file_path)
+    
+    fitted_model = get_model(train_file_path)
+    
+    ComposerVisualiser.visualise(fitted_model, save_path = f'./model_done.jpg')
+    
+    roc_auc, p, r, a = validate_model_quality(fitted_model, test_file_path)
+    print(f'ROC AUC metric is {roc_auc}, \nPRECISION is {p}, \nRECALL is {r}, \nACCURACY is {a}')
