@@ -5,8 +5,13 @@ tensorflow==2.1.0
 tpot==0.11.1
 h2o==3.28.1.2
 statsmodels==0.11.1
+<<<<<<< HEAD
 pandas==1.0.1
 dataclasses==0.6; python_version < '3.7'
+=======
+pandas==1.1.0
+dataclasses==0.7; python_version < '3.7'
+>>>>>>> origin/master
 ete3==3.1.1
 numpy==1.18.0
 pytest==5.2.0
@@ -19,5 +24,5 @@ xgboost==1.0.1
 Pillow==7.1.0
 imageio==2.8.0
 pydot==1.4.1
-pmlb==0.3
+pmlb==1.0
 seaborn==0.9.0

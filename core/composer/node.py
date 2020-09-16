@@ -4,6 +4,7 @@ from copy import copy
 from datetime import timedelta
 from typing import Callable, List, Optional
 
+from core.log import default_log
 from core.models.data import InputData, OutputData
 from core.models.model import Model
 from core.models.preprocessing import preprocessing_func_for_data
@@ -15,11 +16,13 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 class Node(ABC):
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
-                 manual_preprocessing_func: Optional[Callable] = None):
+                 manual_preprocessing_func: Optional[Callable] = None,
+                 log=default_log(__name__)):
         self.nodes_from = nodes_from
         self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
+        self.log = log
 
     @property
     def descriptive_id(self):
@@ -182,33 +185,37 @@ class SharedCache(FittedModelCache):
 
 
 class PrimaryNode(Node):
-    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None):
+    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
+                 **kwargs):
         super().__init__(nodes_from=None, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func)
+                         manual_preprocessing_func=manual_preprocessing_func,
+                         **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
-            print(f'Trying to fit primary node with model: {self.model}')
+            self.log.info(f'Trying to fit primary node with model: {self.model}')
 
         return super().fit(input_data, verbose)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
-            print(f'Predict in primary node by model: {self.model}')
+            self.log.info(f'Predict in primary node by model: {self.model}')
 
         return super().predict(input_data, verbose)
 
 
 class SecondaryNode(Node):
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
-                 manual_preprocessing_func: Optional[Callable] = None):
+                 manual_preprocessing_func: Optional[Callable] = None,
+                 **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func)
+                         manual_preprocessing_func=manual_preprocessing_func,
+                         **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
-            print(f'Trying to fit secondary node with model: {self.model}')
+            self.log.info(f'Trying to fit secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='fit',
@@ -217,7 +224,7 @@ class SecondaryNode(Node):
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         if verbose:
-            print(f'Obtain prediction in secondary node with model: {self.model}')
+            self.log.info(f'Obtain prediction in secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict',
@@ -229,7 +236,7 @@ class SecondaryNode(Node):
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
                   verbose: bool = False):
         if verbose:
-            print(f'Tune all parent nodes in secondary node with model: {self.model}')
+            self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='fine_tune',
@@ -249,7 +256,7 @@ class SecondaryNode(Node):
             raise ValueError()
 
         if verbose:
-            print(f'Fit all parent nodes in secondary node with model: {self.model}')
+            self.log.info(f'Fit all parent nodes in secondary node with model: {self.model}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
