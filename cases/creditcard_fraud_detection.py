@@ -1,13 +1,12 @@
 import pandas as pd
+import numpy as np
 from sklearn.utils import shuffle
 from imblearn.under_sampling import RandomUnderSampler
 
-
-import datetime
 import random
+import datetime
 from datetime import timedelta
 
-from sklearn.preprocessing import StandardScaler, RobustScaler
 
 from core.composer.gp_composer.gp_composer import \
     GPComposer, GPComposerRequirements
@@ -16,25 +15,29 @@ from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.quality_metrics_repository import \
     ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
-from core.utils import probs_to_labels
+
 from examples.utils import create_multi_clf_examples_from_excel
 
-
-import pandas as pd
-import numpy as np
-from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, classification_report, confusion_matrix
-from benchmark.benchmark_utils import get_scoring_case_data_paths
+from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, roc_auc_score
 from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 
 random.seed(1)
 np.random.seed(1)
 
+#Kaggle competition: https://www.kaggle.com/mlg-ulb/creditcardfraud
 
-
-def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelta(minutes=5)):
+def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelta(minutes=180), depth: int=5, width: int=4, population: int=35, num_gen: int=320):
+    """
+    train_file_path: train file path.
+    cur_lead_time: max time to search best model.
+    num_gen: how much steps of generations will be(check cur_lead_time). 
+    
+    Attention! The following params use a lot of RAM. Use small values, depending on the amount of your RAM.
+    depth: max depth of searching model.
+    width: max width of searching model.
+    population: number of population/
+    """
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
 
@@ -48,8 +51,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
-        max_lead_time=cur_lead_time, max_arity=3,
-        max_depth=4, pop_size=20, num_of_generations=100, 
+        max_lead_time=cur_lead_time, max_arity=width,
+        max_depth=depth, pop_size=population, num_of_generations=num_gen, 
         crossover_prob = 0.8, mutation_prob = 0.8, 
         add_single_model_chains = True)
 
@@ -68,22 +71,29 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     return chain_evo_composed
 
 
-def validate_model_quality(model: Chain, data_path: str):
+def apply_model_to_data(model: Chain, data_path: str):
+    """
+    Applying model to data and check metrics.
+    """
     dataset_to_validate = InputData.from_csv(data_path)
+    
     predicted_labels = model.predict(dataset_to_validate).predict
 
     
-    roc_auc_st = roc_auc(y_true=test_data.target,y_score=predicted_labels)
+    roc_auc_st = round(roc_auc_score(y_true=dataset_to_validate.target,y_score=predicted_labels.round()), 4)
                               
-    p = precision_score(y_true=test_data.target,y_pred=predicted_labels.round())
-    r = recall_score(y_true=test_data.target, y_pred=predicted_labels.round())
-    a = accuracy_score(y_true=test_data.target, y_pred=predicted_labels.round())
+    p = round(precision_score(y_true=dataset_to_validate.target,y_pred=predicted_labels.round()), 4)
+    r = round(recall_score(y_true=dataset_to_validate.target,y_pred=predicted_labels.round()), 4)
+    a = round(accuracy_score(y_true=dataset_to_validate.target,y_pred=predicted_labels.round()),4 )
+    f = round(f1_score(y_true=dataset_to_validate.target,y_pred=predicted_labels.round()), 4)
     
-    return roc_auc_st, p, r, a
-
+    return roc_auc_st, p, r, a, f
 
 
 def balance_class(file_path):
+    """
+    Function to balace our dataset to minority class.
+    """
     df = pd.read_csv(file_path)
     
     X = df.drop(columns=['Class'])
@@ -106,11 +116,14 @@ if __name__ == "__main__":
     file_path_first = balance_class(file_path)
     
     train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
-    test_data = InputData.from_csv(test_file_path)
     
     fitted_model = get_model(train_file_path)
     
-    ComposerVisualiser.visualise(fitted_model, save_path = f'./model_done.jpg')
+    ComposerVisualiser.visualise(fitted_model, save_path = f'./model.png')
     
-    roc_auc, p, r, a = validate_model_quality(fitted_model, test_file_path)
-    print(f'ROC AUC metric is {roc_auc}, \nPRECISION is {p}, \nRECALL is {r}, \nACCURACY is {a}')
+    roc_auc, p, r, a, f = apply_model_to_data(fitted_model, test_file_path)
+    print(f'TEST/TRAIN SCORE \nROC AUC metric is {roc_auc} \nPRECISION is {p} \nRECALL is {r} \nACCURACY is {a} \nF1_score is {f}')
+    
+    print('\n')
+    roc_auc, p, r, a, f = apply_model_to_data(fitted_model, file_path)
+    print(f'Applying model to all data \nROC AUC metric is {roc_auc} \nPRECISION is {p} \nRECALL is {r} \nACCURACY is {a} \nF1_score is {f}')
