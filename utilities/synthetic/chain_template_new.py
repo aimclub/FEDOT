@@ -68,7 +68,8 @@ class ChainTemplate:
                         secondary_node.custom_params = node_object['params']
                     else:
                         secondary_node.custom_params = DEFAULT_PARAMS_STUB
-                    secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from in node_object['nodes_from']]
+                    secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from
+                                                 in node_object['nodes_from']]
                     return secondary_node
             else:
                 if node_object['trained_model_path']:
