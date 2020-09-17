@@ -1,0 +1,54 @@
+{
+    "total_model_types": {
+        "dt": 2,
+        "rf": 1,
+        "tpot": 1,
+        "lda": 1
+    },
+    "depth": 4,
+    "nodes": [
+        {
+            "model_id": 0,
+            "model_type": "tpot",
+            "params": {
+                "max_run_time_sec": 60
+            },
+            "nodes_from": []
+        },
+        {
+            "model_id": 1,
+            "model_type": "lda",
+            "params": {
+                "n_components": 60,
+                "max_iter": 30,
+                "n_jobs": 6,
+                "learning_method": "batch",
+                "verbose": 1
+            },
+            "nodes_from": []
+        },
+
+        {
+            "model_id": 2,
+            "model_type": "rf",
+            "params": {
+                "n_estimators": 100
+            },
+            "nodes_from": [0,1]
+        },
+        {
+            "model_id": 3,
+            "model_type": "dt",
+            "params": "default_params",
+            "nodes_from": [2]
+        },
+        {
+            "model_id": 4,
+            "model_type": "dt",
+            "params": {
+                "n_estimators": 100
+            },
+            "nodes_from": [3]
+        }
+    ]
+}

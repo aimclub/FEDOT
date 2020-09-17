@@ -1,10 +1,10 @@
 import json
-from utilities.synthetic.model_json_vice_versa import serializing_json_from_chain, deserializing_chain_from_json
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
+from utilities.synthetic.chain_template_new import ChainTemplate
 
 
-def test_json_from_chain():
+def create_static_chain_1() -> Chain:
     chain = Chain()
     node_tpot = PrimaryNode('tpot')
     node_tpot.custom_params = {'max_run_time_sec': 60}
@@ -25,128 +25,59 @@ def test_json_from_chain():
 
     chain.add_node(node_dt_second)
 
-    json_object_expected = serializing_json_from_chain(chain)
-
-    json_object = json.dumps({
-        "root_node": {
-            "model_id": None,
-            "model_type": "dt",
-            "params": {
-                "n_estimators": 100
-            },
-            "nodes_from": [
-                {
-                    "model_id": None,
-                    "model_type": "dt",
-                    "params": None,
-                    "nodes_from": [
-                        {
-                            "model_id": None,
-                            "model_type": "rf",
-                            "params": {
-                                "n_estimators": 100
-                            },
-                            "nodes_from": [
-                                {
-                                    "model_id": None,
-                                    "model_type": "tpot",
-                                    "params": {
-                                        "max_run_time_sec": 60
-                                    },
-                                    "nodes_from": []
-                                },
-                                {
-                                    "model_id": None,
-                                    "model_type": "lda",
-                                    "params": {
-                                        "n_components": 60,
-                                        "max_iter": 30,
-                                        "n_jobs": 6,
-                                        "learning_method": "batch",
-                                        "verbose": 1
-                                    },
-                                    "nodes_from": []
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        "depth": 4
-    })
-
-    assert json_object == json_object_expected
+    return chain
 
 
-def test_chain_from_json():
-    json_object = '''{
-        "root_node": {
-            "model_id": null,
-            "model_type": "dt",
-            "params": {
-                "n_estimators": 100
-            },
-            "nodes_from": [
-                {
-                    "model_id": null,
-                    "model_type": "dt",
-                    "params": null,
-                    "nodes_from": [
-                        {
-                            "model_id": null,
-                            "model_type": "rf",
-                            "params": {
-                                "n_estimators": 100
-                            },
-                            "nodes_from": [
-                                {
-                                    "model_id": null,
-                                    "model_type": "tpot",
-                                    "params": {
-                                        "max_run_time_sec": 60
-                                    },
-                                    "nodes_from": []
-                                },
-                                {
-                                    "model_id": null,
-                                    "model_type": "lda",
-                                    "params": {
-                                        "n_components": 60,
-                                        "max_iter": 30,
-                                        "n_jobs": 6,
-                                        "learning_method": "batch",
-                                        "verbose": 1
-                                    },
-                                    "nodes_from": []
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        "depth": 4
-    }'''
+def transform_uniq_id_to_uuid4(expected, chain_template: ChainTemplate):
+    uniq_model_ids = {}
+    for index, node in enumerate(chain_template.nodes):
+        uniq_model_ids[index] = node.model_id
 
-    chain = Chain()
-    node_tpot = PrimaryNode('tpot')
-    node_tpot.custom_params = {'max_run_time_sec': 60}
+    for index, node in enumerate(expected['nodes']):
+        node['model_id'] = uniq_model_ids[index]
+        nodes_from_converted = []
+        for model_from_id in node['nodes_from']:
+            for key in uniq_model_ids:
+                if key == model_from_id:
+                    nodes_from_converted.append(uniq_model_ids[key])
+                    break
 
-    node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 60, 'max_iter': 30, 'n_jobs': 6, 'learning_method': 'batch', 'verbose': 1}
+        node['nodes_from'] = nodes_from_converted
 
-    node_rf = SecondaryNode('rf')
-    node_rf.custom_params = {'n_estimators': 100}
-    node_rf.nodes_from = [node_tpot, node_lda]
+    return expected
 
-    node_dt = SecondaryNode('dt')
-    node_dt.nodes_from = [node_rf]
 
-    node_dt_second = SecondaryNode('dt')
-    node_dt_second.custom_params = {'n_estimators': 100}
-    node_dt_second.nodes_from = [node_dt]
+def test_chain_convert_to_chain_template():
+    chain = create_static_chain_1()
+    chain_template = ChainTemplate(chain)
+    json_object_actual = chain_template.to_json()
 
-    chain.add_node(node_dt_second)
+    with open('test/data/chain_test_1.json', 'r') as json_file:
+        json_object_expected = json.load(json_file)
 
-    assert deserializing_chain_from_json(json_object) == chain
+    json_object_expected = transform_uniq_id_to_uuid4(json_object_expected, chain_template)
+
+    assert json_object_actual == json.dumps(json_object_expected)
+
+
+test_chain_convert_to_chain_template()
+# def test_static_chain_convert_to_json_correctly():
+#     chain = create_static_chain_1()
+#
+#     with open('data/chain_test_1.json', 'r') as json_file:
+#         json_object_expected = json.load(json_file)
+#
+#     json_object_actual = serializing_json_from_chain(chain)
+#
+#     assert json_object_expected == json_object_actual
+#
+#
+# def test_static_chain_convert_from_json_correctly():
+#     chain = create_static_chain_1()
+#
+#     with open('data/chain_test_1.json', 'r') as json_file:
+#         json_object = json.load(json_file)
+#
+#     chain_expected = deserializing_chain_from_json(json_object)
+#
+#     assert chain_expected == chain
