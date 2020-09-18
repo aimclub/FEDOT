@@ -51,6 +51,14 @@
 	  "tags": ["statistical", "autoreg"],
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
 	},
+	"stats_garch": {
+	  "tasks": "[TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.ts]",
+	  "strategies": ["core.models.evaluation.pyflux_models_eval", "pyfluxModelsForecastingStrategy"],
+	  "tags": ["statistical", "autoreg"],
+	  "description": "Implementations of the statistical models for time series forecasting from pyflux framework"
+    },
 	"data_model": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
 	  "input_type": "[DataTypesEnum.table]",
@@ -175,6 +183,14 @@
 	},
 	"ar": {
 	  "meta": "stats_ar",
+	  "tags": ["simple", "interpretable"]
+	},
+	"garch": {
+	  "meta": "stats_garch",
+	  "tags": ["simple", "interpretable"]
+	},
+	"var": {
+	  "meta": "stats_garch",
 	  "tags": ["simple", "interpretable"]
 	},
 	"tpot": {

@@ -106,9 +106,9 @@ def balance_class(file_path):
     
     df_balanced = shuffle(X_res, random_state = 42).reset_index().drop(columns='index')
     
-    df_balanced.to_csv(r'./creditcard_overSample.csv', index=False)
+    df_balanced.to_csv(r'./creditcard_underSample.csv', index=False)
     
-    return r'./creditcard_overSample.csv'
+    return r'./creditcard_underSample.csv'
 
 if __name__ == "__main__":
     file_path = r'./creditcard.csv'

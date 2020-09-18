@@ -2,8 +2,9 @@ from datetime import timedelta
 from typing import Optional
 
 import numpy as np
-from pyflux import GARCH
-from pyflux import VAR
+# from pyflux import GARCH
+# from pyflux import VAR
+import pyflux as pf
 
 from core.models.data import InputData, OutputData
 from core.models.evaluation.evaluation import EvaluationStrategy
@@ -11,11 +12,11 @@ from core.models.tuning.tuners import ForecastingCustomRandomTuner
 
 
 def fit_garch(train_data: InputData, params):
-    return GARCH(train_data.target, **params).fit()
+    return pf.GARCH(train_data.target, **params).fit()
 
 
 def fit_var(train_data: InputData, params):
-    return VAR(train_data.target, **params).fit()
+    return pf.VAR(train_data.target, **params).fit()
 
 
 def predict_garch(trained_model, predict_data: InputData) -> OutputData:
@@ -51,12 +52,12 @@ class pyfluxModelsForecastingStrategy(EvaluationStrategy):
         fit_garch: 'pyflux.GARCH'
     }
     __default_params_by_model = {
-        'garch': {'p': (1, 1)},
-        'var': {'q': (1, 1)}
+        'garch': {'p': 1, 'q': 1},
+        'var': {'lags': 1, 'integ': 1}
     }
     __params_range_by_model = {
-        'garch': {'p': ((1, 1), (2, 2))},
-        'var': {'q': (range(1, 6), range(1, 6))}
+        'garch': {'p': range(1,4,1), 'q': range(1,3,1)},
+        'var': {'lags': range(1,3,1), 'integ': range(1,3,1)}
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
