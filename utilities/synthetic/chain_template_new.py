@@ -27,30 +27,31 @@ class ChainTemplate:
             else:
                 self.total_model_types[model_type] = 1
 
-        def extract_chain_structure(node: Node):
-            model_template = ModelTemplate(node)
+        def extract_chain_structure(node: Node, model_id):
+            model_template = ModelTemplate(node, model_id)
             add_model_type_to_state(model_template.model_type)
 
             if node.nodes_from:
-                nodes_from = [extract_chain_structure(node) for node in node.nodes_from]
+                nodes_from = [extract_chain_structure(node_parent, model_id + len(node.nodes_from) - index)
+                              for index, node_parent in enumerate(node.nodes_from)]
             else:
                 nodes_from = []
 
-            model_template.nodes_from = list(map(lambda node_from: node_from.model_id, nodes_from))
+            model_template.nodes_from = list(map(lambda node_from: node_from.model_id, nodes_from[::-1]))
 
             if model_template not in self.nodes:
                 self.nodes.append(model_template)
 
             return model_template
 
-        extract_chain_structure(chain.root_node)
+        extract_chain_structure(chain.root_node, 0)
         self.depth = chain.depth
 
-    def to_json(self):
+    def export_to_json(self):
         json_object = {
             "total_model_types": self.total_model_types,
             "depth": self.depth,
-            "nodes": list(map(lambda model_template: model_template.prepare_object(), self.nodes))
+            "nodes": list(map(lambda model_template: model_template.to_json_object(), self.nodes))
         }
 
         return json.dumps(json_object)
@@ -90,15 +91,15 @@ class ChainTemplate:
 
 
 class ModelTemplate:
-    def __init__(self, node: Node):
-        self.model_id = str(uuid.uuid4())
+    def __init__(self, node: Node, model_id: str):
+        self.model_id = model_id
         self.model_type = node.model.model_type
         self.params = node.model.params
         # TODO where located trained_model_path
         # self.trained_model_path = node.cache.actual_cached_state
         self.nodes_from = None
 
-    def prepare_object(self):
+    def to_json_object(self):
         model_object = {
             "model_id": self.model_id,
             "model_type": self.model_type,
