@@ -6,7 +6,7 @@ from utilities.synthetic.chain_template_new import ChainTemplate
 
 def create_static_chain_1() -> Chain:
     chain = Chain()
-    node_tpot = PrimaryNode('tpot')
+    node_tpot = PrimaryNode('lda')
     node_tpot.custom_params = {'max_run_time_sec': 60}
 
     node_lda = PrimaryNode('lda')
@@ -28,39 +28,17 @@ def create_static_chain_1() -> Chain:
     return chain
 
 
-def transform_uniq_id_to_uuid4(expected, chain_template: ChainTemplate):
-    uniq_model_ids = {}
-    for index, node in enumerate(chain_template.nodes):
-        uniq_model_ids[index] = node.model_id
-
-    for index, node in enumerate(expected['nodes']):
-        node['model_id'] = uniq_model_ids[index]
-        nodes_from_converted = []
-        for model_from_id in node['nodes_from']:
-            for key in uniq_model_ids:
-                if key == model_from_id:
-                    nodes_from_converted.append(uniq_model_ids[key])
-                    break
-
-        node['nodes_from'] = nodes_from_converted
-
-    return expected
-
-
 def test_chain_convert_to_chain_template():
     chain = create_static_chain_1()
     chain_template = ChainTemplate(chain)
-    json_object_actual = chain_template.to_json()
+    json_object_actual = chain_template.export_to_json()
 
     with open('test/data/chain_test_1.json', 'r') as json_file:
         json_object_expected = json.load(json_file)
 
-    json_object_expected = transform_uniq_id_to_uuid4(json_object_expected, chain_template)
-
     assert json_object_actual == json.dumps(json_object_expected)
 
 
-test_chain_convert_to_chain_template()
 # def test_static_chain_convert_to_json_correctly():
 #     chain = create_static_chain_1()
 #

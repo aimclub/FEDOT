@@ -2,21 +2,20 @@
     "total_model_types": {
         "dt": 2,
         "rf": 1,
-        "tpot": 1,
-        "lda": 1
+        "lda": 2
     },
     "depth": 4,
     "nodes": [
         {
-            "model_id": 0,
-            "model_type": "tpot",
+            "model_id": 4,
+            "model_type": "lda",
             "params": {
                 "max_run_time_sec": 60
             },
             "nodes_from": []
         },
         {
-            "model_id": 1,
+            "model_id": 3,
             "model_type": "lda",
             "params": {
                 "n_components": 60,
@@ -34,21 +33,21 @@
             "params": {
                 "n_estimators": 100
             },
-            "nodes_from": [0,1]
+            "nodes_from": [3,4]
         },
         {
-            "model_id": 3,
+            "model_id": 1,
             "model_type": "dt",
             "params": "default_params",
             "nodes_from": [2]
         },
         {
-            "model_id": 4,
+            "model_id": 0,
             "model_type": "dt",
             "params": {
                 "n_estimators": 100
             },
-            "nodes_from": [3]
+            "nodes_from": [1]
         }
     ]
 }
