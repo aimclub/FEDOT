@@ -14,8 +14,11 @@ install:
 notifications:
   email: false
 
+env:
+  - TEST_DIR=.
+  - TEST_DIR=benchmark
 script:
-  - coverage run --source=. -m py.test -s
+  - coverage run --source=TEST_DIR -m py.test -s
 
 after_success:
   COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
