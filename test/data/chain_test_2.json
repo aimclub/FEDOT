@@ -1,0 +1,67 @@
+{
+    "total_model_types": {
+      "lda": 3,
+      "dt": 2,
+      "rf": 2
+    },
+    "depth": 3,
+    "nodes": [
+        {
+            "model_id": 2,
+            "model_type": "lda",
+            "custom_params": {
+                "max_run_time_sec": 60
+            },
+            "nodes_from": []
+        },
+        {
+            "model_id": 3,
+            "model_type": "lda",
+            "custom_params": {
+                "n_components": 100
+            },
+            "nodes_from": []
+        },
+
+        {
+            "model_id": 1,
+            "model_type": "dt",
+            "custom_params": {
+                "n_estimators": 102
+            },
+            "nodes_from": [2,3]
+        },
+        {
+            "model_id": 5,
+            "model_type": "lda",
+            "custom_params": {
+              "n_components": 101
+            },
+            "nodes_from": []
+        },
+        {
+            "model_id": 4,
+            "model_type": "rf",
+            "custom_params": {
+                "n_estimators": 103
+            },
+            "nodes_from": [2,5]
+        },
+              {
+            "model_id": 6,
+            "model_type": "dt",
+            "custom_params": {
+                "n_estimators": 99
+            },
+            "nodes_from": []
+        },
+              {
+            "model_id": 0,
+            "model_type": "rf",
+            "custom_params": {
+                "n_estimators": 104
+            },
+            "nodes_from": [1,4,6]
+        }
+    ]
+}
