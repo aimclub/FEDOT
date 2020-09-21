@@ -10,6 +10,8 @@ from core.models.model import Model
 from core.models.preprocessing import preprocessing_func_for_data
 from core.models.transformation import transformation_function_for_data
 
+from core.models.model import DEFAULT_PARAMS_STUB
+
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
@@ -169,7 +171,10 @@ class Node(ABC):
 
     @custom_params.setter
     def custom_params(self, params):
-        self.model.params = params
+        if params:
+            self.model.params = params
+        else:
+            self.model.params = DEFAULT_PARAMS_STUB
 
 
 class FittedModelCache:
