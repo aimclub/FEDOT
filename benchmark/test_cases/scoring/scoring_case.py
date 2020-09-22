@@ -1,6 +1,6 @@
 from benchmark.benchmark_model_types import BenchmarkModelTypesEnum
-from benchmark.benchmark_utils import get_models_hyperparameters, get_scoring_case_data_paths, \
-    save_metrics_result_file
+from benchmark.benchmark_utils import get_models_hyperparameters, save_metrics_result_file
+from cases.data.data_utils import get_scoring_case_data_paths
 from benchmark.executor import CaseExecutor, ExecutionParams
 from core.repository.tasks import TaskTypesEnum
 

@@ -11,18 +11,9 @@ from core.utils import ensure_directory_exists, get_split_data_paths, project_ro
     split_data
 
 
-def get_scoring_case_data_paths() -> Tuple[str, str]:
-    train_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_train.csv')
-    test_file_path = os.path.join('cases', 'data', 'scoring', 'scoring_test.csv')
-    full_train_file_path = os.path.join(str(project_root()), train_file_path)
-    full_test_file_path = os.path.join(str(project_root()), test_file_path)
-
-    return full_train_file_path, full_test_file_path
-
-
 def get_cancer_case_data_paths() -> Tuple[str, str]:
-    train_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_train.csv')
-    test_file_path = os.path.join('cases', 'data', 'benchmark', 'cancer_test.csv')
+    train_file_path = os.path.join('cases', 'data', 'cancer', 'cancer_train.csv')
+    test_file_path = os.path.join('cases', 'data', 'cancer', 'cancer_test.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
     full_test_file_path = os.path.join(str(project_root()), test_file_path)
 
