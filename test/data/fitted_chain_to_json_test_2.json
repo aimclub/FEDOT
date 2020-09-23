@@ -9,15 +9,44 @@
     {
       "model_id": 1,
       "model_type": "lda",
+      "model_name": "LinearDiscriminantAnalysis",
       "custom_params": "default_params",
-      "full_params": "chain not fitted",
+      "full_params": {
+        "n_components": null,
+        "priors": null,
+        "shrinkage": null,
+        "solver": "svd",
+        "store_covariance": false,
+        "tol": 0.0001
+      },
       "nodes_from": []
     },
     {
       "model_id": 0,
       "model_type": "rf",
+      "model_name": "RandomForestClassifier",
       "custom_params": "default_params",
-      "full_params": "chain not fitted",
+      "full_params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "auto",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 100,
+        "n_jobs": null,
+        "oob_score": false,
+        "random_state": null,
+        "verbose": 0,
+        "warm_start": false
+      },
       "nodes_from": [0, 1]
     }
   ]
