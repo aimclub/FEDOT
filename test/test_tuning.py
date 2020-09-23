@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc_auc
 
-from benchmark.benchmark_utils import get_scoring_case_data_paths
+from cases.data.data_utils import get_scoring_case_data_paths
 from core.models.data import InputData, train_test_data_setup
 from core.models.model import Model
 from core.models.preprocessing import Scaling

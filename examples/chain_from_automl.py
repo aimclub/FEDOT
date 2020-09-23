@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from benchmark.benchmark_utils import get_scoring_case_data_paths
+from cases.data.data_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData

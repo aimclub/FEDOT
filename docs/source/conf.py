@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.autodoc.typehints',
 ]
 autodoc_typehints = 'description'
+
 autodoc_mock_imports = ['numpy', 'numpy.random',
                         'sklearn', 'matplotlib',
                         'h2o', 'tpot', 'scipy',
