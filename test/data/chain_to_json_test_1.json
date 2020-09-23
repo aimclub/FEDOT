@@ -12,6 +12,7 @@
             "custom_params": {
                 "max_run_time_sec": 60
             },
+            "full_params": "chain not fitted",
             "nodes_from": []
         },
         {
@@ -24,6 +25,7 @@
                 "learning_method": "batch",
                 "verbose": 1
             },
+            "full_params": "chain not fitted",
             "nodes_from": []
         },
 
@@ -33,12 +35,14 @@
             "custom_params": {
                 "n_estimators": 100
             },
+            "full_params": "chain not fitted",
             "nodes_from": [3,4]
         },
         {
             "model_id": 1,
             "model_type": "dt",
             "custom_params": "default_params",
+            "full_params": "chain not fitted",
             "nodes_from": [2]
         },
         {
@@ -47,6 +51,7 @@
             "custom_params": {
                 "n_estimators": 100
             },
+            "full_params": "chain not fitted",
             "nodes_from": [1]
         }
     ]

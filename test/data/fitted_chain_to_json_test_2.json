@@ -1,0 +1,24 @@
+{
+  "total_model_types":
+  {
+    "lda": 1,
+    "rf": 1
+  },
+  "depth": 2,
+  "nodes": [
+    {
+      "model_id": 1,
+      "model_type": "lda",
+      "custom_params": "default_params",
+      "full_params": "chain not fitted",
+      "nodes_from": []
+    },
+    {
+      "model_id": 0,
+      "model_type": "rf",
+      "custom_params": "default_params",
+      "full_params": "chain not fitted",
+      "nodes_from": [0, 1]
+    }
+  ]
+}
