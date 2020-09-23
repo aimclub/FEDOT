@@ -21,13 +21,13 @@ class ChainTemplate:
         elif isinstance(instance, object):
             self._json_to_chain_template(instance)
 
-    def _chain_to_chain_template(self, chain: Chain):
+    def add_model_type_to_state(self, model_type):
+        if model_type in self.total_model_types:
+            self.total_model_types[model_type] += 1
+        else:
+            self.total_model_types[model_type] = 1
 
-        def add_model_type_to_state(model_type):
-            if model_type in self.total_model_types:
-                self.total_model_types[model_type] += 1
-            else:
-                self.total_model_types[model_type] = 1
+    def _chain_to_chain_template(self, chain: Chain):
 
         def extract_chain_structure(node: Node, model_id):
             nonlocal counter
@@ -48,7 +48,7 @@ class ChainTemplate:
             model_template = ModelTemplate(node, model_id, sorted(nodes_from))
 
             self.nodes.append(model_template)
-            add_model_type_to_state(model_template.model_type)
+            self.add_model_type_to_state(model_template.model_type)
 
             return model_template
 
@@ -67,6 +67,16 @@ class ChainTemplate:
         return json.dumps(json_object)
 
     def _json_to_chain_template(self, chain_json):
+        nodes_objects = chain_json['nodes']
+
+        for node_object in nodes_objects:
+            model_template = ModelTemplate(node_object)
+            self.add_model_type_to_state(model_template.model_type)
+            self.nodes.append(model_template)
+
+        self.depth = self.find_depth_chain_template()
+
+    def json_to_chain(self):
 
         def roll_chain_structure(node_object: dict) -> Node:
             if node_object['nodes_from']:
@@ -90,8 +100,17 @@ class ChainTemplate:
                     return primary_node
 
         chain = Chain()
-        nodes = json.loads(chain_json)['nodes']
+        # nodes = json.loads(chain_json)['nodes']
         root_node = None
+
+    def find_depth_chain_template(self):
+        def recursive_traversal(node, counter=0):
+            if node.nodes_from:
+                for node_from in node.nodes_from:
+                    return recursive_traversal(node_from, counter + 1)
+            return counter
+
+        return max([recursive_traversal(node) for node in self.nodes])
 
 
 class ModelTemplate:
@@ -105,6 +124,8 @@ class ModelTemplate:
 
         if isinstance(instance, Node):
             self._model_to_model_template(instance, model_id, nodes_from)
+        elif isinstance(instance, object):
+            self._json_to_model_template(instance)
 
     def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list):
         self.model_id = model_id
@@ -127,12 +148,10 @@ class ModelTemplate:
 
         return full_params
 
-    def _json_to_model_template(self):
-        return 0
-
     def export_to_json(self) -> object:
         model_object = {
             "model_id": self.model_id,
+            # TODO full name of model_type
             "model_type": self.model_type,
             "custom_params": self.custom_params,
             "full_params": self.full_params,
@@ -141,3 +160,11 @@ class ModelTemplate:
         }
 
         return model_object
+
+    def _json_to_model_template(self, model_object: object):
+        self.model_id = model_object['model_id']
+        self.model_type = model_object['model_type']
+        self.custom_params = model_object['custom_params']
+        self.nodes_from = model_object['nodes_from']
+
+        return 0
