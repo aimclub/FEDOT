@@ -1,6 +1,0 @@
-mlbox==0.8.4; python_version <= '3.7'
-autokeras==1.0.2
-tensorflow==2.1.0; python_version <= '3.7'
-tpot==0.11.1
-h2o==3.28.1.2
-pmlb==0.3
