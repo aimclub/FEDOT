@@ -81,26 +81,26 @@ def create_static_chain_2() -> Chain:
     return chain
 
 
-def test_static_chain_convert_to_json_correctly_1():
-    chain = create_static_chain_1()
-    chain_template = ChainTemplate(chain)
-    json_object_actual = chain_template.export_to_json()
-
-    with open('test/data/chain_to_json_test_1.json', 'r') as json_file:
-        json_object_expected = json.load(json_file)
-
-    assert json_object_actual == json.dumps(json_object_expected)
-
-
-def test_static_chain_convert_to_json_correctly_2():
-    chain = create_static_chain_2()
-    chain_template = ChainTemplate(chain)
-    json_object_actual = chain_template.export_to_json()
-
-    with open('test/data/chain_to_json_test_2.json', 'r') as json_file:
-        json_object_expected = json.load(json_file)
-
-    assert json_object_actual == json.dumps(json_object_expected)
+# def test_static_chain_convert_to_json_correctly_1():
+#     chain = create_static_chain_1()
+#     chain_template = ChainTemplate(chain)
+#     json_object_actual = chain_template.export_to_json()
+#
+#     with open('test/data/chain_to_json_test_1.json', 'r') as json_file:
+#         json_object_expected = json.load(json_file)
+#
+#     assert json_object_actual == json.dumps(json_object_expected)
+#
+#
+# def test_static_chain_convert_to_json_correctly_2():
+#     chain = create_static_chain_2()
+#     chain_template = ChainTemplate(chain)
+#     json_object_actual = chain_template.export_to_json()
+#
+#     with open('test/data/chain_to_json_test_2.json', 'r') as json_file:
+#         json_object_expected = json.load(json_file)
+#
+#     assert json_object_actual == json.dumps(json_object_expected)
 
 
 def test_static_fitted_chain_convert_to_json_correctly_1():

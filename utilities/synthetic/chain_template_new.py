@@ -13,15 +13,16 @@ class ChainTemplate:
         # self.number_primary_nodes = None
         # self.number_secondary_nodes = None
         # self.task_type = None
-        # self.training_time = training_time
-        # self.input_shape = input_shape
+        # self.training_time = None
+        # self.input_shape = None
+        # self.accuracy = None
 
         if isinstance(instance, Chain):
             self._chain_to_chain_template(instance)
         elif isinstance(instance, object):
             self._json_to_chain_template(instance)
 
-    def add_model_type_to_state(self, model_type):
+    def _add_model_type_to_state(self, model_type):
         if model_type in self.total_model_types:
             self.total_model_types[model_type] += 1
         else:
@@ -48,7 +49,7 @@ class ChainTemplate:
             model_template = ModelTemplate(node, model_id, sorted(nodes_from))
 
             self.nodes.append(model_template)
-            self.add_model_type_to_state(model_template.model_type)
+            self._add_model_type_to_state(model_template.model_type)
 
             return model_template
 
@@ -71,39 +72,39 @@ class ChainTemplate:
 
         for node_object in nodes_objects:
             model_template = ModelTemplate(node_object)
-            self.add_model_type_to_state(model_template.model_type)
+            self._add_model_type_to_state(model_template.model_type)
             self.nodes.append(model_template)
 
-        self.depth = self.find_depth_chain_template()
+        self.depth = self._find_depth_chain_template()
 
-    def json_to_chain(self):
+    # def import_to_chain(self):
+    #
+    #     def roll_chain_structure(node_object: dict) -> Node:
+    #         if node_object['nodes_from']:
+    #             if node_object['trained_model_path']:
+    #                 pass
+    #                 # TODO import fitted model
+    #             else:
+    #                 secondary_node = SecondaryNode(node_object['model_type'])
+    #                 secondary_node.custom_params = node_object['params']
+    #                 secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from
+    #                                              in node_object['nodes_from']]
+    #                 return secondary_node
+    #         else:
+    #             if node_object['trained_model_path']:
+    #                 pass
+    #                 # TODO import fitted model
+    #             else:
+    #                 primary_node = PrimaryNode(node_object['model_type'])
+    #                 primary_node.custom_params = node_object['params']
+    #                 primary_node.nodes_from = []
+    #                 return primary_node
+    #
+    #     chain = Chain()
+    #     # nodes = json.loads(chain_json)['nodes']
+    #     root_node = None
 
-        def roll_chain_structure(node_object: dict) -> Node:
-            if node_object['nodes_from']:
-                if node_object['trained_model_path']:
-                    pass
-                    # TODO import fitted model
-                else:
-                    secondary_node = SecondaryNode(node_object['model_type'])
-                    secondary_node.custom_params = node_object['params']
-                    secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from
-                                                 in node_object['nodes_from']]
-                    return secondary_node
-            else:
-                if node_object['trained_model_path']:
-                    pass
-                    # TODO import fitted model
-                else:
-                    primary_node = PrimaryNode(node_object['model_type'])
-                    primary_node.custom_params = node_object['params']
-                    primary_node.nodes_from = []
-                    return primary_node
-
-        chain = Chain()
-        # nodes = json.loads(chain_json)['nodes']
-        root_node = None
-
-    def find_depth_chain_template(self):
+    def _find_depth_chain_template(self):
         def recursive_traversal(node, counter=0):
             if node.nodes_from:
                 for node_from in node.nodes_from:
@@ -117,6 +118,7 @@ class ModelTemplate:
     def __init__(self, instance, model_id: str = None, nodes_from: list = None):
         self.model_id = None
         self.model_type = None
+        self.model_name = None
         self.custom_params = None
         self.full_params = None
         self.nodes_from = None
@@ -130,6 +132,7 @@ class ModelTemplate:
     def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list):
         self.model_id = model_id
         self.model_type = node.model.model_type
+        self.model_name = node.cache.actual_cached_state.model.__class__.__name__
         self.custom_params = node.model.params
         self.full_params = self._create_full_params(node)
         self.nodes_from = nodes_from
@@ -137,22 +140,22 @@ class ModelTemplate:
         # self.trained_model_path = None
 
     def _create_full_params(self, node) -> dict:
-        cached_state = node.cache.actual_cached_state
-
-        if cached_state and isinstance(self.custom_params, dict):
-            full_params = cached_state.model.get_params()
-            for key, value in self.custom_params.items():
-                full_params[key] = value
+        if node.cache.actual_cached_state:
+            full_params = node.cache.actual_cached_state.model.get_params()
+            if isinstance(self.custom_params, dict):
+                for key, value in self.custom_params.items():
+                    full_params[key] = value
         else:
-            full_params = "chain not fitted"
+            # TODO rewrite with try catch
+            raise ValueError
 
         return full_params
 
     def export_to_json(self) -> object:
         model_object = {
             "model_id": self.model_id,
-            # TODO full name of model_type
             "model_type": self.model_type,
+            "model_name": self.model_name,
             "custom_params": self.custom_params,
             "full_params": self.full_params,
             "nodes_from": self.nodes_from,
@@ -166,5 +169,3 @@ class ModelTemplate:
         self.model_type = model_object['model_type']
         self.custom_params = model_object['custom_params']
         self.nodes_from = model_object['nodes_from']
-
-        return 0
