@@ -12,6 +12,17 @@ from core.models.data import InputData
 
 @dataclass
 class ComposerRequirements:
+    """
+    This dataclass is for defining the requirements of composition process
+
+    :param primary: List of model types (str) for Primary Nodes
+    :param secondary: List of model types (str) for Secondary Nodes
+    :param max_lead_time: max time in minutes available for composition process
+    :param max_depth: desiderabile max depth of the result chain
+    :param max_arity:
+    :param min_arity:
+    :param add_single_model_chains:
+    """
     primary: List[str]
     secondary: List[str]
     max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
