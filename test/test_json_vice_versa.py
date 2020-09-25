@@ -1,4 +1,5 @@
 import json
+import os
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
@@ -6,8 +7,10 @@ from utilities.synthetic.chain_template_new import ChainTemplate
 from core.models.data import InputData
 from benchmark.benchmark_utils import get_scoring_case_data_paths
 
+CURRENT_PATH = str(os.path.dirname(__file__))
 
-def create_static_fitted_chain_1() -> Chain:
+
+def create_static_fitted_chain() -> Chain:
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
@@ -26,32 +29,7 @@ def create_static_fitted_chain_1() -> Chain:
     return chain
 
 
-def create_static_chain_1() -> Chain:
-    chain = Chain()
-    node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'max_run_time_sec': 60}
-
-    node_lda_second = PrimaryNode('lda')
-    node_lda_second.custom_params = {'n_components': 60, 'max_iter': 30, 'n_jobs': 6,
-                                     'learning_method': 'batch', 'verbose': 1}
-
-    node_rf = SecondaryNode('rf')
-    node_rf.custom_params = {'n_estimators': 100}
-    node_rf.nodes_from = [node_lda, node_lda_second]
-
-    node_dt = SecondaryNode('dt')
-    node_dt.nodes_from = [node_rf]
-
-    node_dt_second = SecondaryNode('dt')
-    node_dt_second.custom_params = {'n_estimators': 100}
-    node_dt_second.nodes_from = [node_dt]
-
-    chain.add_node(node_dt_second)
-
-    return chain
-
-
-def create_static_chain_2() -> Chain:
+def create_static_chain() -> Chain:
     chain = Chain()
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'max_run_time_sec': 60}
@@ -81,34 +59,31 @@ def create_static_chain_2() -> Chain:
     return chain
 
 
-# def test_static_chain_convert_to_json_correctly_1():
-#     chain = create_static_chain_1()
-#     chain_template = ChainTemplate(chain)
-#     json_object_actual = chain_template.export_to_json()
-#
-#     with open('test/data/chain_to_json_test_1.json', 'r') as json_file:
-#         json_object_expected = json.load(json_file)
-#
-#     assert json_object_actual == json.dumps(json_object_expected)
-#
-#
-# def test_static_chain_convert_to_json_correctly_2():
-#     chain = create_static_chain_2()
-#     chain_template = ChainTemplate(chain)
-#     json_object_actual = chain_template.export_to_json()
-#
-#     with open('test/data/chain_to_json_test_2.json', 'r') as json_file:
-#         json_object_expected = json.load(json_file)
-#
-#     assert json_object_actual == json.dumps(json_object_expected)
-
-
-def test_static_fitted_chain_convert_to_json_correctly_1():
-    chain = create_static_fitted_chain_1()
+def test_static_chain_convert_to_json_correctly():
+    chain = create_static_chain()
     chain_template = ChainTemplate(chain)
     json_object_actual = chain_template.export_to_json()
+    print(json_object_actual)
 
-    with open('test/data/fitted_chain_to_json_test_2.json', 'r') as json_file:
+    with open(CURRENT_PATH + "/data/chain_to_json_test.json", 'r') as json_file:
         json_object_expected = json.load(json_file)
+
+    print()
+    print(json_object_expected)
+
+    assert json_object_actual == json.dumps(json_object_expected)
+
+
+def test_static_fitted_chain_convert_to_json_correctly():
+    chain = create_static_fitted_chain()
+    chain_template = ChainTemplate(chain)
+    json_object_actual = chain_template.export_to_json()
+    print(json_object_actual)
+
+    with open(CURRENT_PATH + "/data/fitted_chain_to_json_test.json", 'r') as json_file:
+        json_object_expected = json.load(json_file)
+
+    print()
+    print(json_object_expected)
 
     assert json_object_actual == json.dumps(json_object_expected)

@@ -132,12 +132,16 @@ class ModelTemplate:
     def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list):
         self.model_id = model_id
         self.model_type = node.model.model_type
-        self.model_name = node.cache.actual_cached_state.model.__class__.__name__
         self.custom_params = node.model.params
         self.full_params = self._create_full_params(node)
         self.nodes_from = nodes_from
         # TODO where located trained_model_path (node.cache.actual_cached_state)
         # self.trained_model_path = None
+
+        if node.cache.actual_cached_state:
+            self.model_name = node.cache.actual_cached_state.model.__class__.__name__
+        else:
+            self.model_name = self.model_type
 
     def _create_full_params(self, node) -> dict:
         if node.cache.actual_cached_state:
@@ -146,8 +150,7 @@ class ModelTemplate:
                 for key, value in self.custom_params.items():
                     full_params[key] = value
         else:
-            # TODO rewrite with try catch
-            raise ValueError
+            full_params = {}
 
         return full_params
 
