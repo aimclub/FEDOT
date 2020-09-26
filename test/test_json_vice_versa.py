@@ -63,13 +63,9 @@ def test_static_chain_convert_to_json_correctly():
     chain = create_static_chain()
     chain_template = ChainTemplate(chain)
     json_object_actual = chain_template.export_to_json()
-    print(json_object_actual)
 
     with open(CURRENT_PATH + "/data/chain_to_json_test.json", 'r') as json_file:
         json_object_expected = json.load(json_file)
-
-    print()
-    print(json_object_expected)
 
     assert json_object_actual == json.dumps(json_object_expected)
 
@@ -78,12 +74,8 @@ def test_static_fitted_chain_convert_to_json_correctly():
     chain = create_static_fitted_chain()
     chain_template = ChainTemplate(chain)
     json_object_actual = chain_template.export_to_json()
-    print(json_object_actual)
 
     with open(CURRENT_PATH + "/data/fitted_chain_to_json_test.json", 'r') as json_file:
         json_object_expected = json.load(json_file)
-
-    print()
-    print(json_object_expected)
 
     assert json_object_actual == json.dumps(json_object_expected)
