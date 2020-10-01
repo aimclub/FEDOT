@@ -29,21 +29,8 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
     assert len(model_names) == 3
 
 
-def test_search_in_repository_by_id_correct():
-    repo = ModelTypesRepository(mocked_path())
-
-    model = repo.model_info_by_id(id='tpot')
-
-    assert model.id == 'tpot'
-    assert 'automl' in model.tags
-
-
 def test_search_in_repository_by_tag_correct():
     repo = ModelTypesRepository(mocked_path())
-
-    model_names, _ = repo.models_with_tag(tags=['automl'])
-    assert 'tpot' in model_names
-    assert len(model_names) == 1
 
     model_names, _ = repo.models_with_tag(tags=['simple', 'linear'], is_full_match=True)
     assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
