@@ -4,6 +4,7 @@ import os
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
+from core.utils import project_root
 
 
 def default_log(logger_name: str,
@@ -34,7 +35,7 @@ class Log:
                  config_json_file: str,
                  log_file: str = None):
         if not log_file:
-            self.log_file = os.path.join('../../', 'log.log')
+            self.log_file = os.path.join(str(project_root()), '../', 'log.log')
         else:
             self.log_file = log_file
 
