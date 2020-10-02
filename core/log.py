@@ -15,7 +15,7 @@ def default_log(logger_name: str,
     :return Log: Log object
     """
     if not log_file:
-        log_file = os.path.join('../../', 'log.log')
+        log_file = os.path.join(str(project_root()), '../', 'log.log')
     log = Log(logger_name=logger_name,
               config_json_file='default',
               log_file=log_file)
