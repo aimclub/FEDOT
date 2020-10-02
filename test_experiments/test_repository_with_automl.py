@@ -5,7 +5,9 @@ from core.repository.model_types_repository import ModelTypesRepository
 
 def mocked_path():
     test_data_path = str(os.path.dirname(__file__))
-    repo_json_file_path = os.path.join(test_data_path, 'data/model_repository_with_automl.json')
+    repo_json_file_path = \
+        os.path.join(test_data_path,
+                     '..', 'test', 'data', 'model_repository_with_automl.json')
     return repo_json_file_path
 
 

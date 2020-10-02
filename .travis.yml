@@ -8,6 +8,7 @@ python:
 install:
   - pip install netcdf4
   - pip install -r requirements.txt
+  - pip install -r extra_requirements.txt
   - pip install coveralls
   - pip install pytest-cov
 notifications:
