@@ -108,7 +108,9 @@ The repository includes the following directories:
 * Package `examples <https://github.com/nccr-itmo/FEDOT/tree/master/examples>`__ includes several *how-to-use-cases* where you can start to discover how FEDOT works
 * All *unit tests* can be observed in the `test <https://github.com/nccr-itmo/FEDOT/tree/master/test>`__ directory
 * The sources of documentation are in the `docs <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__
-* Package `benchmark <https://github.com/nccr-itmo/FEDOT/tree/master/benchmark>`__ was developed to show the comparison of FEDOT against the well-known AutoML frameworks 
+
+Also you can check `benchmarking <https://github.com/ITMO-NSS-team/AutoML-benchmark>`__ repository that was developed to
+show the comparison of FEDOT against the well-known AutoML frameworks.
 
 Basic Concepts
 ===============
