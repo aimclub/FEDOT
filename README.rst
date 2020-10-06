@@ -110,7 +110,7 @@ The repository includes the following directories:
 * The sources of documentation are in the `docs <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__
 
 Also you can check `benchmarking <https://github.com/ITMO-NSS-team/AutoML-benchmark>`__ repository that was developed to
-show the comparison of FEDOT against the well-known AutoML frameworks
+show the comparison of FEDOT against the well-known AutoML frameworks.
 
 Basic Concepts
 ===============
