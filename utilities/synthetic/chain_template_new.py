@@ -15,6 +15,7 @@ class ChainTemplate:
         self.total_model_types = {}
         self.depth = None
         self.model_templates = []
+        self.chain_folder_path = None
         # TODO think about new fields
         # self.number_primary_nodes = None
         # self.number_secondary_nodes = None
@@ -25,7 +26,7 @@ class ChainTemplate:
 
         self._chain_to_chain_template(chain)
 
-    def _add_model_type_to_state(self, model_type):
+    def _add_model_type_to_state(self, model_type: str):
         if model_type in self.total_model_types:
             self.total_model_types[model_type] += 1
         else:
@@ -33,7 +34,7 @@ class ChainTemplate:
 
     def _chain_to_chain_template(self, chain):
 
-        def extract_chain_structure(node: Node, model_id):
+        def extract_chain_structure(node: Node, model_id: int):
             nonlocal counter
 
             if node.nodes_from:
@@ -49,23 +50,27 @@ class ChainTemplate:
             else:
                 nodes_from = []
 
-            model_template = ModelTemplate(node, model_id, sorted(nodes_from))
+            model_template = ModelTemplate(node, str(model_id), self.chain_folder_path, sorted(nodes_from))
 
             self.model_templates.append(model_template)
             self._add_model_type_to_state(model_template.model_type)
 
             return model_template
 
+        # TODO save to project directory
+        self.chain_folder_path = os.path.join(FITTED_DIR, str(uuid4()))
+        os.makedirs(self.chain_folder_path)
+
         counter = 0
         visited_nodes = []
         extract_chain_structure(chain.root_node, counter)
         self.depth = chain.depth
 
-    def make_json(self, path: str):
+    def make_json(self):
         json_object = {
             "total_model_types": self.total_model_types,
             "depth": self.depth,
-            "nodes": list(map(lambda model_template: model_template.export_to_json(path), self.model_templates))
+            "nodes": list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
         }
 
         return json.dumps(json_object)
@@ -74,15 +79,8 @@ class ChainTemplate:
         if not file_name:
             file_name = str(uuid4())
 
-        path = os.path.join(FITTED_DIR, file_name)
-
-        if os.path.exists(path):
-            raise FileExistsError(f"Chain with name {file_name} exist.")
-
-        os.makedirs(path)
-
-        data = self.make_json(path)
-        full_path = os.path.join(path, file_name + '.json')
+        data = self.make_json()
+        full_path = os.path.join(self.chain_folder_path, file_name + '.json')
         with open(full_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(data), indent=4))
             print(f"The chain saved in the path: {full_path}")
@@ -146,7 +144,7 @@ class ChainTemplate:
 class ModelTemplate:
     # TODO issues_1: make decision get name of model and full
     #  params from different types of model (sklearns, statmodels)
-    def __init__(self, node: Node, model_id: str, nodes_from: list = None):
+    def __init__(self, node: Node, model_id: str, path: str, nodes_from: list = None):
         self.model_id = None
         self.model_type = None
         self.model_name = None
@@ -154,18 +152,10 @@ class ModelTemplate:
         self.full_params = None
         self.nodes_from = None
         self.fitted_model_path = None
-        # TODO We need to store the trained model in the model template until we export the fitted model in the h5 file.
-        #  In fact, then the whole meaning of templates is lost. We wanted them to be light, but before saving them,
-        #  they must store the object of the trained model.
-        #  Even after saving, template_model should also store the fitted model, since the user will want to save the
-        #  chain again, but with a different name for example.
-        #  The problem is solved using links for fitted models. I don't know yet how to implement links to fitted
-        #  models in Python.
-        self.fitted_model = None
 
-        self._model_to_model_template(node, model_id, nodes_from)
+        self._model_to_model_template(node, model_id, path, nodes_from)
 
-    def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list):
+    def _model_to_model_template(self, node: Node, model_id: str, path: str, nodes_from: list):
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params
@@ -175,7 +165,8 @@ class ModelTemplate:
         if node.cache.actual_cached_state:
             # TODO issues_1
             self.model_name = node.cache.actual_cached_state.model.__class__.__name__
-            self.fitted_model = node.cache.actual_cached_state.model
+            self.fitted_model_path = os.path.join(path, 'model_' + str(self.model_id) + '.pkl')
+            joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
 
     def _create_full_params(self, node: Node) -> dict:
         full_params = {}
@@ -188,10 +179,7 @@ class ModelTemplate:
 
         return full_params
 
-    def export_to_json(self, path: str) -> object:
-        if self.fitted_model:
-            self.fitted_model_path = os.path.join(path + '/model_' + str(self.model_id)) + '.pkl'
-            joblib.dump(self.fitted_model, self.fitted_model_path)
+    def export_to_json(self) -> object:
 
         model_object = {
             "model_id": self.model_id,

@@ -8,7 +8,7 @@
     "depth": 3,
     "nodes": [
         {
-            "model_id": 2,
+            "model_id": "2",
             "model_type": "logit",
             "model_name": "LogisticRegression",
             "custom_params": "default_params",
@@ -30,10 +30,10 @@
                 "warm_start": false
             },
             "nodes_from": [],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_2.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_2.pkl"
         },
         {
-            "model_id": 3,
+            "model_id": "3",
             "model_type": "lda",
             "model_name": "LinearDiscriminantAnalysis",
             "custom_params": {
@@ -48,10 +48,10 @@
                 "tol": 0.0001
             },
             "nodes_from": [],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_3.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_3.pkl"
         },
         {
-            "model_id": 1,
+            "model_id": "1",
             "model_type": "knn",
             "model_name": "KNeighborsClassifier",
             "custom_params": {
@@ -71,10 +71,10 @@
                 2,
                 3
             ],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_1.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_1.pkl"
         },
         {
-            "model_id": 5,
+            "model_id": "5",
             "model_type": "xgboost",
             "model_name": "XGBClassifier",
             "custom_params": "default_params",
@@ -108,10 +108,10 @@
                 "verbosity": null
             },
             "nodes_from": [],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_5.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_5.pkl"
         },
         {
-            "model_id": 4,
+            "model_id": "4",
             "model_type": "logit",
             "model_name": "LogisticRegression",
             "custom_params": "default_params",
@@ -136,10 +136,10 @@
                 2,
                 5
             ],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_4.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_4.pkl"
         },
         {
-            "model_id": 6,
+            "model_id": "6",
             "model_type": "knn",
             "model_name": "KNeighborsClassifier",
             "custom_params": {
@@ -156,10 +156,10 @@
                 "weights": "uniform"
             },
             "nodes_from": [],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_6.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_6.pkl"
         },
         {
-            "model_id": 0,
+            "model_id": "0",
             "model_type": "lda",
             "model_name": "LinearDiscriminantAnalysis",
             "custom_params": {
@@ -178,7 +178,7 @@
                 4,
                 6
             ],
-            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/my_chain/model_0.pkl"
+            "trained_model_path": "/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e/model_0.pkl"
         }
     ]
 }
