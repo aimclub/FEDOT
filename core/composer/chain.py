@@ -8,6 +8,7 @@ import networkx as nx
 from core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from core.log import default_log, Log
 from core.models.data import InputData
+from utilities.synthetic.chain_template_new import ChainTemplate
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -179,6 +180,14 @@ class Chain:
         """layer by layer sorting"""
         nodes = self.root_node.ordered_subnodes_hierarchy
         self.nodes = nodes
+
+    def export_chain(self, file_name=None) -> ChainTemplate:
+        template = ChainTemplate(self)
+        return template.export_to_json(file_name)
+
+    def import_chain(self, path: str) -> ChainTemplate:
+        template = ChainTemplate(self)
+        return template.import_from_json(path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id

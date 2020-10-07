@@ -1,0 +1,40 @@
+2020-09-08 19:58:22,469 - core.models.model - ERROR - Can not find evaluation strategy because of No module named 'hyperopt'
+Traceback (most recent call last):
+  File "/home/magleb/git/FEDOT/core/models/model.py", line 66, in _init
+    self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type,
+  File "/home/magleb/git/FEDOT/core/models/model.py", line 120, in _eval_strategy_for_task
+    models_repo = ModelTypesRepository()
+  File "/home/magleb/git/FEDOT/core/repository/model_types_repository.py", line 38, in __init__
+    ModelTypesRepository._repo = self._initialise_repo(repo_path)
+  File "/home/magleb/git/FEDOT/core/repository/model_types_repository.py", line 61, in _initialise_repo
+    supported_strategies = eval_strategy_str(strategies_json)
+  File "/home/magleb/git/FEDOT/core/repository/json_evaluation.py", line 26, in eval_strategy_str
+    exec(f'from {namespace} import {field_value[1]}')
+  File "<string>", line 1, in <module>
+  File "/home/magleb/git/FEDOT/core/models/evaluation/evaluation.py", line 31, in <module>
+    from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
+  File "/home/magleb/git/FEDOT/core/models/tuning/tuners.py", line 14, in <module>
+    from core.models.tuning.tuner_adapter import HyperoptAdapter
+  File "/home/magleb/git/FEDOT/core/models/tuning/tuner_adapter.py", line 3, in <module>
+    from hyperopt import tpe, fmin, Trials, space_eval, hp
+ModuleNotFoundError: No module named 'hyperopt'
+2020-09-08 20:07:10,427 - core.models.model - ERROR - Can not find evaluation strategy because of No module named 'hyperopt'
+Traceback (most recent call last):
+  File "/home/magleb/git/FEDOT/core/models/model.py", line 66, in _init
+    self._eval_strategy = _eval_strategy_for_task(self.model_type, task.task_type)(self.model_type,
+  File "/home/magleb/git/FEDOT/core/models/model.py", line 120, in _eval_strategy_for_task
+    models_repo = ModelTypesRepository()
+  File "/home/magleb/git/FEDOT/core/repository/model_types_repository.py", line 38, in __init__
+    ModelTypesRepository._repo = self._initialise_repo(repo_path)
+  File "/home/magleb/git/FEDOT/core/repository/model_types_repository.py", line 61, in _initialise_repo
+    supported_strategies = eval_strategy_str(strategies_json)
+  File "/home/magleb/git/FEDOT/core/repository/json_evaluation.py", line 26, in eval_strategy_str
+    exec(f'from {namespace} import {field_value[1]}')
+  File "<string>", line 1, in <module>
+  File "/home/magleb/git/FEDOT/core/models/evaluation/evaluation.py", line 31, in <module>
+    from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
+  File "/home/magleb/git/FEDOT/core/models/tuning/tuners.py", line 14, in <module>
+    from core.models.tuning.tuner_adapter import HyperoptAdapter
+  File "/home/magleb/git/FEDOT/core/models/tuning/tuner_adapter.py", line 3, in <module>
+    from hyperopt import tpe, fmin, Trials, space_eval, hp
+ModuleNotFoundError: No module named 'hyperopt'
