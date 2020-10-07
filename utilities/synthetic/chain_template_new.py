@@ -77,7 +77,7 @@ class ChainTemplate:
         path = os.path.join(FITTED_DIR, file_name)
 
         if os.path.exists(path):
-            raise FileExistsError(f"Chain with name {file_name} exist")
+            raise FileExistsError(f"Chain with name {file_name} exist.")
 
         os.makedirs(path)
 
@@ -89,44 +89,49 @@ class ChainTemplate:
 
         return self
 
-    # def _json_to_chain_template(self, chain_json):
-    #     nodes_objects = chain_json['nodes']
-    #
-    #     for node_object in nodes_objects:
-    #         model_template = ModelTemplate(node_object)
-    #         self._add_model_type_to_state(model_template.model_type)
-    #         self.nodes.append(model_template)
-    #
-    #     self.depth = self._find_depth_chain_template()
+    def _json_to_chain_template(self, chain_json):
+        nodes_objects = chain_json['nodes']
 
-    # def import_from_json(self, path):
-    #    if not os.path.exists(path):
-    #        raise FileNotFoundError
-    #
-    #     def roll_chain_structure(node_object: dict) -> Node:
-    #         if node_object['nodes_from']:
-    #             if node_object['trained_model_path']:
-    #                 pass
-    #                 # TODO import fitted model
-    #             else:
-    #                 secondary_node = SecondaryNode(node_object['model_type'])
-    #                 secondary_node.custom_params = node_object['params']
-    #                 secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from
-    #                                              in node_object['nodes_from']]
-    #                 return secondary_node
-    #         else:
-    #             if node_object['trained_model_path']:
-    #                 pass
-    #                 # TODO import fitted model
-    #             else:
-    #                 primary_node = PrimaryNode(node_object['model_type'])
-    #                 primary_node.custom_params = node_object['params']
-    #                 primary_node.nodes_from = []
-    #                 return primary_node
-    #
-    #     chain = Chain()
-    #     # nodes = json.loads(chain_json)['nodes']
-    #     root_node = None
+        for node_object in nodes_objects:
+            model_template = ModelTemplate(node_object)
+            self._add_model_type_to_state(model_template.model_type)
+            self.nodes.append(model_template)
+
+        self.depth = self._find_depth_chain_template()
+
+    def import_from_json(self, path: str):
+        if os.path.exists(path):
+            pass
+        elif os.path.exists(FITTED_DIR + path):
+            path = FITTED_DIR + path
+        else:
+            raise FileNotFoundError(f"File on the path: {path} does not exist.")
+
+        def roll_chain_structure(node_object: dict) -> Node:
+            if node_object['nodes_from']:
+                if node_object['trained_model_path']:
+                    pass
+                    # TODO import fitted model
+                else:
+                    secondary_node = SecondaryNode(node_object['model_type'])
+                    secondary_node.custom_params = node_object['params']
+                    secondary_node.nodes_from = [roll_chain_structure(node_from) for node_from
+                                                 in node_object['nodes_from']]
+                    return secondary_node
+            else:
+                if node_object['trained_model_path']:
+                    pass
+                    # TODO import fitted model
+                else:
+                    primary_node = PrimaryNode(node_object['model_type'])
+                    primary_node.custom_params = node_object['params']
+                    primary_node.nodes_from = []
+                    return primary_node
+
+        with open(path) as json_file:
+            json_object_chain = json.loads(json_file)
+            root_node = filter(lambda key: key.model_id == 0, json_object_chain['nodes'])
+            root_node = roll_chain_structure(json_object_chain['nodes'])
 
     def _find_depth_chain_template(self):
         def recursive_traversal(node, counter=0):
