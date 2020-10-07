@@ -38,10 +38,30 @@ def test_data_from_csv():
     expected_features = InputData(features=features, target=target,
                                   idx=idx,
                                   task=task,
-                                  data_type=DataTypesEnum.table).features.all()
+                                  data_type=DataTypesEnum.table).features
     actual_features = InputData.from_csv(
-        os.path.join(test_file_path, file)).features.all()
-    assert expected_features == actual_features
+        os.path.join(test_file_path, file)).features
+    assert np.array_equal(expected_features, actual_features)
+
+
+def test_with_custom_target():
+    test_file_path = str(os.path.dirname(__file__))
+    file = 'data/simple_classification.csv'
+    file_custom = 'data/simple_classification_with_custom_target.csv'
+
+    expected_features = InputData.from_csv(
+        os.path.join(test_file_path, file)).features
+
+    actual_features = InputData.from_csv(
+        os.path.join(test_file_path, file_custom), delimiter=';').features
+
+    assert not np.array_equal(expected_features, actual_features)
+
+    actual_features = InputData.from_csv(
+        os.path.join(test_file_path, file_custom), delimiter=';',
+        columns_to_drop=['redunant'], target_column='custom_target').features
+
+    assert np.array_equal(expected_features, actual_features)
 
 
 def test_data_from_predictions(output_dataset):
