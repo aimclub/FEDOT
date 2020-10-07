@@ -53,7 +53,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
 def apply_model_to_data(model: Chain, data_path: str):
     df, file_path = create_multi_clf_examples_from_excel(data_path, return_df=True)
-    dataset_to_apply = InputData.from_csv(file_path, with_target=False)
+    dataset_to_apply = InputData.from_csv(file_path, target_column=None)
     evo_predicted = model.predict(dataset_to_apply)
     df['forecast'] = probs_to_labels(evo_predicted.predict)
     return df
