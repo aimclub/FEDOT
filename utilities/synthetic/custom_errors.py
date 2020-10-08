@@ -6,3 +6,8 @@ class OperatingSystemValidation(Exception):
 class JsonFileExtensionValidation(Exception):
     """Raised when user want to save JSON with other extension"""
     pass
+
+
+class JsonFileInvalid(Exception):
+    """Raised when JSON is invalid"""
+    pass

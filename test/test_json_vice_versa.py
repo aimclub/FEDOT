@@ -87,14 +87,17 @@ def create_static_chain() -> Chain:
 
 def test_import_chain():
     chain = Chain()
-    chain.load_chain('/home/magleb/git/FEDOT/test/data/2d2cd916-8f7f-41b9-81b0-324396fee077.json')
+    chain_fitted = create_static_fitted_chain()
+    chain_fitted.save_chain('test/data/my_chain.json')
+    chain.load_chain('/home/magleb/git/FEDOT/test/data/my_chain.json')
+    chain.save_chain('/home/magleb/git/FEDOT/test/data/my_chain_out.json')
     print("SUCCESS")
     assert True
 
 def test_static_fitted_chain_convert_to_json_correctly():
     chain = create_static_fitted_chain()
-    chain.save_chain('/home/magleb/git/FEDOT/test/data')
-    chain.save_chain('test/data')
+    # chain.save_chain('/home/magleb/git/FEDOT/test/data')
+    # chain.save_chain('test/data')
     chain.save_chain('test/data/my_chain.json')
     assert True
 
@@ -108,5 +111,5 @@ def test_static_fitted_chain_convert_to_json_correctly():
 
     # assert json_object_actual == json.dumps(json_object_expected)
 
-# test_import_chain()
-test_static_fitted_chain_convert_to_json_correctly()
+# test_static_fitted_chain_convert_to_json_correctly()
+test_import_chain()
