@@ -87,14 +87,15 @@ def create_static_chain() -> Chain:
 
 def test_import_chain():
     chain = Chain()
-    chain.load_chain('/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e')
+    chain.load_chain('/home/magleb/git/FEDOT/test/data/2d2cd916-8f7f-41b9-81b0-324396fee077.json')
     print("SUCCESS")
     assert True
 
 def test_static_fitted_chain_convert_to_json_correctly():
     chain = create_static_fitted_chain()
     chain.save_chain('/home/magleb/git/FEDOT/test/data')
-    # chain.save_chain('test/data')
+    chain.save_chain('test/data')
+    chain.save_chain('test/data/my_chain.json')
     assert True
 
     # print(json_object_actual)

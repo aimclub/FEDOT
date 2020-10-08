@@ -183,10 +183,10 @@ class Chain:
         self.nodes = nodes
 
     def save_chain(self, path: str) -> ChainTemplate:
-        return self.template.export_to_json(path)
+        self.template = self.template.export_to_json(path)
 
     def load_chain(self, path: str) -> ChainTemplate:
-        return self.template.import_from_json(path)
+        self.template = self.template.import_from_json(path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id

@@ -2,6 +2,7 @@ import json
 import os
 from uuid import uuid4
 from utilities.synthetic.get_application_settings_path import DEFAULT_PATH
+from utilities.synthetic.custom_errors import JsonFileExtensionValidation
 
 import joblib
 
@@ -15,24 +16,10 @@ class ChainTemplate:
         self.total_model_types = {}
         self.depth = None
         self.model_templates = []
-        self.unique_chain_id = str(uuid4())
-        # TODO think about new fields
-        # self.number_primary_nodes = None
-        # self.number_secondary_nodes = None
-        # self.task_type = None
-        # self.training_time = None
-        # self.input_shape = None
-        # self.accuracy = None
+        self.unique_chain_id = None
 
         if chain.root_node:
-            os.makedirs(os.path.join(DEFAULT_FITTED_MODELS_PATH, self.unique_chain_id))
             self._chain_to_chain_template(chain)
-
-    def _add_model_type_to_state(self, model_type: str):
-        if model_type in self.total_model_types:
-            self.total_model_types[model_type] += 1
-        else:
-            self.total_model_types[model_type] = 1
 
     def _chain_to_chain_template(self, chain):
 
@@ -64,6 +51,45 @@ class ChainTemplate:
         extract_chain_structure(chain.root_node, counter)
         self.depth = chain.depth
 
+    def _add_model_type_to_state(self, model_type: str):
+        if model_type in self.total_model_types:
+            self.total_model_types[model_type] += 1
+        else:
+            self.total_model_types[model_type] = 1
+
+    def export_to_json(self, path: str):
+        def create_unique_chain_id(path_to_save: str):
+            name_of_files = path_to_save.split('/')
+            last_file = name_of_files[-1].split('.')
+            if len(last_file) == 2:
+                if last_file[-1] == 'json':
+                    if os.path.exists(path_to_save):
+                        raise FileExistsError(f"File on path: '{os.path.abspath(path_to_save)}' exists")
+                    self.unique_chain_id = ''.join(last_file[0:-1])
+                    return '/'.join(name_of_files[0:-1])
+                else:
+                    raise JsonFileExtensionValidation(f"Could not save chain in"
+                                                      f" '{last_file[-1]}' extension, use 'json'")
+            else:
+                self.unique_chain_id = str(uuid4())
+                return path
+
+        def create_absolute_path_if_not_exist(path_to_save: str):
+            abs_path = os.path.abspath(path_to_save)
+            if not os.path.exists(path_to_save):
+                os.makedirs(abs_path)
+            return abs_path
+
+        path = create_unique_chain_id(path)
+        absolute_path = create_absolute_path_if_not_exist(path)
+
+        data = self.make_json()
+        with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
+            f.write(json.dumps(json.loads(data), indent=4))
+            print(f"The chain saved in the path: {os.path.join(absolute_path, f'{self.unique_chain_id}.json')}")
+
+        return self
+
     def make_json(self):
         json_object = {
             "total_model_types": self.total_model_types,
@@ -73,34 +99,8 @@ class ChainTemplate:
 
         return json.dumps(json_object)
 
-    def export_to_json(self, path: str):
-        if os.path.isabs(path) and not os.path.exists(path):
-            os.makedirs(path)
-        data = self.make_json()
-        with open(os.path.join(path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(json.loads(data), indent=4))
-            if not os.path.isabs(path):
-                path = os.path.join(os.path.abspath(os.getcwd()), path)
-            print(f"The chain saved in the path: {os.path.join(path, f'{self.unique_chain_id}.json')}")
-
-        return self
-
-    def _json_to_chain_template(self, chain_json):
-        nodes_objects = chain_json['nodes']
-
-        for node_object in nodes_objects:
-            model_template = ModelTemplate(node_object)
-            self._add_model_type_to_state(model_template.model_type)
-            self.model_templates.append(model_template)
-
-        self.depth = self._find_depth_chain_template()
-
     def import_from_json(self, path: str):
-        if os.path.exists(path):
-            pass
-        elif os.path.exists(FITTED_DIR + path):
-            path = FITTED_DIR + path
-        else:
+        if not os.path.exists(path):
             raise FileNotFoundError(f"File on the path: {path} does not exist.")
 
         def roll_chain_structure(node_object: dict) -> Node:
@@ -128,7 +128,19 @@ class ChainTemplate:
             json_object_chain = json.loads(json_file)
             print(json_object_chain)
             root_node = filter(lambda key: key.model_id == 0, json_object_chain['nodes'])
-            root_node = roll_chain_structure(json_object_chain['nodes'])
+            print(root_node)
+            exit(1)
+            # root_node = roll_chain_structure(root_node)
+
+    def _json_to_chain_template(self, chain_json):
+        nodes_objects = chain_json['nodes']
+
+        for node_object in nodes_objects:
+            model_template = ModelTemplate(node_object)
+            self._add_model_type_to_state(model_template.model_type)
+            self.model_templates.append(model_template)
+
+        self.depth = self._find_depth_chain_template()
 
     def _find_depth_chain_template(self):
         def recursive_traversal(node, counter=0):
