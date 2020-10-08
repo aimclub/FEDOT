@@ -58,30 +58,10 @@ class ChainTemplate:
             self.total_model_types[model_type] = 1
 
     def export_to_json(self, path: str):
-        def create_unique_chain_id(path_to_save: str):
-            name_of_files = path_to_save.split('/')
-            last_file = name_of_files[-1].split('.')
-            if len(last_file) == 2:
-                if last_file[-1] == 'json':
-                    if os.path.exists(path_to_save):
-                        raise FileExistsError(f"File on path: '{os.path.abspath(path_to_save)}' exists")
-                    self.unique_chain_id = ''.join(last_file[0:-1])
-                    return '/'.join(name_of_files[0:-1])
-                else:
-                    raise JsonFileExtensionValidation(f"Could not save chain in"
-                                                      f" '{last_file[-1]}' extension, use 'json'")
-            else:
-                self.unique_chain_id = str(uuid4())
-                return path
-
-        def create_absolute_path_if_not_exist(path_to_save: str):
-            abs_path = os.path.abspath(path_to_save)
-            if not os.path.exists(path_to_save):
-                os.makedirs(abs_path)
-            return abs_path
-
-        path = create_unique_chain_id(path)
-        absolute_path = create_absolute_path_if_not_exist(path)
+        path = self._create_unique_chain_id(path)
+        absolute_path = os.path.abspath(path)
+        if not os.path.exists(path):
+            os.makedirs(absolute_path)
 
         data = self.make_json()
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
@@ -150,6 +130,22 @@ class ChainTemplate:
             return counter
 
         return max([recursive_traversal(node) for node in self.model_templates])
+
+    def _create_unique_chain_id(self, path: str):
+        name_of_files = path.split('/')
+        last_file = name_of_files[-1].split('.')
+        if len(last_file) == 2:
+            if last_file[-1] == 'json':
+                if os.path.exists(path):
+                    raise FileExistsError(f"File on path: '{os.path.abspath(path)}' exists")
+                self.unique_chain_id = ''.join(last_file[0:-1])
+                return '/'.join(name_of_files[0:-1])
+            else:
+                raise JsonFileExtensionValidation(f"Could not save chain in"
+                                                  f" '{last_file[-1]}' extension, use 'json'")
+        else:
+            self.unique_chain_id = str(uuid4())
+            return path
 
 
 class ModelTemplate:
