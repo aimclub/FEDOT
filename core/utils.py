@@ -69,8 +69,8 @@ class ComparableEnum(Enum):
     (https://stackoverflow.com/questions/26589805/python-enums-across-modules)
     """
 
-    def eq(self, other):
+    def __eq__(self, other):
         return str(self) == str(other)
 
-    def hash(self):
+    def __hash__(self):
         return hash(str(self))
