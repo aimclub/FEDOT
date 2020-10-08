@@ -1,13 +1,13 @@
 import json
 import os
 from uuid import uuid4
+from utilities.synthetic.get_application_settings_path import DEFAULT_PATH
 
-from sklearn.externals import joblib
+import joblib
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node
 
-ROOT_DIR = os.path.dirname(os.path.abspath("core"))
-FITTED_DIR = os.path.join(ROOT_DIR, 'fitted_chains')
+DEFAULT_FITTED_MODELS_PATH = os.path.join(DEFAULT_PATH, 'fitted_models')
 
 
 class ChainTemplate:
@@ -15,7 +15,7 @@ class ChainTemplate:
         self.total_model_types = {}
         self.depth = None
         self.model_templates = []
-        self.chain_folder_path = None
+        self.unique_chain_id = str(uuid4())
         # TODO think about new fields
         # self.number_primary_nodes = None
         # self.number_secondary_nodes = None
@@ -24,7 +24,9 @@ class ChainTemplate:
         # self.input_shape = None
         # self.accuracy = None
 
-        self._chain_to_chain_template(chain)
+        if chain.root_node:
+            os.makedirs(os.path.join(DEFAULT_FITTED_MODELS_PATH, self.unique_chain_id))
+            self._chain_to_chain_template(chain)
 
     def _add_model_type_to_state(self, model_type: str):
         if model_type in self.total_model_types:
@@ -50,16 +52,12 @@ class ChainTemplate:
             else:
                 nodes_from = []
 
-            model_template = ModelTemplate(node, str(model_id), self.chain_folder_path, sorted(nodes_from))
+            model_template = ModelTemplate(node, str(model_id), sorted(nodes_from), self.unique_chain_id)
 
             self.model_templates.append(model_template)
             self._add_model_type_to_state(model_template.model_type)
 
             return model_template
-
-        # TODO save to project directory
-        self.chain_folder_path = os.path.join(FITTED_DIR, str(uuid4()))
-        os.makedirs(self.chain_folder_path)
 
         counter = 0
         visited_nodes = []
@@ -75,15 +73,15 @@ class ChainTemplate:
 
         return json.dumps(json_object)
 
-    def export_to_json(self, file_name: str):
-        if not file_name:
-            file_name = str(uuid4())
-
+    def export_to_json(self, path: str):
+        if os.path.isabs(path) and not os.path.exists(path):
+            os.makedirs(path)
         data = self.make_json()
-        full_path = os.path.join(self.chain_folder_path, file_name + '.json')
-        with open(full_path, 'w', encoding='utf-8') as f:
+        with open(os.path.join(path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(data), indent=4))
-            print(f"The chain saved in the path: {full_path}")
+            if not os.path.isabs(path):
+                path = os.path.join(os.path.abspath(os.getcwd()), path)
+            print(f"The chain saved in the path: {os.path.join(path, f'{self.unique_chain_id}.json')}")
 
         return self
 
@@ -93,7 +91,7 @@ class ChainTemplate:
         for node_object in nodes_objects:
             model_template = ModelTemplate(node_object)
             self._add_model_type_to_state(model_template.model_type)
-            self.nodes.append(model_template)
+            self.model_templates.append(model_template)
 
         self.depth = self._find_depth_chain_template()
 
@@ -128,6 +126,7 @@ class ChainTemplate:
 
         with open(path) as json_file:
             json_object_chain = json.loads(json_file)
+            print(json_object_chain)
             root_node = filter(lambda key: key.model_id == 0, json_object_chain['nodes'])
             root_node = roll_chain_structure(json_object_chain['nodes'])
 
@@ -144,7 +143,7 @@ class ChainTemplate:
 class ModelTemplate:
     # TODO issues_1: make decision get name of model and full
     #  params from different types of model (sklearns, statmodels)
-    def __init__(self, node: Node, model_id: str, path: str, nodes_from: list = None):
+    def __init__(self, node: Node, model_id: str, nodes_from: list, chain_id: str):
         self.model_id = None
         self.model_type = None
         self.model_name = None
@@ -153,9 +152,9 @@ class ModelTemplate:
         self.nodes_from = None
         self.fitted_model_path = None
 
-        self._model_to_model_template(node, model_id, path, nodes_from)
+        self._model_to_model_template(node, model_id, nodes_from, chain_id)
 
-    def _model_to_model_template(self, node: Node, model_id: str, path: str, nodes_from: list):
+    def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list, chain_id: str):
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params
@@ -165,7 +164,8 @@ class ModelTemplate:
         if node.cache.actual_cached_state:
             # TODO issues_1
             self.model_name = node.cache.actual_cached_state.model.__class__.__name__
-            self.fitted_model_path = os.path.join(path, 'model_' + str(self.model_id) + '.pkl')
+            self.fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, 'model_'
+                                                  + str(self.model_id) + '.pkl')
             joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
 
     def _create_full_params(self, node: Node) -> dict:

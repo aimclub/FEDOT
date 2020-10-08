@@ -17,7 +17,7 @@ def create_static_fitted_chain() -> Chain:
     node_lda = PrimaryNode('logit')
 
     node_lda_second = PrimaryNode('lda')
-    node_lda_second.custom_params = {'n_components': 100}
+    node_lda_second.custom_params = {'n_components': 1}
 
     node_lda_third = PrimaryNode('xgboost')
 
@@ -32,7 +32,7 @@ def create_static_fitted_chain() -> Chain:
     node_rf.nodes_from = [node_lda_third, node_lda_second]
 
     node_rf_second = SecondaryNode('lda')
-    node_rf_second.custom_params = {'n_components': 104}
+    node_rf_second.custom_params = {'n_components': 1}
     node_rf_second.nodes_from = [node_dt_second, node_rf, node_dt]
 
     chain.add_node(node_rf_second)
@@ -85,10 +85,16 @@ def create_static_chain() -> Chain:
 #
 #     assert json_object_actual == json.dumps(json_object_expected)
 
+def test_import_chain():
+    chain = Chain()
+    chain.load_chain('/home/magleb/git/FEDOT/fitted_chains/6f9dd987-2778-4ca8-9645-1dc639bcdd5e')
+    print("SUCCESS")
+    assert True
 
 def test_static_fitted_chain_convert_to_json_correctly():
     chain = create_static_fitted_chain()
-    chain.export_chain('my_chain')
+    chain.save_chain('/home/magleb/git/FEDOT/test/data')
+    # chain.save_chain('test/data')
     assert True
 
     # print(json_object_actual)
@@ -100,3 +106,6 @@ def test_static_fitted_chain_convert_to_json_correctly():
     # print(json_object_expected)
 
     # assert json_object_actual == json.dumps(json_object_expected)
+
+# test_import_chain()
+test_static_fitted_chain_convert_to_json_correctly()

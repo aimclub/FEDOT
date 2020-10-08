@@ -24,6 +24,7 @@ class Chain:
                  log: Log = default_log(__name__)):
         self.nodes = []
         self.log = log
+        self.template = ChainTemplate(self)
         if nodes:
             if isinstance(nodes, list):
                 for node in nodes:
@@ -181,13 +182,11 @@ class Chain:
         nodes = self.root_node.ordered_subnodes_hierarchy
         self.nodes = nodes
 
-    def export_chain(self, file_name=None) -> ChainTemplate:
-        template = ChainTemplate(self)
-        return template.export_to_json(file_name)
+    def save_chain(self, path: str) -> ChainTemplate:
+        return self.template.export_to_json(path)
 
-    def import_chain(self, path: str) -> ChainTemplate:
-        template = ChainTemplate(self)
-        return template.import_from_json(path)
+    def load_chain(self, path: str) -> ChainTemplate:
+        return self.template.import_from_json(path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
