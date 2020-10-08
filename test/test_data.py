@@ -49,19 +49,29 @@ def test_with_custom_target():
     file = 'data/simple_classification.csv'
     file_custom = 'data/simple_classification_with_custom_target.csv'
 
-    expected_features = InputData.from_csv(
-        os.path.join(test_file_path, file)).features
+    file_data = InputData.from_csv(
+        os.path.join(test_file_path, file))
 
-    actual_features = InputData.from_csv(
-        os.path.join(test_file_path, file_custom), delimiter=';').features
+    expected_features = file_data.features
+    expected_target = file_data.target
+
+    custom_file_data = InputData.from_csv(
+        os.path.join(test_file_path, file_custom), delimiter=';')
+    actual_features = custom_file_data.features
+    actual_target = custom_file_data.target
 
     assert not np.array_equal(expected_features, actual_features)
+    assert not np.array_equal(expected_target, actual_target)
 
-    actual_features = InputData.from_csv(
+    custom_file_data = InputData.from_csv(
         os.path.join(test_file_path, file_custom), delimiter=';',
-        columns_to_drop=['redunant'], target_column='custom_target').features
+        columns_to_drop=['redundant'], target_column='custom_target')
+
+    actual_features = custom_file_data.features
+    actual_target = custom_file_data.target
 
     assert np.array_equal(expected_features, actual_features)
+    assert np.array_equal(expected_target, actual_target)
 
 
 def test_data_from_predictions(output_dataset):
@@ -77,7 +87,7 @@ def test_data_from_predictions(output_dataset):
 
 def test_string_features_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/classification_with_categorial.csv'
+    file = 'data/classification_with_categorical.csv'
     expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
 
     assert expected_features.dtype == float
