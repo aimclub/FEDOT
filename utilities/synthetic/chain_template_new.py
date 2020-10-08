@@ -1,10 +1,10 @@
 import json
 import os
+import joblib
 from uuid import uuid4
+
 from utilities.synthetic.get_application_settings_path import DEFAULT_PATH
 from utilities.synthetic.custom_errors import JsonFileExtensionValidation, JsonFileInvalid
-
-import joblib
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node
 
@@ -32,7 +32,7 @@ class ChainTemplate:
                 nodes_from = []
                 for index, node_parent in enumerate(node.nodes_from):
                     if node_parent.descriptive_id in visited_nodes:
-                        nodes_from.append(visited_nodes.index(node_parent.descriptive_id))
+                        nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
                     else:
                         counter += 1
                         visited_nodes.append(node_parent.descriptive_id)
@@ -93,9 +93,10 @@ class ChainTemplate:
 
     def make_json(self):
         json_object = {
-            "total_model_types": self.total_model_types,
+            "total_model_types": dict(sorted(self.total_model_types.items(), key=lambda x: x[0])),
             "depth": self.depth,
-            "nodes": list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
+            "nodes": sorted(list(map(lambda model_template: model_template.export_to_json(), self.model_templates)),
+                            key=lambda model: model['model_id'])
         }
 
         return json.dumps(json_object)
@@ -125,6 +126,8 @@ class ChainTemplate:
             return node_objects
 
         def roll_chain_structure(model_object: dict) -> Node:
+            if model_object['model_id'] in visited_nodes:
+                return visited_nodes[model_object['model_id']]
             if model_object['nodes_from']:
                 node = SecondaryNode(model_object['model_type'])
             else:
@@ -134,12 +137,12 @@ class ChainTemplate:
             node.nodes_from = [roll_chain_structure(node_from) for node_from
                                in find_model_jsons_from_json_chain(json_object_chain['nodes'],
                                                                    model_object['nodes_from'])]
-            path_to_model = os.path.abspath(model_object['trained_model_path'])
-            if path_to_model:
+            if model_object['trained_model_path']:
+                path_to_model = os.path.abspath(model_object['trained_model_path'])
                 if not os.path.isfile(path_to_model):
                     raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
                 node.cache = joblib.load(path_to_model)
-            self.link_to_empty_chain.add_node(node)
+            visited_nodes[model_object['model_id']] = node
             return node
 
         check_for_current_path(path)
@@ -147,10 +150,12 @@ class ChainTemplate:
         with open(path) as json_file:
             json_object_chain = json.load(json_file)
 
+        visited_nodes = {}
         self._json_to_chain_template(json_object_chain)
         root_node = find_model_jsons_from_json_chain(json_object_chain['nodes'], [0])[0]
-        roll_chain_structure(root_node)
-        self.link_to_empty_chain.sort_nodes()
+        root_node = roll_chain_structure(root_node)
+        self.link_to_empty_chain.add_node(root_node)
+        self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
 
     def _json_to_chain_template(self, chain_json):
@@ -221,13 +226,13 @@ class ModelTemplate:
         try:
             self.model_id = model_object['model_id']
             self.model_type = model_object['model_type']
-            self.custom_params = model_object['custom_params']
+            self.full_params = model_object['full_params']
             self.nodes_from = model_object['nodes_from']
             if model_object['trained_model_path']:
                 self.fitted_model_path = model_object['trained_model_path']
-            if model_object['full_params']:
-                self.full_params = model_object['full_params']
+            if model_object['custom_params']:
+                self.custom_params = model_object['custom_params']
             if model_object['model_name']:
                 self.model_name = model_object['model_name']
         except Exception:
-            raise JsonFileInvalid(f"Required field 'model_id, model_type, custom_params, nodes_from'")
+            raise JsonFileInvalid(f"Required field 'model_id, model_type, full_params, nodes_from'")
