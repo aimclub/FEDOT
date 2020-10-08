@@ -1,13 +1,14 @@
 import datetime
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import Enum
 from typing import (Any, Callable, List, Optional)
+
+from dataclasses import dataclass
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.log import default_log, Log
+from core.log import Log, default_log
 from core.models.data import InputData
+from core.utils import ComparableEnum as Enum
 
 
 @dataclass
@@ -18,10 +19,10 @@ class ComposerRequirements:
     :param primary: List of model types (str) for Primary Nodes
     :param secondary: List of model types (str) for Secondary Nodes
     :param max_lead_time: max time in minutes available for composition process
-    :param max_depth: desiderabile max depth of the result chain
-    :param max_arity:
-    :param min_arity:
-    :param add_single_model_chains:
+    :param max_depth: max depth of the result chain
+    :param max_arity: maximal number of parent for node
+    :param min_arity: minimal number of parent for node
+    :param add_single_model_chains: allow to have chain with only one node
     """
     primary: List[str]
     secondary: List[str]
@@ -46,6 +47,7 @@ class Composer(ABC):
 
     :param log: optional parameter for log oject
     """
+
     def __init__(self, log: Log = default_log(__name__)):
         self.history = None
         self.log = log

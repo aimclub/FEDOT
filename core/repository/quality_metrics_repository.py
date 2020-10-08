@@ -1,7 +1,7 @@
-from enum import Enum
 from typing import Callable
 
 from core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric, StructuralComplexityMetric
+from core.utils import ComparableEnum as Enum
 
 
 class MetricsEnum(Enum):
