@@ -1,4 +1,4 @@
-from enum import Enum
+from core.utils import ComparableEnum as Enum
 
 
 class DataTypesEnum(Enum):

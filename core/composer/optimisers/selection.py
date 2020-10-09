@@ -1,7 +1,8 @@
 import math
-from enum import Enum
 from random import choice, randint
 from typing import (Any, List)
+
+from core.utils import ComparableEnum as Enum
 
 
 class SelectionTypesEnum(Enum):

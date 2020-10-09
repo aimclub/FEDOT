@@ -1,8 +1,8 @@
 from copy import deepcopy
-from enum import Enum
 from typing import (Any, List)
 
 from core.composer.optimisers.selection import SelectionTypesEnum, individuals_selection
+from core.utils import ComparableEnum as Enum
 
 
 class GeneticSchemeTypesEnum(Enum):
