@@ -8,7 +8,6 @@ from utilities.synthetic.chain_template_new import ChainTemplate
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 from cases.data.data_utils import get_scoring_case_data_paths
-from utilities.synthetic.chain import chain_balanced_tree
 
 CURRENT_PATH = str(os.path.dirname(__file__))
 
