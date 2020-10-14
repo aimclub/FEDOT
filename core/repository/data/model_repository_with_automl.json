@@ -77,7 +77,7 @@
         },
         "keras_forecasting": {
             "tasks": "[TaskTypesEnum.ts_forecasting]",
-            "input_type": "[DataTypesEnum.ts_lagged_3d]",
+            "input_type": "[DataTypesEnum.ts_lagged_table]",
             "output_type": "[DataTypesEnum.ts]",
             "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
             "tags": ["nn"],
