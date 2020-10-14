@@ -20,7 +20,7 @@ def get_composite_chain():
     node_residual = PrimaryNode('residual_data_model')
     node_model_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
-    node_final = SecondaryNode('additive_data_model',
+    node_final = SecondaryNode('linear',
                                nodes_from=[node_model_residual, node_model_trend])
     chain.add_node(node_final)
     return chain

@@ -89,8 +89,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                      'residual_data_model']
 
     available_model_types_secondary = ['rfr', 'linear',
-                                       'ridge', 'lasso',
-                                       'additive_data_model']
+                                       'ridge', 'lasso',]
 
     composer = FixedStructureComposer()
 

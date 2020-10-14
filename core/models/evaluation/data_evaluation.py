@@ -94,8 +94,6 @@ def predict_pca(pca_model, predict_data: InputData):
 class DataModellingStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'direct_data_model': (None, get_data),
-        'diff_data_model': (None, get_difference),
-        'additive_data_model': (None, get_sum),
         'trend_data_model': (fit_decomposition, get_trend),
         'residual_data_model': (fit_decomposition, get_residual),
         'pca_data_model': (fit_pca, predict_pca)

@@ -8,8 +8,6 @@ from core.repository.tasks import TsForecastingParams
 def multistep_prediction_to_ts(prediction):
     # choose the early steps of first prediction
     first_pred_part = prediction[0, :-1]
-    # choose the all steps of last prediction
-    # final_pred_part = prediction[-1, 1:]
     # choose last forecasting step only for each prediction
     prediction = prediction[:, -1]
     return np.concatenate((first_pred_part, prediction))

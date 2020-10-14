@@ -121,17 +121,6 @@ def chain_with_incorrect_root_model():
     return chain
 
 
-def chain_with_primary_composition_model():
-    first = PrimaryNode(model_type='additive_data_model')
-    second = PrimaryNode(model_type='residual_data_model')
-    final = SecondaryNode(model_type='additive_data_model',
-                          nodes_from=[first, second])
-
-    chain = Chain(final)
-
-    return chain
-
-
 def chain_with_incorrect_task_type():
     first = PrimaryNode(model_type='linear')
     second = PrimaryNode(model_type='linear')
@@ -146,7 +135,7 @@ def chain_with_incorrect_task_type():
 def chain_with_incorrect_decomposition_structure():
     first = PrimaryNode(model_type='trend_data_model')
     second = PrimaryNode(model_type='residual_data_model')
-    final = SecondaryNode(model_type='linear',
+    final = SecondaryNode(model_type='trend_data_model',
                           nodes_from=[first, second])
 
     chain = Chain(final)
@@ -157,7 +146,7 @@ def chain_with_incorrect_decomposition_structure():
 def chain_with_correct_decomposition_structure():
     first = PrimaryNode(model_type='trend_data_model')
     second = PrimaryNode(model_type='residual_data_model')
-    final = SecondaryNode(model_type='additive_data_model',
+    final = SecondaryNode(model_type='linear',
                           nodes_from=[first, second])
 
     chain = Chain(final)
@@ -233,13 +222,6 @@ def test_chain_with_incorrect_root_model_raise_exception():
 
 def test_chain_with_incorrect_decomposition_raise_exception():
     chain = chain_with_incorrect_decomposition_structure()
-    with pytest.raises(Exception) as exc:
-        assert has_correct_model_positions(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect models positions'
-
-
-def test_chain_with_incorrect_primary_raise_exception():
-    chain = chain_with_primary_composition_model()
     with pytest.raises(Exception) as exc:
         assert has_correct_model_positions(chain)
     assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect models positions'
