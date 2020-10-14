@@ -16,9 +16,9 @@ from core.repository.tasks import TaskTypesEnum
 def fit_tpot(data: InputData, max_run_time_min: int):
     models_hyperparameters = _get_models_hyperparameters(max_run_time_min)['TPOT']
     estimator = None
-    if data.task.task_type is TaskTypesEnum.classification:
+    if data.task.task_type == TaskTypesEnum.classification:
         estimator = TPOTClassifier
-    elif data.task.task_type is TaskTypesEnum.regression:
+    elif data.task.task_type == TaskTypesEnum.regression:
         estimator = TPOTRegressor
 
     model = estimator(generations=models_hyperparameters['GENERATIONS'],

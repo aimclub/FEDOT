@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+import warnings
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
 
 from core.repository.dataset_types import DataTypesEnum
@@ -20,20 +21,41 @@ class Data:
     data_type: DataTypesEnum
 
     @staticmethod
-    def from_csv(file_path, delimiter=',',
+    def from_csv(file_path=None,
+                 delimiter=',',
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
-                 with_target=True):
+                 columns_to_drop: Optional[List] = None,
+                 target_column: Optional[str] = ''):
+        """
+        :param file_path: the path to the CSV with data
+        :param columns_to_drop: the names of columns that should be dropped
+        :param delimiter: the delimiter to separate the columns
+        :param task: the task that should be solved with data
+        :param data_type: the type of data interpretation
+        :param target_column: name of target column (last column if empty and no target if None)
+        :return:
+        """
+
         data_frame = pd.read_csv(file_path, sep=delimiter)
+        if columns_to_drop:
+            data_frame = data_frame.drop(columns_to_drop, axis=1)
         data_frame = _convert_dtypes(data_frame=data_frame)
         data_array = np.array(data_frame).T
         idx = data_array[0]
-        if with_target:
-            features = data_array[1:-1].T
-            target = data_array[-1].astype(np.float)
+
+        if target_column == '':
+            target_column = data_frame.columns[-1]
+
+        if target_column:
+            target = np.array(data_frame[target_column]).astype(np.float)
+            pos = list(data_frame.keys()).index(target_column)
+            features = np.delete(data_array.T, [0, pos], axis=1)
         else:
+            # no target in data
             features = data_array[1:].T
             target = None
+
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
 
@@ -95,6 +117,7 @@ def split_train_test(data, split_ratio=0.8, with_shuffle=False):
 def _convert_dtypes(data_frame: pd.DataFrame):
     objects: pd.DataFrame = data_frame.select_dtypes('object')
     for column_name in objects:
+        warnings.warn(f'Automatic factorization for the column {column_name} with type "object" is applied.')
         encoded = pd.factorize(data_frame[column_name])[0]
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)

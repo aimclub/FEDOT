@@ -1,8 +1,8 @@
 from copy import deepcopy
-from enum import Enum
 from typing import (Any, Callable, List, Optional)
 
 from core.composer.constraint import constraint_function
+from core.utils import ComparableEnum as Enum
 
 
 class RegularizationTypesEnum(Enum):

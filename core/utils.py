@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -60,3 +61,16 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(main_dir)
     if not os.path.exists(dataset_dir):
         os.mkdir(dataset_dir)
+
+
+class ComparableEnum(Enum):
+    """
+    The Enum implementation that allows to avoid the multi-module enum comparison problem
+    (https://stackoverflow.com/questions/26589805/python-enums-across-modules)
+    """
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
