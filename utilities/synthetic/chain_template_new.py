@@ -50,9 +50,6 @@ class ChainTemplate:
 
         counter = 0
         visited_nodes = []
-        absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, self.unique_chain_id))
-        if not os.path.exists(absolute_path):
-            os.makedirs(absolute_path)
         extract_chain_structure(chain.root_node, counter)
         self.depth = chain.depth
 
@@ -81,7 +78,7 @@ class ChainTemplate:
 
         path = create_unique_chain_id(path)
         absolute_path = os.path.abspath(path)
-        if not os.path.exists(path):
+        if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
         data = self.make_json()
@@ -133,11 +130,11 @@ class ChainTemplate:
             else:
                 node = PrimaryNode(model_object['model_type'])
 
-            node.model.params = model_object['full_params']
+            node.model.params = model_object['params']
             node.nodes_from = [roll_chain_structure(node_from) for node_from
                                in find_model_jsons_from_json_chain(json_object_chain['nodes'],
                                                                    model_object['nodes_from'])]
-            if model_object['trained_model_path']:
+            if "trained_model_path" in model_object and model_object['trained_model_path']:
                 path_to_model = os.path.abspath(model_object['trained_model_path'])
                 if not os.path.isfile(path_to_model):
                     raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
@@ -176,7 +173,7 @@ class ModelTemplate:
         self.model_type = None
         self.model_name = None
         self.custom_params = None
-        self.full_params = None
+        self.params = None
         self.nodes_from = None
         self.fitted_model_path = None
 
@@ -187,26 +184,29 @@ class ModelTemplate:
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params
-        self.full_params = self._create_full_params(node)
+        self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
 
         if node.cache.actual_cached_state:
             # TODO issues_1
+            absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
+            if not os.path.exists(absolute_path):
+                os.makedirs(absolute_path)
             self.model_name = node.cache.actual_cached_state.model.__class__.__name__
             self.fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, 'model_'
                                                   + str(self.model_id) + '.pkl')
             joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
 
     def _create_full_params(self, node: Node) -> dict:
-        full_params = {}
+        params = {}
         if node.cache.actual_cached_state:
             # TODO issues_1
-            full_params = node.cache.actual_cached_state.model.get_params()
+            params = node.cache.actual_cached_state.model.get_params()
             if isinstance(self.custom_params, dict):
                 for key, value in self.custom_params.items():
-                    full_params[key] = value
+                    params[key] = value
 
-        return full_params
+        return params
 
     def export_to_json(self) -> dict:
 
@@ -215,7 +215,7 @@ class ModelTemplate:
             "model_type": self.model_type,
             "model_name": self.model_name,
             "custom_params": self.custom_params,
-            "full_params": self.full_params,
+            "params": self.params,
             "nodes_from": self.nodes_from,
             "trained_model_path": self.fitted_model_path,
         }
@@ -226,13 +226,13 @@ class ModelTemplate:
         try:
             self.model_id = model_object['model_id']
             self.model_type = model_object['model_type']
-            self.full_params = model_object['full_params']
+            self.params = model_object['params']
             self.nodes_from = model_object['nodes_from']
-            if model_object['trained_model_path']:
+            if "trained_model_path" in model_object:
                 self.fitted_model_path = model_object['trained_model_path']
-            if model_object['custom_params']:
+            if "custom_params" in model_object:
                 self.custom_params = model_object['custom_params']
-            if model_object['model_name']:
+            if "model_name" in model_object:
                 self.model_name = model_object['model_name']
         except Exception:
-            raise JsonFileInvalid(f"Required field 'model_id, model_type, full_params, nodes_from'")
+            raise JsonFileInvalid(f"Required field 'model_id, model_type, params, nodes_from'")
