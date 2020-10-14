@@ -1,5 +1,4 @@
 from copy import deepcopy
-from enum import Enum
 from functools import partial
 from random import choice, randint, random
 from typing import (Any, Callable)
@@ -7,6 +6,7 @@ from typing import (Any, Callable)
 from core.composer.chain import Chain, List
 from core.composer.constraint import constraint_function
 from core.composer.optimisers.gp_operators import node_depth, nodes_from_height, random_chain
+from core.utils import ComparableEnum as Enum
 
 
 class MutationTypesEnum(Enum):

@@ -30,6 +30,19 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
+	"automl": {
+	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["primary", "after-datamodel"],
+	  "forbidden_node_types": "[]",
+	  "strategies": {
+		"TaskTypesEnum.classification": ["core.models.evaluation.automl_eval", "AutoMLEvaluationStrategy"],
+		"TaskTypesEnum.regression": ["core.models.evaluation.automl_eval", "AutoMLRegressionStrategy"]
+	  },
+	  "tags": ["automl", "expensive"],
+	  "description": "Implementation of the regression and classification AutoML models from the H2O and TPOT frameworks"
+	},
 	"stats_ar": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.table]",
@@ -90,6 +103,9 @@
 	},
 	"arima": {
 	  "meta": "stats_ar"
+	},
+	"tpot": {
+	  "meta": "automl"
 	},
 	"kmeans": {
 	  "meta": "sklearn_clust"
