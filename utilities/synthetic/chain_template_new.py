@@ -13,7 +13,7 @@ DEFAULT_FITTED_MODELS_PATH = os.path.join(DEFAULT_PATH, 'fitted_models')
 
 class ChainTemplate:
     def __init__(self, chain):
-        self.total_model_types = {}
+        self.total_chain_types = {}
         self.depth = None
         self.model_templates = []
         self.unique_chain_id = str(uuid4())
@@ -44,7 +44,7 @@ class ChainTemplate:
             model_template = ModelTemplate(node, str(model_id), sorted(nodes_from), self.unique_chain_id)
 
             self.model_templates.append(model_template)
-            self._add_model_type_to_state(model_template.model_type)
+            self._add_chain_type_to_state(model_template.model_type)
 
             return model_template
 
@@ -53,11 +53,11 @@ class ChainTemplate:
         extract_chain_structure(chain.root_node, counter)
         self.depth = chain.depth
 
-    def _add_model_type_to_state(self, model_type: str):
-        if model_type in self.total_model_types:
-            self.total_model_types[model_type] += 1
+    def _add_chain_type_to_state(self, model_type: str):
+        if model_type in self.total_chain_types:
+            self.total_chain_types[model_type] += 1
         else:
-            self.total_model_types[model_type] = 1
+            self.total_chain_types[model_type] = 1
 
     def export_to_json(self, path: str):
 
@@ -89,11 +89,14 @@ class ChainTemplate:
         return data
 
     def make_json(self):
+        sorted_chain_types = dict(sorted(self.total_chain_types.items(), key=lambda x: x[0]))
+        json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
+        sorted_json_nodes = sorted(json_nodes, key=lambda model: model['model_id'])
+
         json_object = {
-            "total_model_types": dict(sorted(self.total_model_types.items(), key=lambda x: x[0])),
+            "total_chain_types": sorted_chain_types,
             "depth": self.depth,
-            "nodes": sorted(list(map(lambda model_template: model_template.export_to_json(), self.model_templates)),
-                            key=lambda model: model['model_id'])
+            "nodes": sorted_json_nodes,
         }
 
         return json.dumps(json_object)
@@ -161,7 +164,7 @@ class ChainTemplate:
         for model_object in model_objects:
             model_template = ModelTemplate()
             model_template.json_to_model_template(model_object)
-            self._add_model_type_to_state(model_template.model_type)
+            self._add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
 
 

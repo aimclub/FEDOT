@@ -53,7 +53,7 @@ The 'save_chain' method saves the chain models to the app's storage
 "test/data/my_chain.json" and returns a JSON-like-object:
 ```
 {
-    "total_model_types": {
+    "total_chain_types": {
         "knn": 1,
         "lda": 1,
         "logit": 1,
