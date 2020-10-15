@@ -118,13 +118,6 @@ class ChainTemplate:
             else:
                 raise FileNotFoundError(f"Write path to 'json' format file")
 
-        def find_model_jsons_from_json_chain(json_chain, list_of_model_ids):
-            node_objects = []
-            for model_id in list_of_model_ids:
-                node_objects += list(filter(lambda node_dict: node_dict['model_id'] == str(model_id), json_chain))
-
-            return node_objects
-
         def roll_chain_structure(model_object: dict) -> Node:
             if model_object['model_id'] in visited_nodes:
                 return visited_nodes[model_object['model_id']]
@@ -134,9 +127,9 @@ class ChainTemplate:
                 node = PrimaryNode(model_object['model_type'])
 
             node.model.params = model_object['params']
-            node.nodes_from = [roll_chain_structure(node_from) for node_from
-                               in find_model_jsons_from_json_chain(json_object_chain['nodes'],
-                                                                   model_object['nodes_from'])]
+            nodes_from = list(filter(lambda model_dict: model_dict['model_id'] in model_object['nodes_from'],
+                                     json_object_chain['nodes']))
+            node.nodes_from = [roll_chain_structure(node_from) for node_from in nodes_from]
             if "trained_model_path" in model_object and model_object['trained_model_path']:
                 path_to_model = os.path.abspath(model_object['trained_model_path'])
                 if not os.path.isfile(path_to_model):
@@ -152,7 +145,7 @@ class ChainTemplate:
 
         visited_nodes = {}
         self._json_to_chain_template(json_object_chain)
-        root_node = find_model_jsons_from_json_chain(json_object_chain['nodes'], [0])[0]
+        root_node = list(filter(lambda model_dict: model_dict['model_id'] == 0, json_object_chain['nodes']))[0]
         root_node = roll_chain_structure(root_node)
         self.link_to_empty_chain.add_node(root_node)
         self.depth = self.link_to_empty_chain.depth
