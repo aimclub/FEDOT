@@ -211,7 +211,8 @@ class ModelTemplate:
 
         return params
 
-    def _validate_json_model_template(self, model_object: dict):
+    @staticmethod
+    def _validate_json_model_template(model_object: dict):
         required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
 
         for field in required_fields:
