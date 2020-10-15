@@ -1,14 +1,17 @@
 import csv
 import math
 import os
+from pathlib import Path
 from typing import (Any, List)
 
 
 def write_composer_history_to_csv(historical_fitness: List[int], historical_chains: List[Any], pop_size: int,
                                   f='history.csv'):
-    f = f'../../tmp/{f}'
-    if not os.path.isdir('../../tmp'):
-        os.mkdir('../../tmp')
+    # f = f'../../tmp/{f}'
+    history_dir = f'{str(Path.home())}/composing_history'
+    f = f'{history_dir}/{f}'
+    if not os.path.isdir(history_dir):
+        os.mkdir(history_dir)
     write_header_to_csv(f)
     for i, fitness in enumerate(historical_fitness):
         gen_num = math.ceil(i / pop_size)
