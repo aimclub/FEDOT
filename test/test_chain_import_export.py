@@ -19,6 +19,9 @@ def creation_model_files_before_after_tests(request):
 
 
 def create_json_models_files():
+    """
+    Creating JSON's files for test.
+    """
     chain = create_chain()
     chain.save_chain("test/data/test_chain_convert_to_json.json")
 
@@ -30,17 +33,25 @@ def create_json_models_files():
 
 
 def delete_json_models_files():
+    """
+    Delete JSON's files.
+    """
     with open("test/data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         chain_fitted_object = json.load(json_file)
 
-    delete_models(chain_fitted_object)
+    delete_fitted_models(chain_fitted_object)
 
     os.remove("test/data/test_fitted_chain_convert_to_json.json")
     os.remove("test/data/test_empty_chain_convert_to_json.json")
     os.remove("test/data/test_chain_convert_to_json.json")
 
 
-def delete_models(chain):
+def delete_fitted_models(chain):
+    """
+    Delete directory and chain's local fitted models.
+
+    :param chain: chain which model's need to delete
+    """
     model_path = chain['nodes'][0]['trained_model_path']
     dir_path = os.path.dirname(os.path.abspath(model_path))
     for root, dirs, files in os.walk(dir_path, topdown=False):
@@ -192,7 +203,7 @@ def test_one_chain_object_save_load_vice_versa():
     for i in range(1, 4):
         os.remove(f"test/data/{i}.json")
 
-    delete_models(json.loads(json_first))
+    delete_fitted_models(json.loads(json_first))
     assert json_first == json_second
 
 
@@ -223,6 +234,6 @@ def test_custom_json_object_to_chain():
     chain.fit(train_data)
     json_actual = chain.save_chain("test/data/1.json")
 
-    delete_models(json.loads(json_actual))
+    delete_fitted_models(json.loads(json_actual))
     os.remove("test/data/1.json")
     assert True
