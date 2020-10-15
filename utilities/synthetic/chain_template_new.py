@@ -211,6 +211,13 @@ class ModelTemplate:
 
         return params
 
+    def _validate_json_model_template(self, model_object: dict):
+        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
+
+        for field in required_fields:
+            if field not in model_object:
+                raise JsonFileInvalid(f"Required field '{field}' is expected, but not found")
+
     def export_to_json(self) -> dict:
 
         model_object = {
@@ -226,16 +233,15 @@ class ModelTemplate:
         return model_object
 
     def json_to_model_template(self, model_object: dict):
-        try:
-            self.model_id = model_object['model_id']
-            self.model_type = model_object['model_type']
-            self.params = model_object['params']
-            self.nodes_from = model_object['nodes_from']
-            if "trained_model_path" in model_object:
-                self.fitted_model_path = model_object['trained_model_path']
-            if "custom_params" in model_object:
-                self.custom_params = model_object['custom_params']
-            if "model_name" in model_object:
-                self.model_name = model_object['model_name']
-        except Exception:
-            raise JsonFileInvalid(f"Required field 'model_id, model_type, params, nodes_from'")
+        self._validate_json_model_template(model_object)
+
+        self.model_id = model_object['model_id']
+        self.model_type = model_object['model_type']
+        self.params = model_object['params']
+        self.nodes_from = model_object['nodes_from']
+        if "trained_model_path" in model_object:
+            self.fitted_model_path = model_object['trained_model_path']
+        if "custom_params" in model_object:
+            self.custom_params = model_object['custom_params']
+        if "model_name" in model_object:
+            self.model_name = model_object['model_name']
