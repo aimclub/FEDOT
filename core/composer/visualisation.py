@@ -3,7 +3,6 @@ from copy import deepcopy
 from glob import glob, iglob
 from math import ceil, log2
 from os import remove
-from pathlib import Path
 from time import time
 from typing import Optional
 
@@ -14,11 +13,12 @@ from PIL import Image
 from imageio import get_writer, imread
 
 from core.composer.chain import Chain, as_nx_graph
+from core.utils import default_fedot_data_dir
 
 
 class ComposerVisualiser:
-    temp_path = f'{str(Path.home())}/composing_history/'
-    if 'composing_history' not in os.listdir(str(Path.home())):
+    temp_path = f'{default_fedot_data_dir()}/composing_history/'
+    if 'composing_history' not in os.listdir(default_fedot_data_dir()):
         os.mkdir(temp_path)
     gif_prefix = 'for_gif_'
 

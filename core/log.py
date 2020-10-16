@@ -4,7 +4,8 @@ import os
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
+
+from core.utils import default_fedot_data_dir
 
 
 def default_log(logger_name: str,
@@ -15,7 +16,7 @@ def default_log(logger_name: str,
     :return Log: Log object
     """
     if not log_file:
-        log_file = os.path.join(str(Path.home()), 'log.log')
+        log_file = os.path.join(default_fedot_data_dir(), 'log.log')
     log = Log(logger_name=logger_name,
               config_json_file='default',
               log_file=log_file)
@@ -35,7 +36,7 @@ class Log:
                  config_json_file: str,
                  log_file: str = None):
         if not log_file:
-            self.log_file = os.path.join(str(Path.home()), 'log.log')
+            self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
 
