@@ -12,6 +12,16 @@ def project_root() -> Path:
     return Path(__file__).parent.parent
 
 
+def default_fedot_data_dir() -> str:
+    """ Returns the folder where all the output data
+    is recorded to. Default: home/Fedot
+    """
+    default_data_path = os.path.join(str(Path.home()), 'Fedot')
+    if 'Fedot' not in os.listdir(str(Path.home())):
+        os.mkdir(default_data_path)
+    return default_data_path
+
+
 def labels_to_dummy_probs(prediction: np.array):
     """Returns converted predictions
     using one-hot probability encoding"""

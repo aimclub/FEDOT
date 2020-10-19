@@ -55,7 +55,7 @@ class GPComposer(Composer):
         write_composer_history_to_csv(historical_fitness=historical_fitness, historical_chains=self.history,
                                       pop_size=composer_requirements.pop_size)
 
-        print('GP composition finished')
+        self.log.info('GP composition finished')
 
         if is_tune:
             self.tune_chain(best_chain, data, composer_requirements.max_lead_time)
@@ -71,7 +71,7 @@ class GPComposer(Composer):
             chain.fit(input_data=train_data)
             return metric_function(chain, test_data)
         except Exception as ex:
-            print(f'Error in chain assessment during composition: {ex}. Continue.')
+            self.log.info(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
 
     @staticmethod
