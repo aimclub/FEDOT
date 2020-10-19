@@ -159,7 +159,7 @@ Also, FEDOT API in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 Contribution Guide
 ==================
 
-- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/improve-readme/docs/contributing.rst>`__.
+- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/contributing.rst>`__.
 
 Acknowledgements
 ================
