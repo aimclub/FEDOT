@@ -8,7 +8,7 @@ from core.utils import default_fedot_data_dir
 
 def write_composer_history_to_csv(historical_fitness: List[int], historical_chains: List[Any], pop_size: int,
                                   file='history.csv'):
-    history_dir = f'{default_fedot_data_dir()}/composing_history'
+    history_dir = os.path.join(default_fedot_data_dir(), 'composing_history')
     file = f'{history_dir}/{file}'
     if not os.path.isdir(history_dir):
         os.mkdir(history_dir)

@@ -17,8 +17,9 @@ from core.utils import default_fedot_data_dir
 
 
 class ComposerVisualiser:
-    temp_path = f'{default_fedot_data_dir()}/composing_history/'
-    if 'composing_history' not in os.listdir(default_fedot_data_dir()):
+    default_data_dir = default_fedot_data_dir()
+    temp_path = os.path.join(default_data_dir, 'composing_history')
+    if 'composing_history' not in os.listdir(default_data_dir):
         os.mkdir(temp_path)
     gif_prefix = 'for_gif_'
 

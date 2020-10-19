@@ -14,7 +14,7 @@ def project_root() -> Path:
 
 def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
-    is recorded to
+    is recorded to. Default: home/Fedot
     """
     default_data_path = os.path.join(str(Path.home()), 'Fedot')
     if 'Fedot' not in os.listdir(str(Path.home())):
