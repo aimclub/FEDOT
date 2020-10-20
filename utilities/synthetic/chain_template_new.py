@@ -18,11 +18,11 @@ class ChainTemplate:
         self.unique_chain_id = str(uuid4())
 
         if chain.root_node:
-            self._chain_to_chain_template(chain)
+            self._chain_to_template(chain)
         else:
             self.link_to_empty_chain = chain
 
-    def _chain_to_chain_template(self, chain):
+    def _chain_to_template(self, chain):
 
         def extract_chain_structure(node: Node, model_id: int):
             nonlocal counter
@@ -172,9 +172,9 @@ class ModelTemplate:
         self.fitted_model_path = None
 
         if node:
-            self._model_to_model_template(node, model_id, nodes_from, chain_id)
+            self._model_to_template(node, model_id, nodes_from, chain_id)
 
-    def _model_to_model_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str):
+    def _model_to_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str):
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params
