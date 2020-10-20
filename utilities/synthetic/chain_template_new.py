@@ -183,7 +183,7 @@ class ModelTemplate:
         self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
 
-        if self._is_node_fitted(node):
+        if _is_node_fitted(node):
             # TODO issues_1
             self.model_name = node.cache.actual_cached_state.model.__class__.__name__
             self._extract_fitted_model(node, chain_id)
@@ -198,7 +198,7 @@ class ModelTemplate:
 
     def _create_full_params(self, node: Node) -> dict:
         params = {}
-        if self._is_node_fitted(node):
+        if _is_node_fitted(node):
             # TODO issues_1
             params = node.cache.actual_cached_state.model.get_params()
             if isinstance(self.custom_params, dict):
@@ -222,7 +222,7 @@ class ModelTemplate:
         return model_object
 
     def json_to_model_template(self, model_object: dict):
-        self._validate_json_model_template(model_object)
+        _validate_json_model_template(model_object)
 
         self.model_id = model_object['model_id']
         self.model_type = model_object['model_type']
@@ -235,14 +235,14 @@ class ModelTemplate:
         if "model_name" in model_object:
             self.model_name = model_object['model_name']
 
-    @staticmethod
-    def _validate_json_model_template(model_object: dict):
-        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
 
-        for field in required_fields:
-            if field not in model_object:
-                raise RuntimeError(f"Required field '{field}' is expected, but not found")
+def _validate_json_model_template(model_object: dict):
+    required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
 
-    @staticmethod
-    def _is_node_fitted(node: Node) -> bool:
-        return bool(node.cache.actual_cached_state)
+    for field in required_fields:
+        if field not in model_object:
+            raise RuntimeError(f"Required field '{field}' is expected, but not found")
+
+
+def _is_node_fitted(node: Node) -> bool:
+    return bool(node.cache.actual_cached_state)
