@@ -7,3 +7,4 @@ There are additional utilities, that implemented as a part of FEDOT.
    :maxdepth: 1
 
    utilities/synthetic
+   utilities/chain_to_json
