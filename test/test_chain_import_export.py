@@ -1,15 +1,12 @@
 import json
 import os
-
 import pytest
 
-from cases.data.data_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
-from core.models.data import InputData
 from core.composer.node import PrimaryNode, SecondaryNode
+from cases.data.data_utils import get_scoring_case_data_paths
+from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate
-
-CURRENT_PATH = str(os.path.dirname(__file__))
 
 
 @pytest.fixture(scope="session", autouse=True)
