@@ -20,27 +20,27 @@ def create_json_models_files():
     Creating JSON's files for test.
     """
     chain = create_chain()
-    chain.save_chain("test/data/test_chain_convert_to_json.json")
+    chain.save_chain("data/test_chain_convert_to_json.json")
 
     chain_fitted = create_fitted_chain()
-    chain_fitted.save_chain("test/data/test_fitted_chain_convert_to_json.json")
+    chain_fitted.save_chain("data/test_fitted_chain_convert_to_json.json")
 
     chain_empty = Chain()
-    chain_empty.save_chain("test/data/test_empty_chain_convert_to_json.json")
+    chain_empty.save_chain("data/test_empty_chain_convert_to_json.json")
 
 
 def delete_json_models_files():
     """
     Delete JSON's files.
     """
-    with open("test/data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         chain_fitted_object = json.load(json_file)
 
     delete_fitted_models(chain_fitted_object)
 
-    os.remove("test/data/test_fitted_chain_convert_to_json.json")
-    os.remove("test/data/test_empty_chain_convert_to_json.json")
-    os.remove("test/data/test_chain_convert_to_json.json")
+    os.remove("data/test_fitted_chain_convert_to_json.json")
+    os.remove("data/test_empty_chain_convert_to_json.json")
+    os.remove("data/test_chain_convert_to_json.json")
 
 
 def delete_fitted_models(chain):
@@ -106,12 +106,12 @@ def create_fitted_chain() -> Chain:
 
 def test_export_chain_to_json_correctly():
     chain = create_chain()
-    json_actual = chain.save_chain("test/data/1.json")
+    json_actual = chain.save_chain("data/1.json")
 
-    with open("test/data/test_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    os.remove("test/data/1.json")
+    os.remove("data/1.json")
     assert json_actual == json.dumps(json_expected)
 
 
@@ -120,7 +120,7 @@ def test_chain_template_to_json_correctly():
     chain_template = ChainTemplate(chain)
     json_actual = chain_template.make_json()
 
-    with open("test/data/test_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected)
@@ -128,21 +128,21 @@ def test_chain_template_to_json_correctly():
 
 def test_import_json_to_chain_correctly():
     chain = Chain()
-    chain.load_chain("test/data/test_chain_convert_to_json.json")
-    json_actual = chain.save_chain("test/data/1.json")
+    chain.load_chain("data/test_chain_convert_to_json.json")
+    json_actual = chain.save_chain("data/1.json")
 
     chain_expected = create_chain()
-    json_expected = chain_expected.save_chain("test/data/2.json")
+    json_expected = chain_expected.save_chain("data/2.json")
 
-    os.remove("test/data/1.json")
-    os.remove("test/data/2.json")
+    os.remove("data/1.json")
+    os.remove("data/2.json")
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_import_json_template_to_chain_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    chain_template.import_from_json("test/data/test_chain_convert_to_json.json")
+    chain_template.import_from_json("data/test_chain_convert_to_json.json")
     json_actual = chain_template.make_json()
 
     chain_expected = create_chain()
@@ -154,23 +154,23 @@ def test_import_json_template_to_chain_correctly():
 
 def test_import_json_to_fitted_chain_correctly():
     chain = Chain()
-    chain.load_chain("test/data/test_fitted_chain_convert_to_json.json")
-    json_actual = chain.save_chain("test/data/1.json")
+    chain.load_chain("data/test_fitted_chain_convert_to_json.json")
+    json_actual = chain.save_chain("data/1.json")
 
-    with open("test/data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    os.remove("test/data/1.json")
+    os.remove("data/1.json")
     assert json_actual == json.dumps(json_expected)
 
 
 def test_import_json_to_fitted_chain_template_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    chain_template.import_from_json("test/data/test_fitted_chain_convert_to_json.json")
+    chain_template.import_from_json("data/test_fitted_chain_convert_to_json.json")
     json_actual = chain_template.make_json()
 
-    with open("test/data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected)
@@ -181,7 +181,7 @@ def test_empty_chain_to_json_correctly():
     chain_template = ChainTemplate(chain)
     json_actual = chain_template.make_json()
 
-    with open("test/data/test_empty_chain_convert_to_json.json", 'r') as json_file:
+    with open("data/test_empty_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected)
@@ -189,16 +189,16 @@ def test_empty_chain_to_json_correctly():
 
 def test_export_import_for_one_chain_object_correctly():
     chain_fitted = create_fitted_chain()
-    json_first = chain_fitted.save_chain("test/data/2.json")
+    json_first = chain_fitted.save_chain("data/2.json")
 
     chain_fitted_after = create_chain()
-    chain_fitted_after.save_chain("test/data/1.json")
-    chain_fitted_after.load_chain("test/data/2.json")
+    chain_fitted_after.save_chain("data/1.json")
+    chain_fitted_after.load_chain("data/2.json")
 
-    json_second = chain_fitted_after.save_chain("test/data/3.json")
+    json_second = chain_fitted_after.save_chain("data/3.json")
 
     for i in range(1, 4):
-        os.remove(f"test/data/{i}.json")
+        os.remove(f"data/{i}.json")
 
     delete_fitted_models(json.loads(json_first))
     assert json_first == json_second
@@ -206,17 +206,17 @@ def test_export_import_for_one_chain_object_correctly():
 
 def test_absolute_relative_paths_correctly():
     chain = create_chain()
-    chain.save_chain("test/data/test/1.json")
+    chain.save_chain("data/test/1.json")
 
-    absolute_path = os.path.join(os.path.abspath("test/data/2.json"))
+    absolute_path = os.path.join(os.path.abspath("data/2.json"))
     chain.save_chain(absolute_path)
 
-    chain.load_chain("test/data/test/1.json")
+    chain.load_chain("data/test/1.json")
     chain.load_chain(absolute_path)
 
-    os.remove("test/data/test/1.json")
+    os.remove("data/test/1.json")
     os.remove(absolute_path)
-    os.rmdir("test/data/test")
+    os.rmdir("data/test")
 
     assert True
 
@@ -225,13 +225,16 @@ def test_import_custom_json_object_to_chain_and_fit_correctly():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
+    data_path = str(os.path.dirname(__file__))
+    json_file_path = os.path.join(data_path, '..', 'test', 'data', 'test_custom_json_template.json')
+
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    chain_template.import_from_json("test/data/test_custom_json_template.json")
+    chain_template.import_from_json(json_file_path)
 
     chain.fit(train_data)
-    json_actual = chain.save_chain("test/data/1.json")
+    json_actual = chain.save_chain("data/1.json")
 
     delete_fitted_models(json.loads(json_actual))
-    os.remove("test/data/1.json")
+    os.remove("data/1.json")
     assert True
