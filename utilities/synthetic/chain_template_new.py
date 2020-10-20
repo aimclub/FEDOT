@@ -100,7 +100,7 @@ class ChainTemplate:
         return json.dumps(json_object)
 
     def import_from_json(self, path: str):
-        self._check_for_current_path(path)
+        self._check_for_json_existence(path)
 
         with open(path) as json_file:
             json_object_chain = json.load(json_file)
@@ -113,18 +113,18 @@ class ChainTemplate:
         self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
 
-    def _check_for_current_path(self, path: str):
+    def _check_for_json_existence(self, path: str):
         absolute_path = os.path.abspath(path)
-        name_of_files = path.split('/')
-        last_file = name_of_files[-1].split('.')
-        if len(last_file) >= 2:
-            if last_file[-1] == 'json':
+        path, name_of_file = os.path.split(path)
+        name_of_file = name_of_file.split('.')
+        if len(name_of_file) >= 2:
+            if name_of_file[-1] == 'json':
                 if not os.path.isfile(absolute_path):
                     raise FileNotFoundError(f"File on the path: {absolute_path} does not exist.")
-                self.unique_chain_id = ''.join(last_file[0:-1])
+                self.unique_chain_id = ''.join(name_of_file[0:-1])
             else:
                 raise ValueError(f"Could not load chain in"
-                                 f" '{last_file[-1]}' extension, use 'json' format")
+                                 f" '{name_of_file[-1]}' extension, use 'json' format")
         else:
             raise FileNotFoundError(f"Write path to 'json' format file")
 
