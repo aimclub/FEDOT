@@ -182,7 +182,7 @@ class ModelTemplate:
         self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
 
-        if node.cache.actual_cached_state:
+        if self._is_node_fitted(node):
             # TODO issues_1
             absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
             if not os.path.exists(absolute_path):
@@ -194,7 +194,7 @@ class ModelTemplate:
 
     def _create_full_params(self, node: Node) -> dict:
         params = {}
-        if node.cache.actual_cached_state:
+        if self._is_node_fitted(node):
             # TODO issues_1
             params = node.cache.actual_cached_state.model.get_params()
             if isinstance(self.custom_params, dict):
@@ -202,14 +202,6 @@ class ModelTemplate:
                     params[key] = value
 
         return params
-
-    @staticmethod
-    def _validate_json_model_template(model_object: dict):
-        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
-
-        for field in required_fields:
-            if field not in model_object:
-                raise RuntimeError(f"Required field '{field}' is expected, but not found")
 
     def export_to_json(self) -> dict:
 
@@ -238,3 +230,15 @@ class ModelTemplate:
             self.custom_params = model_object['custom_params']
         if "model_name" in model_object:
             self.model_name = model_object['model_name']
+
+    @staticmethod
+    def _validate_json_model_template(model_object: dict):
+        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
+
+        for field in required_fields:
+            if field not in model_object:
+                raise RuntimeError(f"Required field '{field}' is expected, but not found")
+
+    @staticmethod
+    def _is_node_fitted(node: Node) -> bool:
+        return bool(node.cache.actual_cached_state)
