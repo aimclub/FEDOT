@@ -1,6 +1,7 @@
 import json
 import os
 import pytest
+import shutil
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
@@ -51,12 +52,7 @@ def delete_fitted_models(chain):
     """
     model_path = chain['nodes'][0]['trained_model_path']
     dir_path = os.path.dirname(os.path.abspath(model_path))
-    for root, dirs, files in os.walk(dir_path, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
-    os.rmdir(dir_path)
+    shutil.rmtree(dir_path)
 
 
 def create_chain() -> Chain:
