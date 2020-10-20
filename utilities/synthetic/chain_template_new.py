@@ -23,32 +23,10 @@ class ChainTemplate:
             self.link_to_empty_chain = chain
 
     def _chain_to_template(self, chain):
-
-        def extract_chain_structure(node: Node, model_id: int):
-            if node.nodes_from:
-                nodes_from = []
-                for node_parent in node.nodes_from:
-                    if node_parent.descriptive_id in visited_nodes:
-                        nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
-                    else:
-                        visited_nodes.append(node_parent.descriptive_id)
-                        nodes_from.append(len(visited_nodes))
-                        extract_chain_structure(node_parent, len(visited_nodes))
-            else:
-                nodes_from = []
-
-            model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
-
-            self.model_templates.append(model_template)
-            self._add_chain_type_to_state(model_template.model_type)
-
-            return model_template
-
-        visited_nodes = []
-        extract_chain_structure(chain.root_node, 0)
+        _extract_chain_structure(self, chain.root_node, 0, [])
         self.depth = chain.depth
 
-    def _add_chain_type_to_state(self, model_type: str):
+    def add_chain_type_to_state(self, model_type: str):
         if model_type in self.total_chain_types:
             self.total_chain_types[model_type] += 1
         else:
@@ -151,7 +129,7 @@ class ChainTemplate:
         for model_object in model_objects:
             model_template = ModelTemplate()
             model_template.json_to_model_template(model_object)
-            self._add_chain_type_to_state(model_template.model_type)
+            self.add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
 
 
@@ -234,3 +212,29 @@ class ModelTemplate:
             self.custom_params = model_object['custom_params']
         if "model_name" in model_object:
             self.model_name = model_object['model_name']
+
+
+def _extract_chain_structure(this_chain_template: ChainTemplate, node: Node, model_id: int, visited_nodes):
+    """
+    Recursively go through the Chain from 'root_node' to PrimaryNode's,
+    creating a ModelTemplate with unique id for each Node. In addition,
+    checking whether this Node has been visited yet.
+    """
+    if node.nodes_from:
+        nodes_from = []
+        for node_parent in node.nodes_from:
+            if node_parent.descriptive_id in visited_nodes:
+                nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
+            else:
+                visited_nodes.append(node_parent.descriptive_id)
+                nodes_from.append(len(visited_nodes))
+                _extract_chain_structure(this_chain_template, node_parent, len(visited_nodes), visited_nodes)
+    else:
+        nodes_from = []
+
+    model_template = ModelTemplate(node, model_id, nodes_from, this_chain_template.unique_chain_id)
+
+    this_chain_template.model_templates.append(model_template)
+    this_chain_template.add_chain_type_to_state(model_template.model_type)
+
+    return model_template
