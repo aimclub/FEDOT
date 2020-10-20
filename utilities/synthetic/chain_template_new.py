@@ -68,7 +68,8 @@ class ChainTemplate:
         data = self.make_json()
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(data), indent=4))
-            print(f"The chain saved in the path: {os.path.join(absolute_path, f'{self.unique_chain_id}.json')}")
+            resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
+            print(f"The chain saved in the path: {resulted_path}")
 
         return data
 
