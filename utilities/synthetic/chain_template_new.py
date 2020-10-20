@@ -1,11 +1,11 @@
 import json
 import os
 import joblib
+
 from uuid import uuid4
 
-from core.utils import default_fedot_data_dir
-
 from core.composer.node import PrimaryNode, SecondaryNode, Node
+from core.utils import default_fedot_data_dir
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
 
