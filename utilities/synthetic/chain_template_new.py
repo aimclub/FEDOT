@@ -71,7 +71,7 @@ class ChainTemplate:
                     return '/'.join(name_of_files[0:-1])
                 else:
                     raise ValueError(f"Could not save chain in"
-                                                      f" '{last_file[-1]}' extension, use 'json' format")
+                                     f" '{last_file[-1]}' extension, use 'json' format")
             else:
                 return path_to_save
 
@@ -112,7 +112,7 @@ class ChainTemplate:
                     self.unique_chain_id = ''.join(last_file[0:-1])
                 else:
                     raise ValueError(f"Could not load chain in"
-                                                      f" '{last_file[-1]}' extension, use 'json' format")
+                                     f" '{last_file[-1]}' extension, use 'json' format")
             else:
                 raise FileNotFoundError(f"Write path to 'json' format file")
 
@@ -162,7 +162,8 @@ class ChainTemplate:
 class ModelTemplate:
     # TODO issues_1: make decision get name of model and full
     #  params from different types of model (sklearns, statmodels)
-    def __init__(self, node: Node = None, model_id: int = None, nodes_from: list = None, chain_id: str = None):
+    def __init__(self, node: Node = None, model_id: int = None,
+                 nodes_from: list = None, chain_id: str = None):
         self.model_id = None
         self.model_type = None
         self.model_name = None
