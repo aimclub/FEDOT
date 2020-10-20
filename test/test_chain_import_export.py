@@ -107,7 +107,7 @@ def create_fitted_chain() -> Chain:
     return chain
 
 
-def test_chain_to_json_correctly():
+def test_export_chain_to_json_correctly():
     chain = create_chain()
     json_actual = chain.save_chain("test/data/1.json")
 
@@ -129,7 +129,7 @@ def test_chain_template_to_json_correctly():
     assert json_actual == json.dumps(json_expected)
 
 
-def test_json_to_chain_correctly():
+def test_import_json_to_chain_correctly():
     chain = Chain()
     chain.load_chain("test/data/test_chain_convert_to_json.json")
     json_actual = chain.save_chain("test/data/1.json")
@@ -142,7 +142,7 @@ def test_json_to_chain_correctly():
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
-def test_json_template_to_chain_correctly():
+def test_import_json_template_to_chain_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("test/data/test_chain_convert_to_json.json")
@@ -155,7 +155,7 @@ def test_json_template_to_chain_correctly():
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
-def test_fitted_chain_to_json_correctly():
+def test_import_json_to_fitted_chain_correctly():
     chain = Chain()
     chain.load_chain("test/data/test_fitted_chain_convert_to_json.json")
     json_actual = chain.save_chain("test/data/1.json")
@@ -167,7 +167,7 @@ def test_fitted_chain_to_json_correctly():
     assert json_actual == json.dumps(json_expected)
 
 
-def test_fitted_chain_template_to_json_correctly():
+def test_import_json_to_fitted_chain_template_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("test/data/test_fitted_chain_convert_to_json.json")
@@ -179,7 +179,7 @@ def test_fitted_chain_template_to_json_correctly():
     assert json_actual == json.dumps(json_expected)
 
 
-def test_empty_json_to_chain():
+def test_empty_chain_to_json_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     json_actual = chain_template.make_json()
@@ -190,14 +190,14 @@ def test_empty_json_to_chain():
     assert json_actual == json.dumps(json_expected)
 
 
-def test_one_chain_object_save_load_vice_versa():
-    chain_fitted_after = create_chain()
-    chain_fitted_after.save_chain("test/data/1.json")
-
+def test_export_import_for_one_chain_object_correctly():
     chain_fitted = create_fitted_chain()
     json_first = chain_fitted.save_chain("test/data/2.json")
 
+    chain_fitted_after = create_chain()
+    chain_fitted_after.save_chain("test/data/1.json")
     chain_fitted_after.load_chain("test/data/2.json")
+
     json_second = chain_fitted_after.save_chain("test/data/3.json")
 
     for i in range(1, 4):
@@ -207,7 +207,7 @@ def test_one_chain_object_save_load_vice_versa():
     assert json_first == json_second
 
 
-def test_absolute_relative_paths():
+def test_absolute_relative_paths_correctly():
     chain = create_chain()
     chain.save_chain("test/data/test/1.json")
 
@@ -224,7 +224,7 @@ def test_absolute_relative_paths():
     assert True
 
 
-def test_custom_json_object_to_chain():
+def test_import_custom_json_object_to_chain_and_fit_correctly():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
