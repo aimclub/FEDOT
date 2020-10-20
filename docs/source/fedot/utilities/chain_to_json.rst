@@ -11,7 +11,7 @@ and import chain structure.
    :align:   center
 
 Exporting a model chain
-#######################
+-----------------------
       
 The Chain object has a *'save_chain'* method that takes a single argument,
 the path (relative or absolute) to which the JSON object will be saved. 
@@ -132,7 +132,7 @@ Where *'params'* are all parameters consisting of:
 - standard model parameters in the framework
 
 Model Chain import
-##################
+------------------
       
 To import a chain, you need to create an empty *'Chain'* object, or an
 already used one, but all data will be overwritten during import. The
