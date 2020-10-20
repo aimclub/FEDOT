@@ -1,6 +1,5 @@
 import sys
 import pathlib
-from utilities.synthetic.custom_errors import OperatingSystemValidation
 
 
 def get_data_direction() -> pathlib.Path:
@@ -23,7 +22,7 @@ def get_data_direction() -> pathlib.Path:
     elif sys.platform == "darwin":
         return home / "Library/Application Support"
     else:
-        raise OperatingSystemValidation(f"We do not support your operation system: {sys.platform}")
+        raise RuntimeError(f"We do not support your operation system: {sys.platform}")
 
 
 DEFAULT_PATH = get_data_direction() / "FEDOT"

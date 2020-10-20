@@ -4,7 +4,6 @@ import joblib
 from uuid import uuid4
 
 from utilities.synthetic.get_application_settings_path import DEFAULT_PATH
-from utilities.synthetic.custom_errors import JsonFileExtensionValidation, JsonFileInvalid
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node
 
@@ -71,7 +70,7 @@ class ChainTemplate:
                     self.unique_chain_id = ''.join(last_file[0:-1])
                     return '/'.join(name_of_files[0:-1])
                 else:
-                    raise JsonFileExtensionValidation(f"Could not save chain in"
+                    raise ValueError(f"Could not save chain in"
                                                       f" '{last_file[-1]}' extension, use 'json' format")
             else:
                 return path_to_save
@@ -112,7 +111,7 @@ class ChainTemplate:
                         raise FileNotFoundError(f"File on the path: {absolute_path} does not exist.")
                     self.unique_chain_id = ''.join(last_file[0:-1])
                 else:
-                    raise JsonFileExtensionValidation(f"Could not load chain in"
+                    raise ValueError(f"Could not load chain in"
                                                       f" '{last_file[-1]}' extension, use 'json' format")
             else:
                 raise FileNotFoundError(f"Write path to 'json' format file")
@@ -209,7 +208,7 @@ class ModelTemplate:
 
         for field in required_fields:
             if field not in model_object:
-                raise JsonFileInvalid(f"Required field '{field}' is expected, but not found")
+                raise RuntimeError(f"Required field '{field}' is expected, but not found")
 
     def export_to_json(self) -> dict:
 
