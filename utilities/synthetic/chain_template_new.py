@@ -161,8 +161,6 @@ class ChainTemplate:
 
 
 class ModelTemplate:
-    # TODO issues_1: make decision get name of model and full
-    #  params from different types of model (sklearns, statmodels)
     def __init__(self, node: Node = None, model_id: int = None,
                  nodes_from: list = None, chain_id: str = None):
         self.model_id = None
@@ -184,8 +182,7 @@ class ModelTemplate:
         self.nodes_from = nodes_from
 
         if _is_node_fitted(node):
-            # TODO issues_1
-            self.model_name = node.cache.actual_cached_state.model.__class__.__name__
+            self.model_name = _extract_model_name(node)
             self._extract_fitted_model(node, chain_id)
 
     def _extract_fitted_model(self, node: Node, chain_id: str):
@@ -199,8 +196,7 @@ class ModelTemplate:
     def _create_full_params(self, node: Node) -> dict:
         params = {}
         if _is_node_fitted(node):
-            # TODO issues_1
-            params = node.cache.actual_cached_state.model.get_params()
+            params = _extract_model_params(node)
             if isinstance(self.custom_params, dict):
                 for key, value in self.custom_params.items():
                     params[key] = value
@@ -242,6 +238,14 @@ def _validate_json_model_template(model_object: dict):
     for field in required_fields:
         if field not in model_object:
             raise RuntimeError(f"Required field '{field}' is expected, but not found")
+
+
+def _extract_model_params(node: Node):
+    return node.cache.actual_cached_state.model.get_params()
+
+
+def _extract_model_name(node: Node):
+    return node.cache.actual_cached_state.model.__class__.__name__
 
 
 def _is_node_fitted(node: Node) -> bool:
