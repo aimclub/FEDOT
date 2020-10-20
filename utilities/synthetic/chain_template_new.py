@@ -41,7 +41,7 @@ class ChainTemplate:
             else:
                 nodes_from = []
 
-            model_template = ModelTemplate(node, str(model_id), sorted(nodes_from), self.unique_chain_id)
+            model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
 
             self.model_templates.append(model_template)
             self._add_chain_type_to_state(model_template.model_type)
@@ -89,14 +89,13 @@ class ChainTemplate:
         return data
 
     def make_json(self):
-        sorted_chain_types = dict(sorted(self.total_chain_types.items(), key=lambda x: x[0]))
+        sorted_chain_types = self.total_chain_types
         json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
-        sorted_json_nodes = sorted(json_nodes, key=lambda model: model['model_id'])
 
         json_object = {
             "total_chain_types": sorted_chain_types,
             "depth": self.depth,
-            "nodes": sorted_json_nodes,
+            "nodes": json_nodes,
         }
 
         return json.dumps(json_object)
@@ -164,7 +163,7 @@ class ChainTemplate:
 class ModelTemplate:
     # TODO issues_1: make decision get name of model and full
     #  params from different types of model (sklearns, statmodels)
-    def __init__(self, node: Node = None, model_id: str = None, nodes_from: list = None, chain_id: str = None):
+    def __init__(self, node: Node = None, model_id: int = None, nodes_from: list = None, chain_id: str = None):
         self.model_id = None
         self.model_type = None
         self.model_name = None
@@ -176,7 +175,7 @@ class ModelTemplate:
         if node:
             self._model_to_model_template(node, model_id, nodes_from, chain_id)
 
-    def _model_to_model_template(self, node: Node, model_id: str, nodes_from: list, chain_id: str):
+    def _model_to_model_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str):
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params

@@ -209,16 +209,17 @@ def test_one_chain_object_save_load_vice_versa():
 
 def test_absolute_relative_paths():
     chain = create_chain()
-    chain.save_chain("test/data/1.json")
+    chain.save_chain("test/data/test/1.json")
 
     absolute_path = os.path.join(os.path.abspath("test/data/2.json"))
     chain.save_chain(absolute_path)
 
-    chain.load_chain("test/data/1.json")
+    chain.load_chain("test/data/test/1.json")
     chain.load_chain(absolute_path)
 
-    os.remove("test/data/1.json")
+    os.remove("test/data/test/1.json")
     os.remove(absolute_path)
+    os.rmdir("test/data/test")
 
     assert True
 

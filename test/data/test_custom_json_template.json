@@ -1,7 +1,7 @@
 {
   "nodes": [
         {
-            "model_id": "0",
+            "model_id": 0,
             "model_type": "knn",
             "params": {
                 "n_neighbors": 8
@@ -12,7 +12,7 @@
             ]
         },
         {
-            "model_id": "1",
+            "model_id": 1,
             "model_type": "lda",
             "params": {
                 "n_components": 1
@@ -24,7 +24,17 @@
             ]
         },
         {
-            "model_id": "2",
+            "model_id": 8,
+            "model_type": "xgboost",
+            "params": "default_params",
+            "nodes_from": [
+                2,
+                6,
+                7
+            ]
+        },
+        {
+            "model_id": 2,
             "model_type": "logit",
             "params": "default_params",
             "nodes_from": [
@@ -33,21 +43,7 @@
             ]
         },
         {
-            "model_id": "3",
-            "model_type": "xgboost",
-            "params": "default_params",
-            "nodes_from": []
-        },
-        {
-            "model_id": "4",
-            "model_type": "lda",
-            "params": {
-                "n_components": 1
-            },
-            "nodes_from": []
-        },
-        {
-            "model_id": "5",
+            "model_id": 5,
             "model_type": "knn",
             "params": {
                 "n_neighbors": 5
@@ -58,7 +54,7 @@
             ]
         },
         {
-            "model_id": "6",
+            "model_id": 6,
             "model_type": "knn",
             "params": {
                 "n_neighbors": 9
@@ -66,20 +62,24 @@
             "nodes_from": []
         },
         {
-            "model_id": "7",
+            "model_id": 7,
             "model_type": "logit",
             "params": "default_params",
             "nodes_from": []
         },
         {
-            "model_id": "8",
+            "model_id": 3,
             "model_type": "xgboost",
             "params": "default_params",
-            "nodes_from": [
-                2,
-                6,
-                7
-            ]
+            "nodes_from": []
+        },
+        {
+            "model_id": 4,
+            "model_type": "lda",
+            "params": {
+                "n_components": 1
+            },
+            "nodes_from": []
         }
     ]
 }
