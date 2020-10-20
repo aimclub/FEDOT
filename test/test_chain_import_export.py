@@ -208,7 +208,7 @@ def test_export_import_for_one_chain_object_correctly():
     assert json_first == json_second
 
 
-def test_absolute_relative_paths_correctly():
+def test_absolute_relative_paths_correctly_no_exception():
     chain = create_chain()
     chain.save_chain("data/test/1.json")
 
@@ -222,10 +222,8 @@ def test_absolute_relative_paths_correctly():
     os.remove(absolute_path)
     os.rmdir("data/test")
 
-    assert True
 
-
-def test_import_custom_json_object_to_chain_and_fit_correctly():
+def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
@@ -241,4 +239,3 @@ def test_import_custom_json_object_to_chain_and_fit_correctly():
 
     delete_fitted_models(json.loads(json_actual))
     os.remove("data/1.json")
-    assert True
