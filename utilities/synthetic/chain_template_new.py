@@ -184,13 +184,16 @@ class ModelTemplate:
 
         if self._is_node_fitted(node):
             # TODO issues_1
-            absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
-            if not os.path.exists(absolute_path):
-                os.makedirs(absolute_path)
             self.model_name = node.cache.actual_cached_state.model.__class__.__name__
-            self.fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, 'model_'
-                                                  + str(self.model_id) + '.pkl')
-            joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
+            self._extract_fitted_model(node, chain_id)
+
+    def _extract_fitted_model(self, node: Node, chain_id: str):
+        absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
+        if not os.path.exists(absolute_path):
+            os.makedirs(absolute_path)
+        model_name = f'model_{str(self.model_id)}.pkl'
+        self.fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, model_name)
+        joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
 
     def _create_full_params(self, node: Node) -> dict:
         params = {}
