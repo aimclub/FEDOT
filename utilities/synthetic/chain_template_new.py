@@ -3,11 +3,11 @@ import os
 import joblib
 from uuid import uuid4
 
-from utilities.synthetic.get_application_settings_path import DEFAULT_PATH
+from core.utils import default_fedot_data_dir
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node
 
-DEFAULT_FITTED_MODELS_PATH = os.path.join(DEFAULT_PATH, 'fitted_models')
+DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
 
 
 class ChainTemplate:
