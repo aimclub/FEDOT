@@ -14,6 +14,7 @@ from core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from core.composer.optimisers.selection import SelectionTypesEnum, selection
 from core.composer.timer import CompositionTimer
+from core.log import default_log
 
 
 @dataclass
@@ -42,7 +43,8 @@ class GPChainOptimiserParameters:
 
 class GPChainOptimiser:
     def __init__(self, initial_chain, requirements, primary_node_func: Callable, secondary_node_func: Callable,
-                 chain_class: Callable, parameters: Optional[GPChainOptimiserParameters] = None):
+                 chain_class: Callable, parameters: Optional[GPChainOptimiserParameters] = None,
+                 log=default_log(__name__)):
         self.requirements = requirements
         self.primary_node_func = primary_node_func
         self.secondary_node_func = secondary_node_func
@@ -52,10 +54,13 @@ class GPChainOptimiser:
         self.chain_generation_function = partial(random_chain, chain_class=chain_class, requirements=self.requirements,
                                                  primary_node_func=self.primary_node_func,
                                                  secondary_node_func=self.secondary_node_func)
+        self.log = log
 
         necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
         if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
-            raise AttributeError(f'Object chain_class has no required attributes for gp_optimizer')
+            ex = f'Object chain_class has no required attributes for gp_optimizer'
+            self.log.error(ex)
+            raise AttributeError(ex)
 
         if initial_chain and type(initial_chain) != list:
             self.population = [deepcopy(initial_chain) for _ in range(requirements.pop_size)]
@@ -113,8 +118,8 @@ class GPChainOptimiser:
 
                 self._add_to_history(self.population)
 
-                print(f'spent time: {round(t.minutes_from_start, 1)} min')
-                print(f'Best metric is {self.best_individual.fitness}')
+                self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
+                self.log.info(f'Best metric is {self.best_individual.fitness}')
 
                 if t.is_time_limit_reached(self.requirements.max_lead_time, generation_num):
                     break
