@@ -184,6 +184,14 @@ def test_empty_chain_to_json_correctly():
 
 
 def test_export_import_for_one_chain_object_correctly():
+    """
+    This test checks whether it is possible to upload a new model to the same object. In other words,
+     apply a sequence of commands to the chain object:
+    - load_chain(path_first)
+    - load_chain(path_second)
+    - load_chain(path_third)
+    and the last command will rewrite the chain object correctly.
+    """
     chain_fitted = create_fitted_chain()
     json_first = chain_fitted.save_chain("data/2.json")
 
