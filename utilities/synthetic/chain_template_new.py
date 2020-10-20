@@ -25,18 +25,15 @@ class ChainTemplate:
     def _chain_to_template(self, chain):
 
         def extract_chain_structure(node: Node, model_id: int):
-            nonlocal counter
-
             if node.nodes_from:
                 nodes_from = []
-                for index, node_parent in enumerate(node.nodes_from):
+                for node_parent in node.nodes_from:
                     if node_parent.descriptive_id in visited_nodes:
                         nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
                     else:
-                        counter += 1
                         visited_nodes.append(node_parent.descriptive_id)
-                        nodes_from.append(counter)
-                        extract_chain_structure(node_parent, counter)
+                        nodes_from.append(len(visited_nodes))
+                        extract_chain_structure(node_parent, len(visited_nodes))
             else:
                 nodes_from = []
 
@@ -47,9 +44,8 @@ class ChainTemplate:
 
             return model_template
 
-        counter = 0
         visited_nodes = []
-        extract_chain_structure(chain.root_node, counter)
+        extract_chain_structure(chain.root_node, 0)
         self.depth = chain.depth
 
     def _add_chain_type_to_state(self, model_type: str):
