@@ -169,7 +169,8 @@ class Node(ABC):
 
     @custom_params.setter
     def custom_params(self, params):
-        self.model.params = params
+        if params:
+            self.model.params = params
 
 
 class FittedModelCache:
