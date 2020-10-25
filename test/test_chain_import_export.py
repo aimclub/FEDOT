@@ -7,7 +7,7 @@ from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from cases.data.data_utils import get_scoring_case_data_paths
 from core.models.data import InputData
-from utilities.synthetic.chain_template_new import ChainTemplate
+from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -239,3 +239,40 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
 
     delete_fitted_models(json.loads(json_actual))
     os.remove("data/1.json")
+
+
+def create_four_depth_chain():
+    knn_node = PrimaryNode('knn')
+    lda_node = PrimaryNode('lda')
+    xgb_node = PrimaryNode('xgb')
+    logit_node = PrimaryNode('logit')
+
+    logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
+    xgb_node_second = SecondaryNode('xgb', nodes_from=[logit_node])
+
+    qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_second])
+    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, xgb_node])
+
+    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
+
+    chain = Chain()
+    chain.add_node(knn_root)
+
+    return chain
+
+
+def test_extract_subtree_root():
+    chain = create_four_depth_chain()
+    chain_template = ChainTemplate(chain)
+
+    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgb']
+    new_root_node_id = 4
+
+    root_node = extract_subtree_root(root_model_id=new_root_node_id,
+                                     chain_template=chain_template)
+
+    sub_chain = Chain()
+    sub_chain.add_node(root_node)
+    actual_types = [node.model.model_type for node in sub_chain.nodes]
+
+    assert expected_types.sort() == actual_types.sort()
