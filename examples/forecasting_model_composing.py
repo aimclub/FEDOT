@@ -54,7 +54,7 @@ def calculate_validation_metric(pred: OutputData, valid: InputData,
 
 
 def compare_plot(predicted, real, forecast_length, model_name):
-    plt.clf()
+    # plt.clf()
     _, ax = plt.subplots()
     plt.plot(real, linewidth=1, label="Observed", alpha=0.4)
     plt.plot(predicted, linewidth=1, label="Predicted", alpha=0.6)
@@ -105,7 +105,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                    initial_chain=ref_chain,
                                    composer_requirements=composer_requirements,
                                    metrics=metric_function,
-                                   is_visualise=False)
+                                   is_visualise=True)
 
     if with_visualisation:
         ComposerVisualiser.visualise(chain)

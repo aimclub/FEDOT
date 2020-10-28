@@ -1,6 +1,7 @@
 import os
+import random
 from copy import deepcopy
-from glob import glob, iglob
+from glob import glob
 from math import ceil, log2
 from os import remove
 from time import time
@@ -9,8 +10,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
+import numpy as np
 from PIL import Image
-from imageio import get_writer, imread
 
 from core.composer.chain import Chain, as_nx_graph
 from core.utils import default_fedot_data_dir
@@ -22,18 +23,17 @@ class ComposerVisualiser:
     if 'composing_history' not in os.listdir(default_data_dir):
         os.mkdir(temp_path)
     gif_prefix = 'for_gif_'
+    chains_imgs = []
+    convergence_imgs = []
+    best_chains_imgs = []
+    merged_imgs = []
 
     @staticmethod
     def visualise(chain: Chain, save_path: Optional[str] = None):
         try:
-            graph, node_labels = as_nx_graph(chain=chain)
-            pos = node_positions(graph.to_undirected())
-            plt.figure(figsize=(10, 16))
-            nx.draw(graph, pos=pos,
-                    with_labels=True, labels=node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
-                    node_size=7000, width=2.0,
-                    node_color=colors_by_node_labels(node_labels), cmap='Set3')
+            fig, axs = plt.subplots(2, 1, figsize=(8, 10), gridspec_kw={'height_ratios': [4, 1]})
+            ComposerVisualiser._visualise(chain, axs[0], 'Current chain')
+            ComposerVisualiser._add_table_params(chain, axs[1])
             if not save_path:
                 plt.show()
             else:
@@ -42,53 +42,51 @@ class ComposerVisualiser:
             print(f'Visualisation failed with {ex}')
 
     @staticmethod
+    def _visualise(chain: Chain, ax=None, title=None):
+        graph, node_labels = as_nx_graph(chain=chain)
+        word_labels = list(node_labels.values())
+        inv_map = {v: k for k, v in node_labels.items()}
+        pos = hierarchy_pos(graph.to_undirected(), root=inv_map[str(chain.root_node)])
+        min_size = 3000
+        node_sizes = [min_size for _ in word_labels]
+        if title:
+            plt.title(title)
+        colors = colors_by_node_labels(node_labels)
+        nx.draw(graph, pos=pos,
+                with_labels=False,
+                node_size=node_sizes, width=2.0,
+                node_color=colors, cmap='Set3', ax=ax)
+        for node, (x, y) in pos.items():
+            text = '\n'.join(node_labels[node].split('_'))
+            if ax is None:
+                ax = plt
+            ax.text(x, y, text, ha='center', va='center')
+
+    @staticmethod
     def _visualise_chains(chains, fitnesses):
         fitnesses = deepcopy(fitnesses)
         last_best_chain = chains[0]
-
         prev_fit = fitnesses[0]
-
         for ch_id, chain in enumerate(chains):
-            graph, node_labels = as_nx_graph(chain=chain)
-            pos = node_positions(graph.to_undirected())
-            plt.rcParams['axes.titlesize'] = 20
-            plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
-            plt.title('Current chain')
-            nx.draw(graph, pos=pos,
-                    with_labels=True, labels=node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
-                    node_size=scaled_node_size(chain.length), width=2.0,
-                    node_color=colors_by_node_labels(node_labels), cmap='Set3')
-            path = f'{ComposerVisualiser.temp_path}ch_{ch_id}.png'
-            plt.savefig(path, bbox_inches='tight')
-
+            fig = plt.figure(figsize=(10, 10))
+            ComposerVisualiser._visualise(chain, title='Current chain')
+            fig.canvas.draw()
+            img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            ComposerVisualiser.chains_imgs.append(img)
             plt.cla()
             plt.clf()
             plt.close('all')
-
-            path_best = f'{ComposerVisualiser.temp_path}best_ch_{ch_id}.png'
-
             if fitnesses[ch_id] > prev_fit:
                 fitnesses[ch_id] = prev_fit
             else:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
-
-            best_graph, best_node_labels = as_nx_graph(chain=last_best_chain)
-            pos = node_positions(best_graph.to_undirected())
-            plt.rcParams['axes.titlesize'] = 20
-            plt.rcParams['axes.labelsize'] = 20
-            plt.rcParams['figure.figsize'] = [10, 10]
-            plt.title(f'Best chain after {round(ch_id)} evals')
-            nx.draw(best_graph, pos=pos,
-                    with_labels=True, labels=best_node_labels,
-                    font_size=12, font_family='calibri', font_weight='bold',
-                    node_size=scaled_node_size(chain.length), width=2.0,
-                    node_color=colors_by_node_labels(best_node_labels), cmap='Set3')
-
-            plt.savefig(path_best, bbox_inches='tight')
-
+            fig = plt.figure(figsize=(10, 10))
+            ComposerVisualiser._visualise(last_best_chain, title=f'Best chain after {round(ch_id)} evals')
+            fig.canvas.draw()
+            img = figure_to_array(fig)
+            ComposerVisualiser.best_chains_imgs.append(img)
             plt.cla()
             plt.clf()
             plt.close('all')
@@ -107,21 +105,19 @@ class ComposerVisualiser:
 
         ind = 0
         for ts in ts_set:
+            fig = plt.figure()
             plt.rcParams['axes.titlesize'] = 20
             plt.rcParams['axes.labelsize'] = 20
             plt.rcParams['figure.figsize'] = [10, 10]
-
-            ind = ind + 1
+            ind += 1
             plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
             plt.ylabel('Best ROC AUC', fontsize=18)
-
             plt.axvline(x=ts, color='black')
             plt.legend(loc='upper left')
-
-            path = f'{ComposerVisualiser.temp_path}{ind}.png'
-            plt.savefig(path, bbox_inches='tight')
-
+            fig.canvas.draw()
+            img = figure_to_array(fig)
+            ComposerVisualiser.convergence_imgs.append(img)
             plt.cla()
             plt.clf()
             plt.close('all')
@@ -133,46 +129,25 @@ class ComposerVisualiser:
             ComposerVisualiser._clean(with_gif=True)
             ComposerVisualiser._visualise_chains(chains, fitnesses)
             ComposerVisualiser._visualise_convergence(fitnesses)
-            ComposerVisualiser._merge_images(len(chains))
+            ComposerVisualiser._merge_images()
             ComposerVisualiser._combine_gifs()
             ComposerVisualiser._clean()
         except Exception as ex:
             print(f'Visualisation failed with {ex}')
 
     @staticmethod
-    def _merge_images(num_images):
-        for img_idx in (range(1, num_images)):
-            images = list(map(Image.open, [f'{ComposerVisualiser.temp_path}ch_{img_idx}.png',
-                                           f'{ComposerVisualiser.temp_path}best_ch_{img_idx}.png',
-                                           f'{ComposerVisualiser.temp_path}{img_idx}.png']))
-            widths, heights = zip(*(i.size for i in images))
-
-            total_width = sum(widths)
-            max_height = max(heights)
-
-            new_im = Image.new('RGB', (total_width, max_height))
-
-            x_offset = 0
-            for im in images:
-                new_im.paste(im, (x_offset, 0))
-                x_offset += im.size[0]
-
-            new_im.save(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}{img_idx}.png')
+    def _merge_images():
+        for i in range(1, len(ComposerVisualiser.chains_imgs)):
+            merged = np.concatenate((ComposerVisualiser.chains_imgs[i],
+                                     ComposerVisualiser.best_chains_imgs[i],
+                                     ComposerVisualiser.convergence_imgs[i]), axis=1)
+            ComposerVisualiser.merged_imgs.append(Image.fromarray(np.uint8(merged)))
 
     @staticmethod
     def _combine_gifs():
-        files = [file_name for file_name in
-                 iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
-        files_idx = [int(file_name[len(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}'):(
-                len(file_name) - len('.png'))]) for
-                     file_name in
-                     iglob(f'{ComposerVisualiser.temp_path}{ComposerVisualiser.gif_prefix}*.png')]
-        files = [file for _, file in sorted(zip(files_idx, files))]
-
-        with get_writer(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif', mode='I', duration=0.5) as writer:
-            for filename in files:
-                image = imread(filename)
-                writer.append_data(image)
+        ComposerVisualiser.merged_imgs[0].save(f'{ComposerVisualiser.temp_path}final_{str(time())}.gif',
+                                               save_all=True, append_images=ComposerVisualiser.merged_imgs[1:],
+                                               optimize=False, duration=0.5, loop=0)
 
     @staticmethod
     def _clean(with_gif=False):
@@ -185,6 +160,30 @@ class ComposerVisualiser:
         except Exception as ex:
             print(ex)
 
+    @staticmethod
+    def _add_table_params(chain, ax):
+        cell_text = []
+        columns = ['Model', 'Custom_params']
+        for i in chain.nodes:
+            lst = [str(i.model.metadata.id)]
+            if i.custom_params == 'default_params':
+                lst.append('-')
+            else:
+                lst.append(str(i.custom_params))
+            cell_text.append(lst)
+        the_table = ax.table(cellText=cell_text,
+                             colLabels=columns,
+                             loc='center')
+        the_table.auto_set_font_size(False)
+        the_table.set_fontsize(10)
+        ax.axis('off')
+
+
+def figure_to_array(fig):
+    img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return img
+
 
 def colors_by_node_labels(node_labels: dict):
     colors = [color for color in range(len(node_labels.keys()))]
@@ -196,7 +195,32 @@ def scaled_node_size(nodes_amount):
     return size
 
 
-def node_positions(graph: nx.Graph):
+def hierarchy_pos(graph, root=None, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5):
     if not nx.is_tree(graph):
         raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
-    return nx.drawing.nx_pydot.graphviz_layout(graph, prog='dot')
+
+    if root is None:
+        if isinstance(graph, nx.DiGraph):
+            root = next(iter(nx.topological_sort(graph)))  # allows back compatibility with nx version 1.11
+        else:
+            root = random.choice(list(graph.nodes))
+
+    def _hierarchy_pos(graph, root, width=1., vert_gap=0.2, vert_loc=0, xcenter=0.5, pos=None, parent=None):
+        if pos is None:
+            pos = {root: (xcenter, vert_loc)}
+        else:
+            pos[root] = (xcenter, vert_loc)
+        children = list(graph.neighbors(root))
+        if not isinstance(graph, nx.DiGraph) and parent is not None:
+            children.remove(parent)
+        if len(children) != 0:
+            dx = width / len(children)
+            nextx = xcenter - width / 2 - dx / 2
+            for child in children:
+                nextx += dx
+                pos = _hierarchy_pos(graph, child, width=dx, vert_gap=vert_gap,
+                                     vert_loc=vert_loc - vert_gap, xcenter=nextx,
+                                     pos=pos, parent=root)
+        return pos
+
+    return _hierarchy_pos(graph, root, width, vert_gap, vert_loc, xcenter)
