@@ -65,13 +65,14 @@ class ChainTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        data = self.make_json()
+        chain_template_dict = self.convert_to_dict()
+        json_data = json.dumps(chain_template_dict)
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(json.loads(data), indent=4))
+            f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
             print(f"The chain saved in the path: {resulted_path}")
 
-        return data
+        return json_data
 
     def _create_unique_chain_id(self, path_to_save: str):
         name_of_files = path_to_save.split('/')
@@ -88,7 +89,7 @@ class ChainTemplate:
         else:
             return path_to_save
 
-    def make_json(self):
+    def convert_to_dict(self) -> dict:
         sorted_chain_types = self.total_chain_types
         json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
 
@@ -98,7 +99,7 @@ class ChainTemplate:
             "nodes": json_nodes,
         }
 
-        return json.dumps(json_object)
+        return json_object
 
     def import_from_json(self, path: str):
         self._check_for_json_existence(path)
@@ -257,7 +258,7 @@ def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     json_nodes = list(map(lambda model_template: model_template.export_to_json(),
                           chain_template.model_templates))
 
-    chain_object = json.loads(chain_template.make_json())
+    chain_object = chain_template.convert_to_dict()
 
     root_node = list(filter(lambda model_dict: model_dict['model_id'] == root_model_id, json_nodes))[0]
     root_node = _roll_chain_structure(root_node, {}, chain_object)

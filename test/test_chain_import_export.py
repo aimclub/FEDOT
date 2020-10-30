@@ -114,12 +114,12 @@ def test_export_chain_to_json_correctly():
 def test_chain_template_to_json_correctly():
     chain = create_chain()
     chain_template = ChainTemplate(chain)
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_import_json_to_chain_correctly():
@@ -139,11 +139,11 @@ def test_import_json_template_to_chain_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("data/test_chain_convert_to_json.json")
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     chain_expected = create_chain()
     chain_expected_template = ChainTemplate(chain_expected)
-    json_expected = chain_expected_template.make_json()
+    json_expected = chain_expected_template.convert_to_dict()
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
@@ -164,23 +164,23 @@ def test_import_json_to_fitted_chain_template_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("data/test_fitted_chain_convert_to_json.json")
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_empty_chain_to_json_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_empty_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_export_import_for_one_chain_object_correctly():
