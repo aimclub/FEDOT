@@ -8,6 +8,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from cases.data.data_utils import get_scoring_case_data_paths
 from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
+import numpy as np
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -275,4 +276,6 @@ def test_extract_subtree_root():
     sub_chain.add_node(root_node)
     actual_types = [node.model.model_type for node in sub_chain.nodes]
 
-    assert expected_types.sort() == actual_types.sort()
+    assertion_list = [True if expected_types[index] == actual_types[index] else False
+                      for index in range(len(expected_types))]
+    assert np.array(assertion_list).all()

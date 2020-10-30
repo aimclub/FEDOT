@@ -108,9 +108,9 @@ class ChainTemplate:
             json_object_chain = json.load(json_file)
 
         visited_nodes = {}
-        self._json_to_chain_template(json_object_chain)
-        root_node = list(filter(lambda model_dict: model_dict['model_id'] == 0, json_object_chain['nodes']))[0]
-        root_node = _roll_chain_structure(root_node, visited_nodes, json_object_chain)
+        self._extract_models(json_object_chain)
+        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
+        root_node = _roll_chain_structure(root_template, visited_nodes, self)
         self.link_to_empty_chain.add_node(root_node)
         self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
@@ -130,35 +130,37 @@ class ChainTemplate:
         else:
             raise FileNotFoundError(f"Write path to 'json' format file")
 
-    def _json_to_chain_template(self, chain_json):
+    def _extract_models(self, chain_json):
         model_objects = chain_json['nodes']
 
         for model_object in model_objects:
             model_template = ModelTemplate()
-            model_template.json_to_model_template(model_object)
+            model_template.import_from_json(model_object)
             self._add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
 
 
-def _roll_chain_structure(model_object: dict, visited_nodes: dict, chain_object: dict) -> Node:
-    if model_object['model_id'] in visited_nodes:
-        return visited_nodes[model_object['model_id']]
-    if model_object['nodes_from']:
-        node = SecondaryNode(model_object['model_type'])
+def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, chain_object: ChainTemplate):
+    if model_object.model_id in visited_nodes:
+        return visited_nodes[model_object.model_id]
+    if model_object.nodes_from:
+        node = SecondaryNode(model_object.model_type)
     else:
-        node = PrimaryNode(model_object['model_type'])
+        node = PrimaryNode(model_object.model_type)
 
-    node.model.params = model_object['params']
-    nodes_from = list(filter(lambda model_dict: model_dict['model_id'] in model_object['nodes_from'],
-                             chain_object['nodes']))
+    node.model.params = model_object.params
+    nodes_from = list(filter(lambda model_template: model_template.model_id in model_object.nodes_from,
+                             chain_object.model_templates))
     node.nodes_from = [_roll_chain_structure(node_from, visited_nodes, chain_object) for node_from
                        in nodes_from]
-    if "trained_model_path" in model_object and model_object['trained_model_path']:
-        path_to_model = os.path.abspath(model_object['trained_model_path'])
+
+    if model_object.fitted_model_path:
+        path_to_model = os.path.abspath(model_object.fitted_model_path)
         if not os.path.isfile(path_to_model):
             raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
+
         node.cache = joblib.load(path_to_model)
-    visited_nodes[model_object['model_id']] = node
+    visited_nodes[model_object.model_id] = node
     return node
 
 
@@ -219,7 +221,7 @@ class ModelTemplate:
 
         return model_object
 
-    def json_to_model_template(self, model_object: dict):
+    def import_from_json(self, model_object: dict):
         _validate_json_model_template(model_object)
 
         self.model_id = model_object['model_id']
@@ -255,12 +257,8 @@ def _is_node_fitted(node: Node) -> bool:
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
-    json_nodes = list(map(lambda model_template: model_template.export_to_json(),
-                          chain_template.model_templates))
-
-    chain_object = chain_template.convert_to_dict()
-
-    root_node = list(filter(lambda model_dict: model_dict['model_id'] == root_model_id, json_nodes))[0]
-    root_node = _roll_chain_structure(root_node, {}, chain_object)
+    root_node = [model_template for model_template in chain_template.model_templates
+                 if model_template.model_id == root_model_id][0]
+    root_node = _roll_chain_structure(root_node, {}, chain_template)
 
     return root_node

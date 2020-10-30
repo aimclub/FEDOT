@@ -24,6 +24,7 @@ class Node(ABC):
     See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
     :param log: Log object to record messages
     """
+
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
                  log=default_log(__name__)):
@@ -221,6 +222,7 @@ class PrimaryNode(Node):
     :param manual_preprocessing_func: optional function for data preprocessing.
     :param kwargs: optional arguments (i.e. logger)
     """
+
     def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
                  **kwargs):
         super().__init__(nodes_from=None, model_type=model_type,
@@ -261,6 +263,7 @@ class SecondaryNode(Node):
     :param manual_preprocessing_func: optional function for data preprocessing.
     :param kwargs: optional arguments (i.e. logger)
     """
+
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
                  manual_preprocessing_func: Optional[Callable] = None,
                  **kwargs):
@@ -300,23 +303,29 @@ class SecondaryNode(Node):
 
         return super().predict(input_data=secondary_input)
 
-    def fine_tune(self, input_data: InputData,
+    def fine_tune(self, input_data: InputData, recursive: bool = True,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
                   verbose: bool = False):
         """
         Run the process of hyperparameter optimization for the node
 
+        :param recursive: flag to initiate the tuning in the parent nodes or not, default: True
         :param input_data: data used for tuning
         :param max_lead_time: max time available for tuning process
         :param iterations: max number of iterations
-        :param verbose: flag used for status printing to console, default False
+        :param verbose: flag used for status printing to console, default True
         """
         if verbose:
             self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}')
 
-        secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='fine_tune',
-                                                   max_tune_time=max_lead_time, verbose=verbose)
+        if recursive:
+            secondary_input = self._input_from_parents(input_data=input_data,
+                                                       parent_operation='fine_tune',
+                                                       max_tune_time=max_lead_time, verbose=verbose)
+        else:
+            secondary_input = self._input_from_parents(input_data=input_data,
+                                                       parent_operation='fit',
+                                                       max_tune_time=max_lead_time, verbose=verbose)
 
         return super().fine_tune(input_data=secondary_input)
 
