@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from typing import List
 
-from core.composer.node import PrimaryNode, SecondaryNode, Node
+from core.composer.node import PrimaryNode, SecondaryNode, Node, CachedState
 from core.utils import default_fedot_data_dir
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
@@ -109,9 +109,10 @@ class ChainTemplate:
 
         visited_nodes = {}
         self._extract_models(json_object_chain)
-        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
-        root_node = _roll_chain_structure(root_template, visited_nodes, self)
-        self.link_to_empty_chain.add_node(root_node)
+        self.convert_to_chain(self.link_to_empty_chain)
+        # root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
+        # root_node = _roll_chain_structure(root_template, visited_nodes, self)
+        # self.link_to_empty_chain.add_node(root_node)
         self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
 
@@ -139,6 +140,13 @@ class ChainTemplate:
             self._add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
 
+    def convert_to_chain(self, chain_to_convert_to: 'Chain'):
+        visited_nodes = {}
+        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
+        root_node = _roll_chain_structure(root_template, visited_nodes, self)
+        chain_to_convert_to.nodes.clear()
+        chain_to_convert_to.add_node(root_node)
+
 
 def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, chain_object: ChainTemplate):
     if model_object.model_id in visited_nodes:
@@ -149,8 +157,8 @@ def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, ch
         node = PrimaryNode(model_object.model_type)
 
     node.model.params = model_object.params
-    nodes_from = list(filter(lambda model_template: model_template.model_id in model_object.nodes_from,
-                             chain_object.model_templates))
+    nodes_from = [model_template for model_template in chain_object.model_templates
+                  if model_template.model_id in model_object.nodes_from]
     node.nodes_from = [_roll_chain_structure(node_from, visited_nodes, chain_object) for node_from
                        in nodes_from]
 
@@ -159,7 +167,10 @@ def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, ch
         if not os.path.isfile(path_to_model):
             raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
 
-        node.cache = joblib.load(path_to_model)
+        fitted_model = joblib.load(path_to_model)
+        node.cache.append(CachedState(preprocessor=model_object.preprocessor,
+                                      model=fitted_model))
+        # node.cache = joblib.load(path_to_model)
     visited_nodes[model_object.model_id] = node
     return node
 
@@ -174,6 +185,7 @@ class ModelTemplate:
         self.params = None
         self.nodes_from = None
         self.fitted_model_path = None
+        self.preprocessor = None
 
         if node:
             self._model_to_template(node, model_id, nodes_from, chain_id)
@@ -188,6 +200,7 @@ class ModelTemplate:
         if _is_node_fitted(node):
             self.model_name = _extract_model_name(node)
             self._extract_fitted_model(node, chain_id)
+            self.preprocessor = _extract_preprocessing_strategy(node)
 
     def _extract_fitted_model(self, node: Node, chain_id: str):
         absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
@@ -254,6 +267,10 @@ def _extract_model_name(node: Node):
 
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
+
+
+def _extract_preprocessing_strategy(node: Node):
+    return node.cache.actual_cached_state.preprocessor
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):

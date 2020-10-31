@@ -53,7 +53,7 @@ class Tune:
             self.log.info('Start tuning of chain')
 
         node = self.chain.root_node
-        node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations, recursive=True)
+        node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations, recursive=False)
 
         if verbose:
             self.log.info('End tuning')
@@ -99,6 +99,7 @@ class Tune:
         new_root = extract_subtree_root(root_model_id=model_id,
                                         chain_template=self.chain_template)
         subchain.add_node(new_root)
+        subchain.fit(input_data=input_data, use_cache=False)
 
         updated_subchain = Tune(subchain).fine_tune_root_node(input_data=input_data, iterations=iterations,
                                                               max_lead_time=max_lead_time, verbose=verbose)
@@ -106,14 +107,15 @@ class Tune:
         self._update_template(model_id=model_id,
                               updated_node=updated_subchain.root_node)
 
-        # here chain_template converted to chain have to be but absent
-        # something like
-        # self.chain = self.chain_template.convert_to_chain()
+        updated_chain = Chain()
+        self.chain_template.convert_to_chain(chain_to_convert_to=updated_chain)
+
+        return updated_chain
 
     def _update_template(self, model_id, updated_node):
         model_template = [model_template for model_template in self.chain_template.model_templates
                           if model_template.model_id == model_id][0]
-        update_node_template = ModelTemplate(updated_node)
+        update_node_template = ModelTemplate(updated_node, chain_id=self.chain_template.unique_chain_id)
 
         model_template.params = update_node_template.params
         model_template.fitted_model_path = update_node_template.fitted_model_path

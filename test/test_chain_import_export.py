@@ -245,11 +245,11 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
 def create_four_depth_chain():
     knn_node = PrimaryNode('knn')
     lda_node = PrimaryNode('lda')
-    xgb_node = PrimaryNode('xgb')
+    xgb_node = PrimaryNode('xgboost')
     logit_node = PrimaryNode('logit')
 
     logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
-    xgb_node_second = SecondaryNode('xgb', nodes_from=[logit_node])
+    xgb_node_second = SecondaryNode('xgboost', nodes_from=[logit_node])
 
     qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_second])
     knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, xgb_node])
@@ -266,7 +266,7 @@ def test_extract_subtree_root():
     chain = create_four_depth_chain()
     chain_template = ChainTemplate(chain)
 
-    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgb']
+    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgboost']
     new_root_node_id = 4
 
     root_node = extract_subtree_root(root_model_id=new_root_node_id,
