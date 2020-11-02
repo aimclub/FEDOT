@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 
 from core.composer.chain import Chain
@@ -13,7 +15,7 @@ class TsForecastingChain(Chain):
         :param supplementary_data: the data that should be available during the forecast:
             idx for the forecasted steps and optional exogenous variables
             (variables that are received from an external source instead of forecasting in place and
-            used to increase the quality of of forecast)
+            used as features of the forecasting model to increase the quality of of forecast)
         :return: forecasted time series
         """
 
@@ -23,21 +25,25 @@ class TsForecastingChain(Chain):
         if supplementary_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError('TsForecastingChain can be used for the ts_forecasting task only.')
 
-        supplementary_data.task.task_params.make_future_prediction = True
-        initial_data.task.task_params.make_future_prediction = True
+        supplementary_data_for_forecast = copy(supplementary_data)
+        supplementary_data_for_forecast.task.task_params.make_future_prediction = True
 
-        forecast_length = supplementary_data.task.task_params.forecast_length
+        initial_data_for_forecast = copy(initial_data)
+        initial_data_for_forecast.task.task_params.make_future_prediction = True
+
+        forecast_length = supplementary_data_for_forecast.task.task_params.forecast_length
 
         # check if predict features contains additional (exogenous) variables
-        with_exog = supplementary_data.features is not None
+        with_exog = supplementary_data_for_forecast.features is not None
 
         # initial data for the first prediction
-        pre_history_start = len(initial_data.idx) - initial_data.task.task_params.max_window_size
-        pre_history_end = len(initial_data.idx)
-        data_for_forecast = initial_data.subset(start=pre_history_start, end=pre_history_end)
+        pre_history_start = (len(initial_data_for_forecast.idx) -
+                             initial_data_for_forecast.task.task_params.max_window_size)
+        pre_history_end = len(initial_data_for_forecast.idx)
+        data_for_forecast = initial_data_for_forecast.subset(start=pre_history_start, end=pre_history_end)
 
         full_prediction = []
-        forecast_steps_num = int(np.ceil(len(supplementary_data.idx) / forecast_length))
+        forecast_steps_num = int(np.ceil(len(supplementary_data_for_forecast.idx) / forecast_length))
         for forecast_step in range(forecast_steps_num):
             stepwise_prediction = self.predict(data_for_forecast).predict
             if len(stepwise_prediction.shape) > 1:
@@ -51,7 +57,7 @@ class TsForecastingChain(Chain):
 
             # add additional variable from external source
             if with_exog:
-                data_for_forecast = _prepare_exog_features(data_for_forecast, supplementary_data,
+                data_for_forecast = _prepare_exog_features(data_for_forecast, supplementary_data_for_forecast,
                                                            stepwise_prediction,
                                                            forecast_step, forecast_length)
             else:
@@ -70,11 +76,12 @@ class TsForecastingChain(Chain):
                 data_for_forecast.idx = np.append(data_for_forecast.idx,
                                                   data_for_forecast.idx[-1] + 1)
 
-        full_prediction = full_prediction[0:len(supplementary_data.idx)]
+        full_prediction = full_prediction[0:len(supplementary_data_for_forecast.idx)]
 
-        output_data = OutputData(idx=supplementary_data.idx, features=supplementary_data.features,
-                                 predict=np.asarray(full_prediction), task=supplementary_data.task,
-                                 data_type=supplementary_data.data_type)
+        output_data = OutputData(idx=supplementary_data_for_forecast.idx,
+                                 features=supplementary_data_for_forecast.features,
+                                 predict=np.asarray(full_prediction), task=supplementary_data_for_forecast.task,
+                                 data_type=supplementary_data_for_forecast.data_type)
 
         return output_data
 

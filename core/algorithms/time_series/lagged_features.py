@@ -15,8 +15,8 @@ def prepare_lagged_ts_for_prediction(data: 'InputData', is_for_fit: bool = True)
                 data.features = data.features[0:len(data.target)]
             elif len(data.features.shape) == 2:
                 data.features = data.features[0:len(data.target), :]
-            elif len(data.features.shape) == 3:
-                data.features = data.features[0:len(data.target), :, :]
+            else:
+                raise NotImplementedError()
 
     cleaned_data = _clean_nans_in_lagged_features(data, criteria)
 

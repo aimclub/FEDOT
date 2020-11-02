@@ -1,9 +1,9 @@
 import warnings
+from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
 
 from core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
@@ -111,7 +111,7 @@ class InputData(Data):
         prepared_data = self
         if self.data_type == DataTypesEnum.ts_lagged_table:
             prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
-        elif self.data_type == DataTypesEnum.table or self.data_type == DataTypesEnum.forecasted_ts:
+        elif self.data_type in [DataTypesEnum.table, DataTypesEnum.forecasted_ts]:
             # TODO implement NaN filling here
             pass
 

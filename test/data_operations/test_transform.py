@@ -10,7 +10,7 @@ max_window_size = 4
 forecast_length = 2
 
 
-def synthetic_forecasting_problem(forecast_length: int, max_window_size: int):
+def synthetic_forecasting_problem():
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length,
                                     max_window_size=max_window_size))
@@ -85,8 +85,7 @@ def synthetic_forecasting_problem(forecast_length: int, max_window_size: int):
 
 def test_ts_to_lagged_table():
     task, ts_len, ts_data, ts_data_lagged = \
-        synthetic_forecasting_problem(forecast_length=forecast_length,
-                                      max_window_size=max_window_size)
+        synthetic_forecasting_problem()
 
     transformed_data = ts_to_lagged_table(ts_data)
 
@@ -106,8 +105,7 @@ def test_ts_to_lagged_table():
 
 def test_direct():
     task, ts_len, ts_data, ts_data_lagged = \
-        synthetic_forecasting_problem(forecast_length=forecast_length,
-                                      max_window_size=max_window_size)
+        synthetic_forecasting_problem()
 
     transformed_data = direct(ts_data)
 

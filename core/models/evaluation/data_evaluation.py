@@ -38,23 +38,6 @@ def get_trend(trained_model, predict_data: InputData):
     return target_trend
 
 
-def get_sum(trained_model, predict_data: InputData):
-    number_of_sources_to_sum = 2
-
-    # if pairwise sum can not be applied
-    if predict_data.features.shape[-1] % number_of_sources_to_sum != 0:
-        raise ValueError('Wrong number of inputs for the additive model')
-
-    features_step_for_sum = predict_data.features.shape[-1] // number_of_sources_to_sum
-    sum_features = np.zeros((*predict_data.features.shape[:-1], features_step_for_sum))
-
-    for i in range(number_of_sources_to_sum):
-        sum_features += \
-            predict_data.features[..., i * features_step_for_sum: (i + 1) * features_step_for_sum]
-
-    return sum_features
-
-
 def fit_pca(train_data: InputData, params: Optional[dict]):
     if not params:
         pca = PCA(svd_solver='randomized', iterated_power='auto')
