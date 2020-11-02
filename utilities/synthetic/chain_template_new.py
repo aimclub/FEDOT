@@ -107,12 +107,8 @@ class ChainTemplate:
         with open(path) as json_file:
             json_object_chain = json.load(json_file)
 
-        visited_nodes = {}
         self._extract_models(json_object_chain)
         self.convert_to_chain(self.link_to_empty_chain)
-        # root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
-        # root_node = _roll_chain_structure(root_template, visited_nodes, self)
-        # self.link_to_empty_chain.add_node(root_node)
         self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
 
@@ -170,7 +166,6 @@ def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, ch
         fitted_model = joblib.load(path_to_model)
         node.cache.append(CachedState(preprocessor=model_object.preprocessor,
                                       model=fitted_model))
-        # node.cache = joblib.load(path_to_model)
     visited_nodes[model_object.model_id] = node
     return node
 
