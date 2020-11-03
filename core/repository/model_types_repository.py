@@ -1,9 +1,8 @@
 import json
 import os
 import warnings
-from typing import Any, List, Optional
-
 from dataclasses import dataclass
+from typing import Any, List, Optional
 
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -24,13 +23,6 @@ class ModelMetaInfo:
         if isinstance(self.supported_strategies, dict):
             return self.supported_strategies.get(task, None)
         return self.supported_strategies
-
-
-def _set_repo_to_default_sate():
-    repo_folder_path = str(os.path.dirname(__file__))
-    file = 'data/model_repository.json'
-    repo_path = os.path.join(repo_folder_path, file)
-    ModelTypesRepository._repo = self._initialise_repo(repo_path)
 
 
 class ModelTypesRepository:

@@ -11,12 +11,7 @@ def prepare_lagged_ts_for_prediction(data: 'InputData', is_for_fit: bool = True)
     if is_for_fit:
         criteria.append('target')
         if data.features is not None:
-            if len(data.features.shape) == 1:
-                data.features = data.features[0:len(data.target)]
-            elif len(data.features.shape) == 2:
-                data.features = data.features[0:len(data.target), :]
-            else:
-                raise NotImplementedError()
+            data.features = data.features[0:len(data.target), ...]
 
     cleaned_data = _clean_nans_in_lagged_features(data, criteria)
 
@@ -39,7 +34,6 @@ def _clean_nans_in_lagged_features(data: 'InputData', criteria: List[str]):
             'target': data_to_clean.target,
             'idx': data_to_clean.idx
         }
-
         array_with_nans = datasets_for_criterion[criterion]
 
         if array_with_nans is not None:
@@ -48,6 +42,7 @@ def _clean_nans_in_lagged_features(data: 'InputData', criteria: List[str]):
             features = data_to_clean.features
             target = data_to_clean.target
 
+            # TODO try to simplify the 1D/2D logic
             # remove all rows with nan in array_with_nans
             if len(array_with_nans.shape) == 1:
                 if not nans.any():
