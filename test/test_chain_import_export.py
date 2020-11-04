@@ -1,14 +1,14 @@
 import json
 import os
-import pytest
 import shutil
 
+import pytest
+
+from cases.data.data_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from cases.data.data_utils import get_scoring_case_data_paths
 from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
-import numpy as np
 
 
 @pytest.fixture(scope="session", autouse=True)
