@@ -278,4 +278,4 @@ def test_extract_subtree_root():
 
     assertion_list = [True if expected_types[index] == actual_types[index] else False
                       for index in range(len(expected_types))]
-    assert np.array(assertion_list).all()
+    assert all(assertion_list)

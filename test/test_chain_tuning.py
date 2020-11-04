@@ -104,13 +104,13 @@ def test_fine_tune_all_nodes(data_fixture, request):
     chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
     after_tun_root_node_predicted = chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -128,7 +128,7 @@ def test_custom_params_setter(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_tune_primary_with_new_logic_correctly(data_fixture, request):
+def test_tune_primary_with_tune_class_correctly(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -137,23 +137,24 @@ def test_tune_primary_with_new_logic_correctly(data_fixture, request):
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    tuned_chain = Tune(chain).fine_tune_primary_nodes(input_data=train_data,
-                                                      max_lead_time=timedelta(minutes=1),
-                                                      iterations=30)
+    tuned_chain = Tune(chain=chain,
+                       verbose=True).fine_tune_primary_nodes(input_data=train_data,
+                                                             max_lead_time=timedelta(minutes=1),
+                                                             iterations=30)
     tuned_chain.fit(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_tune_all_with_new_logic_correctly(data_fixture, request):
+def test_tune_all_with_tune_class_correctly(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -168,17 +169,17 @@ def test_tune_all_with_new_logic_correctly(data_fixture, request):
     tuned_chain.fit(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_tune_root_with_new_logic_correctly(data_fixture, request):
+def test_tune_root_with_tune_class_correctly(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -193,17 +194,17 @@ def test_tune_root_with_new_logic_correctly(data_fixture, request):
     tuned_chain.fit(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_tune_certain_node_with_new_logic_correctly(data_fixture, request):
+def test_tune_certain_node_with_tune_class_correctly(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -221,10 +222,10 @@ def test_tune_certain_node_with_new_logic_correctly(data_fixture, request):
     tuned_chain.fit(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 1)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
