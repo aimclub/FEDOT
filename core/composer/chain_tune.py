@@ -9,33 +9,18 @@ from utilities.synthetic.chain_template_new import ChainTemplate, \
 from functools import wraps
 
 
-def tune_log_decorator(type_ex):
+def start_end_log_decorator(start_msg='Starting...', end_msg='Finished'):
     def decorator(method):
         @wraps(method)
-        def wrapper(ref, *args, **kwargs):
-            ref.log.info(f'Start tuning {type_ex} nodes')
-            value = method(ref, *args, **kwargs)
-            ref.log.info(f'End tuning {type_ex} nodes')
+        def wrapper(*args, **kwargs):
+            args[0].log.info(f'{start_msg}')
+            value = method(*args, **kwargs)
+            args[0].log.info(f'{end_msg}')
             return value
 
         return wrapper
 
     return decorator
-
-
-def log_decorator(dec, dec_param):
-    def wrapper(method):
-        def inner_wrapper(ref, *args, **kwargs):
-            if ref.verbose:
-                value = dec(dec_param)(method)(ref, *args, **kwargs)
-            else:
-                value = method(ref, *args, **kwargs)
-
-            return value
-
-        return inner_wrapper
-
-    return wrapper
 
 
 class Tune:
@@ -47,11 +32,10 @@ class Tune:
         self.log = log
         self.verbose = verbose
 
-    @log_decorator(tune_log_decorator, 'primary')
+    @start_end_log_decorator(start_msg='Starting tuning primary nodes',
+                             end_msg='Primary nodes tuning is finished')
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
-                                max_lead_time: timedelta = timedelta(minutes=5),
-                                verbose=False):
-
+                                max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters of models in primary nodes
 
@@ -62,21 +46,16 @@ class Tune:
         :return: updated chain object
         """
 
-        # if verbose:
-        #     self.log.info('Start tuning of primary nodes')
-
         all_primary_nodes = [node for node in self.chain.nodes if isinstance(node, PrimaryNode)]
         for node in all_primary_nodes:
             node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
-        # if verbose:
-        #     self.log.info('End tuning')
-
         return self.chain
 
+    @start_end_log_decorator(start_msg='Starting tuning root node',
+                             end_msg='Root node tuning is finished')
     def fine_tune_root_node(self, input_data: InputData, iterations: int = 30,
-                            max_lead_time: timedelta = timedelta(minutes=5),
-                            verbose=False):
+                            max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters in the root node
 
@@ -86,21 +65,17 @@ class Tune:
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
-        if verbose:
-            self.log.info('Start tuning of chain')
 
         node = self.chain.root_node
         node.fine_tune(input_data=input_data, max_lead_time=max_lead_time,
                        iterations=iterations, recursive=False)
 
-        if verbose:
-            self.log.info('End tuning')
-
         return self.chain
 
+    @start_end_log_decorator(start_msg='Starting tuning all nodes',
+                             end_msg='All nodes tuning is finished')
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
-                            max_lead_time: timedelta = timedelta(minutes=5),
-                            verbose=False):
+                            max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters of models in all nodes
 
@@ -110,20 +85,16 @@ class Tune:
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
-        if verbose:
-            self.log.info('Start tuning of chain')
 
         node = self.chain.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations, recursive=True)
 
-        if verbose:
-            self.log.info('End tuning')
-
         return self.chain
 
+    @start_end_log_decorator(start_msg='Starting tuning chosen node',
+                             end_msg='Chosen node tuning is finished')
     def fine_tune_certain_node(self, model_id, input_data: InputData, iterations: int = 30,
-                               max_lead_time: timedelta = timedelta(minutes=5),
-                               verbose=False):
+                               max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters of models in the certain node,
         defined by model id
@@ -143,8 +114,9 @@ class Tune:
         subchain.add_node(new_root)
         subchain.fit(input_data=input_data, use_cache=False)
 
-        updated_subchain = Tune(subchain).fine_tune_root_node(input_data=input_data, iterations=iterations,
-                                                              max_lead_time=max_lead_time, verbose=verbose)
+        updated_subchain = Tune(subchain).fine_tune_root_node(input_data=input_data,
+                                                              iterations=iterations,
+                                                              max_lead_time=max_lead_time)
 
         self._update_template(model_id=model_id,
                               updated_node=updated_subchain.root_node)
