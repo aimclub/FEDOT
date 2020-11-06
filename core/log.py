@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+from functools import wraps
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 
@@ -112,3 +113,17 @@ class Log:
         """
         self.__dict__.update(state)
         self.logger = logging.getLogger(self.name)
+
+
+def start_end_log_decorator(start_msg='Starting...', end_msg='Finished'):
+    def decorator(method):
+        @wraps(method)
+        def wrapper(*args, **kwargs):
+            args[0].log.info(f'{start_msg}')
+            value = method(*args, **kwargs)
+            args[0].log.info(f'{end_msg}')
+            return value
+
+        return wrapper
+
+    return decorator

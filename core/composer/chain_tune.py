@@ -2,25 +2,10 @@ from datetime import timedelta
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode
-from core.log import default_log, Log
+from core.log import default_log, Log, start_end_log_decorator
 from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate, \
     ModelTemplate, extract_subtree_root
-from functools import wraps
-
-
-def start_end_log_decorator(start_msg='Starting...', end_msg='Finished'):
-    def decorator(method):
-        @wraps(method)
-        def wrapper(*args, **kwargs):
-            args[0].log.info(f'{start_msg}')
-            value = method(*args, **kwargs)
-            args[0].log.info(f'{end_msg}')
-            return value
-
-        return wrapper
-
-    return decorator
 
 
 class Tune:
