@@ -48,7 +48,7 @@ def post_process_forecasted_ts(prediction, input_data: 'InputData'):
         prediction = multistep_prediction_to_ts(prediction)
 
     if not task.task_params.make_future_prediction and \
-            data_type in [DataTypesEnum.ts_lagged_table, DataTypesEnum.ts]:
+            data_type in [DataTypesEnum.ts_lagged_table]:
         # cut unwanted out-of-sample prediction
         prediction = cut_future_prediction_part(prediction, task.task_params)
 

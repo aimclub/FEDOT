@@ -74,7 +74,7 @@ class EmptyStrategy(PreprocessingStrategy):
         return np.asarray(data)
 
 
-class LaggedFeatureScalingStrategy(Scaling):
+class TsScalingStrategy(Scaling):
     def __init__(self):
         # the NaN preservation is important for the lagged ts features
         super().__init__(with_imputation=False)
@@ -83,7 +83,8 @@ class LaggedFeatureScalingStrategy(Scaling):
 _preprocessing_for_input_data = {
     DataTypesEnum.ts: EmptyStrategy,
     DataTypesEnum.table: Scaling,
-    DataTypesEnum.ts_lagged_table: LaggedFeatureScalingStrategy,
+    DataTypesEnum.ts_lagged_table: TsScalingStrategy,
+    DataTypesEnum.forecasted_ts: TsScalingStrategy,
 }
 
 

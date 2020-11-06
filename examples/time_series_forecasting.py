@@ -15,7 +15,7 @@ def get_synthetic_ts_data_custom(n_steps=6000, forecast_length=2, max_window_siz
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length,
                                     max_window_size=max_window_size,
-                                    return_all_steps=True,
+                                    return_all_steps=False,
                                     make_future_prediction=True))
 
     exog_features = np.asarray([10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0])
@@ -47,7 +47,7 @@ def get_synthetic_ts_data_period(n_steps=6000, forecast_length=1, max_window_siz
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length,
                                     max_window_size=max_window_size,
-                                    return_all_steps=True,
+                                    return_all_steps=False,
                                     make_future_prediction=True))
 
     exog_features = np.asarray([x1_exog, x2_exog]).T
@@ -155,8 +155,8 @@ def run_multistep_multiscale_example(n_steps=6000, is_visualise: bool = True):
     # composite forecasting with decomposition
     node_first = PrimaryNode('trend_data_model')
     node_second = PrimaryNode('residual_data_model')
-    node_trend_model = SecondaryNode('linear', nodes_from=[node_first])
-    node_residual_model = SecondaryNode('linear', nodes_from=[node_second])
+    node_trend_model = SecondaryNode('ridge', nodes_from=[node_first])
+    node_residual_model = SecondaryNode('lasso', nodes_from=[node_second])
 
     node_final = SecondaryNode('linear', nodes_from=[node_trend_model, node_residual_model])
 

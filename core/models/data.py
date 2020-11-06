@@ -109,7 +109,8 @@ class InputData(Data):
 
     def prepare_for_modelling(self, is_for_fit: bool = False):
         prepared_data = self
-        if self.data_type == DataTypesEnum.ts_lagged_table:
+        if (self.data_type == DataTypesEnum.ts_lagged_table or
+                self.data_type == DataTypesEnum.forecasted_ts):
             prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
         elif self.data_type in [DataTypesEnum.table, DataTypesEnum.forecasted_ts]:
             # TODO implement NaN filling here

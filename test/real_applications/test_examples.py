@@ -21,10 +21,11 @@ def test_forecasting_model_composing_example():
 
 def test_ts_forecasting_example():
     data_length = 700
-    run_onestep_linear_example(n_steps=data_length, is_visualise=False)
+    data_length_onestep = 64
+    run_onestep_linear_example(n_steps=data_length_onestep, is_visualise=False)
     run_multistep_linear_example(n_steps=data_length, is_visualise=False)
     run_multistep_multiscale_example(n_steps=data_length, is_visualise=False)
-    run_onestep_composite_example(n_steps=data_length, is_visualise=False)
+    run_onestep_composite_example(n_steps=data_length_onestep, is_visualise=False)
     run_multistep_lstm_example(n_steps=data_length, is_visualise=False)
 
 

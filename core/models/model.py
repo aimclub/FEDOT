@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import numpy as np
 
-from core.log import Log, default_log
 from core.algorithms.time_series.prediction import post_process_forecasted_ts
+from core.log import Log, default_log
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
@@ -42,6 +42,8 @@ class Model:
         output_types = self.metadata.output_types
         if input_datatype in output_types:
             return input_datatype
+        elif input_datatype == DataTypesEnum.ts:
+            return DataTypesEnum.forecasted_ts
         else:
             return output_types[0]
 

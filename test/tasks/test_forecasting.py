@@ -60,7 +60,7 @@ def get_rmse_value(chain: Chain, train_data: InputData, test_data: InputData) ->
     rmse_value_test = ts_mse(obs=test_data.target, pred=test_pred.predict)
     rmse_value_train = ts_mse(obs=train_data.target, pred=train_pred.predict)
 
-    return rmse_value_train, rmse_value_test
+    return rmse_value_train, rmse_value_test, train_pred, test_pred
 
 
 def get_multiscale_chain(model_trend='lstm', model_residual='ridge'):
@@ -76,11 +76,25 @@ def get_multiscale_chain(model_trend='lstm', model_residual='ridge'):
     node_model_residual = SecondaryNode(model_residual,
                                         nodes_from=[node_residual])
 
-    node_exog = PrimaryNode('direct_data_model')
+    node_final = SecondaryNode('linear', nodes_from=[node_model_residual,
+                                                     node_first_trend])
+
+    chain = Chain(node_final)
+
+    return chain
+
+
+def get_multilinear_chain():
+    node_trend = PrimaryNode('trend_data_model')
+    node_first_trend = SecondaryNode('linear',
+                                     nodes_from=[node_trend])
+
+    node_residual = PrimaryNode('residual_data_model')
+    node_model_residual = SecondaryNode('linear',
+                                        nodes_from=[node_residual])
 
     node_final = SecondaryNode('linear', nodes_from=[node_model_residual,
-                                                     node_first_trend,
-                                                     node_exog])
+                                                     node_first_trend])
 
     chain = Chain(node_final)
 
@@ -105,7 +119,7 @@ def test_arima_chain_fit_correct():
     chain = Chain(PrimaryNode('arima'))
 
     chain.fit(input_data=train_data)
-    rmse_on_train, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target)
 
@@ -120,7 +134,7 @@ def test_regression_chain_forecast_onestep_correct():
     chain = Chain(PrimaryNode('ridge'))
 
     chain.fit(input_data=train_data)
-    rmse_on_train, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target)
 
@@ -134,7 +148,7 @@ def test_regression_chain_forecast_multistep_correct():
     chain = Chain(PrimaryNode('ridge'))
 
     chain.fit(input_data=train_data)
-    _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target)
 
@@ -147,7 +161,7 @@ def test_regression_chain_linear_forecast_multistep_correct():
     chain = Chain(PrimaryNode('linear'))
 
     chain.fit(input_data=train_data)
-    rmse_on_train, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = 0.01
     assert rmse_on_train < rmse_threshold
@@ -160,7 +174,7 @@ def test_regression_chain_period_exog_forecast_multistep_correct():
     chain = Chain(PrimaryNode('linear'))
 
     chain.fit(input_data=train_data)
-    rmse_on_train, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = 1.5
     assert rmse_on_train < rmse_threshold
@@ -174,7 +188,7 @@ def test_forecasting_regression_composite_fit_correct():
                                 model_second='lasso')
 
     chain.fit(input_data=train_data)
-    _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target) * 1.3
 
@@ -188,7 +202,7 @@ def test_forecasting_regression_multiscale_fit_correct():
                                  model_residual='lasso')
 
     chain.fit(input_data=train_data)
-    _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target)
 
@@ -201,7 +215,20 @@ def test_forecasting_composite_lstm_chain_fit_correct():
     chain = get_multiscale_chain()
 
     chain.fit(input_data=train_data)
-    _, rmse_on_test = get_rmse_value(chain, train_data, test_data)
+    _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
     rmse_threshold = np.std(test_data.target)
     assert rmse_on_test < rmse_threshold
+
+
+def test_forecasting_multilinear_chain_fit_correct():
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
+
+    chain = get_multilinear_chain()
+
+    chain.fit(input_data=train_data)
+    _, rmse_on_test, _, test_prediction = get_rmse_value(chain, train_data, test_data)
+
+    rmse_threshold = np.std(test_data.target)
+    assert rmse_on_test < rmse_threshold
+    assert test_prediction.predict[0] != test_prediction.predict[1]

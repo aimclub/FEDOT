@@ -48,12 +48,12 @@ class TsForecastingChain(Chain):
             stepwise_prediction = self.predict(data_for_forecast).predict
             if len(stepwise_prediction.shape) > 1:
                 # multi-dim prediction
-                stepwise_prediction = stepwise_prediction[-1, :]
+                stepwise_prediction = stepwise_prediction[-1, :-forecast_length]
                 full_prediction.extend(stepwise_prediction)
             else:
                 # single-dim prediction
-                # stepwise_prediction = stepwise_prediction[-1]
-                full_prediction.append(stepwise_prediction)
+                stepwise_prediction = list(stepwise_prediction[-forecast_length:])
+                full_prediction.extend(stepwise_prediction)
 
             # add additional variable from external source
             if with_exog:
