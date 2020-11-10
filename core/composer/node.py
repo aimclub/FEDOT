@@ -26,12 +26,15 @@ class Node(ABC):
     """
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
-                 log=default_log(__name__)):
+                 log=default_log(__name__), model=None):
         self.nodes_from = nodes_from
-        self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
         self.log = log
+        if model_type == 'chain_model' and model is not None:
+            self.model = model
+        else:
+            self.model = Model(model_type=model_type)
 
     @property
     def descriptive_id(self):
@@ -221,9 +224,9 @@ class PrimaryNode(Node):
     :param manual_preprocessing_func: optional function for data preprocessing.
     :param kwargs: optional arguments (i.e. logger)
     """
-    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
+    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None, model=None,
                  **kwargs):
-        super().__init__(nodes_from=None, model_type=model_type,
+        super().__init__(nodes_from=None, model_type=model_type, model=model,
                          manual_preprocessing_func=manual_preprocessing_func,
                          **kwargs)
 
@@ -262,11 +265,11 @@ class SecondaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
-                 manual_preprocessing_func: Optional[Callable] = None,
+                 manual_preprocessing_func: Optional[Callable] = None, model=None,
                  **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func,
+                         manual_preprocessing_func=manual_preprocessing_func, model=model,
                          **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
