@@ -1,13 +1,14 @@
 import json
 import os
-import pytest
 import shutil
 
+import pytest
+
+from cases.data.data_utils import get_scoring_case_data_paths
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from cases.data.data_utils import get_scoring_case_data_paths
 from core.models.data import InputData
-from utilities.synthetic.chain_template_new import ChainTemplate
+from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -114,12 +115,12 @@ def test_export_chain_to_json_correctly():
 def test_chain_template_to_json_correctly():
     chain = create_chain()
     chain_template = ChainTemplate(chain)
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_import_json_to_chain_correctly():
@@ -139,11 +140,11 @@ def test_import_json_template_to_chain_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("data/test_chain_convert_to_json.json")
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     chain_expected = create_chain()
     chain_expected_template = ChainTemplate(chain_expected)
-    json_expected = chain_expected_template.make_json()
+    json_expected = chain_expected_template.convert_to_dict()
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
@@ -164,23 +165,23 @@ def test_import_json_to_fitted_chain_template_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
     chain_template.import_from_json("data/test_fitted_chain_convert_to_json.json")
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_empty_chain_to_json_correctly():
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    json_actual = chain_template.make_json()
+    json_actual = chain_template.convert_to_dict()
 
     with open("data/test_empty_chain_convert_to_json.json", 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_export_import_for_one_chain_object_correctly():
@@ -239,3 +240,42 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
 
     delete_fitted_models(json.loads(json_actual))
     os.remove("data/1.json")
+
+
+def create_four_depth_chain():
+    knn_node = PrimaryNode('knn')
+    lda_node = PrimaryNode('lda')
+    xgb_node = PrimaryNode('xgboost')
+    logit_node = PrimaryNode('logit')
+
+    logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
+    xgb_node_second = SecondaryNode('xgboost', nodes_from=[logit_node])
+
+    qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_second])
+    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, xgb_node])
+
+    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
+
+    chain = Chain()
+    chain.add_node(knn_root)
+
+    return chain
+
+
+def test_extract_subtree_root():
+    chain = create_four_depth_chain()
+    chain_template = ChainTemplate(chain)
+
+    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgboost']
+    new_root_node_id = 4
+
+    root_node = extract_subtree_root(root_model_id=new_root_node_id,
+                                     chain_template=chain_template)
+
+    sub_chain = Chain()
+    sub_chain.add_node(root_node)
+    actual_types = [node.model.model_type for node in sub_chain.nodes]
+
+    assertion_list = [True if expected_types[index] == actual_types[index] else False
+                      for index in range(len(expected_types))]
+    assert all(assertion_list)

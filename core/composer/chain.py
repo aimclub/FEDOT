@@ -20,6 +20,7 @@ class Chain:
     :param nodes: Node object(s)
     :param log: Log object to record messages
     """
+
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = default_log(__name__)):
         self.nodes = []

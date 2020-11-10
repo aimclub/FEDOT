@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from typing import List
 
-from core.composer.node import PrimaryNode, SecondaryNode, Node
+from core.composer.node import PrimaryNode, SecondaryNode, Node, CachedState
 from core.utils import default_fedot_data_dir
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
@@ -65,13 +65,14 @@ class ChainTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        data = self.make_json()
+        chain_template_dict = self.convert_to_dict()
+        json_data = json.dumps(chain_template_dict)
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(json.loads(data), indent=4))
+            f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
             print(f"The chain saved in the path: {resulted_path}")
 
-        return data
+        return json_data
 
     def _create_unique_chain_id(self, path_to_save: str):
         name_of_files = path_to_save.split('/')
@@ -88,7 +89,7 @@ class ChainTemplate:
         else:
             return path_to_save
 
-    def make_json(self):
+    def convert_to_dict(self) -> dict:
         sorted_chain_types = self.total_chain_types
         json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
 
@@ -98,7 +99,7 @@ class ChainTemplate:
             "nodes": json_nodes,
         }
 
-        return json.dumps(json_object)
+        return json_object
 
     def import_from_json(self, path: str):
         self._check_for_json_existence(path)
@@ -106,11 +107,8 @@ class ChainTemplate:
         with open(path) as json_file:
             json_object_chain = json.load(json_file)
 
-        visited_nodes = {}
-        self._json_to_chain_template(json_object_chain)
-        root_node = list(filter(lambda model_dict: model_dict['model_id'] == 0, json_object_chain['nodes']))[0]
-        root_node = self._roll_chain_structure(root_node, visited_nodes, json_object_chain)
-        self.link_to_empty_chain.add_node(root_node)
+        self._extract_models(json_object_chain)
+        self.convert_to_chain(self.link_to_empty_chain)
         self.depth = self.link_to_empty_chain.depth
         self.link_to_empty_chain = None
 
@@ -129,35 +127,47 @@ class ChainTemplate:
         else:
             raise FileNotFoundError(f"Write path to 'json' format file")
 
-    def _json_to_chain_template(self, chain_json):
+    def _extract_models(self, chain_json):
         model_objects = chain_json['nodes']
 
         for model_object in model_objects:
             model_template = ModelTemplate()
-            model_template.json_to_model_template(model_object)
+            model_template.import_from_json(model_object)
             self._add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
 
-    def _roll_chain_structure(self, model_object: dict, visited_nodes: dict, chain_object: dict) -> Node:
-        if model_object['model_id'] in visited_nodes:
-            return visited_nodes[model_object['model_id']]
-        if model_object['nodes_from']:
-            node = SecondaryNode(model_object['model_type'])
-        else:
-            node = PrimaryNode(model_object['model_type'])
+    def convert_to_chain(self, chain_to_convert_to: 'Chain'):
+        visited_nodes = {}
+        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
+        root_node = _roll_chain_structure(root_template, visited_nodes, self)
+        chain_to_convert_to.nodes.clear()
+        chain_to_convert_to.add_node(root_node)
 
-        node.model.params = model_object['params']
-        nodes_from = list(filter(lambda model_dict: model_dict['model_id'] in model_object['nodes_from'],
-                                 chain_object['nodes']))
-        node.nodes_from = [self._roll_chain_structure(node_from, visited_nodes, chain_object) for node_from
-                           in nodes_from]
-        if "trained_model_path" in model_object and model_object['trained_model_path']:
-            path_to_model = os.path.abspath(model_object['trained_model_path'])
-            if not os.path.isfile(path_to_model):
-                raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
-            node.cache = joblib.load(path_to_model)
-        visited_nodes[model_object['model_id']] = node
-        return node
+
+def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, chain_object: ChainTemplate):
+    if model_object.model_id in visited_nodes:
+        return visited_nodes[model_object.model_id]
+    if model_object.nodes_from:
+        node = SecondaryNode(model_object.model_type)
+    else:
+        node = PrimaryNode(model_object.model_type)
+
+    node.model.params = model_object.params
+    nodes_from = [model_template for model_template in chain_object.model_templates
+                  if model_template.model_id in model_object.nodes_from]
+    node.nodes_from = [_roll_chain_structure(node_from, visited_nodes, chain_object) for node_from
+                       in nodes_from]
+
+    if model_object.fitted_model_path:
+        path_to_model = os.path.abspath(model_object.fitted_model_path)
+        if not os.path.isfile(path_to_model):
+            raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
+
+        fitted_model = joblib.load(path_to_model)
+        node.cache.append(CachedState(preprocessor=model_object.preprocessor,
+                                      model=fitted_model))
+    visited_nodes[model_object.model_id] = node
+    return node
 
 
 class ModelTemplate:
@@ -170,6 +180,7 @@ class ModelTemplate:
         self.params = None
         self.nodes_from = None
         self.fitted_model_path = None
+        self.preprocessor = None
 
         if node:
             self._model_to_template(node, model_id, nodes_from, chain_id)
@@ -184,6 +195,7 @@ class ModelTemplate:
         if _is_node_fitted(node):
             self.model_name = _extract_model_name(node)
             self._extract_fitted_model(node, chain_id)
+            self.preprocessor = _extract_preprocessing_strategy(node)
 
     def _extract_fitted_model(self, node: Node, chain_id: str):
         absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
@@ -217,7 +229,7 @@ class ModelTemplate:
 
         return model_object
 
-    def json_to_model_template(self, model_object: dict):
+    def import_from_json(self, model_object: dict):
         _validate_json_model_template(model_object)
 
         self.model_id = model_object['model_id']
@@ -250,3 +262,15 @@ def _extract_model_name(node: Node):
 
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
+
+
+def _extract_preprocessing_strategy(node: Node):
+    return node.cache.actual_cached_state.preprocessor
+
+
+def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
+    root_node = [model_template for model_template in chain_template.model_templates
+                 if model_template.model_id == root_model_id][0]
+    root_node = _roll_chain_structure(root_node, {}, chain_template)
+
+    return root_node
