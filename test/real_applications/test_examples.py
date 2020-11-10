@@ -3,10 +3,8 @@ from datetime import timedelta
 
 from examples.forecasting_model_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
-from examples.time_series_forecasting import (run_multistep_linear_example,
-                                              run_multistep_lstm_example,
-                                              run_multistep_multiscale_example,
-                                              run_onestep_composite_example,
+from examples.time_series_forecasting import (run_multistep_composite_example, run_multistep_linear_example,
+                                              run_multistep_lstm_example, run_multistep_multiscale_example,
                                               run_onestep_linear_example)
 
 
@@ -25,7 +23,7 @@ def test_ts_forecasting_example():
     run_onestep_linear_example(n_steps=data_length_onestep, is_visualise=False)
     run_multistep_linear_example(n_steps=data_length, is_visualise=False)
     run_multistep_multiscale_example(n_steps=data_length, is_visualise=False)
-    run_onestep_composite_example(n_steps=data_length_onestep, is_visualise=False)
+    run_multistep_composite_example(n_steps=data_length, is_visualise=False)
     run_multistep_lstm_example(n_steps=data_length, is_visualise=False)
 
 

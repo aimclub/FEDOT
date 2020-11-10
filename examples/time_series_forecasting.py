@@ -63,10 +63,10 @@ def get_synthetic_ts_data_period(n_steps=6000, forecast_length=1, max_window_siz
 
 
 def plot_prediction(prediction, data: InputData, desc) -> (float, float):
-    plt.plot(prediction, label='predict')
     plt.plot(data.target, label='target')
+    plt.plot(prediction, label='predict')
     plt.legend()
-    plt.ylim(min(data.target), max(data.target))
+    # plt.ylim(min(data.target), max(data.target))
     plt.title(desc)
     plt.show()
 
@@ -74,7 +74,7 @@ def plot_prediction(prediction, data: InputData, desc) -> (float, float):
 def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bool, desc: str):
     train_data, test_data = train_test_data_setup(data, shuffle_flag=False, split_ratio=0.9)
     data.task.task_params.make_future_prediction = False
-    chain.fit_from_scratch(data)
+    chain.fit_from_scratch(train_data)
 
     test_data_for_pred = copy(test_data)
     # to avoid data leak
@@ -86,7 +86,7 @@ def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bo
         plot_prediction(full_prediction, test_data, desc)
 
 
-def run_onestep_linear_example(n_steps=128, is_visualise: bool = True):
+def run_onestep_linear_example(n_steps=1000, is_visualise: bool = True):
     window_size = 16
 
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
@@ -147,28 +147,30 @@ def run_multistep_custom_example(n_steps=6, is_visualise: bool = True):
                     desc=f'Linear model, {dataset.task.task_params.forecast_length} step prediction with exog')
 
 
-def run_multistep_multiscale_example(n_steps=20000, is_visualise: bool = True):
+def run_multistep_multiscale_example(n_steps=10000, is_visualise: bool = True):
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
                                            forecast_length=64,
                                            max_window_size=512,
                                            with_exog=False)
 
     # composite forecasting with decomposition
-    node_first = PrimaryNode('residual_data_model')
+    node_first = PrimaryNode('trend_data_model')
+    node_second = PrimaryNode('residual_data_model')
     node_trend_model = SecondaryNode('ridge', nodes_from=[node_first])
+    node_residual_model = SecondaryNode('linear', nodes_from=[node_second])
 
-    node_final = SecondaryNode('linear', nodes_from=[node_trend_model])
+    node_final = SecondaryNode('linear', nodes_from=[node_trend_model, node_residual_model])
 
     chain = TsForecastingChain(node_final)
 
     run_forecasting(chain=chain, data=dataset,
                     is_visualise=is_visualise,
-                    desc=f'Multiscale model, {dataset.task.task_params.forecast_length} step prediction with exog')
+                    desc=f'Multiscale model, {dataset.task.task_params.forecast_length} step prediction withot exog')
 
 
 def run_multistep_composite_example(n_steps=20000, is_visualise: bool = True):
     # composite forecasting with ensemble
-    node_first = PrimaryNode('lasso')
+    node_first = PrimaryNode('linear')
     node_second = PrimaryNode('ridge')
     node_final = SecondaryNode('linear', nodes_from=[node_first, node_second])
 
@@ -176,7 +178,7 @@ def run_multistep_composite_example(n_steps=20000, is_visualise: bool = True):
 
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
                                            forecast_length=64,
-                                           max_window_size=64,
+                                           max_window_size=512,
                                            with_exog=False)
 
     run_forecasting(chain=chain, data=dataset,
@@ -196,8 +198,8 @@ def run_multistep_composite_example(n_steps=20000, is_visualise: bool = True):
 def run_multistep_lstm_example(n_steps=6000, is_visualise: bool = True):
     # lstm forecasting
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
-                                           forecast_length=16,
-                                           max_window_size=16,
+                                           forecast_length=64,
+                                           max_window_size=64,
                                            with_exog=False)
 
     chain = TsForecastingChain(PrimaryNode('lstm'))
@@ -209,13 +211,13 @@ def run_multistep_lstm_example(n_steps=6000, is_visualise: bool = True):
 
 
 if __name__ == '__main__':
-    #print('Onestep linear')
-    #run_onestep_linear_example()
-    #print('Multistep linear')
-    #run_multistep_linear_example()
-    #print('Multistep multiscale_example')
-    #run_multistep_multiscale_example()
-    #print('Multistep composite')
+    print('Onestep linear')
+    run_onestep_linear_example()
+    print('Multistep linear')
+    run_multistep_linear_example()
+    print('Multistep multiscale_example')
+    run_multistep_multiscale_example()
+    print('Multistep composite')
     run_multistep_composite_example()
-    #print('Multistep LSTM')
-    #run_multistep_lstm_example()
+    print('Multistep LSTM')
+    run_multistep_lstm_example()
