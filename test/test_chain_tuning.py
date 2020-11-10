@@ -9,6 +9,8 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.tasks import Task, TaskTypesEnum
 from datetime import timedelta
+from core.composer.chain_tune import Tune
+from test.test_chain_import_export import create_four_depth_chain
 
 seed(1)
 
@@ -44,7 +46,7 @@ def get_class_chain():
     # Chain composition
     first = PrimaryNode(model_type='xgboost')
     second = PrimaryNode(model_type='knn')
-    final = SecondaryNode(model_type='logit',
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[first, second])
 
     chain = Chain()
@@ -102,13 +104,13 @@ def test_fine_tune_all_nodes(data_fixture, request):
     chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
     after_tun_root_node_predicted = chain.predict(test_data)
 
-    bfr_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=before_tuning_predicted.predict), 2)
-    aft_tun_roc_auc = round(mse(y_true=test_data.target, y_pred=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
     print(f'Before tune test {bfr_tun_roc_auc}')
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-    assert aft_tun_roc_auc <= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -123,3 +125,107 @@ def test_custom_params_setter(data_fixture, request):
     params = chain.root_node.cache.actual_cached_state.model.get_params()
 
     assert params['C'] == 10
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_tune_primary_with_tune_class_correctly(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = get_class_chain()
+
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+
+    tuned_chain = Tune(chain=chain,
+                       verbose=True).fine_tune_primary_nodes(input_data=train_data,
+                                                             max_lead_time=timedelta(minutes=1),
+                                                             iterations=30)
+    tuned_chain.fit(train_data)
+    after_tun_root_node_predicted = tuned_chain.predict(test_data)
+
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
+
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
+
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_tune_all_with_tune_class_correctly(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = get_class_chain()
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+
+    tuned_chain = Tune(chain, verbose=True).fine_tune_all_nodes(input_data=train_data,
+                                                                max_lead_time=timedelta(minutes=1),
+                                                                iterations=30)
+
+    tuned_chain.fit(train_data)
+    after_tun_root_node_predicted = tuned_chain.predict(test_data)
+
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
+
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
+
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_tune_root_with_tune_class_correctly(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = get_class_chain()
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+
+    tuned_chain = Tune(chain, verbose=True).fine_tune_root_node(input_data=train_data,
+                                                                max_lead_time=timedelta(minutes=1),
+                                                                iterations=30)
+
+    tuned_chain.fit(train_data)
+    after_tun_root_node_predicted = tuned_chain.predict(test_data)
+
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
+
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
+
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_tune_certain_node_with_tune_class_correctly(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = create_four_depth_chain()
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+
+    model_id_to_tune = 4
+
+    tuned_chain = Tune(chain).fine_tune_certain_node(model_id=model_id_to_tune,
+                                                     input_data=train_data,
+                                                     max_lead_time=timedelta(minutes=1),
+                                                     iterations=30)
+
+    tuned_chain.fit(train_data)
+    after_tun_root_node_predicted = tuned_chain.predict(test_data)
+
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 1)
+
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
+
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
