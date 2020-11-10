@@ -21,6 +21,12 @@ def split_ts_to_components(trained_model, predict_data: InputData):
     trend = decomposed_target.trend
     residual = predict_data.target - trend
 
+    import matplotlib.pyplot as plt
+    plt.plot(target)
+    plt.plot(trend)
+    plt.plot(residual)
+    plt.show()
+
     return trend, residual
 
 

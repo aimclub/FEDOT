@@ -71,12 +71,15 @@ class EmptyStrategy(PreprocessingStrategy):
         return self
 
     def apply(self, data):
-        return np.asarray(data)
+        result = np.asarray(data)
+        if len(result.shape) == 1:
+            result = np.expand_dims(result, axis=1)
+        return result
 
 
 class TsScalingStrategy(Scaling):
     def __init__(self):
-        # the NaN preservation is important for the lagged ts features
+        # the NaN preservation is important for the lagged ts features and forecasted ts
         super().__init__(with_imputation=False)
 
 

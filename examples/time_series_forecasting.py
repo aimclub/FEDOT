@@ -66,12 +66,13 @@ def plot_prediction(prediction, data: InputData, desc) -> (float, float):
     plt.plot(prediction, label='predict')
     plt.plot(data.target, label='target')
     plt.legend()
+    plt.ylim(min(data.target), max(data.target))
     plt.title(desc)
     plt.show()
 
 
 def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bool, desc: str):
-    train_data, test_data = train_test_data_setup(data, shuffle_flag=False)
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=False, split_ratio=0.9)
     data.task.task_params.make_future_prediction = False
     chain.fit_from_scratch(data)
 
@@ -146,19 +147,17 @@ def run_multistep_custom_example(n_steps=6, is_visualise: bool = True):
                     desc=f'Linear model, {dataset.task.task_params.forecast_length} step prediction with exog')
 
 
-def run_multistep_multiscale_example(n_steps=6000, is_visualise: bool = True):
+def run_multistep_multiscale_example(n_steps=20000, is_visualise: bool = True):
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
                                            forecast_length=64,
-                                           max_window_size=64,
+                                           max_window_size=512,
                                            with_exog=False)
 
     # composite forecasting with decomposition
-    node_first = PrimaryNode('trend_data_model')
-    node_second = PrimaryNode('residual_data_model')
+    node_first = PrimaryNode('residual_data_model')
     node_trend_model = SecondaryNode('ridge', nodes_from=[node_first])
-    node_residual_model = SecondaryNode('lasso', nodes_from=[node_second])
 
-    node_final = SecondaryNode('linear', nodes_from=[node_trend_model, node_residual_model])
+    node_final = SecondaryNode('linear', nodes_from=[node_trend_model])
 
     chain = TsForecastingChain(node_final)
 
@@ -167,7 +166,7 @@ def run_multistep_multiscale_example(n_steps=6000, is_visualise: bool = True):
                     desc=f'Multiscale model, {dataset.task.task_params.forecast_length} step prediction with exog')
 
 
-def run_onestep_composite_example(n_steps=128, is_visualise: bool = True):
+def run_multistep_composite_example(n_steps=20000, is_visualise: bool = True):
     # composite forecasting with ensemble
     node_first = PrimaryNode('lasso')
     node_second = PrimaryNode('ridge')
@@ -176,8 +175,17 @@ def run_onestep_composite_example(n_steps=128, is_visualise: bool = True):
     chain = TsForecastingChain(node_final)
 
     dataset = get_synthetic_ts_data_period(n_steps=n_steps,
-                                           forecast_length=1,
-                                           max_window_size=16,
+                                           forecast_length=64,
+                                           max_window_size=64,
+                                           with_exog=False)
+
+    run_forecasting(chain=chain, data=dataset,
+                    is_visualise=is_visualise,
+                    desc=f'Composite model, {dataset.task.task_params.forecast_length} step prediction without exog')
+
+    dataset = get_synthetic_ts_data_period(n_steps=n_steps,
+                                           forecast_length=64,
+                                           max_window_size=64,
                                            with_exog=True)
 
     run_forecasting(chain=chain, data=dataset,
@@ -201,13 +209,13 @@ def run_multistep_lstm_example(n_steps=6000, is_visualise: bool = True):
 
 
 if __name__ == '__main__':
-    print('One step linear')
-    run_onestep_linear_example()
-    print('One multistep linear')
-    run_multistep_linear_example()
-    print('One multistep run_multistep_multiscale_example')
-    run_multistep_multiscale_example()
-    print('One onestep composite')
-    run_onestep_composite_example()
-    print('One multistep LSTM')
-    run_multistep_lstm_example()
+    #print('Onestep linear')
+    #run_onestep_linear_example()
+    #print('Multistep linear')
+    #run_multistep_linear_example()
+    #print('Multistep multiscale_example')
+    #run_multistep_multiscale_example()
+    #print('Multistep composite')
+    run_multistep_composite_example()
+    #print('Multistep LSTM')
+    #run_multistep_lstm_example()
