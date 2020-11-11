@@ -185,7 +185,7 @@ Citation
     :target: https://fedot.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |build| image:: https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master
+.. |build| image:: ![badge](https://gist.githubusercontent.com/BarabanovaIrina/67015075b0d90783d80bdbd6dfc83fb7/raw/test.json)
     :alt: Build Status
     :target: https://travis-ci.com/nccr-itmo/FEDOT
 
