@@ -33,7 +33,7 @@ jobs:
       run: |
         pytest -s
     - name: Create CI Badge
-      uses: nccr-itmo/dynamic-badges-action@v1.0.0
+      uses: schneegans/dynamic-badges-action@v1.0.0
       with:
         auth: ${{ secrets.BADGE_GIST_SECRET }}
         gistID: 67015075b0d90783d80bdbd6dfc83fb7

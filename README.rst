@@ -8,7 +8,7 @@ FEDOT
     * - package
       - | |py_6| |py_7|
     * - tests
-      - | |build| |coveralls|
+      - | |build| |coverage|
     * - docs
       - |docs|
     * - license
@@ -189,7 +189,7 @@ Citation
     :alt: Build Status
     :target: https://travis-ci.com/nccr-itmo/FEDOT
 
-.. |coveralls| image:: https://coveralls.io/repos/github/nccr-itmo/FEDOT/badge.svg?branch=master
+.. |coverage| image:: [![codecov](https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg)](https://codecov.io/gh/nccr-itmo/FEDOT)
     :alt: Coverage Status
     :target: https://coveralls.io/github/nccr-itmo/FEDOT?branch=master
 
