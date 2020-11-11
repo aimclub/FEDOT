@@ -62,7 +62,7 @@ def two_level_chain():
     first = PrimaryNode(model_type='logit')
     second = PrimaryNode(model_type='knn')
     third = SecondaryNode(model_type='xgboost',
-                                         nodes_from=[first, second])
+                          nodes_from=[first, second])
 
     chain = Chain()
     for node in [first, second, third]:

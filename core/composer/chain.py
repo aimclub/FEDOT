@@ -69,6 +69,7 @@ class Chain:
             ex = 'Trained model cache is not actual or empty'
             self.log.error(ex)
             raise Exception(ex)
+
         result = self.root_node.predict(input_data=input_data)
         return result
 

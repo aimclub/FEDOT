@@ -13,11 +13,11 @@
 	"sklearn_regr": {
 	  "tasks": "[TaskTypesEnum.regression]",
 	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
-	  "tags": ["ml", "sklearn"],
+	  "tags": ["ml", "sklearn", "composition"],
 	  "description": "Implementations of the regression models from scikit-learn framework"
 	},
 	"sklearn_clust": {
@@ -33,15 +33,15 @@
 	"stats_ar": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.forecasted_ts]",
 	  "strategies": ["core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
 	  "tags": ["statistical", "autoreg"],
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
 	},
 	"data_model": {
-	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table]",
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
 	  "strategies": ["core.models.evaluation.data_evaluation", "DataModellingStrategy"],
 	  "tags": ["without_preprocessing", "data_model"],
 	  "description": "Implementations of the models for the data injection into features of secondary nodes"
@@ -64,8 +64,8 @@
 	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts_lagged_3d]",
-	  "output_type": "[DataTypesEnum.ts]",
+	  "input_type": "[DataTypesEnum.ts_lagged_table]",
+	  "output_type": "[DataTypesEnum.forecasted_ts]",
 	  "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"
@@ -169,14 +169,6 @@
 	},
 	"direct_data_model": {
 	  "meta": "data_model"
-	},
-	"diff_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["merges_target", "composition"]
-	},
-	"additive_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["merges_target", "composition"]
 	},
 	"trend_data_model": {
 	  "meta": "ts_data_model",

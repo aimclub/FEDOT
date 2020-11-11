@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, List, Optional
 
 from dataclasses import dataclass
@@ -14,6 +15,8 @@ class TaskParams:
 class TsForecastingParams(TaskParams):
     forecast_length: int
     max_window_size: int
+    return_all_steps: bool = False
+    make_future_prediction: bool = False
 
 
 class TaskTypesEnum(Enum):

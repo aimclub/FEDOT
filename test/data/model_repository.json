@@ -17,7 +17,7 @@
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
-	  "tags": ["ml", "sklearn"],
+	  "tags": ["ml", "sklearn", "composition"],
 	  "description": "Implementations of the regression models from scikit-learn framework"
 	},
 	"sklearn_clust": {

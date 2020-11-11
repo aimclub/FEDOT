@@ -17,7 +17,7 @@
             "accepted_node_types": ["any"],
             "forbidden_node_types": "[]",
             "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
-            "tags": ["ml", "sklearn"],
+            "tags": ["ml", "sklearn", "composition"],
             "description": "Implementations of the regression models from scikit-learn framework"
         },
         "sklearn_clust": {
@@ -77,7 +77,7 @@
         },
         "keras_forecasting": {
             "tasks": "[TaskTypesEnum.ts_forecasting]",
-            "input_type": "[DataTypesEnum.ts_lagged_3d]",
+            "input_type": "[DataTypesEnum.ts_lagged_table]",
             "output_type": "[DataTypesEnum.ts]",
             "strategies": ["core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
             "tags": ["nn"],
@@ -185,14 +185,6 @@
         },
         "direct_data_model": {
             "meta": "data_model"
-        },
-        "diff_data_model": {
-            "meta": "ts_data_model",
-            "tags": ["merges_target", "composition"]
-        },
-        "additive_data_model": {
-            "meta": "ts_data_model",
-            "tags": ["merges_target", "composition"]
         },
         "trend_data_model": {
             "meta": "ts_data_model",
