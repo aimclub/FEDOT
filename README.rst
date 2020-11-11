@@ -185,11 +185,11 @@ Citation
     :target: https://fedot.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |build| image:: ![Build](https://github.com/nccr-itmo/FEDOT/workflows/Build/badge.svg)
+.. |build| image:: https://github.com/nccr-itmo/FEDOT/workflows/Build/badge.svg?branch=master
     :alt: Build Status
     :target: https://github.com/nccr-itmo/FEDOT/actions
 
-.. |coverage| image:: ![codecov](https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg)
+.. |coverage| image:: https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg
     :alt: Coverage Status
     :target: https://codecov.io/gh/nccr-itmo/FEDOT
 

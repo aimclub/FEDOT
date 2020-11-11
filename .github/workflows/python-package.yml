@@ -29,20 +29,9 @@ jobs:
         pip install pytest
         pip install -r requirements.txt
         pip install -r extra_requirements.txt
+        pip install pytest-cov
     - name: Test with pytest
       run: |
-        pytest -s
+        pytest --cov=. -s
     - name: Codecov-coverage
-      uses: codecov/codecov-action@v1.0.14
-      with:
-        file: ./coverage.xml
-        directory: ./coverage/reports/
-    - name: Create CI Badge
-      uses: schneegans/dynamic-badges-action@v1.0.0
-      with:
-        auth: ${{ secrets.BADGE_GIST_SECRET }}
-        gistID: 67015075b0d90783d80bdbd6dfc83fb7
-        filename: test.json
-        label: Build
-        message: passing
-        color: green
+      uses: codecov/codecov-action@v1
