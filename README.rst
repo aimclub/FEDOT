@@ -8,7 +8,7 @@ FEDOT
     * - package
       - | |py_6| |py_7|
     * - tests
-      - | |build| |coveralls|
+      - | |build| |coverage|
     * - docs
       - |docs|
     * - license
@@ -185,13 +185,13 @@ Citation
     :target: https://fedot.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |build| image:: https://travis-ci.com/nccr-itmo/FEDOT.svg?token=ABTJ8bEXZokRxF3wLrtJ&branch=master
+.. |build| image:: https://github.com/nccr-itmo/FEDOT/workflows/Build/badge.svg?branch=master
     :alt: Build Status
-    :target: https://travis-ci.com/nccr-itmo/FEDOT
+    :target: https://github.com/nccr-itmo/FEDOT/actions
 
-.. |coveralls| image:: https://coveralls.io/repos/github/nccr-itmo/FEDOT/badge.svg?branch=master
+.. |coverage| image:: https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg
     :alt: Coverage Status
-    :target: https://coveralls.io/github/nccr-itmo/FEDOT?branch=master
+    :target: https://codecov.io/gh/nccr-itmo/FEDOT
 
 .. |py_6| image:: https://img.shields.io/badge/python_3.6-passing-success
     :alt: Supported Python Versions
