@@ -185,13 +185,13 @@ Citation
     :target: https://fedot.readthedocs.io/en/latest/
     :alt: Documentation Status
 
-.. |build| image:: ![badge](https://gist.githubusercontent.com/BarabanovaIrina/67015075b0d90783d80bdbd6dfc83fb7/raw/test.json)
+.. |build| image:: ![Build](https://github.com/nccr-itmo/FEDOT/workflows/Build/badge.svg)
     :alt: Build Status
-    :target: https://travis-ci.com/nccr-itmo/FEDOT
+    :target: https://github.com/nccr-itmo/FEDOT/actions
 
-.. |coverage| image:: [![codecov](https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg)](https://codecov.io/gh/nccr-itmo/FEDOT)
+.. |coverage| image:: ![codecov](https://codecov.io/gh/nccr-itmo/FEDOT/branch/master/graph/badge.svg)
     :alt: Coverage Status
-    :target: https://coveralls.io/github/nccr-itmo/FEDOT?branch=master
+    :target: https://codecov.io/gh/nccr-itmo/FEDOT
 
 .. |py_6| image:: https://img.shields.io/badge/python_3.6-passing-success
     :alt: Supported Python Versions
