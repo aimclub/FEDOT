@@ -31,9 +31,11 @@ jobs:
         pip install -r extra_requirements.txt
     - name: Test with pytest
       run: |
-        coverage run --source=. -m pytest -s
+        pytest -s
     - name: Codecov-coverage
       uses: codecov/codecov-action@v1.0.14
+      file: ./coverage.xml
+      directory: ./coverage/reports/
     - name: Create CI Badge
       uses: schneegans/dynamic-badges-action@v1.0.0
       with:
