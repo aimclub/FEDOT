@@ -13,6 +13,9 @@ from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtre
 
 @pytest.fixture(scope="session", autouse=True)
 def creation_model_files_before_after_tests(request):
+    # Check for exists files if last time tests crash
+    delete_json_models_files()
+
     create_json_models_files()
     request.addfinalizer(delete_json_models_files)
 
@@ -35,14 +38,19 @@ def delete_json_models_files():
     """
     Delete JSON's files.
     """
-    with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
-        chain_fitted_object = json.load(json_file)
+    if os.path.isfile("data/test_fitted_chain_convert_to_json.json"):
+        with open("data/test_fitted_chain_convert_to_json.json", 'r') as json_file:
+            chain_fitted_object = json.load(json_file)
 
-    delete_fitted_models(chain_fitted_object)
+        delete_fitted_models(chain_fitted_object)
 
-    os.remove("data/test_fitted_chain_convert_to_json.json")
-    os.remove("data/test_empty_chain_convert_to_json.json")
-    os.remove("data/test_chain_convert_to_json.json")
+    files_name = ["data/test_fitted_chain_convert_to_json.json",
+                  "data/test_empty_chain_convert_to_json.json",
+                  "data/test_chain_convert_to_json.json"]
+
+    for file in files_name:
+        if os.path.isfile(file):
+            os.remove(file)
 
 
 def delete_fitted_models(chain):
