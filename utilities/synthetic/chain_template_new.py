@@ -1,6 +1,7 @@
 import json
 import os
 import joblib
+from abc import ABC, abstractmethod
 
 from uuid import uuid4
 
@@ -46,7 +47,10 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
+        if node.model.model_type == 'chain_model':
+            model_template = ChainModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
+        else:
+            model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
 
         self.model_templates.append(model_template)
         self._add_chain_type_to_state(model_template.model_type)
@@ -60,8 +64,13 @@ class ChainTemplate:
             self.total_chain_types[model_type] = 1
 
     def export_to_json(self, path: str):
-        path = self._create_unique_chain_id(path)
-        absolute_path = os.path.abspath(path)
+        """
+        Save JSON to path and return this JSON like object.
+        :param path: custom path to save
+        :return: JSON like object
+        """
+        absolute_path = self._prepare_path_and_create_new_chain_id(path)
+
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
@@ -74,20 +83,27 @@ class ChainTemplate:
 
         return json_data
 
-    def _create_unique_chain_id(self, path_to_save: str):
+    def _prepare_path_and_create_new_chain_id(self, path_to_save: str):
+        """
+        Check if file exists, check if file format equal JSON,
+        if given name of chain save it to self.unique_chain_id.
+        :param path_to_save: path to save chain
+        :return: path to save chain without name of file
+        """
         name_of_files = path_to_save.split('/')
         last_file = name_of_files[-1].split('.')
         if len(last_file) >= 2:
             if last_file[-1] == 'json':
                 if os.path.exists(path_to_save):
                     raise FileExistsError(f"File on path: '{os.path.abspath(path_to_save)}' exists")
+                # if user give name of chain, then save it, otherwise leave uuid4
                 self.unique_chain_id = ''.join(last_file[0:-1])
-                return '/'.join(name_of_files[0:-1])
+                return os.path.abspath('/'.join(name_of_files[0:-1]))
             else:
                 raise ValueError(f"Could not save chain in"
                                  f" '{last_file[-1]}' extension, use 'json' format")
         else:
-            return path_to_save
+            return os.path.abspath(path_to_save)
 
     def convert_to_dict(self) -> dict:
         sorted_chain_types = self.total_chain_types
@@ -170,15 +186,49 @@ def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, ch
     return node
 
 
-class ModelTemplate:
-    def __init__(self, node: Node = None, model_id: int = None,
-                 nodes_from: list = None, chain_id: str = None):
+class ModelTemplateAbstract(ABC):
+    """
+    Base class used for create different types of Model("chain_model" or others like("knn", "xgboost")).
+    The new class is needed to select a separate entity with its own functionality.
+    """
+
+    def __init__(self):
         self.model_id = None
         self.model_type = None
+        self.nodes_from = None
+
+    @abstractmethod
+    def _model_to_template(self, **kwargs):
+        """
+        Preprocessing for local fields
+        :param node: current node
+        :param model_id: model id in chain
+        :param nodes_from: parents model's id
+        :param chain_id: name of chain given by user or uuid4
+        """
+
+    @abstractmethod
+    def export_to_json(self) -> dict:
+        """
+        Prepare JSON like object
+        :return: JSON like object
+        """
+
+    @abstractmethod
+    def import_from_json(self, model_object: dict):
+        """
+        Parse JSON like object and fill local fields
+        :param model_object: JSON like object to parse
+        """
+
+
+class ModelTemplate(ModelTemplateAbstract):
+    def __init__(self, node: Node = None, model_id: int = None,
+                 nodes_from: list = None, chain_id: str = None):
+        super().__init__()
         self.model_name = None
         self.custom_params = None
         self.params = None
-        self.nodes_from = None
         self.fitted_model_path = None
         self.preprocessor = None
 
@@ -230,7 +280,8 @@ class ModelTemplate:
         return model_object
 
     def import_from_json(self, model_object: dict):
-        _validate_json_model_template(model_object)
+        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
+        _validate_json_model_template(model_object, required_fields)
 
         self.model_id = model_object['model_id']
         self.model_type = model_object['model_type']
@@ -244,9 +295,53 @@ class ModelTemplate:
             self.model_name = model_object['model_name']
 
 
-def _validate_json_model_template(model_object: dict):
-    required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
+class ChainModelTemplate(ModelTemplateAbstract):
+    def __init__(self, node: Node = None, model_id: int = None,
+                 nodes_from: list = None, chain_id: str = None, path: str = None):
+        super().__init__()
+        self.chain_model_json_path = None
 
+        if node:
+            self._model_to_template(node, model_id, nodes_from, chain_id, path)
+
+    def _model_to_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str, path: str):
+        self.model_id = model_id
+        self.model_type = node.model.model_type
+        self.nodes_from = nodes_from
+        self.chain_model_json_path = path
+
+        chain = node.model.chain
+        chain_template = ChainTemplate(chain)
+        chain_template.export_to_json(path)
+
+    def export_to_json(self) -> dict:
+        model_object = {
+            "model_id": self.model_id,
+            "model_type": self.model_type,
+            "nodes_from": self.nodes_from,
+            "chain_model_json_path": self.chain_model_json_path
+        }
+
+        return model_object
+
+    def import_from_json(self, model_object: dict):
+        required_fields = ['model_id', 'model_type', 'nodes_from', 'chain_model_json_path']
+        _validate_json_model_template(model_object, required_fields)
+
+        self.model_id = model_object['model_id']
+        self.model_type = model_object['model_type']
+        self.nodes_from = model_object['nodes_from']
+        self.chain_model_json_path = model_object['chain_model_json_path']
+
+        # TODO implement import chain_model
+        chain = Chain()
+        chain_template = ChainTemplate(chain)
+
+
+
+
+
+def _validate_json_model_template(model_object: dict, required_fields: List[str]):
     for field in required_fields:
         if field not in model_object:
             raise RuntimeError(f"Required field '{field}' is expected, but not found")
