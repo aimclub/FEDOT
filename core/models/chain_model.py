@@ -8,6 +8,8 @@ from core.repository.model_types_repository import ModelMetaInfo
 
 class ChainModel(Model):
     def __init__(self, chain: Chain):
+        if not chain.root_node:
+            raise ValueError(f'ChainModel could not create instance of empty Chain!')
         super().__init__('chain_model')
         self.chain = chain
 
@@ -33,9 +35,6 @@ class ChainModel(Model):
         model_info = ModelMetaInfo(root_node.model.metadata.id, root_node.model.metadata.input_types,
                                    root_node.model.metadata.output_types, root_node.model.metadata.task_type,
                                    ['random'], ['any'], ['atomised'])
-
-        if not model_info:
-            raise ValueError(f'Model {model_info.id} not found')
 
         return model_info
 
