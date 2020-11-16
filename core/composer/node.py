@@ -19,7 +19,7 @@ class Node(ABC):
 
     :param nodes_from: parent nodes which information comes from
     :param model_type: str type of the model defined in model repository
-    :param manual_preprocessing_func: optional function for data preprocessing. \
+    :param manual_preprocessing_func: optional function for data preprocessing.
     :param model: optional custom chain_model
     If not defined one of the available preprocessing strategies is used. \
     See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
