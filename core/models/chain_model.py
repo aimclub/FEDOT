@@ -10,6 +10,7 @@ class ChainModel(Model):
     def __init__(self, chain: Chain):
         if not chain.root_node:
             raise ValueError(f'ChainModel could not create instance of empty Chain!')
+
         super().__init__('chain_model')
         self.chain = chain
 
