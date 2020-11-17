@@ -74,7 +74,7 @@ class ChainTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        chain_template_dict = self.convert_to_dict()
+        chain_template_dict = self.convert_to_dict(path)
         json_data = json.dumps(chain_template_dict)
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(json_data), indent=4))
@@ -105,9 +105,9 @@ class ChainTemplate:
         else:
             return os.path.abspath(path_to_save)
 
-    def convert_to_dict(self) -> dict:
+    def convert_to_dict(self, path: str = None) -> dict:
         sorted_chain_types = self.total_chain_types
-        json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
+        json_nodes = list(map(lambda model_template: model_template.export_to_json(path), self.model_templates))
 
         json_object = {
             "total_chain_types": sorted_chain_types,
@@ -208,7 +208,7 @@ class ModelTemplateAbstract(ABC):
         """
 
     @abstractmethod
-    def export_to_json(self) -> dict:
+    def export_to_json(self, path: str) -> dict:
         """
         Prepare JSON like object
         :return: JSON like object
@@ -265,7 +265,7 @@ class ModelTemplate(ModelTemplateAbstract):
 
         return params
 
-    def export_to_json(self) -> dict:
+    def export_to_json(self, path: str = None) -> dict:
 
         model_object = {
             "model_id": self.model_id,
@@ -297,24 +297,28 @@ class ModelTemplate(ModelTemplateAbstract):
 
 class ChainModelTemplate(ModelTemplateAbstract):
     def __init__(self, node: Node = None, model_id: int = None,
-                 nodes_from: list = None, chain_id: str = None, path: str = None):
+                 nodes_from: list = None, chain_id: str = None):
         super().__init__()
         self.chain_model_json_path = None
+        self.chain_template = None
 
         if node:
-            self._model_to_template(node, model_id, nodes_from, chain_id, path)
+            self._model_to_template(node, model_id, nodes_from, chain_id)
 
-    def _model_to_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str, path: str):
+    def _model_to_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str):
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.nodes_from = nodes_from
-        self.chain_model_json_path = path
 
         chain = node.model.chain
-        chain_template = ChainTemplate(chain)
-        chain_template.export_to_json(path)
+        self.chain_template = ChainTemplate(chain)
 
-    def export_to_json(self) -> dict:
+    def export_to_json(self, path: str = None) -> dict:
+        path_to_save = self._create_nested_path(path)
+
+        self.chain_template.export_to_json(path_to_save)
+        self.chain_model_json_path = path_to_save
+
         model_object = {
             "model_id": self.model_id,
             "model_type": self.model_type,
@@ -323,6 +327,26 @@ class ChainModelTemplate(ModelTemplateAbstract):
         }
 
         return model_object
+
+    def _create_nested_path(self, path: str) -> str:
+        """
+        Create folder for nested JSON model and prepared path to save JSON's.
+        :params path: path where to save parent JSON model
+        :return: absolute path to save nested JSON model
+        """
+        # prepare path
+        split_path = path.split('/')
+        name_of_parent_json = '.'.join(split_path[-1].split('.')[:-1])
+
+        # create nested folder
+        absolute_path_to_parent_dir = os.path.abspath(os.path.join('/'.join(split_path[:-1]), name_of_parent_json))
+        if not os.path.exists(absolute_path_to_parent_dir):
+            os.makedirs(absolute_path_to_parent_dir)
+
+        # create name for JSON
+        full_name_of_parent_json = 'nested_' + str(self.model_id) + '.json'
+        absolute_path_to_parent_dir = os.path.join(absolute_path_to_parent_dir, full_name_of_parent_json)
+        return absolute_path_to_parent_dir
 
     def import_from_json(self, model_object: dict):
         required_fields = ['model_id', 'model_type', 'nodes_from', 'chain_model_json_path']
@@ -334,11 +358,8 @@ class ChainModelTemplate(ModelTemplateAbstract):
         self.chain_model_json_path = model_object['chain_model_json_path']
 
         # TODO implement import chain_model
-        chain = Chain()
-        chain_template = ChainTemplate(chain)
-
-
-
+        # chain = Chain()
+        # chain_template = ChainTemplate(chain)
 
 
 def _validate_json_model_template(model_object: dict, required_fields: List[str]):

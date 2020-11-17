@@ -1,4 +1,5 @@
 import pytest
+import random
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
@@ -8,14 +9,15 @@ from cases.data.data_utils import get_scoring_case_data_paths
 
 
 def create_chain_model() -> ChainModel:
+    random_components = int(random.random() * 100)
     model_chain_template = Chain()
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 1}
+    node_lda.custom_params = {'n_components': random_components}
 
     node_xgboost = SecondaryNode('xgboost')
-    node_xgboost.custom_params = {'n_components': 1}
+    node_xgboost.custom_params = {'n_components': random_components}
     node_xgboost.nodes_from = [node_logit, node_lda]
 
     model_chain_template.add_node(node_xgboost)
@@ -115,7 +117,8 @@ def create_chain_with_several_chain_models_nested() -> Chain:
     node_knn_second.custom_params = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_chain_model, node_chain_model_secondary, node_knn]
 
-    node_chain_model_secondary_second = SecondaryNode(model_type='chain_model', model=create_chain_model_in_chain_model())
+    node_chain_model_secondary_second = SecondaryNode(model_type='chain_model',
+                                                      model=create_chain_model_in_chain_model())
     node_chain_model_secondary_second.nodes_from = [node_knn_second]
 
     chain.add_node(node_chain_model_secondary_second)

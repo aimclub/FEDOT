@@ -1,4 +1,5 @@
 from datetime import timedelta
+from uuid import uuid4
 
 from core.composer.chain import Chain
 from core.models.data import InputData
@@ -13,6 +14,7 @@ class ChainModel(Model):
 
         super().__init__('chain_model')
         self.chain = chain
+        self.unique_id = uuid4()
 
     def fit(self, data: InputData):
         predicted_train = self.chain.fit(input_data=data, verbose=False)
@@ -44,6 +46,7 @@ class ChainModel(Model):
         model_type = self.model_type
         model_length = self.chain.length
         model_depth = self.chain.depth
+        model_id = self.unique_id
         model_types = {}
 
         for node in self.chain.nodes:
@@ -52,4 +55,4 @@ class ChainModel(Model):
             else:
                 model_types[node.model.model_type] = 1
 
-        return f'{model_type}_length:{model_length}_depth:{model_depth}_types{model_types}'
+        return f'{model_type}_length:{model_length}_depth:{model_depth}_types:{model_types}_id:{model_id}'
