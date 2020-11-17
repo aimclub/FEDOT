@@ -6,7 +6,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["core.models.evaluation.evaluation", "SkLearnClassificationStrategy"],
+	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClassificationStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
@@ -16,7 +16,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
+	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
 	  "tags": ["ml", "sklearn", "composition"],
 	  "description": "Implementations of the regression models from scikit-learn framework"
 	},
@@ -26,7 +26,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["core.models.evaluation.evaluation", "SkLearnClusteringStrategy"],
+	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClusteringStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
@@ -34,7 +34,7 @@
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.table]",
 	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
+	  "strategies": ["fedot.core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
 	  "tags": ["statistical", "autoreg"],
 	  "description": "Implementation of the statistical models for time series forecasting from stats framework"
 	}

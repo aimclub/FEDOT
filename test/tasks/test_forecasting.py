@@ -2,12 +2,12 @@ import numpy as np
 import pytest
 from statsmodels.tsa.arima_process import ArmaProcess
 
-from core.algorithms.time_series.prediction import ts_mse
-from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.data import InputData, train_test_data_setup
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.algorithms.time_series.prediction import ts_mse
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def get_synthetic_ts_data_period(n_steps=1000, forecast_length=1, max_window_size=50):

@@ -4,16 +4,16 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse
 
-from core.composer.chain import Chain
-from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
-from core.composer.gp_composer.gp_composer import GPComposerRequirements
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.visualisation import ComposerVisualiser
-from core.models.data import InputData, OutputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
-from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from core.utils import project_root
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import project_root
 
 
 def get_composite_lstm_chain():
@@ -91,8 +91,6 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     available_model_types_secondary = ['rfr', 'linear',
                                        'ridge', 'lasso']
 
-    composer = FixedStructureComposer()
-
     composer_requirements = GPComposerRequirements(
         primary=available_model_types_primary,
         secondary=available_model_types_secondary, max_arity=2,
@@ -100,10 +98,11 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         crossover_prob=0, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=20))
 
+    builder = FixedStructureComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_initial_chain(ref_chain)
+    composer = builder.build()
+
     chain = composer.compose_chain(data=dataset_to_train,
-                                   initial_chain=ref_chain,
-                                   composer_requirements=composer_requirements,
-                                   metrics=metric_function,
                                    is_visualise=False)
 
     if with_visualisation:

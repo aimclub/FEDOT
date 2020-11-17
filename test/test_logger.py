@@ -2,9 +2,10 @@ import os
 
 import pytest
 
-from core.log import Log, default_log
-from core.models.data import train_test_data_setup, InputData
-from core.models.model import Model
+from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.log import Log, LogManager, default_log
+from fedot.core.models.model import Model
+from test.test_chain_import_export import create_four_depth_chain
 
 
 @pytest.fixture()
@@ -23,16 +24,16 @@ def release_log(logger, log_file):
 
 def test_default_logger_setup_correctly():
     expected_logger_info_level = 20
-    log = default_log('default_test_logger')
+    test_default_log = default_log('default_test_logger')
 
-    assert log.logger.getEffectiveLevel() == expected_logger_info_level
+    assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level
 
 
 @pytest.mark.parametrize('data_fixture', ['get_config_file'])
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
     expected_logger_error_level = 40
-    test_file = request.getfixturevalue(data_fixture)
-    log = Log('test_logger', config_json_file=test_file)
+    test_config_file = request.getfixturevalue(data_fixture)
+    log = Log('test_logger', config_json_file=test_config_file)
 
     assert log.logger.getEffectiveLevel() == expected_logger_error_level
 
@@ -44,7 +45,7 @@ def test_logger_write_logs_correctly():
                            log_file=test_log_file)
 
     # Model data preparation
-    file = 'data/advanced_classification.csv'
+    file = os.path.join('data', 'advanced_classification.csv')
     data = InputData.from_csv(os.path.join(test_file_path, file))
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -60,3 +61,21 @@ def test_logger_write_logs_correctly():
 
     release_log(logger=test_log, log_file=test_log_file)
     assert 'Can not find evaluation strategy' in content[0]
+
+
+def test_logger_manager_keeps_loggers_correctly():
+    LogManager().clear_cache()
+
+    chain = create_four_depth_chain()
+    expected_number_of_loggers = 4
+
+    file = os.path.join('data', 'advanced_classification.csv')
+    test_file_path = str(os.path.dirname(__file__))
+    data = InputData.from_csv(os.path.join(test_file_path, file))
+    train_data, _ = train_test_data_setup(data=data)
+
+    chain.fit(train_data)
+
+    actual_number_of_loggers = LogManager().debug['loggers_number']
+
+    assert actual_number_of_loggers == expected_number_of_loggers

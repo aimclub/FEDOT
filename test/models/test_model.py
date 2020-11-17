@@ -3,11 +3,11 @@ import pytest
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.models.data import InputData, train_test_data_setup
-from core.models.model import Model
-from core.models.preprocessing import Scaling
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.preprocessing import Scaling
+from fedot.core.models.model import Model
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def get_roc_auc(train_data: InputData, train_predicted: list) -> float:
@@ -143,7 +143,7 @@ def test_log_clustering_fit_correct(data_fixture, request):
 
     _, train_predicted = kmeans.fit(data=train_data)
 
-    assert all(np.unique(train_predicted) == [0, 1])
+    assert all(np.unique(train_predicted) == [0, 1, 2])
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

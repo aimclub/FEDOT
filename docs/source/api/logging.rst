@@ -1,7 +1,7 @@
 Logging
 =======
 
-.. automodule:: core.log
+.. automodule:: fedot.core.log
    :members:
    :undoc-members:
    :show-inheritance:

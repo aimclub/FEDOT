@@ -6,7 +6,7 @@ FEDOT
     :stub-columns: 1
 
     * - package
-      - | |py_6| |py_7|
+      - | |pypi| |py_6| |py_7| |py_8|
     * - tests
       - | |build| |coverage|
     * - docs
@@ -22,14 +22,35 @@ Composite models - the models with heterogeneous graph-based structure, that can
 
 Fedot can be used for classification, regression, clustering, time series forecasting, and other similar tasks. Also, the derived solutions for other problems (e.g. bayesian generation of synthetic data) can be build using Fedot.Core.
 
+The intro video about Fedot is available here:
+
+
+.. image:: https://res.cloudinary.com/marcomontalbano/image/upload/v1606396758/video_to_markdown/images/youtube--RjbuV6i6de4-c05b58ac6eb4c4700831b2b3070cd403.jpg
+    :target: http://www.youtube.com/watch?v=RjbuV6i6de4
+    :alt: Introducing Fedot
+
+   
+
 The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
 
 Installation
 ============
-  | git clone https://github.com/nccr-itmo/FEDOT.git
-  | cd FEDOT
-  | pip install -r requirements.txt 
-  | pytest -s test
+
+Common installation:
+
+.. code-block::
+
+   $ pip install fedot
+
+In order to work with FEDOT source code:
+
+.. code-block::
+
+    $ git clone https://github.com/nccr-itmo/FEDOT.git
+    $ cd FEDOT
+    $ pip install -r requirements.txt
+    $ pytest -s test
+
 
 FEDOT features
 ==============
@@ -70,7 +91,15 @@ In this case, GPComposer is chosen that is based on evolutionary algorithm.
     secondary=available_model_types, max_arity=3,
     max_depth=3, pop_size=20, num_of_generations=20,
     crossover_prob=0.8, mutation_prob=0.8, max_lead_time=20)
-  composer = GPComposer()
+
+After that you need to initialize composer with builder using specified parameters:
+
+.. code-block:: python
+
+ builder = GPComposerBuilder(task=task).with_requirements(composer_requirements) \
+        .with_metrics(metric_function) \
+        .with_optimiser_parameters(optimiser_parameters)
+ composer = builder.build()
 
 Now you can run the optimization and obtain a composite model:
 
@@ -88,7 +117,14 @@ Finally, you can test the resulted model on the validation dataset:
 
   roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
                                                           dataset_to_validate)
-  print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
+  print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
+
+Examples & Tutorials
+====================
+
+Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
+
+* `Time series forecasting tutorial <https://github.com/nccr-itmo/FEDOT/tree/master/notebooks/time_series_forecasting/Time%20series%20forecasting%20with%20FEDOT.ipynb>`__
 
 Extended examples:
 
@@ -193,6 +229,10 @@ Citation
     :alt: Coverage Status
     :target: https://codecov.io/gh/nccr-itmo/FEDOT
 
+.. |pypi| image:: https://badge.fury.io/py/fedot.svg
+    :alt: Supported Python Versions
+    :target: https://badge.fury.io/py/fedot
+
 .. |py_6| image:: https://img.shields.io/badge/python_3.6-passing-success
     :alt: Supported Python Versions
     :target: https://img.shields.io/badge/python_3.6-passing-success
@@ -200,6 +240,10 @@ Citation
 .. |py_7| image:: https://img.shields.io/badge/python_3.7-passing-success
     :alt: Supported Python Versions
     :target: https://img.shields.io/badge/python_3.7-passing-success
+
+.. |py_8| image:: https://img.shields.io/badge/python_3.8-passing-success
+    :alt: Supported Python Versions
+    :target: https://img.shields.io/badge/python_3.8-passing-success
 
 .. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
     :alt: Supported Python Versions

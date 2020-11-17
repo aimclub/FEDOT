@@ -1,21 +1,21 @@
 Model
 =====
 
-.. automodule:: core.models.model
+.. automodule:: fedot.core.models.model
    :members:
    :undoc-members:
    :show-inheritance:
 
 Preprocessing
 -------------
-.. automodule:: core.models.preprocessing
+.. automodule:: fedot.core.data.preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
 
 Transformation
 --------------
-.. automodule:: core.models.transformation
+.. automodule:: fedot.core.data.transformation
    :members:
    :undoc-members:
    :show-inheritance:

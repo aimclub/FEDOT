@@ -5,16 +5,15 @@ import random
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.visualisation import ComposerVisualiser
-from core.models.data import InputData
-from core.repository.model_types_repository import (
-    ModelTypesRepository
-)
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import Task, TaskTypesEnum
-from core.utils import project_root
+from fedot.core.chains.chain import Chain
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.data.data import InputData
+from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import project_root
 
 random.seed(1)
 np.random.seed(1)
@@ -49,15 +48,20 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
+    # GP optimiser parameters choice
+    scheme_type = GeneticSchemeTypesEnum.steady_state
+    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+
+    # Create builder for composer and set composer params
+    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_optimiser_parameters(optimiser_parameters)
+
     # Create GP-based composer
-    composer = GPComposer()
+    composer = builder.build()
 
     # the optimal chain generation by composition - the most time-consuming task
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                                initial_chain=None,
-                                                composer_requirements=composer_requirements,
-                                                metrics=metric_function,
-                                                is_visualise=False)
+                                                is_visualise=True)
 
     chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
                                                iterations=50)

@@ -1,7 +1,7 @@
 import os
 from typing import Tuple
 
-from core.utils import project_root
+from fedot.core.utils import project_root
 
 
 def get_scoring_case_data_paths() -> Tuple[str, str]:

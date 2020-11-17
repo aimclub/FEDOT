@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_iris
 
-from core.models.data import InputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 @pytest.fixture()
