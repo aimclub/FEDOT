@@ -9,6 +9,7 @@ from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
+from test.test_chain_model import create_chain_with_several_chain_models_nested
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -18,6 +19,7 @@ def creation_model_files_before_after_tests(request):
 
     create_json_models_files()
     request.addfinalizer(delete_json_models_files)
+    request.addfinalizer(delete_folder_with_nested_model_json)
 
 
 def create_json_models_files():
@@ -32,6 +34,18 @@ def create_json_models_files():
 
     chain_empty = Chain()
     chain_empty.save_chain("data/test_empty_chain_convert_to_json.json")
+
+
+def delete_folder_with_nested_model_json():
+    """
+    Delete folders.
+    """
+    folders_name = ["data/chain_model_1",
+                    "data/check_load_model_chain_1"]
+
+    for folder_path in folders_name:
+        dir_path = os.path.abspath(folder_path)
+        shutil.rmtree(dir_path)
 
 
 def delete_json_models_files():
@@ -59,9 +73,11 @@ def delete_fitted_models(chain):
 
     :param chain: chain which model's need to delete
     """
-    model_path = chain['nodes'][0]['trained_model_path']
-    dir_path = os.path.dirname(os.path.abspath(model_path))
-    shutil.rmtree(dir_path)
+    root_node = chain['nodes'][0]
+    if 'trained_model_path' in root_node:
+        model_path = root_node['trained_model_path']
+        dir_path = os.path.dirname(os.path.abspath(model_path))
+        shutil.rmtree(dir_path)
 
 
 def create_chain() -> Chain:
@@ -287,3 +303,20 @@ def test_extract_subtree_root():
     assertion_list = [True if expected_types[index] == actual_types[index] else False
                       for index in range(len(expected_types))]
     assert all(assertion_list)
+
+
+def test_chain_model_import_export_correctly():
+    chain = create_chain_with_several_chain_models_nested()
+    chain.save_chain("data/chain_model_1.json")
+
+    train_file_path, test_file_path = get_scoring_case_data_paths()
+    train_data = InputData.from_csv(train_file_path)
+
+    chain = Chain()
+    chain.load_chain("data/chain_model_1.json")
+    chain.fit(train_data)
+    json_actual = chain.save_chain("data/check_load_model_chain_1.json")
+
+    delete_fitted_models(json.loads(json_actual))
+    os.remove("data/chain_model_1.json")
+    os.remove("data/check_load_model_chain_1.json")

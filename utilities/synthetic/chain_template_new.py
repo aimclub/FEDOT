@@ -9,6 +9,7 @@ from typing import List
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node, CachedState
 from core.utils import default_fedot_data_dir
+from core.models.chain_model import ChainModel
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
 
@@ -144,10 +145,22 @@ class ChainTemplate:
             raise FileNotFoundError(f"Write path to 'json' format file")
 
     def _extract_models(self, chain_json):
+        from core.composer.chain import Chain
+
         model_objects = chain_json['nodes']
 
         for model_object in model_objects:
-            model_template = ModelTemplate()
+            if model_object['model_type'] == 'chain_model':
+                model_template = ChainModelTemplate()
+
+                # create recursive ChainModels
+                chain = Chain()
+                chain.load_chain(model_object['chain_model_json_path'])
+                model_template.next_chain_template = ChainModel(chain)
+                model_template.chain_template = ChainTemplate(chain)
+            else:
+                model_template = ModelTemplate()
+
             model_template.import_from_json(model_object)
             self._add_chain_type_to_state(model_template.model_type)
             self.model_templates.append(model_template)
@@ -160,28 +173,39 @@ class ChainTemplate:
         chain_to_convert_to.add_node(root_node)
 
 
-def _roll_chain_structure(model_object: 'ModelTemplate', visited_nodes: dict, chain_object: ChainTemplate):
+def _roll_chain_structure(model_object: ['ModelTemplate', 'ChainModelTemplate'],
+                          visited_nodes: dict, chain_object: ChainTemplate):
     if model_object.model_id in visited_nodes:
         return visited_nodes[model_object.model_id]
-    if model_object.nodes_from:
-        node = SecondaryNode(model_object.model_type)
-    else:
-        node = PrimaryNode(model_object.model_type)
 
-    node.model.params = model_object.params
+    if model_object.model_type == 'chain_model':
+        model = model_object.next_chain_template
+        if model_object.nodes_from:
+            node = SecondaryNode(model_type='chain_model', model=model)
+        else:
+            node = PrimaryNode(model_type='chain_model', model=model)
+
+    else:
+        if model_object.nodes_from:
+            node = SecondaryNode(model_object.model_type)
+        else:
+            node = PrimaryNode(model_object.model_type)
+
+        node.model.params = model_object.params
+
+        if model_object.fitted_model_path:
+            path_to_model = os.path.abspath(model_object.fitted_model_path)
+            if not os.path.isfile(path_to_model):
+                raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
+
+            fitted_model = joblib.load(path_to_model)
+            node.cache.append(CachedState(preprocessor=model_object.preprocessor,
+                                          model=fitted_model))
+
     nodes_from = [model_template for model_template in chain_object.model_templates
                   if model_template.model_id in model_object.nodes_from]
     node.nodes_from = [_roll_chain_structure(node_from, visited_nodes, chain_object) for node_from
                        in nodes_from]
-
-    if model_object.fitted_model_path:
-        path_to_model = os.path.abspath(model_object.fitted_model_path)
-        if not os.path.isfile(path_to_model):
-            raise FileNotFoundError(f"File on the path: {path_to_model} does not exist.")
-
-        fitted_model = joblib.load(path_to_model)
-        node.cache.append(CachedState(preprocessor=model_object.preprocessor,
-                                      model=fitted_model))
     visited_nodes[model_object.model_id] = node
     return node
 
@@ -300,6 +324,7 @@ class ChainModelTemplate(ModelTemplateAbstract):
                  nodes_from: list = None, chain_id: str = None):
         super().__init__()
         self.chain_model_json_path = None
+        self.next_chain_template = None
         self.chain_template = None
 
         if node:
@@ -356,10 +381,6 @@ class ChainModelTemplate(ModelTemplateAbstract):
         self.model_type = model_object['model_type']
         self.nodes_from = model_object['nodes_from']
         self.chain_model_json_path = model_object['chain_model_json_path']
-
-        # TODO implement import chain_model
-        # chain = Chain()
-        # chain_template = ChainTemplate(chain)
 
 
 def _validate_json_model_template(model_object: dict, required_fields: List[str]):

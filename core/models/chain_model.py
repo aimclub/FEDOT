@@ -1,14 +1,13 @@
 from datetime import timedelta
 from uuid import uuid4
 
-from core.composer.chain import Chain
 from core.models.data import InputData
 from core.models.model import Model
 from core.repository.model_types_repository import ModelMetaInfo
 
 
 class ChainModel(Model):
-    def __init__(self, chain: Chain):
+    def __init__(self, chain: 'Chain'):
         if not chain.root_node:
             raise ValueError(f'ChainModel could not create instance of empty Chain!')
 
