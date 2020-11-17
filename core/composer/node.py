@@ -4,6 +4,7 @@ from copy import copy
 from datetime import timedelta
 from typing import Callable, List, Optional
 
+from core.composer.data_operator import DataOperator
 from core.log import default_log
 from core.models.data import InputData, OutputData
 from core.models.model import Model
@@ -27,12 +28,14 @@ class Node(ABC):
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
-                 log=default_log(__name__)):
+                 log=default_log(__name__),
+                 data_operator: DataOperator = None):
         self.nodes_from = nodes_from
         self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
         self.log = log
+        self.operator = data_operator
 
     @property
     def descriptive_id(self):
@@ -95,6 +98,8 @@ class Node(ABC):
         :param input_data: data used for model training
         :param verbose: flag used for status printing to console, default False
         """
+
+        input_data = self.operator.input()
         transformed = self._transform(input_data)
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
 
@@ -112,7 +117,9 @@ class Node(ABC):
             model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
 
-        return self.output_from_prediction(input_data, model_predict)
+        final_output = self.output_from_prediction(input_data, model_predict)
+        self.operator.set_output(output=final_output)
+        return final_output
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         """
@@ -121,6 +128,8 @@ class Node(ABC):
         :param input_data: data used for prediction
         :param verbose: flag used for status printing to console, default False
         """
+
+        input_data = self.operator.input()
         transformed = self._transform(input_data)
         preprocessed_data, _ = self._preprocess(transformed)
 
@@ -130,7 +139,10 @@ class Node(ABC):
         model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                            data=preprocessed_data)
 
-        return self.output_from_prediction(input_data, model_predict)
+        final_output = self.output_from_prediction(input_data, model_predict)
+        self.operator.set_output(output=final_output)
+
+        return final_output
 
     def fine_tune(self, input_data: InputData,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
