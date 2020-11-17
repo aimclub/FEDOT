@@ -34,7 +34,7 @@ def blank_input_data():
 
 
 def fit_model_in_primary(node: PrimaryNode):
-    input_data = node.operator.input()
+    input_data = input_for_primary_node(node=node)
     transformed = node._transform(input_data)
     preprocessed_data, preproc_strategy = node._preprocess(transformed)
 
@@ -53,6 +53,17 @@ def fit_model_in_primary(node: PrimaryNode):
     node.operator.set_output(output=final_output)
 
     return final_output
+
+
+def input_for_primary_node(node):
+    input_data = node.operator.input()
+
+    return input_data
+
+
+def input_for_secondary_node(node):
+    # TODO: implement self._input_from_parents() analogue
+    raise NotImplementedError()
 
 
 def test_fit_model_in_primary_correct():
