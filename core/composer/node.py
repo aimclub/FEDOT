@@ -91,7 +91,7 @@ class Node(ABC):
 
         return data, preprocessing_strategy
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData = None, verbose=False) -> OutputData:
         """
         Run training process in the node
 
@@ -294,10 +294,10 @@ class SecondaryNode(Node):
         if verbose:
             self.log.info(f'Trying to fit secondary node with model: {self.model}')
 
-        secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='fit',
-                                                   verbose=verbose)
-        return super().fit(input_data=secondary_input)
+        # secondary_input = self._input_from_parents(input_data=input_data,
+        #                                            parent_operation='fit',
+        #                                            verbose=verbose)
+        return super().fit(input_data=None)
 
     def predict(self, input_data: InputData, verbose=False) -> OutputData:
         """
