@@ -2,12 +2,12 @@ import pytest
 
 from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.chain_model import ChainModel
+from core.models.atomized_model import AtomizedModel
 from core.models.data import InputData
 from cases.data.data_utils import get_scoring_case_data_paths
 
 
-def create_chain_model() -> ChainModel:
+def create_chain_model() -> AtomizedModel:
     model_chain_template = Chain()
     node_logit = PrimaryNode('logit')
 
@@ -20,12 +20,12 @@ def create_chain_model() -> ChainModel:
 
     model_chain_template.add_node(node_xgboost)
 
-    chain_model = ChainModel(model_chain_template)
+    chain_model = AtomizedModel(model_chain_template)
 
     return chain_model
 
 
-def create_chain_model_in_chain_model() -> ChainModel:
+def create_chain_model_in_chain_model() -> AtomizedModel:
     chain = Chain()
     node_chain_model_primary = PrimaryNode(model_type='chain_model', model=create_chain_model())
     node_chain_model_secondary = SecondaryNode(model_type='chain_model', model=create_chain_model())
@@ -37,7 +37,7 @@ def create_chain_model_in_chain_model() -> ChainModel:
     node_chain_model_secondary_third.nodes_from = [node_chain_model_secondary, node_chain_model_secondary_second]
 
     chain.add_node(node_chain_model_secondary_third)
-    chain_model = ChainModel(chain)
+    chain_model = AtomizedModel(chain)
 
     return chain_model
 
@@ -45,7 +45,7 @@ def create_chain_model_in_chain_model() -> ChainModel:
 def create_chain_with_empty_chain_model() -> Chain:
     chain = Chain()
     chain_ = Chain()
-    chain_model = ChainModel(chain_)
+    chain_model = AtomizedModel(chain_)
     node_chain_model_primary = SecondaryNode(model_type='chain_model', model=chain_model)
 
     node_logit = PrimaryNode('logit')

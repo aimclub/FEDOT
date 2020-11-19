@@ -6,7 +6,7 @@ from core.models.model import Model
 from core.repository.model_types_repository import ModelMetaInfo
 
 
-class ChainModel(Model):
+class AtomizedModel(Model):
     def __init__(self, chain: 'Chain'):
         if not chain.root_node:
             raise ValueError(f'ChainModel could not create instance of empty Chain!')

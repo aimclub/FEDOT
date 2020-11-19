@@ -10,7 +10,7 @@ from core.composer.chain_tune import Tune
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.tasks import Task, TaskTypesEnum
-from test.test_chain_import_export import create_four_depth_chain
+from test.chain.test_chain_import_export import create_four_depth_chain
 
 seed(1)
 

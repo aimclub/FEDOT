@@ -9,7 +9,7 @@ from typing import List
 
 from core.composer.node import PrimaryNode, SecondaryNode, Node, CachedState
 from core.utils import default_fedot_data_dir
-from core.models.chain_model import ChainModel
+from core.models.atomized_model import AtomizedModel
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
 
@@ -49,7 +49,7 @@ class ChainTemplate:
             nodes_from = []
 
         if node.model.model_type == 'chain_model':
-            model_template = ChainModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
+            model_template = AtomizedModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
         else:
             model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
 
@@ -156,12 +156,12 @@ class ChainTemplate:
 
         for model_object in model_objects:
             if model_object['model_type'] == 'chain_model':
-                model_template = ChainModelTemplate()
+                model_template = AtomizedModelTemplate()
 
                 # create recursive ChainModels
                 chain = Chain()
                 chain.load_chain(model_object['chain_model_json_path'])
-                model_template.next_chain_template = ChainModel(chain)
+                model_template.next_chain_template = AtomizedModel(chain)
                 model_template.chain_template = ChainTemplate(chain)
             else:
                 model_template = ModelTemplate()
@@ -178,7 +178,7 @@ class ChainTemplate:
         chain_to_convert_to.add_node(root_node)
 
 
-def _roll_chain_structure(model_object: ['ModelTemplate', 'ChainModelTemplate'],
+def _roll_chain_structure(model_object: ['ModelTemplate', 'AtomizedModelTemplate'],
                           visited_nodes: dict, chain_object: ChainTemplate):
     """
     Creates from chain templates to nodes.
@@ -331,7 +331,7 @@ class ModelTemplate(ModelTemplateAbstract):
             self.model_name = model_object['model_name']
 
 
-class ChainModelTemplate(ModelTemplateAbstract):
+class AtomizedModelTemplate(ModelTemplateAbstract):
     def __init__(self, node: Node = None, model_id: int = None,
                  nodes_from: list = None, chain_id: str = None):
         super().__init__()

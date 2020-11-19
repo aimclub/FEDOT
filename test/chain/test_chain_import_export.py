@@ -9,7 +9,7 @@ from core.composer.chain import Chain
 from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData
 from utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
-from test.test_chain_model import create_chain_with_several_chain_models_nested
+from test.chain.test_atomized_chain import create_chain_with_several_chain_models_nested
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -253,7 +253,7 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
     train_data = InputData.from_csv(train_file_path)
 
     data_path = str(os.path.dirname(__file__))
-    json_file_path = os.path.join(data_path, '..', 'test', 'data', 'test_custom_json_template.json')
+    json_file_path = os.path.join(data_path, '../..', 'test', 'data', 'test_custom_json_template.json')
 
     chain = Chain()
     chain_template = ChainTemplate(chain)
@@ -305,7 +305,7 @@ def test_extract_subtree_root():
     assert all(assertion_list)
 
 
-def test_chain_model_import_export_correctly():
+def test_atomized_chain_import_export_correctly():
     chain = create_chain_with_several_chain_models_nested()
     chain.save_chain("data/chain_model_1.json")
 
