@@ -13,8 +13,8 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 README = (Path(os.path.join(HERE, "README.rst"))).read_text()
 NAME = "fedot"
 AUTHOR = "NSS Lab"
-VERSION = "0.1.1"
-SHORT_DESCRIPTION = "Knowledge-enriched AutoML framework FEDOT"
+VERSION = "0.1.0"
+SHORT_DESCRIPTION = "Evolutionary structural learning framework FEDOT"
 URL = "https://github.com/nccr-itmo/FEDOT"
 REQUIRES_PYTHON = '>=3.6'
 LICENSE = "BSD 3-Clause"

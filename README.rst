@@ -30,6 +30,15 @@ Installation
 
    pip install fedot
 
+For contributing use:
+
+   ::
+
+      $ git clone https://github.com/nccr-itmo/FEDOT.git
+      $ cd FEDOT
+      $ pip install -r requirements.txt
+      $ pytest -s test
+
 
 FEDOT features
 ==============
