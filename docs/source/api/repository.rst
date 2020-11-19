@@ -1,7 +1,7 @@
 Repository
 ==========
 
-.. automodule:: core.repository.dataset_types
+.. automodule:: fedot.core.repository.dataset_types
    :members:
    :undoc-members:
    :show-inheritance:
@@ -9,7 +9,7 @@ Repository
 Models
 ------
 
-.. automodule:: core.repository.model_types_repository
+.. automodule:: fedot.core.repository.model_types_repository
    :members:
    :undoc-members:
    :show-inheritance:
@@ -18,7 +18,7 @@ Models
 Quality metrics
 ---------------
 
-.. automodule:: core.repository.quality_metrics_repository
+.. automodule:: fedot.core.repository.quality_metrics_repository
    :members:
    :undoc-members:
    :show-inheritance:
@@ -26,7 +26,7 @@ Quality metrics
 Tasks
 -----
 
-.. automodule:: core.repository.tasks
+.. automodule:: fedot.core.repository.tasks
    :members:
    :undoc-members:
    :show-inheritance:

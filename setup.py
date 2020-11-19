@@ -13,10 +13,11 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 README = (Path(os.path.join(HERE, "README.rst"))).read_text()
 NAME = "fedot"
 AUTHOR = "NSS Lab"
-VERSION = "1.0.0"
+VERSION = "0.1.0"
 SHORT_DESCRIPTION = "Knowledge-enriched AutoML framework FEDOT"
 URL = "https://github.com/nccr-itmo/FEDOT"
 REQUIRES_PYTHON = '>=3.6'
+LICENSE = "BSD 3-Clause"
 
 
 def read(*names, **kwargs):
@@ -92,7 +93,7 @@ setup_kwargs = dict(
     long_description_content_type="text/x-rst",
     url=URL,
     author=AUTHOR,
-    license="BSD 3-Clause",
+    license=LICENSE,
     python_requires=REQUIRES_PYTHON,
     classifiers=[
         "License :: OSI Approved :: MIT License",

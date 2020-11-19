@@ -1,7 +1,7 @@
 Composer
 ========
 
-.. automodule:: core.composer.composer
+.. automodule:: fedot.core.composer.composer
    :members:
    :undoc-members:
    :show-inheritance:
