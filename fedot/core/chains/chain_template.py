@@ -7,9 +7,10 @@ from collections import Counter
 from typing import List
 from uuid import uuid4
 
+from fedot.core.models.atomized_template import AtomizedModelTemplate
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
-from fedot.core.data.preprocessing import preprocessing_strategy_class_by_label, preprocessing_strategy_label_by_class
 from fedot.core.log import default_log, Log
+from fedot.core.models.model_template import ModelTemplate
 
 
 class ChainTemplate:
@@ -20,16 +21,12 @@ class ChainTemplate:
     :params chain: Chain object to export or empty Chain to import
     :params log: Log object to record messages
     """
-    def __init__(self, chain=None, log: Log = None):
+    def __init__(self, chain=None, log: Log = default_log(__name__)):
         self.total_chain_models = Counter()
         self.depth = chain.depth
         self.model_templates = []
         self.unique_chain_id = str(uuid4())
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log
 
         self._chain_to_template(chain)
 
@@ -57,7 +54,10 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        model_template = ModelTemplate(node, model_id, nodes_from)
+        if node.model.model_type == 'atomized_model':
+            model_template = AtomizedModelTemplate(node, model_id, nodes_from)
+        else:
+            model_template = ModelTemplate(node, model_id, nodes_from)
 
         self.model_templates.append(model_template)
         self.total_chain_models[model_template.model_type] += 1
@@ -65,6 +65,11 @@ class ChainTemplate:
         return model_template
 
     def export_chain(self, path: str):
+        """
+        Save JSON to path and return this JSON like object.
+        :param path: custom path to save
+        :return: JSON like object
+        """
         path = self._prepare_paths(path)
         absolute_path = os.path.abspath(path)
 
@@ -95,13 +100,8 @@ class ChainTemplate:
         return json_object
 
     def _create_fitted_models(self, path):
-        path_fitted_models = os.path.join(path, 'fitted_models')
-
-        if not os.path.exists(path_fitted_models):
-            os.makedirs(path_fitted_models)
-
         for model in self.model_templates:
-            model.export_pkl_model(path)
+            model.export_model(path)
 
     def _prepare_paths(self, path: str):
         absolute_path = os.path.abspath(path)
@@ -145,8 +145,12 @@ class ChainTemplate:
         model_objects = chain_json['nodes']
 
         for model_object in model_objects:
-            model_template = ModelTemplate()
-            model_template.import_from_json(model_object)
+            if model_object['model_type'] == 'atomized_model':
+                model_template = AtomizedModelTemplate(path=model_object['atomized_model_json_path'])
+            else:
+                model_template = ModelTemplate()
+
+            model_template.import_json(model_object)
             self.model_templates.append(model_template)
             self.total_chain_models[model_template.model_type] += 1
 
@@ -159,15 +163,27 @@ class ChainTemplate:
         chain.nodes.clear()
         chain.add_node(root_node)
 
-    def roll_chain_structure(self, model_object: 'ModelTemplate', visited_nodes: dict, path: str = None):
+    def roll_chain_structure(self, model_object: ['ModelTemplate', 'AtomizedModelTemplate'],
+                             visited_nodes: dict, path: str = None):
         """
         The function recursively traverses all disjoint models
         and connects the models in a chain.
+
+        :params model_object: ModelTemplate or AtomizedModelTemplate
+        :params visited_nodes: array to remember which node was visited
+        :params path: path to save
         :return: root_node
         """
         if model_object.model_id in visited_nodes:
             return visited_nodes[model_object.model_id]
-        if model_object.nodes_from:
+
+        if model_object.model_type == 'atomized_model':
+            atomized_model = model_object.next_chain_template
+            if model_object.nodes_from:
+                node = SecondaryNode(model_type='atomized_model', atomized_model=atomized_model)
+            else:
+                node = PrimaryNode(model_type='atomized_model', atomized_model=atomized_model)
+        elif model_object.nodes_from:
             node = SecondaryNode(model_object.model_type)
         else:
             node = PrimaryNode(model_object.model_type)
@@ -190,122 +206,6 @@ class ChainTemplate:
                                           model=fitted_model))
         visited_nodes[model_object.model_id] = node
         return node
-
-
-class ModelTemplate:
-    def __init__(self, node: Node = None, model_id: int = None,
-                 nodes_from: list = None, log: Log = None):
-        self.model_id = None
-        self.model_type = None
-        self.model_name = None
-        self.custom_params = None
-        self.params = None
-        self.nodes_from = None
-        self.fitted_model = None
-        self.fitted_model_path = None
-        self.preprocessor = None
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
-
-        if node:
-            self._model_to_template(node, model_id, nodes_from)
-
-    def _model_to_template(self, node: Node, model_id: int, nodes_from: list):
-        self.model_id = model_id
-        self.model_type = node.model.model_type
-        self.custom_params = node.model.params
-        self.params = self._create_full_params(node)
-        self.nodes_from = nodes_from
-
-        if _is_node_fitted(node) and not _is_node_not_cached(node):
-            self.model_name = _extract_model_name(node)
-            self._extract_fields_of_fitted_model(node)
-
-    def _extract_fields_of_fitted_model(self, node: Node):
-        model_name = f'model_{str(self.model_id)}.pkl'
-        self.fitted_model_path = os.path.join('fitted_models', model_name)
-        self.preprocessor = _extract_preprocessing_strategy(node)
-        self.fitted_model = node.cache.actual_cached_state.model
-
-    def export_pkl_model(self, path: str):
-        if self.fitted_model:
-            joblib.dump(self.fitted_model, os.path.join(path, self.fitted_model_path))
-
-    def _create_full_params(self, node: Node) -> dict:
-        params = {}
-        if _is_node_fitted(node) and not _is_node_not_cached(node):
-            params = _extract_model_params(node)
-            if isinstance(self.custom_params, dict):
-                for key, value in self.custom_params.items():
-                    params[key] = value
-
-        return params
-
-    def convert_to_dict(self) -> dict:
-        preprocessor_strategy = preprocessing_strategy_label_by_class(self.preprocessor)
-
-        model_object = {
-            "model_id": self.model_id,
-            "model_type": self.model_type,
-            "model_name": self.model_name,
-            "custom_params": self.custom_params,
-            "params": self.params,
-            "nodes_from": self.nodes_from,
-            "fitted_model_path": self.fitted_model_path,
-            "preprocessor": preprocessor_strategy
-        }
-
-        return model_object
-
-    def import_from_json(self, model_object: dict):
-        self._validate_json_model_template(model_object)
-
-        self.model_id = model_object['model_id']
-        self.model_type = model_object['model_type']
-        self.params = model_object['params']
-        self.nodes_from = model_object['nodes_from']
-        if "fitted_model_path" in model_object:
-            self.fitted_model_path = model_object['fitted_model_path']
-        if "custom_params" in model_object:
-            self.custom_params = model_object['custom_params']
-        if "model_name" in model_object:
-            self.model_name = model_object['model_name']
-        if "preprocessor" in model_object:
-            preprocessor_strategy = preprocessing_strategy_class_by_label(model_object['preprocessor'])
-            if preprocessor_strategy:
-                self.preprocessor = preprocessor_strategy()
-
-    def _validate_json_model_template(self, model_object: dict):
-        required_fields = ['model_id', 'model_type', 'params', 'nodes_from', 'preprocessor']
-
-        for field in required_fields:
-            if field not in model_object:
-                message = f"Required field '{field}' is expected, but not found."
-                self.log.error(message)
-                raise RuntimeError(message)
-
-
-def _extract_model_params(node: Node):
-    return node.cache.actual_cached_state.model.get_params()
-
-
-def _extract_model_name(node: Node):
-    return node.cache.actual_cached_state.model.__class__.__name__
-
-
-def _is_node_fitted(node: Node) -> bool:
-    return bool(node.cache.actual_cached_state)
-
-
-def _is_node_not_cached(node: Node) -> bool:
-    return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
-
-
-def _extract_preprocessing_strategy(node: Node) -> str:
-    return node.cache.actual_cached_state.preprocessor
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):

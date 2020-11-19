@@ -19,25 +19,31 @@ class Node(ABC):
 
     :param nodes_from: parent nodes which information comes from
     :param model_type: str type of the model defined in model repository
-    :param manual_preprocessing_func: optional function for data preprocessing. \
+    :param manual_preprocessing_func: optional function for data preprocessing.
     If not defined one of the available preprocessing strategies is used. \
     See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
     :param log: Log object to record messages
+    :param atomized_model: optional custom atomized_model
     """
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
-                 log=None):
+                 log=None, atomized_model=None):
         self.nodes_from = nodes_from
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
+        self.log = log
 
         if not log:
             self.log = default_log(__name__)
         else:
             self.log = log
 
-        self.model = Model(model_type=model_type)
+        #TODO 'atomized_model' to func
+        if model_type == 'atomized_model':
+            self.model = atomized_model
+        else:
+            self.model = Model(model_type=model_type)
 
     @property
     def descriptive_id(self):
@@ -226,12 +232,13 @@ class PrimaryNode(Node):
 
     :param model_type: str type of the model defined in model repository
     :param manual_preprocessing_func: optional function for data preprocessing.
+    :param model: optional custom atomized_model
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
+    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None, atomized_model=None,
                  **kwargs):
-        super().__init__(nodes_from=None, model_type=model_type,
+        super().__init__(nodes_from=None, model_type=model_type, atomized_model=atomized_model,
                          manual_preprocessing_func=manual_preprocessing_func,
                          **kwargs)
 
@@ -269,15 +276,16 @@ class SecondaryNode(Node):
     :param model_type: str type of the model defined in model repository
     :param nodes_from: parent nodes where data comes from
     :param manual_preprocessing_func: optional function for data preprocessing.
+    :param model: optional custom atomized_model
     :param kwargs: optional arguments (i.e. logger)
     """
 
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
-                 manual_preprocessing_func: Optional[Callable] = None,
+                 manual_preprocessing_func: Optional[Callable] = None, atomized_model=None,
                  **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func,
+                         manual_preprocessing_func=manual_preprocessing_func, atomized_model=atomized_model,
                          **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
