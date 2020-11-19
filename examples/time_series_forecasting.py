@@ -3,11 +3,11 @@ from copy import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.ts_chain import TsForecastingChain
-from core.models.data import InputData, train_test_data_setup
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.ts_chain import TsForecastingChain
+from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def get_synthetic_ts_data_custom(n_steps=6000, forecast_length=2, max_window_size=2,

@@ -5,16 +5,16 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import \
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.gp_composer.gp_composer import \
     GPComposer, GPComposerRequirements
-from core.composer.visualisation import ComposerVisualiser
-from core.models.data import InputData
-from core.repository.model_types_repository import ModelTypesRepository
-from core.repository.quality_metrics_repository import \
+from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.models.data import InputData
+from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.quality_metrics_repository import \
     ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import Task, TaskTypesEnum
-from core.utils import probs_to_labels
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import probs_to_labels
 from examples.utils import create_multi_clf_examples_from_excel
 
 random.seed(1)

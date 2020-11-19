@@ -1,10 +1,11 @@
 import json
 import os
 
-from core.models.evaluation.evaluation import SkLearnClassificationStrategy
-from core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
-from core.repository.model_types_repository import ModelTypesRepository
-from core.repository.tasks import TaskTypesEnum
+from fedot.core.models.evaluation.evaluation import SkLearnClassificationStrategy
+from fedot.core.repository.json_evaluation import eval_field_str, \
+    eval_strategy_str, read_field
+from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def mocked_path():

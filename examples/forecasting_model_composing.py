@@ -4,16 +4,16 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error as mse
 
-from core.composer.chain import Chain
-from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
-from core.composer.gp_composer.gp_composer import GPComposerRequirements
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.visualisation import ComposerVisualiser
-from core.models.data import InputData, OutputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
-from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from core.utils import project_root
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.models.data import InputData, OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import project_root
 
 
 def get_composite_lstm_chain():

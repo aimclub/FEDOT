@@ -7,17 +7,17 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.composer.chain import Chain
-from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
-from core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
-from core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.random_composer import RandomSearchComposer
-from core.models.data import InputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.model_types_repository import ModelTypesRepository
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
+from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposer
+from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerRequirements
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.random_composer import RandomSearchComposer
+from fedot.core.models.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.chain.test_chain_tuning import get_class_chain
 
 

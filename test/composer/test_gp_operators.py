@@ -1,6 +1,6 @@
-from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.optimisers.gp_operators import nodes_from_height
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.optimisers.gp_operators import nodes_from_height
 
 
 def chain_example():

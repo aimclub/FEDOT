@@ -1,4 +1,4 @@
-from core.composer.timer import CompositionTimer, TunerTimer
+from fedot.core.composer.timer import CompositionTimer, TunerTimer
 import time
 import datetime
 

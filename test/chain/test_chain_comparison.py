@@ -3,9 +3,9 @@ from copy import deepcopy
 
 import pytest
 
-from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.optimisers.gp_operators import equivalent_subtree
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.optimisers.gp_operators import equivalent_subtree
 
 
 def chain_first():

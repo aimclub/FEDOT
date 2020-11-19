@@ -5,12 +5,12 @@ import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.composer.chain import Chain
-from core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
-from core.models.data import InputData, train_test_data_setup
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
-from core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
+from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 np.random.seed(1)
 random.seed(1)

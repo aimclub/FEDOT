@@ -1,17 +1,17 @@
 from functools import partial
 
-from core.composer.chain import Chain
-from core.composer.gp_composer.gp_composer import GPComposerRequirements
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.optimisers.gp_operators import random_chain
-from core.composer.optimisers.selection import (
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.optimisers.gp_operators import random_chain
+from fedot.core.composer.optimisers.selection import (
     SelectionTypesEnum,
     individuals_selection,
     random_selection,
     selection,
     tournament_selection
 )
-from core.debug.metrics import RandomMetric
+from fedot.core.debug.metrics import RandomMetric
 
 
 def rand_population_gener_and_eval(pop_size=4):
