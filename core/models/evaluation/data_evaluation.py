@@ -1,24 +1,14 @@
 from typing import Optional
 
 import numpy as np
-from scipy import signal
 from sklearn.decomposition import PCA
-from statsmodels.tsa.seasonal import seasonal_decompose
 
+from core.algorithms.time_series.scale import estimate_period, split_ts_to_components
 from core.models.data import InputData
 from core.models.evaluation.evaluation import EvaluationStrategy
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
-
-
-def _estimate_period(variable):
-    analyse_ratio = 10
-    f, pxx_den = signal.welch(variable, fs=1, scaling='spectrum',
-                              nfft=int(len(variable) / analyse_ratio),
-                              nperseg=int(len(variable) / analyse_ratio))
-    period = int(1 / f[np.argmax(pxx_den)])
-    return period
 
 
 def get_data(trained_model, predict_data: InputData):
@@ -32,33 +22,20 @@ def get_difference(trained_model, predict_data: InputData):
     return predict_data.features[:, 0] - predict_data.target
 
 
-def get_sum(trained_model, predict_data: InputData):
-    if predict_data.features.shape[1] != 2:
-        raise ValueError('Wrong number of inputs for the additive model')
-    return np.sum(predict_data.features, axis=1)
-
-
-def fit_trend(train_data: InputData, params: Optional[dict]):
+def fit_decomposition(train_data: InputData, params: Optional[dict]):
     target = train_data.target
-    period = _estimate_period(target)
+    period = estimate_period(target)
     return period
 
 
-def get_trend(trained_model, predict_data: InputData):
-    target = predict_data.target
-    period = trained_model
-    decomposed_target = seasonal_decompose(target, period=period, extrapolate_trend='freq')
-    return decomposed_target.trend
-
-
-def fit_residual(train_data: InputData, params: Optional[dict]):
-    return fit_trend(train_data, params)
-
-
 def get_residual(trained_model, predict_data: InputData):
-    target_trend = get_trend(trained_model, predict_data)
-    target_residual = predict_data.target - target_trend
+    _, target_residual = split_ts_to_components(trained_model, predict_data)
     return target_residual
+
+
+def get_trend(trained_model, predict_data: InputData):
+    target_trend, _ = split_ts_to_components(trained_model, predict_data)
+    return target_trend
 
 
 def fit_pca(train_data: InputData, params: Optional[dict]):
@@ -100,10 +77,8 @@ def predict_pca(pca_model, predict_data: InputData):
 class DataModellingStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'direct_data_model': (None, get_data),
-        'diff_data_model': (None, get_difference),
-        'additive_data_model': (None, get_sum),
-        'trend_data_model': (fit_residual, get_trend),
-        'residual_data_model': (fit_residual, get_residual),
+        'trend_data_model': (fit_decomposition, get_trend),
+        'residual_data_model': (fit_decomposition, get_residual),
         'pca_data_model': (fit_pca, predict_pca)
     }
 

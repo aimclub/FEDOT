@@ -18,7 +18,7 @@ from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelTypesRepository
 from core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from core.repository.tasks import Task, TaskTypesEnum
-from test.test_chain_tuning import get_class_chain
+from test.chain.test_chain_tuning import get_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -29,7 +29,7 @@ def _to_numerical(categorical_ids: np.ndarray):
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = 'data/advanced_classification.csv'
+    file = '../data/advanced_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)
@@ -184,7 +184,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
 def baseline_chain():
     chain = Chain()
     last_node = SecondaryNode(model_type='xgboost',
-                                             nodes_from=[])
+                              nodes_from=[])
     for requirement_model in ['knn', 'logit']:
         new_node = PrimaryNode(requirement_model)
         chain.add_node(new_node)

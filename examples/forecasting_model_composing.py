@@ -25,7 +25,7 @@ def get_composite_lstm_chain():
     node_residual = PrimaryNode('residual_data_model')
     node_ridge_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
-    node_final = SecondaryNode('additive_data_model',
+    node_final = SecondaryNode('linear',
                                nodes_from=[node_ridge_residual, node_lstm_trend])
     node_final.labels = ["fixed"]
     chain.add_node(node_final)
@@ -89,8 +89,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                      'residual_data_model']
 
     available_model_types_secondary = ['rfr', 'linear',
-                                       'ridge', 'lasso',
-                                       'additive_data_model']
+                                       'ridge', 'lasso']
 
     composer = FixedStructureComposer()
 

@@ -2,7 +2,8 @@ from datetime import timedelta
 
 import numpy as np
 
-from core.log import default_log, Log
+from core.algorithms.time_series.prediction import post_process_forecasted_ts
+from core.log import Log, default_log
 from core.models.data import InputData
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
@@ -18,6 +19,7 @@ class Model:
     :param model_type: str type of the model defined in model repository
     :param log: Log object to record messages
     """
+
     def __init__(self, model_type: str, log: Log = default_log(__name__)):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
@@ -28,19 +30,6 @@ class Model:
     def acceptable_task_types(self):
         model_info = ModelTypesRepository().model_info_by_id(self.model_type)
         return model_info.task_type
-
-    def compatible_task_type(self, base_task_type: TaskTypesEnum):
-        # if the model can't be used directly for the task type from data
-        if base_task_type not in self.acceptable_task_types:
-            # search the supplementary task types, that can be included in chain which solves original task
-            globally_compatible_task_types = compatible_task_types(base_task_type)
-            compatible_task_types_acceptable_for_model = list(set(self.acceptable_task_types).intersection
-                                                              (set(globally_compatible_task_types)))
-            if len(compatible_task_types_acceptable_for_model) == 0:
-                raise ValueError(f'Model {self.model_type} can not be used as a part of {base_task_type}.')
-            task_type_for_model = compatible_task_types_acceptable_for_model[0]
-            return task_type_for_model
-        return base_task_type
 
     @property
     def metadata(self) -> ModelMetaInfo:
@@ -53,6 +42,8 @@ class Model:
         output_types = self.metadata.output_types
         if input_datatype in output_types:
             return input_datatype
+        elif input_datatype == DataTypesEnum.ts:
+            return DataTypesEnum.forecasted_ts
         else:
             return output_types[0]
 
@@ -63,7 +54,6 @@ class Model:
         return f'n_{model_type}_{model_params}'
 
     def _init(self, task: Task):
-
         params_for_fit = None
         if self.params != DEFAULT_PARAMS_STUB:
             params_for_fit = self.params
@@ -73,7 +63,7 @@ class Model:
                                                                                            params_for_fit)
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
-            raise Exception
+            raise ex
 
     def fit(self, data: InputData):
         """
@@ -85,12 +75,11 @@ class Model:
         """
         self._init(data.task)
 
-        fitted_model = self._eval_strategy.fit(train_data=data)
-        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=data)
+        prepared_data = data.prepare_for_modelling(is_for_fit=True)
 
-        if np.array([np.isnan(_) for _ in predict_train]).any():
-            predict_train = np.nan_to_num(predict_train)
+        fitted_model = self._eval_strategy.fit(train_data=prepared_data)
+
+        predict_train = self.predict(fitted_model, data)
 
         return fitted_model, predict_train
 
@@ -104,11 +93,12 @@ class Model:
         """
         self._init(data.task)
 
-        prediction = self._eval_strategy.predict(trained_model=fitted_model,
-                                                 predict_data=data)
+        prepared_data = data.prepare_for_modelling(is_for_fit=False)
 
-        if np.array([np.isnan(_) for _ in prediction]).any():
-            return np.nan_to_num(prediction)
+        prediction = self._eval_strategy.predict(trained_model=fitted_model,
+                                                 predict_data=prepared_data)
+
+        prediction = _post_process_prediction_using_original_input(prediction=prediction, input_data=data)
 
         return prediction
 
@@ -123,8 +113,10 @@ class Model:
         """
         self._init(data.task)
 
+        prepared_data = data.prepare_for_modelling(is_for_fit=True)
+
         try:
-            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
+            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=prepared_data,
                                                                        iterations=iterations,
                                                                        max_lead_time=max_lead_time)
             self.params = tuned_params
@@ -135,8 +127,8 @@ class Model:
             fitted_model = self._eval_strategy.fit(train_data=data)
             self.params = DEFAULT_PARAMS_STUB
 
-        predict_train = self._eval_strategy.predict(trained_model=fitted_model,
-                                                    predict_data=data)
+        predict_train = self.predict(fitted_model, data)
+
         return fitted_model, predict_train
 
     def __str__(self):
@@ -162,3 +154,14 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
 
     strategy = models_repo.model_info_by_id(model_type).current_strategy(task_type_for_model)
     return strategy
+
+
+def _post_process_prediction_using_original_input(prediction, input_data: InputData):
+    processed_predict = prediction
+    if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+        processed_predict = post_process_forecasted_ts(prediction, input_data)
+    else:
+        if np.array([np.isnan(_) for _ in prediction]).any():
+            processed_predict = np.nan_to_num(prediction)
+
+    return processed_predict

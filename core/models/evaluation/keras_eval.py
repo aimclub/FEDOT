@@ -1,3 +1,4 @@
+from copy import copy
 from datetime import timedelta
 from typing import Optional
 
@@ -84,7 +85,7 @@ def _create_lstm(train_data: InputData):
             tf.keras.layers.Dropout(0.25),
             tf.keras.layers.Dense(train_data.target.shape[-1],
                                   kernel_regularizer=tf.keras.regularizers.l1(reg))
-        ]))(lstm_second_layer)
+        ]))(concatenation)
 
     return tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
@@ -93,21 +94,22 @@ def _create_lstm(train_data: InputData):
 def fit_lstm(train_data: InputData, epochs: int = 1):
     global forecast_length
 
-    ts_length = train_data.features.shape[0]
-    # train_data.task.task_params.
-    model = _create_lstm(train_data)
+    train_data_3d = _lagged_data_to_3d(train_data)
 
-    forecast_length = train_data.task.task_params.forecast_length
+    ts_length = train_data_3d.features.shape[0]
+    # train_data_3d.task.task_params.
+    model = _create_lstm(train_data_3d)
 
-    model.compile(tf.keras.optimizers.SGD(lr=0.01, momentum=0.9,
-                                          nesterov=True), loss='mae', metrics=[_rmse_only_last])
+    forecast_length = train_data_3d.task.task_params.forecast_length
 
-    percent = 5 * (train_data.target.max() - train_data.target.min()) / 100
-    model.fit(train_data.features, train_data.target, epochs=epochs,
+    model.compile(tf.keras.optimizers.Adam(lr=0.02), loss='mse', metrics=[_rmse_only_last])
+
+    percent = 5 * (train_data_3d.target.max() - train_data_3d.target.min()) / 100
+    model.fit(train_data_3d.features, train_data_3d.target, epochs=epochs,
               callbacks=[
                   tf.keras.callbacks.EarlyStopping(monitor='loss', min_delta=percent, patience=5),
                   tf.keras.callbacks.ReduceLROnPlateau(
-                      monitor='_rmse_only_last', factor=0.2, patience=3, min_delta=0.1, verbose=False),
+                      monitor='_rmse_only_last', factor=0.2, patience=2, min_delta=0.1, verbose=False),
                   tf.keras.callbacks.TensorBoard(update_freq=ts_length // 10)
               ], verbose=0)
 
@@ -117,6 +119,17 @@ def fit_lstm(train_data: InputData, epochs: int = 1):
 def predict_lstm(trained_model, predict_data: InputData) -> OutputData:
     window_len, prediction_len = extract_task_param(predict_data.task)
 
-    pred = trained_model.predict(predict_data.features)
-    pred = np.r_[np.zeros(window_len + prediction_len - 1), pred[:, -1, 0]]
-    return pred
+    predict_data_3d = _lagged_data_to_3d(predict_data)
+
+    pred = trained_model.predict(predict_data_3d.features)
+    return pred[:, -prediction_len:, 0]
+
+
+def _lagged_data_to_3d(input_data: InputData) -> InputData:
+    transformed_data = copy(input_data)
+
+    # TODO separate proprocessing for exog features
+    transformed_data.features = np.asarray(transformed_data.features)[:, :, np.newaxis]
+    transformed_data.target = np.asarray(transformed_data.target)[:, :, np.newaxis]
+
+    return transformed_data

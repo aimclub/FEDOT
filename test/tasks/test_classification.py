@@ -7,7 +7,7 @@ from core.composer.node import PrimaryNode, SecondaryNode
 from core.models.data import InputData, train_test_data_setup
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
-from test.test_model import classification_dataset_with_redunant_features
+from test.models.test_model import classification_dataset_with_redunant_features
 
 
 def chain_simple() -> Chain:

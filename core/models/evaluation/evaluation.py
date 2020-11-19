@@ -28,7 +28,7 @@ from core.log import default_log, Log
 from core.models.data import InputData, OutputData
 from core.models.evaluation.custom_models.models import CustomSVC
 from core.models.tuning.hyperparams import params_range_by_model
-from core.models.tuning.tuners import SklearnTuner, SklearnCustomRandomTuner
+from core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -142,7 +142,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_model = self._sklearn_model_impl()
 
-        sklearn_model.fit(train_data.features, train_data.target.ravel())
+        sklearn_model.fit(train_data.features, train_data.target)
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:

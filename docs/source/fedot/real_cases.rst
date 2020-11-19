@@ -215,13 +215,13 @@ following code:
 .. code:: python
 
    chain = Chain()
-   node_trend = NodeGenerator.primary_node(ModelTypesIdsEnum.trend_data_model)
+   node_trend = NodeGenerator.primary_node('trend_data_model')
    node_lstm_trend = NodeGenerator.secondary_node(ModelTypesIdsEnum.lstm, nodes_from=[node_trend])
 
-   node_residual = NodeGenerator.primary_node(ModelTypesIdsEnum.residual_data_model)
+   node_residual = NodeGenerator.primary_node('residual_data_model')
    node_ridge_residual = NodeGenerator.secondary_node(ModelTypesIdsEnum.ridge, nodes_from=[node_residual])
 
-   node_final = NodeGenerator.secondary_node(ModelTypesIdsEnum.additive_data_model,
+   node_final = NodeGenerator.secondary_node('linear',
                                              nodes_from=[node_ridge_residual, node_lstm_trend])
    chain.add_node(node_final)
 

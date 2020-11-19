@@ -1,11 +1,13 @@
 import warnings
+from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
 from sklearn.model_selection import train_test_split
 
+from core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
+from core.models.preprocessing import ImputationStrategy
 from core.repository.dataset_types import DataTypesEnum
 from core.repository.tasks import Task, TaskTypesEnum
 
@@ -56,15 +58,17 @@ class Data:
             features = data_array[1:].T
             target = None
 
+        features = ImputationStrategy().fit(features).apply(features)
+
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
 
 @dataclass
 class InputData(Data):
     """
-    Data type for user input data
+    Data class for input data for the nodes
     """
-    target: np.array = None
+    target: Optional[np.array] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -75,8 +79,6 @@ class InputData(Data):
 
     @staticmethod
     def from_predictions(outputs: List['OutputData'], target: np.array):
-        if len(set([output.data_type for output in outputs])) > 1:
-            raise ValueError('Inconsistent data types')
         if len(set([output.task.task_type for output in outputs])) > 1:
             raise ValueError('Inconsistent task types')
 
@@ -85,6 +87,7 @@ class InputData(Data):
         idx = outputs[0].idx
 
         dataset_merging_funcs = {
+            DataTypesEnum.forecasted_ts: _combine_datasets_ts,
             DataTypesEnum.ts: _combine_datasets_ts,
             DataTypesEnum.table: _combine_datasets_table
         }
@@ -95,11 +98,31 @@ class InputData(Data):
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
 
+    def subset(self, start: int, end: int):
+        if not (0 <= start <= end <= len(self.idx)):
+            raise ValueError('Incorrect boundaries for subset')
+        new_features = None
+        if self.features is not None:
+            new_features = self.features[start:end + 1]
+        return InputData(idx=self.idx[start:end + 1], features=new_features,
+                         target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
+
+    def prepare_for_modelling(self, is_for_fit: bool = False):
+        prepared_data = self
+        if (self.data_type == DataTypesEnum.ts_lagged_table or
+                self.data_type == DataTypesEnum.forecasted_ts):
+            prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
+        elif self.data_type in [DataTypesEnum.table, DataTypesEnum.forecasted_ts]:
+            # TODO implement NaN filling here
+            pass
+
+        return prepared_data
+
 
 @dataclass
 class OutputData(Data):
     """
-    Data type for modified data with the prediction received
+    Data type for data predicted in the node
     """
     predict: np.array = None
 
@@ -125,7 +148,11 @@ def _convert_dtypes(data_frame: pd.DataFrame):
 
 
 def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) -> Tuple[InputData, InputData]:
-    train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag)
+    if data.features is not None:
+        train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag)
+    else:
+        train_data_x, test_data_x = None, None
+
     train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag)
     train_idx, test_idx = split_train_test(data.idx, split_ratio)
     train_data = InputData(features=train_data_x, target=train_data_y,
@@ -136,20 +163,20 @@ def train_test_data_setup(data: InputData, split_ratio=0.8, shuffle_flag=False) 
 
 
 def _combine_datasets_ts(outputs: List[OutputData]):
-    features = list()
+    features_list = list()
+
     expected_len = max([len(output.idx) for output in outputs])
+
     for elem in outputs:
         predict = elem.predict
         if len(elem.predict) != expected_len:
-            if isinstance(elem.predict, list):
-                predict = np.zeros(expected_len - len(elem.predict)) + elem.predict
-            else:
-                predict = np.concatenate((np.zeros(expected_len - len(elem.predict)),
-                                          elem.predict))
+            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
+        features_list.append(predict)
 
-        features.append(predict)
-
-    features = np.array(features).T
+    if len(features_list) > 1:
+        features = np.column_stack(features_list)
+    else:
+        features = features_list[0]
 
     return features
 
@@ -157,6 +184,7 @@ def _combine_datasets_ts(outputs: List[OutputData]):
 def _combine_datasets_table(outputs: List[OutputData]):
     features = list()
     expected_len = len(outputs[0].predict)
+
     for elem in outputs:
         if len(elem.predict) != expected_len:
             raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')

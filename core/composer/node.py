@@ -392,12 +392,15 @@ def _combine_parents_simple(parent_nodes: List[Node],
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
-            parent_results.append(parent.predict(input_data=input_data))
+            prediction = parent.predict(input_data=input_data)
+            parent_results.append(prediction)
         elif parent_operation == 'fit':
-            parent_results.append(parent.fit(input_data=input_data))
+            prediction = parent.fit(input_data=input_data)
+            parent_results.append(prediction)
         elif parent_operation == 'fine_tune':
             parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
-            parent_results.append(parent.predict(input_data=input_data))
+            prediction = parent.predict(input_data=input_data)
+            parent_results.append(prediction)
         else:
             raise NotImplementedError()
 
