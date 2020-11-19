@@ -145,6 +145,11 @@ class ChainTemplate:
             raise FileNotFoundError(f"Write path to 'json' format file")
 
     def _extract_models(self, chain_json):
+        """
+        Recursively creates from JSON structure to nested templates structure (ModelTemplate, ChainTemplate)
+        :params chain_json: JSON to parse
+        """
+        # Need import Chain to extract templates structure from JSON
         from core.composer.chain import Chain
 
         model_objects = chain_json['nodes']
@@ -175,6 +180,13 @@ class ChainTemplate:
 
 def _roll_chain_structure(model_object: ['ModelTemplate', 'ChainModelTemplate'],
                           visited_nodes: dict, chain_object: ChainTemplate):
+    """
+    Creates from chain templates to nodes.
+    :params model_object: one of model template from chain template
+    :params visited_nodes: array to remember which node was created
+    :params chain_object: chain template
+    :return PrimaryNode: return root_node
+    """
     if model_object.model_id in visited_nodes:
         return visited_nodes[model_object.model_id]
 
@@ -213,7 +225,7 @@ def _roll_chain_structure(model_object: ['ModelTemplate', 'ChainModelTemplate'],
 class ModelTemplateAbstract(ABC):
     """
     Base class used for create different types of Model("chain_model" or others like("knn", "xgboost")).
-    The new class is needed to select a separate entity with its own functionality.
+    Chain_model is atomized chain which can uses like general model.
     """
 
     def __init__(self):
