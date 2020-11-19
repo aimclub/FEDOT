@@ -26,10 +26,10 @@ The project is maintained by the research team of Natural Systems Simulation Lab
 
 Installation
 ============
-  | git clone https://github.com/nccr-itmo/FEDOT.git
-  | cd FEDOT
-  | pip install -r requirements.txt 
-  | pytest -s test
+.. code-block::
+
+   pip install fedot
+
 
 FEDOT features
 ==============

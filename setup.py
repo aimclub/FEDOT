@@ -13,7 +13,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 README = (Path(os.path.join(HERE, "README.rst"))).read_text()
 NAME = "fedot"
 AUTHOR = "NSS Lab"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 SHORT_DESCRIPTION = "Knowledge-enriched AutoML framework FEDOT"
 URL = "https://github.com/nccr-itmo/FEDOT"
 REQUIRES_PYTHON = '>=3.6'
@@ -36,6 +36,7 @@ def get_requirements():
     requirements = extract_requirements('requirements.txt')
     extra_requirements = extract_requirements('extra_requirements.txt')
     requirements.extend(extra_requirements)
+    return requirements
 
 
 # Load the package's __version__.py module as a dictionary.
