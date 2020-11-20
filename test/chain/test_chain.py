@@ -7,12 +7,12 @@ import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
-from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.models.data import InputData, train_test_data_setup
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum
-from core.utils import probs_to_labels
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import probs_to_labels
 
 seed(1)
 np.random.seed(1)

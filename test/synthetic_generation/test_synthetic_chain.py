@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from core.models.data import InputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum
-from utilities.synthetic.chain import \
+from fedot.core.models.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.utilities.synthetic.chain import \
     (chain_balanced_tree,
      chain_full_random,
      chain_with_random_links)

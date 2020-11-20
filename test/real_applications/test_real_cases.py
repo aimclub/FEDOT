@@ -6,7 +6,7 @@ import numpy as np
 
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
-from core.utils import project_root
+from fedot.core.utils import project_root
 
 random.seed(1)
 np.random.seed(1)

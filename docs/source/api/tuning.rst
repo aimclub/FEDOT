@@ -1,7 +1,7 @@
 Tuning
 ======
 
-.. automodule:: core.models.tuning.tuners
+.. automodule:: fedot.core.models.tuning.tuners
    :members:
    :show-inheritance:
 

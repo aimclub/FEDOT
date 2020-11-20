@@ -3,11 +3,11 @@ import pytest
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from core.models.data import InputData, train_test_data_setup
-from core.models.model import Model
-from core.models.preprocessing import Scaling
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.models.model import Model
+from fedot.core.models.preprocessing import Scaling
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def get_roc_auc(train_data: InputData, train_predicted: list) -> float:

@@ -1,8 +1,8 @@
 import os
 
-from core.composer.chain import Chain
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.log import default_log
+from fedot.core.composer.chain import Chain
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.log import default_log
 from examples.chain_tune import get_case_train_test_data
 
 

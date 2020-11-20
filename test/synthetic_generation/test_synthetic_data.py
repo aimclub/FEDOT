@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from core.models.data import InputData
-from utilities.synthetic.data import (
+from fedot.core.models.data import InputData
+from fedot.utilities.synthetic.data import (
     classification_dataset, gauss_quantiles_dataset)
-from utilities.synthetic.data_benchmark import synthetic_benchmark_dataset
+from fedot.utilities.synthetic.data_benchmark import synthetic_benchmark_dataset
 
 
 def default_dataset_params():

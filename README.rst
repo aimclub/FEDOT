@@ -6,7 +6,7 @@ FEDOT
     :stub-columns: 1
 
     * - package
-      - | |py_6| |py_7|
+      - | |pypi| |py_6| |py_7| |py_8|
     * - tests
       - | |build| |coverage|
     * - docs
@@ -26,10 +26,22 @@ The project is maintained by the research team of Natural Systems Simulation Lab
 
 Installation
 ============
-  | git clone https://github.com/nccr-itmo/FEDOT.git
-  | cd FEDOT
-  | pip install -r requirements.txt 
-  | pytest -s test
+
+Common installation:
+
+.. code-block::
+
+   $ pip install fedot
+
+In order to work with FEDOT source code:
+
+.. code-block::
+
+    $ git clone https://github.com/nccr-itmo/FEDOT.git
+    $ cd FEDOT
+    $ pip install -r requirements.txt
+    $ pytest -s test
+
 
 FEDOT features
 ==============
@@ -193,6 +205,10 @@ Citation
     :alt: Coverage Status
     :target: https://codecov.io/gh/nccr-itmo/FEDOT
 
+.. |pypi| image:: https://badge.fury.io/py/fedot.svg
+    :alt: Supported Python Versions
+    :target: https://badge.fury.io/py/fedot
+
 .. |py_6| image:: https://img.shields.io/badge/python_3.6-passing-success
     :alt: Supported Python Versions
     :target: https://img.shields.io/badge/python_3.6-passing-success
@@ -200,6 +216,10 @@ Citation
 .. |py_7| image:: https://img.shields.io/badge/python_3.7-passing-success
     :alt: Supported Python Versions
     :target: https://img.shields.io/badge/python_3.7-passing-success
+
+.. |py_8| image:: https://img.shields.io/badge/python_3.8-passing-success
+    :alt: Supported Python Versions
+    :target: https://img.shields.io/badge/python_3.8-passing-success
 
 .. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
     :alt: Supported Python Versions

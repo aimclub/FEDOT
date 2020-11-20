@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from core.utils import default_fedot_data_dir
+from fedot.core.utils import default_fedot_data_dir
 
 
 def test_default_fedot_data_dir():

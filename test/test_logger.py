@@ -2,9 +2,9 @@ import os
 
 import pytest
 
-from core.log import Log, default_log
-from core.models.data import train_test_data_setup, InputData
-from core.models.model import Model
+from fedot.core.log import Log, default_log
+from fedot.core.models.data import train_test_data_setup, InputData
+from fedot.core.models.model import Model
 
 
 @pytest.fixture()
