@@ -4,6 +4,7 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
+from examples.clustering import run_clustering_example
 from examples.fedot_api_example import run_classification_example, run_ts_forecasting_example
 from examples.forecasting_model_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
@@ -65,3 +66,8 @@ def test_api_example():
 
     forecast = run_ts_forecasting_example()
     assert forecast is not None
+
+
+def test_clustering_example():
+    metrics = run_clustering_example(is_fast=True)
+    assert all([_ >= 0 for _ in metrics])

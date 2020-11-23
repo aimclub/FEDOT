@@ -3,7 +3,8 @@ from abc import abstractmethod
 from datetime import timedelta
 from typing import Optional
 
-from sklearn.cluster import KMeans as SklearnKmeans
+from sklearn.cluster import AgglomerativeClustering as SklearnAgloClust, KMeans as SklearnKmeans, \
+    MeanShift as SklearnMeanShift, SpectralClustering as SklearnSpectralClust
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
 from sklearn.ensemble import (AdaBoostRegressor,
@@ -123,6 +124,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'ridge': SklearnRidgeReg,
         'lasso': SklearnLassoReg,
         'kmeans': SklearnKmeans,
+        'meanshift_clust': SklearnMeanShift,
+        'aglo_clust': SklearnAgloClust,
+        'spectral_clust': SklearnSpectralClust,
         'svc': CustomSVC,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
@@ -261,7 +265,12 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :param train_data: data used for model training
         :return:
         """
-        sklearn_model = self._sklearn_model_impl(n_clusters=2)
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
+        else:
+            sklearn_model = self._sklearn_model_impl()
+
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
@@ -272,7 +281,10 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :param predict_data: data used for prediction
         :return:
         """
-        prediction = trained_model.predict(predict_data.features)
+        try:
+            prediction = trained_model.predict(predict_data.features)
+        except Exception as _:
+            prediction = trained_model.fit_predict(predict_data.features)
         return prediction
 
     def fit_tuned(self, train_data: InputData, iterations: int = 30,

@@ -1,6 +1,8 @@
 import os
+import random
 
 import numpy as np
+from numpy import random as np_random
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -10,6 +12,9 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features
+
+random.seed(42)
+np_random.seed(42)
 
 
 def chain_simple() -> Chain:
