@@ -13,16 +13,15 @@ from fedot.core.log import default_log
 
 class GPChainParameterFreeOptimiser(GPChainOptimiser):
     """
-    Implementation of the parameter-free adaptive evolutionary optimiser (population size and genetic operators
-    rates is changing over time) as presented in *Evans B. P., Xue B., Zhang M. An Adaptive and Near Parameter-free
-    Evolutionary Computation Approach Towards True Automation in AutoML.*
-
+    Implementation of the parameter-free adaptive evolutionary optimiser
+    (population size and genetic operators rates is changing over time).
+    For details, see original paper: https://arxiv.org/abs/2001.10178
     :param initial_chain: chain which was initialized outside the optimiser
     :param requirements: composer requirements
     :param chain_generation_params: parameters for new chain generation
     :param parameters: parameters of chain optimiser
     :param max_population_size: maximum population size
-    :param log: optional parameter for log oject
+    :param log: optional parameter for log object
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params,
