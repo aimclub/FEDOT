@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
-from sklearn.datasets import load_breast_cancer
 
+from sklearn.datasets import load_breast_cancer, load_iris
+from copy import deepcopy
 from fedot.core.composer.chain import Chain, SharedChain
 from fedot.core.composer.node import FittedModelCache, \
     PrimaryNode, SecondaryNode, SharedCache
@@ -28,6 +29,19 @@ def data_setup():
                           idx=np.arange(0, len(test_data_y)),
                           task=task, data_type=DataTypesEnum.table)
     return train_data, test_data
+
+
+@pytest.fixture()
+def iris_data_setup():
+    predictors, response = load_iris(return_X_y=True)
+    np.random.shuffle(predictors)
+    np.random.shuffle(response)
+    predictors = predictors[:100]
+    response = response[:100]
+    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
+                     task=Task(TaskTypesEnum.classification),
+                     data_type=DataTypesEnum.table)
+    return data
 
 
 def chain_first():
@@ -338,3 +352,20 @@ def test_shared_cache(data_setup):
     # test cache is actual after manual appending of model
     assert main_chain.root_node.cache.actual_cached_state is not None
     assert shared_cache[main_chain.root_node.descriptive_id] == saved_model
+
+
+def test_cache_changed_data(iris_data_setup):
+    data_first = iris_data_setup
+    data_second = deepcopy(data_first)
+    chain = chain_third()
+    chain.fit(data_first)
+    root_cache = chain.root_node.cache
+    first_child_cache = chain.root_node.nodes_from[0].cache
+    chain.fit(data_second, use_cache=True)
+    new_root_cache = chain.root_node.cache
+    new_first_child_cache = chain.root_node.nodes_from[0].cache
+    chain.fit(data_second, use_cache=True)
+    eq_new_root_cache = chain.root_node.cache
+    eq_new_first_child_cache = chain.root_node.nodes_from[0].cache
+    assert root_cache != new_root_cache and first_child_cache != new_first_child_cache
+    assert new_root_cache == eq_new_root_cache and new_first_child_cache == eq_new_first_child_cache

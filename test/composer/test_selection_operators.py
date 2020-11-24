@@ -1,7 +1,7 @@
 from functools import partial
 
 from fedot.core.composer.chain import Chain
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, ChainGenerationParams
 from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.optimisers.gp_operators import random_chain
 from fedot.core.composer.optimisers.selection import (
@@ -20,9 +20,10 @@ def rand_population_gener_and_eval(pop_size=4):
                                           secondary=models_set, max_depth=1)
     secondary_node_func = SecondaryNode
     primary_node_func = PrimaryNode
-    random_chain_function = partial(random_chain, chain_class=Chain,
-                                    secondary_node_func=secondary_node_func,
-                                    primary_node_func=primary_node_func,
+    chain_gener_params = ChainGenerationParams(chain_class=Chain,
+                                               secondary_node_func=secondary_node_func,
+                                               primary_node_func=primary_node_func)
+    random_chain_function = partial(random_chain, chain_generation_params=chain_gener_params,
                                     requirements=requirements)
     population = [random_chain_function() for _ in range(pop_size)]
     # evaluation

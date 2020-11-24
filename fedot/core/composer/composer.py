@@ -44,29 +44,30 @@ class ComposerRequirements:
 class Composer(ABC):
     """
     Base class used for receiving composite models via optimization
-
+    :param metrics: metrics used to define the quality of found solution
+    :param composer_requirements: requirements for composition process
+    :param optimiser_parameters: parameters used by optimization process (i.e. GPComposerRequirements)
+    :param initial_chain: defines the initial state of the population. If None then initial population is random.
     :param log: optional parameter for log oject
     """
 
-    def __init__(self, log: Log = default_log(__name__)):
+    def __init__(self, metrics: Optional[Callable], composer_requirements: ComposerRequirements,
+                 optimiser_parameters: Any = None, initial_chain: Optional[Chain] = None,
+                 log: Log = default_log(__name__)):
         self.history = None
         self.log = log
+        self.metrics = metrics
+        self.composer_requirements = composer_requirements
+        self.optimiser_parameters = optimiser_parameters
+        self.initial_chain = initial_chain
 
     @abstractmethod
     def compose_chain(self, data: InputData,
-                      initial_chain: Optional[Chain],
-                      composer_requirements: ComposerRequirements,
-                      metrics: Callable,
-                      optimiser_parameters: Any = None,
                       is_visualise: bool = False) -> Chain:
         """
         Base method to run the composition process
 
         :param data: data used for problem solving
-        :param initial_chain: defines the initial state of the population. If None then initial population is random.
-        :param composer_requirements: requirements for composition process
-        :param metrics: metrics used to define the quality of found solution
-        :param optimiser_parameters: parameters used by optimization process (i.e. GPComposerRequirements)
         :param is_visualise: flag to enable visualization. Default False.
         :return: Chain object
         """
@@ -79,33 +80,32 @@ class DummyChainTypeEnum(Enum):
 
 
 class DummyComposer(Composer):
-    def __init__(self, dummy_chain_type):
-        super(Composer, self).__init__()
+    def __init__(self, dummy_chain_type: DummyChainTypeEnum,
+                 composer_requirements: ComposerRequirements,
+                 metrics: Optional[Callable],
+                 initial_chain: Optional[Chain] = None):
+        super().__init__(composer_requirements=composer_requirements, metrics=metrics,
+                         initial_chain=initial_chain)
         self.dummy_chain_type = dummy_chain_type
 
-    def compose_chain(self, data: InputData,
-                      initial_chain: Optional[Chain],
-                      composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable],
-                      optimiser_parameters=None,
-                      is_visualise: bool = False) -> Chain:
+    def compose_chain(self, data: InputData, is_visualise: bool = False) -> Chain:
         new_chain = Chain()
 
         if self.dummy_chain_type == DummyChainTypeEnum.hierarchical:
             # (y1, y2) -> y
-            last_node = SecondaryNode(composer_requirements.secondary[0])
+            last_node = SecondaryNode(self.composer_requirements.secondary[0])
 
-            for requirement_model in composer_requirements.primary:
+            for requirement_model in self.composer_requirements.primary:
                 new_node = PrimaryNode(requirement_model)
                 new_chain.add_node(new_node)
                 last_node.nodes_from.append(new_node)
             new_chain.add_node(last_node)
         elif self.dummy_chain_type == DummyChainTypeEnum.flat:
             # (y1) -> (y2) -> y
-            first_node = PrimaryNode(composer_requirements.primary[0])
+            first_node = PrimaryNode(self.composer_requirements.primary[0])
             new_chain.add_node(first_node)
             prev_node = first_node
-            for requirement_model in composer_requirements.secondary:
+            for requirement_model in self.composer_requirements.secondary:
                 new_node = SecondaryNode(requirement_model)
                 new_node.nodes_from = [prev_node]
                 prev_node = new_node

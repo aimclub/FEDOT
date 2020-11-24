@@ -17,11 +17,6 @@ class CrossoverTypesEnum(Enum):
 
 def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int,
               crossover_prob: float = 0.8) -> Any:
-    crossover_by_type = {
-        CrossoverTypesEnum.subtree: subtree_crossover,
-        CrossoverTypesEnum.one_point: one_point_crossover,
-    }
-
     type = choice(types)
     chain_first_copy = deepcopy(chain_first)
     chain_second_copy = deepcopy(chain_second)
@@ -73,3 +68,9 @@ def one_point_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> 
         replace_subtrees(chain_first, chain_second, node_from_chain_first, node_from_chain_second,
                          layer_in_chain_first, layer_in_chain_second, max_depth)
     return chain_first, chain_second
+
+
+crossover_by_type = {
+    CrossoverTypesEnum.subtree: subtree_crossover,
+    CrossoverTypesEnum.one_point: one_point_crossover,
+}

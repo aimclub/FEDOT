@@ -35,17 +35,20 @@ class CompositionTimer(Timer):
     def minutes_from_start(self) -> float:
         return self.spent_time.seconds / 60.
 
-    def _is_next_iteration_possible(self, generation_num: int, time_constraint: float) -> bool:
+    def _is_next_iteration_possible(self, time_constraint: float, generation_num: int = None) -> bool:
         minutes = self.minutes_from_start
-        possible = time_constraint > (minutes + (minutes / (generation_num + 1)))
+        if generation_num is not None:
+            possible = time_constraint > (minutes + (minutes / (generation_num + 1)))
+        else:
+            possible = time_constraint > minutes
         if not possible:
             self.process_terminated = True
         return possible
 
-    def is_time_limit_reached(self, max_lead_time: datetime.timedelta, generation_num: int) -> bool:
+    def is_time_limit_reached(self, max_lead_time: datetime.timedelta, generation_num: int = None) -> bool:
         max_lead_time = 0 if max_lead_time.seconds < 0 else max_lead_time.seconds / 60.
         if max_lead_time:
-            reached = not self._is_next_iteration_possible(generation_num, max_lead_time)
+            reached = not self._is_next_iteration_possible(generation_num=generation_num, time_constraint=max_lead_time)
         else:
             self.process_terminated = True
             reached = True

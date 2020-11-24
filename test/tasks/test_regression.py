@@ -12,16 +12,15 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def compose_chain(data: InputData) -> Chain:
-    dummy_composer = DummyComposer(DummyChainTypeEnum.hierarchical)
     composer_requirements = ComposerRequirements(primary=['lasso', 'ridge'],
                                                  secondary=['linear'])
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    dummy_composer = DummyComposer(dummy_chain_type=DummyChainTypeEnum.hierarchical, initial_chain=None,
+                                   composer_requirements=composer_requirements,
+                                   metrics=metric_function)
 
-    chain = dummy_composer.compose_chain(data=data,
-                                         initial_chain=None,
-                                         composer_requirements=composer_requirements,
-                                         metrics=metric_function, is_visualise=False)
+    chain = dummy_composer.compose_chain(data=data, is_visualise=False)
     return chain
 
 

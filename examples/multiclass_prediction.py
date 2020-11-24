@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposer, GPComposerRequirements
+    GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.visualisation import ComposerVisualiser
 from fedot.core.models.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -39,13 +39,11 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     # Create the genetic programming-based composer, that allow to find
     # the optimal structure of the composite model
-    composer = GPComposer()
+    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    composer = builder.build()
 
     # run the search of best suitable model
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                                initial_chain=None,
-                                                composer_requirements=composer_requirements,
-                                                metrics=metric_function, is_visualise=False)
+    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False)
     chain_evo_composed.fit(input_data=dataset_to_compose)
 
     return chain_evo_composed
