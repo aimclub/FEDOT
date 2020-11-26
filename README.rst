@@ -82,7 +82,13 @@ In this case, GPComposer is chosen that is based on evolutionary algorithm.
     secondary=available_model_types, max_arity=3,
     max_depth=3, pop_size=20, num_of_generations=20,
     crossover_prob=0.8, mutation_prob=0.8, max_lead_time=20)
-  composer = GPComposer()
+
+After that you need to create composer by builder using specified parameters
+
+.. code-block:: python
+
+ builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(metric_function)
+ composer = builder.build()
 
 Now you can run the optimization and obtain a composite model:
 
