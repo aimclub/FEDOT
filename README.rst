@@ -22,6 +22,15 @@ Composite models - the models with heterogeneous graph-based structure, that can
 
 Fedot can be used for classification, regression, clustering, time series forecasting, and other similar tasks. Also, the derived solutions for other problems (e.g. bayesian generation of synthetic data) can be build using Fedot.Core.
 
+The introductionary video about Fedot is available here:
+
+
+.. image:: https://res.cloudinary.com/marcomontalbano/image/upload/v1606396758/video_to_markdown/images/youtube--RjbuV6i6de4-c05b58ac6eb4c4700831b2b3070cd403.jpg
+    :target: http://www.youtube.com/watch?v=RjbuV6i6de4
+    :alt: Introducing Fedot
+
+   
+
 The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
 
 Installation
