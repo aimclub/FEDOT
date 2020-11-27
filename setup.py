@@ -9,7 +9,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 
 # The text of the README file
 NAME = "fedot_example_test"
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 AUTHOR = "pv"
 SHORT_DESCRIPTION = "Evolutionary structural learning framework FEDOT"
 README = (Path(os.path.join(HERE, "README.rst"))).read_text()
