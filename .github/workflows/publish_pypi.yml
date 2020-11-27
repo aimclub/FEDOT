@@ -25,8 +25,8 @@ jobs:
           python -m pip install --upgrade setuptools wheel
           python setup.py sdist bdist_wheel
       - name: Publish package to TestPyPI
-          uses: pypa/gh-action-pypi-publish@master
-          with:
-            user: __token__
-            password: ${{ secrets.PYPI_PASSWORD }}
-            repository_url: https://test.pypi.org/legacy/
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PASSWORD }}
+          repository_url: https://test.pypi.org/legacy/
