@@ -117,7 +117,7 @@ Finally, you can test the resulted model on the validation dataset:
 
   roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
                                                           dataset_to_validate)
-  print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
+  print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
 
 Extended examples:
 
