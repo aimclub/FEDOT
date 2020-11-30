@@ -8,7 +8,7 @@ import setuptools
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 # The text of the README file
-NAME = "fedot-test"
+NAME = "fedot"
 VERSION = "0.0.2"
 AUTHOR = "NSS Lab"
 SHORT_DESCRIPTION = "Evolutionary structural learning framework FEDOT"
