@@ -22,7 +22,7 @@ Composite models - the models with heterogeneous graph-based structure, that can
 
 Fedot can be used for classification, regression, clustering, time series forecasting, and other similar tasks. Also, the derived solutions for other problems (e.g. bayesian generation of synthetic data) can be build using Fedot.Core.
 
-The introductionary video about Fedot is available here:
+The intro video about Fedot is available here:
 
 
 .. image:: https://res.cloudinary.com/marcomontalbano/image/upload/v1606396758/video_to_markdown/images/youtube--RjbuV6i6de4-c05b58ac6eb4c4700831b2b3070cd403.jpg
@@ -92,11 +92,13 @@ In this case, GPComposer is chosen that is based on evolutionary algorithm.
     max_depth=3, pop_size=20, num_of_generations=20,
     crossover_prob=0.8, mutation_prob=0.8, max_lead_time=20)
 
-After that you need to create composer by builder using specified parameters
+After that you need to initialize composer with builder using specified parameters:
 
 .. code-block:: python
 
- builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(metric_function)
+ builder = GPComposerBuilder(task=task).with_requirements(composer_requirements) \
+        .with_metrics(metric_function) \
+        .with_optimiser_parameters(optimiser_parameters)
  composer = builder.build()
 
 Now you can run the optimization and obtain a composite model:
