@@ -3,6 +3,8 @@ name: Build and publish package to PyPi
 on:
   push:
     branches: [ pypi-trigger ]
+      tags:
+        - '*'
 
 
 jobs:
