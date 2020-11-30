@@ -2,8 +2,7 @@ name: Build and publish package to PyPi
 
 on:
   push:
-      tags:
-        - '*'
+    branches: [ release ]
 
 
 jobs:
@@ -30,4 +29,4 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_PASSWORD }}
-          repository_url: https://test.pypi.org/legacy/
+          repository_url: https://pypi.org/
