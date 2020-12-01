@@ -24,7 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools wheel
           python setup.py sdist bdist_wheel
-      - name: Publish package to TestPyPI
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:
           user: __token__
