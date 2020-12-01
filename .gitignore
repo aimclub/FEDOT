@@ -67,3 +67,7 @@ fabric.properties
 
 # Sphinx Documentation
 docs/_build
+
+build/
+dist/
+*.egg-info
