@@ -29,4 +29,4 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_PASSWORD }}
-          repository_url: https://pypi.org/
+          repository_url: https://upload.pypi.org/legacy/
