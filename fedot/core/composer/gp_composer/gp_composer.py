@@ -15,7 +15,7 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChai
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.composer.write_history import write_composer_history_to_csv
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -92,7 +92,8 @@ class GPComposer(Composer):
             historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
             all_historical_fitness = list(itertools.chain(*historical_fitness))
             historical_chains = list(itertools.chain(*self.history))
-            ComposerVisualiser.visualise_history(historical_chains, all_historical_fitness)
+            visualiser = ChainVisualiser()
+            visualiser.visualise_history(historical_chains, all_historical_fitness)
 
         write_composer_history_to_csv(historical_chains=self.history)
 

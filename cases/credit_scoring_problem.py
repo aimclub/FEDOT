@@ -8,7 +8,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
@@ -69,7 +69,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     if is_visualise:
-        ComposerVisualiser.visualise(chain_evo_composed)
+        visualiser = ChainVisualiser()
+        visualiser.visualise(chain_evo_composed)
 
     # the quality assessment for the obtained composite models
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,

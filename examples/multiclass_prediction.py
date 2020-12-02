@@ -9,7 +9,7 @@ from examples.utils import create_multi_clf_examples_from_excel
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
@@ -78,7 +78,8 @@ if __name__ == '__main__':
 
     fitted_model = get_model(train_file_path)
 
-    ComposerVisualiser.visualise(fitted_model)
+    visualiser = ChainVisualiser()
+    visualiser.visualise(fitted_model)
 
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc}')
