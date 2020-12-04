@@ -19,6 +19,9 @@ class Chain:
     Base class used for composite model structure definition
     :param nodes: Node object(s)
     :param log: Log object to record messages
+    .. note::
+        fitted_on_data stores the data which were used in last chain fitting (equals None if chain hasn't been
+        fitted yet)
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
@@ -32,10 +35,12 @@ class Chain:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
+        self.fitted_on_data = None
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         """
         Method used for training the chain without using cached information
+
         :param input_data: data used for model training
         :param verbose: flag used for status printing to console, default False
         """
@@ -46,6 +51,7 @@ class Chain:
     def fit(self, input_data: InputData, use_cache=True, verbose=False):
         """
         Run training process in all nodes in chain starting with root.
+
         :param input_data: data used for model training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param verbose: flag used for status printing to console, default False
@@ -64,6 +70,7 @@ class Chain:
     def predict(self, input_data: InputData):
         """
         Run the predict process in all nodes in chain starting with root.
+
         :param input_data: data for prediction
         :return: array of predicted target values
         """
@@ -80,6 +87,7 @@ class Chain:
                                 verbose=False):
         """
         Optimize hyperparameters in primary nodes models
+
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
@@ -102,6 +110,7 @@ class Chain:
                             verbose=False):
         """
         Optimize hyperparameters in all nodes models
+
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
@@ -119,6 +128,7 @@ class Chain:
     def add_node(self, new_node: Node):
         """
         Add new node to the Chain
+
         :param new_node: new Node object
         """
         if new_node not in self.nodes:
