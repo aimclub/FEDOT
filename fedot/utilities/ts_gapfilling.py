@@ -1,11 +1,9 @@
 import numpy as np
 from scipy import interpolate
 
-from core.composer.node import PrimaryNode, SecondaryNode
-from core.composer.ts_chain import TsForecastingChain
-from core.models.data import InputData
-from core.repository.dataset_types import DataTypesEnum
-from core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.models.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 class SimpleGapFiller:

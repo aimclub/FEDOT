@@ -7,6 +7,7 @@ import numpy as np
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from fedot.core.utils import project_root
+from cases.time_series_gapfilling import run_gapfilling_case
 from sklearn.metrics import mean_squared_error
 
 

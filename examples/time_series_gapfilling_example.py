@@ -3,9 +3,9 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-from core.composer.node import PrimaryNode
-from core.composer.ts_chain import TsForecastingChain
-from utilities.ts_gapfilling import SimpleGapFiller, ModelGapFiller
+from fedot.core.composer.node import PrimaryNode
+from fedot.core.composer.ts_chain import TsForecastingChain
+from fedot.utilities.ts_gapfilling import SimpleGapFiller, ModelGapFiller
 
 
 def generate_synthetic_data(length: int = 2500, gap_size: int = 100,

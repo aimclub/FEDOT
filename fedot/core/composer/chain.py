@@ -6,8 +6,9 @@ from uuid import uuid4
 import networkx as nx
 
 from fedot.core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.models.data import InputData
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.synthetic.chain_template_new import ChainTemplate
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -16,13 +17,8 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 class Chain:
     """
     Base class used for composite model structure definition
-
     :param nodes: Node object(s)
     :param log: Log object to record messages
-
-    .. note::
-        fitted_on_data stores the data which were used in last chain fitting (equals None if chain hasn't been
-        fitted yet)
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
@@ -36,12 +32,10 @@ class Chain:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
-        self.fitted_on_data = None
 
     def fit_from_scratch(self, input_data: InputData, verbose=False):
         """
         Method used for training the chain without using cached information
-
         :param input_data: data used for model training
         :param verbose: flag used for status printing to console, default False
         """
@@ -49,35 +43,27 @@ class Chain:
         self.log.info('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
-        if self.fitted_on_data is not None and self.fitted_on_data is not new_input_data:
-            if cache_status:
-                self.log.warn('Trained model cache is not actual because you are using new dataset for training. '
-                              'Parameter use_cache value changed to False')
-                cache_status = False
-        return cache_status
-
     def fit(self, input_data: InputData, use_cache=True, verbose=False):
         """
         Run training process in all nodes in chain starting with root.
-
         :param input_data: data used for model training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param verbose: flag used for status printing to console, default False
         """
-        use_cache = self.cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
-
         if not use_cache:
             self._clean_model_cache()
+
+        if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            # the make_future_prediction is useless for the fit stage
+            input_data.task.task_params.make_future_prediction = False
+
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
-        if not use_cache or self.fitted_on_data is None:
-            self.fitted_on_data = input_data
+
         return train_predicted
 
     def predict(self, input_data: InputData):
         """
         Run the predict process in all nodes in chain starting with root.
-
         :param input_data: data for prediction
         :return: array of predicted target values
         """
@@ -94,7 +80,6 @@ class Chain:
                                 verbose=False):
         """
         Optimize hyperparameters in primary nodes models
-
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
@@ -117,7 +102,6 @@ class Chain:
                             verbose=False):
         """
         Optimize hyperparameters in all nodes models
-
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
@@ -135,7 +119,6 @@ class Chain:
     def add_node(self, new_node: Node):
         """
         Add new node to the Chain
-
         :param new_node: new Node object
         """
         if new_node not in self.nodes:
@@ -173,7 +156,7 @@ class Chain:
 
     def _clean_model_cache(self):
         for node in self.nodes:
-            node.cache = FittedModelCache(node)
+            node.cache.clear()
 
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]

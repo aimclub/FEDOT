@@ -2,9 +2,9 @@ import random
 import pytest
 
 import numpy as np
-from core.composer.node import PrimaryNode
-from core.composer.ts_chain import TsForecastingChain
-from utilities.ts_gapfilling import ModelGapFiller
+from fedot.core.composer.node import PrimaryNode
+from fedot.core.composer.ts_chain import TsForecastingChain
+from fedot.utilities.ts_gapfilling import ModelGapFiller
 from sklearn.metrics import mean_squared_error
 from examples.time_series_gapfilling_example import generate_synthetic_data
 
