@@ -177,83 +177,22 @@ class ModelGapFiller(SimpleGapFiller):
 
     :param gap_value: value, which mask gap elements in array
     :param chain: TsForecastingChain object for filling in the gaps
+    :param max_window_size: window length
     """
 
-    def __init__(self, gap_value, chain):
+    def __init__(self, gap_value, chain, max_window_size: int = 50):
         super().__init__(gap_value)
         self.chain = chain
+        self.max_window_size = max_window_size
 
-    def forward_inverse_filling(self, input_data, max_window_size: int = 50):
+    def forward_inverse_filling(self, input_data):
         """
         Method fills in the gaps in the input array using forward and inverse
         directions of predictions
 
         :param input_data: data with gaps to filling in the gaps in it
-        :param max_window_size: window length
         :return: array without gaps
         """
-
-        def forward(timeseries_data, batch_index, new_gap_list):
-            """
-            The time series method makes a forward forecast based on the part
-            of the time series that is located to the left of the gap.
-
-            :param timeseries_data: one-dimensional array of a time series
-            :param batch_index: index of the interval (batch) with a gap
-            :param new_gap_list: array with nested lists of gap indexes
-
-            :return weights_list: numpy array with prediction weights for
-            averaging
-            :return predicted_values: numpy array with predicted values in the
-            gap
-            """
-
-            gap = new_gap_list[batch_index]
-            timeseries_train_part = timeseries_data[:gap[0]]
-
-            # Adaptive prediction interval length
-            len_gap = len(gap)
-            predicted_values = self._chain_fit_predict(timeseries_train_part,
-                                                       len_gap,
-                                                       max_window_size)
-            weights_list = np.arange(len_gap, 0, -1)
-            return weights_list, predicted_values
-
-        def inverse(timeseries_data, batch_index, new_gap_list):
-            """
-            The time series method makes an inverse forecast based on the part
-            of the time series that is located to the right of the gap.
-
-            :param timeseries_data: one-dimensional array of a time series
-            :param batch_index: index of the interval (batch) with a gap
-            :param new_gap_list: array with nested lists of gap indexes
-
-            :return weights_list: numpy array with prediction weights for
-            averaging
-            :return predicted_values: numpy array with predicted values in the
-            gap
-            """
-
-            gap = new_gap_list[batch_index]
-
-            # If the interval with a gap is the last one in the array
-            if batch_index == len(new_gap_list) - 1:
-                timeseries_train_part = timeseries_data[(gap[-1] + 1):]
-            else:
-                next_gap = new_gap_list[batch_index + 1]
-                timeseries_train_part = timeseries_data[(gap[-1] + 1):next_gap[0]]
-            timeseries_train_part = np.flip(timeseries_train_part)
-
-            # Adaptive prediction interval length
-            len_gap = len(gap)
-
-            predicted_values = self._chain_fit_predict(timeseries_train_part,
-                                                       len_gap,
-                                                       max_window_size)
-
-            predicted_values = np.flip(predicted_values)
-            weights_list = np.arange(1, (len_gap + 1), 1)
-            return weights_list, predicted_values
 
         output_data = np.array(input_data)
 
@@ -267,7 +206,7 @@ class ModelGapFiller(SimpleGapFiller):
             preds = []
             weights = []
             # Two predictions are generated for each gap - forward and backward
-            for direction_function in [forward, inverse]:
+            for direction_function in [self._forward, self._inverse]:
 
                 weights_list, predicted_list = direction_function(output_data,
                                                                   batch_index,
@@ -285,13 +224,12 @@ class ModelGapFiller(SimpleGapFiller):
 
         return output_data
 
-    def forward_filling(self, input_data, max_window_size: int = 50):
+    def forward_filling(self, input_data):
         """
         Method fills in the gaps in the input array using chain with only
         forward direction (i.e. time series forecasting)
 
         :param input_data: data with gaps to filling in the gaps in it
-        :param max_window_size: window length
         :return: array without gaps
         """
 
@@ -310,29 +248,86 @@ class ModelGapFiller(SimpleGapFiller):
             len_gap = len(gap)
 
             # Chain for the task of filling in gaps
-            predicted = self._chain_fit_predict(timeseries_train_part,
-                                                len_gap,
-                                                max_window_size)
+            predicted = self.__chain_fit_predict(timeseries_train_part,
+                                                 len_gap)
 
             # Replace gaps in an array with predicted values
             output_data[gap] = predicted
         return output_data
 
-    def _chain_fit_predict(self, timeseries_train: np.array,
-                           len_gap: int, max_window_size: int):
+    def _forward(self, timeseries_data, batch_index, new_gap_list):
+        """
+        The time series method makes a forward forecast based on the part
+        of the time series that is located to the left of the gap.
+
+        :param timeseries_data: one-dimensional array of a time series
+        :param batch_index: index of the interval (batch) with a gap
+        :param new_gap_list: array with nested lists of gap indexes
+
+        :return weights_list: numpy array with prediction weights for
+        averaging
+        :return predicted_values: numpy array with predicted values in the
+        gap
+        """
+
+        gap = new_gap_list[batch_index]
+        timeseries_train_part = timeseries_data[:gap[0]]
+
+        # Adaptive prediction interval length
+        len_gap = len(gap)
+        predicted_values = self.__chain_fit_predict(timeseries_train_part,
+                                                    len_gap)
+        weights_list = np.arange(len_gap, 0, -1)
+        return weights_list, predicted_values
+
+    def _inverse(self, timeseries_data, batch_index, new_gap_list):
+        """
+        The time series method makes an inverse forecast based on the part
+        of the time series that is located to the right of the gap.
+
+        :param timeseries_data: one-dimensional array of a time series
+        :param batch_index: index of the interval (batch) with a gap
+        :param new_gap_list: array with nested lists of gap indexes
+
+        :return weights_list: numpy array with prediction weights for
+        averaging
+        :return predicted_values: numpy array with predicted values in the
+        gap
+        """
+
+        gap = new_gap_list[batch_index]
+
+        # If the interval with a gap is the last one in the array
+        if batch_index == len(new_gap_list) - 1:
+            timeseries_train_part = timeseries_data[(gap[-1] + 1):]
+        else:
+            next_gap = new_gap_list[batch_index + 1]
+            timeseries_train_part = timeseries_data[(gap[-1] + 1):next_gap[0]]
+        timeseries_train_part = np.flip(timeseries_train_part)
+
+        # Adaptive prediction interval length
+        len_gap = len(gap)
+
+        predicted_values = self.__chain_fit_predict(timeseries_train_part,
+                                                    len_gap)
+
+        predicted_values = np.flip(predicted_values)
+        weights_list = np.arange(1, (len_gap + 1), 1)
+        return weights_list, predicted_values
+
+    def __chain_fit_predict(self, timeseries_train: np.array, len_gap: int):
         """
         The method makes a prediction as a sequence of elements based on a
         training sample. There are two main parts: fit model and predict.
 
         :param timeseries_train: part of the time series for training the model
         :param len_gap: number of elements in the gap
-        :param max_window_size: window length
         :return: array without gaps
         """
 
         task = Task(TaskTypesEnum.ts_forecasting,
                     TsForecastingParams(forecast_length=len_gap,
-                                        max_window_size=max_window_size,
+                                        max_window_size=self.max_window_size,
                                         return_all_steps=False,
                                         make_future_prediction=True))
 

@@ -1,9 +1,8 @@
 import os
 import random
-from datetime import timedelta
-
 import numpy as np
 
+from datetime import timedelta
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from fedot.core.utils import project_root

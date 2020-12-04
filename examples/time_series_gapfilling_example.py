@@ -8,20 +8,14 @@ from fedot.core.composer.ts_chain import TsForecastingChain
 from fedot.utilities.ts_gapfilling import SimpleGapFiller, ModelGapFiller
 
 
-def generate_synthetic_data(length: int = 2500, gap_size: int = 100,
-                            gap_value: float = -100.0, periods: int = 6,
-                            border: int = 1000):
+def generate_synthetic_data(length: int = 2200, periods: int = 5):
     """
-    The function generates a synthetic one-dimensional array with omissions
+    The function generates a synthetic one-dimensional array without omissions
 
-    :param length: the length of the array (should be more than 1000)
-    :param gap_size: number of elements in the gap
-    :param gap_value: value, which identify gap elements in array
+    :param length: the length of the array
     :param periods: the number of periods in the sine wave
-    :param border: minimum number of known time series elements before and after
-    the gap
-    :return synthetic_data: an array with gaps
-    :return real_values: an array with actual values in gaps
+
+    :return synthetic_data: an array without gaps
     """
 
     sinusoidal_data = np.linspace(-periods * np.pi, periods * np.pi, length)
@@ -30,12 +24,63 @@ def generate_synthetic_data(length: int = 2500, gap_size: int = 100,
 
     # Combining a sine wave and random noise
     synthetic_data = sinusoidal_data + random_noise
+    return synthetic_data
 
-    random_value = random.randint(border, length - border)
-    real_values = np.array(
-        synthetic_data[random_value:(random_value + gap_size)])
-    synthetic_data[random_value: (random_value + gap_size)] = gap_value
-    return synthetic_data, real_values
+
+def generate_gaps(array_without_gaps, gap_dict, gap_value):
+    """
+    Function for generating gaps with predefined length in the desired indices
+    of an one-dimensional array
+
+    :param array_without_gaps: an array without gaps
+    :param gap_dict: a dictionary with omissions, where the key is the index in
+    the time series from which the gap will begin. The key value is the length
+    of the gap (elements). -1 in the value means that a skip is generated until
+    the end of the array
+    :param gap_value: value indicating a gap in the array
+
+    :return: one-dimensional array with omissions
+    """
+
+    array_with_gaps = np.copy(array_without_gaps)
+
+    keys = list(gap_dict.keys())
+    for key in keys:
+        gap_size = gap_dict.get(key)
+        if gap_size == -1:
+            # Generating a gap to the end of an array
+            array_with_gaps[key:] = gap_value
+        else:
+            array_with_gaps[key:(key+gap_size)] = gap_value
+
+    return array_with_gaps
+
+
+def get_array_with_gaps(gap_dict = None, gap_value: float = -100.0):
+    """
+    Function for generating synthetic data and gaps in it with predefined length
+    and location
+
+    :param gap_dict: a dictionary with omissions, where the key is the index in
+    the time series from which the gap will begin. The key value is the length
+    of the gap (elements). -1 in the value means that a skip is generated until
+    the end of the array
+    :param gap_value: value indicating a gap in the array
+
+    :return array_with_gaps: an array with gaps
+    :return real_values: an array with actual values in gaps
+    """
+
+    real_values = generate_synthetic_data()
+
+    if gap_dict == None:
+        gap_dict = {850: 100,
+                    1400: 150}
+    array_with_gaps = generate_gaps(array_without_gaps=real_values,
+                                    gap_dict=gap_dict,
+                                    gap_value=gap_value)
+
+    return array_with_gaps, real_values
 
 
 def run_gapfilling_example():
@@ -49,14 +94,15 @@ def run_gapfilling_example():
     """
 
     # Get synthetic time series
-    gap_data, real_data = generate_synthetic_data()
+    gap_data, real_data = get_array_with_gaps()
 
     # Filling in gaps using chain from FEDOT
     ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain)
+                                     chain=ridge_chain,
+                                     max_window_size=150)
     without_gap_arr_ridge = \
-        ridge_gapfiller.forward_inverse_filling(gap_data, 400)
+        ridge_gapfiller.forward_inverse_filling(gap_data)
 
     # Filling in gaps using simple methods such as polynomial approximation
     simple_gapfill = SimpleGapFiller(gap_value=-100.0)
@@ -80,6 +126,7 @@ def run_gapfilling_example():
 if __name__ == '__main__':
     arrays_dict, gap_data, _ = run_gapfilling_example()
 
+    gap_ids = np.ravel(np.argwhere(gap_data == -100.0))
     masked_array = np.ma.masked_where(gap_data == -100.0, gap_data)
     plt.plot(arrays_dict.get('local_poly'), c='orange',
              alpha=0.5, label='Local polynomial approximation')
@@ -90,6 +137,7 @@ if __name__ == '__main__':
     plt.plot(arrays_dict.get('ridge'), c='red',
              alpha=0.5, label='Inverse ridge')
     plt.plot(masked_array, c='blue', alpha=1.0, label='Actual values')
-    plt.legend()
+    plt.xlim(gap_ids[0]-100, gap_ids[-1]+100)
+    plt.legend(loc='upper center')
     plt.grid()
     plt.show()

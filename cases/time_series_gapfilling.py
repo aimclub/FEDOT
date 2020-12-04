@@ -101,18 +101,18 @@ def run_gapfilling_case():
     # Filling in gaps based on inverted ridge regression model
     ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain)
+                                     chain=ridge_chain,
+                                     max_window_size=250)
     with_gap_array = np.array(dataframe['with_gap'])
-    without_gap_arr_ridge = ridge_gapfiller.forward_inverse_filling(with_gap_array,
-                                                                    max_window_size=250)
+    without_gap_arr_ridge = ridge_gapfiller.forward_inverse_filling(with_gap_array)
     dataframe['ridge'] = without_gap_arr_ridge
 
     # Filling in gaps based on a chain of 5 models
     composite_chain = get_composite_chain()
     composite_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                         chain=composite_chain)
-    without_gap_composite = composite_gapfiller.forward_filling(with_gap_array,
-                                                                max_window_size=1000)
+                                         chain=composite_chain,
+                                         max_window_size=1000)
+    without_gap_composite = composite_gapfiller.forward_filling(with_gap_array)
     dataframe['composite'] = without_gap_composite
     return dataframe
 

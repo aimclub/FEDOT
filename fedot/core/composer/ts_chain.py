@@ -1,5 +1,4 @@
 from copy import copy
-
 import numpy as np
 
 from fedot.core.composer.chain import Chain
@@ -131,3 +130,12 @@ def _prepare_exog_features(data_for_prediction: InputData,
     data_for_prediction.features = np.stack(np.asarray(new_features)).T
 
     return data_for_prediction
+
+
+def convert_to_tschain(chain):
+    """
+    The method convert base chain object into TsChain
+    """
+
+    chain.__class__ = TsForecastingChain
+    return chain
