@@ -41,7 +41,7 @@ class Tuner:
                  cross_val_fold_num: int,
                  time_limit,
                  iterations: int,
-                 log: Log = default_log(__name__)):
+                 log: Log = None):
         self.time_limit: timedelta \
             = time_limit
         self.trained_model = trained_model
@@ -52,7 +52,11 @@ class Tuner:
         self.max_iterations = iterations
         self.default_score, self.default_params = \
             self.get_cross_val_score_and_params(self.trained_model)
-        self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         """

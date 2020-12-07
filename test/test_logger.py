@@ -23,16 +23,16 @@ def release_log(logger, log_file):
 
 def test_default_logger_setup_correctly():
     expected_logger_info_level = 20
-    log = default_log('default_test_logger')
+    test_default_log = default_log('default_test_logger')
 
-    assert log.logger.getEffectiveLevel() == expected_logger_info_level
+    assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level
 
 
 @pytest.mark.parametrize('data_fixture', ['get_config_file'])
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
     expected_logger_error_level = 40
-    test_file = request.getfixturevalue(data_fixture)
-    log = Log('test_logger', config_json_file=test_file)
+    test_config_file = request.getfixturevalue(data_fixture)
+    log = Log('test_logger', config_json_file=test_config_file)
 
     assert log.logger.getEffectiveLevel() == expected_logger_error_level
 

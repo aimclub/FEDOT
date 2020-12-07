@@ -27,12 +27,19 @@ class Node(ABC):
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
                  manual_preprocessing_func: Optional[Callable] = None,
-                 log=default_log(__name__)):
+                 log=None):
         self.nodes_from = nodes_from
-        self.model = Model(model_type=model_type)
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
-        self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
+        self.model = Model(model_type=model_type, log=self.log)
+
+
 
     @property
     def descriptive_id(self):
