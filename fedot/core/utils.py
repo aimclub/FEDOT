@@ -73,24 +73,26 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
-def get_scaled_imgs(df: pd.DataFrame,
-                    image_shape: int = 75):
-    imgs = []
+def resizing_image(image: np.ndarray,
+                   new_width=None,
+                   new_height=None,
+                   interp=cv2.INTER_LINEAR):
+    h, w = image.shape[:2]
 
-    for i, row in df.iterrows():
-        # make 75x75 image
-        band_1 = np.array(row['band_1']).reshape(image_shape, image_shape)
-        band_2 = np.array(row['band_2']).reshape(image_shape, image_shape)
-        band_3 = band_1 + band_2  # plus since log(x*y) = log(x) + log(y)
+    if new_width is None and new_height is None:
+        return image
 
-        # Rescale
-        a = (band_1 - band_1.mean()) / (band_1.max() - band_1.min())
-        b = (band_2 - band_2.mean()) / (band_2.max() - band_2.min())
-        c = (band_3 - band_3.mean()) / (band_3.max() - band_3.min())
+    if new_width is None:
+        ratio = new_height / h
+        dimension = (int(w * ratio), new_height)
 
-        imgs.append(np.dstack((a, b, c)))
+    else:
+        ratio = new_width / w
+        dimension = (new_width, int(h * ratio))
 
-    return np.array(imgs)
+    res_img = cv2.resize(image, dimension, interpolation=interp)
+
+    return res_img
 
 
 def get_more_images(imgs: np.ndarray):
@@ -119,6 +121,21 @@ def get_more_images(imgs: np.ndarray):
     more_images = np.concatenate((imgs, v, h))
 
     return more_images
+
+
+def get_images_from_directory(path_to_images: str,
+                              new_shape: tuple = None):
+    list_of_images = os.listdir(path=path_to_images)
+    images = []
+    for image_path in list_of_images:
+        img = cv2.imread(image_path)
+        if new_shape is not None:
+            img = resizing_image(img,
+                                 new_width=new_shape[0],
+                                 new_height=new_shape[1])
+        images.append(img)
+
+    return np.concatenate(images)
 
 
 class ComparableEnum(Enum):

@@ -12,6 +12,78 @@ from fedot.core.repository.tasks import extract_task_param
 forecast_length = 1
 
 
+class KerasClassificationStrategy(EvaluationStrategy):
+    def __init__(self, model_type: str, params: Optional[dict] = None):
+        self._init_CNN_model_functions(model_type)
+
+        self.epochs = 15
+        self.batch_size = 128
+        if params:
+            self.epochs = params.get('epochs', self.epochs)
+
+        super().__init__(model_type, params)
+
+    def _init_CNN_model_functions(self, model_type):
+        if model_type != 'cnn':
+            raise ValueError(f'Impossible to obtain classififcation strategy for {model_type}')
+
+    def fit(self, train_data: InputData):
+        model = fit_cnn(train_data, epochs=self.epochs, batch_size=self.batch_size)
+        return model
+
+    def predict(self, trained_model, predict_data: InputData):
+        return predict_cnn(trained_model, predict_data)
+
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
+        raise NotImplementedError()
+
+
+def _create_cnn(input_shape: tuple,
+                num_classes: int):
+    model = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=input_shape),
+            tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.Dense(num_classes, activation="softmax"),
+        ]
+    )
+
+    return model
+
+
+def fit_cnn(train_data: InputData,
+            image_shape: tuple = (28, 28, 1),
+            num_classes: int = 10,
+            epochs: int = 1,
+            batch_size: int = 128):
+
+    x_train, y_train = train_data.features, train_data.target
+    x_train = x_train.astype("float32") / 255
+    x_train = np.expand_dims(x_train, -1)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+
+    model = _create_cnn(input_shape=image_shape,
+                        num_classes=num_classes)
+    model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
+
+    return model
+
+
+def predict_cnn(trained_model, predict_data: InputData) -> OutputData:
+    x_test, y_test = predict_data.features, predict_data.target
+    x_test = x_test.astype("float32") / 255
+    x_test = np.expand_dims(x_test, -1)
+    pred = trained_model.predict(x_test)
+    return pred
+
+
 # TODO inherit this and similar from custom strategy
 class KerasForecastingStrategy(EvaluationStrategy):
     def __init__(self, model_type: str, params: Optional[dict] = None):

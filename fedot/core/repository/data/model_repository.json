@@ -69,6 +69,14 @@
 	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"
+	},
+	"image_class": {
+	  "tasks": "[TaskTypesEnum.image_classification]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasClassificationStrategy"],
+	  "tags": ["nn"],
+	  "description": "Implementations of the keras-based neural models image classification model"
 	}
   },
   "models": {
@@ -181,6 +189,10 @@
 	"pca_data_model": {
 	  "meta": "dim_red_data_model",
 	  "tags": ["linear"]
+	},
+	  "cnn": {
+	  "meta": "image_class",
+	  "tags": ["deep"]
 	},
 	"lstm": {
 	  "meta": "keras_forecasting",

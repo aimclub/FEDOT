@@ -1,6 +1,6 @@
 import warnings
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_
 from fedot.core.models.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import get_scaled_imgs, get_more_images
+from fedot.core.utils import get_more_images, get_images_from_directory
 
 
 @dataclass
@@ -64,29 +64,29 @@ class Data:
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
     @staticmethod
-    def from_image(file_path=None,
-                   task: Task = Task(TaskTypesEnum.classification),
+    def from_image(images: Union[str, np.ndarray] = None,
+                   labels: Union[str, np.ndarray] = None,
+                   task: Task = Task(TaskTypesEnum.image_classification),
                    data_type: DataTypesEnum = DataTypesEnum.table,
-                   aug_flag: bool = False,
-                   target_column: Optional[str] = ''):
+                   aug_flag: bool = False):
         """
-        :param file_path: the path to the CSV with data
+        :param images: the path to the directory with image data or np.ndarray with data
+        :param labels: name of target column (last column if empty and no target if None)
         :param task: the task that should be solved with data
         :param data_type: the type of data interpretation
         :param aug_flag:
-        :param target_column: name of target column (last column if empty and no target if None)
+
         :return:
         """
+        features = images
+        target = labels
 
-        data_frame = pd.read_csv(file_path, sep=delimiter)
-        data_frame = _convert_dtypes(data_frame=data_frame)
-        # data_array = np.array(data_frame).T
-        features = get_scaled_imgs(data_frame)
-        target = np.array(data_frame[target_column])
-        data_frame.inc_angle = data_frame.inc_angle.replace('na', 0)
-        idx = np.where(data_frame.inc_angle > 0)
-        target = target[idx[0]]
-        features = features[idx[0], ...]
+        if type(images) is str:
+            features = get_images_from_directory(images)
+            target = pd.read_csv(target)
+            target = np.array(target)
+
+        idx = np.arange(0, len(features))
 
         if aug_flag:
             features = get_more_images(features)
