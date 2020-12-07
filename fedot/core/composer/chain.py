@@ -8,6 +8,7 @@ import networkx as nx
 from fedot.core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from fedot.core.log import default_log, Log
 from fedot.core.models.data import InputData
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.synthetic.chain_template_new import ChainTemplate
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -19,6 +20,7 @@ class Chain:
 
     :param nodes: Node object(s)
     :param log: Log object to record messages
+
     .. note::
         fitted_on_data stores the data which were used in last chain fitting (equals None if chain hasn't been
         fitted yet)
@@ -68,9 +70,14 @@ class Chain:
 
         if not use_cache:
             self._clean_model_cache()
+
+        if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            # the make_future_prediction is useless for the fit stage
+            input_data.task.task_params.make_future_prediction = False
+        else:
+            if not use_cache or self.fitted_on_data is None:
+                self.fitted_on_data = input_data
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
-        if not use_cache or self.fitted_on_data is None:
-            self.fitted_on_data = input_data
         return train_predicted
 
     def predict(self, input_data: InputData):
