@@ -61,10 +61,13 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
             self._add_to_history(self.population)
 
+            self.log.info(f'Best metric is {self.best_individual.fitness}')
+
             while not t.is_time_limit_reached(self.requirements.max_lead_time) \
                     and self.generation_num != self.requirements.num_of_generations - 1:
                 self.log.info(f'Generation num: {self.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_non_improving_fitness}')
+                self.num_of_gens_without_improvements = self.update_stagnation_counter()
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
                 if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
 
