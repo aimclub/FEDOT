@@ -161,7 +161,7 @@ class GPComposerBuilder:
         optimiser = optimiser_type(initial_chain=self._composer.initial_chain,
                                    requirements=self._composer.composer_requirements,
                                    chain_generation_params=chain_generation_params,
-                                   parameters=self.optimiser_parameters)
+                                   parameters=self.optimiser_parameters, log=self._composer.log)
 
         self._composer.optimiser = optimiser
 

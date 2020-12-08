@@ -80,8 +80,8 @@ class GPChainOptimiser:
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
         self.max_depth = self.parameters.start_depth if self.parameters.with_auto_depth_configuration else \
             self.requirements.max_depth
-        self.num_of_gens_non_improving_fitness = 1
 
+        self.generation_num = 0
         if not log:
             self.log = default_log(__name__)
         else:
@@ -123,11 +123,15 @@ class GPChainOptimiser:
 
             self._add_to_history(self.population)
 
-            for generation_num in range(self.requirements.num_of_generations - 1):
-                self.log.info(f'Generation num: {generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_non_improving_fitness}')
+            self.log.info(f'Best metric is {self.best_individual.fitness}')
 
-                if self.parameters.with_auto_depth_configuration and generation_num != 0:
+            for self.generation_num in range(self.requirements.num_of_generations - 1):
+                self.log.info(f'Generation num: {self.generation_num}')
+                self.num_of_gens_without_improvements = self.update_stagnation_counter()
+                self.log.info(
+                    f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
+
+                if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
 
                 individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
@@ -163,7 +167,7 @@ class GPChainOptimiser:
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log.info(f'Best metric is {self.best_individual.fitness}')
 
-                if t.is_time_limit_reached(self.requirements.max_lead_time, generation_num):
+                if t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
                     break
 
             best = self.best_individual
@@ -185,12 +189,16 @@ class GPChainOptimiser:
     def num_of_inds_in_next_pop(self):
         return self.requirements.pop_size - 1 if self.with_elitism else self.requirements.pop_size
 
+    def update_stagnation_counter(self) -> int:
+        value = 0
+        if self.generation_num != 0:
+            if self.is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness):
+                value = self.num_of_gens_without_improvements + 1
+
+        return value
+
     def max_depth_recount(self):
-        if self.is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness):
-            self.num_of_gens_non_improving_fitness += 1
-        else:
-            self.num_of_gens_non_improving_fitness = 1
-        if self.num_of_gens_non_improving_fitness == self.parameters.depth_increase_step and \
+        if self.num_of_gens_without_improvements == self.parameters.depth_increase_step and \
                 self.max_depth + 1 <= self.requirements.max_depth:
             self.max_depth += 1
 
