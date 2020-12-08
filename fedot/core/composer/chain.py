@@ -26,10 +26,16 @@ class Chain:
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = default_log(__name__)):
+                 log: Log = None):
         self.nodes = []
         self.log = log
         self.template = None
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
         if nodes:
             if isinstance(nodes, list):
                 for node in nodes:
@@ -243,8 +249,8 @@ class Chain:
 
 
 class SharedChain(Chain):
-    def __init__(self, base_chain: Chain, shared_cache: dict):
-        super().__init__()
+    def __init__(self, base_chain: Chain, shared_cache: dict, log=None):
+        super().__init__(log=log)
         self.nodes = copy(base_chain.nodes)
         for node in self.nodes:
             node.cache = SharedCache(node, global_cached_models=shared_cache)

@@ -8,7 +8,7 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParamete
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.composer.iterator import fibonacci_sequence, SequenceIterator
 from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover
-from fedot.core.log import default_log
+from fedot.core.log import Log
 
 
 class GPChainParameterFreeOptimiser(GPChainOptimiser):
@@ -27,7 +27,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
     def __init__(self, initial_chain, requirements, chain_generation_params,
                  parameters: Optional[GPChainOptimiserParameters] = None,
                  max_population_size: int = 55,
-                 sequence_function=fibonacci_sequence, log=default_log(__name__)):
+                 sequence_function=fibonacci_sequence, log: Log = None):
         super().__init__(initial_chain, requirements, chain_generation_params, parameters, log)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
@@ -61,10 +61,13 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
             self._add_to_history(self.population)
 
+            self.log.info(f'Best metric is {self.best_individual.fitness}')
+
             while not t.is_time_limit_reached(self.requirements.max_lead_time) \
                     and self.generation_num != self.requirements.num_of_generations - 1:
                 self.log.info(f'Generation num: {self.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_non_improving_fitness}')
+                self.num_of_gens_without_improvements = self.update_stagnation_counter()
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
                 if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
 
