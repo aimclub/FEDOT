@@ -65,13 +65,13 @@ def fit_pca(train_data: InputData, params: Optional[dict]):
 
     last_ind = min(significant_components) if len(significant_components) > 0 else 1
 
-    pca.last_component_ind = min(last_ind, last_ind_cum)
+    pca.last_component_ind = max(min(last_ind, last_ind_cum), 1)
 
     return pca
 
 
 def predict_pca(pca_model, predict_data: InputData):
-    return pca_model.transform(predict_data.features)[:, :pca_model.last_component_ind]
+    return pca_model.transform(predict_data.features)[:, :max(pca_model.last_component_ind, 1)]
 
 
 class DataModellingStrategy(EvaluationStrategy):
