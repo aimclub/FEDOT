@@ -37,7 +37,7 @@ class Node(ABC):
         else:
             self.log = log
 
-        self.model = Model(model_type=model_type, log=self.log)
+        self.model = Model(model_type=model_type)
 
 
 

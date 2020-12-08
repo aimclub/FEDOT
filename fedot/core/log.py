@@ -10,7 +10,14 @@ from threading import RLock
 from fedot.core.utils import default_fedot_data_dir
 
 
-class SingltonMeta(type):
+class SingletonMeta(type):
+    """
+    This meta class can provide other classes with the Singleton pattern.
+    It guarantees to create one and only class instance.
+    Pass it to the metaclass parameter when defining your class as follows:
+
+    class YourClassName(metaclass=SingletonMeta)
+    """
     _instances = {}
 
     _lock: RLock = RLock()
@@ -23,7 +30,7 @@ class SingltonMeta(type):
         return cls._instances[cls]
 
 
-class LogManager(metaclass=SingltonMeta):
+class LogManager(metaclass=SingletonMeta):
     __logger_dict = {}
 
     def __init__(self):
@@ -32,25 +39,22 @@ class LogManager(metaclass=SingltonMeta):
     def get_logger(self, name, config_file: str, log_file: str = None):
         if name not in self.__logger_dict.keys():
             self.__logger_dict[name] = logging.getLogger(name)
-            self.__logger = self.__logger_dict[name]
             if config_file != 'default':
                 self._setup_logger_from_json_file(config_file)
             else:
-                self._setup_default_logger(log_file)
-            print(f'{name} logger created')
-            return self.__logger_dict[name]
-        else:
-            return self.__logger_dict[name]
+                self._setup_default_logger(log_file, name)
 
-    def _setup_default_logger(self, log_file):
+        return self.__logger_dict[name]
+
+    def _setup_default_logger(self, log_file, logger_name):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler = RotatingFileHandler(log_file)
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
         console_handler = logging.StreamHandler(sys.stdout)
-        self.__logger.setLevel(logging.INFO)
-        self.__logger.addHandler(file_handler)
-        self.__logger.addHandler(console_handler)
+        self.__logger_dict[logger_name].setLevel(logging.INFO)
+        self.__logger_dict[logger_name].addHandler(file_handler)
+        self.__logger_dict[logger_name].addHandler(console_handler)
 
     def _setup_logger_from_json_file(self, config_file):
         """Setup logging configuration from file"""
@@ -60,6 +64,19 @@ class LogManager(metaclass=SingltonMeta):
             dictConfig(config)
         except Exception as ex:
             raise Exception(f'Can not open the log config file because of {ex}')
+
+    @property
+    def debug(self):
+        """Returns the information about available loggers"""
+        debug_info = {
+            'loggers_number': len(self.__logger_dict),
+            'loggers_names': [self.__logger_dict.keys()],
+            'loggers': [self.__logger_dict.values()]
+        }
+        return debug_info
+
+    def clear_cache(self):
+        self.__logger_dict.clear()
 
 
 def default_log(logger_name: str,

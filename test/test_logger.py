@@ -5,6 +5,8 @@ import pytest
 from fedot.core.log import Log, default_log
 from fedot.core.models.data import train_test_data_setup, InputData
 from fedot.core.models.model import Model
+from test.test_chain_import_export import create_four_depth_chain
+from fedot.core.log import LogManager
 
 
 @pytest.fixture()
@@ -44,7 +46,7 @@ def test_logger_write_logs_correctly():
                            log_file=test_log_file)
 
     # Model data preparation
-    file = 'data/advanced_classification.csv'
+    file = os.path.join('data', 'advanced_classification.csv')
     data = InputData.from_csv(os.path.join(test_file_path, file))
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -60,3 +62,21 @@ def test_logger_write_logs_correctly():
 
     release_log(logger=test_log, log_file=test_log_file)
     assert 'Can not find evaluation strategy' in content[0]
+
+
+def test_logger_manager_keeps_loggers_correctly():
+    LogManager().clear_cache()
+
+    chain = create_four_depth_chain()
+    expected_number_of_loggers = 4
+
+    file = os.path.join('data', 'advanced_classification.csv')
+    test_file_path = str(os.path.dirname(__file__))
+    data = InputData.from_csv(os.path.join(test_file_path, file))
+    train_data, _ = train_test_data_setup(data=data)
+
+    chain.fit(train_data)
+
+    actual_number_of_loggers = LogManager().debug['loggers_number']
+
+    assert actual_number_of_loggers == expected_number_of_loggers
