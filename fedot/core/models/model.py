@@ -20,11 +20,16 @@ class Model:
     :param log: Log object to record messages
     """
 
-    def __init__(self, model_type: str, log: Log = default_log(__name__)):
+    def __init__(self, model_type: str, log: Log = None):
         self.model_type = model_type
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
         self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     @property
     def acceptable_task_types(self):

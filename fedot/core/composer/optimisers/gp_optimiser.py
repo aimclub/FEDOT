@@ -13,7 +13,7 @@ from fedot.core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.composer.optimisers.selection import SelectionTypesEnum, selection
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.log import default_log
+from fedot.core.log import default_log, Log
 
 
 class GPChainOptimiserParameters:
@@ -70,7 +70,7 @@ class GPChainOptimiser:
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params,
-                 parameters: Optional[GPChainOptimiserParameters] = None, log=default_log(__name__)):
+                 parameters: Optional[GPChainOptimiserParameters] = None, log: Log = None):
         self.chain_generation_params = chain_generation_params
         self.primary_node_func = self.chain_generation_params.primary_node_func
         self.secondary_node_func = self.chain_generation_params.secondary_node_func
@@ -81,7 +81,11 @@ class GPChainOptimiser:
         self.max_depth = self.parameters.start_depth if self.parameters.with_auto_depth_configuration else \
             self.requirements.max_depth
         self.num_of_gens_non_improving_fitness = 1
-        self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
         self.chain_generation_function = partial(random_chain, chain_generation_params=self.chain_generation_params,
                                                  requirements=self.requirements, max_depth=self.max_depth)
