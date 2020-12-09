@@ -86,7 +86,7 @@ def get_composite_chain():
 def run_gapfilling_case():
     """
     The function runs an example of filling in gaps in a time series with
-    air temperature
+    air temperature. Real data case.
 
     :return: pandas dataframe with columns 'date','with_gap','ridge',
     'composite','temperature'

@@ -1,5 +1,3 @@
-import random
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -56,7 +54,7 @@ def generate_gaps(array_without_gaps, gap_dict, gap_value):
     return array_with_gaps
 
 
-def get_array_with_gaps(gap_dict = None, gap_value: float = -100.0):
+def get_array_with_gaps(gap_dict=None, gap_value: float = -100.0):
     """
     Function for generating synthetic data and gaps in it with predefined length
     and location
@@ -73,7 +71,7 @@ def get_array_with_gaps(gap_dict = None, gap_value: float = -100.0):
 
     real_values = generate_synthetic_data()
 
-    if gap_dict == None:
+    if gap_dict is None:
         gap_dict = {850: 100,
                     1400: 150}
     array_with_gaps = generate_gaps(array_without_gaps=real_values,
@@ -122,12 +120,18 @@ def run_gapfilling_example():
     return arrays_dict, gap_data, real_data
 
 
-# Example of applying the algorithm
-if __name__ == '__main__':
-    arrays_dict, gap_data, _ = run_gapfilling_example()
+def plot_results(arrays_dict, gap_data):
+    """
+    Plot predictions of models
+
+    :param arrays_dict: dictionary with 4 keys ('ridge', 'local_poly',
+    'batch_poly', 'linear') that can be used to get arrays without gaps
+    :param gap_data: an array with gaps
+    """
 
     gap_ids = np.ravel(np.argwhere(gap_data == -100.0))
     masked_array = np.ma.masked_where(gap_data == -100.0, gap_data)
+
     plt.plot(arrays_dict.get('local_poly'), c='orange',
              alpha=0.5, label='Local polynomial approximation')
     plt.plot(arrays_dict.get('batch_poly'), c='green',
@@ -137,7 +141,15 @@ if __name__ == '__main__':
     plt.plot(arrays_dict.get('ridge'), c='red',
              alpha=0.5, label='Inverse ridge')
     plt.plot(masked_array, c='blue', alpha=1.0, label='Actual values')
-    plt.xlim(gap_ids[0]-100, gap_ids[-1]+100)
+    plt.xlim(gap_ids[0] - 100, gap_ids[-1] + 100)
     plt.legend(loc='upper center')
     plt.grid()
     plt.show()
+
+
+# Example of applying the algorithm
+if __name__ == '__main__':
+    arrays_dict, gap_data, _ = run_gapfilling_example()
+
+    # Make the plots with predictions of different models
+    plot_results(arrays_dict, gap_data)
