@@ -71,7 +71,7 @@ def fit_pca(train_data: InputData, params: Optional[dict]):
 
 
 def predict_pca(pca_model, predict_data: InputData):
-    return pca_model.transform(predict_data.features)[:, :pca_model.last_component_ind]
+    return pca_model.transform(predict_data.features)[:, :(pca_model.last_component_ind + 1)]
 
 
 class DataModellingStrategy(EvaluationStrategy):
