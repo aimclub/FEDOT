@@ -53,3 +53,14 @@ def extract_task_param(task: Task) -> Any:
             raise ValueError('Incorrect parameters type for data')
     except AttributeError as ex:
         raise AttributeError(f'Params are required for the {task} task: {ex}')
+
+
+def get_task_type(task_type: str):
+    if task_type == 'classification':
+        return TaskTypesEnum.classification
+    if task_type == 'regression':
+        return TaskTypesEnum.regression
+    if task_type == 'ts_forecasting':
+        return TaskTypesEnum.ts_forecasting
+    if task_type == 'clustering':
+        return TaskTypesEnum.clustering

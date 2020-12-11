@@ -24,6 +24,7 @@ from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -334,6 +335,7 @@ class Fedot:
         return calculated_metrics
 
     def save_predict(self, predicted_data: OutputData):
+        # TODO unify with OutputData.save_to_csv()
         """ Save pipeline forecasts in csv file """
         if len(predicted_data.predict.shape) >= 2:
             prediction = predicted_data.predict.tolist()
@@ -342,6 +344,19 @@ class Fedot:
         pd.DataFrame({'Index': predicted_data.idx,
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
+
+    def export_as_project(self, project_path='fedot_project.zip'):
+        export_project_to_zip(zip_name=project_path, opt_history=self.history,
+                              pipeline=self.current_pipeline,
+                              train_data=self.train_data, test_data=self.test_data)
+
+    def import_as_project(self, project_path='fedot_project.zip'):
+        self.current_pipeline, self.train_data, self.test_data, self.history = \
+            import_project_from_zip(zip_path=project_path)
+        # TODO workaround to init internal fields of API and data
+        self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
+        self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
+        self.predict(self.test_data)
 
     def update_params(self, timeout, num_of_generations, initial_assumption):
         if initial_assumption is not None:
