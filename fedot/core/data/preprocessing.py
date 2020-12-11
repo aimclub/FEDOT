@@ -6,73 +6,42 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from sklearn import preprocessing
 from sklearn.impute import SimpleImputer
+from sklearn.exceptions import NotFittedError
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class PreprocessingStrategy:
-    def fit(self, data_to_fit) -> 'PreprocessingStrategy':
+    def fit(self, data) -> 'PreprocessingStrategy':
         raise NotImplementedError()
 
     def apply(self, data):
         raise NotImplementedError()
 
-
-class Scaling(PreprocessingStrategy):
-    def __init__(self, with_imputation=True):
-        if with_imputation:
-            self.default = ImputationStrategy()
-        self.with_imputation = with_imputation
-        self.scaler = preprocessing.StandardScaler()
-
-    def fit(self, data_to_fit):
-        if self.with_imputation:
-            self.default.fit(data_to_fit)
-            data_to_fit = self.default.apply(data_to_fit)
-
-        data_to_fit = _expand_data(data_to_fit)
-        self.scaler.fit(data_to_fit)
-        return self
-
-    def apply(self, data):
-        if self.with_imputation:
-            data = self.default.apply(data)
-
-        data = _expand_data(data)
-        resulted = self.scaler.transform(data)
-        return resulted
-
-
-class Normalization(PreprocessingStrategy):
-    def __init__(self):
-        self.default = ImputationStrategy()
-
-    def fit(self, data_to_fit):
-        self.default.fit(data_to_fit)
-        return self
-
-    def apply(self, data):
-        modified = self.default.apply(data)
-        resulted = preprocessing.normalize(modified)
-
-        return resulted
+    def fit_apply(self, data):
+        self.fit(data)
+        return self.apply(data)
 
 
 class ImputationStrategy(PreprocessingStrategy):
     def __init__(self):
         self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
 
-    def fit(self, data_to_fit):
-        self.imputer.fit(data_to_fit)
+    def fit(self, data):
+        self.imputer.fit(data)
         return self
 
     def apply(self, data):
-        modified = self.imputer.transform(data)
+        try:
+            modified = self.imputer.transform(data)
+        except NotFittedError:
+            modified = self.imputer.fit_transform(data)
+
         return modified
 
 
 class EmptyStrategy(PreprocessingStrategy):
-    def fit(self, data_to_fit):
+    def fit(self, data):
         return self
 
     def apply(self, data):
@@ -82,10 +51,53 @@ class EmptyStrategy(PreprocessingStrategy):
         return result
 
 
-class TsScalingStrategy(Scaling):
+class Normalization(PreprocessingStrategy):
     def __init__(self):
-        # the NaN preservation is important for the lagged ts features and forecasted ts
-        super().__init__(with_imputation=False)
+        self.default = ImputationStrategy()
+
+    def fit(self, data):
+        self.default.fit(data)
+        return self
+
+    def apply(self, data):
+        modified = self.default.apply(data)
+        resulted = preprocessing.normalize(modified)
+
+        return resulted
+
+
+class Scaling(PreprocessingStrategy):
+    def __init__(self):
+        self.scaler = preprocessing.StandardScaler()
+
+    def fit(self, data):
+        data = _expand_data(data)
+        self.scaler.fit(data)
+        return self
+
+    def apply(self, data):
+        data = _expand_data(data)
+        try:
+            resulted = self.scaler.transform(data)
+        except NotFittedError:
+            resulted = self.scaler.fit_transform(data)
+
+        return resulted
+
+
+class ScalingWithImputation(Scaling):
+    def __init__(self):
+        super(ScalingWithImputation, self).__init__()
+        self.default = ImputationStrategy()
+
+    def fit(self, data):
+        self.default.fit(data)
+        data = self.default.apply(data)
+        return super(ScalingWithImputation, self).fit(data)
+
+    def apply(self, data):
+        data = self.default.apply(data)
+        return super(ScalingWithImputation, self).apply(data)
 
 
 class TextPreprocessingStrategy(PreprocessingStrategy):
@@ -149,10 +161,32 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
 
 _preprocessing_for_input_data = {
     DataTypesEnum.ts: EmptyStrategy,
-    DataTypesEnum.table: Scaling,
-    DataTypesEnum.ts_lagged_table: TsScalingStrategy,
-    DataTypesEnum.forecasted_ts: TsScalingStrategy,
+    DataTypesEnum.table: ScalingWithImputation,
+    DataTypesEnum.ts_lagged_table: Scaling,
+    DataTypesEnum.forecasted_ts: Scaling,
 }
+
+_label_for_preprocessing_strategy = {
+    'empty': EmptyStrategy,
+    'normalization': Normalization,
+    'scaling_with_imputation': Scaling,
+    'scaling': Scaling
+}
+
+
+def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy):
+    for label, strategy in _label_for_preprocessing_strategy.items():
+        if isinstance(target_strategy, strategy):
+            return label
+    return None
+
+
+def preprocessing_strategy_class_by_label(string: str) -> [PreprocessingStrategy, None]:
+    preprocessing_strategy = _label_for_preprocessing_strategy.get(string)
+
+    if preprocessing_strategy:
+        return preprocessing_strategy
+    return None
 
 
 def preprocessing_func_for_data(data: 'InputData', node: 'Node'):

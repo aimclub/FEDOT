@@ -1,10 +1,14 @@
+import math
 import numpy as np
+import pandas as pd
 import pytest
-from sklearn.datasets import load_iris
+
+from sklearn.datasets import load_iris, make_regression
+from sklearn.preprocessing import StandardScaler
 
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
-from fedot.core.data.preprocessing import Normalization, TextPreprocessingStrategy
+from fedot.core.data.preprocessing import Normalization, TextPreprocessingStrategy, ScalingWithImputation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -21,6 +25,35 @@ def data_setup() -> InputData:
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
     return data
+
+
+@pytest.fixture()
+def np_array_regression_with_missing_values() -> np.array:
+    np.random.seed(42)
+    features, target = make_regression(n_samples=1024, n_features=20, shuffle=True)
+
+    data = pd.DataFrame(features)
+    mask = np.random.choice([True, False], p=[0.1, 0.9], size=data.shape)
+    data = data.mask(mask).to_numpy()
+
+    return data
+
+
+def test_scaling_with_imputation(np_array_regression_with_missing_values):
+    scaler = ScalingWithImputation()
+    actual_scaled_data = scaler.fit_apply(np_array_regression_with_missing_values)
+
+    scaler = StandardScaler()
+    df = pd.DataFrame(np_array_regression_with_missing_values)
+    data = df.fillna(df.mean()).to_numpy()
+    expected_scaled_data = scaler.fit_transform(data)
+
+    result = []
+    for i in range(len(actual_scaled_data)):
+        for j in range(len(actual_scaled_data[0])):
+            result.append(math.isclose(actual_scaled_data[i][j], expected_scaled_data[i][j], abs_tol=0.00001))
+
+    assert all(result)
 
 
 def test_node_with_manual_preprocessing_has_correct_behaviour_and_attributes(data_setup):

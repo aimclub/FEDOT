@@ -6,9 +6,9 @@ import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_template import ChainTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate, extract_subtree_root
 from test.tasks.test_forecasting import get_multilinear_chain, get_synthetic_ts_data_period
 
 
@@ -20,48 +20,36 @@ def creation_model_files_before_after_tests(request):
 
 def create_json_models_files():
     """
-    Creating JSON's files for test.
+    Creating JSON's files for test before tests.
     """
     chain = create_chain()
-    chain.save_chain('data/test_chain_convert_to_json.json')
+    chain.save_chain('test_chain_convert_to_json')
 
     chain_fitted = create_fitted_chain()
-    chain_fitted.save_chain('data/test_fitted_chain_convert_to_json.json')
+    chain_fitted.save_chain('test_fitted_chain_convert_to_json')
 
     chain_empty = Chain()
-    chain_empty.save_chain('data/test_empty_chain_convert_to_json.json')
+    chain_empty.save_chain('test_empty_chain_convert_to_json')
 
 
 def delete_json_models_files():
     """
-    Delete JSON's files.
+    Delete files that created after tests.
     """
-    with open('data/test_fitted_chain_convert_to_json.json', 'r') as json_file:
-        chain_fitted_object = json.load(json_file)
+    paths = ['test_fitted_chain_convert_to_json', 'test_import_json_to_chain_correctly_1',
+             'test_empty_chain_convert_to_json', 'test_chain_convert_to_json',
+             'test_export_chain_to_json_correctly', 'test_import_json_to_chain_correctly_2',
+             'test_fitted_chain_cache_correctness_after_export_and_import',
+             'test_import_json_to_fitted_chain_correctly', 'test_export_import_for_one_chain_object_correctly_1',
+             'test_export_import_for_one_chain_object_correctly_2', 'data_model_forecasting',
+             'test_export_import_for_one_chain_object_correctly_3', 'data_model_classification',
+             'test_absolute_relative_paths_correctly_no_exception',
+             'test_import_custom_json_object_to_chain_and_fit_correctly_no_exception']
 
-    delete_fitted_models(chain_fitted_object)
-
-    os.remove('data/test_fitted_chain_convert_to_json.json')
-    os.remove('data/test_empty_chain_convert_to_json.json')
-    os.remove('data/test_chain_convert_to_json.json')
-
-
-def delete_fitted_models(chain):
-    """
-    Delete directory and chain's local fitted models.
-
-    :param chain: chain which model's need to delete
-    """
-    model_path = None
-
-    try:
-        model_path = next(node['trained_model_path'] for node in chain['nodes']
-                          if node['trained_model_path'] is not None)
-    except StopIteration:
-        raise ValueError('Nothing to delete')
-
-    dir_path = os.path.dirname(os.path.abspath(model_path))
-    shutil.rmtree(dir_path)
+    for path in paths:
+        path = create_correct_path(path, True)
+        if path is not None and os.path.isdir(path):
+            shutil.rmtree(path)
 
 
 def create_chain() -> Chain:
@@ -142,46 +130,78 @@ def create_four_depth_chain():
 
     return chain
 
+def create_correct_path(path: str, dirname_flag: bool = False):
+    for dirname in next(os.walk('.'))[1]:
+        if dirname.endswith(path):
+            if dirname_flag:
+                return dirname
+            else:
+                file = os.path.join(dirname, path + '.json')
+                return file
+    return None
+
 
 def test_export_chain_to_json_correctly():
     chain = create_chain()
-    json_actual = chain.save_chain('data/1.json')
+    json_actual = chain.save_chain('test_export_chain_to_json_correctly')
 
-    with open('data/test_chain_convert_to_json.json', 'r') as json_file:
+    json_path_load = create_correct_path('test_chain_convert_to_json')
+    with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
-    os.remove('data/1.json')
     assert json_actual == json.dumps(json_expected)
 
 
 def test_chain_template_to_json_correctly():
+    json_path_load = create_correct_path('test_chain_convert_to_json')
+
     chain = create_chain()
     chain_template = ChainTemplate(chain)
     json_actual = chain_template.convert_to_dict()
 
-    with open('data/test_chain_convert_to_json.json', 'r') as json_file:
+    with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
+def test_fitted_chain_cache_correctness_after_export_and_import():
+    train_file_path, test_file_path = get_scoring_case_data_paths()
+    train_data = InputData.from_csv(train_file_path)
+
+    chain = Chain(PrimaryNode('logit'))
+    chain.fit(train_data)
+
+    chain.save_chain('test_fitted_chain_cache_correctness_after_export_and_import')
+
+    json_path_load = create_correct_path('test_fitted_chain_cache_correctness_after_export_and_import')
+    new_chain = Chain()
+    new_chain.load_chain(json_path_load)
+
+    results = new_chain.fit(train_data)
+
+    assert results is not None
+
+
 def test_import_json_to_chain_correctly():
+    json_path_load = create_correct_path('test_chain_convert_to_json')
+
     chain = Chain()
-    chain.load_chain('data/test_chain_convert_to_json.json')
-    json_actual = chain.save_chain('data/1.json')
+    chain.load_chain(json_path_load)
+    json_actual = chain.save_chain('test_import_json_to_chain_correctly_1')
 
     chain_expected = create_chain()
-    json_expected = chain_expected.save_chain('data/2.json')
+    json_expected = chain_expected.save_chain('test_import_json_to_chain_correctly_2')
 
-    os.remove('data/1.json')
-    os.remove('data/2.json')
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_import_json_template_to_chain_correctly():
+    json_path_load = create_correct_path('test_chain_convert_to_json')
+
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    chain_template.import_from_json('data/test_chain_convert_to_json.json')
+    chain_template.import_chain(json_path_load)
     json_actual = chain_template.convert_to_dict()
 
     chain_expected = create_chain()
@@ -192,35 +212,40 @@ def test_import_json_template_to_chain_correctly():
 
 
 def test_import_json_to_fitted_chain_correctly():
-    chain = Chain()
-    chain.load_chain('data/test_fitted_chain_convert_to_json.json')
-    json_actual = chain.save_chain('data/1.json')
+    json_path_load = create_correct_path('test_fitted_chain_convert_to_json')
 
-    with open('data/test_fitted_chain_convert_to_json.json', 'r') as json_file:
+    chain = Chain()
+    chain.load_chain(json_path_load)
+    json_actual = chain.save_chain('test_import_json_to_fitted_chain_correctly')
+
+    with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
-    os.remove('data/1.json')
     assert json_actual == json.dumps(json_expected)
 
 
 def test_import_json_to_fitted_chain_template_correctly():
+    json_path_load = create_correct_path('test_fitted_chain_convert_to_json')
+
     chain = Chain()
     chain_template = ChainTemplate(chain)
-    chain_template.import_from_json('data/test_fitted_chain_convert_to_json.json')
+    chain_template.import_chain(json_path_load)
     json_actual = chain_template.convert_to_dict()
 
-    with open('data/test_fitted_chain_convert_to_json.json', 'r') as json_file:
+    with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
 def test_empty_chain_to_json_correctly():
+    json_path_load = create_correct_path('test_empty_chain_convert_to_json')
+
     chain = Chain()
     chain_template = ChainTemplate(chain)
     json_actual = chain_template.convert_to_dict()
 
-    with open('data/test_empty_chain_convert_to_json.json', 'r') as json_file:
+    with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
@@ -236,65 +261,51 @@ def test_export_import_for_one_chain_object_correctly():
     and the last command will rewrite the chain object correctly.
     """
     chain_fitted = create_fitted_chain()
-    json_first = chain_fitted.save_chain('data/2.json')
+    json_first = chain_fitted.save_chain('test_export_import_for_one_chain_object_correctly_2')
 
     chain_fitted_after = create_chain()
-    chain_fitted_after.save_chain('data/1.json')
-    chain_fitted_after.load_chain('data/2.json')
+    chain_fitted_after.save_chain('test_export_import_for_one_chain_object_correctly_1')
 
-    json_second = chain_fitted_after.save_chain('data/3.json')
+    json_path_load_2 = create_correct_path('test_export_import_for_one_chain_object_correctly_2')
+    chain_fitted_after.load_chain(json_path_load_2)
 
-    for i in range(1, 4):
-        os.remove(f'data/{i}.json')
+    json_second = chain_fitted_after.save_chain('test_export_import_for_one_chain_object_correctly_3')
 
-    delete_fitted_models(json.loads(json_first))
     assert json_first == json_second
 
 
 def test_absolute_relative_paths_correctly_no_exception():
     chain = create_chain()
-    chain.save_chain('data/test/1.json')
+    chain.save_chain('test_absolute_relative_paths_correctly_no_exception')
+    chain.save_chain(os.path.abspath('test_absolute_relative_paths_correctly_no_exception'))
 
-    absolute_path = os.path.join(os.path.abspath('data/2.json'))
-    chain.save_chain(absolute_path)
-
-    chain.load_chain('data/test/1.json')
-    chain.load_chain(absolute_path)
-
-    os.remove('data/test/1.json')
-    os.remove(absolute_path)
-    os.rmdir('data/test')
+    json_path_load = create_correct_path('test_absolute_relative_paths_correctly_no_exception')
+    json_path_load_abs = os.path.abspath(json_path_load)
+    chain.load_chain(json_path_load)
+    chain.load_chain(json_path_load_abs)
 
 
 def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../data/test_custom_json_template.json'
+    json_path_load = os.path.join(test_file_path, file)
+
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
-    data_path = str(os.path.dirname(__file__))
-    json_file_path = os.path.join(data_path, '../..', 'test', 'data', 'test_custom_json_template.json')
-
     chain = Chain()
-    chain_template = ChainTemplate(chain)
-    chain_template.import_from_json(json_file_path)
-
+    chain.load_chain(json_path_load)
     chain.fit(train_data)
-    json_actual = chain.save_chain('data/1.json')
 
-    delete_fitted_models(json.loads(json_actual))
-    os.remove('data/1.json')
+    chain.save_chain('test_import_custom_json_object_to_chain_and_fit_correctly_no_exception')
 
 
 def test_data_model_types_forecasting_chain_fit():
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
 
     chain = get_multilinear_chain()
-
     chain.fit(train_data)
-
-    json_actual = chain.save_chain('data/data_model_forecasting.json')
-
-    delete_fitted_models(json.loads(json_actual))
-    os.remove('data/data_model_forecasting.json')
+    chain.save_chain('data_model_forecasting')
 
     expected_len_nodes = len(chain.nodes)
     actual_len_nodes = len(ChainTemplate(chain).model_templates)
@@ -308,11 +319,7 @@ def test_data_model_type_classification_chain_fit():
 
     chain = create_data_model_types_classification_chain()
     chain.fit(train_data)
-
-    json_actual = chain.save_chain('data/data_model_classification.json')
-
-    delete_fitted_models(json.loads(json_actual))
-    os.remove('data/data_model_classification.json')
+    chain.save_chain('data_model_classification')
 
     expected_len_nodes = len(chain.nodes)
     actual_len_nodes = len(ChainTemplate(chain).model_templates)
