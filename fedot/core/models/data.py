@@ -133,8 +133,8 @@ def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = Non
     if task is not None and task.task_type == TaskTypesEnum.ts_forecasting:
         split_point = int(len(data) * split_ratio)
         # move pre-history of time series from train to test sample
-        data_train, data_test = data[:split_point], \
-                                copy(data[split_point - task.task_params.max_window_size:])
+        data_train, data_test = (data[:split_point],
+                                 copy(data[split_point - task.task_params.max_window_size:]))
     else:
         if with_shuffle:
             data_train, data_test = train_test_split(data, test_size=1. - split_ratio, random_state=42)
