@@ -1,16 +1,22 @@
+import os
 import warnings
 from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+import nltk
 import numpy as np
 import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 
 from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
 from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import re
 
 
 @dataclass
@@ -62,6 +68,96 @@ class Data:
         features = ImputationStrategy().fit(features).apply(features)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+
+    @staticmethod
+    def from_text(files_path: str = None,
+                  meta_file: str = None, lang: str = 'english',
+                  label: str = 'label',
+                  task: Task = Task(TaskTypesEnum.classification)):
+
+        if files_path and meta_file:
+            raise ValueError("""One of the params needed [files_path, meta_file] \
+                             but got both""")
+        if meta_file:
+            features, target = TextData(path=meta_file,
+                                        lang=lang, target=label).from_meta_file()
+            idx = [index for index in range(len(target))]
+            return InputData(idx=idx, features=features,
+                             target=target, task=task, data_type=DataTypesEnum.table)
+        elif files_path:
+            pass
+        else:
+            raise ValueError("""One of the params needed [files_path, meta_file] \
+                             but got none""")
+
+
+class TextData:
+    def __init__(self, path, lang: str, target: str = 'label'):
+        self.path = path
+        self.lang = lang.lower()
+        self.stemmer = PorterStemmer
+        self.lemmanizer = WordNetLemmatizer
+        self.target = target
+
+    def from_meta_file(self):
+        if os.path.isdir(self.path):
+            raise ValueError('Expected file but got direcotry')
+
+        frame = pd.read_csv(self.path)
+        frame = frame.sample(frac=1).reset_index(drop=True)
+        messages = frame['text'].astype('U').tolist()
+
+        clean_messages = []
+        for message in messages:
+            clean_message = self._words_preprocess(message)
+            clean_messages.append(clean_message)
+        messages.clear()
+        tfidf_vectorizer = TfidfVectorizer()
+        features = tfidf_vectorizer.fit_transform(clean_messages)
+        target = frame[self.target]
+
+        return features.toarray(), target
+
+    def from_files(self):
+        if os.path.isfile(self.path):
+            raise ValueError('Expected directory with train and test directories but got file')
+
+    def _words_preprocess(self, text):
+        words = set(self._word_vectorize(text))
+        without_stop_words = self._remove_stop_words(words)
+        words = self._lemmatization(without_stop_words)
+        words = [word for word in words if word.isalpha()]
+        new_text = " ".join(words)
+
+        return new_text
+
+    def _clean_html_text(self, raw_text):
+        clean_pattern = re.compile("<.*?>")
+        text = re.sub(clean_pattern, " ", raw_text)
+
+        return text
+
+    def _word_vectorize(self, text):
+        words = nltk.word_tokenize(text)
+
+        return words
+
+    def _remove_stop_words(self, words: set):
+        stop_words = set(stopwords.words(self.lang))
+        cleared_words = [word for word in words if word not in stop_words]
+
+        return cleared_words
+
+    def _stemming(self, words):
+        stemmed_words = [self.stemmer().stem(word) for word in words]
+
+        return stemmed_words
+
+    def _lemmatization(self, words):
+        # TODO pos
+        lemmas = [self.lemmanizer().lemmatize(word) for word in words]
+
+        return lemmas
 
 
 @dataclass

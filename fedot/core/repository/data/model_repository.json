@@ -185,6 +185,10 @@
 	"lstm": {
 	  "meta": "keras_forecasting",
 	  "tags": ["deep"]
+	},
+	"multinb": {
+	  "meta": "sklearn_class",
+	  "tags": ["bayesian"]
 	}
   }
 }

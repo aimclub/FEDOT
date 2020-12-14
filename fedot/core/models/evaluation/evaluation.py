@@ -17,6 +17,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
+from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
@@ -124,7 +125,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svc': CustomSVC,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
-        'bernb': SklearnBernoulliNB
+        'bernb': SklearnBernoulliNB,
+        'multinb': SklearnMultinomialNB,
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
