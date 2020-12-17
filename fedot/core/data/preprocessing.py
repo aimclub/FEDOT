@@ -104,7 +104,7 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
             without_stop_words = self._remove_stop_words(words)
             words = self._lemmatization(without_stop_words)
             words = [word for word in words if word.isalpha()]
-            new_text = " ".join(words)
+            new_text = ' '.join(words)
             new_text = self._clean_html_text(new_text)
             clean_data.append(new_text)
         return np.array(clean_data)

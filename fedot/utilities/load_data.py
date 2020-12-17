@@ -11,7 +11,7 @@ class BatchLoader(ABC):
         self.target_name = 'label'
 
     @abstractmethod
-    def extract(self):
+    def extract(self) -> pd.DataFrame:
         pass
 
     def _extract_files_paths(self):
@@ -69,7 +69,7 @@ class TextBatchLoader(BatchLoader):
         self.meta_df.insert(loc=self.meta_df.columns.get_loc('file_path'),
                             column='text',
                             value=new_column)
-        self.meta_df.drop(['file_path'], axis=1)
+        self.meta_df = self.meta_df.drop(['file_path'], axis=1)
 
         if export:
             self.export_to_csv()

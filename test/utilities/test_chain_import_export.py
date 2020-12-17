@@ -229,7 +229,7 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
     train_data = InputData.from_csv(train_file_path)
 
     data_path = str(os.path.dirname(__file__))
-    json_file_path = os.path.join(data_path, '..', 'test', 'data', 'test_custom_json_template.json')
+    json_file_path = os.path.join(data_path, '../..', 'test', 'data', 'test_custom_json_template.json')
 
     chain = Chain()
     chain_template = ChainTemplate(chain)
