@@ -4,34 +4,79 @@ import nltk
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.chain import Chain
-from fedot.core.composer.node import PrimaryNode
+from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.models.data import InputData, train_test_data_setup
-from fedot.core.models.preprocessing import EmptyStrategy
+from fedot.core.models.preprocessing import TextPreprocessingStrategy, EmptyStrategy
 
 
-def run_text_problem(data_path):
-    nltk.download('punkt')
-    nltk.download('stopwords')
-    nltk.download('wordnet')
+def download_nltk_resources():
+    for resource in ['punkt', 'stopwords', 'wordnet']:
+        try:
+            nltk.data.find(f'tokenizers/{resource}')
+        except LookupError:
+            nltk.download(f'{resource}')
 
-    data = InputData.from_text(meta_file=data_path, lang='english')
 
-    train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
-
-    node = PrimaryNode('multinb')
-    node.manual_preprocessing_func = EmptyStrategy
-    chain = Chain()
-    chain.add_node(node)
+def execute_cahin_for_text_problem(train_data, test_data):
+    preproc_node = PrimaryNode('tfidf',
+                               manual_preprocessing_func=TextPreprocessingStrategy)
+    model_node = SecondaryNode('multinb', nodes_from=[preproc_node],
+                               manual_preprocessing_func=EmptyStrategy)
+    chain = Chain(nodes=[model_node, preproc_node])
     chain.fit(train_data)
 
     predicted = chain.predict(test_data)
 
     roc_auc_metric = roc_auc(y_true=test_data.target, y_score=predicted.predict)
 
-    print(roc_auc_metric)
+    return roc_auc_metric
+
+
+def run_text_problem_from_meta_file():
+    data_file_abspath = os.path.abspath(os.path.join('data', 'spam', 'spamham.csv'))
+
+    download_nltk_resources()
+
+    data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
+
+    train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
+
+    metric = execute_cahin_for_text_problem(train_data, test_data)
+
+    print(f'meta_file metric: {metric}')
+
+
+def run_text_problem_from_files():
+    data_abspath = os.path.abspath(os.path.join('data', 'spamham'))
+
+    train_path = os.path.join(data_abspath, 'train')
+    test_path = os.path.join(data_abspath, 'test')
+
+    download_nltk_resources()
+
+    train_data = InputData.from_text_files(files_path=train_path)
+    test_data = InputData.from_text_files(files_path=test_path)
+
+    metric = execute_cahin_for_text_problem(train_data, test_data)
+
+    print(f'origin files metric: {metric}')
+
+
+def run_text_problem_from_saved_meta_file():
+    data_file_abspath = os.path.abspath(os.path.join('data', 'spamham', 'meta_train.csv'))
+
+    data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
+
+    train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
+
+    metric = execute_cahin_for_text_problem(train_data, test_data)
+
+    print(f'meta_file metric: {metric}')
 
 
 if __name__ == '__main__':
-    data_file = os.path.join('spam', 'spamham.csv')
-    data_file_abspath = os.path.abspath(data_file)
-    run_text_problem(data_path=data_file_abspath)
+    # run_text_problem_from_meta_file()
+
+    run_text_problem_from_files()
+
+    # run_text_problem_from_saved_meta_file()
