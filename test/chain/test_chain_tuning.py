@@ -32,7 +32,7 @@ def classification_dataset():
 
 
 def get_regr_chain():
-    final = PrimaryNode(model_type='knnreg')
+    final = PrimaryNode(model_type='xgbreg')
     chain = Chain(final)
 
     return chain
@@ -54,7 +54,7 @@ def get_class_chain():
 def test_fine_tune_primary_nodes(data_fixture, request):
     # TODO still stochastic
     result_list = []
-    for _ in range(3):
+    for _ in range(5):
         data = request.getfixturevalue(data_fixture)
         train_data, test_data = train_test_data_setup(data=data)
 
