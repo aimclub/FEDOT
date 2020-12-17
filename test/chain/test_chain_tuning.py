@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from random import seed
 
+import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
@@ -13,6 +14,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.test_chain_import_export import create_four_depth_chain
 
 seed(1)
+np.random.seed(1)
 
 
 @pytest.fixture()
@@ -30,33 +32,27 @@ def classification_dataset():
 
 
 def get_regr_chain():
-    # Chain composition
-    first = PrimaryNode(model_type='xgbreg')
-    second = PrimaryNode(model_type='knnreg')
-    final = SecondaryNode(model_type='linear',
-                          nodes_from=[first, second])
-    chain = Chain()
-    chain.add_node(final)
+    final = PrimaryNode(model_type='knnreg')
+    chain = Chain(final)
 
     return chain
 
 
 def get_class_chain():
-    # Chain composition
     first = PrimaryNode(model_type='xgboost')
     second = PrimaryNode(model_type='knn')
+    third = PrimaryNode(model_type='pca_data_model')
     final = SecondaryNode(model_type='xgboost',
-                          nodes_from=[first, second])
+                          nodes_from=[first, second, third])
 
-    chain = Chain()
-    chain.add_node(final)
+    chain = Chain(final)
 
     return chain
 
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
 def test_fine_tune_primary_nodes(data_fixture, request):
-    # TODO still stochatic
+    # TODO still stochastic
     result_list = []
     for _ in range(3):
         data = request.getfixturevalue(data_fixture)
