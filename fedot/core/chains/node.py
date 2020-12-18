@@ -4,11 +4,11 @@ from copy import copy
 from datetime import timedelta
 from typing import Callable, List, Optional
 
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.preprocessing import preprocessing_func_for_data
+from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
-from fedot.core.models.data import InputData, OutputData
 from fedot.core.models.model import Model
-from fedot.core.models.preprocessing import preprocessing_func_for_data
-from fedot.core.models.transformation import transformation_function_for_data
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -247,7 +247,8 @@ class PrimaryNode(Node):
 
         return super().fit(input_data, verbose)
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
+    def predict(self, input_data: InputData,
+                output_mode: str = 'default', verbose=False) -> OutputData:
         """
         Predict using the model located in the primary node
 

@@ -24,8 +24,8 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.models.data import InputData, OutputData
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
 from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner

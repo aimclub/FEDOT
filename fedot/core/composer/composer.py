@@ -1,13 +1,12 @@
 import datetime
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import (Any, Callable, List, Optional)
 
-from dataclasses import dataclass
-
-from fedot.core.composer.chain import Chain
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.models.data import InputData
 from fedot.core.utils import ComparableEnum as Enum
 
 

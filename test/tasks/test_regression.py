@@ -2,10 +2,10 @@ import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
-from fedot.core.composer.chain import Chain
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

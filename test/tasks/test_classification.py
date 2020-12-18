@@ -4,9 +4,9 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.composer.chain import Chain
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.models.test_model import classification_dataset_with_redunant_features
@@ -114,7 +114,10 @@ def test_output_mode_full_probs():
 
     chain.fit(input_data=train_data)
     results = chain.predict(input_data=test_data, output_mode='full_probs')
-    results_probs = chain.predict(input_data=test_data)
+    results_default = chain.predict(input_data=test_data)
+    results_probs = chain.predict(input_data=test_data, output_mode='probs')
 
     assert not np.array_equal(results_probs.predict, results.predict)
+    assert np.array_equal(results_probs.predict, results_default.predict)
     assert results.predict.shape == (len(test_data.target), 2)
+    assert results_probs.predict.shape == (len(test_data.target),)

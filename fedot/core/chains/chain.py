@@ -5,9 +5,9 @@ from uuid import uuid4
 
 import networkx as nx
 
-from fedot.core.composer.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.models.data import InputData
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.utilities.synthetic.chain_template_new import ChainTemplate
 
@@ -91,7 +91,11 @@ class Chain:
         Run the predict process in all nodes in chain starting with root.
 
         :param input_data: data for prediction
-        :param output_mode: desired output for models (e.g. labels, probs, full_probs)
+        :param output_mode: desired form of output for models. Available options are:
+                'default' (as is),
+                'labels' (numbers of classes - for classification) ,
+                'probs' (probabilities - for classification =='default'),
+                'full_probs' (return all probabilities - for binary classification).
         :return: array of predicted target values
         """
 

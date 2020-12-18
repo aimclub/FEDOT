@@ -7,14 +7,14 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.composer.chain import Chain
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements, DummyChainTypeEnum, DummyComposer
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.models.data import InputData
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
