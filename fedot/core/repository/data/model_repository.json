@@ -75,7 +75,7 @@
 	  "input_type": "[DataTypesEnum.table]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
-	  "strategies": ["fedot.core.models.evaluation.vectorizer", "VectorizeStrategy"],
+	  "strategies": ["fedot.core.models.evaluation.vectorize", "VectorizeStrategy"],
 	  "tags": ["nlp, non-default"],
 	  "description": "Text classification"
 	}

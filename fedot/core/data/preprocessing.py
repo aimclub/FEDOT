@@ -90,8 +90,8 @@ class TsScalingStrategy(Scaling):
 
 class TextPreprocessingStrategy(PreprocessingStrategy):
     def __init__(self):
-        self.stemmer = PorterStemmer
-        self.lemmanizer = WordNetLemmatizer
+        self.stemmer = PorterStemmer()
+        self.lemmanizer = WordNetLemmatizer()
         self.lang = 'english'
 
     def fit(self, data_to_fit):
@@ -121,13 +121,13 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
         return cleared_words
 
     def _stemming(self, words):
-        stemmed_words = [self.stemmer().stem(word) for word in words]
+        stemmed_words = [self.stemmer.stem(word) for word in words]
 
         return stemmed_words
 
     def _lemmatization(self, words):
         # TODO pos
-        lemmas = [self.lemmanizer().lemmatize(word) for word in words]
+        lemmas = [self.lemmanizer.lemmatize(word) for word in words]
 
         return lemmas
 

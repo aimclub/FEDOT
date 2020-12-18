@@ -5,7 +5,7 @@ from os.path import join, abspath, basename
 
 import pytest
 
-from fedot.utilities.load_data import TextBatchLoader
+from fedot.core.data.load_data import TextBatchLoader
 
 
 @pytest.fixture(scope="session", autouse=True)

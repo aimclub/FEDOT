@@ -6,14 +6,16 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.chain import Chain
 from fedot.core.composer.node import PrimaryNode, SecondaryNode
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.models.preprocessing import TextPreprocessingStrategy, EmptyStrategy
 
 
 def unpack_archived_data():
     archive_path = os.path.abspath(os.path.join('data', 'spamham.tar.gz'))
-    with tarfile.open(archive_path) as file:
-        file.extractall(path=os.path.dirname(archive_path))
+    if 'spamham' not in os.listdir(os.path.dirname(archive_path)):
+        with tarfile.open(archive_path) as file:
+            file.extractall(path=os.path.dirname(archive_path))
+        print('Unpacking finished')
 
 
 def download_nltk_resources():
@@ -24,7 +26,7 @@ def download_nltk_resources():
             nltk.download(f'{resource}')
 
 
-def execute_cahin_for_text_problem(train_data, test_data):
+def execute_chain_for_text_problem(train_data, test_data):
     preproc_node = PrimaryNode('tfidf',
                                manual_preprocessing_func=TextPreprocessingStrategy)
     model_node = SecondaryNode('multinb', nodes_from=[preproc_node],
@@ -48,14 +50,13 @@ def run_text_problem_from_meta_file():
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
 
-    metric = execute_cahin_for_text_problem(train_data, test_data)
+    metric = execute_chain_for_text_problem(train_data, test_data)
 
     print(f'meta_file metric: {metric}')
 
 
 def run_text_problem_from_files():
     unpack_archived_data()
-    print('Unpacking finished')
 
     data_abspath = os.path.abspath(os.path.join('data', 'spamham'))
 
@@ -67,7 +68,7 @@ def run_text_problem_from_files():
     train_data = InputData.from_text_files(files_path=train_path)
     test_data = InputData.from_text_files(files_path=test_path)
 
-    metric = execute_cahin_for_text_problem(train_data, test_data)
+    metric = execute_chain_for_text_problem(train_data, test_data)
 
     print(f'origin files metric: {metric}')
 
@@ -79,7 +80,7 @@ def run_text_problem_from_saved_meta_file():
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
 
-    metric = execute_cahin_for_text_problem(train_data, test_data)
+    metric = execute_chain_for_text_problem(train_data, test_data)
 
     print(f'meta_file metric: {metric}')
 

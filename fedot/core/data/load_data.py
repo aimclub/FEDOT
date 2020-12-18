@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class BatchLoader(ABC):
-    def __init__(self, path: str, read_mode: str = 'r'):
+    def __init__(self, path: str):
         self.path = path
         self.meta_df = None
         self.target_name = 'label'

@@ -12,7 +12,7 @@ from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_
 from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.load_data import TextBatchLoader
+from fedot.core.data.load_data import TextBatchLoader
 
 
 @dataclass
