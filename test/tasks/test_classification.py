@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -37,6 +39,14 @@ def get_iris_data() -> InputData:
                            target=synthetic_data.target,
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
+    return input_data
+
+
+def get_binary_classification_data():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../data/simple_classification.csv'
+    input_data = InputData.from_csv(
+        os.path.join(test_file_path, file))
     return input_data
 
 
@@ -80,3 +90,31 @@ def test_classification_with_pca_chain_fit_correct():
                                   average='macro')
 
     assert roc_auc_on_test_pca > roc_auc_on_test > 0.5
+
+
+def test_output_mode_labels():
+    data = get_iris_data()
+    chain = chain_simple()
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+
+    chain.fit(input_data=train_data)
+    results = chain.predict(input_data=test_data, output_mode='labels')
+    results_probs = chain.predict(input_data=test_data)
+
+    assert len(results.predict) == len(test_data.target)
+    assert set(results.predict) == {0, 1, 2}
+
+    assert not np.array_equal(results_probs.predict, results.predict)
+
+
+def test_output_mode_full_probs():
+    data = get_binary_classification_data()
+    chain = chain_simple()
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+
+    chain.fit(input_data=train_data)
+    results = chain.predict(input_data=test_data, output_mode='full_probs')
+    results_probs = chain.predict(input_data=test_data)
+
+    assert not np.array_equal(results_probs.predict, results.predict)
+    assert results.predict.shape == (len(test_data.target), 2)

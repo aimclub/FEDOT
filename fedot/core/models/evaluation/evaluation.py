@@ -39,7 +39,7 @@ class EvaluationStrategy:
     the certain sklearn or any other model with fit/predict methods.
 
     :param model_type: str type of the model defined in model repository
-    :param dict params: hyperparamters to fit the model with
+    :param dict params: hyperparameters to fit the model with
     :param Log log: Log object to record messages
     """
 
@@ -47,6 +47,8 @@ class EvaluationStrategy:
                  log=None):
         self.params_for_fit = params
         self.model_type = model_type
+
+        self.output_mode = False
 
         if not log:
             self.log: Log = default_log(__name__)
@@ -212,12 +214,16 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :return: prediction target
         """
         n_classes = len(trained_model.classes_)
-        prediction = trained_model.predict_proba(predict_data.features)
-        if n_classes < 2:
-            raise NotImplementedError()
-        elif n_classes == 2:
-            prediction = prediction[:, 1]
-
+        if self.output_mode == 'labels':
+            prediction = trained_model.predict(predict_data.features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_model.predict_proba(predict_data.features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
         return prediction
 
 
