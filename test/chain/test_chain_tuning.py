@@ -40,10 +40,9 @@ def get_regr_chain():
 
 def get_class_chain():
     first = PrimaryNode(model_type='xgboost')
-    second = PrimaryNode(model_type='knn')
-    third = PrimaryNode(model_type='pca_data_model')
-    final = SecondaryNode(model_type='xgboost',
-                          nodes_from=[first, second, third])
+    second = PrimaryNode(model_type='pca_data_model')
+    final = SecondaryNode(model_type='logit',
+                          nodes_from=[first, second])
 
     chain = Chain(final)
 
