@@ -1,4 +1,5 @@
 import os
+import tarfile
 
 import nltk
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -7,6 +8,12 @@ from fedot.core.composer.chain import Chain
 from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.models.data import InputData, train_test_data_setup
 from fedot.core.models.preprocessing import TextPreprocessingStrategy, EmptyStrategy
+
+
+def unpack_archived_data():
+    archive_path = os.path.abspath(os.path.join('data', 'spamham.tar.gz'))
+    with tarfile.open(archive_path) as file:
+        file.extractall(path=os.path.dirname(archive_path))
 
 
 def download_nltk_resources():
@@ -47,6 +54,9 @@ def run_text_problem_from_meta_file():
 
 
 def run_text_problem_from_files():
+    unpack_archived_data()
+    print('Unpacking finished')
+
     data_abspath = os.path.abspath(os.path.join('data', 'spamham'))
 
     train_path = os.path.join(data_abspath, 'train')
@@ -75,8 +85,6 @@ def run_text_problem_from_saved_meta_file():
 
 
 if __name__ == '__main__':
-    # run_text_problem_from_meta_file()
-
+    run_text_problem_from_meta_file()
     run_text_problem_from_files()
-
-    # run_text_problem_from_saved_meta_file()
+    run_text_problem_from_saved_meta_file()

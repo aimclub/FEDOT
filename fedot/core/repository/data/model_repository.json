@@ -76,7 +76,7 @@
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
 	  "strategies": ["fedot.core.models.evaluation.vectorizer", "VectorizeStrategy"],
-	  "tags": ["nlp, sklearn"],
+	  "tags": ["nlp, non-default"],
 	  "description": "Text classification"
 	}
   },
@@ -201,7 +201,7 @@
 	},
     "tfidf": {
       "meta": "text_classification",
-      "tags": ["text"]
+      "tags": ["text, non-default"]
     }
   }
 }
