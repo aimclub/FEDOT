@@ -81,29 +81,28 @@ def test_fine_tune_primary_nodes(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_fine_tune_all_nodes(data_fixture, request):
-    for _ in range(10):
-        data = request.getfixturevalue(data_fixture)
-        train_data, test_data = train_test_data_setup(data=data)
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
 
-        # Chain composition
-        chain = get_class_chain()
+    # Chain composition
+    chain = get_class_chain()
 
-        # Before tuning prediction
-        chain.fit(train_data, use_cache=False)
-        before_tuning_predicted = chain.predict(test_data)
+    # Before tuning prediction
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
 
-        # root node tuning
-        chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
-        chain.fit_from_scratch(train_data)
-        after_tun_root_node_predicted = chain.predict(test_data)
+    # root node tuning
+    chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
+    chain.fit_from_scratch(train_data)
+    after_tun_root_node_predicted = chain.predict(test_data)
 
-        bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
-        aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 2)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tun_root_node_predicted.predict), 2)
 
-        print(f'Before tune test {bfr_tun_roc_auc}')
-        print(f'After tune test {aft_tun_roc_auc}', '\n')
+    print(f'Before tune test {bfr_tun_roc_auc}')
+    print(f'After tune test {aft_tun_roc_auc}', '\n')
 
-        assert aft_tun_roc_auc >= bfr_tun_roc_auc
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
