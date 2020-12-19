@@ -93,6 +93,7 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
         self.stemmer = PorterStemmer()
         self.lemmanizer = WordNetLemmatizer()
         self.lang = 'english'
+        self._download_nltk_resources()
 
     def fit(self, data_to_fit):
         return self
@@ -108,6 +109,14 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
             new_text = self._clean_html_text(new_text)
             clean_data.append(new_text)
         return np.array(clean_data)
+
+    @staticmethod
+    def _download_nltk_resources():
+        for resource in ['punkt', 'stopwords', 'wordnet']:
+            try:
+                nltk.data.find(f'tokenizers/{resource}')
+            except LookupError:
+                nltk.download(f'{resource}')
 
     def _word_vectorize(self, text):
         words = nltk.word_tokenize(text)

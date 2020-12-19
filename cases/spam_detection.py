@@ -1,7 +1,6 @@
 import os
 import tarfile
 
-import nltk
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.chain import Chain
@@ -16,14 +15,6 @@ def unpack_archived_data():
         with tarfile.open(archive_path) as file:
             file.extractall(path=os.path.dirname(archive_path))
         print('Unpacking finished')
-
-
-def download_nltk_resources():
-    for resource in ['punkt', 'stopwords', 'wordnet']:
-        try:
-            nltk.data.find(f'tokenizers/{resource}')
-        except LookupError:
-            nltk.download(f'{resource}')
 
 
 def execute_chain_for_text_problem(train_data, test_data):
@@ -44,8 +35,6 @@ def execute_chain_for_text_problem(train_data, test_data):
 def run_text_problem_from_meta_file():
     data_file_abspath = os.path.abspath(os.path.join('data', 'spam', 'spamham.csv'))
 
-    download_nltk_resources()
-
     data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
@@ -62,8 +51,6 @@ def run_text_problem_from_files():
 
     train_path = os.path.join(data_abspath, 'train')
     test_path = os.path.join(data_abspath, 'test')
-
-    download_nltk_resources()
 
     train_data = InputData.from_text_files(files_path=train_path)
     test_data = InputData.from_text_files(files_path=test_path)
