@@ -1,11 +1,15 @@
 from dataclasses import dataclass
+from copy import deepcopy
+from deap import tools
 from functools import partial
-from sys import maxsize as max_int_value
 from typing import (
     Callable,
-    Optional
+    Optional,
+    Tuple,
+    Any,
+    Union,
+    List
 )
-
 from fedot.core.chains.chain import Chain, SharedChain
 from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -14,11 +18,12 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChai
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
+from fedot.core.composer.optimisers.regularization import RegularizationTypesEnum
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum
+    RegressionMetricsEnum, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 sample_split_ration_for_tasks = {
@@ -38,12 +43,16 @@ class GPComposerRequirements(ComposerRequirements):
     :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
     :param mutation_prob: mutation probability
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :param model_fit_time_constraint: time constraint for model fitting (seconds)
+    :param start_depth: start value of tree depth
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 100
     crossover_prob: Optional[float] = 0.8
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
+    model_fit_time_constraint: Optional[int] = None
+    start_depth: int = None
 
 
 @dataclass
@@ -64,7 +73,10 @@ class GPComposer(Composer):
     """
     Genetic programming based composer
     :param optimiser: optimiser generated in GPComposerBuilder
-    :param metrics: metrics used to define the quality of found solution
+    :param metrics: metrics used to define the quality of found solution.
+    Note: If you are using parameter-free optimiser for multi-objective problem solving, then main metric should be
+    given as first in metrics list (for example if you want to find the solution in classification problem with two
+    metrics: 1.quality and 2.chain complexity, then quality should be placed first)
     :param composer_requirements: requirements for composition process
     :param initial_chain: defines the initial state of the population. If None then initial population is random.
     """
@@ -85,7 +97,8 @@ class GPComposer(Composer):
             self.log = logger
 
     def compose_chain(self, data: InputData, is_visualise: bool = False,
-                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
+                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) \
+            -> Union[Chain, List[Chain]]:
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
@@ -94,8 +107,7 @@ class GPComposer(Composer):
                                                       sample_split_ration_for_tasks[data.task.task_type],
                                                       task=data.task)
         self.shared_cache.clear()
-        metric_function_for_nodes = partial(self.metric_for_nodes,
-                                            self.metrics, train_data, test_data, True)
+        metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data, True)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
                                              on_next_iteration_callback=on_next_iteration_callback)
@@ -106,21 +118,44 @@ class GPComposer(Composer):
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
 
-    def metric_for_nodes(self, metric_function, train_data: InputData,
-                         test_data: InputData, is_chain_shared: bool,
-                         chain: Chain) -> float:
+    def composer_metric(self, metrics, train_data: InputData, test_data: InputData,
+                        is_chain_shared: bool, chain: Chain) -> Optional[Tuple[Any]]:
         try:
             validate(chain)
             chain.log = self.log
+
+            if type(metrics) is not list:
+                metrics = [metrics]
+
             if is_chain_shared:
-                chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
-            chain.fit(input_data=train_data)
-            metric = metric_function(chain, test_data)
-            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metric {metric}')
-            return metric
+                evaluating_chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
+            else:
+                evaluating_chain = chain
+            evaluating_chain.fit(input_data=train_data,
+                                 time_constraint=self.composer_requirements.model_fit_time_constraint)
+            if is_chain_shared:
+                chain.computation_time = evaluating_chain.computation_time
+
+            evaluated_metrics = []
+            for metric in metrics:
+                metric_func = MetricsRepository().metric_by_id(metric)
+                evaluated_metrics.append(metric_func(evaluating_chain, reference_data=test_data))
+
+            evaluated_metrics = tuple(evaluated_metrics)
+
+            if len(metrics) > 1:
+                log_metrics = metrics
+                log_info = 'metrics'
+            else:
+                log_metrics = metrics[0]
+                log_info = 'metric'
+            self.log.debug(f'Chain {chain.root_node.descriptive_id} with {log_info} {log_metrics}')
+
         except Exception as ex:
-            self.log.warn(f'Error in chain assessment during composition: {ex}. Continue.')
-            return max_int_value
+            self.log.info(f'Chain assessment warning: {ex}. Continue.')
+            evaluated_metrics = None
+
+        return evaluated_metrics
 
     @staticmethod
     def tune_chain(chain: Chain, data: InputData, time_limit):
@@ -139,19 +174,28 @@ class GPComposerBuilder:
         self.task = task
         self.set_default_composer_params()
 
-    def with_optimiser_parameters(self, optimiser_parameters):
+    def with_optimiser_parameters(self, optimiser_parameters: GPChainOptimiserParameters):
         self.optimiser_parameters = optimiser_parameters
         return self
 
-    def with_requirements(self, requirements):
+    def with_requirements(self, requirements: GPComposerRequirements):
+        repository = ModelTypesRepository()
+        if requirements.primary == requirements.secondary:
+            requirements.secondary = deepcopy(requirements.secondary)
+        for model in reversed(requirements.secondary):
+            model_tags = repository.model_info_by_id(model).tags
+            if 'data_model' in model_tags:
+                requirements.secondary.remove(model)
         self._composer.composer_requirements = requirements
         return self
 
-    def with_metrics(self, metrics):
+    def with_metrics(self, metrics: Optional[MetricsEnum]):
+        if type(metrics) is not list:
+            metrics = [metrics]
         self._composer.metrics = metrics
         return self
 
-    def with_initial_chain(self, initial_chain):
+    def with_initial_chain(self, initial_chain: Optional[Chain]):
         self._composer.initial_chain = initial_chain
         return self
 
@@ -164,10 +208,10 @@ class GPComposerBuilder:
             models, _ = ModelTypesRepository().suitable_model(task_type=self.task.task_type)
             self._composer.composer_requirements = GPComposerRequirements(primary=models, secondary=models)
         if not self._composer.metrics:
-            metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+            metric_function = ClassificationMetricsEnum.ROCAUC_penalty
             if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
-                metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-            self._composer.metrics = metric_function
+                metric_function = RegressionMetricsEnum.RMSE
+            self._composer.metrics = [metric_function]
 
     def build(self) -> Composer:
         optimiser_type = GPChainOptimiser
@@ -176,10 +220,17 @@ class GPComposerBuilder:
 
         chain_generation_params = ChainGenerationParams()
 
+        archive_type = None
+        if len(self._composer.metrics) > 1:
+            archive_type = tools.ParetoFront()
+            self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
+            self.optimiser_parameters.multi_objective = True
+
         optimiser = optimiser_type(initial_chain=self._composer.initial_chain,
                                    requirements=self._composer.composer_requirements,
                                    chain_generation_params=chain_generation_params,
-                                   parameters=self.optimiser_parameters, log=self._composer.log)
+                                   parameters=self.optimiser_parameters, log=self._composer.log,
+                                   archive_type=archive_type)
 
         self._composer.optimiser = optimiser
 

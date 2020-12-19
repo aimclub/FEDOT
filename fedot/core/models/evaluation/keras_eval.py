@@ -1,9 +1,12 @@
+import numpy as np
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import tensorflow as tf
+
 from copy import copy
 from datetime import timedelta
 from typing import Optional
-
-import numpy as np
-import tensorflow as tf
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy

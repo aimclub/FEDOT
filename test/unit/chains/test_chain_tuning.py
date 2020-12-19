@@ -1,9 +1,9 @@
 import os
+import numpy as np
+import pytest
 from datetime import timedelta
 from random import seed
 
-import numpy as np
-import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
 from fedot.core.chains.chain import Chain
@@ -46,6 +46,29 @@ def get_class_chain():
 
     chain = Chain(final)
 
+    return chain
+
+
+def chain_first():
+    #    XG
+    #  |     \
+    # XG     KNN
+    # |  \    |  \
+    # LR LDA LR  LDA
+    chain = Chain()
+
+    root_of_tree, root_child_first, root_child_second = \
+        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
+
+    for root_node_child in (root_child_first, root_child_second):
+        for requirement_model in ('logit', 'lda'):
+            new_node = PrimaryNode(requirement_model)
+            root_node_child.nodes_from.append(new_node)
+            chain.add_node(new_node)
+        chain.add_node(root_node_child)
+        root_of_tree.nodes_from.append(root_node_child)
+
+    chain.add_node(root_of_tree)
     return chain
 
 
@@ -251,3 +274,26 @@ def test_tune_certain_primary_node_with_tune_class_correctly(data_fixture, reque
     print(f'After tune test {aft_tun_roc_auc}', '\n')
 
     assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_chain_fit_time_constraint(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+    test_chain_first = chain_first()
+    time_constraint = 3
+    predicted_first = None
+    computation_time_first = None
+    try:
+        predicted_first = test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
+    except Exception as ex:
+        received_ex = ex
+        computation_time_first = test_chain_first.computation_time
+        assert type(received_ex) is TimeoutError
+    test_chain_second = chain_first()
+    predicted_second = test_chain_second.fit(input_data=train_data)
+    computation_time_second = test_chain_second.computation_time
+    assert computation_time_first is None
+    assert predicted_first is None
+    assert computation_time_second is not None
+    assert predicted_second is not None

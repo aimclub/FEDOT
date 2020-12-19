@@ -142,3 +142,9 @@ class NodeNum(Metric):
     def get_value(cls, chain: Chain, **args) -> float:
         norm_constant = 10
         return chain.length / norm_constant
+
+
+class ComputationTimeMetric(Metric):
+    @classmethod
+    def get_value(cls, chain: Chain, **args) -> float:
+        return chain.computation_time

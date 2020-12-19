@@ -11,7 +11,7 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParamete
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root
 
@@ -39,15 +39,16 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
+    import multiprocessing
+    print(multiprocessing.__version__)
     # the choice of the metric for the chain quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
-
+    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
+        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time, model_fit_time_constraint=900)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.steady_state
@@ -70,13 +71,14 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     chain_evo_composed.fit(input_data=dataset_to_compose)
 
+    composer.history.write_composer_history_to_csv()
+
     if is_visualise:
         visualiser = ChainVisualiser()
 
         composer.log.debug('History visualization started')
         visualiser.visualise_history(composer.history)
         composer.log.debug('History visualization finished')
-        composer.history.write_composer_history_to_csv()
 
         composer.log.debug('Best chain visualization started')
         visualiser.visualise(chain_evo_composed)
@@ -91,7 +93,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     return roc_on_valid_evo_composed
 
 
-if __name__ == '__main__':
+def get_scoring_data():
     # the dataset was obtained from https://www.kaggle.com/c/GiveMeSomeCredit
 
     # a dataset that will be used as a train and test set during composition
@@ -103,4 +105,9 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/scoring/scoring_test.csv'
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
+    return full_path_train, full_path_test
+
+
+if __name__ == '__main__':
+    full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True)

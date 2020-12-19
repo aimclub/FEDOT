@@ -44,8 +44,10 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
     if type == MutationTypesEnum.none:
         new_chain = deepcopy(chain)
     elif type in mutation_by_type:
+        number_of_attempts = 0
         is_correct_chain = False
         while not is_correct_chain:
+            number_of_attempts += 1
             if type in (MutationTypesEnum.growth, MutationTypesEnum.local_growth):
                 new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                    chain_generation_params=chain_generation_params, max_depth=max_depth)
@@ -53,6 +55,9 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
                 new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                    chain_generation_params=chain_generation_params)
             is_correct_chain = constraint_function(new_chain)
+            if number_of_attempts == 10:
+                new_chain = deepcopy(chain)
+                break
     else:
         raise ValueError(f'Required mutation type is not found: {type}')
 

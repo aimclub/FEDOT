@@ -1,10 +1,12 @@
 from copy import copy, deepcopy
 from datetime import timedelta
+from multiprocessing import Manager, Process
 from typing import List, Optional, Union
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from fedot.core.composer.visualisation import ChainVisualiser
+from fedot.core.composer.timer import Timer
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -29,7 +31,7 @@ class Chain:
         self.nodes = []
         self.log = log
         self.template = None
-
+        self.computation_time = None
         if not log:
             self.log = default_log(__name__)
         else:
@@ -56,17 +58,55 @@ class Chain:
     def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
         if self.fitted_on_data is not None and self.fitted_on_data is not new_input_data:
             if cache_status:
-                self.log.warn('Trained model cache is not actual because you are using new dataset for training. '
+                self.log.info('Trained model cache is not actual because you are using new dataset for training. '
                               'Parameter use_cache value changed to False')
                 cache_status = False
         return cache_status
 
-    def fit(self, input_data: InputData, use_cache=True):
+    def global_cache_update_outside_the_process(self, new_cache):
+        self.nodes[0].cache.global_cache_update(new_cache)
+
+    def _fit_with_time_limit(self, input_data: InputData, use_cache=False, time: int = 900) -> Manager:
+        """
+            Run training process with time limit. Create
+
+            :param input_data: data used for model training
+            :param use_cache: flag defining whether use cache information about previous executions or not, default True
+            :param time: time constraint for model fitting process (seconds)
+        """
+        manager = Manager()
+        chain_params_dict = manager.dict()
+        global_cache_dict = None
+        if isinstance(self, SharedChain):
+            global_cache_dict = manager.dict()
+        p = Process(target=self._fit, args=(input_data, use_cache, chain_params_dict, global_cache_dict),
+                    kwargs={})
+        p.start()
+        p.join(time)
+        if p.is_alive():
+            p.terminate()
+            raise TimeoutError(f'Chain fitness evaluation time limit is expired')
+        if not use_cache or self.fitted_on_data is None:
+            self.fitted_on_data = input_data
+        self.computation_time = chain_params_dict['chain'].computation_time
+        for node_num, node in enumerate(self.nodes):
+            node.cache.local_cache_update(chain_params_dict['chain'].nodes[node_num].cache._local_cached_models)
+        if isinstance(self, SharedChain):
+            self.global_cache_update_outside_the_process(dict(global_cache_dict))
+        return chain_params_dict['train_predicted']
+
+    def _fit(self, input_data: InputData, use_cache=False, chain_params_dict: Manager = None,
+             global_cache_dict: Manager = None):
         """
         Run training process in all nodes in chain starting with root.
 
         :param input_data: data used for model training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param chain_params_dict: this dictionary is used for saving required chain parameters (which were changed
+        inside the process) in a case of model fit time control (when process created)
+        :param global_cache_dict: this dictionary is used for saving global cache changes (which performed inside the
+        process). It is used when time for chain fit is limited and type of self is SharedChain (composer using global
+        cache)
         """
         use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
@@ -82,7 +122,34 @@ class Chain:
 
         if not use_cache or self.fitted_on_data is None:
             self.fitted_on_data = input_data
-        train_predicted = self.root_node.fit(input_data=input_data)
+
+        with Timer(log=self.log) as t:
+            computation_time_update = True if not use_cache or not self.root_node.cache.actual_cached_state or \
+                                              self.computation_time is None else False
+
+            train_predicted = self.root_node.fit(input_data=input_data, return_dict=global_cache_dict)
+            if computation_time_update:
+                self.computation_time = round(t.minutes_from_start, 3)
+
+        if chain_params_dict is None:
+            return train_predicted
+        else:
+            chain_params_dict['chain'] = self
+            chain_params_dict['train_predicted'] = train_predicted
+
+    def fit(self, input_data: InputData, use_cache=True, time_constraint: Optional[int] = None):
+        """
+        Run training process in all nodes in chain starting with root.
+
+        :param input_data: data used for model training
+        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param time_constraint: time constraint for model fitting (seconds)
+        """
+        if time_constraint is None:
+            train_predicted = self._fit(input_data=input_data, use_cache=use_cache)
+        else:
+            train_predicted = self._fit_with_time_limit(input_data=input_data, use_cache=use_cache,
+                                                        time=time_constraint)
         return train_predicted
 
     def predict(self, input_data: InputData, output_mode: str = 'default'):
@@ -325,6 +392,7 @@ class SharedChain(Chain):
         self.nodes = copy(base_chain.nodes)
         for node in self.nodes:
             node.cache = SharedCache(node, global_cached_models=shared_cache)
+        self.computation_time = base_chain.computation_time
 
     def unshare(self) -> Chain:
         chain = Chain()

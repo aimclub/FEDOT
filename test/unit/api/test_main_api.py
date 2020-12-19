@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fedot.api.main import Fedot, _define_data

@@ -28,6 +28,7 @@ class ChainTemplate:
         self.depth = chain.depth
         self.model_templates = []
         self.unique_chain_id = str(uuid4())
+        self.computation_time = chain.computation_time
 
         if not log:
             self.log = default_log(__name__)

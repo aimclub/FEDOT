@@ -2,6 +2,7 @@ from abc import ABC
 from collections import namedtuple
 from copy import copy
 from datetime import timedelta
+from multiprocessing import Manager
 from typing import Callable, List, Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -96,11 +97,13 @@ class Node(ABC):
 
         return data, preprocessing_strategy
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
         """
         Run training process in the node
 
         :param input_data: data used for model training
+        :param return_dict: this dictionary is used for saving global cache of
+        composer in a case when process created
         """
         transformed = self._transform(input_data)
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
@@ -109,8 +112,13 @@ class Node(ABC):
             self.log.ext_debug('Cache is not actual')
 
             cached_model, model_predict = self.model.fit(data=preprocessed_data)
-            self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                          model=cached_model))
+
+            if isinstance(self.cache, SharedCache):
+                self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
+                                              model=cached_model), return_dict=return_dict)
+            else:
+                self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
+                                              model=cached_model))
         else:
             self.log.ext_debug('Model were obtained from cache')
 
@@ -197,6 +205,9 @@ class FittedModelCache:
         for entry_key in other_cache._local_cached_models.keys():
             self._local_cached_models[entry_key] = other_cache._local_cached_models[entry_key]
 
+    def local_cache_update(self, updated_local_cache):
+        self._local_cached_models = updated_local_cache
+
     def clear(self):
         self._local_cached_models = {}
 
@@ -211,10 +222,15 @@ class SharedCache(FittedModelCache):
         super().__init__(related_node)
         self._global_cached_models = global_cached_models
 
-    def append(self, fitted_model):
+    def append(self, fitted_model, return_dict: Manager = None):
         super().append(fitted_model)
         if self._global_cached_models is not None:
             self._global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
+            if return_dict is not None:
+                return_dict[self._related_node_ref.descriptive_id] = fitted_model
+
+    def global_cache_update(self, new_cache):
+        self._global_cached_models.update(new_cache)
 
     @property
     def actual_cached_state(self):
@@ -240,15 +256,17 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
         """
         Fit the model located in the primary node
 
         :param input_data: data used for model training
+        :param return_dict: this dictionary is used for saving global cache of
+        composer in a case when process created
         """
         self.log.ext_debug(f'Trying to fit primary node with model: {self.model}')
 
-        return super().fit(input_data)
+        return super().fit(input_data, return_dict)
 
     def predict(self, input_data: InputData,
                 output_mode: str = 'default', ) -> OutputData:
@@ -280,7 +298,7 @@ class SecondaryNode(Node):
         super().__init__(nodes_from=nodes_from, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData, ) -> OutputData:
+    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
         """
         Fit the model located in the secondary node
 
@@ -288,9 +306,10 @@ class SecondaryNode(Node):
         """
         self.log.ext_debug(f'Trying to fit secondary node with model: {self.model}')
 
-        secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='fit')
-        return super().fit(input_data=secondary_input)
+        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit',
+                                                   return_dict=return_dict)
+
+        return super().fit(input_data=secondary_input, return_dict=return_dict)
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
@@ -335,7 +354,7 @@ class SecondaryNode(Node):
 
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str,
-                            max_tune_time: Optional[timedelta] = None) -> InputData:
+                            max_tune_time: Optional[timedelta] = None, return_dict: Manager = None) -> InputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
 
@@ -348,10 +367,10 @@ class SecondaryNode(Node):
         if any(are_prev_nodes_affect_target):
             # is the previous model is the model that changes target
             parent_results, target = _combine_parents_that_affects_target(parent_nodes, input_data,
-                                                                          parent_operation)
+                                                                          parent_operation, return_dict)
         else:
             parent_results, target = _combine_parents_simple(parent_nodes, input_data,
-                                                             parent_operation, max_tune_time)
+                                                             parent_operation, max_tune_time, return_dict)
 
         secondary_input = InputData.from_predictions(outputs=parent_results,
                                                      target=target)
@@ -361,14 +380,14 @@ class SecondaryNode(Node):
 
 def _combine_parents_that_affects_target(parent_nodes: List[Node],
                                          input_data: InputData,
-                                         parent_operation: str):
+                                         parent_operation: str, return_dict: Manager = None):
     if len(parent_nodes) > 1:
         raise NotImplementedError()
 
     if parent_operation == 'predict':
         parent_result = parent_nodes[0].predict(input_data=input_data)
     elif parent_operation == 'fit' or parent_operation == 'fine_tune':
-        parent_result = parent_nodes[0].fit(input_data=input_data)
+        parent_result = parent_nodes[0].fit(input_data=input_data, return_dict=return_dict)
     else:
         raise NotImplementedError()
 
@@ -379,7 +398,7 @@ def _combine_parents_that_affects_target(parent_nodes: List[Node],
 def _combine_parents_simple(parent_nodes: List[Node],
                             input_data: InputData,
                             parent_operation: str,
-                            max_tune_time: Optional[timedelta]):
+                            max_tune_time: Optional[timedelta], return_dict: Manager = None):
     target = input_data.target
     parent_results = []
     for parent in parent_nodes:
@@ -387,7 +406,7 @@ def _combine_parents_simple(parent_nodes: List[Node],
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data)
+            prediction = parent.fit(input_data=input_data, return_dict=return_dict)
             parent_results.append(prediction)
         elif parent_operation == 'fine_tune':
             parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)

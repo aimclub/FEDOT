@@ -15,10 +15,12 @@ networkx==2.4
 xgboost==1.0.1
 Pillow==7.1.2
 imageio==2.8.0
-seaborn==0.9.0; python_version < '3.7'
+seaborn==0.9.0
 hyperopt==0.2.4
 joblib==0.17.0
+deap==1.3.1
 tensorflow==2.1.0; python_version <= '3.7'
 tensorflow==2.4.0; python_version == '3.8'
 nltk==3.5
 SALib==1.3.11
+deap==1.3.1

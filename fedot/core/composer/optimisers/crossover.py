@@ -24,13 +24,20 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
         if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
             return [chain_first_copy, chain_second_copy]
         if type in crossover_by_type.keys():
+            number_of_attempts = 0
             is_correct = False
             while not is_correct:
+                number_of_attempts += 1
                 is_correct_chains = []
+                chain_first_copy = deepcopy(chain_first)
+                chain_second_copy = deepcopy(chain_second)
                 new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
                 for new_chain in new_chains:
                     is_correct_chains.append(constraint_function(new_chain))
                 is_correct = all(is_correct_chains)
+                if number_of_attempts == 10:
+                    new_chains = [chain_first_copy, chain_second_copy]
+                    break
             return new_chains
         else:
             raise ValueError(f'Required crossover not found: {type}')

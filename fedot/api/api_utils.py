@@ -11,17 +11,17 @@ from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum, \
-    MetricsRepository, RegressionMetricsEnum
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def get_metric_function(task: Task):
     if task.task_type == TaskTypesEnum.classification:
-        metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
+        metric_function = ClassificationMetricsEnum.ROCAUC
     elif task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
-        metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+        metric_function = RegressionMetricsEnum.RMSE
     elif task.task_type == TaskTypesEnum.clustering:
-        metric_function = MetricsRepository().metric_by_id(ClusteringMetricsEnum.silhouette)
+        metric_function = ClusteringMetricsEnum.silhouette
     else:
         raise ValueError('Incorrect type of ML task')
     return metric_function
