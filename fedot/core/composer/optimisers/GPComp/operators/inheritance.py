@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import (Any, List)
 
-from fedot.core.composer.optimisers.selection import SelectionTypesEnum, individuals_selection
+from fedot.core.composer.optimisers.GPComp.operators.selection import SelectionTypesEnum, individuals_selection
 from fedot.core.utils import ComparableEnum as Enum
 from functools import partial
 

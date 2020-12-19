@@ -1,20 +1,24 @@
 import math
+import numpy as np
 from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple)
 
-import numpy as np
-
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover, random_chain
-from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.mutation import MutationTypesEnum, mutation
-from fedot.core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
-from fedot.core.composer.optimisers.selection import SelectionTypesEnum, selection
+from fedot.core.composer.optimisers.GPComp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.composer.optimisers.GPComp.gp_operators import random_chain, num_of_parents_in_crossover, \
+    evaluate_individuals, calculate_objective
+from fedot.core.composer.optimisers.GPComp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.composer.optimisers.GPComp.gp_operators import duplicates_filtration
+from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
+from fedot.core.composer.optimisers.GPComp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.composer.optimisers.GPComp.operators.regularization import RegularizationTypesEnum, \
+    regularized_population
+from fedot.core.composer.optimisers.GPComp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log, default_log
+from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 
 class GPChainOptimiserParameters:
@@ -29,7 +33,8 @@ class GPChainOptimiserParameters:
         :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param start_depth: start value of tree depth. Using when with_auto_depth_configuration is True
+        :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
+        if false). Value is defined in GPComposerBuilder. Default False.
     """
 
     def __init__(self, selection_types: List[SelectionTypesEnum] = None,
@@ -38,7 +43,7 @@ class GPChainOptimiserParameters:
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
                  with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 start_depth: int = 3):
+                 multi_objective: bool = False):
 
         self.selection_types = selection_types
         self.crossover_types = crossover_types
@@ -47,7 +52,7 @@ class GPChainOptimiserParameters:
         self.genetic_scheme_type = genetic_scheme_type
         self.with_auto_depth_configuration = with_auto_depth_configuration
         self.depth_increase_step = depth_increase_step
-        self.start_depth = start_depth
+        self.multi_objective = multi_objective
         self.set_default_params()
 
     def set_default_params(self):
@@ -66,21 +71,24 @@ class GPChainOptimiser:
     :param initial_chain: chain which was initialized outside the optimiser
     :param requirements: composer requirements
     :param chain_generation_params: parameters for new chain generation
+    :param metrics: quality metrics
     :param parameters: parameters of chain optimiser
     :param log: optional parameter for log oject
+    :param archive_type: type of archive with best individuals
     """
 
-    def __init__(self, initial_chain, requirements, chain_generation_params,
-                 parameters: Optional[GPChainOptimiserParameters] = None,
-                 log: Log = None):
+    def __init__(self, initial_chain, requirements, chain_generation_params, metrics: List[MetricsEnum],
+                 parameters: Optional[GPChainOptimiserParameters] = None, log: Log = None, archive_type=None):
         self.chain_generation_params = chain_generation_params
         self.primary_node_func = self.chain_generation_params.primary_node_func
         self.secondary_node_func = self.chain_generation_params.secondary_node_func
         self.chain_class = self.chain_generation_params.chain_class
         self.requirements = requirements
+        self.archive = archive_type
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
-        self.max_depth = self.parameters.start_depth if self.parameters.with_auto_depth_configuration else \
-            self.requirements.max_depth
+        self.max_depth = self.requirements.start_depth \
+            if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
+            else self.requirements.max_depth
 
         self.generation_num = 0
         self.num_of_gens_without_improvements = 0
@@ -90,8 +98,10 @@ class GPChainOptimiser:
         else:
             self.log = log
 
+        generation_depth = self.max_depth if self.requirements.start_depth is None else self.requirements.start_depth
+
         self.chain_generation_function = partial(random_chain, chain_generation_params=self.chain_generation_params,
-                                                 requirements=self.requirements, max_depth=self.max_depth)
+                                                 requirements=self.requirements, max_depth=generation_depth)
 
         necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
         if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
@@ -107,7 +117,7 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain
 
-        self.history = ComposingHistory()
+        self.history = ComposingHistory(metrics)
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None):
@@ -122,18 +132,21 @@ class GPChainOptimiser:
         with CompositionTimer(log=self.log) as t:
 
             if self.requirements.add_single_model_chains:
-                best_single_model, self.requirements.primary = \
+                self.best_single_model, self.requirements.primary = \
                     self._best_single_models(objective_function)
 
-            for ind in self.population:
-                ind.fitness = objective_function(ind)
+            evaluate_individuals(self.population, objective_function, self.parameters.multi_objective)
 
-            on_next_iteration_callback(self.population)
+            if self.archive is not None:
+                self.archive.update(self.population)
 
-            self.log.info(f'Best metric is {self.best_individual.fitness}')
+            on_next_iteration_callback(self.population, self.archive)
+
+            self.log_info_about_best()
 
             for self.generation_num in range(self.requirements.num_of_generations - 1):
                 self.log.info(f'Generation num: {self.generation_num}')
+
                 self.num_of_gens_without_improvements = self.update_stagnation_counter()
                 self.log.info(
                     f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
@@ -145,6 +158,11 @@ class GPChainOptimiser:
                                                                population=self.population,
                                                                objective_function=objective_function,
                                                                chain_class=self.chain_class)
+
+                if self.parameters.multi_objective:
+                    filtered_archive_items = duplicates_filtration(archive=self.archive,
+                                                                   population=individuals_to_select)
+                    individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -158,8 +176,7 @@ class GPChainOptimiser:
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
-                    new_population[parent_num].fitness = objective_function(new_population[parent_num])
-                    new_population[parent_num + 1].fitness = objective_function(new_population[parent_num + 1])
+                evaluate_individuals(new_population, objective_function, self.parameters.multi_objective)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -167,42 +184,61 @@ class GPChainOptimiser:
                                               self.population,
                                               new_population, self.num_of_inds_in_next_pop)
 
-                if self.with_elitism:
+                if not self.parameters.multi_objective and self.with_elitism:
                     self.population.append(self.prev_best)
 
-                on_next_iteration_callback(self.population)
+                if self.archive is not None:
+                    self.archive.update(self.population)
+
+                on_next_iteration_callback(self.population, self.archive)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
-                self.log.info(f'Best metric is {self.best_individual.fitness}')
+                self.log_info_about_best()
 
                 if t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
                     break
 
-            best = self.best_individual
+            best = self.result_individual()
+            self.log.info('Result:')
+            self.log_info_about_best()
 
-            if self.requirements.add_single_model_chains and \
-                    (best_single_model.fitness <= best.fitness):
-                best = best_single_model
         return best
 
     @property
     def best_individual(self) -> Any:
-        return self.get_best_individual(self.population)
+        if self.parameters.multi_objective:
+            return self.archive
+        else:
+            return self.get_best_individual(self.population)
 
     @property
     def with_elitism(self) -> bool:
-        return self.requirements.pop_size > 1
+        if self.parameters.multi_objective:
+            return False
+        else:
+            return self.requirements.pop_size > 1
 
     @property
     def num_of_inds_in_next_pop(self):
-        return self.requirements.pop_size - 1 if self.with_elitism else self.requirements.pop_size
+        return self.requirements.pop_size - 1 if self.with_elitism and not self.parameters.multi_objective \
+            else self.requirements.pop_size
 
     def update_stagnation_counter(self) -> int:
         value = 0
         if self.generation_num != 0:
-            if self.is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness):
+            if self.parameters.multi_objective:
+                equal_best = is_equal_archive(self.prev_best, self.archive)
+            else:
+                equal_best = is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness)
+            if equal_best:
                 value = self.num_of_gens_without_improvements + 1
 
         return value
+
+    def log_info_about_best(self):
+        if self.parameters.multi_objective:
+            self.log.info(f'Pareto Frontier: {[item.fitness.values for item in self.archive.items]}')
+        else:
+            self.log.info(f'Best metric is {self.best_individual.fitness}')
 
     def max_depth_recount(self):
         if self.num_of_gens_without_improvements == self.parameters.depth_increase_step and \
@@ -227,7 +263,7 @@ class GPChainOptimiser:
         sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
-            is_fitness_equals_to_best = self.is_equal_fitness(best_ind.fitness, individuals[i].fitness)
+            is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
             has_less_num_of_models_than_best = len(individuals[i].nodes) < len(best_ind.nodes)
             if is_fitness_equals_to_best and has_less_num_of_models_than_best:
                 simpler_equivalents[i] = len(individuals[i].nodes)
@@ -239,14 +275,14 @@ class GPChainOptimiser:
                                  selected_individual_first,
                                  selected_individual_second,
                                  crossover_prob=self.requirements.crossover_prob,
-                                 max_depth=self.requirements.max_depth)
+                                 max_depth=self.max_depth, log=self.log)
         else:
             new_inds = [selected_individual_first]
 
         new_inds = tuple([mutation(types=self.parameters.mutation_types,
                                    chain_generation_params=self.chain_generation_params,
                                    chain=new_ind, requirements=self.requirements,
-                                   max_depth=self.max_depth) for new_ind in new_inds])
+                                   max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
 
         return new_inds
 
@@ -262,8 +298,11 @@ class GPChainOptimiser:
         single_models_inds = []
         for model in self.requirements.primary:
             single_models_ind = self.chain_class([self.primary_node_func(model)])
-            single_models_ind.fitness = objective_function(single_models_ind)
-            single_models_inds.append(single_models_ind)
+            single_models_ind.fitness = calculate_objective(single_models_ind, objective_function,
+                                                            self.parameters.multi_objective)
+            if single_models_ind.fitness is not None:
+                single_models_inds.append(single_models_ind)
+
         best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
         return best_inds[0], [i.nodes[0].model.model_type for i in best_inds][:num_best]
 
@@ -272,11 +311,25 @@ class GPChainOptimiser:
         if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
             num_of_new_individuals = math.ceil(self.requirements.pop_size * default_offspring_rate)
         else:
-            num_of_new_individuals = self.requirements.pop_size - 1
+            num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
 
     def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
-    def default_on_next_iteration_callback(self, individuals):
+    def default_on_next_iteration_callback(self, individuals, archive):
         self.history.add_to_history(individuals)
+        archive = deepcopy(archive)
+        if archive is not None:
+            self.history.add_to_archive_history(archive.items)
+
+    def result_individual(self) -> Any:
+        if not self.parameters.multi_objective:
+            best = self.best_individual
+
+            if self.requirements.add_single_model_chains and \
+                    (self.best_single_model.fitness <= best.fitness):
+                best = self.best_single_model
+        else:
+            best = self.archive
+        return best

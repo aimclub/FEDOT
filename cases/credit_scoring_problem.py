@@ -7,11 +7,11 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root
 
@@ -29,9 +29,10 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
+                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=150),
                                is_visualise=False,
-                               with_tuning=False):
+                               with_tuning=False,
+                               cache_path=None):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -40,8 +41,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
     # the choice of the metric for the chain quality assessment during composition
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
-
+    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
@@ -50,12 +50,15 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
     # GP optimiser parameters choice
-    scheme_type = GeneticSchemeTypesEnum.steady_state
+    scheme_type = GeneticSchemeTypesEnum.parameter_free
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_parameters(optimiser_parameters)
+    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters)
+
+    if cache_path:
+        builder = builder.with_cache(cache_path)
 
     # Create GP-based composer
     composer = builder.build()
@@ -70,13 +73,14 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     chain_evo_composed.fit(input_data=dataset_to_compose)
 
+    composer.history.write_composer_history_to_csv()
+
     if is_visualise:
         visualiser = ChainVisualiser()
 
         composer.log.debug('History visualization started')
         visualiser.visualise_history(composer.history)
         composer.log.debug('History visualization finished')
-        composer.history.write_composer_history_to_csv()
 
         composer.log.debug('Best chain visualization started')
         visualiser.visualise(chain_evo_composed)
@@ -91,7 +95,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     return roc_on_valid_evo_composed
 
 
-if __name__ == '__main__':
+def get_scoring_data():
     # the dataset was obtained from https://www.kaggle.com/c/GiveMeSomeCredit
 
     # a dataset that will be used as a train and test set during composition
@@ -103,4 +107,10 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/scoring/scoring_test.csv'
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True)
+    return full_path_train, full_path_test
+
+
+if __name__ == '__main__':
+    full_path_train, full_path_test = get_scoring_data()
+    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True,
+                               cache_path='credit_scoring_problem_cache')

@@ -1,4 +1,5 @@
 import os
+import pytest
 from datetime import timedelta
 
 from examples.chain_from_automl import run_chain_from_automl
@@ -7,6 +8,7 @@ from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.utils import project_root
 
 
+@pytest.mark.skip('test is not performed')
 def test_chain_from_automl_example():
     project_root_path = str(project_root())
     experimental_repo_path = os.path.join(project_root_path,

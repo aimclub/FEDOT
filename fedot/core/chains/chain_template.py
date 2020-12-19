@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import joblib
 
-from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
+from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.log import Log, default_log
 from fedot.core.models.atomized_template import AtomizedModelTemplate
 from fedot.core.models.model_template import ModelTemplate
@@ -28,6 +28,7 @@ class ChainTemplate:
         self.depth = chain.depth
         self.model_templates = []
         self.unique_chain_id = str(uuid4())
+        self.computation_time = chain.computation_time
 
         if not log:
             self.log = default_log(__name__)
@@ -212,8 +213,10 @@ class ChainTemplate:
 
             fitted_model = joblib.load(path_to_model)
             model_object.fitted_model = fitted_model
-            node.cache.append(CachedState(preprocessor=model_object.preprocessor,
-                                          model=fitted_model))
+            node.fitted_model = fitted_model
+            node.fitted_preprocessor = model_object.preprocessor
+            # node.cache.append(CachedState(preprocessor=model_object.preprocessor,
+            #                              model=fitted_model))
 
         nodes_from = [model_template for model_template in self.model_templates
                       if model_template.model_id in model_object.nodes_from]

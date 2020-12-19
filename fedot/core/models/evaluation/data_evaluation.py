@@ -89,7 +89,7 @@ class DataModellingStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         if not self._model_specific_fit:
-            return None
+            return object()
         else:
             return self._model_specific_fit(train_data, self.params_for_fit)
 

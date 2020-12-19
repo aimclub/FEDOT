@@ -3,9 +3,10 @@ from random import choice, random
 from typing import Any, List
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_operators import \
+from fedot.core.composer.optimisers.GPComp.gp_operators import \
     (equivalent_subtree, node_depth,
      nodes_from_height, replace_subtrees)
+from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -15,7 +16,7 @@ class CrossoverTypesEnum(Enum):
     none = 'none'
 
 
-def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int,
+def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int, log: Log,
               crossover_prob: float = 0.8) -> Any:
     type = choice(types)
     chain_first_copy = deepcopy(chain_first)
@@ -24,13 +25,22 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
         if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
             return [chain_first_copy, chain_second_copy]
         if type in crossover_by_type.keys():
+            number_of_attempts = 0
             is_correct = False
             while not is_correct:
+                number_of_attempts += 1
                 is_correct_chains = []
+                chain_first_copy = deepcopy(chain_first)
+                chain_second_copy = deepcopy(chain_second)
                 new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
                 for new_chain in new_chains:
                     is_correct_chains.append(constraint_function(new_chain))
                 is_correct = all(is_correct_chains)
+                if number_of_attempts == 10:
+                    new_chains = [chain_first_copy, chain_second_copy]
+                    log.debug(
+                        'Number of crossover attempts exceeded. Please check composer requirements for correctness.')
+                    break
             return new_chains
         else:
             raise ValueError(f'Required crossover not found: {type}')
