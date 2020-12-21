@@ -69,7 +69,7 @@ class Data:
     def from_text_meta_file(meta_file_path: str = None,
                             label: str = 'label',
                             task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.table):
+                            data_type: DataTypesEnum = DataTypesEnum.text):
 
         if os.path.isdir(meta_file_path):
             raise ValueError("""CSV file expected but got directory""")
@@ -89,7 +89,10 @@ class Data:
     def from_text_files(files_path: str,
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.table):
+                        data_type: DataTypesEnum = DataTypesEnum.text):
+
+        if os.path.isfile(files_path):
+            raise ValueError("""Path to the directory expected but got file""")
 
         df_text = TextBatchLoader(path=files_path).extract()
 

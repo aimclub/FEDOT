@@ -72,7 +72,7 @@
 	},
 	"text_classification": {
 	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.text]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
 	  "strategies": ["fedot.core.models.evaluation.vectorize", "VectorizeStrategy"],
