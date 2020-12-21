@@ -163,7 +163,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
 
     nodes_with_actual_cache = [node for node in chain.nodes if node not in [chain.root_node]]
 
-    # non-affected nodes of initial chain and fitted nodes of new subtree are actual
+    # non-affected nodes of initial chains and fitted nodes of new subtree are actual
     assert all([node.cache.actual_cached_state for node in nodes_with_actual_cache])
     # affected root node has no any actual cache
     assert not chain.root_node.cache.actual_cached_state
@@ -184,7 +184,7 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     nodes_with_non_actual_cache = [chain.root_node, root_parent_first]
     nodes_with_actual_cache = [node for node in chain.nodes if node not in nodes_with_non_actual_cache]
 
-    # non-affected nodes of initial chain and fitted nodes of new subtree are actual
+    # non-affected nodes of initial chains and fitted nodes of new subtree are actual
     assert all([node.cache.actual_cached_state for node in nodes_with_actual_cache])
     # affected root nodes and their childs has no any actual cache
     assert not any([node.cache.actual_cached_state for node in nodes_with_non_actual_cache])
@@ -194,7 +194,7 @@ def test_cache_historical_state_using(data_setup):
     train, _ = data_setup
     chain = chain_first()
 
-    # chain fitted, model goes to cache
+    # chains fitted, model goes to cache
     chain.fit(input_data=train)
     new_node = SecondaryNode(model_type='logit')
     old_node = chain.root_node.nodes_from[0]
@@ -204,7 +204,7 @@ def test_cache_historical_state_using(data_setup):
                       new_node=new_node)
     # cache is not actual
     assert not chain.root_node.cache.actual_cached_state
-    # fit modified chain
+    # fit modified chains
     chain.fit(input_data=train)
     # cache is actual now
     assert chain.root_node.cache.actual_cached_state

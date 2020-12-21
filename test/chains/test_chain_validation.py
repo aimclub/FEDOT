@@ -7,7 +7,7 @@ from fedot.core.chains.chain_validation import (has_correct_model_positions, has
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-ERROR_PREFIX = 'Invalid chain configuration:'
+ERROR_PREFIX = 'Invalid chains configuration:'
 
 
 def valid_chain():
@@ -180,7 +180,7 @@ def test_multi_root_chain_raise_exception():
 
     with pytest.raises(Exception) as exc:
         assert chain.root_node
-    assert str(exc.value) == f'{ERROR_PREFIX} More than 1 root_nodes in chain'
+    assert str(exc.value) == f'{ERROR_PREFIX} More than 1 root_nodes in chains'
 
 
 def test_chain_with_primary_nodes_correct():
