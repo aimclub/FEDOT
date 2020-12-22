@@ -39,8 +39,6 @@ class Node(ABC):
 
         self.model = Model(model_type=model_type)
 
-
-
     @property
     def descriptive_id(self):
         return self._descriptive_id_recursive(visited_nodes=[])

@@ -28,7 +28,7 @@ class ChainTemplate:
         self._extract_chain_structure(chain.root_node, 0, [])
         self.depth = chain.depth
 
-    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[str]):
+    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[Node]):
         """
         Recursively go through the Chain from 'root_node' to PrimaryNode's,
         creating a ModelTemplate with unique id for each Node. In addition,
@@ -37,10 +37,10 @@ class ChainTemplate:
         if node.nodes_from:
             nodes_from = []
             for node_parent in node.nodes_from:
-                if node_parent.descriptive_id in visited_nodes:
-                    nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
+                if node_parent in visited_nodes:
+                    nodes_from.append(visited_nodes.index(node_parent) + 1)
                 else:
-                    visited_nodes.append(node_parent.descriptive_id)
+                    visited_nodes.append(node_parent)
                     nodes_from.append(len(visited_nodes))
                     self._extract_chain_structure(node_parent, len(visited_nodes), visited_nodes)
         else:
@@ -192,7 +192,7 @@ class ModelTemplate:
         self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
 
-        if _is_node_fitted(node):
+        if _is_node_fitted(node) and not _is_node_has_type_direct_data_model(node):
             self.model_name = _extract_model_name(node)
             self._extract_fitted_model(node, chain_id)
             self.preprocessor = _extract_preprocessing_strategy(node)
@@ -207,7 +207,7 @@ class ModelTemplate:
 
     def _create_full_params(self, node: Node) -> dict:
         params = {}
-        if _is_node_fitted(node):
+        if _is_node_fitted(node) and not _is_node_has_type_direct_data_model(node):
             params = _extract_model_params(node)
             if isinstance(self.custom_params, dict):
                 for key, value in self.custom_params.items():
@@ -262,6 +262,10 @@ def _extract_model_name(node: Node):
 
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
+
+
+def _is_node_has_type_direct_data_model(node: Node) -> bool:
+    return bool(node.model.model_type == 'direct_data_model')
 
 
 def _extract_preprocessing_strategy(node: Node):
