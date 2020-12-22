@@ -76,7 +76,6 @@ class GPChainOptimiser:
         self.secondary_node_func = self.chain_generation_params.secondary_node_func
         self.chain_class = self.chain_generation_params.chain_class
         self.requirements = requirements
-        self.history = []
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
         self.max_depth = self.parameters.start_depth if self.parameters.with_auto_depth_configuration else \
             self.requirements.max_depth
@@ -104,15 +103,13 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5):
+    def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with CompositionTimer() as t:
-
-            self.history = []
 
             if self.requirements.add_single_model_chains:
                 best_single_model, self.requirements.primary = \
@@ -121,7 +118,8 @@ class GPChainOptimiser:
             for ind in self.population:
                 ind.fitness = objective_function(ind)
 
-            self._add_to_history(self.population)
+            if on_next_iteration_callback:
+                on_next_iteration_callback(self.population)
 
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -163,7 +161,8 @@ class GPChainOptimiser:
                 if self.with_elitism:
                     self.population.append(self.prev_best)
 
-                self._add_to_history(self.population)
+                if on_next_iteration_callback:
+                    on_next_iteration_callback(self.population)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -175,7 +174,7 @@ class GPChainOptimiser:
             if self.requirements.add_single_model_chains and \
                     (best_single_model.fitness <= best.fitness):
                 best = best_single_model
-        return best, self.history
+        return best
 
     @property
     def best_individual(self) -> Any:
@@ -250,9 +249,6 @@ class GPChainOptimiser:
             if constraint_function(chain):
                 model_chains.append(chain)
         return model_chains
-
-    def _add_to_history(self, individuals: List[Any]):
-        self.history.append(individuals)
 
     def _best_single_models(self, objective_function: Callable, num_best: int = 7):
         single_models_inds = []

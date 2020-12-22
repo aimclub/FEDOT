@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 from functools import partial
 from sys import maxsize as max_int_value
@@ -15,8 +14,6 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChai
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
-from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.composer.write_history import write_composer_history_to_csv
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
@@ -74,7 +71,8 @@ class GPComposer(Composer):
         self.shared_cache = {}
         self.optimiser = optimiser
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False) -> Chain:
+    def compose_chain(self, data: InputData, is_visualise: bool = False,
+                      is_tune: bool = False, on_next_iteration_callback=None) -> Chain:
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
@@ -84,18 +82,10 @@ class GPComposer(Composer):
         metric_function_for_nodes = partial(self.metric_for_nodes,
                                             self.metrics, train_data, test_data, True)
 
-        best_chain, self.history = self.optimiser.optimise(metric_function_for_nodes)
+        best_chain = self.optimiser.optimise(metric_function_for_nodes,
+                                             on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
-        if is_visualise:
-            historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
-            all_historical_fitness = list(itertools.chain(*historical_fitness))
-            historical_chains = list(itertools.chain(*self.history))
-            visualiser = ChainVisualiser()
-            visualiser.visualise_history(historical_chains, all_historical_fitness)
-
-        write_composer_history_to_csv(historical_chains=self.history)
 
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)

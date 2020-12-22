@@ -3,6 +3,8 @@ import os
 from typing import List
 from uuid import uuid4
 
+import networkx as nx
+
 import joblib
 
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
@@ -46,7 +48,8 @@ class ChainTemplate:
             nodes_from = []
 
         model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
-
+        if model_id == 0:
+            self.root_moodel = model_template
         self.model_templates.append(model_template)
         self._add_chain_type_to_state(model_template.model_type)
 
@@ -282,3 +285,21 @@ def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     root_node = _roll_chain_structure(root_node, {}, chain_template)
 
     return root_node
+
+
+def chain_template_as_nx_graph(chain: ChainTemplate):
+    graph = nx.DiGraph()
+    node_labels = {}
+    for model in chain.model_templates:
+        unique_id, label = model.model_id, model.model_type
+        node_labels[unique_id] = label
+        graph.add_node(unique_id)
+
+    def add_edges(graph, chain):
+        for model in chain.model_templates:
+            if model.nodes_from is not None:
+                for child in model.nodes_from:
+                    graph.add_edge(child, model.model_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels

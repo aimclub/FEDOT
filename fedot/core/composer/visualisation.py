@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image
 
 from fedot.core.chains.chain import Chain, as_nx_graph
+from fedot.utilities.synthetic.chain_template_new import chain_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
@@ -43,15 +44,21 @@ class ChainVisualiser:
         except Exception as ex:
             print(f'Visualisation failed with {ex}')
 
-    def _visualise_chain(self, chain: Chain, ax=None, title=None):
-        pos, node_labels = self._draw_tree(chain, ax, title)
+    def _visualise_chain(self, chain: Chain, ax=None, title=None,
+                         in_graph_convertet_function=as_nx_graph):
+        pos, node_labels = self._draw_tree(chain, ax, title, in_graph_convertet_function)
         self._draw_labels(pos, node_labels, ax)
 
-    def _draw_tree(self, chain: Chain, ax=None, title=None):
-        graph, node_labels = as_nx_graph(chain=chain)
-        word_labels = list(node_labels.values())
+    def _draw_tree(self, chain: Chain, ax=None, title=None,
+                   in_graph_convertet_function=as_nx_graph):
+        graph, node_labels = in_graph_convertet_function(chain=chain)
+        word_labels = [str(node) for node in node_labels.values()]
         inv_map = {v: k for k, v in node_labels.items()}
-        pos = hierarchy_pos(graph.to_undirected(), root=inv_map[str(chain.root_node)])
+        if type(chain) is Chain:
+            root = inv_map[chain.root_node]
+        else:
+            root = 0
+        pos = hierarchy_pos(graph.to_undirected(), root=root)
         min_size = 3000
         node_sizes = [min_size for _ in word_labels]
         if title:
@@ -64,7 +71,7 @@ class ChainVisualiser:
 
     def _draw_labels(self, pos, node_labels, ax):
         for node, (x, y) in pos.items():
-            text = '\n'.join(node_labels[node].split('_'))
+            text = '\n'.join(str(node_labels[node]).split('_'))
             if ax is None:
                 ax = plt
             ax.text(x, y, text, ha='center', va='center')
@@ -75,7 +82,8 @@ class ChainVisualiser:
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
         for ch_id, chain in enumerate(chains):
-            self._visualise_chain(chain, title='Current chain')
+            self._visualise_chain(chain, title='Current chain',
+                                  in_graph_convertet_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.chains_imgs.append(img)
@@ -86,7 +94,8 @@ class ChainVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self._visualise_chain(last_best_chain, title=f'Best chain after {round(ch_id)} evals')
+            self._visualise_chain(last_best_chain, title=f'Best chain after {round(ch_id)} evals',
+                                  in_graph_convertet_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_chains_imgs.append(img)
@@ -121,12 +130,11 @@ class ChainVisualiser:
             plt.clf()
         plt.close('all')
 
-    def visualise_history(self, chains, fitnesses):
-        print('START VISUALISATION')
+    def visualise_history(self, history):
         try:
             self._clean(with_gif=True)
-            self._visualise_chains(chains, fitnesses)
-            self._visualise_convergence(fitnesses)
+            self._visualise_chains(history.historical_chains, history.all_historical_fitness)
+            self._visualise_convergence(history.all_historical_fitness)
             self._merge_images()
             self._combine_gifs()
             self._clean()

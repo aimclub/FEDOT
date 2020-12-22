@@ -9,6 +9,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
+from fedot.core.composer.gp_opt_history import GPOptHistory
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
@@ -30,7 +31,8 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
                                max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
-                               is_visualise=False):
+                               is_visualise=False,
+                               with_tuning=False):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -59,18 +61,31 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # Create GP-based composer
     composer = builder.build()
 
+    history = GPOptHistory()
+
     # the optimal chain generation by composition - the most time-consuming task
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                                is_visualise=True)
+                                                is_visualise=True,
+                                                on_next_iteration_callback=history.add_to_history)
 
-    chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
-                                               iterations=50)
+    if with_tuning:
+        chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
+                                                   iterations=50, verbose=True)
 
     chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
 
     if is_visualise:
         visualiser = ChainVisualiser()
+
+        composer.log.info('History visualization started')
+        history.prepare_for_visualisation()
+        visualiser.visualise_history(history)
+        composer.log.info('History visualization finished')
+        history.write_composer_history_to_csv()
+
+        composer.log.info('Best chain visualization started')
         visualiser.visualise(chain_evo_composed)
+        composer.log.info('Best chain visualization finished')
 
     # the quality assessment for the obtained composite models
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
