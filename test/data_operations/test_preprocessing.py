@@ -4,7 +4,7 @@ from sklearn.datasets import load_iris
 
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
-from fedot.core.data.preprocessing import Normalization
+from fedot.core.data.preprocessing import Normalization, TextPreprocessingStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
