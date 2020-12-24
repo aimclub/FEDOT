@@ -1,7 +1,8 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric, SilhouetteMetric, \
-    StructuralComplexityMetric
+
+from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, \
+    RocAucMetric, StructuralComplexityMetric
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -17,11 +18,7 @@ class ComplexityMetricsEnum(MetricsEnum):
     node_num = 'node_number'
     structural = 'structural'
 
-
-class ClusteringMetricsEnum(QualityMetricsEnum):
-    silhouette = 'silhouette'
-
-
+    
 class ClassificationMetricsEnum(QualityMetricsEnum):
     ROCAUC = 'roc_auc'
     ROCAUC_penalty = 'roc_auc_pen'
@@ -43,8 +40,7 @@ class MetricsRepository:
         RegressionMetricsEnum.RMSE: RmseMetric.get_value,
         RegressionMetricsEnum.RMSE_penalty: RmseMetric.get_value_with_penalty,
         ClassificationMetricsEnum.f1: F1Metric.get_value,
-        ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value,
-        ClusteringMetricsEnum.silhouette: SilhouetteMetric.get_value
+        ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value
     }
 
     def metric_by_id(self, metric_id: MetricsEnum) -> Callable:

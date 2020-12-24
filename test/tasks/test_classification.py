@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
