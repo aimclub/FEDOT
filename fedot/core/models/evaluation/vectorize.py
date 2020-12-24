@@ -2,6 +2,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
+from datetime import timedelta
 
 
 class VectorizeStrategy(EvaluationStrategy):
@@ -23,3 +24,7 @@ class VectorizeStrategy(EvaluationStrategy):
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
         return trained_model.transform(list(predict_data.features)).toarray()
+
+    def fit_tuned(self, train_data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
+        raise NotImplementedError()
