@@ -3,10 +3,10 @@ import tarfile
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.composer.chain import Chain
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.models.preprocessing import TextPreprocessingStrategy, EmptyStrategy
+from fedot.core.data.preprocessing import TextPreprocessingStrategy, EmptyStrategy
 
 
 def unpack_archived_data():
