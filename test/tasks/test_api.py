@@ -64,7 +64,7 @@ def test_api_output_correct():
     prediction = model.predict(features=test_data)
     metric = model.quality_metric()
     assert type(fedot_model) != Fedot
-    assert type(prediction) != np.ndarray
+    assert type(prediction) != np.array
     assert type(metric) != float
 
 
