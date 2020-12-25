@@ -1,10 +1,13 @@
 import numpy as np
 import pytest
+from sklearn.metrics import mean_absolute_error
 from statsmodels.tsa.arima_process import ArmaProcess
 
+from examples.time_series_gapfilling_example import generate_synthetic_data
 from fedot.core.algorithms.time_series.prediction import ts_mse
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -232,3 +235,41 @@ def test_forecasting_multilinear_chain_fit_correct():
     rmse_threshold = np.std(test_data.target)
     assert rmse_on_test < rmse_threshold
     assert test_prediction.predict[0] != test_prediction.predict[1]
+
+
+def test_ts_single_chain_model_without_multiotput_support():
+    time_series = generate_synthetic_data(10)
+    len_forecast = 2
+    train_part = time_series[:-len_forecast]
+    test_part = time_series[-len_forecast:]
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=len_forecast,
+                                    max_window_size=2,
+                                    return_all_steps=False,
+                                    make_future_prediction=True))
+
+    train_data = InputData(idx=np.arange(0, len(train_part)),
+                           features=None,
+                           target=train_part,
+                           task=task,
+                           data_type=DataTypesEnum.ts)
+
+    for model_id in ['xgbreg', 'gbr', 'adareg', 'svr', 'sgdr']:
+        chain = TsForecastingChain(PrimaryNode(model_id))
+
+        # making predictions for the missing part in the time series
+        chain.fit_from_scratch(train_data)
+
+        # data for making prediction for a specific length
+        test_data = InputData(idx=np.arange(0, len_forecast),
+                              features=None,
+                              target=None,
+                              task=task,
+                              data_type=DataTypesEnum.ts)
+
+        predicted_values = chain.forecast(initial_data=train_data,
+                                          supplementary_data=test_data).predict
+
+        mae = mean_absolute_error(test_part, predicted_values)
+        assert mae < 50

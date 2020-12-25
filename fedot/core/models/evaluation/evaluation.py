@@ -16,6 +16,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
 from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
@@ -30,6 +31,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
 from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -147,7 +149,23 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_model = self._sklearn_model_impl()
 
-        sklearn_model.fit(train_data.features, train_data.target)
+        try:
+            sklearn_model.fit(train_data.features, train_data.target)
+        except ValueError as ex:
+            if len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1:
+                # if the prediction requires multivariate target and models do not support it
+                if train_data.task.task_type == TaskTypesEnum.classification:
+                    multiout_func = MultiOutputClassifier
+                elif train_data.task.task_type in \
+                        [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+                    multiout_func = MultiOutputRegressor
+                else:
+                    raise ex
+                # apply MultiOutput
+                sklearn_model = multiout_func(sklearn_model)
+                sklearn_model.fit(train_data.features, train_data.target)
+            else:
+                raise ex
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
