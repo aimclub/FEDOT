@@ -13,8 +13,8 @@ from test.tasks.test_forecasting import get_synthetic_ts_data_linear
 from test.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 2,
-                   'max_arity': 3,
-                   'learning_time': 2}
+                   'max_arity': 2,
+                   'learning_time': 1}
 
 
 def get_split_data_paths():
@@ -57,8 +57,8 @@ def get_dataset(task_type: str):
 
 
 def test_api_output_correct():
-    train_data, test_data, threshold = get_dataset('regression')
-    model = Fedot(ml_task='regression',
+    train_data, test_data, threshold = get_dataset('classification')
+    model = Fedot(ml_task='classification',
                   composer_params=composer_params)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
@@ -68,21 +68,7 @@ def test_api_output_correct():
     assert type(metric) != float
 
 
-def test_api_predict_userdata_correct():
-    task_type, x_train, x_test, y_train, y_test = get_split_data()
-    model = Fedot(ml_task=task_type)
-
-    model.fit(features=x_train,
-              target=y_train)
-    model.predict(features=x_test)
-
-    metric = model.quality_metric(target=y_test)
-    threshold = np.std(y_test)
-
-    assert metric < threshold
-
-
-def test_api_predict_correct(task_type: str = 'regression'):
+def test_api_predict_correct(task_type: str = 'classification'):
     train_data, test_data, threshold = get_dataset(task_type)
     model = Fedot(ml_task=task_type,
                   composer_params=composer_params)

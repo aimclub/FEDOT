@@ -43,10 +43,9 @@ def array_to_input_data(features_array: np.array,
 
 
 def only_light_model_types(available_model_types: list,
-                           model_configuration: str = 'Light'):
+                           model_configuration: str):
     custom_models_dict = {'Light': ['mlp', 'svc'],
-                          'Default': [],
-                          None: []}
+                          'Default': []}
     custom_models = custom_models_dict[model_configuration]
 
     available_model_types = [model for model in available_model_types if model not in custom_models]
@@ -62,7 +61,7 @@ def compose_fedot_model(train_data: InputData,
                         num_of_generations: int,
                         learning_time: int = 5,
                         model_types: list = None,
-                        model_configuration: str = None,
+                        model_configuration: str = 'Light',
                         ):
     # the choice of the metric for the chain quality assessment during composition
     metric_function = get_metric_function(task)
