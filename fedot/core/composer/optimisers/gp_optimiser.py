@@ -103,7 +103,11 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
+    def optimise(self, objective_function, offspring_rate: float = 0.5,
+                 on_next_iteration_callback: Optional[Callable] = None):
+        if on_next_iteration_callback is None:
+            on_next_iteration_callback = lambda pop: None
+
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
 
@@ -118,8 +122,7 @@ class GPChainOptimiser:
             for ind in self.population:
                 ind.fitness = objective_function(ind)
 
-            if on_next_iteration_callback:
-                on_next_iteration_callback(self.population)
+            on_next_iteration_callback(self.population)
 
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -161,8 +164,7 @@ class GPChainOptimiser:
                 if self.with_elitism:
                     self.population.append(self.prev_best)
 
-                if on_next_iteration_callback:
-                    on_next_iteration_callback(self.population)
+                on_next_iteration_callback(self.population)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log.info(f'Best metric is {self.best_individual.fitness}')
 

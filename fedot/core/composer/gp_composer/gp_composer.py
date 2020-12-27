@@ -72,7 +72,7 @@ class GPComposer(Composer):
         self.optimiser = optimiser
 
     def compose_chain(self, data: InputData, is_visualise: bool = False,
-                      is_tune: bool = False, on_next_iteration_callback=None) -> Chain:
+                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
@@ -83,7 +83,7 @@ class GPComposer(Composer):
                                             self.metrics, train_data, test_data, True)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
-                                             on_next_iteration_callback=on_next_iteration_callback)
+                                             on_next_iteration_callback = on_next_iteration_callback)
 
         self.log.info('GP composition finished')
 

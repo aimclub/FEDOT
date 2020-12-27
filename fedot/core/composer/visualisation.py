@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 
-from fedot.core.chains.chain import Chain, as_nx_graph
+from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.utilities.synthetic.chain_template_new import chain_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
@@ -30,7 +30,8 @@ class ChainVisualiser:
         self.best_chains_imgs = []
         self.merged_imgs = []
 
-    def visualise(self, chain: Chain, save_path: Optional[str] = None, params_save_path: Optional[str] = None):
+    def visualise(self, chain: Chain, save_path: Optional[str] = None,
+                  params_save_path: Optional[str] = None):
         try:
             fig, axs = plt.subplots(figsize=(9, 9))
             fig.suptitle('Current chain')
@@ -45,13 +46,13 @@ class ChainVisualiser:
             print(f'Visualisation failed with {ex}')
 
     def _visualise_chain(self, chain: Chain, ax=None, title=None,
-                         in_graph_convertet_function=as_nx_graph):
-        pos, node_labels = self._draw_tree(chain, ax, title, in_graph_convertet_function)
+                         in_graph_converter_function=chain_as_nx_graph):
+        pos, node_labels = self._draw_tree(chain, ax, title, in_graph_converter_function)
         self._draw_labels(pos, node_labels, ax)
 
     def _draw_tree(self, chain: Chain, ax=None, title=None,
-                   in_graph_convertet_function=as_nx_graph):
-        graph, node_labels = in_graph_convertet_function(chain=chain)
+                   in_graph_converter_function=chain_as_nx_graph):
+        graph, node_labels = in_graph_converter_function(chain=chain)
         word_labels = [str(node) for node in node_labels.values()]
         inv_map = {v: k for k, v in node_labels.items()}
         if type(chain) is Chain:
@@ -83,7 +84,7 @@ class ChainVisualiser:
         fig = plt.figure(figsize=(10, 10))
         for ch_id, chain in enumerate(chains):
             self._visualise_chain(chain, title='Current chain',
-                                  in_graph_convertet_function=chain_template_as_nx_graph)
+                                  in_graph_converter_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.chains_imgs.append(img)
@@ -95,7 +96,7 @@ class ChainVisualiser:
             prev_fit = fitnesses[ch_id]
             plt.clf()
             self._visualise_chain(last_best_chain, title=f'Best chain after {round(ch_id)} evals',
-                                  in_graph_convertet_function=chain_template_as_nx_graph)
+                                  in_graph_converter_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_chains_imgs.append(img)

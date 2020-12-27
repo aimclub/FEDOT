@@ -274,7 +274,7 @@ class SharedChain(Chain):
         return chain
 
 
-def as_nx_graph(chain: Chain):
+def chain_as_nx_graph(chain: Chain):
     graph = nx.DiGraph()
     node_labels = {}
     new_node_idx = {}
