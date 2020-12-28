@@ -6,7 +6,7 @@ from fedot.core.composer.visualisation import hierarchy_pos
 from fedot.utilities.synthetic.chain_template_new import chain_template_as_nx_graph, ChainTemplate
 
 
-def chain_first(): # tested chain
+def chain_first():  # tested chain
     #    XG
     #  |     \
     # XG     KNN
@@ -34,8 +34,8 @@ def test_chain_template_as_nx_graph():
     chain_template = ChainTemplate(chain)
     graph, node_labels = chain_template_as_nx_graph(chain=chain_template)
 
-    assert len(graph.nodes) == len(chain.nodes) #check node quantity
-    assert node_labels[0] == str(chain.root_node) #check root node
+    assert len(graph.nodes) == len(chain.nodes)  # check node quantity
+    assert node_labels[0] == str(chain.root_node)  # check root node
 
 
 def make_comparable_lists(pos, real_hierachly_levels, node_labels, dim, reverse):
@@ -44,6 +44,7 @@ def make_comparable_lists(pos, real_hierachly_levels, node_labels, dim, reverse)
         for pair in hierachly_levels:
             levels.append(sorted(pair[1]))
         return levels
+
     computed_hierachly_levels = {}
     for node in pos:
         level = pos[node][dim]
@@ -62,10 +63,10 @@ def make_comparable_lists(pos, real_hierachly_levels, node_labels, dim, reverse)
 
 def test_hierarchy_pos():
     chain = chain_first()
-    real_hierachly_levels_y = { 0 : ['xgboost'], 1 : ['xgboost', 'knn'],
-                                2 : ['logit', 'lda', 'logit', 'lda']}
+    real_hierachly_levels_y = {0: ['xgboost'], 1: ['xgboost', 'knn'],
+                               2: ['logit', 'lda', 'logit', 'lda']}
     real_hierachly_levels_x = {0: ['logit'], 1: ['xgboost'], 2: ['lda'],
-                               3:['xgboost'], 4:['logit'], 5:['knn'], 6:['lda']}
+                               3: ['xgboost'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
     chain_template = ChainTemplate(chain)
     graph, node_labels = chain_template_as_nx_graph(chain=chain_template)
     pos = hierarchy_pos(graph.to_undirected(), root=0)
@@ -73,5 +74,5 @@ def test_hierarchy_pos():
                                                node_labels, 1, reverse=True)
     comparable_lists_x = make_comparable_lists(pos, real_hierachly_levels_x,
                                                node_labels, 0, reverse=False)
-    assert comparable_lists_y[0] == comparable_lists_y[1] # check nodes hierachy by y axis
-    assert comparable_lists_x[0] == comparable_lists_x[1] # check nodes hierachy by x axis
+    assert comparable_lists_y[0] == comparable_lists_y[1]  # check nodes hierachy by y axis
+    assert comparable_lists_x[0] == comparable_lists_x[1]  # check nodes hierachy by x axis

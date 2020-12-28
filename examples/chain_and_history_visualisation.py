@@ -26,6 +26,7 @@ def chain_first():
     chain.add_node(root_of_tree)
     return chain
 
+
 def generate_history(generations_quantity, pop_size):
     history = GPOptHistory()
     for gen in range(generations_quantity):
@@ -36,6 +37,7 @@ def generate_history(generations_quantity, pop_size):
             new_pop.append(chain)
         history.add_to_history(new_pop)
     return history
+
 
 if __name__ == '__main__':
     generations_quantity = 2

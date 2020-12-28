@@ -168,7 +168,7 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_terminated_evolution.compose_chain(
         data=data,
-        on_next_iteration_callback = history_terminated_evolution.add_to_history
+        on_next_iteration_callback=history_terminated_evolution.add_to_history
     )
 
     req_completed_evolution = GPComposerRequirements(

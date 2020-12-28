@@ -5,6 +5,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.utilities.synthetic.chain_template_new import ChainTemplate
 from fedot.core.composer.gp_opt_history import GPOptHistory
 
+
 def create_chain():
     first = PrimaryNode(model_type='logit')
     second = PrimaryNode(model_type='lda')
@@ -16,6 +17,7 @@ def create_chain():
         chain.fitness = 1
     return chain
 
+
 def generate_history(generations_quantity, pop_size):
     history = GPOptHistory()
     for gen in range(generations_quantity):
@@ -26,6 +28,7 @@ def generate_history(generations_quantity, pop_size):
         history.add_to_history(new_pop)
     return history
 
+
 def test_history_adding():
     generations_quantity = 2
     pop_size = 10
@@ -35,6 +38,7 @@ def test_history_adding():
     for gen in range(generations_quantity):
         assert len(history.history[gen]) == pop_size
 
+
 def test_convert_chain_to_chain_template():
     generations_quantity = 2
     pop_size = 10
@@ -42,6 +46,7 @@ def test_convert_chain_to_chain_template():
     for gen in range(generations_quantity):
         for chain in range(pop_size):
             assert type(history.history[gen][chain]) == ChainTemplate
+
 
 def test_prepare_for_visualisation():
     generations_quantity = 2

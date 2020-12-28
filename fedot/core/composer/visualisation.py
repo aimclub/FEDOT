@@ -235,7 +235,7 @@ def hierarchy_pos(graph, root, levels=None, width=1., height=1.):
     def make_levels(levels, node=root, current_level=0, parent=None):
         """Compute the number of nodes for each level
         """
-        if not current_level in levels:
+        if current_level not in levels:
             levels[current_level] = {total: 0, cur: 0}
         levels[current_level][total] += 1
         neighbors = graph.neighbors(node)
@@ -258,6 +258,6 @@ def hierarchy_pos(graph, root, levels=None, width=1., height=1.):
     if levels is None:
         levels = make_levels({})
     else:
-        levels = {l: {total: levels[l], cur: 0} for l in levels}
-    vert_gap = height / (max([l for l in levels]) + 1)
+        levels = {level: {total: levels[level], cur: 0} for level in levels}
+    vert_gap = height / (max([level for level in levels]) + 1)
     return make_pos({})

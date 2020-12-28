@@ -83,7 +83,7 @@ class GPComposer(Composer):
                                             self.metrics, train_data, test_data, True)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
-                                             on_next_iteration_callback = on_next_iteration_callback)
+                                             on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
 

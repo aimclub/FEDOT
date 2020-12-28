@@ -43,7 +43,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         self.requirements.pop_size = self.iterator.next()
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback = None):
+                 on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = lambda pop: None
 
