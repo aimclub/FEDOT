@@ -3,14 +3,13 @@ from datetime import timedelta
 from typing import Callable, Tuple, Union
 
 from numpy.random import choice as nprand_choice, randint
-from sklearn.metrics import make_scorer, mean_squared_error, roc_auc_score
-from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import make_scorer, mean_squared_error, mean_squared_error as mse, roc_auc_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
 from skopt import BayesSearchCV
 
 from fedot.core.composer.timer import TunerTimer
-from fedot.core.log import default_log, Log
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.log import Log, default_log
 from fedot.core.models.tuning.tuner_adapter import HyperoptAdapter
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -70,7 +69,7 @@ class Tuner:
     def _is_score_better(self, previous, current):
         __compare = {
             TaskTypesEnum.classification: operator.gt,
-            TaskTypesEnum.regression: operator.lt
+            TaskTypesEnum.regression: operator.gt
         }
         comparison = __compare.get(self.tune_data.task.task_type)
         try:
@@ -97,6 +96,7 @@ class SklearnTuner(Tuner):
 
     :param search_strategy: strategy used for hyperparameter searching (i.e. random, Bayes, etc.)
     """
+
     def __init__(self, trained_model, tune_data: InputData,
                  params_range: dict,
                  cross_val_fold_num: int,
@@ -129,6 +129,7 @@ class SklearnRandomTuner(SklearnTuner):
     """
     Sklearn tuning strategy using RandomSearchCV
     """
+
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = RandomizedSearchCV(estimator=self.trained_model,
                                                   param_distributions=self.params_range,
@@ -142,6 +143,7 @@ class SklearnGridSearchTuner(SklearnTuner):
     """
     Sklearn tuning strategy using GridSearchCV
     """
+
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = GridSearchCV(estimator=self.trained_model,
                                             param_grid=self.params_range,
@@ -154,6 +156,7 @@ class SklearnBayesSearchCV(SklearnTuner):
     """
     Sklearn tuning strategy using BayesSearchCV
     """
+
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         self.search_strategy = BayesSearchCV(estimator=self.trained_model,
                                              search_spaces=self.params_range,
@@ -167,12 +170,13 @@ class SklearnCustomRandomTuner(Tuner):
     """
     Sklearn tuning strategy using customized version of RandomSearch with cross validation
     """
+
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
             with TunerTimer() as timer:
                 best_model = self.trained_model
-                best_score, best_params = self.get_cross_val_score_and_params(best_model)
-                for iteration in range(self.max_iterations):
+                best_score, best_params = self.default_score, self.default_params
+                for _ in range(self.max_iterations):
                     params = {k: nprand_choice(v) for k, v in self.params_range.items()}
                     self.trained_model.set_params(**params)
                     score, _ = self.get_cross_val_score_and_params(self.trained_model)
@@ -193,6 +197,7 @@ class ForecastingCustomRandomTuner:
     """
     Tuning strategy used for forecasting models
     """
+
     def __init__(self, **kwargs):
         if 'log' not in kwargs:
             self.logger = default_log(__name__)
@@ -283,6 +288,7 @@ class TPETuner(Tuner):
     """
     Tuning strategy using Tree Parzen Estimator from hyperopt library
     """
+
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
             adapter = HyperoptAdapter(self)

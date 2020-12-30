@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 
 from fedot.core.algorithms.time_series.scale import estimate_period, split_ts_to_components
-from fedot.core.models.data import InputData
+from fedot.core.data.data import InputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
@@ -71,7 +71,7 @@ def fit_pca(train_data: InputData, params: Optional[dict]):
 
 
 def predict_pca(pca_model, predict_data: InputData):
-    return pca_model.transform(predict_data.features)[:, :pca_model.last_component_ind]
+    return pca_model.transform(predict_data.features)[:, :(pca_model.last_component_ind + 1)]
 
 
 class DataModellingStrategy(EvaluationStrategy):

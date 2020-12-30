@@ -119,10 +119,19 @@ Finally, you can test the resulted model on the validation dataset:
                                                           dataset_to_validate)
   print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
 
+Examples & Tutorials
+====================
+
+Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
+
+* `Time series forecasting tutorial <https://github.com/nccr-itmo/FEDOT/tree/master/notebooks/time_series_forecasting/Time%20series%20forecasting%20with%20FEDOT.ipynb>`__
+
 Extended examples:
 
 - Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
+- Spam detection, i.e. `natural language preprocessing <https://github.com/nccr-itmo/FEDOT/blob/master/cases/spam_detection.py>`__
+
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
 

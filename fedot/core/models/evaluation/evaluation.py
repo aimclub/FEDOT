@@ -17,6 +17,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
+from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
@@ -24,8 +25,8 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from fedot.core.log import default_log, Log
-from fedot.core.models.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
 from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
@@ -39,7 +40,7 @@ class EvaluationStrategy:
     the certain sklearn or any other model with fit/predict methods.
 
     :param model_type: str type of the model defined in model repository
-    :param dict params: hyperparamters to fit the model with
+    :param dict params: hyperparameters to fit the model with
     :param Log log: Log object to record messages
     """
 
@@ -47,6 +48,8 @@ class EvaluationStrategy:
                  log=None):
         self.params_for_fit = params
         self.model_type = model_type
+
+        self.output_mode = False
 
         if not log:
             self.log: Log = default_log(__name__)
@@ -74,6 +77,7 @@ class EvaluationStrategy:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         """
@@ -121,7 +125,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svc': CustomSVC,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
-        'bernb': SklearnBernoulliNB
+        'bernb': SklearnBernoulliNB,
+        'multinb': SklearnMultinomialNB,
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
@@ -211,12 +216,16 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :return: prediction target
         """
         n_classes = len(trained_model.classes_)
-        prediction = trained_model.predict_proba(predict_data.features)
-        if n_classes < 2:
-            raise NotImplementedError()
-        elif n_classes == 2:
-            prediction = prediction[:, 1]
-
+        if self.output_mode == 'labels':
+            prediction = trained_model.predict(predict_data.features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_model.predict_proba(predict_data.features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
         return prediction
 
 

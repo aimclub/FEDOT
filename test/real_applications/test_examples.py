@@ -1,6 +1,10 @@
 import os
 from datetime import timedelta
 
+import numpy as np
+
+from sklearn.metrics import mean_squared_error
+from examples.time_series_gapfilling_example import run_gapfilling_example
 from examples.forecasting_model_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
 from examples.time_series_forecasting import (run_multistep_composite_example, run_multistep_linear_example,
@@ -33,3 +37,18 @@ def test_multiclass_example():
 
     chain = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
     assert chain is not None
+
+
+def test_gapfilling_example():
+    arrays_dict, gap_data, real_data = run_gapfilling_example()
+
+    gap_ids = np.ravel(np.argwhere(gap_data == -100.0))
+    for key in arrays_dict.keys():
+        arr_without_gaps = arrays_dict.get(key)
+
+        # Get only values in the gap
+        predicted_values = arr_without_gaps[gap_ids]
+        true_values = real_data[gap_ids]
+
+        model_rmse = mean_squared_error(true_values, predicted_values, squared=False)
+        assert model_rmse < 0.5

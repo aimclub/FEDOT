@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_iris
 
-from fedot.core.composer.node import PrimaryNode
-from fedot.core.models.data import InputData
-from fedot.core.models.preprocessing import Normalization
+from fedot.core.chains.node import PrimaryNode
+from fedot.core.data.data import InputData
+from fedot.core.data.preprocessing import Normalization, TextPreprocessingStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -38,3 +38,21 @@ def test_node_with_manual_preprocessing_has_correct_behaviour_and_attributes(dat
     assert not np.array_equal(default_node_prediction.predict, manual_node_prediction.predict)
 
     assert node_manual.descriptive_id == '/n_logit_default_params_custom_preprocessing=Normalization'
+
+
+def test_text_preprocessing_strategy():
+    test_text = [
+        'This is the first document.',
+        'This document is the second document.',
+        'And this is the third one.',
+        'Is this the first document?',
+    ]
+
+    preproc_strategy = TextPreprocessingStrategy()
+
+    fit_result = preproc_strategy.fit(test_text)
+
+    apply_result = preproc_strategy.apply(test_text)
+
+    assert isinstance(fit_result, TextPreprocessingStrategy)
+    assert apply_result[0] != test_text[0]
