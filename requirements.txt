@@ -23,5 +23,4 @@ tensorflow==2.3.1; python_version == '3.8'
 nltk==3.5
 scikit-learn~=0.22.1
 opencv-python~=4.4.0.46
-scipy~=1.5.4
-setuptools~=50.3.2
+scipy==1.4.1
