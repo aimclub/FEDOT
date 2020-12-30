@@ -77,7 +77,7 @@ class Data:
         :param labels: name of target column (last column if empty and no target if None)
         :param task: the task that should be solved with data
         :param data_type: the type of data interpretation
-        :param aug_flag:
+        :param aug_flag: function that provides opportunity to create augmented data
 
         :return:
         """
