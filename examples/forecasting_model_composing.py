@@ -27,7 +27,6 @@ def get_composite_multiscale_chain():
 
     node_final = SecondaryNode('linear',
                                nodes_from=[node_ridge_residual, node_lstm_trend])
-    node_final.labels = ['fixed']
     chain.add_node(node_final)
     return chain
 
@@ -40,8 +39,7 @@ def get_ensemble_chain():
         chain.add_node(node)
         nodes_list.append(node)
 
-    node_final = SecondaryNode('linear',
-                               nodes_from=nodes_list)
+    node_final = SecondaryNode('linear', nodes_from=nodes_list)
     chain.add_node(node_final)
     return chain
 
@@ -87,7 +85,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     # specify the task to solve
     task_to_solve = Task(TaskTypesEnum.ts_forecasting,
                          TsForecastingParams(forecast_length=forecast_length,
-                                             max_window_size=max_window_size))
+                                             max_window_size=max_window_size,
+                                             return_all_steps=False))
 
     full_path_train = os.path.join(str(project_root()), train_file_path)
     dataset_to_train = InputData.from_csv(
@@ -117,7 +116,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     multiscale_chain.fit(input_data=dataset_to_train, verbose=False)
     calculate_validation_metric(
         multiscale_chain.predict(dataset_to_validate), dataset_to_validate,
-        is_visualise=with_visualisation, label='Fixed composite')
+        is_visualise=with_visualisation, label='Fixed multiscale')
 
     # static all-in-one ensemble chain
     ens_chain = get_ensemble_chain()
@@ -143,7 +142,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                    is_visualise=False)
     chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
 
-    ComposerVisualiser.visualise(chain)
+    if with_visualisation:
+        ComposerVisualiser.visualise(chain)
 
     calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,
@@ -174,7 +174,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                    is_visualise=False)
     chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
 
-    ComposerVisualiser.visualise(chain)
+    if with_visualisation:
+        ComposerVisualiser.visualise(chain)
 
     rmse_on_valid = calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,
@@ -195,5 +196,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    run_metocean_forecasting_problem(full_path_train, full_path_test, forecast_length=6, max_window_size=24,
+    run_metocean_forecasting_problem(full_path_train, full_path_test, forecast_length=24, max_window_size=72,
                                      with_visualisation=False)

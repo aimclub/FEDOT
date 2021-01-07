@@ -25,13 +25,17 @@ class TsForecastingChain(Chain):
         if supplementary_data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise ValueError('TsForecastingChain can be used for the ts_forecasting task only.')
 
+        forecast_length = supplementary_data.task.task_params.forecast_length
+
         supplementary_data_for_forecast = copy(supplementary_data)
         supplementary_data_for_forecast.task.task_params.make_future_prediction = True
+        # if forecast_length > 1:
+        supplementary_data_for_forecast.task.task_params.return_all_steps = False
 
         initial_data_for_forecast = copy(initial_data)
         initial_data_for_forecast.task.task_params.make_future_prediction = True
-
-        forecast_length = supplementary_data_for_forecast.task.task_params.forecast_length
+        # if forecast_length > 1:
+        initial_data_for_forecast.task.task_params.return_all_steps = False
 
         # check if predict features contains additional (exogenous) variables
         with_exog = supplementary_data_for_forecast.features is not None
