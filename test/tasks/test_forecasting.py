@@ -216,7 +216,8 @@ def test_forecasting_composite_lstm_chain_fit_correct():
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
 
     chain = get_multiscale_chain()
-
+    # TODO remove workaround for different input/output shape
+    train_data.task.task_params.return_all_steps = True
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
