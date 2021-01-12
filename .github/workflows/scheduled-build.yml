@@ -2,7 +2,7 @@ name: Run heavy builds
 
 on:
   schedule:
-    - cron: 19 45 * * *
+    - cron: "19 50 * * *"
   pull_request:
     branches: [master]
     types: [opened, edited]
