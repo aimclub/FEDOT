@@ -16,7 +16,7 @@ np.random.seed(1)
 
 def test_credit_scoring_problem():
     test_file_path = str(os.path.dirname(__file__))
-    file_path_train = os.path.join(test_file_path, '../data/simple_classification.csv')
+    file_path_train = os.path.join(test_file_path, '../../test/data/simple_classification.csv')
     file_path_test = file_path_train
     full_path_train = os.path.join(str(project_root()), file_path_train)
     full_path_test = os.path.join(str(project_root()), file_path_test)
@@ -28,7 +28,7 @@ def test_credit_scoring_problem():
 
 def test_metocean_forecasting_problem():
     test_file_path = str(os.path.dirname(__file__))
-    file_path_train = os.path.join(test_file_path, '../data/simple_time_series.csv')
+    file_path_train = os.path.join(test_file_path, '../../test/data/simple_time_series.csv')
     file_path_test = file_path_train
     full_path_train = os.path.join(str(project_root()), file_path_train)
     full_path_test = os.path.join(str(project_root()), file_path_test)
