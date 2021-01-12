@@ -2,7 +2,9 @@ name: Run heavy builds
 
 on:
   pull_request:
-    branches: [ master ]
+    types:
+      - opened
+      - edited
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron: '15 18 * * *'
@@ -13,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6]
 
     steps:
       - uses: actions/checkout@v2
