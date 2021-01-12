@@ -17,8 +17,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
-from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
@@ -154,16 +153,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         except ValueError as ex:
             if len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1:
                 # if the prediction requires multivariate target and models do not support it
-                if train_data.task.task_type == TaskTypesEnum.classification:
-                    multiout_func = MultiOutputClassifier
-                elif train_data.task.task_type in \
-                        [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-                    multiout_func = MultiOutputRegressor
-                else:
+                sklearn_model = \
+                    convert_to_multivariate_model_manually(sklearn_model, train_data)
+                if not sklearn_model:
                     raise ex
-                # apply MultiOutput
-                sklearn_model = multiout_func(sklearn_model)
-                sklearn_model.fit(train_data.features, train_data.target)
             else:
                 raise ex
         return sklearn_model
@@ -293,3 +286,17 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :return:
         """
         raise NotImplementedError()
+
+
+def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
+    if train_data.task.task_type == TaskTypesEnum.classification:
+        multiout_func = MultiOutputClassifier
+    elif train_data.task.task_type in \
+            [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+        multiout_func = MultiOutputRegressor
+    else:
+        return None
+    # apply MultiOutput
+    sklearn_model = multiout_func(sklearn_model)
+    sklearn_model.fit(train_data.features, train_data.target)
+    return sklearn_model

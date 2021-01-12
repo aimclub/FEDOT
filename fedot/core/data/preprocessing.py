@@ -51,31 +51,6 @@ class EmptyStrategy(PreprocessingStrategy):
         return result
 
 
-class Normalization(PreprocessingStrategy):
-    def __init__(self, with_imputation=True):
-        if with_imputation:
-            self.default = ImputationStrategy()
-        self.with_imputation = with_imputation
-        self.normalizer = preprocessing.MinMaxScaler()
-
-    def fit(self, data_to_fit):
-        if self.with_imputation:
-            self.default.fit(data_to_fit)
-            data_to_fit = self.default.apply(data_to_fit)
-
-        data_to_fit = _expand_data(data_to_fit)
-        self.normalizer.fit(data_to_fit)
-        return self
-
-    def apply(self, data):
-        if self.with_imputation:
-            data = self.default.apply(data)
-
-        data = _expand_data(data)
-        resulted = self.normalizer.transform(data)
-        return resulted
-
-
 class Scaling(PreprocessingStrategy):
     def __init__(self):
         self.scaler = preprocessing.StandardScaler()
@@ -108,6 +83,19 @@ class ScalingWithImputation(Scaling):
     def apply(self, data):
         data = self.default.apply(data)
         return super(ScalingWithImputation, self).apply(data)
+
+
+class Normalization(Scaling):
+    def __init__(self):
+        super(Normalization, self).__init__()
+        self.scaler = preprocessing.MinMaxScaler()
+
+
+class NormalizationWithImputation(ScalingWithImputation):
+    def __init__(self):
+        super(NormalizationWithImputation, self).__init__()
+        self.default = ImputationStrategy()
+        self.scaler = preprocessing.MinMaxScaler()
 
 
 class TextPreprocessingStrategy(PreprocessingStrategy):

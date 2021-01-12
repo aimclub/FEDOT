@@ -18,6 +18,11 @@ np.random.seed(42)
 seed(42)
 
 
+def _max_rmse_threshold_by_std(values, is_strict=True):
+    tolerance_coeff = 1.0 if is_strict else 1.3
+    return np.std(values) * tolerance_coeff
+
+
 def get_synthetic_ts_data_period(n_steps=1000, forecast_length=1, max_window_size=50):
     simulated_data = ArmaProcess().generate_sample(nsample=n_steps)
     x1 = np.arange(0, n_steps)
@@ -129,7 +134,7 @@ def test_arima_chain_fit_correct():
     chain.fit(input_data=train_data)
     rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target)
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
 
     assert rmse_on_train < rmse_threshold
     # TODO investigate arima performance of test
@@ -144,7 +149,7 @@ def test_regression_chain_forecast_onestep_correct():
     chain.fit(input_data=train_data)
     rmse_on_train, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target)
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
 
     assert rmse_on_train < rmse_threshold
     assert rmse_on_test < rmse_threshold
@@ -158,7 +163,7 @@ def test_regression_chain_forecast_multistep_correct():
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target) * 1.3
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=False)
 
     assert rmse_on_test < rmse_threshold
 
@@ -198,7 +203,7 @@ def test_forecasting_regression_composite_fit_correct():
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target) * 1.3
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=False)
 
     assert rmse_on_test < rmse_threshold
 
@@ -212,7 +217,7 @@ def test_forecasting_regression_multiscale_fit_correct():
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target)
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
 
     assert rmse_on_test < rmse_threshold
 
@@ -226,7 +231,7 @@ def test_forecasting_composite_lstm_chain_fit_correct():
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, _ = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target)
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
     assert rmse_on_test < rmse_threshold
 
 
@@ -238,7 +243,7 @@ def test_forecasting_multilinear_chain_fit_correct():
     chain.fit(input_data=train_data)
     _, rmse_on_test, _, test_prediction = get_rmse_value(chain, train_data, test_data)
 
-    rmse_threshold = np.std(test_data.target)
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
     assert rmse_on_test < rmse_threshold
     assert test_prediction.predict[0] != test_prediction.predict[1]
 
@@ -279,3 +284,9 @@ def test_ts_single_chain_model_without_multiotput_support():
 
         mae = mean_absolute_error(test_part, predicted_values)
         assert mae < 50
+
+
+def test_exception_if_incorrect_forecast_length():
+    with pytest.raises(ValueError) as exc:
+        _, _ = get_synthetic_ts_data_period(forecast_length=0, max_window_size=10)
+    assert str(exc.value) == f'Forecast length should be more then 0'
