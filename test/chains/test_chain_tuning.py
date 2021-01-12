@@ -11,7 +11,7 @@ from fedot.core.chains.chain_tune import Tune
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.test_chain_import_export import create_four_depth_chain
+from test.utilities.test_chain_import_export import create_four_depth_chain
 
 seed(1)
 np.random.seed(1)

@@ -1,3 +1,4 @@
+import os
 import warnings
 from copy import copy
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_
 from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.load_data import TextBatchLoader
 
 
 @dataclass
@@ -62,6 +64,44 @@ class Data:
         features = ImputationStrategy().fit(features).apply(features)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+
+    @staticmethod
+    def from_text_meta_file(meta_file_path: str = None,
+                            label: str = 'label',
+                            task: Task = Task(TaskTypesEnum.classification),
+                            data_type: DataTypesEnum = DataTypesEnum.text):
+
+        if os.path.isdir(meta_file_path):
+            raise ValueError("""CSV file expected but got directory""")
+
+        df_text = pd.read_csv(meta_file_path)
+        df_text = df_text.sample(frac=1).reset_index(drop=True)
+        messages = df_text['text'].astype('U').tolist()
+
+        features = np.array(messages)
+        target = df_text[label]
+        idx = [index for index in range(len(target))]
+
+        return InputData(idx=idx, features=features,
+                         target=target, task=task, data_type=data_type)
+
+    @staticmethod
+    def from_text_files(files_path: str,
+                        label: str = 'label',
+                        task: Task = Task(TaskTypesEnum.classification),
+                        data_type: DataTypesEnum = DataTypesEnum.text):
+
+        if os.path.isfile(files_path):
+            raise ValueError("""Path to the directory expected but got file""")
+
+        df_text = TextBatchLoader(path=files_path).extract()
+
+        features = df_text['text']
+        target = df_text[label]
+        idx = [index for index in range(len(target))]
+
+        return InputData(idx=idx, features=features,
+                         target=target, task=task, data_type=data_type)
 
 
 @dataclass

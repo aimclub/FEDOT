@@ -9,7 +9,7 @@ from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, Seconda
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate
+from fedot.core.chains.chain_template import ChainTemplate
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -220,15 +220,14 @@ class Chain:
 
     def save_chain(self, path: str):
         if not self.template:
-            self.template = ChainTemplate(self)
-        json_object = self.template.export_to_json(path)
+            self.template = ChainTemplate(self, self.log)
+        json_object = self.template.export_chain(path)
         return json_object
 
     def load_chain(self, path: str):
         self.nodes = []
-        self.log = default_log(__name__)
-        self.template = ChainTemplate(self)
-        self.template.import_from_json(path)
+        self.template = ChainTemplate(self, self.log)
+        self.template.import_chain(path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id

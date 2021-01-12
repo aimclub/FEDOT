@@ -5,7 +5,6 @@ import numpy as np
 from fedot.core.algorithms.time_series.prediction import post_process_forecasted_ts
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
