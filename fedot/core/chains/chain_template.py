@@ -114,7 +114,7 @@ class ChainTemplate:
             raise FileNotFoundError(message)
 
         self.unique_chain_id = folder_name
-        folder_name = f"{datetime.now().strftime('%B:%d:%Y, %H:%M:%S %p')} {folder_name}"
+        folder_name = f"{datetime.now().strftime('%B-%d-%Y,%H-%M-%S,%p')} {folder_name}"
         path_to_save = os.path.join(path, folder_name)
 
         return path_to_save
