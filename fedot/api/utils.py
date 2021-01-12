@@ -44,11 +44,11 @@ def array_to_input_data(features_array: np.array,
 
 def only_light_model_types(available_model_types: list,
                            model_configuration: str):
-    custom_models_dict = {'Light': ['mlp', 'svc'],
-                          'Default': []}
-    custom_models = custom_models_dict[model_configuration]
+    excluded_models_dict = {'light': ['mlp', 'svc'],
+                            'default': []}
+    excluded_models = excluded_models_dict[model_configuration]
 
-    available_model_types = [model for model in available_model_types if model not in custom_models]
+    available_model_types = [model for model in available_model_types if model not in excluded_models]
 
     return available_model_types
 
