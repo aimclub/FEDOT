@@ -85,7 +85,7 @@ class Fedot:
                              'ts_forecasting': 'RMSE'
                              }
 
-        if self.ml_task == 'cluster' or self.ml_task == 'time_series':
+        if self.ml_task == 'clustering' or self.ml_task == 'ts_forecasting':
             raise ValueError('This type of task is not not supported in API now')
 
         self.metric_name = basic_metric_dict[self.ml_task]

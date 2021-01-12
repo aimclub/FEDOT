@@ -61,7 +61,7 @@ def compose_fedot_model(train_data: InputData,
                         num_of_generations: int,
                         learning_time: int = 5,
                         model_types: list = None,
-                        model_configuration: str = 'Light',
+                        model_configuration: str = 'light',
                         ):
     # the choice of the metric for the chain quality assessment during composition
     metric_function = get_metric_function(task)

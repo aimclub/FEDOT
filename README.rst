@@ -119,6 +119,55 @@ Finally, you can test the resulted model on the validation dataset:
                                                           dataset_to_validate)
   print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
 
+FEDOT API
+==========
+
+The API module is designed to make it easier for the user to use the framework's capabilities to solve machine learning problems.
+At this stage, the API allows you to work with input data in the format of Numpy arrays or csv files, as well as the ability to select the values of hyperparameters of the desired composite model.
+The API allows you to solve regression and classification problems, as well as support for time series forecasting and clustering problems will be implemented in the future.
+To use the API, follow these steps:
+
+1.Import the Fedot class
+
+.. code-block:: python
+
+  from fedot.api.run_api import Fedot
+
+2.Select the type of machine learning problem to solve and the values of the hyperparameters of the composite model.
+Selecting hyperparameters values is optional, but selecting the task type is a prerequisite for running the module API.
+
+.. code-block:: python
+
+    task = 'classification'
+    composer_params = {'max_depth': 2,
+                       'max_arity': 2,
+                   'learning_time': 1}
+
+3.Create a Fedot class and pass parameters to it. Both Numpy arrays and links to csv files with data can be used as input data.
+The fit method returns a composite model, the predict method returns a Numpy array with predicted values, and the quality_metric method returns the quality metric value obtained for this task and the composite model.
+
+.. code-block:: python
+
+  train_file = pd.read_csv(train_file_path)
+  x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
+  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
+
+  model = Fedot(ml_task=task,
+                composer_params=composer_params)
+  fedot_model = model.fit(features=x_train,
+                          target=y_train)
+  prediction = model.predict(features=x_test)
+  metric = model.quality_metric(target=y_test)
+
+  train_data = 'test/data/simple_classification_train.csv'
+  test_data = 'test/data/simple_classification_test.csv'
+
+  model = Fedot(ml_task=task,
+                composer_params=composer_params)
+  fedot_model = model.fit(features=train_data)
+  prediction = model.predict(features=test_data)
+  metric = model.quality_metric()
+
 Examples & Tutorials
 ====================
 
