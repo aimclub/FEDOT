@@ -7,8 +7,8 @@ from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.data.preprocessing import Scaling
 from fedot.core.models.model import Model
+from fedot.core.data.preprocessing import ScalingWithImputation
 from fedot.core.models.tuning.tuners import get_random_params
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.tasks.test_forecasting import get_synthetic_ts_data_period
@@ -43,7 +43,7 @@ def scoring_dataset():
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_knn_classification_tune_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     knn = Model(model_type='knn')
@@ -93,7 +93,7 @@ def test_arima_tune_correct():
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_rf_class_tune_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     rf = Model(model_type='rf')
@@ -120,8 +120,8 @@ def test_rf_class_tune_correct(data_fixture, request):
 def test_scoring_logreg_tune_correct(data_fixture, request):
     train_data, test_data = request.getfixturevalue(data_fixture)
 
-    train_data.features = Scaling().fit(train_data.features).apply(train_data.features)
-    test_data.features = Scaling().fit(test_data.features).apply(test_data.features)
+    train_data.features = ScalingWithImputation().fit(train_data.features).apply(train_data.features)
+    test_data.features = ScalingWithImputation().fit(test_data.features).apply(test_data.features)
 
     logreg = Model(model_type='logit')
 
@@ -160,7 +160,7 @@ def test_get_random_params_varied_length():
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_classification_manual_tuning_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     knn = Model(model_type='knn')
@@ -179,7 +179,7 @@ def test_classification_manual_tuning_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_pca_manual_tuning_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     pca = Model(model_type='pca_data_model')

@@ -4,12 +4,10 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log, start_end_log_decorator
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate, \
-    ModelTemplate, extract_subtree_root
+from fedot.core.chains.chain_template import ChainTemplate, ModelTemplate, extract_subtree_root
 
 
 class Tune:
-
     def __init__(self, chain,
                  log: Log = default_log(__name__), verbose=False):
         self.chain = chain
@@ -107,14 +105,14 @@ class Tune:
                               updated_node=updated_subchain.root_node)
 
         updated_chain = Chain()
-        self.chain_template.convert_to_chain(chain_to_convert_to=updated_chain)
+        self.chain_template.convert_to_chain(chain=updated_chain)
 
         return updated_chain
 
     def _update_template(self, model_id, updated_node):
         model_template = [model_template for model_template in self.chain_template.model_templates
                           if model_template.model_id == model_id][0]
-        update_node_template = ModelTemplate(updated_node, chain_id=self.chain_template.unique_chain_id)
+        update_node_template = ModelTemplate(updated_node)
 
         model_template.params = update_node_template.params
         model_template.fitted_model_path = update_node_template.fitted_model_path
