@@ -1,13 +1,11 @@
 name: Run heavy builds
 
 on:
-  pull_request:
-    types:
-      - opened
-      - edited
   schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron: '30 18 * * *'
+    - cron: 19 45 * * *
+  pull_request:
+    branches: [master]
+    types: [opened, edited]
 
 jobs:
   build:
