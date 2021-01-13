@@ -9,6 +9,7 @@ from fedot.core.data.preprocessing import preprocessing_func_for_data
 from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
 from fedot.core.models.model import Model
+from fedot.core.repository.model_types_repository import atomized_model_type
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -39,8 +40,7 @@ class Node(ABC):
         else:
             self.log = log
 
-        #TODO 'atomized_model' to func
-        if model_type == 'atomized_model':
+        if model_type == atomized_model_type():
             self.model = atomized_model
         else:
             self.model = Model(model_type=model_type)

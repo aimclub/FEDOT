@@ -1,22 +1,22 @@
 from datetime import timedelta
 from uuid import uuid4
 
-from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_tune import Tune
 from fedot.core.data.data import InputData
 from fedot.core.models.model import Model
-from fedot.core.repository.model_types_repository import ModelMetaInfo
+from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_type, atomized_model_meta_tags
 
 
 class AtomizedModel(Model):
     def __init__(self, chain: 'Chain'):
         if not chain.root_node:
-            raise ValueError(f'AtomizedModel could not create instance of empty Chain!')
+            raise ValueError(f'AtomizedModel could not create instance of empty Chain.')
 
-        super().__init__(model_type='atomized_model')
+        super().__init__(model_type=atomized_model_type())
         self.chain = chain
         self.unique_id = uuid4()
 
-    def fit(self, data: InputData):
+    def fit(self, data: InputData, use_cache=True, verbose=False):
         predicted_train = self.chain.fit(input_data=data, verbose=False)
         fitted_atomized_model_head = self.chain.root_node
 
@@ -29,18 +29,18 @@ class AtomizedModel(Model):
 
     def fine_tune(self, data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
-        from fedot.core.chains.chain_tune import Tune
-        self.chain = Tune(self.chain, verbose=True).fine_tune_root_node(input_data=data,
+        self.chain = Tune(self.chain, verbose=True).fine_tune_all_nodes(input_data=data,
                                                                         max_lead_time=max_lead_time,
                                                                         iterations=iterations)
 
     @property
     def metadata(self) -> ModelMetaInfo:
         root_node = self.chain.root_node
+        supported_strategies, allowed_positions, tags = atomized_model_meta_tags()
 
         model_info = ModelMetaInfo(root_node.model.metadata.id, root_node.model.metadata.input_types,
                                    root_node.model.metadata.output_types, root_node.model.metadata.task_type,
-                                   ['random'], ['any'], ['atomised'])
+                                   supported_strategies, allowed_positions, tags)
 
         return model_info
 
@@ -58,4 +58,5 @@ class AtomizedModel(Model):
             else:
                 model_types[node.model.model_type] = 1
 
-        return f'{model_type}_length:{model_length}_depth:{model_depth}_types:{model_types}_id:{model_id}'
+        return f'{model_type}_length:{model_length}_depth:{model_depth}' \
+               f'_types:{model_types}_id:{model_id}'

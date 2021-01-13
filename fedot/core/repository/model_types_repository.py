@@ -140,3 +140,11 @@ def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str],
         return all(matches)
     else:
         return any(matches)
+
+
+def atomized_model_type():
+    return 'atomized_model'
+
+
+def atomized_model_meta_tags():
+    return ['random'], ['any'], ['atomized']

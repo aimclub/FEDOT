@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 import pytest
+from sklearn.metrics import mean_squared_error
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -194,5 +197,41 @@ def test_fit_predict_chain_with_several_nested_atomized_model_correctly():
 
 
 def test_create_empty_atomized_model_raised():
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception):
         create_chain_with_empty_atomized_model()
+
+
+def test_fine_tune_atomized_model_correct():
+    train_data, test_data = _create_data_for_train()
+
+    fine_tuned_model = create_atomized_model()
+    dummy_model = create_atomized_model()
+
+    dummy_model.fit(train_data)
+    fine_tuned_model.fine_tune(train_data, iterations=5, max_lead_time=timedelta(minutes=0.1))
+
+    after_tuning_predicted = fine_tuned_model.predict(None, test_data)
+    before_tuning_predicted = dummy_model.predict(None, test_data)
+
+    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=before_tuning_predicted)
+    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_tuning_predicted)
+
+    assert aft_tun_mse <= bfr_tun_mse
+
+
+def test_atomized_model():
+    train_data, test_data = _create_data_for_train()
+
+    chain = create_chain_with_atomized_model_first()
+    atomized_model = AtomizedModel(chain)
+
+    chain.fit(train_data)
+    predicted_values = chain.predict(test_data)
+
+    atomized_model.fit(train_data)
+    predicted_atomized_values = atomized_model.predict(None, test_data)
+
+    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
+    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
+
+    assert aft_tun_mse == bfr_tun_mse
