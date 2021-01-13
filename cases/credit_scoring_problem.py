@@ -9,7 +9,6 @@ from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.composer.gp_opt_history import GPOptHistory
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
@@ -61,12 +60,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # Create GP-based composer
     composer = builder.build()
 
-    history = GPOptHistory()
-
     # the optimal chain generation by composition - the most time-consuming task
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                                is_visualise=True,
-                                                on_next_iteration_callback=history.add_to_history)
+                                                is_visualise=True)
 
     if with_tuning:
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
@@ -78,10 +74,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         visualiser = ChainVisualiser()
 
         composer.log.info('History visualization started')
-        history.prepare_for_visualisation()
-        visualiser.visualise_history(history)
+        visualiser.visualise_history(composer.history)
         composer.log.info('History visualization finished')
-        history.write_composer_history_to_csv()
+        composer.history.write_composer_history_to_csv()
 
         composer.log.info('Best chain visualization started')
         visualiser.visualise(chain_evo_composed)

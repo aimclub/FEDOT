@@ -108,6 +108,10 @@ class GPComposer(Composer):
     def tune_chain(chain: Chain, data: InputData, time_limit):
         chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)
 
+    @property
+    def history(self):
+        return self.optimiser.history
+
 
 class GPComposerBuilder:
     def __init__(self, task: Task):

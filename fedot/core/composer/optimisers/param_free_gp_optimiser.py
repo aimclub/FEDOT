@@ -1,6 +1,8 @@
 from copy import deepcopy
 import numpy as np
 from typing import (Optional, List, Any, Tuple)
+
+from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.regularization import regularized_population
 from fedot.core.composer.optimisers.selection import selection
@@ -45,7 +47,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
-            on_next_iteration_callback = lambda pop: None
+            on_next_iteration_callback = self.default_on_next_iteration_callback
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)

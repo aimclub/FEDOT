@@ -30,14 +30,11 @@ class ChainVisualiser:
         self.best_chains_imgs = []
         self.merged_imgs = []
 
-    def visualise(self, chain: Chain, save_path: Optional[str] = None,
-                  params_save_path: Optional[str] = None):
+    def visualise(self, chain: Chain, save_path: Optional[str] = None):
         try:
             fig, axs = plt.subplots(figsize=(9, 9))
             fig.suptitle('Current chain')
             self._visualise_chain(chain, axs)
-            if params_save_path:
-                self._save_chain_params(chain, params_save_path)
             if not save_path:
                 plt.show()
             else:
@@ -166,42 +163,6 @@ class ChainVisualiser:
                 remove(file)
         except Exception as ex:
             print(ex)
-
-    def _save_chain_params(self, chain, path):
-        cols, data = self._collect_params(chain)
-        df = self._create_dataframe(chain, cols, data)
-        df.to_csv(path)
-
-    def _collect_params(self, chain):
-        columns = ['Model']
-        data = {columns[0]: []}
-        for i in chain.nodes:
-            for param in i.custom_params:
-                if i.custom_params != 'default_params':
-                    if param not in columns:
-                        columns.append(param)
-                        data[param] = []
-        return columns, data
-
-    def _create_dataframe(self, chain, columns, data):
-        for i in chain.nodes:
-            data[columns[0]].append(str(i.model.metadata.id))
-            for param in list(data.keys())[1:]:
-                if i.custom_params == 'default_params':
-                    data[param].append('-')
-                elif param in i.custom_params:
-                    res = i.custom_params[param]
-                    if type(res) is float:
-                        res = float('{:.5f}'.format(res))
-                    if type(res) is np.float64:
-                        res = np.round(res, 5)
-                    data[param].append(res)
-                else:
-                    data[param].append('-')
-        df = pd.DataFrame(data, columns=columns)
-        df = df.set_index('Model')
-        df = df.T
-        return df
 
 
 def figure_to_array(fig):

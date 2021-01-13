@@ -263,10 +263,6 @@ def _extract_and_save_fitted_model(node: Node, chain_id: str, model_id: int) -> 
     return fitted_model_path
 
 
-def _is_node_has_type_direct_data_model(node: Node) -> bool:
-    return bool(node.model.model_type == 'direct_data_model')
-
-
 def _extract_preprocessing_strategy(node: Node):
     return node.cache.actual_cached_state.preprocessor
 

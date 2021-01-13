@@ -7,7 +7,7 @@ from fedot.utilities.synthetic.chain_template_new import ChainTemplate
 from fedot.core.utils import default_fedot_data_dir
 
 
-class GPOptHistory:
+class ComposingHistory:
     """
     Contain history, convert Chain to ChainTemplate, save history to csv
     """
@@ -49,7 +49,11 @@ class GPOptHistory:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow([idx, generation, fitness, models_quantity, depth])
 
-    def prepare_for_visualisation(self):
+    @property
+    def all_historical_fitness(self):
         historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
-        self.all_historical_fitness = list(itertools.chain(*historical_fitness))
-        self.historical_chains = list(itertools.chain(*self.history))
+        return list(itertools.chain(*historical_fitness))
+
+    @property
+    def historical_chains(self):
+        return list(itertools.chain(*self.history))

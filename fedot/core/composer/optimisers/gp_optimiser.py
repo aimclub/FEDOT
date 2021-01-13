@@ -6,6 +6,7 @@ from typing import (Any, Callable, List, Optional, Tuple)
 import numpy as np
 
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
 from fedot.core.composer.optimisers.gp_operators import random_chain, num_of_parents_in_crossover
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
@@ -103,10 +104,12 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain
 
+        self.history = ComposingHistory()
+
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None):
         if on_next_iteration_callback is None:
-            on_next_iteration_callback = lambda pop: None
+            on_next_iteration_callback = self.default_on_next_iteration_callback
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
@@ -271,3 +274,6 @@ class GPChainOptimiser:
 
     def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
+
+    def default_on_next_iteration_callback(self, individuals):
+        self.history.add_to_history(individuals)

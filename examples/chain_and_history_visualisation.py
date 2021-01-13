@@ -1,7 +1,10 @@
+import os
+
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
-from fedot.core.composer.gp_opt_history import GPOptHistory
+from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.visualisation import ChainVisualiser
+from fedot.core.utils import default_fedot_data_dir
 
 
 def chain_first():
@@ -27,9 +30,9 @@ def chain_first():
     return chain
 
 
-def generate_history(generations_quantity, pop_size):
-    history = GPOptHistory()
-    for gen in range(generations_quantity):
+def generate_history(generations, pop_size):
+    history = ComposingHistory()
+    for gen in range(generations):
         new_pop = []
         for idx in range(pop_size):
             chain = chain_first()
@@ -40,14 +43,13 @@ def generate_history(generations_quantity, pop_size):
 
 
 if __name__ == '__main__':
-    generations_quantity = 2
+    generations = 2
     pop_size = 10
 
     chain = chain_first()
 
-    history = generate_history(generations_quantity, pop_size)
-    history.prepare_for_visualisation()
+    history = generate_history(generations, pop_size)
 
     visualiser = ChainVisualiser()
     visualiser.visualise_history(history)
-    visualiser.visualise(chain, params_save_path=r'C:\Users\user\Downloads\params.csv')
+    visualiser.visualise(chain)
