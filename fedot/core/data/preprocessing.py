@@ -5,8 +5,8 @@ import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from sklearn import preprocessing
-from sklearn.impute import SimpleImputer
 from sklearn.exceptions import NotFittedError
+from sklearn.impute import SimpleImputer
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -51,21 +51,6 @@ class EmptyStrategy(PreprocessingStrategy):
         return result
 
 
-class Normalization(PreprocessingStrategy):
-    def __init__(self):
-        self.default = ImputationStrategy()
-
-    def fit(self, data):
-        self.default.fit(data)
-        return self
-
-    def apply(self, data):
-        modified = self.default.apply(data)
-        resulted = preprocessing.normalize(modified)
-
-        return resulted
-
-
 class Scaling(PreprocessingStrategy):
     def __init__(self):
         self.scaler = preprocessing.StandardScaler()
@@ -98,6 +83,19 @@ class ScalingWithImputation(Scaling):
     def apply(self, data):
         data = self.default.apply(data)
         return super(ScalingWithImputation, self).apply(data)
+
+
+class Normalization(Scaling):
+    def __init__(self):
+        super(Normalization, self).__init__()
+        self.scaler = preprocessing.MinMaxScaler()
+
+
+class NormalizationWithImputation(ScalingWithImputation):
+    def __init__(self):
+        super(NormalizationWithImputation, self).__init__()
+        self.default = ImputationStrategy()
+        self.scaler = preprocessing.MinMaxScaler()
 
 
 class TextPreprocessingStrategy(PreprocessingStrategy):
@@ -168,10 +166,10 @@ _preprocessing_for_input_data = {
 
 _label_for_preprocessing_strategy = {
     'empty': EmptyStrategy,
+    'normalization_with_imputation': NormalizationWithImputation,
     'normalization': Normalization,
-    'scaling_with_imputation': Scaling,
-    'scaling': Scaling
-}
+    'scaling_with_imputation': ScalingWithImputation,
+    'scaling': Scaling}
 
 
 def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy):

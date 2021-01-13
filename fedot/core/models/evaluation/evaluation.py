@@ -16,8 +16,8 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
-from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
@@ -30,6 +30,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
 from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -147,7 +148,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_model = self._sklearn_model_impl()
 
-        sklearn_model.fit(train_data.features, train_data.target)
+        try:
+            sklearn_model.fit(train_data.features, train_data.target)
+        except ValueError as ex:
+            if len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1:
+                # if the prediction requires multivariate target and models do not support it
+                sklearn_model = \
+                    convert_to_multivariate_model_manually(sklearn_model, train_data)
+                if not sklearn_model:
+                    raise ex
+            else:
+                raise ex
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
@@ -275,3 +286,17 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :return:
         """
         raise NotImplementedError()
+
+
+def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
+    if train_data.task.task_type == TaskTypesEnum.classification:
+        multiout_func = MultiOutputClassifier
+    elif train_data.task.task_type in \
+            [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+        multiout_func = MultiOutputRegressor
+    else:
+        return None
+    # apply MultiOutput
+    sklearn_model = multiout_func(sklearn_model)
+    sklearn_model.fit(train_data.features, train_data.target)
+    return sklearn_model
