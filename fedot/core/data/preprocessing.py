@@ -166,10 +166,10 @@ _preprocessing_for_input_data = {
 
 _label_for_preprocessing_strategy = {
     'empty': EmptyStrategy,
+    'normalization_with_imputation': NormalizationWithImputation,
     'normalization': Normalization,
-    'scaling_with_imputation': Scaling,
-    'scaling': Scaling
-}
+    'scaling_with_imputation': ScalingWithImputation,
+    'scaling': Scaling}
 
 
 def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy):
