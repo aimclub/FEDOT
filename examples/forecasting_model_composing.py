@@ -6,34 +6,47 @@ from sklearn.metrics import mean_squared_error as mse
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.chains.ts_chain import TsForecastingChain
+from fedot.core.composer.gp_composer.gp_composer import \
+    GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 
 
-def get_composite_lstm_chain():
+def get_composite_multiscale_chain():
     chain = Chain()
     node_trend = PrimaryNode('trend_data_model')
-    node_trend.labels = ["fixed"]
-    node_lstm_trend = SecondaryNode('linear', nodes_from=[node_trend])
-    node_trend.labels = ["fixed"]
+    node_lstm_trend = SecondaryNode('ridge', nodes_from=[node_trend])
     node_residual = PrimaryNode('residual_data_model')
-    node_ridge_residual = SecondaryNode('linear', nodes_from=[node_residual])
+    node_ridge_residual = SecondaryNode('ridge', nodes_from=[node_residual])
 
     node_final = SecondaryNode('linear',
                                nodes_from=[node_ridge_residual, node_lstm_trend])
-    node_final.labels = ["fixed"]
+    chain.add_node(node_final)
+    return chain
+
+
+def get_ensemble_chain():
+    chain = Chain()
+    nodes_list = []
+    for model in ['linear', 'ridge', 'lasso', 'rfr', 'dtreg', 'knnreg', 'svr']:
+        node = PrimaryNode(model)
+        chain.add_node(node)
+        nodes_list.append(node)
+
+    node_final = SecondaryNode('linear', nodes_from=nodes_list)
     chain.add_node(node_final)
     return chain
 
 
 def calculate_validation_metric(pred: OutputData, valid: InputData,
-                                name: str, is_visualise: bool) -> float:
+                                is_visualise: bool,
+                                label: str) -> float:
     window_size = valid.task.task_params.max_window_size
     forecast_length = valid.task.task_params.forecast_length
 
@@ -45,10 +58,12 @@ def calculate_validation_metric(pred: OutputData, valid: InputData,
     if is_visualise:
         compare_plot(predicted, real,
                      forecast_length=forecast_length,
-                     model_name=name)
+                     model_name=label)
 
     # the quality assessment for the simulation results
     rmse = mse(y_true=real, y_pred=predicted, squared=False)
+
+    print(f'RESULT: {label}, RMSE: {round(rmse, 3)}')
 
     return rmse
 
@@ -70,7 +85,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     # specify the task to solve
     task_to_solve = Task(TaskTypesEnum.ts_forecasting,
                          TsForecastingParams(forecast_length=forecast_length,
-                                             max_window_size=max_window_size))
+                                             max_window_size=max_window_size,
+                                             return_all_steps=False))
 
     full_path_train = os.path.join(str(project_root()), train_file_path)
     dataset_to_train = InputData.from_csv(
@@ -83,39 +99,89 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
-    ref_chain = get_composite_lstm_chain()
+    available_model_types = ['linear', 'ridge', 'lasso', 'rfr', 'dtreg', 'knnreg', 'svr']
 
-    available_model_types_primary = ['trend_data_model',
-                                     'residual_data_model']
+    # each possible single-model chain
+    for model in available_model_types:
+        chain = TsForecastingChain(PrimaryNode(model))
 
-    available_model_types_secondary = ['rfr', 'linear',
-                                       'ridge', 'lasso']
+        chain.fit(input_data=dataset_to_train, verbose=False)
+        calculate_validation_metric(
+            chain.predict(dataset_to_validate), dataset_to_validate,
+            is_visualise=with_visualisation, label=model)
 
+    # static multiscale chain
+    multiscale_chain = get_composite_multiscale_chain()
+
+    multiscale_chain.fit(input_data=dataset_to_train, verbose=False)
+    calculate_validation_metric(
+        multiscale_chain.predict(dataset_to_validate), dataset_to_validate,
+        is_visualise=with_visualisation, label='Fixed multiscale')
+
+    # static all-in-one ensemble chain
+    ens_chain = get_ensemble_chain()
+    ens_chain.fit(input_data=dataset_to_train, verbose=False)
+    calculate_validation_metric(
+        ens_chain.predict(dataset_to_validate), dataset_to_validate,
+        is_visualise=with_visualisation, label='Ensemble composite')
+
+    # optimized ensemble chain
     composer_requirements = GPComposerRequirements(
-        primary=available_model_types_primary,
-        secondary=available_model_types_secondary, max_arity=2,
-        max_depth=4, pop_size=10, num_of_generations=10,
-        crossover_prob=0, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=20))
+        primary=available_model_types,
+        secondary=available_model_types, max_arity=5,
+        max_depth=2, pop_size=10, num_of_generations=10,
+        crossover_prob=0.8, mutation_prob=0.8,
+        max_lead_time=datetime.timedelta(minutes=10),
+        add_single_model_chains=True)
 
-    builder = FixedStructureComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_initial_chain(ref_chain)
+    builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
+        metric_function)
     composer = builder.build()
 
     chain = composer.compose_chain(data=dataset_to_train,
                                    is_visualise=False)
+    chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
+
+    if with_visualisation:
+        ComposerVisualiser.visualise(chain)
+
+    calculate_validation_metric(
+        chain.predict(dataset_to_validate), dataset_to_validate,
+        is_visualise=with_visualisation,
+        label='Automated ensemble')
+
+    # optimized multiscale chain
+
+    available_model_types_primary = ['trend_data_model',
+                                     'residual_data_model']
+
+    available_model_types_secondary = ['linear', 'ridge', 'lasso', 'rfr', 'dtreg', 'knnreg', 'svr']
+
+    available_model_types_all = available_model_types_primary + available_model_types_secondary
+
+    composer_requirements = GPComposerRequirements(
+        primary=available_model_types_all,
+        secondary=available_model_types_secondary, max_arity=5,
+        max_depth=2, pop_size=10, num_of_generations=30,
+        crossover_prob=0.8, mutation_prob=0.8,
+        max_lead_time=datetime.timedelta(minutes=10))
+
+    builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_initial_chain(multiscale_chain)
+    composer = builder.build()
+
+    chain = composer.compose_chain(data=dataset_to_train,
+                                   is_visualise=False)
+    chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
 
     if with_visualisation:
         visualiser = ChainVisualiser()
         visualiser.visualise(chain)
 
-    chain.fit(input_data=dataset_to_train, verbose=False)
     rmse_on_valid = calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,
-        f'full-composite_{forecast_length}',
-        is_visualise=with_visualisation)
-
-    print(f'RMSE composite: {rmse_on_valid}')
+        is_visualise=with_visualisation,
+        label='Automated multiscale')
 
     return rmse_on_valid
 
@@ -131,4 +197,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    run_metocean_forecasting_problem(full_path_train, full_path_test, forecast_length=1)
+    run_metocean_forecasting_problem(full_path_train, full_path_test, forecast_length=24, max_window_size=72,
+                                     with_visualisation=False)

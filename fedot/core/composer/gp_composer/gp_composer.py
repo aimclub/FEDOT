@@ -20,6 +20,12 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+sample_split_ration_for_tasks = {
+    TaskTypesEnum.classification: 0.8,
+    TaskTypesEnum.regression: 0.8,
+    TaskTypesEnum.ts_forecasting: 0.5
+}
+
 
 @dataclass
 class GPComposerRequirements(ComposerRequirements):
@@ -77,7 +83,9 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        train_data, test_data = train_test_data_setup(data, 0.8, task=data.task)
+        train_data, test_data = train_test_data_setup(data,
+                                                      sample_split_ration_for_tasks[data.task.task_type],
+                                                      task=data.task)
         self.shared_cache.clear()
         metric_function_for_nodes = partial(self.metric_for_nodes,
                                             self.metrics, train_data, test_data, True)

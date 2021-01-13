@@ -28,7 +28,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type)
+    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type, tags=['simple'])
 
     metric_function = MetricsRepository(). \
         metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)

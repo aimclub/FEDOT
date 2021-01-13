@@ -78,11 +78,13 @@ class Chain:
             self._clean_model_cache()
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            if input_data.task.task_params.make_future_prediction:
+                input_data.task.task_params.return_all_steps = True
             # the make_future_prediction is useless for the fit stage
             input_data.task.task_params.make_future_prediction = False
-        else:
-            if not use_cache or self.fitted_on_data is None:
-                self.fitted_on_data = input_data
+
+        if not use_cache or self.fitted_on_data is None:
+            self.fitted_on_data = input_data
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
         return train_predicted
 

@@ -13,7 +13,8 @@ forecast_length = 2
 def synthetic_forecasting_problem():
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length,
-                                    max_window_size=max_window_size))
+                                    max_window_size=max_window_size,
+                                    return_all_steps=True))
     ts_len = 10
     ts = np.asarray([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
 
