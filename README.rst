@@ -252,6 +252,15 @@ Supported by
 Citation
 ========
 
+@article{nikitin2020structural,
+  title={Structural Evolutionary Learning for Composite Classification Models},
+  author={Nikitin, Nikolay O and Polonskaia, Iana S and Vychuzhanin, Pavel and Barabanova, Irina V and Kalyuzhnaya, Anna V},
+  journal={Procedia Computer Science},
+  volume={178},
+  pages={414--423},
+  year={2020},
+  publisher={Elsevier}}
+
 @inproceedings{kalyuzhnaya2020automatic,
   title={Automatic evolutionary learning of composite models with knowledge enrichment},
   author={Kalyuzhnaya, Anna V and Nikitin, Nikolay O and Vychuzhanin, Pavel and Hvatov, Alexander and Boukhanovsky, Alexander},
