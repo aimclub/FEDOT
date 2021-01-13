@@ -32,9 +32,9 @@ def test_history_adding():
     pop_size = 10
     history = generate_history(generations_quantity, pop_size)
 
-    assert len(history.history) == generations_quantity
+    assert len(history.chains) == generations_quantity
     for gen in range(generations_quantity):
-        assert len(history.history[gen]) == pop_size
+        assert len(history.chains[gen]) == pop_size
 
 
 def test_convert_chain_to_chain_template():
@@ -43,7 +43,7 @@ def test_convert_chain_to_chain_template():
     history = generate_history(generations_quantity, pop_size)
     for gen in range(generations_quantity):
         for chain in range(pop_size):
-            assert type(history.history[gen][chain]) == ChainTemplate
+            assert type(history.chains[gen][chain]) == ChainTemplate
 
 
 def test_prepare_for_visualisation():

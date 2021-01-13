@@ -13,9 +13,9 @@ class ComposingHistory:
     """
 
     def __init__(self):
-        self.history = []
+        self.chains = []
 
-    def convert_chain_to_template(self, chain):
+    def _convert_chain_to_template(self, chain):
         chain_template = ChainTemplate(chain)
         chain_template.fitness = chain.fitness
         return chain_template
@@ -23,27 +23,27 @@ class ComposingHistory:
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
         for chain in individuals:
-            new_individuals.append(self.convert_chain_to_template(chain))
-        self.history.append(new_individuals)
+            new_individuals.append(self._convert_chain_to_template(chain))
+        self.chains.append(new_individuals)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = os.path.join(default_fedot_data_dir(), 'composing_history')
         file = os.path.join(history_dir, file)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)
-        self.write_header_to_csv(file)
+        self._write_header_to_csv(file)
         idx = 0
-        for gen_num, gen_chains in enumerate(self.history):
+        for gen_num, gen_chains in enumerate(self.chains):
             for chain in gen_chains:
-                self.add_history_to_csv(file, chain.fitness, len(chain.model_templates), chain.depth, idx, gen_num)
+                self._add_history_to_csv(file, chain.fitness, len(chain.model_templates), chain.depth, idx, gen_num)
                 idx += 1
 
-    def write_header_to_csv(self, f):
+    def _write_header_to_csv(self, f):
         with open(f, 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow(['index', 'generation', 'fitness', 'quantity_of_models', 'depth'])
 
-    def add_history_to_csv(self, f, fitness: float, models_quantity: int, depth: int, idx: int = None,
+    def _add_history_to_csv(self, f, fitness: float, models_quantity: int, depth: int, idx: int = None,
                            generation: int = None):
         with open(f, 'a', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
@@ -51,9 +51,9 @@ class ComposingHistory:
 
     @property
     def all_historical_fitness(self):
-        historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
+        historical_fitness = [[chain.fitness for chain in pop] for pop in self.chains]
         return list(itertools.chain(*historical_fitness))
 
     @property
     def historical_chains(self):
-        return list(itertools.chain(*self.history))
+        return list(itertools.chain(*self.chains))
