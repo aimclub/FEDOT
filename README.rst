@@ -127,13 +127,13 @@ At this stage, the API allows you to work with input data in the format of Numpy
 The API allows you to solve regression and classification problems, as well as support for time series forecasting and clustering problems will be implemented in the future.
 To use the API, follow these steps:
 
-1.Import the Fedot class
+1. Import the Fedot class
 
 .. code-block:: python
 
   from fedot.api.run_api import Fedot
 
-2.Select the type of machine learning problem to solve and the values of the hyperparameters of the composite model.
+2. Select the type of machine learning problem to solve and the values of the hyperparameters of the composite model.
 Selecting hyperparameters values is optional, but selecting the task type is a prerequisite for running the module API.
 
 .. code-block:: python
@@ -143,7 +143,7 @@ Selecting hyperparameters values is optional, but selecting the task type is a p
                        'max_arity': 2,
                    'learning_time': 1}
 
-3.Create a Fedot class and pass parameters to it. Both Numpy arrays and links to csv files with data can be used as input data.
+3. Create a Fedot class and pass parameters to it. Both Numpy arrays and links to csv files with data can be used as input data.
 The fit method returns a composite model, the predict method returns a Numpy array with predicted values, and the quality_metric method returns the quality metric value obtained for this task and the composite model.
 
 .. code-block:: python
@@ -158,15 +158,6 @@ The fit method returns a composite model, the predict method returns a Numpy arr
                           target=y_train)
   prediction = model.predict(features=x_test)
   metric = model.quality_metric(target=y_test)
-
-  train_data = 'test/data/simple_classification_train.csv'
-  test_data = 'test/data/simple_classification_test.csv'
-
-  model = Fedot(ml_task=task,
-                composer_params=composer_params)
-  fedot_model = model.fit(features=train_data)
-  prediction = model.predict(features=test_data)
-  metric = model.quality_metric()
 
 Examples & Tutorials
 ====================

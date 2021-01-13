@@ -111,6 +111,11 @@ class Fedot:
     def fit(self,
             features: Union[str, np.ndarray, InputData],
             target: Union[str, np.ndarray] = 'target'):
+        """
+        :param features: the array with features of train data
+        :param target: the array with target values of train data
+        :return: Chain object
+        """
         self.train_data = check_data_type(ml_task=self.ml_task,
                                           features=features,
                                           target=target)
@@ -119,6 +124,10 @@ class Fedot:
 
     def predict(self,
                 features: Union[str, np.ndarray, InputData]):
+        """
+        :param features: the array with features of test data
+        :return: the array with predicted values
+        """
         if self.current_model is None:
             self.current_model = self._obtain_model()
 
@@ -133,11 +142,19 @@ class Fedot:
         return self.predicted.predict
 
     def save_model(self):
+        """
+        :return: the json object containing a composite model
+        """
         return self.current_model.save_chain(self.fedot_model_path)
 
     def quality_metric(self,
                        target: np.ndarray = None,
                        metric_name: str = None):
+        """
+        :param target: the array with target values of test data
+        :param metric_name: the name of chosen quality metric
+        :return: the value of quality metric
+        """
         if metric_name is None:
             metric_name = self.metric_name
 
