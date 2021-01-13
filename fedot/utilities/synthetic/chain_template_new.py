@@ -48,8 +48,7 @@ class ChainTemplate:
             nodes_from = []
 
         model_template = ModelTemplate(node, model_id, nodes_from, self.unique_chain_id)
-        if model_id == 0:
-            self.root_moodel = model_template
+
         self.model_templates.append(model_template)
         self._add_chain_type_to_state(model_template.model_type)
 

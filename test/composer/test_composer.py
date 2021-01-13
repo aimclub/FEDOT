@@ -12,7 +12,6 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
@@ -164,9 +163,7 @@ def test_composition_time(data_fixture, request):
 
     gp_composer_terminated_evolution = builder.build()
 
-    _ = gp_composer_terminated_evolution.compose_chain(
-        data=data
-    )
+    _ = gp_composer_terminated_evolution.compose_chain(data=data)
 
     req_completed_evolution = GPComposerRequirements(
         primary=models_impl,
@@ -178,9 +175,7 @@ def test_composition_time(data_fixture, request):
     builder = GPComposerBuilder(task).with_requirements(req_completed_evolution).with_metrics(metric_function)
     gp_composer_completed_evolution = builder.build()
 
-    _ = gp_composer_completed_evolution.compose_chain(
-        data=data
-    )
+    _ = gp_composer_completed_evolution.compose_chain(data=data)
 
     assert len(gp_composer_terminated_evolution.history.history) == len(gp_composer_completed_evolution.history.history)
 

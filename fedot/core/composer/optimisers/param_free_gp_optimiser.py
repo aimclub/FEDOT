@@ -1,8 +1,6 @@
 from copy import deepcopy
 import numpy as np
 from typing import (Optional, List, Any, Tuple)
-
-from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.regularization import regularized_population
 from fedot.core.composer.optimisers.selection import selection

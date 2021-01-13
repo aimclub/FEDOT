@@ -1,10 +1,7 @@
-import os
-
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.utils import default_fedot_data_dir
 
 
 def chain_first():
