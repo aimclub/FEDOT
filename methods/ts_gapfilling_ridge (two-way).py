@@ -429,7 +429,7 @@ def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0):
 
 
 
-folder_to_save = 'D:/iccs_article/fedot_ridge_two_way'
+folder_to_save = 'D:/iccs_article/fedot_ridge_two_way_80'
 
 if __name__ == '__main__':
 
@@ -448,7 +448,7 @@ if __name__ == '__main__':
                                    chain=chain)
         with_gap_array = np.array(data['gap'])
         withoutgap_arr = gapfiller.forward_inverse_filling(with_gap_array,
-                                                           max_window_size=50)
+                                                           max_window_size=80)
 
         dataframe['gap'] = withoutgap_arr
         validate(parameter = 'Height', mask = 'gap', data = data, withoutgap_arr = withoutgap_arr)

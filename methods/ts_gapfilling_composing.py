@@ -367,19 +367,21 @@ class ModelGapFiller(SimpleGapFiller):
 
         metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
-        available_model_types_primary = ['ridge']
+        available_model_types_primary = ['linear', 'lasso', 'ridge',
+                                         'trend_data_model', 'residual_data_model']
 
-        available_model_types_secondary = ['rfr', 'linear', 'knnreg',
+        available_model_types_secondary = ['rfr', 'linear', 'knnreg', 'gbr',
                                            'ridge', 'lasso', 'svr']
 
         composer_requirements = GPComposerRequirements(
             primary=available_model_types_primary,
             secondary=available_model_types_secondary, max_arity=3,
-            max_depth=4, pop_size=4, num_of_generations=2,
-            crossover_prob=0.0, mutation_prob=0.8,
+            max_depth=4, pop_size=5, num_of_generations=5,
+            crossover_prob=0.1, mutation_prob=0.8,
             max_lead_time=datetime.timedelta(minutes=20))
 
-        builder = FixedStructureComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(metric_function).with_initial_chain(self.chain)
+        builder = FixedStructureComposerBuilder(task=task).with_requirements(composer_requirements)\
+            .with_metrics(metric_function).with_initial_chain(self.chain)
         composer = builder.build()
 
         obtained_chain = composer.compose_chain(data=input_data,
@@ -388,6 +390,8 @@ class ModelGapFiller(SimpleGapFiller):
         # Making predictions for the missing part in the time series
         obtained_chain.__class__ = TsForecastingChain
         obtained_chain.fit_from_scratch(input_data)
+
+        print(f'\n Размер полученной цепочки {len(obtained_chain.nodes)} \n')
 
         # "Test data" for making prediction for a specific length
         test_data = InputData(idx=np.arange(0, len_gap),
@@ -482,13 +486,14 @@ if __name__ == '__main__':
                                                node_lstm_trend])
         node_final.labels = ["fixed"]
         chain.add_node(node_final)
+        print(f'Размер исходной цепочки {len(chain.nodes)}')
 
         # Заполнение пропусков
         gapfiller = ModelGapFiller(gap_value=-100.0,
                                    chain=chain)
         with_gap_array = np.array(data['gap'])
         withoutgap_arr = gapfiller.forward_filling(with_gap_array,
-                                                   max_window_size=50)
+                                                   max_window_size=30)
 
         dataframe['gap'] = withoutgap_arr
         validate(parameter = 'Height', mask = 'gap', data = data, withoutgap_arr = withoutgap_arr)
