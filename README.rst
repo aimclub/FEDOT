@@ -133,7 +133,7 @@ To use API, follow these steps:
 
 .. code-block:: python
 
-  from fedot.api.api import Fedot
+  from fedot.api.api_runner import Fedot
 
 2. Select the type of ML-problem and the hyperparameters of Composer (optional).
 

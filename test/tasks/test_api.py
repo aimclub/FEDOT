@@ -1,4 +1,4 @@
-from fedot.api.api import Fedot, check_data_type
+from fedot.api.api_runner import Fedot, check_data_type
 import pandas as pd
 import os
 import numpy as np
