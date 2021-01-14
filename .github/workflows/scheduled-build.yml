@@ -2,7 +2,7 @@ name: Run heavy builds
 
 on:
   schedule:
-    - cron: "14 50 * * *"
+    - cron: "0 15 * * *"
 
 jobs:
   build:
