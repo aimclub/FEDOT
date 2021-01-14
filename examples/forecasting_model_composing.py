@@ -12,8 +12,7 @@ from fedot.core.composer.gp_composer.gp_composer import \
 from fedot.core.composer.visualisation import ComposerVisualiser
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 
@@ -99,7 +98,13 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
+    time_limit_min = 10
     available_model_types = ['linear', 'ridge', 'lasso', 'rfr', 'dtreg', 'knnreg', 'svr']
+
+    if max_window_size == 1:
+        # unit test model
+        available_model_types = ['linear', 'ridge']
+        time_limit_min = 0.001
 
     # each possible single-model chain
     for model in available_model_types:
@@ -131,8 +136,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         secondary=available_model_types, max_arity=5,
         max_depth=2, pop_size=10, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=10),
-        add_single_model_chains=True)
+        max_lead_time=datetime.timedelta(minutes=time_limit_min),
+        add_single_model_chains=False)
 
     builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
         metric_function)
@@ -164,7 +169,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         secondary=available_model_types_secondary, max_arity=5,
         max_depth=2, pop_size=10, num_of_generations=30,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=10))
+        max_lead_time=datetime.timedelta(minutes=time_limit_min))
 
     builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
         metric_function).with_initial_chain(multiscale_chain)
