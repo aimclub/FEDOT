@@ -129,11 +129,11 @@ Input data must be ether in numpy-array format or CSV files.
 
 To use API, follow these steps:
 
-1. Import the Fedot class
+1. Import Fedot class
 
 .. code-block:: python
 
-  from fedot.api import Fedot
+  from fedot.api.api import Fedot
 
 2. Select the type of ML-problem and the hyperparameters of Composer (optional).
 
