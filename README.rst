@@ -122,19 +122,20 @@ Finally, you can test the resulted model on the validation dataset:
 FEDOT API
 ==========
 
-The API module is designed to make it easier for the user to use the framework's capabilities to solve machine learning problems.
-At this stage, the API allows you to work with input data in the format of Numpy arrays or csv files, as well as the ability to select the values of hyperparameters of the desired composite model.
-The API allows you to solve regression and classification problems, as well as support for time series forecasting and clustering problems will be implemented in the future.
-To use the API, follow these steps:
+FEDOT provides a high-level API that allows you to use its capabilities simpler.
+At the moment, API can be used for classification and regression tasks only.
+But the time series forecasting and clustering support will be implemented soon (you still can solve these tasks via advanced initialization, see above).
+Input data must be ether in numpy-array format or CSV files.
+
+To use API, follow these steps:
 
 1. Import the Fedot class
 
 .. code-block:: python
 
-  from fedot.api.run_api import Fedot
+  from fedot.api import Fedot
 
-2. Select the type of machine learning problem to solve and the values of the hyperparameters of the composite model.
-Selecting hyperparameters values is optional, but selecting the task type is a prerequisite for running the module API.
+2. Select the type of ML-problem and the hyperparameters of Composer (optional).
 
 .. code-block:: python
 
@@ -143,8 +144,11 @@ Selecting hyperparameters values is optional, but selecting the task type is a p
                        'max_arity': 2,
                    'learning_time': 1}
 
-3. Create a Fedot class and pass parameters to it. Both Numpy arrays and links to csv files with data can be used as input data.
-The fit method returns a composite model, the predict method returns a Numpy array with predicted values, and the quality_metric method returns the quality metric value obtained for this task and the composite model.
+3. Initialize Fedot object with parameters. It provides a ML-popular fit/predict interface:
+
+- fedot.fit runs optimization and returns the resulted composite model
+- fedot.predict returns the predictied values for a given features
+- fedot.quality_metric calculates the quality metrics of predictions
 
 .. code-block:: python
 

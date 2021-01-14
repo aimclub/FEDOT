@@ -1,6 +1,6 @@
-import datetime
-import pandas as pd
 import numpy as np
+import pandas as pd
+import datetime
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum

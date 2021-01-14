@@ -1,6 +1,6 @@
 from typing import Union
 import numpy as np
-from fedot.api.utils import compose_fedot_model, save_predict, array_to_input_data
+from fedot.core.api_utils import compose_fedot_model, save_predict, array_to_input_data
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric
