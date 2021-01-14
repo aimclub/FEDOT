@@ -1,12 +1,12 @@
 name: Run heavy builds
 
 on:
-  pull_request:
-    branch: [master]
+  pull_requests:
+    branches: [master]
     types: [opened, edited]
 
 jobs:
-  build:
+  echo_test:
 #    if: github.event_name == 'pull_request' && github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
 
