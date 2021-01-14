@@ -2,14 +2,11 @@ name: Run heavy builds
 
 on:
   schedule:
-    - cron: "19 50 * * *"
-  pull_request:
-    branches: [master]
-    types: [opened, edited]
+    - cron: "14 50 * * *"
 
 jobs:
   build:
-
+    if github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     strategy:
       matrix:
