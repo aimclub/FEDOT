@@ -3,7 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, \
+    silhouette_score
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -31,6 +32,8 @@ class QualityMetric:
     @classmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         metric = cls.default_value
+        if not metric:
+            raise ValueError('Default value for metric not found')
         try:
             results = chain.predict(reference_data)
 
@@ -78,7 +81,12 @@ class F1Metric(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         bound = np.mean(predicted.predict)
         predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
-        return f1_score(y_true=reference.target, y_pred=predicted_labels)
+        n_classes = reference.num_classes
+        if n_classes > 2:
+            additional_params = {'average': 'macro'}
+        else:
+            additional_params = {}
+        return f1_score(y_true=reference.target, y_pred=predicted_labels, **additional_params)
 
 
 class MaeMetric(QualityMetric):
@@ -106,6 +114,15 @@ class RocAucMetric(QualityMetric):
                                     y_true=reference.target,
                                     **additional_params), 3)
         return score
+
+
+class SilhouetteMetric(QualityMetric):
+    default_value = 1
+
+    @staticmethod
+    @from_maximised_metric
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return silhouette_score(reference.features, labels=predicted.predict)
 
 
 class StructuralComplexityMetric(Metric):
