@@ -1,13 +1,15 @@
 from copy import deepcopy
-import numpy as np
 from typing import (Optional, List, Any, Tuple)
+
+import numpy as np
+
+from fedot.core.composer.iterator import fibonacci_sequence, SequenceIterator
+from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover
+from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GPChainOptimiser
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.regularization import regularized_population
 from fedot.core.composer.optimisers.selection import selection
-from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GPChainOptimiser
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.composer.iterator import fibonacci_sequence, SequenceIterator
-from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover
 from fedot.core.log import Log
 
 
@@ -62,8 +64,6 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 ind.fitness = objective_function(ind)
 
             on_next_iteration_callback(self.population)
-
-            self.log.info(f'Best metric is {self.best_individual.fitness}')
 
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
