@@ -5,6 +5,7 @@ import numpy as np
 
 from fedot.core.data.data import train_test_data_setup, InputData
 from fedot.core.utils import project_root
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from sklearn.model_selection import train_test_split
 
 from test.models.test_split_train_test import get_synthetic_input_data
@@ -12,9 +13,9 @@ from test.tasks.test_classification import get_iris_data
 from test.tasks.test_forecasting import get_synthetic_ts_data_linear
 from test.tasks.test_regression import get_synthetic_regression_data
 
-composer_params = {'max_depth': 2,
+composer_params = {'max_depth': 1,
                    'max_arity': 2,
-                   'learning_time': 1}
+                   'learning_time': 0.0001}
 
 
 def get_split_data_paths():
@@ -56,9 +57,9 @@ def get_dataset(task_type: str):
     return train_data, test_data, threshold
 
 
-def test_api_output_correct():
-    train_data, test_data, threshold = get_dataset('classification')
-    model = Fedot(ml_task='classification',
+def test_api_predict_correct(task_type: str = 'classification'):
+    train_data, test_data, threshold = get_dataset(task_type)
+    model = Fedot(ml_task=task_type,
                   composer_params=composer_params)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
@@ -66,16 +67,6 @@ def test_api_output_correct():
     assert type(fedot_model) != Fedot
     assert type(prediction) != np.array
     assert type(metric) != float
-
-
-def test_api_predict_correct(task_type: str = 'classification'):
-    train_data, test_data, threshold = get_dataset(task_type)
-    model = Fedot(ml_task=task_type,
-                  composer_params=composer_params)
-    model.fit(features=train_data)
-    model.predict(features=test_data)
-
-    metric = model.quality_metric()
     assert metric < threshold
 
 
@@ -83,11 +74,11 @@ def test_api_check_data_correct():
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
-    string_data_input = check_data_type(ml_task=task_type,
+    string_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
                                         features=path_to_train)
-    array_data_input = check_data_type(ml_task=task_type,
+    array_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
                                        features=x_train)
-    fedot_data_input = check_data_type(ml_task=task_type,
+    fedot_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
                                        features=train_data)
     assert not type(string_data_input) == InputData \
            or type(array_data_input) == InputData \
