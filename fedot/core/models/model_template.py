@@ -10,23 +10,26 @@ from fedot.core.log import default_log, Log
 class ModelTemplateAbstract(ABC):
     """
     Base class used for create different types of Model("atomized_model" or others like("knn", "xgboost")).
-    Atomized_model is atomized chain which can uses like general model.
+    Atomized_model is chain which can be used like general model.
     """
 
-    def __init__(self, log):
+    def __init__(self, log: Log = None):
         self.model_id = None
         self.model_type = None
         self.nodes_from = None
-        self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     @abstractmethod
-    def _model_to_template(self, **kwargs):
+    def _model_to_template(self, node: Node, model_id: int, nodes_from: list):
         """
         Preprocessing for local fields
         :param node: current node
         :param model_id: model id in chain
         :param nodes_from: parents model's id
-        :param chain_id: name of chain given by user or uuid4
         """
 
     @abstractmethod
@@ -36,27 +39,32 @@ class ModelTemplateAbstract(ABC):
         :param model_object: JSON like object to parse
         """
 
+    @abstractmethod
+    def convert_to_dict(self) -> dict:
+        """
+        Transform all object's parameters to dictionary.
+        :params path: string path to save.
+        :return dict: dictionary with object parameters.
+        """
+
     def _validate_json_model_template(self, model_object: dict, required_fields: list):
         """
-        #TODO
+        Check whether there are fields in the dictionary.
+        :params model_object: dictionary to check
+        :params required_fields: list of fields name
         """
+
         for field in required_fields:
             if field not in model_object:
                 message = f"Required field '{field}' is expected, but not found."
                 self.log.error(message)
                 raise RuntimeError(message)
 
-    def export_model(self, path: str):
-        path_fitted_models = os.path.join(path, 'fitted_models')
-
-        if not os.path.exists(path_fitted_models):
-            os.makedirs(path_fitted_models)
-
 
 class ModelTemplate(ModelTemplateAbstract):
     def __init__(self, node: Node = None, model_id: int = None,
-                 nodes_from: list = None, log: Log = default_log(__name__)):
-        super().__init__(log)
+                 nodes_from: list = None):
+        super().__init__()
         self.model_name = None
         self.custom_params = None
         self.params = None
@@ -111,9 +119,11 @@ class ModelTemplate(ModelTemplateAbstract):
         return model_object
 
     def export_model(self, path: str):
-        super().export_model(path)
+        _check_existing_path(path)
 
         if self.fitted_model:
+            path_fitted_models = os.path.join(path, 'fitted_models')
+            _check_existing_path(path_fitted_models)
             joblib.dump(self.fitted_model, os.path.join(path, self.fitted_model_path))
 
     def import_json(self, model_object: dict):
@@ -134,6 +144,11 @@ class ModelTemplate(ModelTemplateAbstract):
             preprocessor_strategy = preprocessing_strategy_class_by_label(model_object['preprocessor'])
             if preprocessor_strategy:
                 self.preprocessor = preprocessor_strategy()
+
+
+def _check_existing_path(path: str):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 
 def _extract_model_params(node: Node):

@@ -11,6 +11,7 @@ from fedot.core.models.atomized_template import AtomizedModelTemplate
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
 from fedot.core.log import default_log, Log
 from fedot.core.models.model_template import ModelTemplate
+from fedot.core.repository.model_types_repository import atomized_model_type
 
 
 class ChainTemplate:
@@ -21,12 +22,16 @@ class ChainTemplate:
     :params chain: Chain object to export or empty Chain to import
     :params log: Log object to record messages
     """
-    def __init__(self, chain=None, log: Log = default_log(__name__)):
+    def __init__(self, chain=None, log: Log = None):
         self.total_chain_models = Counter()
         self.depth = chain.depth
         self.model_templates = []
         self.unique_chain_id = str(uuid4())
-        self.log = log
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
         self._chain_to_template(chain)
 
@@ -54,7 +59,7 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        if node.model.model_type == 'atomized_model':
+        if node.model.model_type == atomized_model_type():
             model_template = AtomizedModelTemplate(node, model_id, nodes_from)
         else:
             model_template = ModelTemplate(node, model_id, nodes_from)
@@ -70,6 +75,7 @@ class ChainTemplate:
         :param path: custom path to save
         :return: JSON like object
         """
+
         path = self._prepare_paths(path)
         absolute_path = os.path.abspath(path)
 
@@ -114,7 +120,10 @@ class ChainTemplate:
             raise FileNotFoundError(message)
 
         self.unique_chain_id = folder_name
-        folder_name = f"{datetime.now().strftime('%B-%d-%Y,%H-%M-%S,%p')} {folder_name}"
+
+        if _is_nested_path(folder_name):
+            folder_name = f"{datetime.now().strftime('%B-%d-%Y,%H-%M-%S,%p')} {folder_name}"
+
         path_to_save = os.path.join(path, folder_name)
 
         return path_to_save
@@ -126,7 +135,7 @@ class ChainTemplate:
             json_object_chain = json.load(json_file)
             self.log.info(f"The chain was imported from the path: {path}.")
 
-        self._extract_models(json_object_chain)
+        self._extract_models(json_object_chain, path)
         self.convert_to_chain(self.link_to_empty_chain, path)
         self.depth = self.link_to_empty_chain.depth
 
@@ -141,12 +150,14 @@ class ChainTemplate:
             self.log.error(message)
             raise FileNotFoundError(message)
 
-    def _extract_models(self, chain_json):
+    def _extract_models(self, chain_json, path):
         model_objects = chain_json['nodes']
 
         for model_object in model_objects:
-            if model_object['model_type'] == 'atomized_model':
-                model_template = AtomizedModelTemplate(path=model_object['atomized_model_json_path'])
+            if model_object['model_type'] == atomized_model_type():
+                filename = model_object['atomized_model_json_path'] + '.json'
+                curr_path = os.path.join(os.path.dirname(path), model_object['atomized_model_json_path'], filename)
+                model_template = AtomizedModelTemplate(path=curr_path)
             else:
                 model_template = ModelTemplate()
 
@@ -177,24 +188,20 @@ class ChainTemplate:
         if model_object.model_id in visited_nodes:
             return visited_nodes[model_object.model_id]
 
-        if model_object.model_type == 'atomized_model':
+        if model_object.model_type == atomized_model_type():
             atomized_model = model_object.next_chain_template
             if model_object.nodes_from:
                 node = SecondaryNode(model_type='atomized_model', atomized_model=atomized_model)
             else:
                 node = PrimaryNode(model_type='atomized_model', atomized_model=atomized_model)
-        elif model_object.nodes_from:
-            node = SecondaryNode(model_object.model_type)
         else:
-            node = PrimaryNode(model_object.model_type)
+            if model_object.nodes_from:
+                node = SecondaryNode(model_object.model_type)
+            else:
+                node = PrimaryNode(model_object.model_type)
+            node.model.params = model_object.params
 
-        node.model.params = model_object.params
-        nodes_from = [model_template for model_template in self.model_templates
-                      if model_template.model_id in model_object.nodes_from]
-        node.nodes_from = [self.roll_chain_structure(node_from, visited_nodes, path) for node_from
-                           in nodes_from]
-
-        if model_object.fitted_model_path and path is not None:
+        if hasattr(model_object, 'fitted_model_path') and model_object.fitted_model_path and path is not None:
             path_to_model = os.path.join(path, model_object.fitted_model_path)
             if not os.path.isfile(path_to_model):
                 message = f"Fitted model on the path: {path_to_model} does not exist."
@@ -202,10 +209,21 @@ class ChainTemplate:
                 raise FileNotFoundError(message)
 
             fitted_model = joblib.load(path_to_model)
+            model_object.fitted_model = fitted_model
             node.cache.append(CachedState(preprocessor=model_object.preprocessor,
                                           model=fitted_model))
+
+        nodes_from = [model_template for model_template in self.model_templates
+                      if model_template.model_id in model_object.nodes_from]
+        node.nodes_from = [self.roll_chain_structure(node_from, visited_nodes, path) for node_from
+                           in nodes_from]
+
         visited_nodes[model_object.model_id] = node
         return node
+
+
+def _is_nested_path(path):
+    return path.find('nested') == -1
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):

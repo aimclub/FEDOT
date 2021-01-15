@@ -1,18 +1,19 @@
 import os
 
+from typing import Tuple
+
 from fedot.core.chains.node import Node
-from fedot.core.log import default_log, Log
-from fedot.core.models.model_template import ModelTemplateAbstract
+from fedot.core.models.model_template import ModelTemplateAbstract, _check_existing_path
 
 
 class AtomizedModelTemplate(ModelTemplateAbstract):
-    def __init__(self, node: Node = None, model_id: int = None, nodes_from: list = None,
-                 log: Log = default_log(__name__), path: str =None):
+    def __init__(self, node: Node = None, model_id: int = None, nodes_from: list = None, path: str = None):
+        # Need use the imports inside the class because of the problem of circular imports.
         from fedot.core.chains.chain import Chain
         from fedot.core.chains.chain_template import ChainTemplate
         from fedot.core.models.atomized_model import AtomizedModel
 
-        super().__init__(log)
+        super().__init__()
         self.atomized_model_json_path = None
         self.next_chain_template = None
         self.chain_template = None
@@ -33,12 +34,9 @@ class AtomizedModelTemplate(ModelTemplateAbstract):
         self.model_type = node.model.model_type
         self.nodes_from = nodes_from
         self.chain_template = ChainTemplate(node.model.chain)
+        self.atomized_model_json_path = 'nested_' + str(self.model_id)
 
-    def convert_to_dict(self, path: str = None) -> dict:
-        path_to_save = self._create_nested_path(path)
-
-        self.chain_template.export_chain(path_to_save)
-        self.atomized_model_json_path = path_to_save
+    def convert_to_dict(self) -> dict:
 
         model_object = {
             "model_id": self.model_id,
@@ -49,25 +47,25 @@ class AtomizedModelTemplate(ModelTemplateAbstract):
 
         return model_object
 
-    def _create_nested_path(self, path: str) -> str:
+    def _create_nested_path(self, path: str) -> Tuple[str, str]:
         """
         Create folder for nested JSON model and prepared path to save JSON's.
         :params path: path where to save parent JSON model
-        :return: absolute path to save nested JSON model
+        :return: absolute and relative paths to save nested JSON model
         """
-        # prepare path
-        split_path = path.split('/')
-        name_of_parent_json = '.'.join(split_path[-1].split('.')[:-1])
 
-        # create nested folder
-        absolute_path_to_parent_dir = os.path.abspath(os.path.join('/'.join(split_path[:-1]), name_of_parent_json))
-        if not os.path.exists(absolute_path_to_parent_dir):
-            os.makedirs(absolute_path_to_parent_dir)
+        relative_path = os.path.join('fitted_models', 'nested_' + str(self.model_id))
+        absolute_path = os.path.join(path, relative_path)
 
-        # create name for JSON
-        full_name_of_parent_json = 'nested_' + str(self.model_id) + '.json'
-        absolute_path_to_parent_dir = os.path.join(absolute_path_to_parent_dir, full_name_of_parent_json)
-        return absolute_path_to_parent_dir
+        if not os.path.exists(absolute_path):
+            os.makedirs(absolute_path)
+
+        return absolute_path, relative_path
+
+    def export_model(self, path: str):
+        absolute_path = os.path.join(path, self.atomized_model_json_path)
+        _check_existing_path(absolute_path)
+        self.chain_template.export_chain(absolute_path)
 
     def import_json(self, model_object: dict):
         required_fields = ['model_id', 'model_type', 'nodes_from', 'atomized_model_json_path']
