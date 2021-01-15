@@ -123,9 +123,11 @@ class Fedot:
         return self._obtain_model()
 
     def predict(self,
-                features: Union[str, np.ndarray, InputData]):
+                features: Union[str, np.ndarray, InputData],
+                save_predictions: bool = False):
         """
         :param features: the array with features of test data
+        :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with predicted values
         """
         if self.current_model is None:
@@ -138,7 +140,9 @@ class Fedot:
             self.predicted = self.current_model.predict(self.test_data, output_mode='labels')
         else:
             self.predicted = self.current_model.predict(self.test_data)
-        save_predict(self.predicted)
+
+        if save_predictions:
+            save_predict(self.predicted)
         return self.predicted.predict
 
     def save_model(self):
