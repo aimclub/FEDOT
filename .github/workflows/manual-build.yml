@@ -1,23 +1,18 @@
-name: Run heavy builds
+name: Manual build
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   integration_test:
-    env:
-      BRANCH: $(python3 pulled_branches.py)
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ 3.8 ]
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
-        with:
-          ref: ${{ BRANCH }}
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -31,6 +26,6 @@ jobs:
           pip install pytest-cov
       - name: Test with pytest
         run: |
-          pytest --cov=. -s test
+          pytest --cov=. -s
       - name: Codecov-coverage
         uses: codecov/codecov-action@v1
