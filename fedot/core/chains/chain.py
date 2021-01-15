@@ -277,13 +277,13 @@ class SharedChain(Chain):
         return chain
 
 
-def as_nx_graph(chain: Chain):
+def chain_as_nx_graph(chain: Chain):
     graph = nx.DiGraph()
     node_labels = {}
     new_node_idx = {}
     for node in chain.nodes:
-        unique_id, label = uuid4(), str(node)
-        node_labels[unique_id] = str(node)
+        unique_id, label = uuid4(), node
+        node_labels[unique_id] = node
         new_node_idx[node] = unique_id
         graph.add_node(unique_id)
 

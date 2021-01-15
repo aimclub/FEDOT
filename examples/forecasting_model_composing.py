@@ -9,7 +9,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
@@ -180,7 +180,8 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
 
     if with_visualisation:
-        ComposerVisualiser.visualise(chain)
+        visualiser = ChainVisualiser()
+        visualiser.visualise(chain)
 
     rmse_on_valid = calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,

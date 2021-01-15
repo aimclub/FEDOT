@@ -177,7 +177,7 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_chain(data=data)
 
-    assert len(gp_composer_terminated_evolution.history) == len(gp_composer_completed_evolution.history)
+    assert len(gp_composer_terminated_evolution.history.chains) == len(gp_composer_completed_evolution.history.chains)
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
