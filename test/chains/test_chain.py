@@ -11,7 +11,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 
 seed(1)
@@ -220,3 +220,18 @@ def test_chain_with_custom_params_for_model(data_setup):
     default_params_prediction = chain_default_params.predict(data).predict
 
     assert not np.array_equal(custom_params_prediction, default_params_prediction)
+
+
+def test_chain_with_wrong_data():
+    chain = Chain(PrimaryNode('linear'))
+    data_seq = np.arange(0, 10)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=10,
+                                    max_window_size=len(data_seq) + 1,
+                                    return_all_steps=False))
+
+    data = InputData(idx=data_seq, features=data_seq, target=data_seq,
+                     data_type=DataTypesEnum.ts, task=task)
+
+    with pytest.raises(ValueError):
+        chain.fit(data)

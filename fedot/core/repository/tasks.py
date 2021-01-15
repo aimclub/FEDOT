@@ -1,6 +1,5 @@
-from typing import Any, List, Optional
-
 from dataclasses import dataclass
+from typing import Any, List, Optional
 
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -16,6 +15,10 @@ class TsForecastingParams(TaskParams):
     max_window_size: int
     return_all_steps: bool = False
     make_future_prediction: bool = False
+
+    def __post_init__(self):
+        if self.forecast_length < 1:
+            raise ValueError('Forecast length should be more then 0')
 
 
 class TaskTypesEnum(Enum):

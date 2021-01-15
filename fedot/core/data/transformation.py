@@ -28,7 +28,9 @@ def ts_to_lagged_table(input_data: InputData) -> InputData:
         for lag in range(1, window_len + 1):
             df[f'lag_{lag}'] = df.ts_target.shift(lag)
         for lag in range(0, prediction_len):
-            df_target[f'new_target_{lag}'] = df.ts_target.shift(-lag)
+            if input_data.task.task_params.return_all_steps or \
+                    lag == prediction_len - 1:
+                df_target[f'new_target_{lag}'] = df.ts_target.shift(-lag)
 
     if input_data.features is not None and (input_data.features.shape != input_data.target.shape or
                                             not np.allclose(input_data.features,
@@ -37,7 +39,7 @@ def ts_to_lagged_table(input_data: InputData) -> InputData:
         if len(input_data.features.shape) == 1:
             input_data.features.shape = input_data.features.shape + (1,)
 
-        # iterate feature array by columns (inidvidual features)
+        # iterate feature array by columns (inidividual features)
         for feature_id, feature in enumerate(input_data.features.T):
             feature = list(feature)
             feature.append(np.nan)

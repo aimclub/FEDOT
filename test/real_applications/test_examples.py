@@ -2,22 +2,25 @@ import os
 from datetime import timedelta
 
 import numpy as np
-
 from sklearn.metrics import mean_squared_error
-from examples.time_series_gapfilling_example import run_gapfilling_example
+
 from examples.forecasting_model_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
 from examples.time_series_forecasting import (run_multistep_composite_example, run_multistep_linear_example,
                                               run_multistep_lstm_example, run_multistep_multiscale_example,
                                               run_onestep_linear_example)
+from examples.time_series_gapfilling_example import run_gapfilling_example
 
 
 def test_forecasting_model_composing_example():
     test_file_path = str(os.path.dirname(__file__))
     file_path_train = os.path.join(test_file_path, '../data/simple_time_series.csv')
-    file_path_test = file_path_train
+    file_path_test = os.path.join(test_file_path, '../data/simple_time_series_test.csv')
 
-    rmse = run_metocean_forecasting_problem(file_path_train, file_path_test, with_visualisation=False)
+    rmse = run_metocean_forecasting_problem(file_path_train, file_path_test,
+                                            max_window_size=1,
+                                            forecast_length=4,
+                                            with_visualisation=False)
     assert rmse > 0
 
 

@@ -73,7 +73,7 @@ def plot_prediction(prediction, data: InputData, desc) -> (float, float):
 
 def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bool, desc: str):
     train_data, test_data = train_test_data_setup(data, shuffle_flag=False, split_ratio=0.9)
-    data.task.task_params.make_future_prediction = False
+    data.task.task_params.make_future_prediction = True
     chain.fit_from_scratch(train_data)
 
     test_data_for_pred = copy(test_data)

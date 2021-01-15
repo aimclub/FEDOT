@@ -5,11 +5,11 @@ from uuid import uuid4
 
 import networkx as nx
 
+from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.chains.chain_template import ChainTemplate
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -78,11 +78,14 @@ class Chain:
             self._clean_model_cache()
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            if input_data.task.task_params.make_future_prediction:
+                input_data.task.task_params.return_all_steps = True
             # the make_future_prediction is useless for the fit stage
             input_data.task.task_params.make_future_prediction = False
-        else:
-            if not use_cache or self.fitted_on_data is None:
-                self.fitted_on_data = input_data
+            check_data_appropriate_for_task(input_data)
+
+        if not use_cache or self.fitted_on_data is None:
+            self.fitted_on_data = input_data
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
         return train_predicted
 
@@ -292,3 +295,11 @@ def as_nx_graph(chain: Chain):
 
     add_edges(graph, chain, new_node_idx)
     return graph, node_labels
+
+
+def check_data_appropriate_for_task(data: InputData):
+    if (data.task.task_type == TaskTypesEnum.ts_forecasting and
+            data.target is not None and
+            data.task.task_params.max_window_size > data.target.shape[0]):
+        raise ValueError(f'Window size {data.task.task_params.max_window_size} is '
+                         f'more then data length {data.target.shape[0]}')
