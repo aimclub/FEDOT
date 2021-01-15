@@ -14,30 +14,32 @@ Exporting a model chain
 -----------------------
       
 The Chain object has a *'save_chain'* method that takes a single argument,
-the path (relative or absolute) to which the JSON object will be saved. 
-You can specify the path to save the JSON with the file name:
+the path to where the JSON object and fitted models will be saved.
+You can specify the path to save files with the folder name:
 
-- home/user/project/model/my_chain.json,
+- /home/user/project/model/my_chain,
 
-or folder:
+this way your chain and trained models will be saved in a folder in the following hierarchy:
 
-- home/user/project/model
-
-in this case, the name of JSON file will be generated automatically:
-
-- /home/user/project/model/unique_id.json
-
-Also, the models that make up the chain will be saved to your home path
-depending on your operating system:
-
-- ~/Fedot/fitted_models
+- /home/user/project/model/my_chain:
+    - my_chain.json
+    - fitted_models:
+        - model_0.pkl
+        - model_2.pkl
+        - ...
 
 **Example of use:**
 
 .. code-block:: python
 
+    from cases.data.data_utils import get_scoring_case_data_paths
+    from fedot.core.chains.chain import Chain
+    from fedot.core.chains.node import PrimaryNode, SecondaryNode
+    from fedot.core.data.data import InputData
+
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
+
     chain = Chain()
     node_logit = PrimaryNode('logit')
     
@@ -53,27 +55,67 @@ depending on your operating system:
     chain.add_node(node_knn_second)
     chain.fit(train_data)
     
-    chain.save_chain("test/data/my_chain.json")
+    chain.save_chain("data/my_chain")
 
 The *'save_chain'* method:
 
-1. saves the chain models to the home's storage,
-2. saves JSON object in the file ``test/data/my_chain.json``,
+1. saves the chain's fitted models to path ``test/data/my_chain/fitted_models``,
+2. saves JSON object in the file ``test/data/my_chain/my_chain.json``,
 3. returns a JSON-like-object
 
 .. code-block:: json
 
+    "data/Month:Day:Year, Time Period my_chain/my_chain.json"
+
     {
-        "total_chain_types": {
-            "knn": 1,
-            "lda": 1,
+        "total_chain_models": {
             "logit": 1,
-            "xgboost": 1
+            "lda": 1,
+            "xgboost": 1,
+            "knn": 1
         },
         "depth": 2,
         "nodes": [
             {
-                "model_id": "0",
+                "model_id": 1,
+                "model_type": "logit",
+                "model_name": "LogisticRegression",
+                "custom_params": "default_params",
+                "params": {
+                    ...
+                },
+                "nodes_from": [],
+                "fitted_model_path": "fitted_models/model_1.pkl",
+                "preprocessor": "scaling_with_imputation"
+            },
+            {
+                "model_id": 2,
+                "model_type": "lda",
+                "model_name": "LinearDiscriminantAnalysis",
+                "custom_params": {
+                    "n_components": 1
+                },
+                "params": {
+                    ...
+                },
+                "nodes_from": [],
+                "fitted_model_path": "fitted_models/model_2.pkl",
+                "preprocessor": "scaling_with_imputation"
+            },
+            {
+                "model_id": 3,
+                "model_type": "xgboost",
+                "model_name": "XGBClassifier",
+                "custom_params": "default_params",
+                "params": {
+                    ...
+                },
+                "nodes_from": [],
+                "fitted_model_path": "fitted_models/model_3.pkl",
+                "preprocessor": "scaling_with_imputation"
+            },
+            {
+                "model_id": 0,
                 "model_type": "knn",
                 "model_name": "KNeighborsClassifier",
                 "custom_params": {
@@ -87,47 +129,14 @@ The *'save_chain'* method:
                     2,
                     3
                 ],
-                "trained_model_path": "/home/user/.local/share/FEDOT/fitted_models/a3749e94-d387-4ff1-a7c5-ef232a384eec/model_0.pkl"
-            },
-            {
-                "model_id": "1",
-                "model_type": "logit",
-                "model_name": "LogisticRegression",
-                "custom_params": "default_params",
-                "params": {
-                    ...
-                },
-                "nodes_from": [],
-                "trained_model_path": "/home/user/.local/share/FEDOT/fitted_models/a3749e94-d387-4ff1-a7c5-ef232a384eec/model_1.pkl"
-            },
-            {
-                "model_id": "2",
-                "model_type": "lda",
-                "model_name": "LinearDiscriminantAnalysis",
-                "custom_params": {
-                    "n_components": 1
-                },
-                "params": {
-                    ...
-                },
-                "nodes_from": [],
-                "trained_model_path": "/home/user/.local/share/FEDOT/fitted_models/a3749e94-d387-4ff1-a7c5-ef232a384eec/model_2.pkl"
-            },
-            {
-                "model_id": "3",
-                "model_type": "xgboost",
-                "model_name": "XGBClassifier",
-                "custom_params": "default_params",
-                "params": {
-                    ...
-                },
-                "nodes_from": [],
-                "trained_model_path": "/home/user/.local/share/FEDOT/fitted_models/a3749e94-d387-4ff1-a7c5-ef232a384eec/model_3.pkl"
+                "fitted_model_path": "fitted_models/model_0.pkl",
+                "preprocessor": "scaling_with_imputation"
             }
         ]
     }
 
-Where *'params'* are all parameters consisting of:
+**NOTE:** *'params'* are all parameters consisting of:
+
 - parameters for tuning (custom_params),
 - standard model parameters in the framework
 
@@ -139,47 +148,23 @@ already used one, but all data will be overwritten during import. The
 *'load_chain'* method takes the path to a file with the JSON extension
 as an argument.
 
-**Example of using a model with a minimal data set:**
-
-.. code-block:: json
-
-    "test/data/my_chain.json"
-
-    {
-      "nodes": [
-            {
-                "model_id": "0",
-                "model_type": "knn",
-                "params": {
-                    "n_neighbors": 8
-                },
-                "nodes_from": [
-                    1
-                ]
-            },
-            {
-                "model_id": "1",
-                "model_type": "lda",
-                "params": {
-                    "n_components": 1
-                },
-                "nodes_from": []
-            }
-        ]
-    }
+**Example of using a model:**
 
 .. code-block:: python
 
-    chain = Chain()
-    chain.load_chain("test/data/my_chain.json")
+    from sklearn.metrics import mean_squared_error
 
+    test_data = InputData.from_csv(test_file_path)
+
+    chain = Chain()
+    chain.load_chain("data/Month:Day:Year, Time Period my_chain/my_chain.json")
+    predicted_values = chain.predict(test_data).predict
+    actual_values = test_data.target
+
+    mean_squared_error(predicted_values, actual_values)
  
-Required fields for loading the model are: *'model_id'*, *'model_type'*,
-*'params' = {}*, *'nodes_from'= []*. The consequence is that you can
+**NOTE:** Required fields for loading the model are: **'model_id'**, **'model_type'**, **'preprocessor'**,
+**'params'**, **'nodes_from'**. The consequence is that you can
 create an unusual chain.
 
 Now you can upload models, share them, and edit them in a convenient JSON format.
- 
-
-
-

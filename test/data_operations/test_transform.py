@@ -1,8 +1,8 @@
 import numpy as np
 from numpy import nan
 
-from fedot.core.models.data import InputData
-from fedot.core.models.transformation import direct, ts_to_lagged_table
+from fedot.core.data.data import InputData
+from fedot.core.data.transformation import direct, ts_to_lagged_table
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -13,7 +13,8 @@ forecast_length = 2
 def synthetic_forecasting_problem():
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length,
-                                    max_window_size=max_window_size))
+                                    max_window_size=max_window_size,
+                                    return_all_steps=True))
     ts_len = 10
     ts = np.asarray([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
 

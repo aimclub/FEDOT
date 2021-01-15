@@ -69,6 +69,15 @@
 	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"
+	},
+	"text_classification": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.text]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "forbidden_node_types": ["secondary"],
+	  "strategies": ["fedot.core.models.evaluation.vectorize", "VectorizeStrategy"],
+	  "tags": ["nlp", "non-default"],
+	  "description": "Text classification"
 	}
   },
   "models": {
@@ -185,6 +194,14 @@
 	"lstm": {
 	  "meta": "keras_forecasting",
 	  "tags": ["deep"]
-	}
+	},
+	"multinb": {
+	  "meta": "sklearn_class",
+	  "tags": ["bayesian", "non-default"]
+	},
+    "tfidf": {
+      "meta": "text_classification",
+	  "tags": ["text", "non-default"]
+    }
   }
 }

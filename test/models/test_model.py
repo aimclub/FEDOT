@@ -3,9 +3,9 @@ import pytest
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.models.model import Model
-from fedot.core.models.preprocessing import Scaling
+from fedot.core.data.preprocessing import ScalingWithImputation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -60,7 +60,7 @@ def classification_dataset_with_redunant_features(
 
 def test_log_regression_fit_correct(classification_dataset):
     data = classification_dataset
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     log_reg = Model(model_type='logit')
@@ -75,7 +75,7 @@ def test_log_regression_fit_correct(classification_dataset):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_random_forest_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     random_forest = Model(model_type='rf')
@@ -90,7 +90,7 @@ def test_random_forest_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_decision_tree_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     decision_tree = Model(model_type='dt')
@@ -106,7 +106,7 @@ def test_decision_tree_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_lda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     lda = Model(model_type='lda')
@@ -121,7 +121,7 @@ def test_lda_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_qda_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     qda = Model(model_type='qda')
@@ -136,7 +136,7 @@ def test_qda_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     kmeans = Model(model_type='kmeans')
@@ -149,7 +149,7 @@ def test_log_clustering_fit_correct(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_svc_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = Scaling().fit(data.features).apply(data.features)
+    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
     svc = Model(model_type='svc')

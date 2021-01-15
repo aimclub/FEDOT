@@ -119,10 +119,63 @@ Finally, you can test the resulted model on the validation dataset:
                                                           dataset_to_validate)
   print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
 
+FEDOT API
+==========
+
+FEDOT provides a high-level API that allows you to use its capabilities simpler.
+At the moment, API can be used for classification and regression tasks only.
+But the time series forecasting and clustering support will be implemented soon (you still can solve these tasks via advanced initialization, see above).
+Input data must be ether in numpy-array format or CSV files.
+
+To use API, follow these steps:
+
+1. Import Fedot class
+
+.. code-block:: python
+
+  from fedot.api.api_runner import Fedot
+
+2. Select the type of ML-problem and the hyperparameters of Composer (optional).
+
+.. code-block:: python
+
+    task = 'classification'
+    composer_params = {'max_depth': 2,
+                       'max_arity': 2,
+                   'learning_time': 1}
+
+3. Initialize Fedot object with parameters. It provides a ML-popular fit/predict interface:
+
+- fedot.fit runs optimization and returns the resulted composite model
+- fedot.predict returns the predictied values for a given features
+- fedot.quality_metric calculates the quality metrics of predictions
+
+.. code-block:: python
+
+  train_file = pd.read_csv(train_file_path)
+  x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
+  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
+
+  model = Fedot(ml_task=task,
+                composer_params=composer_params)
+  fedot_model = model.fit(features=x_train,
+                          target=y_train)
+  prediction = model.predict(features=x_test)
+  metric = model.quality_metric(target=y_test)
+
+Examples & Tutorials
+====================
+
+Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
+
+* `Time series forecasting tutorial <https://github.com/nccr-itmo/FEDOT/tree/master/notebooks/time_series_forecasting/Time%20series%20forecasting%20with%20FEDOT.ipynb>`__
+
 Extended examples:
 
 - Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
+- Spam detection, i.e. `natural language preprocessing <https://github.com/nccr-itmo/FEDOT/blob/master/cases/spam_detection.py>`__
+
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
 
@@ -202,6 +255,15 @@ Supported by
 
 Citation
 ========
+
+@article{nikitin2020structural,
+  title={Structural Evolutionary Learning for Composite Classification Models},
+  author={Nikitin, Nikolay O and Polonskaia, Iana S and Vychuzhanin, Pavel and Barabanova, Irina V and Kalyuzhnaya, Anna V},
+  journal={Procedia Computer Science},
+  volume={178},
+  pages={414--423},
+  year={2020},
+  publisher={Elsevier}}
 
 @inproceedings{kalyuzhnaya2020automatic,
   title={Automatic evolutionary learning of composite models with knowledge enrichment},

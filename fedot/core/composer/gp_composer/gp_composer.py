@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 from functools import partial
 from sys import maxsize as max_int_value
@@ -7,21 +6,25 @@ from typing import (
     Optional
 )
 
-from fedot.core.chain_validation import validate
-from fedot.core.composer.chain import Chain, SharedChain
+from fedot.core.chains.chain import Chain, SharedChain
+from fedot.core.chains.chain_validation import validate
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import Composer, ComposerRequirements
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
-from fedot.core.composer.visualisation import ComposerVisualiser
-from fedot.core.composer.write_history import write_composer_history_to_csv
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, RegressionMetricsEnum, \
-    MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+sample_split_ration_for_tasks = {
+    TaskTypesEnum.classification: 0.8,
+    TaskTypesEnum.regression: 0.8,
+    TaskTypesEnum.ts_forecasting: 0.5
+}
 
 
 @dataclass
@@ -74,27 +77,23 @@ class GPComposer(Composer):
         self.shared_cache = {}
         self.optimiser = optimiser
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False) -> Chain:
+    def compose_chain(self, data: InputData, is_visualise: bool = False,
+                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        train_data, test_data = train_test_data_setup(data, 0.8)
+        train_data, test_data = train_test_data_setup(data,
+                                                      sample_split_ration_for_tasks[data.task.task_type],
+                                                      task=data.task)
         self.shared_cache.clear()
         metric_function_for_nodes = partial(self.metric_for_nodes,
                                             self.metrics, train_data, test_data, True)
 
-        best_chain, self.history = self.optimiser.optimise(metric_function_for_nodes)
+        best_chain = self.optimiser.optimise(metric_function_for_nodes,
+                                             on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
-        if is_visualise:
-            historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
-            all_historical_fitness = list(itertools.chain(*historical_fitness))
-            historical_chains = list(itertools.chain(*self.history))
-            ComposerVisualiser.visualise_history(historical_chains, all_historical_fitness)
-
-        write_composer_history_to_csv(historical_chains=self.history)
 
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
@@ -116,6 +115,10 @@ class GPComposer(Composer):
     @staticmethod
     def tune_chain(chain: Chain, data: InputData, time_limit):
         chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)
+
+    @property
+    def history(self):
+        return self.optimiser.history
 
 
 class GPComposerBuilder:
