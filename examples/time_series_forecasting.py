@@ -3,9 +3,9 @@ from copy import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fedot.core.composer.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.ts_chain import TsForecastingChain
-from fedot.core.models.data import InputData, train_test_data_setup
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.ts_chain import TsForecastingChain
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -73,7 +73,7 @@ def plot_prediction(prediction, data: InputData, desc) -> (float, float):
 
 def run_forecasting(chain: TsForecastingChain, data: InputData, is_visualise: bool, desc: str):
     train_data, test_data = train_test_data_setup(data, shuffle_flag=False, split_ratio=0.9)
-    data.task.task_params.make_future_prediction = False
+    data.task.task_params.make_future_prediction = True
     chain.fit_from_scratch(train_data)
 
     test_data_for_pred = copy(test_data)

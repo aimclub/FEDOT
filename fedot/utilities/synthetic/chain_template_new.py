@@ -1,12 +1,13 @@
 import json
 import os
-import joblib
-
+from typing import List
 from uuid import uuid4
 
-from typing import List
+import networkx as nx
 
-from fedot.core.composer.node import PrimaryNode, SecondaryNode, Node, CachedState
+import joblib
+
+from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
 from fedot.core.utils import default_fedot_data_dir
 
 DEFAULT_FITTED_MODELS_PATH = os.path.join(default_fedot_data_dir(), 'fitted_models')
@@ -28,7 +29,7 @@ class ChainTemplate:
         self._extract_chain_structure(chain.root_node, 0, [])
         self.depth = chain.depth
 
-    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[str]):
+    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[Node]):
         """
         Recursively go through the Chain from 'root_node' to PrimaryNode's,
         creating a ModelTemplate with unique id for each Node. In addition,
@@ -37,10 +38,10 @@ class ChainTemplate:
         if node.nodes_from:
             nodes_from = []
             for node_parent in node.nodes_from:
-                if node_parent.descriptive_id in visited_nodes:
-                    nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
+                if node_parent in visited_nodes:
+                    nodes_from.append(visited_nodes.index(node_parent) + 1)
                 else:
-                    visited_nodes.append(node_parent.descriptive_id)
+                    visited_nodes.append(node_parent)
                     nodes_from.append(len(visited_nodes))
                     self._extract_chain_structure(node_parent, len(visited_nodes), visited_nodes)
         else:
@@ -90,11 +91,11 @@ class ChainTemplate:
             return path_to_save
 
     def convert_to_dict(self) -> dict:
-        sorted_chain_types = self.total_chain_types
+        chain_types = self.total_chain_types
         json_nodes = list(map(lambda model_template: model_template.export_to_json(), self.model_templates))
 
         json_object = {
-            "total_chain_types": sorted_chain_types,
+            "total_chain_types": chain_types,
             "depth": self.depth,
             "nodes": json_nodes,
         }
@@ -189,31 +190,14 @@ class ModelTemplate:
         self.model_id = model_id
         self.model_type = node.model.model_type
         self.custom_params = node.model.params
-        self.params = self._create_full_params(node)
+        self.params = {}
         self.nodes_from = nodes_from
 
-        if _is_node_fitted(node):
+        if _is_node_fitted(node) and not _is_node_not_cached(node):
             self.model_name = _extract_model_name(node)
-            self._extract_fitted_model(node, chain_id)
             self.preprocessor = _extract_preprocessing_strategy(node)
-
-    def _extract_fitted_model(self, node: Node, chain_id: str):
-        absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
-        if not os.path.exists(absolute_path):
-            os.makedirs(absolute_path)
-        model_name = f'model_{str(self.model_id)}.pkl'
-        self.fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, model_name)
-        joblib.dump(node.cache.actual_cached_state.model, self.fitted_model_path)
-
-    def _create_full_params(self, node: Node) -> dict:
-        params = {}
-        if _is_node_fitted(node):
-            params = _extract_model_params(node)
-            if isinstance(self.custom_params, dict):
-                for key, value in self.custom_params.items():
-                    params[key] = value
-
-        return params
+            self.params = _extract_model_params(node, self.custom_params)
+            self.fitted_model_path = _extract_and_save_fitted_model(node, chain_id, self.model_id)
 
     def export_to_json(self) -> dict:
 
@@ -252,20 +236,42 @@ def _validate_json_model_template(model_object: dict):
             raise RuntimeError(f"Required field '{field}' is expected, but not found")
 
 
-def _extract_model_params(node: Node):
-    return node.cache.actual_cached_state.model.get_params()
+def _extract_model_params(node: Node, custom_params: [str, dict]):
+    params = node.cache.actual_cached_state.model.get_params()
+
+    if isinstance(custom_params, dict):
+        params.update(custom_params)
+
+    return params
 
 
 def _extract_model_name(node: Node):
     return node.cache.actual_cached_state.model.__class__.__name__
 
 
-def _is_node_fitted(node: Node) -> bool:
-    return bool(node.cache.actual_cached_state)
+def _extract_and_save_fitted_model(node: Node, chain_id: str, model_id: int) -> str:
+    absolute_path = os.path.abspath(os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id))
+
+    if not os.path.exists(absolute_path):
+        os.makedirs(absolute_path)
+
+    model_name = f'model_{str(model_id)}.pkl'
+    fitted_model_path = os.path.join(DEFAULT_FITTED_MODELS_PATH, chain_id, model_name)
+    joblib.dump(node.cache.actual_cached_state.model, fitted_model_path)
+
+    return fitted_model_path
 
 
 def _extract_preprocessing_strategy(node: Node):
     return node.cache.actual_cached_state.preprocessor
+
+
+def _is_node_fitted(node: Node) -> bool:
+    return bool(node.cache.actual_cached_state)
+
+
+def _is_node_not_cached(node: Node) -> bool:
+    return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
@@ -274,3 +280,21 @@ def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     root_node = _roll_chain_structure(root_node, {}, chain_template)
 
     return root_node
+
+
+def chain_template_as_nx_graph(chain: ChainTemplate):
+    graph = nx.DiGraph()
+    node_labels = {}
+    for model in chain.model_templates:
+        unique_id, label = model.model_id, model.model_type
+        node_labels[unique_id] = label
+        graph.add_node(unique_id)
+
+    def add_edges(graph, chain):
+        for model in chain.model_templates:
+            if model.nodes_from is not None:
+                for child in model.nodes_from:
+                    graph.add_edge(child, model.model_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels

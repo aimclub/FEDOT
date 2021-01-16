@@ -16,7 +16,8 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
                                KNeighborsRegressor as SklearnKNNReg)
 from sklearn.neural_network import MLPClassifier
@@ -24,11 +25,12 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from fedot.core.log import default_log, Log
-from fedot.core.models.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
 from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -39,7 +41,7 @@ class EvaluationStrategy:
     the certain sklearn or any other model with fit/predict methods.
 
     :param model_type: str type of the model defined in model repository
-    :param dict params: hyperparamters to fit the model with
+    :param dict params: hyperparameters to fit the model with
     :param Log log: Log object to record messages
     """
 
@@ -47,6 +49,8 @@ class EvaluationStrategy:
                  log=None):
         self.params_for_fit = params
         self.model_type = model_type
+
+        self.output_mode = False
 
         if not log:
             self.log: Log = default_log(__name__)
@@ -74,6 +78,7 @@ class EvaluationStrategy:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def fit_tuned(self, train_data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         """
@@ -121,7 +126,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svc': CustomSVC,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
-        'bernb': SklearnBernoulliNB
+        'bernb': SklearnBernoulliNB,
+        'multinb': SklearnMultinomialNB,
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
@@ -142,7 +148,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_model = self._sklearn_model_impl()
 
-        sklearn_model.fit(train_data.features, train_data.target)
+        try:
+            sklearn_model.fit(train_data.features, train_data.target)
+        except ValueError as ex:
+            if len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1:
+                # if the prediction requires multivariate target and models do not support it
+                sklearn_model = \
+                    convert_to_multivariate_model_manually(sklearn_model, train_data)
+                if not sklearn_model:
+                    raise ex
+            else:
+                raise ex
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
@@ -211,12 +227,16 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :return: prediction target
         """
         n_classes = len(trained_model.classes_)
-        prediction = trained_model.predict_proba(predict_data.features)
-        if n_classes < 2:
-            raise NotImplementedError()
-        elif n_classes == 2:
-            prediction = prediction[:, 1]
-
+        if self.output_mode == 'labels':
+            prediction = trained_model.predict(predict_data.features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_model.predict_proba(predict_data.features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
         return prediction
 
 
@@ -266,3 +286,17 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :return:
         """
         raise NotImplementedError()
+
+
+def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
+    if train_data.task.task_type == TaskTypesEnum.classification:
+        multiout_func = MultiOutputClassifier
+    elif train_data.task.task_type in \
+            [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+        multiout_func = MultiOutputRegressor
+    else:
+        return None
+    # apply MultiOutput
+    sklearn_model = multiout_func(sklearn_model)
+    sklearn_model.fit(train_data.features, train_data.target)
+    return sklearn_model

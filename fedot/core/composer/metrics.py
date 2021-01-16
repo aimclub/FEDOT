@@ -1,11 +1,14 @@
 import sys
 from abc import abstractmethod
+from copy import copy
 
 import numpy as np
-from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, \
+    silhouette_score
 
-from fedot.core.composer.chain import Chain
-from fedot.core.models.data import InputData, OutputData
+from fedot.core.chains.chain import Chain
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def from_maximised_metric(metric_func):
@@ -29,9 +32,18 @@ class QualityMetric:
     @classmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         metric = cls.default_value
+        if not metric:
+            raise ValueError('Default value for metric not found')
         try:
             results = chain.predict(reference_data)
-            metric = cls.metric(reference_data, results)
+
+            if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
+                new_reference_data = copy(reference_data)
+                new_reference_data.target = new_reference_data.target[~np.isnan(results.predict)]
+                results.predict = results.predict[~np.isnan(results.predict)]
+                metric = cls.metric(new_reference_data, results)
+            else:
+                metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
         return metric
@@ -58,7 +70,7 @@ class RmseMetric(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict)
+                                  y_pred=predicted.predict, squared=False)
 
 
 class F1Metric(QualityMetric):
@@ -69,7 +81,12 @@ class F1Metric(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         bound = np.mean(predicted.predict)
         predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
-        return f1_score(y_true=reference.target, y_pred=predicted_labels)
+        n_classes = reference.num_classes
+        if n_classes > 2:
+            additional_params = {'average': 'macro'}
+        else:
+            additional_params = {}
+        return f1_score(y_true=reference.target, y_pred=predicted_labels, **additional_params)
 
 
 class MaeMetric(QualityMetric):
@@ -97,6 +114,15 @@ class RocAucMetric(QualityMetric):
                                     y_true=reference.target,
                                     **additional_params), 3)
         return score
+
+
+class SilhouetteMetric(QualityMetric):
+    default_value = 1
+
+    @staticmethod
+    @from_maximised_metric
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return silhouette_score(reference.features, labels=predicted.predict)
 
 
 class StructuralComplexityMetric(Metric):

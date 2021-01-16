@@ -44,7 +44,7 @@ def post_process_forecasted_ts(prediction, input_data: 'InputData'):
         # because one step is devoted to the feature vector for future prediction
         expected_length = expected_length - 1
 
-    if not task.task_params.return_all_steps and len(prediction.shape) > 1:
+    if len(prediction.shape) > 1:
         prediction = multistep_prediction_to_ts(prediction)
 
     if not task.task_params.make_future_prediction and \
