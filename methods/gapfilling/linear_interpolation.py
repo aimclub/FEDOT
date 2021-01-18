@@ -10,11 +10,11 @@ rcParams['figure.figsize'] = 18, 7
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 
-def run_poly(folder_to_save, files_list,
-             columns_with_gap, file_with_results,
-             vis = False):
+def run_linear_interpolation(folder_to_save, files_list,
+                             columns_with_gap, file_with_results,
+                             vis = False):
     """
-    The function starts the algorithm of local polynomial approximation
+    The function starts the algorithm of linear interpolation of omissions
 
     :param folder_to_save: where to save csv files with filled gaps
     :param files_list: list with file name, which will be processed
@@ -27,8 +27,9 @@ def run_poly(folder_to_save, files_list,
     if os.path.isdir(folder_to_save) == False:
         os.makedirs(folder_to_save)
 
+    mapes = []
     for file_id, file in enumerate(files_list):
-        data = pd.read_csv(os.path.join('.', 'data', file))
+        data = pd.read_csv(os.path.join('..', 'data', file))
         data['Date'] = pd.to_datetime(data['Date'])
         dataframe = data.copy()
 
@@ -45,7 +46,7 @@ def run_poly(folder_to_save, files_list,
 
             # Gap-filling algorithm
             simple_gapfill = SimpleGapFiller(gap_value=-100.0)
-            withoutgap_arr = simple_gapfill.local_poly_approximation(array_with_gaps, 4, 700)
+            withoutgap_arr = simple_gapfill.linear_interpolation(array_with_gaps)
 
             # Impute time series with new one
             dataframe[column_with_gap] = withoutgap_arr
@@ -56,10 +57,14 @@ def run_poly(folder_to_save, files_list,
                                                                    vis=vis)
 
             mini_dataframe[column_with_gap] = [mae, rmse, medianae, mape, min_val, max_val]
+            mapes.append(mape)
 
             # Save resulting file
             save_path = os.path.join(folder_to_save, file)
             dataframe.to_csv(save_path)
+
+        print(mini_dataframe)
+        print('\n')
 
         if file_id == 0:
             main_dataframe = mini_dataframe
@@ -67,14 +72,16 @@ def run_poly(folder_to_save, files_list,
             frames = [main_dataframe, mini_dataframe]
             main_dataframe = pd.concat(frames)
 
+    mapes = np.array(mapes)
+    print(f'Mean MAPE value - {np.mean(mapes):.4f}')
     main_dataframe.to_csv(file_with_results, index=False)
 
 # Run the linear example
-folder_to_save = 'D:/iccs_article/poly'
+folder_to_save = 'D:/iccs_article/linear'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
 columns_with_gap = ['gap', 'gap_center']
-file_with_results = 'D:/iccs_article/poly_report.csv'
+file_with_results = 'D:/iccs_article/linear_report.csv'
 
 if __name__ == '__main__':
-    run_poly(folder_to_save, files_list,
-             columns_with_gap, file_with_results, vis=False)
+    run_linear_interpolation(folder_to_save, files_list,
+                             columns_with_gap, file_with_results, vis=False)

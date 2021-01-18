@@ -48,25 +48,25 @@ def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0, vis = Fa
 
     true_values = arr_parameter[ids_gaps]
     predicted_values = withoutgap_arr[ids_gaps]
-    print('Amount of gap elements:', len(true_values))
-    print(f'Total length of time series: {len(arr_parameter)}')
+    # print('Amount of gap elements:', len(true_values))
+    # print(f'Total length of time series: {len(arr_parameter)}')
     min_value = min(true_values)
     max_value = max(true_values)
-    print('Minimum value in the gap - ', min_value)
-    print('Maximum value in the gap - ', max_value)
+    # print('Minimum value in the gap - ', min_value)
+    # print('Maximum value in the gap - ', max_value)
 
     # Display the metrics on the screen
     MAE = mean_absolute_error(true_values, predicted_values)
-    print('Mean absolute error -', round(MAE, 4))
+    # print('Mean absolute error -', round(MAE, 4))
 
     RMSE = (mean_squared_error(true_values, predicted_values)) ** 0.5
-    print('RMSE -', round(RMSE, 4))
+    # print('RMSE -', round(RMSE, 4))
 
     MedianAE = median_absolute_error(true_values, predicted_values)
-    print('Median absolute error -', round(MedianAE, 4))
+    # print('Median absolute error -', round(MedianAE, 4))
 
     mape = mean_absolute_percentage_error(true_values, predicted_values)
-    print('MAPE -', round(mape, 4), '\n')
+    # print('MAPE -', round(mape, 4), '\n')
 
     # Array with gaps
     array_gaps = np.ma.masked_where(arr_mask == gap_value, arr_mask)
