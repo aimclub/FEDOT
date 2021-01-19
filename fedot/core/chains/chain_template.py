@@ -191,9 +191,9 @@ class ChainTemplate:
         if model_object.model_type == atomized_model_type():
             atomized_model = model_object.next_chain_template
             if model_object.nodes_from:
-                node = SecondaryNode(model_type='atomized_model', atomized_model=atomized_model)
+                node = SecondaryNode(model_type=atomized_model)
             else:
-                node = PrimaryNode(model_type='atomized_model', atomized_model=atomized_model)
+                node = PrimaryNode(model_type=atomized_model)
         else:
             if model_object.nodes_from:
                 node = SecondaryNode(model_object.model_type)

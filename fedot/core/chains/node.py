@@ -9,7 +9,6 @@ from fedot.core.data.preprocessing import preprocessing_func_for_data
 from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
 from fedot.core.models.model import Model
-from fedot.core.repository.model_types_repository import atomized_model_type
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -24,12 +23,11 @@ class Node(ABC):
     If not defined one of the available preprocessing strategies is used. \
     See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
     :param log: Log object to record messages
-    :param atomized_model: optional custom atomized_model
     """
 
-    def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
+    def __init__(self, nodes_from: Optional[List['Node']], model_type: [str, 'Model', 'AtomizedModel'],
                  manual_preprocessing_func: Optional[Callable] = None,
-                 log=None, atomized_model=None):
+                 log=None):
         self.nodes_from = nodes_from
         self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
@@ -40,8 +38,8 @@ class Node(ABC):
         else:
             self.log = log
 
-        if model_type == atomized_model_type():
-            self.model = atomized_model
+        if not isinstance(model_type, str):
+            self.model = model_type
         else:
             self.model = Model(model_type=model_type)
 
@@ -236,11 +234,10 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None, atomized_model=None,
-                 **kwargs):
-        super().__init__(nodes_from=None, model_type=model_type, atomized_model=atomized_model,
-                         manual_preprocessing_func=manual_preprocessing_func,
-                         **kwargs)
+    def __init__(self, model_type: [str, 'Model', 'AtomizedModel'],
+                 manual_preprocessing_func: Optional[Callable] = None, **kwargs):
+        super().__init__(nodes_from=None, model_type=model_type,
+                         manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
@@ -280,13 +277,11 @@ class SecondaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
-                 manual_preprocessing_func: Optional[Callable] = None, atomized_model=None,
-                 **kwargs):
+    def __init__(self, model_type: [str, 'Model', 'AtomizedModel'], nodes_from: Optional[List['Node']] = None,
+                 manual_preprocessing_func: Optional[Callable] = None, **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func, atomized_model=atomized_model,
-                         **kwargs)
+                         manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """

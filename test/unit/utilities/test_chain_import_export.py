@@ -13,7 +13,7 @@ from test.unit.tasks.test_forecasting import get_multilinear_chain, get_syntheti
 
 
 @pytest.fixture(scope='session', autouse=True)
-def performance_with_files_before_after_tests(request):
+def preprocessing_files_before_and_after_tests(request):
     paths = ['test_fitted_chain_convert_to_json', 'test_import_json_to_chain_correctly_1',
              'test_empty_chain_convert_to_json', 'test_chain_convert_to_json',
              'test_export_chain_to_json_correctly', 'test_import_json_to_chain_correctly_2',

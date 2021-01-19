@@ -13,7 +13,7 @@ from cases.data.data_utils import get_scoring_case_data_paths
 
 
 @pytest.fixture(scope='session', autouse=True)
-def performance_with_files_before_after_tests(request):
+def preprocessing_files_before_and_after_tests(request):
     paths = ['test_save_load_atomized_chain_correctly', 'test_save_load_fitted_atomized_chain_correctly_loaded',
              'test_save_load_fitted_atomized_chain_correctly']
 
@@ -51,14 +51,10 @@ def create_atomized_model() -> AtomizedModel:
 
 def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
     chain = Chain()
-    node_atomized_model_primary = PrimaryNode(model_type='atomized_model',
-                                              atomized_model=create_atomized_model())
-    node_atomized_model_secondary = SecondaryNode(model_type='atomized_model',
-                                                  atomized_model=create_atomized_model())
-    node_atomized_model_secondary_second = SecondaryNode(model_type='atomized_model',
-                                                         atomized_model=create_atomized_model())
-    node_atomized_model_secondary_third = SecondaryNode(model_type='atomized_model',
-                                                        atomized_model=create_atomized_model())
+    node_atomized_model_primary = PrimaryNode(model_type=create_atomized_model())
+    node_atomized_model_secondary = SecondaryNode(model_type=create_atomized_model())
+    node_atomized_model_secondary_second = SecondaryNode(model_type=create_atomized_model())
+    node_atomized_model_secondary_third = SecondaryNode(model_type=create_atomized_model())
 
     node_atomized_model_secondary.nodes_from = [node_atomized_model_primary]
     node_atomized_model_secondary_second.nodes_from = [node_atomized_model_primary]
@@ -73,11 +69,9 @@ def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
 
 def create_chain_with_several_nested_atomized_model() -> Chain:
     chain = Chain()
-    node_atomized_model = PrimaryNode(model_type='atomized_model',
-                                      atomized_model=create_atomized_model_with_several_atomized_models())
+    node_atomized_model = PrimaryNode(model_type=create_atomized_model_with_several_atomized_models())
 
-    node_atomized_model_secondary = SecondaryNode(model_type='atomized_model',
-                                                  atomized_model=create_atomized_model())
+    node_atomized_model_secondary = SecondaryNode(model_type=create_atomized_model())
     node_atomized_model_secondary.nodes_from = [node_atomized_model]
 
     node_knn = SecondaryNode('knn')
@@ -89,8 +83,7 @@ def create_chain_with_several_nested_atomized_model() -> Chain:
     node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
 
     node_atomized_model_secondary_second = \
-        SecondaryNode(model_type='atomized_model',
-                      atomized_model=create_atomized_model_with_several_atomized_models())
+        SecondaryNode(model_type=create_atomized_model_with_several_atomized_models())
 
     node_atomized_model_secondary_second.nodes_from = [node_knn_second]
 
