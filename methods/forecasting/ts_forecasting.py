@@ -225,4 +225,4 @@ max_window_size = 150
 if __name__ == '__main__':
     run_forecasting_task(files_list, folders_list, columns_with_gap,
                          file_with_results, len_forecast, max_window_size,
-                         vis=False)
+                         vis=True)

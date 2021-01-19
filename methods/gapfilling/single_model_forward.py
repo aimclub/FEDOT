@@ -49,7 +49,7 @@ def run_fedot_ridge(folder_to_save, files_list,
             ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
             gapfiller = ModelGapFiller(gap_value=-100.0,
                                        chain=ridge_chain,
-                                       max_window_size=100)
+                                       max_window_size=30)
             withoutgap_arr = gapfiller.forward_filling(array_with_gaps)
 
             # Impute time series with new one
@@ -82,7 +82,7 @@ def run_fedot_ridge(folder_to_save, files_list,
 
 # Run the single-model chain example
 folder_to_save = 'D:/iccs_article/fedot_ridge'
-files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
+files_list = ['Sea_10_240.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = 'D:/iccs_article/fedot_ridge_report.csv'
 
