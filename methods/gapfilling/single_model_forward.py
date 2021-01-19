@@ -80,7 +80,7 @@ def run_fedot_ridge(folder_to_save, files_list,
     print(f'Mean MAPE value - {np.mean(mapes):.4f}')
     main_dataframe.to_csv(file_with_results, index=False)
 
-# Run the linear example
+# Run the single-model chain example
 folder_to_save = 'D:/iccs_article/fedot_ridge'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
 columns_with_gap = ['gap', 'gap_center']

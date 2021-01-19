@@ -17,6 +17,7 @@ from fedot.core.repository.quality_metrics_repository import \
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 
+
 class ComposerGapFiller(SimpleGapFiller):
     """
     Class used for filling in the gaps in time series
@@ -309,7 +310,7 @@ def run_fedot_composer(folder_to_save, files_list,
 
 
 
-# Run the linear example
+# Run the comopser example
 folder_to_save = 'D:/iccs_article/fedot_composer'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
 columns_with_gap = ['gap', 'gap_center']
