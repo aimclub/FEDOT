@@ -9,13 +9,54 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_template import ChainTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from test.tasks.test_forecasting import get_multilinear_chain, get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_multilinear_chain, get_synthetic_ts_data_period
 
 
 @pytest.fixture(scope='session', autouse=True)
-def creation_model_files_before_after_tests(request):
+def performance_with_files_before_after_tests(request):
+    paths = ['test_fitted_chain_convert_to_json', 'test_import_json_to_chain_correctly_1',
+             'test_empty_chain_convert_to_json', 'test_chain_convert_to_json',
+             'test_export_chain_to_json_correctly', 'test_import_json_to_chain_correctly_2',
+             'test_fitted_chain_cache_correctness_after_export_and_import',
+             'test_import_json_to_fitted_chain_correctly', 'test_export_import_for_one_chain_object_correctly_1',
+             'test_export_import_for_one_chain_object_correctly_2', 'data_model_forecasting',
+             'test_export_import_for_one_chain_object_correctly_3', 'data_model_classification',
+             'test_absolute_relative_paths_correctly_no_exception',
+             'test_import_custom_json_object_to_chain_and_fit_correctly_no_exception']
+
+    delete_files = create_func_delete_files(paths)
+    delete_files()
     create_json_models_files()
-    request.addfinalizer(delete_json_models_files)
+    request.addfinalizer(delete_files)
+
+
+def create_func_delete_files(paths):
+    """
+    Create function to delete files that created after tests.
+    """
+
+    def wrapper():
+        for path in paths:
+            path = create_correct_path(path, True)
+            if path is not None and os.path.isdir(path):
+                shutil.rmtree(path)
+
+    return wrapper
+
+
+def create_correct_path(path: str, dirname_flag: bool = False):
+    """
+    Create path with time which was created during the testing process.
+    """
+
+    for dirname in next(os.walk(os.path.curdir))[1]:
+        if dirname.endswith(path):
+            if dirname_flag:
+                return dirname
+            else:
+                file = os.path.join(dirname, path + '.json')
+                return file
+    return None
 
 
 def create_json_models_files():
@@ -30,26 +71,6 @@ def create_json_models_files():
 
     chain_empty = Chain()
     chain_empty.save_chain('test_empty_chain_convert_to_json')
-
-
-def delete_json_models_files():
-    """
-    Delete files that created after tests.
-    """
-    paths = ['test_fitted_chain_convert_to_json', 'test_import_json_to_chain_correctly_1',
-             'test_empty_chain_convert_to_json', 'test_chain_convert_to_json',
-             'test_export_chain_to_json_correctly', 'test_import_json_to_chain_correctly_2',
-             'test_fitted_chain_cache_correctness_after_export_and_import',
-             'test_import_json_to_fitted_chain_correctly', 'test_export_import_for_one_chain_object_correctly_1',
-             'test_export_import_for_one_chain_object_correctly_2', 'data_model_forecasting',
-             'test_export_import_for_one_chain_object_correctly_3', 'data_model_classification',
-             'test_absolute_relative_paths_correctly_no_exception',
-             'test_import_custom_json_object_to_chain_and_fit_correctly_no_exception']
-
-    for path in paths:
-        path = create_correct_path(path, True)
-        if path is not None and os.path.isdir(path):
-            shutil.rmtree(path)
 
 
 def create_chain() -> Chain:
@@ -129,16 +150,6 @@ def create_four_depth_chain():
     chain = Chain(knn_root)
 
     return chain
-
-def create_correct_path(path: str, dirname_flag: bool = False):
-    for dirname in next(os.walk('.'))[1]:
-        if dirname.endswith(path):
-            if dirname_flag:
-                return dirname
-            else:
-                file = os.path.join(dirname, path + '.json')
-                return file
-    return None
 
 
 def test_export_chain_to_json_correctly():
@@ -287,7 +298,7 @@ def test_absolute_relative_paths_correctly_no_exception():
 
 def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/test_custom_json_template.json'
+    file = '../../data/test_custom_json_template.json'
     json_path_load = os.path.join(test_file_path, file)
 
     train_file_path, test_file_path = get_scoring_case_data_paths()

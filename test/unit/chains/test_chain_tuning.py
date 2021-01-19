@@ -11,7 +11,7 @@ from fedot.core.chains.chain_tune import Tune
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.utilities.test_chain_import_export import create_four_depth_chain
+from test.unit.utilities.test_chain_import_export import create_four_depth_chain
 
 seed(1)
 np.random.seed(1)
@@ -20,14 +20,14 @@ np.random.seed(1)
 @pytest.fixture()
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../data', 'advanced_regression.csv')
+    file = os.path.join('../../data', 'advanced_regression.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../data', 'advanced_classification.csv')
+    file = os.path.join('../../data', 'advanced_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 

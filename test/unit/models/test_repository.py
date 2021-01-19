@@ -10,7 +10,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 def mocked_path():
     test_data_path = str(os.path.dirname(__file__))
-    repo_json_file_path = os.path.join(test_data_path, '../data/model_repository.json')
+    repo_json_file_path = os.path.join(test_data_path, '../../data/model_repository.json')
     return repo_json_file_path
 
 

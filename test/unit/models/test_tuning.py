@@ -11,20 +11,20 @@ from fedot.core.models.model import Model
 from fedot.core.data.preprocessing import ScalingWithImputation
 from fedot.core.models.tuning.tuners import get_random_params
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/advanced_classification.csv'
+    file = '../../data/advanced_classification.csv'
     return InputData.from_csv(os.path.join(test_file_path, file))
 
 
 @pytest.fixture()
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/advanced_regression.csv'
+    file = '../../data/advanced_regression.csv'
     data = InputData.from_csv(os.path.join(test_file_path, file))
     data.task = Task(TaskTypesEnum.regression)
     return data

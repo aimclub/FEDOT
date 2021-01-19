@@ -10,12 +10,13 @@ from examples.time_series_forecasting import (run_multistep_composite_example, r
                                               run_multistep_lstm_example, run_multistep_multiscale_example,
                                               run_onestep_linear_example)
 from examples.time_series_gapfilling_example import run_gapfilling_example
+from fedot.core.utils import project_root
 
 
 def test_forecasting_model_composing_example():
-    test_file_path = str(os.path.dirname(__file__))
-    file_path_train = os.path.join(test_file_path, '../data/simple_time_series.csv')
-    file_path_test = os.path.join(test_file_path, '../data/simple_time_series_test.csv')
+    project_root_path = str(project_root())
+    file_path_train = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
+    file_path_test = os.path.join(project_root_path, 'test/data/simple_time_series_test.csv')
 
     rmse = run_metocean_forecasting_problem(file_path_train, file_path_test,
                                             max_window_size=1,
@@ -35,8 +36,8 @@ def test_ts_forecasting_example():
 
 
 def test_multiclass_example():
-    test_file_path = str(os.path.dirname(__file__))
-    file_path_train = os.path.join(test_file_path, '../../test/data/multiclass_classification.csv')
+    project_root_path = str(project_root())
+    file_path_train = os.path.join(project_root_path, 'test/data/multiclass_classification.csv')
 
     chain = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
     assert chain is not None

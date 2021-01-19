@@ -28,7 +28,7 @@ def output_dataset():
 
 def test_data_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/simple_classification.csv'
+    file = '../../data/simple_classification.csv'
     task = Task(TaskTypesEnum.classification)
     df = pd.read_csv(os.path.join(test_file_path, file))
     data_array = np.array(df).T
@@ -46,8 +46,8 @@ def test_data_from_csv():
 
 def test_with_custom_target():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/simple_classification.csv'
-    file_custom = '../data/simple_classification_with_custom_target.csv'
+    file = '../../data/simple_classification.csv'
+    file_custom = '../../data/simple_classification_with_custom_target.csv'
 
     file_data = InputData.from_csv(
         os.path.join(test_file_path, file))
@@ -87,7 +87,7 @@ def test_data_from_predictions(output_dataset):
 
 def test_string_features_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/classification_with_categorical.csv'
+    file = '../../data/classification_with_categorical.csv'
     expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
 
     assert expected_features.dtype == float

@@ -18,7 +18,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.chains.test_chain_tuning import get_class_chain
+from test.unit.chains.test_chain_tuning import get_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -29,7 +29,7 @@ def _to_numerical(categorical_ids: np.ndarray):
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/advanced_classification.csv'
+    file = '../../data/advanced_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)

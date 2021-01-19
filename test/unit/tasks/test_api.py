@@ -8,10 +8,10 @@ from fedot.core.utils import project_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from sklearn.model_selection import train_test_split
 
-from test.models.test_split_train_test import get_synthetic_input_data
-from test.tasks.test_classification import get_iris_data
-from test.tasks.test_forecasting import get_synthetic_ts_data_linear
-from test.tasks.test_regression import get_synthetic_regression_data
+from test.unit.models.test_split_train_test import get_synthetic_input_data
+from test.unit.tasks.test_classification import get_iris_data
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
                    'max_arity': 2,

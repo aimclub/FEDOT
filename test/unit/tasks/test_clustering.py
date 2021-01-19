@@ -3,7 +3,7 @@ import numpy as np
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import train_test_data_setup
-from test.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
+from test.unit.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
 
 
 def generate_chain() -> Chain:

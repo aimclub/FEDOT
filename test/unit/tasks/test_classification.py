@@ -9,7 +9,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.models.test_model import classification_dataset_with_redunant_features
+from test.unit.models.test_model import classification_dataset_with_redunant_features
 
 
 def chain_simple() -> Chain:
@@ -44,7 +44,7 @@ def get_iris_data() -> InputData:
 
 def get_binary_classification_data():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/simple_classification.csv'
+    file = '../../data/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     return input_data

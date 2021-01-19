@@ -34,7 +34,7 @@ def data_setup():
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../data/simple_classification.csv'
+    file = '../../data/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     input_data.idx = _to_numerical(categorical_ids=input_data.idx)
