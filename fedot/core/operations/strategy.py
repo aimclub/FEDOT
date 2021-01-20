@@ -9,12 +9,12 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
-from fedot.core.operation.operation import Model, Preprocessing
+from fedot.core.operations.operation import Model, Preprocessing
 
 
 class StrategyOperator:
     """
-    Base class for determining what type of operation should be defined
+    Base class for determining what type of operations should be defined
     in the node
 
     """
@@ -23,7 +23,7 @@ class StrategyOperator:
         self.model_type = model_type
         self.operation_type = self._define_operation_type()
 
-    def get_model(self):
+    def get_operation(self):
         """
         Factory method returns the desired object of the 'Preprocessing' or
         'Model' class which depends on model_type variable
@@ -40,9 +40,9 @@ class StrategyOperator:
 
     def _define_operation_type(self) -> str:
         """
-        The method determines what type of operation is set for this node
+        The method determines what type of operations is set for this node
 
-        :return : operation type 'model' or 'preprocessing'
+        :return : operations type 'model' or 'preprocessing'
         TODO need to add a flag for whether preprocessing is used in the node
          or not
         """
@@ -54,7 +54,7 @@ class StrategyOperator:
         # If there is a such model in the list
         if any(self.model_type == model.id for model in models):
             operation_type = 'model'
-        # Overwise - it is preprocessing operation
+        # Overwise - it is preprocessing operations
         else:
             operation_type = 'preprocessing'
         return operation_type

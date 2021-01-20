@@ -72,7 +72,7 @@ if __name__ == '__main__':
     x_data_train, y_data_train, \
     x_data_test, y_data_test = prepare_regression_dataset(150,3,{'informative': 2,'bias': 1.0})
 
-    # Interface for such data operation for now look like this
+    # Interface for such data operations for now look like this
     node_scaling = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
     node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,
                                nodes_from=[node_scaling])

@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.preprocessing import preprocessing_func_for_data
 from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
-from fedot.core.operation.strategy import StrategyOperator
+from fedot.core.operations.strategy import StrategyOperator
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -39,7 +39,7 @@ class Node(ABC):
 
         # Define appropriate model
         strategy_operator = StrategyOperator(model_type=model_type)
-        self.model = strategy_operator.get_model()
+        self.model = strategy_operator.get_operation()
 
     @property
     def descriptive_id(self):
