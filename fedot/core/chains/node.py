@@ -25,7 +25,7 @@ class Node(ABC):
     :param log: Log object to record messages
     """
 
-    def __init__(self, nodes_from: Optional[List['Node']], model_type: [str, 'Model', 'AtomizedModel'],
+    def __init__(self, nodes_from: Optional[List['Node']], model_type: [str, 'Model'],
                  manual_preprocessing_func: Optional[Callable] = None,
                  log=None):
         self.nodes_from = nodes_from
@@ -234,7 +234,7 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: [str, 'Model', 'AtomizedModel'],
+    def __init__(self, model_type: [str, 'Model'],
                  manual_preprocessing_func: Optional[Callable] = None, **kwargs):
         super().__init__(nodes_from=None, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
@@ -277,7 +277,7 @@ class SecondaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: [str, 'Model', 'AtomizedModel'], nodes_from: Optional[List['Node']] = None,
+    def __init__(self, model_type: [str, 'Model'], nodes_from: Optional[List['Node']] = None,
                  manual_preprocessing_func: Optional[Callable] = None, **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,

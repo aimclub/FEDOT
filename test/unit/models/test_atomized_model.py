@@ -163,7 +163,7 @@ def test_fit_predict_atomized_model_correctly():
     assert aft_tun_mse == bfr_tun_mse
 
 
-def test_create_empty_atomized_model_raised():
+def test_create_empty_atomized_model_raised_exception():
     with pytest.raises(Exception):
         empty_chain = Chain()
         AtomizedModel(empty_chain)
