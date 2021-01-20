@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.preprocessing import preprocessing_func_for_data
 from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
-from fedot.core.models.model import Model
+from fedot.core.operation import Operation
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
@@ -37,7 +37,9 @@ class Node(ABC):
         else:
             self.log = log
 
-        self.model = Model(model_type=model_type)
+        # Define appropriate model
+        operator = Operation(model_type=model_type)
+        self.model = operator.get_model()
 
     @property
     def descriptive_id(self):

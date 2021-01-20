@@ -203,5 +203,11 @@
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
     }
+  },
+  "operations": {
+	"scaling": {
+	  "meta": "sklearn_preprocessing",
+	  "tags": ["preprocessing"]
+    }
   }
 }
