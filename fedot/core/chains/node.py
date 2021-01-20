@@ -38,8 +38,8 @@ class Node(ABC):
             self.log = log
 
         # Define appropriate model
-        operator = Operation(model_type=model_type)
-        self.model = operator.get_model()
+        data_operator = Operation(model_type=model_type)
+        self.model = data_operator.get_model()
 
     @property
     def descriptive_id(self):
