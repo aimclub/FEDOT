@@ -1,5 +1,4 @@
-
-from abc import ABC
+from abc import abstractmethod
 from datetime import timedelta
 
 import numpy as np
@@ -20,6 +19,10 @@ class DataOperation:
     models or data "preparators"
 
     """
+
+    def __init__(self, model_type: str, log: Log = None):
+        self.model_type = model_type
+        self.log = log
 
     @property
     def acceptable_task_types(self):
@@ -65,13 +68,16 @@ class DataOperation:
         if 'output_mode' in kwargs:
             self._eval_strategy.output_mode = kwargs['output_mode']
 
+    @abstractmethod
     def fit(self, data: InputData):
         raise NotImplementedError()
 
+    @abstractmethod
     def predict(self, fitted_model, data: InputData,
                 output_mode: str):
         raise NotImplementedError()
 
+    @abstractmethod
     def fine_tune(self, data: InputData, iterations: int,
                   max_lead_time: timedelta):
         raise NotImplementedError()
@@ -79,23 +85,8 @@ class DataOperation:
     def __str__(self):
         return f'{self.model_type}'
 
-# TODO impement class
-class Preprocessing(DataOperation):
 
-    def __init__(self, model_type: str, log: Log = None):
-        super().__init__(model_type, log)
-        self.model_type = model_type
-        self.log = log
-
-    def apply(self):
-        """
-        Combine fit and predict methods
-        """
-        pass
-
-
-# TODO impement class
-class Model:
+class Model(DataOperation):
     """
     Base object with fit/predict methods defining the evaluation strategy for the task
 
@@ -104,10 +95,9 @@ class Model:
     """
 
     def __init__(self, model_type: str, log: Log = None):
-        self.model_type = model_type
+        super().__init__(model_type=model_type, log=log)
         self._eval_strategy, self._data_preprocessing = None, None
         self.params = DEFAULT_PARAMS_STUB
-        self.log = log
 
         if not log:
             self.log = default_log(__name__)
@@ -228,47 +218,19 @@ class Model:
     def __str__(self):
         return f'{self.model_type}'
 
+# TODO impement class
+class Preprocessing(DataOperation):
 
-class Operation:
-    """
-    Factory which allows determining what type of operation should be defined
-    in the node
-
-    """
-
-    def __init__(self, model_type):
+    def __init__(self, model_type: str, log: Log = None):
+        super().__init__(model_type, log)
         self.model_type = model_type
-        self.operation_type = self._define_operation_type()
+        self.log = log
 
-    def get_model(self):
+    def apply(self):
         """
-        Метод возвращает нужный объект класса 'Preprocessing' or 'Model'
-
+        Combine fit and predict methods
         """
-
-        if self.operation_type == 'model':
-            print('model')
-            operator = Model(model_type=self.model_type)
-        else:
-            operator = Preprocessing(model_type=self.model_type)
-
-        return operator
-
-    def _define_operation_type(self) -> str:
-        """
-        The method determines what type of operation is set for this node
-
-        :return : operation type 'model' or 'preprocessing'
-
-        """
-
-        # TODO improve way to defining the models
-        model_list = ['ridge', 'lasso', 'linear']
-        if any(self.model_type == operation for operation in model_list):
-            operation_type = 'model'
-        else:
-            operation_type = 'preprocessing'
-        return operation_type
+        raise NotImplementedError()
 
 
 def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
