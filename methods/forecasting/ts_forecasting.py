@@ -136,15 +136,13 @@ def get_chain():
     return forecasting_chain
 
 def run_forecasting_task(files_list, folders_list, columns_with_gap,
-                         file_with_results, len_forecast,
-                         max_window_size, vis = True):
+                         len_forecast, max_window_size, vis = True):
     """
     The function starts the algorithm of gap-filling
 
     :param files_list: where to save csv files with filled gaps
     :param folders_list: list with paths with filled time series
     :param columns_with_gap: list with names of columns with gaps
-    :param file_with_results: file with final report with metrics
     :param len_forecast: forecast length in time series elements
     :param max_window_size: moving window size
     :param vis: is there a need to make visualisations
@@ -216,13 +214,12 @@ def run_forecasting_task(files_list, folders_list, columns_with_gap,
 
 # Run forecasting validation algprithm
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
-folders_list = ['D:/iccs_article/linear', 'D:/iccs_article/poly', 'D:/iccs_article/fedot_ridge']
+folders_list = ['../data/linear', '../data/poly', '../data/fedot_ridge']
 columns_with_gap = ['gap', 'gap_center']
-file_with_results = 'D:/iccs_article/forecasting_errors_report.csv'
 len_forecast = 400
 max_window_size = 150
 
 if __name__ == '__main__':
     run_forecasting_task(files_list, folders_list, columns_with_gap,
-                         file_with_results, len_forecast, max_window_size,
+                         len_forecast, max_window_size,
                          vis=True)

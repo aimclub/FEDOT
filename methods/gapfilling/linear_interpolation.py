@@ -74,13 +74,17 @@ def run_linear_interpolation(folder_to_save, files_list,
 
     mapes = np.array(mapes)
     print(f'Mean MAPE value - {np.mean(mapes):.4f}')
+
+    path_to_save = os.path.dirname(os.path.abspath(file_with_results))
+    if os.path.isdir(path_to_save) == False:
+        os.makedirs(path_to_save)
     main_dataframe.to_csv(file_with_results, index=False)
 
 # Run the linear example
-folder_to_save = 'D:/iccs_article/linear'
+folder_to_save = '../data/linear'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
 columns_with_gap = ['gap', 'gap_center']
-file_with_results = 'D:/iccs_article/linear_report.csv'
+file_with_results = '../data/reports/linear_report.csv'
 
 if __name__ == '__main__':
     run_linear_interpolation(folder_to_save, files_list,

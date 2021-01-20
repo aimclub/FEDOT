@@ -26,7 +26,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return value
 
 
-def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0, vis = False):
+def validate(parameter, mask, data, withoutgap_arr, gap_value=-100.0, vis=False):
     """
     The function counts quality metrics and displays them on the screen
 
@@ -56,14 +56,14 @@ def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0, vis = Fa
     # print('Maximum value in the gap - ', max_value)
 
     # Display the metrics on the screen
-    MAE = mean_absolute_error(true_values, predicted_values)
-    # print('Mean absolute error -', round(MAE, 4))
+    mae = mean_absolute_error(true_values, predicted_values)
+    # print('Mean absolute error -', round(mae, 4))
 
-    RMSE = (mean_squared_error(true_values, predicted_values)) ** 0.5
-    # print('RMSE -', round(RMSE, 4))
+    rmse = (mean_squared_error(true_values, predicted_values)) ** 0.5
+    # print('RMSE -', round(rmse, 4))
 
-    MedianAE = median_absolute_error(true_values, predicted_values)
-    # print('Median absolute error -', round(MedianAE, 4))
+    median_ae = median_absolute_error(true_values, predicted_values)
+    # print('Median absolute error -', round(median_ae, 4))
 
     mape = mean_absolute_percentage_error(true_values, predicted_values)
     # print('MAPE -', round(mape, 4), '\n')
@@ -71,7 +71,7 @@ def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0, vis = Fa
     # Array with gaps
     array_gaps = np.ma.masked_where(arr_mask == gap_value, arr_mask)
 
-    if vis == True:
+    if vis:
         plt.plot(data['Date'], arr_parameter, c='green', alpha=0.5, label='Actual values')
         plt.plot(data['Date'], withoutgap_arr, c='red', alpha=0.5, label='Predicted values')
         plt.plot(data['Date'], array_gaps, c='blue', alpha=1.0)
@@ -81,4 +81,4 @@ def validate(parameter, mask, data, withoutgap_arr, gap_value = -100.0, vis = Fa
         plt.legend(fontsize=15)
         plt.show()
 
-    return min_value, max_value, MAE, RMSE, MedianAE, mape
+    return min_value, max_value, mae, rmse, median_ae, mape
