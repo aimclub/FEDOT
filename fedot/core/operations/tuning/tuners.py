@@ -10,7 +10,7 @@ from skopt import BayesSearchCV
 from fedot.core.composer.timer import TunerTimer
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
-from fedot.core.models.tuning.tuner_adapter import HyperoptAdapter
+from fedot.core.operations.tuning.tuner_adapter import HyperoptAdapter
 from fedot.core.repository.tasks import TaskTypesEnum
 
 TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'

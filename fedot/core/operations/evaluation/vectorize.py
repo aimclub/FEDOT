@@ -1,7 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.models.evaluation.evaluation import EvaluationStrategy
+from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
 from datetime import timedelta
 
 

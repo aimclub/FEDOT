@@ -7,13 +7,13 @@ from fedot.core.algorithms.time_series.prediction import post_process_forecasted
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
+from fedot.core.repository.operation_types_repository import ModelMetaInfo, ModelTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
 
-class DataOperation:
+class Operation:
     """
     Base object for operators in nodes. Operators could be machine learning
     models or data "preparators"
@@ -86,7 +86,7 @@ class DataOperation:
         return f'{self.model_type}'
 
 
-class Model(DataOperation):
+class Model(Operation):
     """
     Base object with fit/predict methods defining the evaluation strategy for the task
 
@@ -219,7 +219,7 @@ class Model(DataOperation):
         return f'{self.model_type}'
 
 # TODO impement class
-class Preprocessing(DataOperation):
+class DataOperation(Operation):
 
     def __init__(self, model_type: str, log: Log = None):
         super().__init__(model_type, log)

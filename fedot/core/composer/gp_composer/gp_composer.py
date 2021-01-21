@@ -15,7 +15,7 @@ from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

@@ -4,7 +4,7 @@ import datetime
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.model_types_repository import (
+from fedot.core.repository.operation_types_repository import (
     ModelTypesRepository
 )
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, RegressionMetricsEnum, \

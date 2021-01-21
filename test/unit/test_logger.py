@@ -4,7 +4,7 @@ import pytest
 
 from fedot.core.data.data import train_test_data_setup, InputData
 from fedot.core.log import Log, LogManager, default_log
-from fedot.core.models.model import Model
+from fedot.core.operations.operation import Model
 from test.unit.utilities.test_chain_import_export import create_four_depth_chain
 
 

@@ -4,7 +4,7 @@ from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.models.model import Model
+from fedot.core.operations.operation import Model
 from fedot.core.data.preprocessing import ScalingWithImputation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 
 from fedot.core.algorithms.time_series.scale import estimate_period, split_ts_to_components
 from fedot.core.data.data import InputData
-from fedot.core.models.evaluation.evaluation import EvaluationStrategy
+from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01

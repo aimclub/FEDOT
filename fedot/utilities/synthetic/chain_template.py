@@ -9,7 +9,7 @@ import numpy as np
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import CachedState, FittedModelCache, Node, PrimaryNode, SecondaryNode
 from fedot.core.data.preprocessing import Normalization
-from fedot.core.models.model import InputData, Model
+from fedot.core.operations.operation import InputData, Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synthetic.data import classification_dataset as synthetic_dataset, \

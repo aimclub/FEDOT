@@ -15,7 +15,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPCom
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.chains.test_chain_tuning import get_class_chain

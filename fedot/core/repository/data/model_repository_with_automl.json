@@ -6,7 +6,7 @@
             "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
             "accepted_node_types": ["any"],
             "forbidden_node_types": "[]",
-            "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClassificationStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnClassificationStrategy"],
             "tags": ["ml", "sklearn"],
             "description": "Implementations of the classification models from scikit-learn framework"
         },
@@ -16,7 +16,7 @@
             "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
             "accepted_node_types": ["any"],
             "forbidden_node_types": "[]",
-            "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnRegressionStrategy"],
             "tags": ["ml", "sklearn", "composition"],
             "description": "Implementations of the regression models from scikit-learn framework"
         },
@@ -26,7 +26,7 @@
             "output_type": "[DataTypesEnum.table]",
             "accepted_node_types": ["any"],
             "forbidden_node_types": "[]",
-            "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClusteringStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnClusteringStrategy"],
             "tags": ["ml", "sklearn"],
             "description": "Implementations of the clustering models from scikit-learn framework"
         },
@@ -37,8 +37,8 @@
             "accepted_node_types": ["primary", "after-datamodel"],
             "forbidden_node_types": "[]",
             "strategies": {
-                "TaskTypesEnum.classification": ["fedot.core.models.evaluation.automl_eval", "AutoMLEvaluationStrategy"],
-                "TaskTypesEnum.regression": ["fedot.core.models.evaluation.automl_eval", "AutoMLRegressionStrategy"]
+                "TaskTypesEnum.classification": ["fedot.core.operations.evaluation.automl_eval", "AutoMLEvaluationStrategy"],
+                "TaskTypesEnum.regression": ["fedot.core.operations.evaluation.automl_eval", "AutoMLRegressionStrategy"]
             },
             "tags": ["automl", "expensive", "non-default"],
             "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks"
@@ -47,7 +47,7 @@
             "tasks": "[TaskTypesEnum.ts_forecasting]",
             "input_type": "[DataTypesEnum.ts]",
             "output_type": "[DataTypesEnum.ts]",
-            "strategies": ["fedot.core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
             "tags": ["statistical", "autoreg"],
             "description": "Implementations of the statistical models for time series forecasting from stats framework"
         },
@@ -55,7 +55,7 @@
             "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
             "input_type": "[DataTypesEnum.table]",
             "output_type": "[DataTypesEnum.table]",
-            "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
             "tags": ["without_preprocessing", "data_model"],
             "description": "Implementations of the models for the data injection into features of secondary nodes"
         },
@@ -63,7 +63,7 @@
             "tasks": "[TaskTypesEnum.ts_forecasting]",
             "input_type": "[DataTypesEnum.ts]",
             "output_type": "[DataTypesEnum.ts]",
-            "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
             "tags": ["without_preprocessing"],
             "description": "Implementations of the models for the data modification during time series forecasting"
         },
@@ -71,7 +71,7 @@
             "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
             "input_type": "[DataTypesEnum.table]",
             "output_type": "[DataTypesEnum.table]",
-            "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
             "tags": ["without_preprocessing", "data_model"],
             "description": "Implementations of the models for the feature preprocessing (dimensionality reduction, etc)"
         },
@@ -79,7 +79,7 @@
             "tasks": "[TaskTypesEnum.ts_forecasting]",
             "input_type": "[DataTypesEnum.ts_lagged_table]",
             "output_type": "[DataTypesEnum.ts]",
-            "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
+            "strategies": ["fedot.core.operations.evaluation.keras_eval", "KerasForecastingStrategy"],
             "tags": ["nn"],
             "description": "Implementations of the keras-based neural models for the time series forecasting"
         }

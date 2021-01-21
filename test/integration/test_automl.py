@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import ModelTypesRepository
 from examples.chain_from_automl import run_chain_from_automl
 from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
 from fedot.core.utils import project_root

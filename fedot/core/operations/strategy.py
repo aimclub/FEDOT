@@ -1,15 +1,5 @@
-
-from abc import ABC
-from datetime import timedelta
-
-import numpy as np
-
-from fedot.core.algorithms.time_series.prediction import post_process_forecasted_ts
-from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.model_types_repository import ModelMetaInfo, ModelTypesRepository
-from fedot.core.operations.operation import Model, Preprocessing
+from fedot.core.repository.operation_types_repository import ModelMetaInfo, ModelTypesRepository
+from fedot.core.operations.operation import Model, DataOperation
 
 
 class StrategyOperator:
@@ -31,10 +21,9 @@ class StrategyOperator:
         """
 
         if self.operation_type == 'model':
-            print('model')
             operator = Model(model_type=self.model_type)
         else:
-            operator = Preprocessing(model_type=self.model_type)
+            operator = DataOperation(model_type=self.model_type)
 
         return operator
 
