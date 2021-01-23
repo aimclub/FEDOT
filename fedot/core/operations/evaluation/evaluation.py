@@ -16,7 +16,9 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.preprocessing import (StandardScaler as SklearnScaler)
+from sklearn.preprocessing import (StandardScaler as SklearnScaler,
+                                   MinMaxScaler as SklearnMinMax)
+from sklearn.decomposition import PCA
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
@@ -130,6 +132,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
         'scaling': SklearnScaler,
+        'normalization': SklearnMinMax,
+        'pca': PCA
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):

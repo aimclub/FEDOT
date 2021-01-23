@@ -8,7 +8,16 @@
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
-			"description": "Implementations of the preprocessing from scikit-learn framework"}
+			"description": "Implementations of the preprocessing from scikit-learn framework"},
+		"sklearn_decomposition": {
+			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"tags": ["sklearn"],
+			"description": "Implementations of the decomposition operations (e.g. PCA) from scikit-learn framework"}
 	},
 	"data_operations":{
 		"scaling": {
@@ -22,6 +31,10 @@
 		"simple_imputation": {
 			"meta": "sklearn_preprocessing",
 			"tags": ["simple", "imputation"]
+		},
+		"pca": {
+			"meta": "sklearn_decomposition",
+			"tags": ["linear", "dimensionality_reduction"]
 		}
 	}
 }

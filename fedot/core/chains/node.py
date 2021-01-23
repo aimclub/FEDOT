@@ -37,12 +37,9 @@ class Node(ABC):
         else:
             self.log = log
 
-        # Define appropriate model
+        # Define appropriate model or data operation
         strategy_operator = StrategyOperator(model_type=model_type)
-        if model_type == 'scaling':
-            self.model = strategy_operator.get_operation(operation='preprocessing')
-        else:
-            self.model = strategy_operator.get_operation(operation='model')
+        self.model = strategy_operator.get_operation()
 
     @property
     def descriptive_id(self):
