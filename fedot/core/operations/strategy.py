@@ -1,4 +1,4 @@
-from fedot.core.repository.operation_types_repository import ModelMetaInfo, ModelTypesRepository
+from fedot.core.repository.operation_types_repository import ModelTypesRepository
 from fedot.core.operations.operation import Model, DataOperation
 
 
@@ -11,16 +11,16 @@ class StrategyOperator:
 
     def __init__(self, model_type):
         self.model_type = model_type
-        self.operation_type = self._define_operation_type()
+        #self.operation_type = self._define_operation_type()
 
-    def get_operation(self):
+    def get_operation(self, operation):
         """
         Factory method returns the desired object of the 'Preprocessing' or
         'Model' class which depends on model_type variable
 
         """
 
-        if self.operation_type == 'model':
+        if operation == 'model':
             operator = Model(model_type=self.model_type)
         else:
             operator = DataOperation(model_type=self.model_type)

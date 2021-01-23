@@ -11,8 +11,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 @dataclass
-class ModelMetaInfo:
-    # TODO add docstring
+class OperationMetaInfo:
+
     id: str
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
@@ -22,25 +22,26 @@ class ModelMetaInfo:
     tags: Optional[List[str]] = None
 
     def current_strategy(self, task: TaskTypesEnum):
-        # TODO add docstring
+        """
+        Method allows getting available processing strategies depending on the
+        selected task
+
+        :param task: machine learning task (e.g. regression and classification)
+        :return : supported strategies for task
+        """
+
         if isinstance(self.supported_strategies, dict):
             return self.supported_strategies.get(task, None)
         return self.supported_strategies
 
 
-class OperationTypesRepository:
-    """
-    Базовый класс для предоставления информации об используемых моделях или
-    операциях с данными и доступных для них типах задач
-
-    """
-    # TODO add docstring
+class ModelTypesRepository:
     _repo = None
 
     def __init__(self, repo_path=None):
         if repo_path:
-            OperationTypesRepository._repo = self._initialise_repo(repo_path)
-        if not repo_path and not OperationTypesRepository._repo:
+            ModelTypesRepository._repo = self._initialise_repo(repo_path)
+        if not repo_path and not ModelTypesRepository._repo:
             self._set_repo_to_default_state()
 
         self._tags_excluded_by_default = ['non-default', 'expensive']
@@ -51,71 +52,14 @@ class OperationTypesRepository:
     def __exit__(self, type, value, traceback):
         self._set_repo_to_default_state()
 
-    @abstractmethod
-    def _set_repo_to_default_state(self):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
-        raise NotImplementedError()
-
-    @property
-    def models(self):
-        return OperationTypesRepository._repo
-
-    def model_info_by_id(self, id: str) -> Optional[ModelMetaInfo]:
-        # TODO add docstring
-        models_with_id = [m for m in OperationTypesRepository._repo if m.id == id]
-        if len(models_with_id) > 1:
-            raise ValueError('Several models with same id in repository')
-        if len(models_with_id) == 0:
-            warnings.warn('Model {id} not found in the repository')
-            return None
-        return models_with_id[0]
-
-    def models_with_tag(self, tags: List[str], is_full_match: bool = False):
-        # TODO add docstring
-        models_info = [m for m in OperationTypesRepository._repo if
-                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
-        return [m.id for m in models_info], models_info
-
-    def suitable_model(self, task_type: TaskTypesEnum,
-                       tags: List[str] = None, is_full_match: bool = False,
-                       forbidden_tags: List[str] = None):
-        # TODO add docstring
-
-        if not forbidden_tags:
-            forbidden_tags = []
-
-        # TODO add comments
-        for excluded_default_tag in self._tags_excluded_by_default:
-            if not tags or excluded_default_tag not in tags:
-                forbidden_tags.append(excluded_default_tag)
-
-        # TODO add comments
-        models_info = [m for m in OperationTypesRepository._repo if
-                       task_type in m.task_type and
-                       (not tags or _is_tags_contains_in_model(tags, m.tags,
-                                                               is_full_match)) and
-                       (not forbidden_tags or not _is_tags_contains_in_model(
-                           forbidden_tags, m.tags, False))]
-        return [m.id for m in models_info], models_info
-
-
-class ModelTypesRepository(OperationTypesRepository):
-    _repo = None
-
-    def __init__(self, repo_path=None):
-        super().__init__(repo_path)
-
     def _set_repo_to_default_state(self):
         # TODO add docstring
         repo_folder_path = str(os.path.dirname(__file__))
         file = 'data/model_repository.json'
         repo_path = os.path.join(repo_folder_path, file)
-        OperationTypesRepository._repo = self._initialise_repo(repo_path)
+        ModelTypesRepository._repo = self._initialise_repo(repo_path)
 
-    def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
+    def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
         # TODO add docstring
         with open(repo_path) as repository_json_file:
             repository_json = json.load(repository_json_file)
@@ -165,23 +109,86 @@ class ModelTypesRepository(OperationTypesRepository):
 
             tags = list(set(meta_tags + model_tags))
 
-            model = ModelMetaInfo(id=current_model_key,
-                                  input_types=input_type,
-                                  output_types=output_type,
-                                  task_type=task_types,
-                                  supported_strategies=supported_strategies,
-                                  allowed_positions=allowed_positions,
-                                  tags=tags)
+            model = OperationMetaInfo(id=current_model_key,
+                                      input_types=input_type,
+                                      output_types=output_type,
+                                      task_type=task_types,
+                                      supported_strategies=supported_strategies,
+                                      allowed_positions=allowed_positions,
+                                      tags=tags)
             models_list.append(model)
 
         return models_list
 
+    def model_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
+        """
+        The method returns ModelMetaInfo by operation name
 
-class DataOperationTypesRepository(OperationTypesRepository):
+        :param : name of the model or data operation that is placed in the node
+        :return : OperationMetaInfo for desired model
+        """
+
+        models_with_id = [m for m in ModelTypesRepository._repo if m.id == id]
+        if len(models_with_id) > 1:
+            raise ValueError('Several models with same id in repository')
+        if len(models_with_id) == 0:
+            warnings.warn('Model {id} not found in the repository')
+            return None
+        return models_with_id[0]
+
+    def models_with_tag(self, tags: List[str], is_full_match: bool = False):
+        """
+        The method returns an operation (or several operations) that match
+        the selected tags
+
+        :param tags: list with operation tags
+        :param is_full_match: requires all tags to match, or at least one
+        :return : suitable operations
+        """
+
+        models_info = [m for m in ModelTypesRepository._repo if
+                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
+        return [m.id for m in models_info], models_info
+
+    def suitable_model(self, task_type: TaskTypesEnum,
+                       tags: List[str] = None, is_full_match: bool = False,
+                       forbidden_tags: List[str] = None):
+        # TODO add docstring
+
+        if not forbidden_tags:
+            forbidden_tags = []
+
+        # TODO add comments
+        for excluded_default_tag in self._tags_excluded_by_default:
+            if not tags or excluded_default_tag not in tags:
+                forbidden_tags.append(excluded_default_tag)
+
+        # TODO add comments
+        models_info = [m for m in ModelTypesRepository._repo if
+                       task_type in m.task_type and
+                       (not tags or _is_tags_contains_in_model(tags, m.tags,
+                                                               is_full_match)) and
+                       (not forbidden_tags or not _is_tags_contains_in_model(
+                           forbidden_tags, m.tags, False))]
+        return [m.id for m in models_info], models_info
+
+
+class DataOperationTypesRepository:
     _repo = None
 
     def __init__(self, repo_path=None):
-        super().__init__(repo_path)
+        if repo_path:
+            DataOperationTypesRepository._repo = self._initialise_repo(repo_path)
+        if not repo_path and not DataOperationTypesRepository._repo:
+            self._set_repo_to_default_state()
+
+        self._tags_excluded_by_default = ['non-default', 'expensive']
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._set_repo_to_default_state()
 
     def _set_repo_to_default_state(self):
         # TODO add docstring
@@ -189,23 +196,23 @@ class DataOperationTypesRepository(OperationTypesRepository):
 
         file = 'data/data_operation_repository.json'
         repo_path = os.path.join(repo_folder_path, file)
-        OperationTypesRepository._repo = self._initialise_repo(repo_path)
+        DataOperationTypesRepository._repo = self._initialise_repo(repo_path)
 
-    def _initialise_repo(self, repo_path: str) -> List[ModelMetaInfo]:
+    def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
         # TODO add docstring
         with open(repo_path) as repository_json_file:
             repository_json = json.load(repository_json_file)
 
         metadata_json = repository_json['metadata']
-        models_json = repository_json['data_operations']
+        operations_json = repository_json['data_operations']
 
-        models_list = []
+        operations_list = []
 
-        for current_model_key in models_json:
+        for current_model_key in operations_json:
             # TODO add comments
             model_properties = \
             [model_properties for model_key, model_properties in
-             list(models_json.items())
+             list(operations_json.items())
              if model_key == current_model_key][0]
             model_metadata = metadata_json[model_properties['meta']]
 
@@ -241,16 +248,68 @@ class DataOperationTypesRepository(OperationTypesRepository):
 
             tags = list(set(meta_tags + model_tags))
 
-            model = ModelMetaInfo(id=current_model_key,
-                                  input_types=input_type,
-                                  output_types=output_type,
-                                  task_type=task_types,
-                                  supported_strategies=supported_strategies,
-                                  allowed_positions=allowed_positions,
-                                  tags=tags)
-            models_list.append(model)
+            model = OperationMetaInfo(id=current_model_key,
+                                      input_types=input_type,
+                                      output_types=output_type,
+                                      task_type=task_types,
+                                      supported_strategies=supported_strategies,
+                                      allowed_positions=allowed_positions,
+                                      tags=tags)
+            operations_list.append(model)
 
-        return models_list
+        return operations_list
+
+    def model_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
+        """
+        The method returns ModelMetaInfo by operation name
+
+        :param : name of the model or data operation that is placed in the node
+        :return : OperationMetaInfo for desired model
+        """
+
+        models_with_id = [m for m in DataOperationTypesRepository._repo if m.id == id]
+        if len(models_with_id) > 1:
+            raise ValueError('Several models with same id in repository')
+        if len(models_with_id) == 0:
+            warnings.warn('Model {id} not found in the repository')
+            return None
+        return models_with_id[0]
+
+    def models_with_tag(self, tags: List[str], is_full_match: bool = False):
+        """
+        The method returns an operation (or several operations) that match
+        the selected tags
+
+        :param tags: list with operation tags
+        :param is_full_match: requires all tags to match, or at least one
+        :return : suitable operations
+        """
+
+        models_info = [m for m in DataOperationTypesRepository._repo if
+                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
+        return [m.id for m in models_info], models_info
+
+    def suitable_model(self, task_type: TaskTypesEnum,
+                       tags: List[str] = None, is_full_match: bool = False,
+                       forbidden_tags: List[str] = None):
+        # TODO add docstring
+
+        if not forbidden_tags:
+            forbidden_tags = []
+
+        # TODO add comments
+        for excluded_default_tag in self._tags_excluded_by_default:
+            if not tags or excluded_default_tag not in tags:
+                forbidden_tags.append(excluded_default_tag)
+
+        # TODO add comments
+        models_info = [m for m in DataOperationTypesRepository._repo if
+                       task_type in m.task_type and
+                       (not tags or _is_tags_contains_in_model(tags, m.tags,
+                                                               is_full_match)) and
+                       (not forbidden_tags or not _is_tags_contains_in_model(
+                           forbidden_tags, m.tags, False))]
+        return [m.id for m in models_info], models_info
 
 
 def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str],

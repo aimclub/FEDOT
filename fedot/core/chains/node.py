@@ -39,7 +39,10 @@ class Node(ABC):
 
         # Define appropriate model
         strategy_operator = StrategyOperator(model_type=model_type)
-        self.model = strategy_operator.get_operation()
+        if model_type == 'scaling':
+            self.model = strategy_operator.get_operation(operation='preprocessing')
+        else:
+            self.model = strategy_operator.get_operation(operation='model')
 
     @property
     def descriptive_id(self):

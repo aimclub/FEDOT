@@ -16,6 +16,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
+from sklearn.preprocessing import (StandardScaler as SklearnScaler)
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
@@ -103,7 +104,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     :param str model_type: str type of the model defined in model repository
     :param dict params: hyperparameters to fit the model with
     """
-    __model_by_types = {
+    __operations_by_types = {
         'xgboost': XGBClassifier,
         'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
@@ -128,6 +129,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'sgdr': SklearnSGD,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
+        'scaling': SklearnScaler,
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
@@ -202,13 +204,13 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return trained_model, tuned_params
 
     def _convert_to_sklearn(self, model_type: str):
-        if model_type in self.__model_by_types.keys():
-            return self.__model_by_types[model_type]
+        if model_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[model_type]
         else:
             raise ValueError(f'Impossible to obtain SKlearn strategy for {model_type}')
 
     def _find_model_by_impl(self, impl):
-        for model, model_impl in self.__model_by_types.items():
+        for model, model_impl in self.__operations_by_types.items():
             if model_impl == impl:
                 return model
 
@@ -250,6 +252,19 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         :return:
         """
         prediction = trained_model.predict(predict_data.features)
+        return prediction
+
+
+class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
+    def predict(self, trained_model, predict_data: InputData):
+        """
+        Transform method for preprocessing task
+
+        :param trained_model: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
+        prediction = trained_model.transform(predict_data.features)
         return prediction
 
 

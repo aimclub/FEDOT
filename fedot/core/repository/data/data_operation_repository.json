@@ -1,26 +1,27 @@
-{"metadata": {
-	"sklearn_preprocessing": {
-	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "accepted_node_types": ["any"],
-	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.evaluation", "PreprocessingStrategy"],
-	  "tags": ["sklearn"],
-	  "description": "Implementations of the preprocessing from scikit-learn framework"
+{
+	"metadata":{
+		"sklearn_preprocessing": {
+			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"tags": ["sklearn"],
+			"description": "Implementations of the preprocessing from scikit-learn framework"}
 	},
-  "data_operations":{
-	  "scaling": {
-		  "meta": "sklearn_preprocessing",
-		  "tags": ["simple"]
-	  },
-	  "normalization": {
-		  "meta": "sklearn_preprocessing",
-		  "tags": ["simple"]
-	  },
-	  "simple_imputation": {
-		  "meta": "sklearn_preprocessing",
-		  "tags": ["simple", "imputation"]
-	  }
-  }
+	"data_operations":{
+		"scaling": {
+			"meta": "sklearn_preprocessing",
+			"tags": ["simple"]
+		},
+		"normalization": {
+			"meta": "sklearn_preprocessing",
+			"tags": ["simple"]
+		},
+		"simple_imputation": {
+			"meta": "sklearn_preprocessing",
+			"tags": ["simple", "imputation"]
+		}
+	}
 }
