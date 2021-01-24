@@ -18,6 +18,7 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   SGDRegressor as SklearnSGD)
 from sklearn.preprocessing import (StandardScaler as SklearnScaler,
                                    MinMaxScaler as SklearnMinMax)
+from sklearn.impute import SimpleImputer as SklearnImputer
 from sklearn.decomposition import PCA
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
@@ -103,7 +104,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     """
     This class defines the certain model implementation for the sklearn models defined in model repository
 
-    :param str model_type: str type of the model defined in model repository
+    :param str model_type: str type of the operation defined in model or
+    data operation repositories
     :param dict params: hyperparameters to fit the model with
     """
     __operations_by_types = {
@@ -133,7 +135,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'multinb': SklearnMultinomialNB,
         'scaling': SklearnScaler,
         'normalization': SklearnMinMax,
-        'pca': PCA
+        'simple_imputation': SklearnImputer,
+        'pca': PCA,
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):

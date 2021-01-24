@@ -25,7 +25,33 @@ np.random.seed(2020)
 При запуске файла 1_simple_regression_preprocessing.py (расположен в той же папке
 проекта) ответ должен получиться идентичным для той же стратегии препроцессинга.
  - В таком случае логика исходных процедур не нарушена.
+ 
+Вывод:
+node_scaling = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
+node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling]) -
+Предсказанные значения: [-68.10298779 117.98968829  42.43115105 172.41955313  37.09269484]
+Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
+RMSE - 1.01
+
+Вывод:
+node_scaling = PrimaryNode('normalization', manual_preprocessing_func=EmptyStrategy)
+node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling]) -
+Предсказанные значения: [-54.83440763  93.75971281  33.35586733 137.17213629  29.05485513]
+Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
+RMSE - 22.55
+
+Вывод:
+node_scaling = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
+node_ridge = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling])
+node_scaling_2 = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_ridge])
+node_final = SecondaryNode('rfr', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling_2])
+chain = Chain(node_final) -
+Предсказанные значения: [-69.17518073 118.99562352  43.49886063 170.81176266  37.07953475]
+Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
+RMSE - 5.15
 """
+
+
 ################################################################################
 #                                  ОПИСАНИЕ                                    #
 ################################################################################
@@ -73,9 +99,8 @@ if __name__ == '__main__':
     x_data_test, y_data_test = prepare_regression_dataset(150,3,{'informative': 2,'bias': 1.0})
 
     # Interface for such data operations for now look like this
-    node_scaling = PrimaryNode('normalization', manual_preprocessing_func=EmptyStrategy)
-    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,
-                               nodes_from=[node_scaling])
+    node_preproc = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
+    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_preproc])
     chain = Chain(node_final)
 
     # Define regression task

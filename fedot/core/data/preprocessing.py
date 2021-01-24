@@ -11,6 +11,7 @@ from sklearn.impute import SimpleImputer
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
+# TODO remove
 class PreprocessingStrategy:
     def fit(self, data) -> 'PreprocessingStrategy':
         raise NotImplementedError()
@@ -23,6 +24,7 @@ class PreprocessingStrategy:
         return self.apply(data)
 
 
+# TODO remove
 class ImputationStrategy(PreprocessingStrategy):
     def __init__(self):
         self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
@@ -40,6 +42,7 @@ class ImputationStrategy(PreprocessingStrategy):
         return modified
 
 
+# TODO remove
 class EmptyStrategy(PreprocessingStrategy):
     def fit(self, data):
         return self
@@ -51,6 +54,7 @@ class EmptyStrategy(PreprocessingStrategy):
         return result
 
 
+# TODO remove
 class Scaling(PreprocessingStrategy):
     def __init__(self):
         self.scaler = preprocessing.StandardScaler()
@@ -70,6 +74,7 @@ class Scaling(PreprocessingStrategy):
         return resulted
 
 
+# TODO remove
 class ScalingWithImputation(Scaling):
     def __init__(self):
         super(ScalingWithImputation, self).__init__()
@@ -85,12 +90,14 @@ class ScalingWithImputation(Scaling):
         return super(ScalingWithImputation, self).apply(data)
 
 
+# TODO remove
 class Normalization(Scaling):
     def __init__(self):
         super(Normalization, self).__init__()
         self.scaler = preprocessing.MinMaxScaler()
 
 
+# TODO remove
 class NormalizationWithImputation(ScalingWithImputation):
     def __init__(self):
         super(NormalizationWithImputation, self).__init__()

@@ -25,6 +25,14 @@ class Operation:
         self.model_type = model_type
         self.log = log
 
+        self._eval_strategy, self._data_preprocessing = None, None
+        self.params = DEFAULT_PARAMS_STUB
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
     @property
     def description(self):
         model_type = self.model_type
@@ -68,13 +76,6 @@ class Model(Operation):
 
     def __init__(self, model_type: str, log: Log = None):
         super().__init__(model_type=model_type, log=log)
-        self._eval_strategy, self._data_preprocessing = None, None
-        self.params = DEFAULT_PARAMS_STUB
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def _init(self, task: Task, **kwargs):
         operations_repo = ModelTypesRepository()
@@ -193,13 +194,6 @@ class DataOperation(Operation):
 
     def __init__(self, model_type: str, log: Log = None):
         super().__init__(model_type, log)
-        self._eval_strategy, self._data_preprocessing = None, None
-        self.params = DEFAULT_PARAMS_STUB
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def _init(self, task: Task, **kwargs):
         operations_repo = DataOperationTypesRepository()
@@ -229,7 +223,9 @@ class DataOperation(Operation):
     def metadata(self) -> OperationMetaInfo:
         model_info = DataOperationTypesRepository().model_info_by_id(self.model_type)
         if not model_info:
-            raise ValueError(f'Model {self.model_type} not found')
+            d=DataOperationTypesRepository()
+            print(model_info)
+            raise ValueError(f'Data operation {self.model_type} not found')
         return model_info
 
     def output_datatype(self, input_datatype: DataTypesEnum) -> DataTypesEnum:
