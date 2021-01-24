@@ -4,6 +4,7 @@ from uuid import uuid4
 from fedot.core.chains.chain_tune import Tune
 from fedot.core.data.data import InputData
 from fedot.core.models.model import Model
+from fedot.core.utils import make_chain_generator
 from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_type, atomized_model_meta_tags
 
 
@@ -35,8 +36,16 @@ class AtomizedModel(Model):
 
     @property
     def metadata(self) -> ModelMetaInfo:
+        generator = make_chain_generator(self.chain)
+        tags = set()
+
+        for node in generator:
+            tags.update(node.model_tags)
+
         root_node = self.chain.root_node
-        supported_strategies, allowed_positions, tags = atomized_model_meta_tags()
+        supported_strategies = None
+        allowed_positions = ['any']
+        tags = list(tags)
 
         model_info = ModelMetaInfo(root_node.model.metadata.id, root_node.model.metadata.input_types,
                                    root_node.model.metadata.output_types, root_node.model.metadata.task_type,

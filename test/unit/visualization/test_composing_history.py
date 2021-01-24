@@ -1,8 +1,6 @@
-import pytest
-
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate
+from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.composer.composing_history import ComposingHistory
 
 

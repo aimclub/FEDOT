@@ -13,7 +13,7 @@ import numpy as np
 from PIL import Image
 
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
-from fedot.utilities.synthetic.chain_template_new import chain_template_as_nx_graph
+from fedot.core.chains.chain_template import chain_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 

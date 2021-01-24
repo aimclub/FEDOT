@@ -2,6 +2,7 @@ from datetime import datetime
 import joblib
 import json
 import os
+import networkx as nx
 
 from collections import Counter
 from typing import List
@@ -41,19 +42,20 @@ class ChainTemplate:
         else:
             self.link_to_empty_chain = chain
 
-    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[str]):
+    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[Node]):
         """
         Recursively go through the Chain from 'root_node' to PrimaryNode's,
         creating a ModelTemplate with unique id for each Node. In addition,
         checking whether this Node has been visited yet.
         """
+
         if node.nodes_from:
             nodes_from = []
             for node_parent in node.nodes_from:
-                if node_parent.descriptive_id in visited_nodes:
-                    nodes_from.append(visited_nodes.index(node_parent.descriptive_id) + 1)
+                if node_parent in visited_nodes:
+                    nodes_from.append(visited_nodes.index(node_parent) + 1)
                 else:
-                    visited_nodes.append(node_parent.descriptive_id)
+                    visited_nodes.append(node_parent)
                     nodes_from.append(len(visited_nodes))
                     self._extract_chain_structure(node_parent, len(visited_nodes), visited_nodes)
         else:
@@ -232,3 +234,21 @@ def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     root_node = chain_template.roll_chain_structure(root_node, {})
 
     return root_node
+
+
+def chain_template_as_nx_graph(chain: ChainTemplate):
+    graph = nx.DiGraph()
+    node_labels = {}
+    for model in chain.model_templates:
+        unique_id, label = model.model_id, model.model_type
+        node_labels[unique_id] = label
+        graph.add_node(unique_id)
+
+    def add_edges(graph, chain):
+        for model in chain.model_templates:
+            if model.nodes_from is not None:
+                for child in model.nodes_from:
+                    graph.add_edge(child, model.model_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels

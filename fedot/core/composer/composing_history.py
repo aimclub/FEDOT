@@ -3,7 +3,7 @@ import os
 import itertools
 from typing import (Any, List)
 
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate
+from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.utils import default_fedot_data_dir
 
 

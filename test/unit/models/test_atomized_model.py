@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 from sklearn.metrics import mean_squared_error
 
-from test.chains.test_chain_import_export import create_func_delete_files, create_correct_path
+from test.unit.utilities.test_chain_import_export import create_func_delete_files, create_correct_path
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.models.atomized_model import AtomizedModel
