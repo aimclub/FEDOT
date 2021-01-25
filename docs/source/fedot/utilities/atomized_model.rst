@@ -17,5 +17,5 @@ chain in the AtomizedModel class and all the functionality will be saved.
 
     chain = Chain()
     nested_chain = Chain()
-    atomized_chain = AtomizedModel(nested_chain)
-    chain.add_node(atomized_chain)
+    atomized_model = AtomizedModel(nested_chain)
+    chain.add_node(atomized_model)
