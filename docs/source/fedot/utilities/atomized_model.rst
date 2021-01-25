@@ -11,6 +11,7 @@ In order to add another Chain to the Chain as a Model, you need to wrap the
 chain in the AtomizedModel class and all the functionality will be saved.
 
 .. code-block:: python
+
     from fedot.core.chains.chain import Chain
     from fedot.core.models.atomized_model import AtomizedModel
 
