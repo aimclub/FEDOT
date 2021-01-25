@@ -7,7 +7,7 @@ to upload and download chains, and their models for further editing, visual
 representation, or data transfer. Here are some simple steps to export 
 and import chain structure.
 
-.. figure::  img/chain_to_json_main.png
+.. figure::  ../img/img_utilities/chain_json.png
    :align:   center
 
 Exporting a model chain

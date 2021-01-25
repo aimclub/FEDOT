@@ -51,5 +51,5 @@ See ``utilities/synthetic/data_benchmark.py`` for the details and
 ``examples/synthetic_benchmark_composing_example`` as an example of
 usages.
 
-.. figure:: img/synth_generator.png
+.. figure:: ../img/img_utilities/synth_generator.png
    :align: center
