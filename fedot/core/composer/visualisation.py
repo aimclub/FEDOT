@@ -56,7 +56,8 @@ class ChainVisualiser:
             root = inv_map[chain.root_node]
         else:
             root = 0
-        pos = hierarchy_pos(graph.to_undirected(), root=root)
+        minimum_spanning_tree = nx.minimum_spanning_tree(graph.to_undirected())
+        pos = hierarchy_pos(minimum_spanning_tree, root=root)
         min_size = 3000
         node_sizes = [min_size for _ in word_labels]
         if title:
