@@ -24,14 +24,14 @@ FEDOT
 
 .. end-badges
 
-Introduction
-==============
-
 This repository contains FEDOT - a open source framework for automated modeling and machine learning (AutoML). It can build custom modelling pipelines for the different real-world processes in an automated way using an evolutionary approach. FEDOT supports classification (binary and multiclass), regression, clustering, and time series prediction tasks.
 
 The main feature in the framework is complex management of interactions between various computing elements of pipelines. First of all, this includes the stage of machine learning model design. FEDOT allows you to not just choose the best version of the model and train it, but to create a complex (composite) model. It allows you to share several models of different complexity, which helps you to achieve better modeling quality than when using any of these models separately. Within the framework, we describe composite models in the form of a graph defining the connections between data preprocessing blocks and model blocks.
 
 The framework is not limited to individual AutoML tasks, such as pre-processing of initial data, selection of features or optimization of model hyperparameters, but allows you to solve a more general structural learning problem - for a given data set, a solution is built in the form of a graph (DAG), the nodes of which are represented by ML-models, pre-processing procedures and data transformation.
+
+The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
+
 
 The intro video about Fedot is available here:
 
@@ -40,27 +40,24 @@ The intro video about Fedot is available here:
     :target: http://www.youtube.com/watch?v=RjbuV6i6de4
     :alt: Introducing Fedot
 
-The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
-
-
 FEDOT features
 ==============
 
 The main features of the framework are as follows:
 
- * The FEDOT architecture has high flexibility and therefore the framework can be used to automate the creation of mathematical models for various problems, different types of data and models;
- * FEDOT supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but if necessary, you can integrate other tools into it;
- * Pipeline optimization algorithms are not tied to data types or tasks, but to increase efficiency, you can use special templates for a specific task class or data type - time series prediction, NLP, tabular data, etc.;
- * The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
- * Additional methods for tuning hyperparameters of different models can also be "seamlessly" added to FEDOT (in addition to those already supported);
- * FEDOT supports any-time mode of operation: at any time, you can stop the algorithm and get the result;
- * The resulting pipelines can be exported in a convenient json format without binding to the framework, which allows you to achieve reproducibility of the experiment.
+- The FEDOT architecture has high flexibility and therefore the framework can be used to automate the creation of mathematical models for various problems, different types of data and models;
+- FEDOT supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but if necessary, you can integrate other tools into it;
+- Pipeline optimization algorithms are not tied to data types or tasks, but to increase efficiency, you can use special templates for a specific task class or data type - time series prediction, NLP, tabular data, etc.;
+- The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
+- Additional methods for tuning hyperparameters of different models can also be "seamlessly" added to FEDOT (in addition to those already supported);
+- FEDOT supports any-time mode of operation: at any time, you can stop the algorithm and get the result;
+- The resulting pipelines can be exported in a convenient json format without binding to the framework, which allows you to achieve reproducibility of the experiment.
 
 Thus, compared to other frameworks, FEDOT:
 
- * Is not limited to one task type, but claims versatility and expandability;
- * Allows to more flexibly manage the complexity of models and thereby achieve better results.
- * Allows build models using input data of various nature - texts, images, tables, etc., and consisting of different types of models.
+- Is not limited to one task type, but claims versatility and expandability;
+- Allows to more flexibly manage the complexity of models and thereby achieve better results.
+- Allows build models using input data of various nature - texts, images, tables, etc., and consisting of different types of models.
 
 Installation
 ============
@@ -115,7 +112,7 @@ To use API, follow these steps:
 
   train_file = pd.read_csv(train_file_path)
   x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
-  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
+  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
   model = Fedot(ml_task=task,
                 composer_params=composer_params)
@@ -207,31 +204,13 @@ The latest stable release of FEDOT is on the `master branch <https://github.com/
 
 The repository includes the following directories:
 
-* Package `core <https://github.com/nccr-itmo/FEDOT/tree/master/core>`__  contains the main classes and scripts. It is a *core* of FEDOT framework
+* Package `core <https://github.com/nccr-itmo/FEDOT/tree/master/fedot/core>`__  contains the main classes and scripts. It is a *core* of FEDOT framework
 * Package `examples <https://github.com/nccr-itmo/FEDOT/tree/master/examples>`__ includes several *how-to-use-cases* where you can start to discover how FEDOT works
 * All *unit tests* can be observed in the `test <https://github.com/nccr-itmo/FEDOT/tree/master/test>`__ directory
 * The sources of documentation are in the `docs <https://github.com/nccr-itmo/FEDOT/tree/master/docs>`__
 
-Also you can check `benchmarking <https://github.com/ITMO-NSS-team/AutoML-benchmark>`__ repository that was developed to
+Also you can check `benchmarking <https://github.com/ITMO-NSS-team/FEDOT-benchmarks>`__ repository that was developed to
 show the comparison of FEDOT against the well-known AutoML frameworks.
-
-Basic Concepts
-===============
-
-The main process of FEDOT work is *composing* leading to the production of the composite models.
-
-**Composer** is a block that takes meta-requirements and the evolutionary algorithm as an optimization one
-and get different chains of models to find the most appropriate solution for the case.
-
-The result of composing and basic object user works with is the Chain:
-**Chain** is the tree-based structure of any composite model. It keeps the information of nodes relations
-and everything referred to chain properties and restructure.
-
-In fact, any chain has two kinds of nodes:
- - **Primary nodes** are edge (leaf) nodes of the tree where initial case data is located.
- - **Secondary nodes** are all other nodes which transform data during the composing and fitting, including root node with result data.
-
-Meanwhile, every node holds the *Model* which could be ML or any other kind of model.
 
 Current R&D and future plans
 ============================
