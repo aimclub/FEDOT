@@ -33,24 +33,6 @@ The main feature in the framework is complex management of interactions between 
 
 The framework is not limited to individual AutoML tasks, such as pre-processing of initial data, selection of features or optimization of model hyperparameters, but allows you to solve a more general structural learning problem - for a given data set, a solution is built in the form of a graph (DAG), the nodes of which are represented by ML-models, pre-processing procedures and data transformation.
 
-FEDOT features
-==============
-
-The main features of the framework are as follows:
-* The FEDOT architecture has high flexibility and therefore the framework can be used to automate the creation of mathematical models for various problems, different types of data and models;
-* FEDOT supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but if necessary, you can integrate other tools into it;
-* Pipeline optimization algorithms are not tied to data types or tasks, but to increase efficiency, you can use special templates for a specific task class or data type - time series prediction, NLP, tabular data, etc.;
-* The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
-* Additional methods for tuning hyperparameters of different models can also be "seamlessly" added to FEDOT (in addition to those already supported);
-* FEDOT supports any-time mode of operation: at any time, you can stop the algorithm and get the result;
-* The resulting pipelines can be exported in a convenient json format without binding to the framework, which allows you to achieve reproducibility of the experiment.
-
-Thus, compared to other frameworks, FEDOT:
-* Is not limited to one task type, but claims versatility and expandability;
-* Allows to more flexibly manage the complexity of models and thereby achieve better results.
-* Allows build models using input data of various nature - texts, images, tables, etc., and consisting of different types of models.
-
-
 The intro video about Fedot is available here:
 
 
@@ -58,9 +40,27 @@ The intro video about Fedot is available here:
     :target: http://www.youtube.com/watch?v=RjbuV6i6de4
     :alt: Introducing Fedot
 
-   
-
 The project is maintained by the research team of Natural Systems Simulation Lab, which is a part of the National Center for Cognitive Research of ITMO University.
+
+
+FEDOT features
+==============
+
+The main features of the framework are as follows:
+
+ * The FEDOT architecture has high flexibility and therefore the framework can be used to automate the creation of mathematical models for various problems, different types of data and models;
+ * FEDOT supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but if necessary, you can integrate other tools into it;
+ * Pipeline optimization algorithms are not tied to data types or tasks, but to increase efficiency, you can use special templates for a specific task class or data type - time series prediction, NLP, tabular data, etc.;
+ * The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
+ * Additional methods for tuning hyperparameters of different models can also be "seamlessly" added to FEDOT (in addition to those already supported);
+ * FEDOT supports any-time mode of operation: at any time, you can stop the algorithm and get the result;
+ * The resulting pipelines can be exported in a convenient json format without binding to the framework, which allows you to achieve reproducibility of the experiment.
+
+Thus, compared to other frameworks, FEDOT:
+
+ * Is not limited to one task type, but claims versatility and expandability;
+ * Allows to more flexibly manage the complexity of models and thereby achieve better results.
+ * Allows build models using input data of various nature - texts, images, tables, etc., and consisting of different types of models.
 
 Installation
 ============
