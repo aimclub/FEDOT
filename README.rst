@@ -13,14 +13,43 @@ FEDOT
       - |docs|
     * - license
       - | |license|
+    * - downloads
+      -  .. image:: https://static.pepy.tech/personalized-badge/fedot?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
+            :target: https://pepy.tech/project/fedot
+    * - support
+      - .. image:: https://img.shields.io/badge/Telegram-Group-blue.svg
+           :target: https://t.me/FEDOT_helpdesk
+           :alt: Telegram Chat
+
 
 .. end-badges
 
-This repository contains Fedot - a framework for automated modeling and machine learning. It can build composite models for the different real-world processes in an automated way using an evolutionary approach.
+Introduction
+==============
 
-Composite models - the models with heterogeneous graph-based structure, that can consist of ML models, domain-specific models, equation-based models, statistical, and even other composite models. Composite modelling allows obtaining efficient multi-scale solutions for various applied problems.
+This repository contains FEDOT - a open source framework for automated modeling and machine learning (AutoML). It can build custom modelling pipelines for the different real-world processes in an automated way using an evolutionary approach. FEDOT supports classification (binary and multiclass), regression, clustering, and time series prediction tasks.
 
-Fedot can be used for classification, regression, clustering, time series forecasting, and other similar tasks. Also, the derived solutions for other problems (e.g. bayesian generation of synthetic data) can be build using Fedot.Core.
+The main feature in the framework is complex management of interactions between various computing elements of pipelines. First of all, this includes the stage of machine learning model design. FEDOT allows you to not just choose the best version of the model and train it, but to create a complex (composite) model. It allows you to share several models of different complexity, which helps you to achieve better modeling quality than when using any of these models separately. Within the framework, we describe composite models in the form of a graph defining the connections between data preprocessing blocks and model blocks.
+
+The framework is not limited to individual AutoML tasks, such as pre-processing of initial data, selection of features or optimization of model hyperparameters, but allows you to solve a more general structural learning problem - for a given data set, a solution is built in the form of a graph (DAG), the nodes of which are represented by ML-models, pre-processing procedures and data transformation.
+
+FEDOT features
+==============
+
+The main features of the framework are as follows:
+* The FEDOT architecture has high flexibility and therefore the framework can be used to automate the creation of mathematical models for various problems, different types of data and models;
+* FEDOT supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but if necessary, you can integrate other tools into it;
+* Pipeline optimization algorithms are not tied to data types or tasks, but to increase efficiency, you can use special templates for a specific task class or data type - time series prediction, NLP, tabular data, etc.;
+* The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
+* Additional methods for tuning hyperparameters of different models can also be "seamlessly" added to FEDOT (in addition to those already supported);
+* FEDOT supports any-time mode of operation: at any time, you can stop the algorithm and get the result;
+* The resulting pipelines can be exported in a convenient json format without binding to the framework, which allows you to achieve reproducibility of the experiment.
+
+Thus, compared to other frameworks, FEDOT:
+* Is not limited to one task type, but claims versatility and expandability;
+* Allows to more flexibly manage the complexity of models and thereby achieve better results.
+* Allows build models using input data of various nature - texts, images, tables, etc., and consisting of different types of models.
+
 
 The intro video about Fedot is available here:
 
@@ -52,21 +81,56 @@ In order to work with FEDOT source code:
     $ pytest -s test
 
 
-FEDOT features
-==============
-- The generation of high-quality variable-shaped machine learning pipelines for various tasks: binary/multiclass classification, regression, clustering, time series forecasting;
-- The structural learning of composite models with different nature (hybrid, bayesian, deep learning, etc) using custom metrics;
-- The seamless integration of the custom models (including domain-specific), frameworks and algorithms into pipelines;
-- Benchmarking utilities that can run real-world cases (the ready-to-use examples are provided for credit scoring, sea surface height forecasting, oil production forecasting, etc), state-of-the-art-datasets (like PMLB) and synthetic data.
+How to use (simple approach)
+==========
+
+FEDOT provides a high-level API that allows you to use its capabilities simpler.
+At the moment, API can be used for classification and regression tasks only.
+But the time series forecasting and clustering support will be implemented soon (you still can solve these tasks via advanced initialization, see above).
+Input data must be ether in numpy-array format or CSV files.
+
+To use API, follow these steps:
+
+1. Import Fedot class
+
+.. code-block:: python
+
+  from fedot.api.api_runner import Fedot
+
+2. Select the type of modelling problem and the hyperparameters of optimisation algorithm (optional).
+
+.. code-block:: python
+
+    task = 'classification'
+    composer_params = {'max_depth': 2,
+                       'learning_time': 10}
+
+3. Initialize Fedot object with parameters. It provides a ML-popular fit/predict interface:
+
+- fedot.fit runs optimization and returns the resulted composite model
+- fedot.predict returns the predictied values for a given features
+- fedot.quality_metric calculates the quality metrics of predictions
+
+.. code-block:: python
+
+  train_file = pd.read_csv(train_file_path)
+  x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
+  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
+
+  model = Fedot(ml_task=task,
+                composer_params=composer_params)
+  fedot_model = model.fit(features=x_train,
+                          target=y_train)
+  prediction = model.predict(features=x_test)
+  metric = model.quality_metric(target=y_test)
 
 
-How to use
+How to use (advanced approach)
 ==========
 
 The main purpose of FEDOT is to identify a suitable composite model for a given dataset.
-The model is obtained via optimization process (we also call it 'composing').\
-Firstly, you need to prepare datasets for fit and validate and specify a task
-that you going to solve:
+The model is obtained via optimization process (we also call it 'composing') that can be fine-tuned if necessary.\
+Firstly, you need to prepare datasets for fit and validate and specify a task that you going to solve:
 
 .. code-block:: python
 
@@ -119,49 +183,6 @@ Finally, you can test the resulted model on the validation dataset:
                                                           dataset_to_validate)
   print(f'Composed ROC AUC is {roc_on_valid_evo_composed:.3f}')
 
-FEDOT API
-==========
-
-FEDOT provides a high-level API that allows you to use its capabilities simpler.
-At the moment, API can be used for classification and regression tasks only.
-But the time series forecasting and clustering support will be implemented soon (you still can solve these tasks via advanced initialization, see above).
-Input data must be ether in numpy-array format or CSV files.
-
-To use API, follow these steps:
-
-1. Import Fedot class
-
-.. code-block:: python
-
-  from fedot.api.api_runner import Fedot
-
-2. Select the type of ML-problem and the hyperparameters of Composer (optional).
-
-.. code-block:: python
-
-    task = 'classification'
-    composer_params = {'max_depth': 2,
-                       'max_arity': 2,
-                   'learning_time': 1}
-
-3. Initialize Fedot object with parameters. It provides a ML-popular fit/predict interface:
-
-- fedot.fit runs optimization and returns the resulted composite model
-- fedot.predict returns the predictied values for a given features
-- fedot.quality_metric calculates the quality metrics of predictions
-
-.. code-block:: python
-
-  train_file = pd.read_csv(train_file_path)
-  x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
-  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
-
-  model = Fedot(ml_task=task,
-                composer_params=composer_params)
-  fedot_model = model.fit(features=x_train,
-                          target=y_train)
-  prediction = model.predict(features=x_test)
-  metric = model.quality_metric(target=y_test)
 
 Examples & Tutorials
 ====================
@@ -212,31 +233,22 @@ In fact, any chain has two kinds of nodes:
 
 Meanwhile, every node holds the *Model* which could be ML or any other kind of model.
 
-The referenced papers:
-
-- Kalyuzhnaya A. V. et al. Automatic evolutionary learning of composite models with knowledge enrichment //Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion. – 2020. – P. 43-44.
-- Kovalchuk S. V. et al. A conceptual approach to complex model management with generalized modelling patterns and evolutionary identification //Complexity. – 2018. – V. 2018.
-- Nikitin N. O. et al. Deadline-driven approach for multi-fidelity surrogate-assisted environmental model calibration: SWAN wind wave model case study //Proceedings of the Genetic and Evolutionary Computation Conference Companion. – 2019. – С. 1583-1591.
-- Vychuzhanin P., Nikitin N. O., Kalyuzhnaya A. V. Robust Ensemble-Based Evolutionary Calibration of the Numerical Wind Wave Model //International Conference on Computational Science. – Springer, Cham, 2019. – P. 614-627.
-- Nikitin N. O. et al. Evolutionary ensemble approach for behavioral credit scoring //International Conference on Computational Science. – Springer, Cham, 2018. – P. 825-831.
-
 Current R&D and future plans
 ============================
 
 At the moment, we execute an extensive set of experiments to determine the most suitable approaches for evolutionary chain optimization, hyperparameters tuning, benchmarking, etc.
 The different case studies from different subject areas (metocean science, oil production, seismic, robotics, economics, etc) are in progress now.
-The various features are planned to be implemented: multi-data chains, Bayesian networks optimization, domain-specific, equation-based models involvement, model export and atomization, interpretable surrogate models, etc.
 
-Any support and contribution are welcome.
+The various features are planned to be implemented: multi-data chains, Bayesian networks optimization, domain-specific, equation-based models involvement, interpretable surrogate models, etc.
+
+Any support and contribution are welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
 Documentation
 =============
 
-The documentation is available in `FEDOT.Docs <https://itmo-nss-team.github.io/FEDOT.Docs>`__ repository.
+The common description is available in `FEDOT.Docs <https://itmo-nss-team.github.io/FEDOT.Docs>`__ repository.
 
-The description and source code of underlying algorithms is available in `FEDOT.Algs <https://github.com/ITMO-NSS-team/FEDOT.Algs>`__ repository and its `wiki pages <https://github.com/ITMO-NSS-team/FEDOT.Algs/wiki>`__ (in Russian).
-
-Also, FEDOT API in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
+Also, detailed FEDOT API description is available in the in `Read the Docs <https://fedot.readthedocs.io/en/latest/>`__.
 
 Contribution Guide
 ==================
@@ -247,6 +259,14 @@ Acknowledgements
 ================
 
 We acknowledge the contributors for their important impact and the participants of the numerous scientific conferences and workshops for their valuable advice and suggestions.
+
+Contacts
+============
+- `Telegram channel for solving problems and answering questions on FEDOT <https://t.me/FEDOT_helpdesk>`_
+- `Natural System Simulation Team <https://itmo-nss-team.github.io/>`_
+- `Anna Kalyuzhnaya <https://scholar.google.com/citations?user=bjiILqcAAAAJ&hl=ru>`_, team leader (anna.kalyuzhnaya@itmo.ru)
+- `News feed <https://t.me/NSS_group>`_
+- `Youtube channel <https://www.youtube.com/channel/UC4K9QWaEUpT_p3R4FeDp5jA>`_
 
 Supported by
 ============
