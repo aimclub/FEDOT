@@ -17,7 +17,16 @@
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
-			"description": "Implementations of the decomposition operations (e.g. PCA) from scikit-learn framework"}
+			"description": "Implementations of the decomposition operations (e.g. PCA) from scikit-learn framework"},
+		"time_series_transformation": {
+			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+			"input_type": "[DataTypesEnum.ts]",
+			"output_type": "[DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "TsTransformingStrategy"],
+			"tags": ["time_series"],
+			"description": "Preprocessing for converting uni-variate time-series into table form"}
 	},
 	"data_operations":{
 		"scaling": {
@@ -34,7 +43,11 @@
 		},
 		"pca": {
 			"meta": "sklearn_decomposition",
-			"tags": ["linear", "dimensionality_reduction"]
+			"tags": ["linear", "dimensionality_transforming"]
+		},
+		"lagged": {
+			"meta": "time_series_transformation",
+			"tags": ["affects_target", "dimensionality_transforming"]
 		}
 	}
 }

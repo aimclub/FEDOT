@@ -13,43 +13,6 @@ from fedot.utilities.synthetic.data import regression_dataset
 
 np.random.seed(2020)
 
-################################################################################
-#                                  ОПИСАНИЕ                                    #
-################################################################################
-"""
-Данный скрипт запускает простой пример с генерацией датасета для задачи 
-регрессии. В качестве построенной модели используется простая цепочка из одной
-модели. Операции препрцессинга - старые, изменения в них не вносились.
-
-Корректный вывод:
-chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=Scaling)) -
-Предсказанные значения: [-68.10298779 117.98968829  42.43115105 172.41955313  37.09269484]
-Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
-RMSE - 1.01
-
-Корректный вывод:
-chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=Normalization)) -
-Предсказанные значения: [-54.83440763  93.75971281  33.35586733 137.17213629  29.05485513]
-Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
-RMSE - 22.55
-
-Корректный вывод:
-chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=EmptyStrategy)) -
-Предсказанные значения: [-68.71667781 119.11895172  42.86140271 174.07243214  37.4659416 ]
-Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
-RMSE - 0.01
-
-Корректный вывод:
-node_1 = PrimaryNode('ridge', manual_preprocessing_func=Scaling)
-node_final = SecondaryNode('rfr', manual_preprocessing_func=Scaling, nodes_from=[node_1])
-chain = Chain(node_final) -
-Предсказанные значения: [-69.17518073 118.99562352  43.49886063 170.81176266  37.07953475]
-Действительные значения: [-68.72344733 119.12557335  42.86008376 174.07711097  37.46908567]
-RMSE - 5.15
-"""
-################################################################################
-#                                  ОПИСАНИЕ                                    #
-################################################################################
 
 def prepare_regression_dataset(samples_amount=250, features_amount=5,
                                features_options={'informative': 2,'bias': 1.0}):
@@ -89,12 +52,8 @@ def prepare_regression_dataset(samples_amount=250, features_amount=5,
 
     return x_data_train, y_data_train, x_data_test, y_data_test
 
-if __name__ == '__main__':
-    x_data_train, y_data_train, \
-    x_data_test, y_data_test = prepare_regression_dataset(150,3,{'informative': 2,'bias': 1.0})
 
-    chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=Scaling))
-
+def run_experiment(x_data_train, y_data_train, x_data_test, y_data_test, chain):
     # Define regression task
     task = Task(TaskTypesEnum.regression)
 
@@ -117,8 +76,22 @@ if __name__ == '__main__':
     preds = predicted_values.predict
 
     y_data_test = np.ravel(y_data_test)
-    print(f'Предсказанные значения: {preds[:5]}')
-    print(f'Действительные значения: {y_data_test[:5]}')
+    print(f'Predicted values: {preds[:5]}')
+    print(f'Actual values: {y_data_test[:5]}')
     print(f'RMSE - {mean_squared_error(y_data_test, preds, squared=False):.2f}\n')
 
 
+if __name__ == '__main__':
+    x_data_train, y_data_train, \
+    x_data_test, y_data_test = prepare_regression_dataset(150,3,{'informative': 2,'bias': 1.0})
+
+    print('Old scaling built-in preprocessing functionality')
+    chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=Scaling))
+    run_experiment(x_data_train, y_data_train, x_data_test, y_data_test, chain)
+
+    print('New scaling "node-based" preprocessing functionality')
+    # Interface for such data operations for now look like this
+    node_preproc = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
+    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,nodes_from=[node_preproc])
+    chain = Chain(node_final)
+    run_experiment(x_data_train, y_data_train, x_data_test, y_data_test, chain)

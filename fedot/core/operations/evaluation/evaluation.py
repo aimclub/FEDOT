@@ -28,6 +28,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
+from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
+    import LaggedTransformation
 
 import numpy as np
 import re
@@ -40,7 +42,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.custom_models.models import CustomSVC
 from fedot.core.operations.tuning.hyperparams import params_range_by_model
 from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -163,17 +165,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_model = self._sklearn_model_impl()
 
-        try:
+        # TODO заменить на прверку по task
+        task_params = train_data.task.task_params
+        if task_params.__class__ == TsForecastingParams:
+            # For time series forecasting we need to change target size due to
+            window_size = task_params.max_window_size
+            train_data.idx = range(0, len(train_data.features))
+            train_data.target = train_data.target[window_size:]
+
             sklearn_model.fit(train_data.features, train_data.target)
-        except ValueError as ex:
-            if len(train_data.target.shape) > 1 and train_data.target.shape[1] > 1:
-                # if the prediction requires multivariate target and models do not support it
-                sklearn_model = \
-                    convert_to_multivariate_model_manually(sklearn_model, train_data)
-                if not sklearn_model:
-                    raise ex
-            else:
-                raise ex
+        else:
+            sklearn_model.fit(train_data.features, train_data.target)
         return sklearn_model
 
     def predict(self, trained_model, predict_data: InputData) -> OutputData:
@@ -269,6 +271,23 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
 
 
 class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for model training with the data provided
+
+        :param InputData train_data: data used for model training
+        :return:
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
+        else:
+            sklearn_model = self._sklearn_model_impl()
+
+        sklearn_model.fit(train_data.features)
+        return sklearn_model
+
     def predict(self, trained_model, predict_data: InputData):
         """
         Transform method for preprocessing task
@@ -317,12 +336,17 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
 
 # TODO adapt
-class TextPreprocessingStrategy:
-    def __init__(self):
+class TextPreprocessingStrategy(EvaluationStrategy):
+
+    def __init__(self, model_type: str, params: Optional[dict] = None):
+        self.model_type = model_type
+
         self.stemmer = PorterStemmer()
         self.lemmanizer = WordNetLemmatizer()
         self.lang = 'english'
         self._download_nltk_resources()
+
+        super().__init__(model_type, params)
 
     def fit(self, data_to_fit):
         return self
@@ -374,6 +398,76 @@ class TextPreprocessingStrategy:
         text = re.sub(clean_pattern, ' ', raw_text)
 
         return text
+
+
+class TsTransformingStrategy(EvaluationStrategy):
+    """
+    This class defines the certain data operation implementation for time series
+    forecasting
+
+    :param str model_type: str type of the operation defined in model or
+    data operation repositories
+    :param dict params: hyperparameters to fit the model with
+    """
+
+    __operations_by_types = {
+        'lagged': LaggedTransformation}
+
+    def __init__(self, model_type: str, params: Optional[dict] = None):
+        self.operation = self._convert_to_operation(model_type)
+        self.params_for_fit = params
+        super().__init__(model_type, params)
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for operation training with the data provided
+
+        :param InputData train_data: data used for model training
+        :return:
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            transformation_operation = self.operation(**self.params_for_fit)
+        else:
+            transformation_operation = self.operation()
+
+        transformation_operation.fit(train_data)
+        return transformation_operation
+
+    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data.
+
+        :param trained_model: model object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+        print(predict_data)
+        print(len(predict_data.target), '\n')
+
+        prediction = trained_model.transform(predict_data)
+
+        print(predict_data)
+        print(len(predict_data.target))
+        return prediction
+
+    def fit_tuned(self, train_data: InputData, iterations: int,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        This method is used for hyperparameter searching
+
+        :param train_data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        :return tuple(object, dict): model with found hyperparameters and dictionary with found hyperparameters
+        """
+        raise NotImplementedError()
+
+    def _convert_to_operation(self, model_type: str):
+        if model_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[model_type]
+        else:
+            raise ValueError(f'Impossible to obtain TsTransforming strategy for {model_type}')
 
 
 def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
