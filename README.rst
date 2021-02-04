@@ -23,6 +23,9 @@ FEDOT
 
 This repository contains FEDOT - an open-source framework for automated modeling and machine learning (AutoML). It can build custom modeling pipelines for different real-world processes in an automated way using an evolutionary approach. FEDOT supports classification (binary and multiclass), regression, clustering, and time series prediction tasks.
 
+.. image:: https://itmo-nss-team.github.io/FEDOT.Docs/img/pipeline_small.png
+   :alt: The structure of the modeling pipeline that can be optimised by FEDOT
+
 The main feature of the framework is the complex management of interactions between various blocks of pipelines. First of all, this includes the stage of machine learning model design. FEDOT allows you to not just choose the best type of the model, but to create a complex (composite) model. It allows you to combine several models of different complexity, which helps you to achieve better modeling quality than when using any of these models separately. Within the framework, we describe composite models in the form of a graph defining the connections between data preprocessing blocks and model blocks.
 
 The framework is not limited to specific AutoML tasks (such as pre-processing of input data, feature selection, or optimization of model hyperparameters), but allows you to solve a more general structural learning problem - for a given data set, a solution is built in the form of a graph (DAG), the nodes of which are represented by ML models, pre-processing procedures, and data transformation.
