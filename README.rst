@@ -153,10 +153,10 @@ After that you need to initialize the composer with the builder using the specif
 
 .. code-block:: python
 
-builder = GPComposerBuilder(task=task).with_requirements(composer_requirements) \
+ builder = GPComposerBuilder(task=task).with_requirements(composer_requirements) \
        .with_metrics(metric_function) \
        .with_optimiser_parameters(optimiser_parameters)
-composer = builder.build()
+ composer = builder.build()
 
 Now you can run the optimization and obtain a composite model:
 
