@@ -29,38 +29,32 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
-    import LaggedTransformation
-
-import numpy as np
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
+    import LaggedTransformation, lagged_data_mapping
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.custom_models.models import CustomSVC
-from fedot.core.operations.tuning.hyperparams import params_range_by_model
+from fedot.core.operations.tuning.hyperparams import params_range_by_operation
 from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
-from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
     """
-    Base class to define the evaluation strategy of Model object:
-    the certain sklearn or any other model with fit/predict methods.
+    Base class to define the evaluation strategy of Operation object:
+    the certain sklearn or any other operation with fit/predict methods.
 
-    :param model_type: str type of the model defined in model repository
-    :param dict params: hyperparameters to fit the model with
+    :param operation_type: str type of the operation defined in operation repository
+    :param dict params: hyperparameters to fit the operation with
     :param Log log: Log object to record messages
     """
 
-    def __init__(self, model_type: str, params: Optional[dict] = None,
+    def __init__(self, operation_type: str, params: Optional[dict] = None,
                  log=None):
         self.params_for_fit = params
-        self.model_type = model_type
+        self.operation_type = operation_type
 
         self.output_mode = False
 
@@ -70,22 +64,25 @@ class EvaluationStrategy:
             self.log: Log = log
 
     @abstractmethod
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
         """
-        Main method to train the model with the data provided
+        Main method to train the operation with the data provided
 
-        :param InputData train_data: data used for model training
+        :param InputData train_data: data used for operation training
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
         """
         Main method to predict the target data.
 
-        :param trained_model: trained model object
+        :param trained_operation: trained operation object
         :param InputData predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
@@ -97,7 +94,8 @@ class EvaluationStrategy:
         Main method used for hyperparameter searching
 
         :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param iterations: max number of iterations evaluable for hyperparameter
+        optimization
         :param max_lead_time: max time(seconds) for tuning evaluation
         :return:
         """
@@ -110,11 +108,12 @@ class EvaluationStrategy:
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     """
-    This class defines the certain model implementation for the sklearn models defined in model repository
+    This class defines the certain operation implementation for the sklearn operations
+    defined in operation repository
 
-    :param str model_type: str type of the operation defined in model or
+    :param str operation_type: str type of the operation defined in operation or
     data operation repositories
-    :param dict params: hyperparameters to fit the model with
+    :param dict params: hyperparameters to fit the operation with
     """
     __operations_by_types = {
         'xgboost': XGBClassifier,
@@ -147,43 +146,38 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'pca': PCA,
     }
 
-    def __init__(self, model_type: str, params: Optional[dict] = None):
-        self._sklearn_model_impl = self._convert_to_sklearn(model_type)
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self._sklearn_operation_impl = self._convert_to_sklearn(operation_type)
         self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
-        super().__init__(model_type, params)
+        super().__init__(operation_type, params)
 
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
         """
-        This method is used for model training with the data provided
+        This method is used for operation training with the data provided
 
-        :param InputData train_data: data used for model training
-        :return:
+        :param InputData train_data: data used for operation training
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return: trained Sklearn operation
         """
+
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
+            sklearn_operation = self._sklearn_operation_impl(**self.params_for_fit)
         else:
-            sklearn_model = self._sklearn_model_impl()
+            sklearn_operation = self._sklearn_operation_impl()
 
-        # TODO заменить на прверку по task
-        task_params = train_data.task.task_params
-        if task_params.__class__ == TsForecastingParams:
-            # For time series forecasting we need to change target size due to
-            window_size = task_params.max_window_size
-            train_data.idx = range(0, len(train_data.features))
-            train_data.target = train_data.target[window_size:]
+        train_data = lagged_data_mapping(train_data, is_fit_chain_stage)
+        sklearn_operation.fit(train_data.features, train_data.target)
+        return sklearn_operation
 
-            sklearn_model.fit(train_data.features, train_data.target)
-        else:
-            sklearn_model.fit(train_data.features, train_data.target)
-        return sklearn_model
-
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
 
-        :param trained_model: model object
+        :param trained_operation: operation object
         :param predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
@@ -196,58 +190,60 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
         :param max_lead_time: max time(seconds) for tuning evaluation
-        :return tuple(object, dict): model with found hyperparameters and dictionary with found hyperparameters
+        :return tuple(object, dict): operation with found hyperparameters and dictionary with found hyperparameters
         """
-        trained_model = self.fit(train_data=train_data)
-        params_range = params_range_by_model.get(self.model_type, None)
+        trained_operation = self.fit(train_data=train_data)
+        params_range = params_range_by_operation.get(self.operation_type, None)
         self._tune_strategy = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
-            return trained_model, trained_model.get_params()
+            return trained_operation, trained_operation.get_params()
 
-        tuned_params, best_model = self._tune_strategy(trained_model=trained_model,
-                                                       tune_data=train_data,
-                                                       params_range=params_range,
-                                                       cross_val_fold_num=5,
-                                                       time_limit=max_lead_time,
-                                                       iterations=iterations).tune()
+        tuned_params, best_operation = self._tune_strategy(trained_model=trained_operation,
+                                                           tune_data=train_data,
+                                                           params_range=params_range,
+                                                           cross_val_fold_num=5,
+                                                           time_limit=max_lead_time,
+                                                           iterations=iterations).tune()
 
-        if best_model or tuned_params:
+        if best_operation or tuned_params:
             self.params_for_fit = tuned_params
-            trained_model = best_model
+            trained_operation = best_operation
 
-        return trained_model, tuned_params
+        return trained_operation, tuned_params
 
-    def _convert_to_sklearn(self, model_type: str):
-        if model_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[model_type]
+    def _convert_to_sklearn(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain SKlearn strategy for {model_type}')
+            raise ValueError(f'Impossible to obtain SKlearn strategy for {operation_type}')
 
-    def _find_model_by_impl(self, impl):
-        for model, model_impl in self.__operations_by_types.items():
-            if model_impl == impl:
-                return model
+    def _find_operation_by_impl(self, impl):
+        for operation, operation_impl in self.__operations_by_types.items():
+            if operation_impl == impl:
+                return operation
 
     @property
     def implementation_info(self) -> str:
-        return str(self._convert_to_sklearn(self.model_type))
+        return str(self._convert_to_sklearn(self.operation_type))
 
 
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool):
         """
         Predict method for classification task
 
-        :param trained_model: model object
+        :param trained_operation: model object
         :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return: prediction target
         """
-        n_classes = len(trained_model.classes_)
+        n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
-            prediction = trained_model.predict(predict_data.features)
+            prediction = trained_operation.predict(predict_data.features)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_model.predict_proba(predict_data.features)
+            prediction = trained_operation.predict_proba(predict_data.features)
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs':
@@ -258,68 +254,76 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool):
         """
         Predict method for regression task
 
-        :param trained_model: model object
+        :param trained_operation: model object
         :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        prediction = trained_model.predict(predict_data.features)
+        prediction = trained_operation.predict(predict_data.features)
         return prediction
 
 
 class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
 
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
         """
-        This method is used for model training with the data provided
+        This method is used for operation training with the data provided
 
-        :param InputData train_data: data used for model training
+        :param InputData train_data: data used for operation training
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            sklearn_model = self._sklearn_model_impl(**self.params_for_fit)
+            sklearn_operation = self._sklearn_operation_impl(**self.params_for_fit)
         else:
-            sklearn_model = self._sklearn_model_impl()
+            sklearn_operation = self._sklearn_operation_impl()
 
-        sklearn_model.fit(train_data.features)
-        return sklearn_model
+        sklearn_operation.fit(train_data.features)
+        return sklearn_operation
 
-    def predict(self, trained_model, predict_data: InputData):
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool):
         """
         Transform method for preprocessing task
 
         :param trained_model: model object
         :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        prediction = trained_model.transform(predict_data.features)
+        prediction = trained_operation.transform(predict_data.features)
         return prediction
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
         """
         Fit method for clustering task
 
         :param train_data: data used for model training
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
         sklearn_model = self._sklearn_model_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
         """
         Predict method for clustering task
-        :param trained_model: model object
+        :param trained_operation: operation object
         :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        prediction = trained_model.predict(predict_data.features)
+        prediction = trained_operation.predict(predict_data.features)
         return prediction
 
     def fit_tuned(self, train_data: InputData, iterations: int = 30,
@@ -335,77 +339,12 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         raise NotImplementedError()
 
 
-# TODO adapt
-class TextPreprocessingStrategy(EvaluationStrategy):
-
-    def __init__(self, model_type: str, params: Optional[dict] = None):
-        self.model_type = model_type
-
-        self.stemmer = PorterStemmer()
-        self.lemmanizer = WordNetLemmatizer()
-        self.lang = 'english'
-        self._download_nltk_resources()
-
-        super().__init__(model_type, params)
-
-    def fit(self, data_to_fit):
-        return self
-
-    def predict(self, data):
-        clean_data = []
-        for text in data:
-            words = set(self._word_vectorize(text))
-            without_stop_words = self._remove_stop_words(words)
-            words = self._lemmatization(without_stop_words)
-            words = [word for word in words if word.isalpha()]
-            new_text = ' '.join(words)
-            new_text = self._clean_html_text(new_text)
-            clean_data.append(new_text)
-        return np.array(clean_data)
-
-    @staticmethod
-    def _download_nltk_resources():
-        for resource in ['punkt', 'stopwords', 'wordnet']:
-            try:
-                nltk.data.find(f'tokenizers/{resource}')
-            except LookupError:
-                nltk.download(f'{resource}')
-
-    def _word_vectorize(self, text):
-        words = nltk.word_tokenize(text)
-
-        return words
-
-    def _remove_stop_words(self, words: set):
-        stop_words = set(stopwords.words(self.lang))
-        cleared_words = [word for word in words if word not in stop_words]
-
-        return cleared_words
-
-    def _stemming(self, words):
-        stemmed_words = [self.stemmer.stem(word) for word in words]
-
-        return stemmed_words
-
-    def _lemmatization(self, words):
-        # TODO pos
-        lemmas = [self.lemmanizer.lemmatize(word) for word in words]
-
-        return lemmas
-
-    def _clean_html_text(self, raw_text):
-        clean_pattern = re.compile('<.*?>')
-        text = re.sub(clean_pattern, ' ', raw_text)
-
-        return text
-
-
 class TsTransformingStrategy(EvaluationStrategy):
     """
     This class defines the certain data operation implementation for time series
     forecasting
 
-    :param str model_type: str type of the operation defined in model or
+    :param str operation_type: str type of the operation defined in operation or
     data operation repositories
     :param dict params: hyperparameters to fit the model with
     """
@@ -413,17 +352,18 @@ class TsTransformingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'lagged': LaggedTransformation}
 
-    def __init__(self, model_type: str, params: Optional[dict] = None):
-        self.operation = self._convert_to_operation(model_type)
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.operation = self._convert_to_operation(operation_type)
         self.params_for_fit = params
-        super().__init__(model_type, params)
+        super().__init__(operation_type, params)
 
-    def fit(self, train_data: InputData):
+    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
         """
         This method is used for operation training with the data provided
 
-        :param InputData train_data: data used for model training
-        :return:
+        :param InputData train_data: data used for operation training
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return: trained operation (if it is needed for applying)
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
@@ -434,21 +374,18 @@ class TsTransformingStrategy(EvaluationStrategy):
         transformation_operation.fit(train_data)
         return transformation_operation
 
-    def predict(self, trained_model, predict_data: InputData) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
 
-        :param trained_model: model object
+        :param trained_operation: trained operation object
         :param predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return OutputData: passed data with new predicted target
         """
-        print(predict_data)
-        print(len(predict_data.target), '\n')
 
-        prediction = trained_model.transform(predict_data)
-
-        print(predict_data)
-        print(len(predict_data.target))
+        prediction = trained_operation.transform(predict_data, is_fit_chain_stage)
         return prediction
 
     def fit_tuned(self, train_data: InputData, iterations: int,
@@ -459,18 +396,27 @@ class TsTransformingStrategy(EvaluationStrategy):
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
         :param max_lead_time: max time(seconds) for tuning evaluation
-        :return tuple(object, dict): model with found hyperparameters and dictionary with found hyperparameters
+        :return tuple(object, dict): operation with found hyperparameters and dictionary with found hyperparameters
         """
         raise NotImplementedError()
 
-    def _convert_to_operation(self, model_type: str):
-        if model_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[model_type]
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TsTransforming strategy for {model_type}')
+            raise ValueError(f'Impossible to obtain TsTransforming strategy for {operation_type}')
 
 
 def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
+    """
+    The function returns an iterator for multiple target for those models for
+    which such a function is not initially provided
+
+    :param sklearn_model: Sklearn model to train
+    :param train_data: data used for model training
+    :return : wrapped Sklearn model
+    """
+
     if train_data.task.task_type == TaskTypesEnum.classification:
         multiout_func = MultiOutputClassifier
     elif train_data.task.task_type in \

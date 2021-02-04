@@ -62,14 +62,14 @@ class OperationTypesRepository:
             repository_json = json.load(repository_json_file)
 
         metadata_json = repository_json['metadata']
-        operationss_json = repository_json[operations]
+        operations_json = repository_json[operations]
 
         operations_list = []
 
-        for current_operation_key in operationss_json:
+        for current_operation_key in operations_json:
             operation_properties = \
             [operation_properties for operation_key, operation_properties in
-             list(operationss_json.items())
+             list(operations_json.items())
              if operation_key == current_operation_key][0]
             operation_metadata = metadata_json[operation_properties['meta']]
 
@@ -117,26 +117,28 @@ class OperationTypesRepository:
         return operations_list
 
     @property
-    def models(self):
+    def operations(self):
         return self._repo
 
-    def model_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
-        models_with_id = [m for m in self._repo if m.id == id]
-        if len(models_with_id) > 1:
-            raise ValueError('Several models with same id in repository')
-        if len(models_with_id) == 0:
-            warnings.warn('Model {id} not found in the repository')
+    def operation_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
+        """ Get operation by it's name (id) """
+
+        operations_with_id = [m for m in self._repo if m.id == id]
+        if len(operations_with_id) > 1:
+            raise ValueError('Several operations with same id in repository')
+        if len(operations_with_id) == 0:
+            warnings.warn('Operation {id} not found in the repository')
             return None
-        return models_with_id[0]
+        return operations_with_id[0]
 
-    def models_with_tag(self, tags: List[str], is_full_match: bool = False):
-        models_info = [m for m in self._repo if
-                       _is_tags_contains_in_model(tags, m.tags, is_full_match)]
-        return [m.id for m in models_info], models_info
+    def operations_with_tag(self, tags: List[str], is_full_match: bool = False):
+        operations_info = [m for m in self._repo if
+                           _is_tags_contains_in_operation(tags, m.tags, is_full_match)]
+        return [m.id for m in operations_info], operations_info
 
-    def suitable_model(self, task_type: TaskTypesEnum,
-                       tags: List[str] = None, is_full_match: bool = False,
-                       forbidden_tags: List[str] = None):
+    def suitable_operation(self, task_type: TaskTypesEnum,
+                           tags: List[str] = None, is_full_match: bool = False,
+                           forbidden_tags: List[str] = None):
 
         if not forbidden_tags:
             forbidden_tags = []
@@ -145,13 +147,10 @@ class OperationTypesRepository:
             if not tags or excluded_default_tag not in tags:
                 forbidden_tags.append(excluded_default_tag)
 
-        models_info = [m for m in self._repo if
-                       task_type in m.task_type and
-                       (not tags or _is_tags_contains_in_model(tags, m.tags,
-                                                               is_full_match)) and
-                       (not forbidden_tags or not _is_tags_contains_in_model(
-                           forbidden_tags, m.tags, False))]
-        return [m.id for m in models_info], models_info
+        operations_info = [m for m in self._repo if task_type in m.task_type and
+                           (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
+                           (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
+        return [m.id for m in operations_info], operations_info
 
 
 class ModelTypesRepository(OperationTypesRepository):
@@ -182,21 +181,22 @@ class DataOperationTypesRepository(OperationTypesRepository):
                                                                    operations)
 
 
-def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str],
-                               is_full_match: bool) -> bool:
+def _is_tags_contains_in_operation(candidate_tags: List[str],
+                                   operation_tags: List[str],
+                                   is_full_match: bool) -> bool:
     """
-    The function checks which models are suitable for the selected tags
+    The function checks which operations are suitable for the selected tags
 
-    :param candidate_tags: list with tags that the model must have in order
+    :param candidate_tags: list with tags that the operation must have in order
     to fit the selected task
-    :param model_tags: list with tags with names as in repository json file
-    which correspond to the considering model
+    :param operation_tags: list with tags with names as in repository json file
+    which correspond to the considering operation
     :param is_full_match: requires all tags to match, or at least one
 
     :return : is there a match on the tags
     """
 
-    matches = ([(tag in model_tags) for tag in candidate_tags])
+    matches = ([(tag in operation_tags) for tag in candidate_tags])
     if is_full_match:
         return all(matches)
     else:

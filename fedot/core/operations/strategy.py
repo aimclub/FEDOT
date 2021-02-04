@@ -22,9 +22,9 @@ class StrategyOperator:
         """
 
         if self.operation_type == 'model':
-            operation = Model(model_type=self.model_type)
+            operation = Model(operation_type=self.model_type)
         elif self.operation_type == 'data_operation':
-            operation = DataOperation(model_type=self.model_type)
+            operation = DataOperation(operation_type=self.model_type)
 
         return operation
 
@@ -38,11 +38,11 @@ class StrategyOperator:
         """
 
         # Get available models
-        models_repo = ModelTypesRepository()
-        models = models_repo.models
+        operations_repo = ModelTypesRepository()
+        operations = operations_repo.operations
 
         # If there is a such model in the list
-        if any(self.model_type == model.id for model in models):
+        if any(self.model_type == model.id for model in operations):
             operation_type = 'model'
         # Overwise - it is preprocessing operations
         else:

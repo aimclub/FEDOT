@@ -90,7 +90,7 @@ def make_forecast_new(chain, train_data, len_forecast: int, max_window_size: int
     # Make a "blank", here we need just help FEDOT understand that the
     # forecast should be made exactly the "len_forecast" length
     predict_input = InputData(idx=np.arange(0, len_forecast),
-                              features=None,
+                              features=train_data,
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)
@@ -104,7 +104,7 @@ def make_forecast_new(chain, train_data, len_forecast: int, max_window_size: int
     return predicted_values
 
 
-def run_experiment_old(time_series, chain, len_forecast = 1):
+def run_experiment_old(time_series, chain, len_forecast = 3):
     # Let's dividide our data on train and test samples
     train_data = time_series[:-len_forecast]
     test_data = time_series[-len_forecast:]
@@ -119,7 +119,7 @@ def run_experiment_old(time_series, chain, len_forecast = 1):
     print(f'RMSE - {mean_squared_error(test_data, predicted, squared=False):.2f}\n')
 
 
-def run_experiment_new(time_series, chain, len_forecast = 1):
+def run_experiment_new(time_series, chain, len_forecast = 3):
     # Let's dividide our data on train and test samples
     train_data = time_series[:-len_forecast]
     test_data = time_series[-len_forecast:]
@@ -127,7 +127,7 @@ def run_experiment_new(time_series, chain, len_forecast = 1):
     predicted = make_forecast_new(chain, train_data, len_forecast,
                                   max_window_size=2)
 
-    predicted = np.ravel(np.array(predicted))
+    predicted = np.ravel(np.array(predicted.predict))
     test_data = np.ravel(test_data)
     print(f'Predicted values: {predicted[:5]}')
     print(f'Actual values: {test_data[:5]}')

@@ -116,8 +116,9 @@ class Node(ABC):
             if verbose:
                 print('Model were obtained from cache')
 
-            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
-                                               data=preprocessed_data)
+            model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
+                                               data=preprocessed_data,
+                                               is_fit_chain_stage=True)
 
         return self.output_from_prediction(input_data, model_predict)
 
@@ -135,8 +136,9 @@ class Node(ABC):
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
-                                           data=preprocessed_data, output_mode=output_mode)
+        model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
+                                           data=preprocessed_data, output_mode=output_mode,
+                                           is_fit_chain_stage=False)
 
         return self.output_from_prediction(input_data, model_predict)
 
