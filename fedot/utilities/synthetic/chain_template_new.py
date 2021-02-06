@@ -188,7 +188,7 @@ class ModelTemplate:
 
     def _model_to_template(self, node: Node, model_id: int, nodes_from: list, chain_id: str):
         self.model_id = model_id
-        self.model_type = node.model.model_type
+        self.model_type = node.model.operation_type
         self.custom_params = node.model.params
         self.params = {}
         self.nodes_from = nodes_from
@@ -271,7 +271,7 @@ def _is_node_fitted(node: Node) -> bool:
 
 
 def _is_node_not_cached(node: Node) -> bool:
-    return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
+    return bool(node.model.operation_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):

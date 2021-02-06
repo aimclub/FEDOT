@@ -83,7 +83,7 @@ def run_experiment(x_data_train, y_data_train, x_data_test, y_data_test, chain):
 
 if __name__ == '__main__':
     x_data_train, y_data_train, \
-    x_data_test, y_data_test = prepare_regression_dataset(150,3,{'informative': 2,'bias': 1.0})
+    x_data_test, y_data_test = prepare_regression_dataset(150,10,{'informative': 2,'bias': 1.0})
 
     print('Old scaling built-in preprocessing functionality')
     chain = Chain(PrimaryNode('ridge', manual_preprocessing_func=Scaling))
@@ -92,6 +92,7 @@ if __name__ == '__main__':
     print('New scaling "node-based" preprocessing functionality')
     # Interface for such data operations for now look like this
     node_preproc = PrimaryNode('scaling', manual_preprocessing_func=EmptyStrategy)
-    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,nodes_from=[node_preproc])
+    node_poly = SecondaryNode('poly_features', manual_preprocessing_func=EmptyStrategy,nodes_from=[node_preproc])
+    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,nodes_from=[node_poly])
     chain = Chain(node_final)
     run_experiment(x_data_train, y_data_train, x_data_test, y_data_test, chain)

@@ -19,7 +19,6 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
 from sklearn.preprocessing import (StandardScaler as SklearnScaler,
                                    MinMaxScaler as SklearnMinMax)
 from sklearn.impute import SimpleImputer as SklearnImputer
-from sklearn.decomposition import PCA
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
@@ -30,7 +29,8 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
     import LaggedTransformation, lagged_data_mapping
-
+from fedot.core.operations.evaluation.operation_realisations.sklearn_operations \
+    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.custom_models.models import CustomSVC
@@ -143,7 +143,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'scaling': SklearnScaler,
         'normalization': SklearnMinMax,
         'simple_imputation': SklearnImputer,
-        'pca': PCA,
+        'pca': PCAOperation,
+        'poly_features': PolyFeaturesOperation,
+        'one_hot_encoding': OneHotEncodingOperation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -166,7 +168,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             sklearn_operation = self._sklearn_operation_impl()
 
-        train_data = lagged_data_mapping(train_data, is_fit_chain_stage)
         sklearn_operation.fit(train_data.features, train_data.target)
         return sklearn_operation
 
@@ -292,7 +293,7 @@ class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
         """
         Transform method for preprocessing task
 
-        :param trained_model: model object
+        :param trained_operation: model object
         :param predict_data: data used for prediction
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:

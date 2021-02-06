@@ -252,6 +252,7 @@ class DataOperation(Operation):
         :return: tuple of trained operation and prediction on train data
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
+        print(f'Fit model {self.operation_type}, {is_fit_chain_stage}')
         self._init(data.task)
 
         prepared_data = data.prepare_for_modelling(is_for_fit=True)
@@ -353,8 +354,13 @@ def _post_process_prediction_using_original_input(prediction, input_data: InputD
     processed_predict = prediction
     if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
         processed_predict = post_process_forecasted_ts(prediction, input_data)
-    else:
-        if np.array([np.isnan(_) for _ in prediction]).any():
-            processed_predict = np.nan_to_num(prediction)
+    # else:
+    #     if np.array([np.isnan(_) for _ in prediction]).any():
+    #         processed_predict = np.nan_to_num(prediction)
+    # TODO у меня возникают проблемы во время этой проверки после encoding'а
+    # + я не очень понимаю зачем она, ведь при нормальной работе моделей и
+    # методов предобработки пропусков вообще появляться не должно. Если смысл
+    # в том, чтобы заполнять пропуски в исходных данных. то эта операция
+    # дублирует Imputation стратегию -> надо разобраться
 
     return processed_predict

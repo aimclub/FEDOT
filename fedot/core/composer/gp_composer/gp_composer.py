@@ -146,7 +146,7 @@ class GPComposerBuilder:
 
     def set_default_composer_params(self):
         if not self._composer.composer_requirements:
-            models, _ = ModelTypesRepository().suitable_model(task_type=self.task.task_type)
+            models, _ = ModelTypesRepository().suitable_operation(task_type=self.task.task_type)
             self._composer.composer_requirements = GPComposerRequirements(primary=models, secondary=models)
         if not self._composer.metrics:
             metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)

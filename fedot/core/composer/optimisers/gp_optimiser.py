@@ -262,7 +262,7 @@ class GPChainOptimiser:
             single_models_ind.fitness = objective_function(single_models_ind)
             single_models_inds.append(single_models_ind)
         best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
-        return best_inds[0], [i.nodes[0].model.model_type for i in best_inds][:num_best]
+        return best_inds[0], [i.nodes[0].model.operation_type for i in best_inds][:num_best]
 
     def offspring_size(self, offspring_rate: float = None):
         default_offspring_rate = 0.5 if not offspring_rate else offspring_rate

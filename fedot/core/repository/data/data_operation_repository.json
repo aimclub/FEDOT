@@ -9,7 +9,16 @@
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the preprocessing from scikit-learn framework"},
-		"sklearn_decomposition": {
+		"sklearn_categorical": {
+			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"accepted_node_types": ["primary"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"tags": ["sklearn"],
+			"description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"},
+		"sklearn_dimension_transformation": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
@@ -17,7 +26,7 @@
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
-			"description": "Implementations of the decomposition operations (e.g. PCA) from scikit-learn framework"},
+			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
 		"time_series_transformation": {
 			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
@@ -42,8 +51,16 @@
 			"tags": ["simple", "imputation"]
 		},
 		"pca": {
-			"meta": "sklearn_decomposition",
+			"meta": "sklearn_dimension_transformation",
 			"tags": ["linear", "dimensionality_transforming"]
+		},
+		"poly_features": {
+			"meta": "sklearn_dimension_transformation",
+			"tags": ["non_linear", "dimensionality_transforming"]
+		},
+		"one_hot_encoding": {
+			"meta": "sklearn_categorical",
+			"tags": ["categorical", "dimensionality_transforming"]
 		},
 		"lagged": {
 			"meta": "time_series_transformation",
