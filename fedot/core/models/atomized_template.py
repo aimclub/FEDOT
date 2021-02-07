@@ -1,5 +1,4 @@
 import os
-
 from typing import Tuple
 
 from fedot.core.chains.node import Node
@@ -20,7 +19,7 @@ class AtomizedModelTemplate(ModelTemplateAbstract):
 
         if path:
             chain = Chain()
-            chain.load_chain(path)
+            chain.load(path)
             self.next_chain_template = AtomizedModel(chain)
             self.chain_template = ChainTemplate(chain)
 

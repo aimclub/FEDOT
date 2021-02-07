@@ -1,13 +1,14 @@
-from fedot.api.api_runner import Fedot, check_data_type
-import pandas as pd
 import os
-import numpy as np
 
-from fedot.core.data.data import train_test_data_setup, InputData
-from fedot.core.utils import project_root
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
+from fedot.api.main import Fedot, _define_data
+from fedot.core.chains.chain import Chain
+from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
@@ -15,7 +16,8 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
-                   'learning_time': 0.0001}
+                   'learning_time': 0.0001,
+                   'with_tuning': False}
 
 
 def get_split_data_paths():
@@ -58,28 +60,65 @@ def get_dataset(task_type: str):
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
-    train_data, test_data, threshold = get_dataset(task_type)
-    model = Fedot(ml_task=task_type,
+    train_data, test_data, _ = get_dataset(task_type)
+    model = Fedot(problem=task_type,
                   composer_params=composer_params)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
-    metric = model.quality_metric()
-    assert type(fedot_model) != Fedot
-    assert type(prediction) != np.array
-    assert type(metric) != float
-    assert metric < threshold
+    metric = model.validate()
+
+    # TODO correct asserts
+    assert isinstance(fedot_model, Chain)
+    assert len(prediction) == len(test_data.target)
+    assert metric > 0
+
+
+def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
+    forecast_length = 10
+    train_data, test_data, _ = get_dataset(task_type)
+    model = Fedot(problem='ts_forecasting', composer_params=composer_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length,
+                                                  max_window_size=forecast_length,
+                                                  make_future_prediction=True))
+
+    model.fit(features=train_data)
+    ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
+    metric = model.validate(target=test_data.target[:forecast_length], metric_name='rmse')
+
+    assert len(ts_forecast) == forecast_length
+    assert metric >= 0
 
 
 def test_api_check_data_correct():
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
-    string_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
-                                        features=path_to_train)
-    array_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
-                                       features=x_train)
-    fedot_data_input = check_data_type(ml_task=Task(TaskTypesEnum.regression),
-                                       features=train_data)
-    assert not type(string_data_input) == InputData \
-           or type(array_data_input) == InputData \
-           or type(fedot_data_input) == InputData
+    string_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
+                                     features=path_to_train)
+    array_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
+                                    features=x_train)
+    fedot_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
+                                    features=train_data)
+    assert (not type(string_data_input) == InputData
+            or type(array_data_input) == InputData
+            or type(fedot_data_input) == InputData)
+
+
+def test_baseline_with_api():
+    train_data, test_data, threshold = get_dataset('classification')
+
+    # task selection, initialisation of the framework
+    baseline_model = Fedot(problem='classification')
+
+    # fit model without optimisation - single XGBoost node is used
+    baseline_model.fit(features=train_data, target='target', predefined_model='xgboost')
+
+    # evaluate the prediction with test data
+    prediction = baseline_model.predict(features=test_data)
+
+    assert len(prediction) == len(test_data.target)
+
+    # evaluate quality metric for the test sample
+    baseline_f1 = baseline_model.validate(metric_name='f1')
+
+    assert baseline_f1 > 0

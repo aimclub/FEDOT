@@ -120,7 +120,7 @@ def _prepare_exog_features(data_for_prediction: InputData,
         new_features = np.append(exog_feature, new_exog_values)
         new_part_len = len(new_features)
 
-    # add predicted time series to features for next prediction
+    # add prediction time series to features for next prediction
     predicted_ts = np.append(data_for_prediction.target,
                              last_prediction)
 

@@ -11,15 +11,24 @@
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
 	"sklearn_regr": {
-	  "tasks": "[TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
-	  "accepted_node_types": ["any"],
-	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnRegressionStrategy"],
-	  "tags": ["ml", "sklearn", "composition"],
-	  "description": "Implementations of the regression models from scikit-learn framework"
-	},
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.models.evaluation.evaluation",
+        "SkLearnRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "sklearn",
+        "composition"
+      ],
+      "description": "Implementations of the regression models from scikit-learn framework"
+    },
 	"sklearn_clust": {
 	  "tasks": "[TaskTypesEnum.clustering]",
 	  "input_type": "[DataTypesEnum.table]",
@@ -39,13 +48,19 @@
 	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
 	},
 	"data_model": {
-	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification, TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing", "data_model"],
-	  "description": "Implementations of the models for the data injection into features of secondary nodes"
-	},
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+      "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+      "strategies": [
+        "fedot.core.models.evaluation.data_evaluation",
+        "DataModellingStrategy"
+      ],
+      "tags": [
+        "without_preprocessing",
+        "data_model"
+      ],
+      "description": "Implementations of the models for the data injection into features of secondary nodes"
+    },
 	"ts_data_model": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
@@ -166,13 +181,21 @@
 	  "meta": "sklearn_regr"
 	},
 	"arima": {
-	  "meta": "stats_ar",
-	  "tags": ["simple", "interpretable"]
-	},
+      "meta": "stats_ar",
+      "tags": [
+        "simple",
+        "interpretable",
+        "non-default"
+      ]
+    },
 	"ar": {
-	  "meta": "stats_ar",
-	  "tags": ["simple", "interpretable"]
-	},
+      "meta": "stats_ar",
+      "tags": [
+        "simple",
+        "interpretable",
+        "non-default"
+      ]
+    },
 	"kmeans": {
 	  "meta": "sklearn_clust"
 	},
@@ -192,9 +215,12 @@
 	  "tags": ["linear"]
 	},
 	"lstm": {
-	  "meta": "keras_forecasting",
-	  "tags": ["deep"]
-	},
+      "meta": "keras_forecasting",
+      "tags": [
+        "deep",
+        "non-default"
+      ]
+    },
 	"multinb": {
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian", "non-default"]

@@ -8,12 +8,12 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import pandas as pd
 import numpy as np
+import pandas as pd
 from PIL import Image
 
-from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.chain_template import chain_template_as_nx_graph
+from fedot.core.chains.utils import chain_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
@@ -30,7 +30,7 @@ class ChainVisualiser:
         self.best_chains_imgs = []
         self.merged_imgs = []
 
-    def visualise(self, chain: Chain, save_path: Optional[str] = None):
+    def visualise(self, chain: 'Chain', save_path: Optional[str] = None):
         try:
             fig, axs = plt.subplots(figsize=(9, 9))
             fig.suptitle('Current chain')
@@ -42,17 +42,17 @@ class ChainVisualiser:
         except Exception as ex:
             print(f'Visualisation failed with {ex}')
 
-    def _visualise_chain(self, chain: Chain, ax=None, title=None,
+    def _visualise_chain(self, chain: 'Chain', ax=None, title=None,
                          in_graph_converter_function=chain_as_nx_graph):
         pos, node_labels = self._draw_tree(chain, ax, title, in_graph_converter_function)
         self._draw_labels(pos, node_labels, ax)
 
-    def _draw_tree(self, chain: Chain, ax=None, title=None,
+    def _draw_tree(self, chain: 'Chain', ax=None, title=None,
                    in_graph_converter_function=chain_as_nx_graph):
         graph, node_labels = in_graph_converter_function(chain=chain)
         word_labels = [str(node) for node in node_labels.values()]
         inv_map = {v: k for k, v in node_labels.items()}
-        if type(chain) is Chain:
+        if type(chain).__name__ == 'Chain':
             root = inv_map[chain.root_node]
         else:
             root = 0

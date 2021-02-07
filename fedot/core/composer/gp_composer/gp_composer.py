@@ -109,7 +109,7 @@ class GPComposer(Composer):
             chain.fit(input_data=train_data)
             return metric_function(chain, test_data)
         except Exception as ex:
-            self.log.info(f'Error in chain assessment during composition: {ex}. Continue.')
+            # self.log.info(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
 
     @staticmethod

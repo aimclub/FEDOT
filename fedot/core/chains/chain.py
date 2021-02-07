@@ -1,12 +1,10 @@
 from copy import copy, deepcopy
 from datetime import timedelta
 from typing import List, Optional, Union
-from uuid import uuid4
-
-import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -56,7 +54,7 @@ class Chain:
         self.log.info('Fit chain from scratch')
         self.fit(input_data, use_cache=False, verbose=verbose)
 
-    def cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
+    def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
         if self.fitted_on_data is not None and self.fitted_on_data is not new_input_data:
             if cache_status:
                 self.log.warn('Trained model cache is not actual because you are using new dataset for training. '
@@ -72,7 +70,7 @@ class Chain:
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param verbose: flag used for status printing to console, default False
         """
-        use_cache = self.cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
+        use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
         if not use_cache:
             self._clean_model_cache()
@@ -99,7 +97,7 @@ class Chain:
                 'labels' (numbers of classes - for classification) ,
                 'probs' (probabilities - for classification =='default'),
                 'full_probs' (return all probabilities - for binary classification).
-        :return: array of predicted target values
+        :return: array of prediction target values
         """
 
         if not self.is_all_cache_actual():
@@ -177,14 +175,14 @@ class Chain:
         new_nodes = [parent for parent in new_node.ordered_subnodes_hierarchy if not parent in self.nodes]
         old_nodes = [node for node in self.nodes if not node in old_node.ordered_subnodes_hierarchy]
         self.nodes = new_nodes + old_nodes
-        self.sort_nodes()
+        self._sort_nodes()
 
     def update_node(self, old_node: Node, new_node: Node):
         self._actualise_old_node_childs(old_node, new_node)
         new_node.nodes_from = old_node.nodes_from
         self.nodes.remove(old_node)
         self.nodes.append(new_node)
-        self.sort_nodes()
+        self._sort_nodes()
 
     def delete_node(self, node: Node):
         for node_child in self.node_childs(node):
@@ -215,22 +213,31 @@ class Chain:
                         node.cache.import_from_other_cache(fitted_node.cache)
                         break
 
-    # TODO why trees visualisation is incorrect?
-    def sort_nodes(self):
+    def _sort_nodes(self):
         """layer by layer sorting"""
         nodes = self.root_node.ordered_subnodes_hierarchy
         self.nodes = nodes
 
-    def save_chain(self, path: str):
+    def save(self, path: str):
+        """
+        :param path to json file with model
+        :return: json containing a composite model description
+        """
         if not self.template:
             self.template = ChainTemplate(self, self.log)
         json_object = self.template.export_chain(path)
         return json_object
 
-    def load_chain(self, path: str):
+    def load(self, path: str):
+        """
+        :param path to json file with model
+        """
         self.nodes = []
         self.template = ChainTemplate(self, self.log)
         self.template.import_chain(path)
+
+    def show(self, path: str = None):
+        ChainVisualiser().visualise(self, path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -275,26 +282,6 @@ class SharedChain(Chain):
         for node in chain.nodes:
             node.cache = FittedModelCache(node)
         return chain
-
-
-def chain_as_nx_graph(chain: Chain):
-    graph = nx.DiGraph()
-    node_labels = {}
-    new_node_idx = {}
-    for node in chain.nodes:
-        unique_id, label = uuid4(), node
-        node_labels[unique_id] = node
-        new_node_idx[node] = unique_id
-        graph.add_node(unique_id)
-
-    def add_edges(graph, chain, new_node_idx):
-        for node in chain.nodes:
-            if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(new_node_idx[child], new_node_idx[node])
-
-    add_edges(graph, chain, new_node_idx)
-    return graph, node_labels
 
 
 def check_data_appropriate_for_task(data: InputData):

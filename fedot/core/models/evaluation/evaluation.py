@@ -74,7 +74,7 @@ class EvaluationStrategy:
 
         :param trained_model: trained model object
         :param InputData predict_data: data to predict
-        :return OutputData: passed data with new predicted target
+        :return OutputData: passed data with new prediction target
         """
         raise NotImplementedError()
 
@@ -167,7 +167,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         :param trained_model: model object
         :param predict_data: data to predict
-        :return OutputData: passed data with new predicted target
+        :return OutputData: passed data with new prediction target
         """
         raise NotImplementedError()
 
