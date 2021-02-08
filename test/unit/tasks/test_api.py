@@ -1,13 +1,13 @@
-from fedot.api.api_runner import Fedot, check_data_type
-import pandas as pd
 import os
-import numpy as np
 
-from fedot.core.data.data import train_test_data_setup, InputData
-from fedot.core.utils import project_root
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
+from fedot.api.api_runner import Fedot, check_data_type
+from fedot.core.data.data import train_test_data_setup, InputData
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
@@ -66,6 +66,18 @@ def test_api_predict_correct(task_type: str = 'classification'):
     metric = model.quality_metric()
     assert type(fedot_model) != Fedot
     assert type(prediction) != np.array
+    assert type(metric) != float
+    assert metric < threshold
+
+
+def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
+    train_data, test_data, threshold = get_dataset(task_type)
+    model = Fedot(ml_task='ts_forecasting')
+    fedot_model = model.fit(features=train_data)
+    ts_forecast = model.forecast(pre_history=test_data, forecast_length=1)
+    metric = model.quality_metric()
+    assert type(fedot_model) != Fedot
+    assert type(ts_forecast) != np.array
     assert type(metric) != float
     assert metric < threshold
 

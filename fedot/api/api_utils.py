@@ -1,6 +1,8 @@
+import datetime
+
 import numpy as np
 import pandas as pd
-import datetime
+
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -62,6 +64,7 @@ def compose_fedot_model(train_data: InputData,
                         learning_time: int = 5,
                         model_types: list = None,
                         model_configuration: str = 'light',
+                        with_tuning=True
                         ):
     # the choice of the metric for the chain quality assessment during composition
     metric_function = get_metric_function(task)
@@ -88,7 +91,8 @@ def compose_fedot_model(train_data: InputData,
     gp_composer = builder.build()
 
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
-
+    if with_tuning:
+        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
     chain_gp_composed.fit_from_scratch(input_data=train_data)
 
     return chain_gp_composed
