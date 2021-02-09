@@ -16,8 +16,6 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.preprocessing import (StandardScaler as SklearnScaler,
-                                   MinMaxScaler as SklearnMinMax)
 from sklearn.impute import SimpleImputer as SklearnImputer
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
@@ -29,8 +27,13 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
     import LaggedTransformation, lagged_data_mapping
-from fedot.core.operations.evaluation.operation_realisations.sklearn_operations \
-    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation
+from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
+    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
+    ScalingOperation, NormalizationOperation
+from fedot.core.operations.evaluation.operation_realisations.\
+    sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
+from fedot.core.operations.evaluation.operation_realisations.\
+    sklearn_selectors import LinearRegFS, NonLinearRegFS
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.custom_models.models import CustomSVC
@@ -64,12 +67,11 @@ class EvaluationStrategy:
             self.log: Log = log
 
     @abstractmethod
-    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
+    def fit(self, train_data: InputData):
         """
         Main method to train the operation with the data provided
 
         :param InputData train_data: data used for operation training
-        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
         raise NotImplementedError()
@@ -140,12 +142,16 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'sgdr': SklearnSGD,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
-        'scaling': SklearnScaler,
-        'normalization': SklearnMinMax,
+        'scaling': ScalingOperation,
+        'normalization': NormalizationOperation,
         'simple_imputation': SklearnImputer,
         'pca': PCAOperation,
         'poly_features': PolyFeaturesOperation,
-        'one_hot_encoding': OneHotEncodingOperation
+        'one_hot_encoding': OneHotEncodingOperation,
+        'ransac_lin_reg': LinearRegRANSAC,
+        'ransac_non_lin_reg': NonLinearRegRANSAC,
+        'rfe_lin_reg': LinearRegFS,
+        'rfe_non_lin_reg': NonLinearRegFS
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -153,12 +159,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
         super().__init__(operation_type, params)
 
-    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
+    def fit(self, train_data: InputData):
         """
         This method is used for operation training with the data provided
 
         :param InputData train_data: data used for operation training
-        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return: trained Sklearn operation
         """
 
@@ -271,12 +276,11 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
 
 class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
 
-    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
+    def fit(self, train_data: InputData):
         """
         This method is used for operation training with the data provided
 
         :param InputData train_data: data used for operation training
-        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -298,20 +302,54 @@ class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        prediction = trained_operation.transform(predict_data.features)
+        prediction = trained_operation.transform(predict_data.features,
+                                                 is_fit_chain_stage)
+        return prediction
+
+
+class SkLearnFilteringStrategy(SkLearnEvaluationStrategy):
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for filtering operation training with the data provided
+
+        :param InputData train_data: data used for operation training
+        :return:
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            sklearn_operation = self._sklearn_operation_impl(**self.params_for_fit)
+        else:
+            sklearn_operation = self._sklearn_operation_impl()
+
+        sklearn_operation.fit(train_data.features, train_data.target)
+        return sklearn_operation
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool):
+        """
+        Transform method for preprocessing-filtering task
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return:
+        """
+
+        prediction = trained_operation.transform(predict_data.features,
+                                                 is_fit_chain_stage)
         return prediction
 
 
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
-    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
+    def fit(self, train_data: InputData):
         """
         Fit method for clustering task
 
         :param train_data: data used for model training
-        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        sklearn_model = self._sklearn_model_impl(n_clusters=2)
+        sklearn_model = self._sklearn_operation_impl(n_clusters=2)
         sklearn_model = sklearn_model.fit(train_data.features)
         return sklearn_model
 
@@ -358,12 +396,11 @@ class TsTransformingStrategy(EvaluationStrategy):
         self.params_for_fit = params
         super().__init__(operation_type, params)
 
-    def fit(self, train_data: InputData, is_fit_chain_stage: bool):
+    def fit(self, train_data: InputData):
         """
         This method is used for operation training with the data provided
 
         :param InputData train_data: data used for operation training
-        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return: trained operation (if it is needed for applying)
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -386,7 +423,8 @@ class TsTransformingStrategy(EvaluationStrategy):
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.transform(predict_data, is_fit_chain_stage)
+        prediction = trained_operation.transform(predict_data,
+                                                 is_fit_chain_stage)
         return prediction
 
     def fit_tuned(self, train_data: InputData, iterations: int,

@@ -131,8 +131,7 @@ class Model(Operation):
 
         prepared_data = data.prepare_for_modelling(is_for_fit=True)
 
-        fitted_model = self._eval_strategy.fit(train_data=prepared_data,
-                                               is_fit_chain_stage=is_fit_chain_stage)
+        fitted_model = self._eval_strategy.fit(train_data=prepared_data)
 
         predict_train = self.predict(fitted_model, data, is_fit_chain_stage)
 
@@ -257,8 +256,7 @@ class DataOperation(Operation):
 
         prepared_data = data.prepare_for_modelling(is_for_fit=True)
 
-        fitted_operation = self._eval_strategy.fit(train_data=prepared_data,
-                                                   is_fit_chain_stage=False)
+        fitted_operation = self._eval_strategy.fit(train_data=prepared_data)
 
         predict_train = self.predict(fitted_operation, data, is_fit_chain_stage)
 

@@ -2,13 +2,16 @@ from typing import Optional
 
 import numpy as np
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures
+from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
+    StandardScaler, MinMaxScaler
+from fedot.core.operations.evaluation.\
+    operation_realisations.abs_interfaces import OperationRealisation, EncodedInvariantOperation
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.8
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
 
 
-class PCAOperation:
+class PCAOperation(OperationRealisation):
     """ Adapter class for automatically determining the number of components
     for PCA
 
@@ -16,6 +19,7 @@ class PCAOperation:
     """
 
     def __init__(self, **params: Optional[dict]):
+        super().__init__()
         if not params:
             self.pca = PCA(svd_solver='randomized', iterated_power='auto')
         else:
@@ -31,6 +35,9 @@ class PCAOperation:
         threshold
         TODO make comparison with PCA model from
          /operations/evaluation/data_evaluation.py
+
+        :param features: tabular data for PCA training
+        :return pca: trained PCA model (optional output)
         """
         global DEFAULT_EXPLAINED_VARIANCE_THR
         global DEFAULT_MIN_EXPLAINED_VARIANCE
@@ -58,116 +65,20 @@ class PCAOperation:
             pass
         return self.pca
 
-    def transform(self, features):
+    def transform(self, features, is_fit_chain_stage: Optional[bool]):
         transformed_features = self.pca.transform(features)
 
         return transformed_features
 
-
-class PolyFeaturesOperation:
-    """ Adapter class for application of PolynomialFeatures operation on data,
-    where only not encoded features (were not converted from categorical using
-    OneHot encoding) are used
-
-    :param params: optional, dictionary with the arguments"""
-
-    def __init__(self, **params: Optional[dict]):
-        if not params:
-            self.poly_transform = PolynomialFeatures()
-        else:
-            # TODO implement it - need help and advises
-            poly_params = {}
-            self.poly_transform = PolynomialFeatures(**poly_params)
-        self.params = params
-
-    def fit(self, features):
-        """ Method for fit PolyFeatures transformer with automatic determination
-        of boolean features, with which there is no need to make transformation
-
-        :param features: tabular data for operation training
-        :return encoder: trained transformer (optional output)
-        """
-
-        bool_ids, ids_to_process = self._reasonability_check(features)
-        self.ids_to_process = ids_to_process
-        self.bool_ids = bool_ids
-
-        if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process])
-            self.poly_transform.fit(features_to_process)
-        else:
-            pass
-
-        return self.poly_transform
-
-    def transform(self, features):
-        """
-        The method that transforms the source features using PolynomialFeatures
-
-        :param features: tabular data for transformation
-        :return transformed_features: transformed features table
-        """
-
-        if len(self.ids_to_process) > 0:
-            transformed_features = self._make_new_table(features)
-        else:
-            transformed_features = features
-
-        return transformed_features
-
-    def _make_new_table(self, features):
-        """
-        The method creates a table based on transformed data and source boolean
-        features
-
-        :param features: tabular data for processing
-        :return transformed_features: transformed features table
-        """
-
-        features_to_process = np.array(features[:, self.ids_to_process])
-        transformed_part = self.poly_transform.transform(features_to_process)
-
-        # If there are no binary features in the dataset
-        if len(self.bool_ids) == 0:
-            transformed_features = transformed_part
-        else:
-            # Stack transformed features and bool features
-            bool_features = np.array(features[:, self.bool_ids])
-            frames = (bool_features, transformed_part)
-            transformed_features = np.hstack(frames)
-
-        return transformed_features
-
-    @staticmethod
-    def _reasonability_check(features):
-        """
-        Method for checking which columns contain boolean data
-
-        :param features: tabular data for check
-        :return bool_ids: indices of boolean columns in table
-        :return non_bool_ids: indices of non boolean columns in table
-        """
-        # TODO perhaps there is a more effective way to do this
-        source_shape = features.shape
-        columns_amount = source_shape[1]
-
-        bool_ids = []
-        non_bool_ids = []
-        # For every column in table make check
-        for column_id in range(0, columns_amount):
-            column = features[:, column_id]
-            if len(np.unique(column)) > 2:
-                non_bool_ids.append(column_id)
-            else:
-                bool_ids.append(column_id)
-
-        return bool_ids, non_bool_ids
+    def get_params(self):
+        return self.pca.get_params()
 
 
-class OneHotEncodingOperation:
+class OneHotEncodingOperation(OperationRealisation):
     """ Class for automatic categorical data detection and one hot encoding """
 
     def __init__(self):
+        super().__init__()
         self.encoder = OneHotEncoder()
 
     def fit(self, features):
@@ -192,13 +103,14 @@ class OneHotEncodingOperation:
 
         return self.encoder
 
-    def transform(self, features):
+    def transform(self, features, is_fit_chain_stage: Optional[bool]):
         """
         The method that transforms the categorical features in the original
         dataset, but does not affect the rest
 
         :param features: tabular data for transformation
         :return transformed_features: transformed features table
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         """
 
         if len(self.categorical_ids) == 0:
@@ -232,6 +144,9 @@ class OneHotEncodingOperation:
 
         return transformed_features
 
+    def get_params(self):
+        return self.encoder.get_params()
+
     @staticmethod
     def _str_columns_check(features):
         """
@@ -255,3 +170,60 @@ class OneHotEncodingOperation:
                 non_categorical_ids.append(column_id)
 
         return categorical_ids, non_categorical_ids
+
+
+class PolyFeaturesOperation(EncodedInvariantOperation):
+    """ Adapter class for application of PolynomialFeatures operation on data,
+    where only not encoded features (were not converted from categorical using
+    OneHot encoding) are used
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.operation = PolynomialFeatures()
+        else:
+            # TODO implement it - need help and advises
+            poly_params = {}
+            self.operation = PolynomialFeatures(**poly_params)
+        self.params = params
+
+
+class ScalingOperation(EncodedInvariantOperation):
+    """ Adapter class for application of Scaling operation on data,
+    where only not encoded features (were not converted from categorical using
+    OneHot encoding) are used
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.operation = StandardScaler()
+        else:
+            # TODO implement it - need help and advises
+            scaling_params = {}
+            self.operation = StandardScaler(**scaling_params)
+        self.params = params
+
+
+class NormalizationOperation(EncodedInvariantOperation):
+    """ Adapter class for application of MinMax normalization operation on data,
+    where only not encoded features (were not converted from categorical using
+    OneHot encoding) are used
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.operation = MinMaxScaler()
+        else:
+            # TODO implement it - need help and advises
+            normalization_params = {}
+            self.operation = MinMaxScaler(**normalization_params)
+        self.params = params

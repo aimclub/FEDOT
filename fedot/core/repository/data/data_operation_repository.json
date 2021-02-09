@@ -27,6 +27,24 @@
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
+		"sklearn_regression_filters": {
+			"tasks": "[TaskTypesEnum.regression]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnFilteringStrategy"],
+			"tags": ["sklearn"],
+			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
+		"sklearn_classification_filters": {
+			"tasks": "[TaskTypesEnum.classification]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnFilteringStrategy"],
+			"tags": ["sklearn"],
+			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"time_series_transformation": {
 			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
@@ -61,6 +79,22 @@
 		"one_hot_encoding": {
 			"meta": "sklearn_categorical",
 			"tags": ["categorical", "dimensionality_transforming"]
+		},
+		"ransac_lin_reg": {
+			"meta": "sklearn_regression_filters",
+			"tags": ["linear", "filtering"]
+		},
+		"ransac_non_lin_reg": {
+			"meta": "sklearn_regression_filters",
+			"tags": ["non_linear", "filtering"]
+		},
+		"rfe_lin_reg": {
+			"meta": "sklearn_regression_filters",
+			"tags": ["linear", "feature_selection"]
+		},
+		"rfe_non_lin_reg": {
+			"meta": "sklearn_regression_filters",
+			"tags": ["non_linear", "feature_selection"]
 		},
 		"lagged": {
 			"meta": "time_series_transformation",

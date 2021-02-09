@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.operations.evaluation.\
+    operation_realisations.abs_interfaces import OperationRealisation
 
 
 class LaggedTransformation:

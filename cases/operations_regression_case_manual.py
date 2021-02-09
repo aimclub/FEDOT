@@ -61,8 +61,9 @@ def run_experiment(file_path, chain):
 if __name__ == '__main__':
     node_encoder = PrimaryNode('one_hot_encoding', manual_preprocessing_func=EmptyStrategy)
     node_poly = SecondaryNode('poly_features', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_encoder])
-    node_scaling = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_poly])
-    node_final = SecondaryNode('rfr', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_encoder])
+    node_filter = SecondaryNode('rfe_lin_reg', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_poly])
+    node_scaling = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_filter])
+    node_final = SecondaryNode('linear', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling])
     chain = Chain(node_final)
 
     run_experiment('../cases/data/river_levels/station_levels.csv', chain)
