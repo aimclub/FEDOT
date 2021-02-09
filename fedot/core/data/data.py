@@ -61,7 +61,10 @@ class Data:
             features = data_array[1:].T
             target = None
 
-        features = ImputationStrategy().fit(features).apply(features)
+        if features.shape[1] == 0 and task.task_type == TaskTypesEnum.ts_forecasting:
+            features = None
+        else:
+            features = ImputationStrategy().fit(features).apply(features)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 

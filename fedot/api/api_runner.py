@@ -9,7 +9,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import default_log, Log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task
-from fedot.core.repository.tasks import TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import TaskTypesEnum, TaskParams
 
 
 def default_evo_params():
@@ -50,7 +50,10 @@ def check_data_type(ml_task: Task,
             target = 'target'
         elif is_predict:
             target = None
-        data = InputData.from_csv(features, task=ml_task, target_column=target)
+        data_type = DataTypesEnum.table
+        if ml_task.task_type == TaskTypesEnum.ts_forecasting:
+            data_type = DataTypesEnum.ts
+        data = InputData.from_csv(features, task=ml_task, target_column=target, data_type=data_type)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
 
@@ -62,6 +65,7 @@ class Fedot:
     def __init__(self,
                  ml_task: str,
                  composer_params: dict = None,
+                 task_params: TaskParams = None,
                  log: Log = None,
                  fedot_model_path: str = './fedot_model.json'):
 
@@ -72,6 +76,8 @@ class Fedot:
 
         self.train_data = None
         self.test_data = None
+
+        self.task_params = task_params
 
         if not log:
             self.log = default_log(__name__)
@@ -86,7 +92,7 @@ class Fedot:
         task_dict = {'regression': Task(TaskTypesEnum.regression),
                      'classification': Task(TaskTypesEnum.classification),
                      'clustering': Task(TaskTypesEnum.clustering),
-                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting)
+                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=self.task_params)
                      }
         basic_metric_dict = {'regression': 'RMSE',
                              'classification': 'ROCAUC',
@@ -169,9 +175,7 @@ class Fedot:
         if self.ml_task.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
-        self.ml_task = Task(TaskTypesEnum.ts_forecasting,
-                            TsForecastingParams(forecast_length=forecast_length,
-                                                max_window_size=forecast_length))
+        self.ml_task = self.train_data.task
 
         self.train_data = check_data_type(ml_task=self.ml_task,
                                           features=pre_history, is_predict=True)
@@ -182,7 +186,9 @@ class Fedot:
 
         self.current_model = TsForecastingChain(self.current_model.root_node)
 
-        supp_data = InputData(idx=list(range(forecast_length)),
+        last_ind = int(round(self.train_data.idx[-1]))
+
+        supp_data = InputData(idx=list(range(last_ind, last_ind + forecast_length)),
                               features=None, target=None,
                               data_type=DataTypesEnum.ts,
                               task=self.ml_task)
