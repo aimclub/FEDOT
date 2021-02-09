@@ -166,7 +166,7 @@ class Fedot:
         :return: the array with predicted values
         """
 
-        if self.ml_task != TaskTypesEnum.ts_forecasting:
+        if self.ml_task.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
         self.ml_task = Task(TaskTypesEnum.ts_forecasting,
@@ -211,7 +211,12 @@ class Fedot:
             metric_name = self.metric_name
 
         if target is not None:
-            self.test_data.target = target
+            if self.test_data is None:
+                self.test_data = InputData(idx=range(len(target)), features=None, target=target,
+                                           task=self.train_data.task,
+                                           data_type=self.train_data.data_type)
+            else:
+                self.test_data.target = target
 
         __metric_dict = {'RMSE': RmseMetric.metric,
                          'MAE': MaeMetric.metric,

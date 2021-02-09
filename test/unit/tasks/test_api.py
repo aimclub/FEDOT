@@ -64,6 +64,8 @@ def test_api_predict_correct(task_type: str = 'classification'):
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.quality_metric()
+
+    # TODO correct asserts
     assert type(fedot_model) != Fedot
     assert type(prediction) != np.array
     assert type(metric) != float
@@ -71,15 +73,15 @@ def test_api_predict_correct(task_type: str = 'classification'):
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
+    forecast_length = 10
     train_data, test_data, threshold = get_dataset(task_type)
-    model = Fedot(ml_task='ts_forecasting')
+    model = Fedot(ml_task='ts_forecasting', composer_params=composer_params)
     fedot_model = model.fit(features=train_data)
-    ts_forecast = model.forecast(pre_history=test_data, forecast_length=1)
-    metric = model.quality_metric()
-    assert type(fedot_model) != Fedot
-    assert type(ts_forecast) != np.array
-    assert type(metric) != float
-    assert metric < threshold
+    ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
+    metric = model.quality_metric(target=test_data.target[:forecast_length], metric_name='RMSE')
+
+    assert len(ts_forecast) == forecast_length
+    assert metric > 0
 
 
 def test_api_check_data_correct():
