@@ -23,7 +23,7 @@ from fedot.sensitivity.sensitivity_utils import \
 class ModelAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save):
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
         super(ModelAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
         self.model_params = None
         self.model_type = None

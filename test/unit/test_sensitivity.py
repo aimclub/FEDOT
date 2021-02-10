@@ -191,7 +191,7 @@ def test_node_replacement_analyze_defined_nodes():
                                                              nodes_to_replace_to=[replacing_node])
 
     # then
-    assert isinstance(node_analysis_result, list)
+    assert isinstance(node_analysis_result, float)
 
 
 # @patch('fedot.sensitivity.sensitivity_facade.NodeReplaceModelAnalyze.analyze', return_value=[0.0, 0.0, 0.0])
@@ -207,5 +207,4 @@ def test_node_replacement_analyze_random_nodes_default_number():
             analyze(node_id=node_index)
 
     # then
-    assert isinstance(node_analysis_result, list)
-    assert len(node_analysis_result) == 3
+    assert isinstance(node_analysis_result, float)

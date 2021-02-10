@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import timedelta
 from os import makedirs
 from os.path import join, exists
+import random
 from typing import Optional, List, Union, Type
 
 import matplotlib.pyplot as plt
@@ -89,7 +90,7 @@ class NodeAnalyzeApproach(ABC):
 
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save):
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
         super(NodeDeletionAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
@@ -114,7 +115,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
 
 class NodeTuneAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save):
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
         super(NodeTuneAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
@@ -134,7 +135,7 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
 
 
 class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save):
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
         super(NodeReplaceModelAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
 
     def analyze(self, node_id: int,
@@ -188,10 +189,12 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         return samples
 
     def _node_generation(self, node_type: Union[Type[PrimaryNode], Type[SecondaryNode]],
-                         number_of_models: int = 5) -> List[Node]:
+                         number_of_models=None) -> List[Node]:
         available_models, _ = ModelTypesRepository().suitable_model(task_type=self._train_data.task.task_type)
-        # random_models = random.sample(available_models, number_of_models)
-        random_models = available_models
+        if number_of_models:
+            random_models = random.sample(available_models, number_of_models)
+        else:
+            random_models = available_models
 
         nodes = []
         for model in random_models:
@@ -214,8 +217,9 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         ax.set_xticklabels(x_values, rotation=45)
         plt.xlabel('iteration')
         plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
-        original_model_index = x_values.index(model_type)
-        plt.gca().get_xticklabels()[original_model_index].set_color('red')
+        if model_type in x_values:
+            original_model_index = x_values.index(model_type)
+            plt.gca().get_xticklabels()[original_model_index].set_color('red')
 
         plt.savefig(join(self._path_to_save,
                          f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'))
