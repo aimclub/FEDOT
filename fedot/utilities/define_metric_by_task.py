@@ -17,6 +17,6 @@ class MetricByTask:
         """Returns the value of metric defined by task"""
         try:
             return round(self._metric(reference=true, predicted=predicted), round_up_to)
-        # TODO or raise ValueError?
+        # TODO or raise ValueError? What to return in case of failure
         except ValueError:
-            return None
+            return 0.0

@@ -1,11 +1,11 @@
 from copy import deepcopy
-# from multiprocessing import Process, Manager
-from threading import Thread, Lock
 from os.path import join
+from threading import Thread, Lock
 from typing import List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+from SALib.analyze.morris import analyze as morris_analyze
 from SALib.analyze.sobol import analyze as sobol_analyze
 from SALib.sample import saltelli
 from SALib.sample.latin import sample as lhc_sample
@@ -14,16 +14,17 @@ from sklearn.metrics import mean_squared_error
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
-from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach
 from fedot.core.models.model_template import extract_model_params
+from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach
+from fedot.sensitivity.sensitivity_utils import \
+    model_params_with_bounds_by_model_name, INTEGER_PARAMS
 
 
 class ModelAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData):
-        super(ModelAnalyze, self).__init__(chain, train_data, test_data)
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save):
+        super(ModelAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
         self.model_params = None
         self.model_type = None
         self.problem = None
@@ -34,22 +35,26 @@ class ModelAnalyze(NodeAnalyzeApproach):
     def analyze(self, node_id: int,
                 sa_method: str = 'sobol',
                 sample_method: str = 'saltelli',
-                sample_size: int = 10,
+                sample_size: int = 1,
                 is_oat: bool = True) -> Union[List[dict], float]:
 
         # check whether the chain is fitted
         if not self._chain.fitted_on_data:
             self._chain.fit(self._train_data)
 
+        # define methods
         self.analyze_method = analyze_method_by_name.get(sa_method)
         self.sample_method = sample_method_by_name.get(sample_method)
 
+        # create problem
         self.model_type: str = self._chain.nodes[node_id].model.model_type
-
         self.model_params = model_params_with_bounds_by_model_name.get(self.model_type)
-        self.problem = _create_problem_for_sobol_method(self.model_params)
+        self.problem = _create_problem(self.model_params)
 
-        samples: List[dict] = self.sample(sample_size)
+        # sample
+        samples = self.sample(sample_size)
+        converted_samples = _convert_sample_to_dict(self.problem, samples)
+        clean_sample_variables(converted_samples)
 
         response_matrix = self.get_model_response_matrix(samples, node_id)
         indices = self.analyze_method(self.problem, response_matrix)
@@ -58,18 +63,17 @@ class ModelAnalyze(NodeAnalyzeApproach):
 
         if is_oat:
             self._one_at_a_time_analyze(node_id=node_id,
-                                        sample_size=sample_size)
+                                        samples=samples)
 
         return [converted_to_json_indices]
 
-    def sample(self, *args) -> Union[Union[List[Chain], Chain], List[dict]]:
+    def sample(self, *args) -> Union[Union[List[Chain], Chain], np.array]:
         sample_size = args[0]
-        problem_samples = self.sample_method(self.problem, num_of_samples=sample_size)
-        problem_samples = clean_sample_variables(problem_samples)
+        samples = self.sample_method(self.problem, num_of_samples=sample_size)
 
-        return problem_samples
+        return samples
 
-    def get_model_response_matrix(self, samples, node_id: int):
+    def get_model_response_matrix(self, samples: List[dict], node_id: int):
         model_response_matrix = []
         for sample in samples:
             chain = deepcopy(self._chain)
@@ -82,39 +86,28 @@ class ModelAnalyze(NodeAnalyzeApproach):
 
         return np.array(model_response_matrix)
 
-    def worker(self, param: dict, node_id, sample_size: int = 100):
-        # sample
-        problem = _create_problem_for_sobol_method(param)
-        # TODO extract hardcode sample method
-        samples, converted_samples = make_latin_hypercube_sample(problem, sample_size)
-        cleaned_samples = clean_sample_variables(converted_samples)
-
+    def worker(self, params: List[dict], samples, node_id):
         # default values of param & loss
-        param_name = list(param.keys())[0]
+        param_name = list(params[0].keys())[0]
         default_param_value = extract_model_params(self._chain.nodes[node_id]).get(param_name)
-        original_predict = self._chain.predict(self._test_data)
-        loss_on_default = mean_squared_error(y_true=self._test_data.target,
-                                             y_pred=original_predict.predict)
 
         # percentage ratio
-        samples = samples.reshape(1, -1)[0]
         samples = (samples - default_param_value) / default_param_value
-        response_matrix = self.get_model_response_matrix(cleaned_samples, node_id)
-        # response_matrix = (response_matrix - loss_on_default) / loss_on_default
+        response_matrix = self.get_model_response_matrix(params, node_id)
         response_matrix = (response_matrix - np.mean(response_matrix)) / (max(response_matrix) - min(response_matrix))
 
         ModelAnalyze.lock.acquire()
         self.manager_dict[f'{param_name}'] = [samples.reshape(1, -1)[0], response_matrix]
         ModelAnalyze.lock.release()
 
-    def visualize(self, data: dict):
+    def _visualize(self, data: dict):
         x_ticks_param = list()
         x_ticks_loss = list()
         for param in data.keys():
             x_ticks_param.append(param)
             x_ticks_loss.append(f'{param}_loss')
-        param_values_data = []
-        losses_data = []
+        param_values_data = list()
+        losses_data = list()
         for value in data.values():
             param_values_data.append(value[0])
             losses_data.append(value[1])
@@ -123,15 +116,26 @@ class ModelAnalyze(NodeAnalyzeApproach):
         ax1.boxplot(param_values_data)
         ax2.boxplot(losses_data)
         ax1.set_title('param')
+        ax1.set_xticks(range(1, len(x_ticks_param) + 1))
+        ax1.set_xticklabels(x_ticks_param)
         ax2.set_title('loss')
-        plt.xticks(range(1, len(x_ticks_param) + 1), x_ticks_param)
+        ax2.set_xticks(range(1, len(x_ticks_loss) + 1))
+        ax2.set_xticklabels(x_ticks_loss)
 
-        plt.savefig(join(default_fedot_data_dir(), f'{self.model_type}_sa.jpg'))
+        plt.savefig(join(self._path_to_save, f'{self.model_type}_hp_sa.jpg'))
 
-    def _one_at_a_time_analyze(self, node_id, sample_size=2):
-        one_at_a_time_params = [{key: value} for key, value in self.model_params.items()]
+    def _one_at_a_time_analyze(self, node_id, samples: np.array):
+        transposed_samples = samples.T
+
+        one_at_a_time_params = []
+        for index, param in enumerate(self.problem['names']):
+            samples_per_param = [{param: value} for value in transposed_samples[index]]
+            clean_sample_variables(samples_per_param)
+            one_at_a_time_params.append(samples_per_param)
+
         jobs = [Thread(target=self.worker,
-                       args=(param, node_id, sample_size)) for param in one_at_a_time_params]
+                       args=(params, transposed_samples[index], node_id))
+                for index, params in enumerate(one_at_a_time_params)]
 
         for job in jobs:
             job.start()
@@ -139,47 +143,42 @@ class ModelAnalyze(NodeAnalyzeApproach):
         for job in jobs:
             job.join()
 
-        for param in one_at_a_time_params:
-            self.worker(param, node_id, sample_size)
-
-        for key, value in self.manager_dict.items():
-            print(f'key = {key} : {value}')
-
-        self.visualize(data=self.manager_dict)
+        self._visualize(data=self.manager_dict)
 
 
-def sobol_method(problem, model_response) -> dict:
-    sobol_indices = sobol_analyze(problem, model_response, print_to_console=False)
+def sobol_method(problem, samples, model_response) -> dict:
+    indices = sobol_analyze(problem, model_response, print_to_console=False)
 
-    return sobol_indices
+    return indices
 
 
-def morris_method(problem, model_response) -> dict:
-    pass
+def morris_method(problem, samples, model_response) -> dict:
+    indices = morris_analyze(problem=problem,
+                             X=samples, Y=model_response, print_to_console=False)
+
+    return indices
 
 
 def make_saltelly_sample(problem, num_of_samples=100):
-    params_samples = saltelli.sample(problem, num_of_samples)
-    params_samples = _convert_sample_to_dict(problem, params_samples)
+    samples = saltelli.sample(problem, num_of_samples)
 
-    return params_samples
+    return samples
 
 
 def make_moris_sample(problem, num_of_samples=100):
-    params_samples = morris_sample(problem, num_of_samples, num_levels=4)
-    params_samples = _convert_sample_to_dict(problem, params_samples)
+    samples = morris_sample(problem, num_of_samples, num_levels=4)
 
-    return params_samples
+    return samples
 
 
 def make_latin_hypercube_sample(problem, num_of_samples=100):
     samples = lhc_sample(problem, num_of_samples)
-    converted_samples = _convert_sample_to_dict(problem, samples)
 
-    return samples, converted_samples
+    return samples
 
 
 def clean_sample_variables(samples: List[dict]):
+    """Make integer values for params if necessary"""
     for sample in samples:
         for key, value in sample.items():
             if key in INTEGER_PARAMS:
@@ -188,7 +187,7 @@ def clean_sample_variables(samples: List[dict]):
     return samples
 
 
-def _create_problem_for_sobol_method(params: dict):
+def _create_problem(params: dict):
     problem = {
         'num_vars': len(params),
         'names': list(params.keys()),
@@ -240,22 +239,6 @@ def convert_results_to_json(problem: dict, si: dict):
     return data
 
 
-model_params_with_bounds_by_model_name = {
-    'xgboost': {
-        'n_estimators': [10, 100],
-        'max_depth': [1, 7],
-        'learning_rate': [0.1, 0.9],
-        'subsample': [0.05, 1.0],
-        'min_child_weight': [1, 21]},
-    'logit': {
-        'C': [1e-2, 10.]},
-    'knn': {
-        'n_neighbors': [1, 50],
-        'p': [1, 2]},
-    'qda': {
-        'reg_param': [0.1, 0.5]},
-}
-
 analyze_method_by_name = {
     'sobol': sobol_method,
     'morris': morris_method,
@@ -268,5 +251,3 @@ sample_method_by_name = {
     'latin_hyper_cube': make_latin_hypercube_sample,
 
 }
-
-INTEGER_PARAMS = ['n_estimators', 'n_neighbors', 'p', 'min_child_weight', 'max_depth']
