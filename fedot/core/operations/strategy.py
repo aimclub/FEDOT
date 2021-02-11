@@ -10,8 +10,8 @@ class StrategyOperator:
 
     """
 
-    def __init__(self, model_type):
-        self.model_type = model_type
+    def __init__(self, operation_name):
+        self.operation_name = operation_name
         self.operation_type = self._define_operation_type()
 
     def get_operation(self) -> Operation:
@@ -22,11 +22,15 @@ class StrategyOperator:
         """
 
         if self.operation_type == 'model':
-            operation = Model(operation_type=self.model_type)
+            operation = Model(operation_type=self.operation_name)
         elif self.operation_type == 'data_operation':
-            operation = DataOperation(operation_type=self.model_type)
+            operation = DataOperation(operation_type=self.operation_name)
 
         return operation
+
+    @property
+    def operation_type_name(self):
+        return self.operation_type
 
     def _define_operation_type(self) -> str:
         """
@@ -42,7 +46,7 @@ class StrategyOperator:
         operations = operations_repo.operations
 
         # If there is a such model in the list
-        if any(self.model_type == model.id for model in operations):
+        if any(self.operation_name == model.id for model in operations):
             operation_type = 'model'
         # Overwise - it is preprocessing operations
         else:

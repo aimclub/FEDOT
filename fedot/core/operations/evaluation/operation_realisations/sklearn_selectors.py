@@ -1,32 +1,34 @@
-from abc import abstractmethod
 from typing import Optional
 
 import numpy as np
-from sklearn.linear_model import RANSACRegressor, \
-    LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.feature_selection import RFE
 
 from fedot.core.operations.evaluation.\
-    operation_realisations.abs_interfaces import reasonability_check
+    operation_realisations.abs_interfaces import EncodedInvariantOperation
 
 
-class FeatureSelection:
-    """ Base class for applying feature selection operations on tabular data """
+class FeatureSelection(EncodedInvariantOperation):
+    """ Class for applying feature selection operations on tabular data """
 
     def __init__(self):
+        super().__init__()
         self.inner_model = None
         self.operation = None
+        self.ids_to_process = None
+        self.bool_ids = None
 
-    def fit(self, features, target):
+    def fit(self, input_data):
         """ Method for fit feature selection
 
-        :param features: tabular data for operation training
-        :param target: target output
+        :param input_data: data with features, target and ids to process
         :return operation: trained operation (optional output)
         """
+        features = input_data.features
+        target = input_data.target
 
-        bool_ids, ids_to_process = reasonability_check(features)
+        bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
 
@@ -38,19 +40,23 @@ class FeatureSelection:
 
         return self.operation
 
-    def transform(self, features, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """ Method for making prediction
 
-        :param features: tabular data for filtering
+        :param input_data: data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain
-        :return inner_features: filtered rows
+        :return output_data: filtered input data by columns
         """
+        features = input_data.features
         if len(self.ids_to_process) > 0:
             transformed_features = self._make_new_table(features)
         else:
             transformed_features = features
 
-        return transformed_features
+        # Update features
+        output_data = self._convert_to_output(input_data,
+                                              transformed_features)
+        return output_data
 
     def get_params(self):
         return self.operation.get_params()

@@ -2,6 +2,9 @@ from abc import abstractmethod, ABC
 from typing import Optional
 import numpy as np
 
+from fedot.core.data.data import OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+
 
 class OperationRealisation(ABC):
     """ Interface for operations realisations methods
@@ -13,18 +16,18 @@ class OperationRealisation(ABC):
         pass
 
     @abstractmethod
-    def fit(self, features):
+    def fit(self, input_data):
         """ Method fit operation on a dataset
 
-        :param features: features to process
+        :param input_data: data with features, target and ids to process
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def transform(self, features, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """ Method apply transform operation on a dataset
 
-        :param features: features to process
+        :param input_data: data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
         raise NotImplementedError()
@@ -36,26 +39,51 @@ class OperationRealisation(ABC):
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def _convert_to_output(input_data, transformed_features):
+        """ Method prepare prediction of operation as OutputData object
+
+        :param input_data: data with features, target and ids to process
+        :param transformed_features: transformed features
+        """
+
+        # After preprocessing operations by default we get tabular data
+        converted = OutputData(idx=input_data.idx,
+                               features=input_data.features,
+                               predict=transformed_features,
+                               task=input_data.task,
+                               target=input_data.target,
+                               data_type=DataTypesEnum.table)
+
+        return converted
+
 
 class EncodedInvariantOperation(OperationRealisation):
     """ Class for processing data without transforming encoded features.
-    Encoded features - features after OneHot encoding operation
+    Encoded features - features after OneHot encoding operation, when one
+    feature (with categorical values) can be represented as several boolean
+    vectors
     """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.operation = None
+        self.ids_to_process = None
+        self.bool_ids = None
         self.params = params
 
-    def fit(self, features):
+    def fit(self, input_data):
         """ Method for fit transformer with automatic determination
         of boolean features, with which there is no need to make transformation
 
-        :param features: tabular data for operation training
-        :return encoder: trained transformer (optional output)
+        :param input_data: data with features, target and ids to process
+        :return operation: trained transformer (optional output)
         """
 
-        bool_ids, ids_to_process = reasonability_check(features)
+        features = input_data.features
+
+        # Find boolean columns in features table
+        bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
 
@@ -67,21 +95,24 @@ class EncodedInvariantOperation(OperationRealisation):
 
         return self.operation
 
-    def transform(self, features, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """
         The method that transforms the source features using "operation"
 
-        :param features: tabular data for transformation
-        :return transformed_features: transformed features table
+        :param input_data: tabular data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return output_data: output data with transformed features table
         """
 
+        features = input_data.features
         if len(self.ids_to_process) > 0:
             transformed_features = self._make_new_table(features)
         else:
             transformed_features = features
 
-        return transformed_features
+        # Update features
+        output_data = self._convert_to_output(input_data, transformed_features)
+        return output_data
 
     def _make_new_table(self, features):
         """
@@ -109,27 +140,29 @@ class EncodedInvariantOperation(OperationRealisation):
     def get_params(self):
         return self.operation.get_params()
 
+    @staticmethod
+    def _reasonability_check(features):
+        """
+        Method for checking which columns contain boolean data
 
-def reasonability_check(features):
-    """
-    Method for checking which columns contain boolean data
+        :param features: tabular data for check
+        :return bool_ids: indices of boolean columns in table
+        :return non_bool_ids: indices of non boolean columns in table
+        """
+        # TODO perhaps there is a more effective way to do this
+        source_shape = features.shape
+        columns_amount = source_shape[1]
 
-    :param features: tabular data for check
-    :return bool_ids: indices of boolean columns in table
-    :return non_bool_ids: indices of non boolean columns in table
-    """
-    # TODO perhaps there is a more effective way to do this
-    source_shape = features.shape
-    columns_amount = source_shape[1]
+        # Indices of boolean columns in features table
+        bool_ids = []
+        non_bool_ids = []
 
-    bool_ids = []
-    non_bool_ids = []
-    # For every column in table make check
-    for column_id in range(0, columns_amount):
-        column = features[:, column_id]
-        if len(np.unique(column)) > 2:
-            non_bool_ids.append(column_id)
-        else:
-            bool_ids.append(column_id)
+        # For every column in table make check
+        for column_id in range(0, columns_amount):
+            column = features[:, column_id]
+            if len(np.unique(column)) > 2:
+                non_bool_ids.append(column_id)
+            else:
+                bool_ids.append(column_id)
 
-    return bool_ids, non_bool_ids
+        return bool_ids, non_bool_ids

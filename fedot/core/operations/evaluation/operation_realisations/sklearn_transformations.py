@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
-from fedot.core.operations.evaluation.\
-    operation_realisations.abs_interfaces import OperationRealisation, EncodedInvariantOperation
+from fedot.core.operations.evaluation.operation_realisations.\
+    abs_interfaces import OperationRealisation, EncodedInvariantOperation
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.8
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
@@ -28,7 +28,7 @@ class PCAOperation(OperationRealisation):
             self.pca = PCA(**pca_params)
         self.params = params
 
-    def fit(self, features):
+    def fit(self, input_data):
         """
         The method trains the PCA model and selects only those features in
         which the ratio of the total explained variance reaches the desired
@@ -36,13 +36,13 @@ class PCAOperation(OperationRealisation):
         TODO make comparison with PCA model from
          /operations/evaluation/data_evaluation.py
 
-        :param features: tabular data for PCA training
+        :param input_data: data with features, target and ids for PCA training
         :return pca: trained PCA model (optional output)
         """
         global DEFAULT_EXPLAINED_VARIANCE_THR
         global DEFAULT_MIN_EXPLAINED_VARIANCE
 
-        self.pca.fit(features)
+        self.pca.fit(input_data.features)
 
         # The proportion of the explained variance in the data
         cumulative_variance = np.cumsum(self.pca.explained_variance_ratio_)
@@ -60,15 +60,25 @@ class PCAOperation(OperationRealisation):
         if len(significant_ids) > 1:
             # Update amounts of components
             setattr(self.pca, 'n_components', len(significant_ids))
-            self.pca.fit(features)
+            self.pca.fit(input_data.features)
         else:
             pass
         return self.pca
 
-    def transform(self, features, is_fit_chain_stage: Optional[bool]):
-        transformed_features = self.pca.transform(features)
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """
+        Method for transformation tabular data using PCA
 
-        return transformed_features
+        :param input_data: data with features, target and ids for PCA applying
+        :return input_data: data with transformed features attribute
+        """
+
+        transformed_features = self.pca.transform(input_data.features)
+
+        # Update features
+        output_data = self._convert_to_output(input_data,
+                                              transformed_features)
+        return output_data
 
     def get_params(self):
         return self.pca.get_params()
@@ -80,15 +90,17 @@ class OneHotEncodingOperation(OperationRealisation):
     def __init__(self):
         super().__init__()
         self.encoder = OneHotEncoder()
+        self.categorical_ids = None
+        self.non_categorical_ids = None
 
-    def fit(self, features):
+    def fit(self, input_data):
         """ Method for fit encoder with automatic determination of categorical
         features
 
-        :param features: tabular data for operation training
+        :param input_data: data with features, target and ids for encoder training
         :return encoder: trained encoder (optional output)
         """
-
+        features = input_data.features
         categorical_ids, non_categorical_ids = self._str_columns_check(features)
 
         # Indices of columns with categorical and non-categorical features
@@ -103,16 +115,17 @@ class OneHotEncodingOperation(OperationRealisation):
 
         return self.encoder
 
-    def transform(self, features, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """
         The method that transforms the categorical features in the original
         dataset, but does not affect the rest
 
-        :param features: tabular data for transformation
-        :return transformed_features: transformed features table
+        :param input_data: data with features, target and ids for transformation
         :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return output_data: output data with transformed features table
         """
 
+        features = input_data.features
         if len(self.categorical_ids) == 0:
             # If there are no categorical features in the table
             transformed_features = features
@@ -120,7 +133,10 @@ class OneHotEncodingOperation(OperationRealisation):
             # If categorical features are exists
             transformed_features = self._make_new_table(features)
 
-        return transformed_features
+        # Update features
+        output_data = self._convert_to_output(input_data,
+                                              transformed_features)
+        return output_data
 
     def _make_new_table(self, features):
         """

@@ -10,7 +10,6 @@ from sklearn.model_selection import train_test_split
 
 from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
 from fedot.core.data.load_data import TextBatchLoader
-from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -60,8 +59,6 @@ class Data:
             # no target in data
             features = data_array[1:].T
             target = None
-
-        features = ImputationStrategy().fit(features).apply(features)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
@@ -134,7 +131,8 @@ class InputData(Data):
         }
         dataset_merging_funcs.setdefault(data_type, _combine_datasets_common)
 
-        features = dataset_merging_funcs[data_type](outputs)
+        # Update not only features but idx and target also
+        idx, features, target = dataset_merging_funcs[data_type](outputs)
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
@@ -166,6 +164,7 @@ class OutputData(Data):
     Data type for data predicted in the node
     """
     predict: np.array = None
+    target: Optional[np.array] = None
 
 
 def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = None):
@@ -229,13 +228,28 @@ def _combine_datasets_ts(outputs: List[OutputData]):
     return features
 
 
-def _combine_datasets_table(outputs: List[OutputData]):
+def _check_size_equality(outputs: List[OutputData]):
+    """ Function check the size of combining datasets """
+    idx_lengths = list()
+    idx_list = list()
+    for elem in outputs:
+        idx_lengths.append(len(elem.idx))
+        idx_list.append(elem.idx)
+
+    # Check amount of unique lengths of datasets
+    if len(set(idx_lengths)) == 1:
+        are_lengths_equal = True
+    else:
+        are_lengths_equal = False
+
+    return are_lengths_equal, idx_list
+
+
+def merge_equal_outputs(outputs: List[OutputData]):
+    """ Function merge datasets with equal amount of rows """
     features = list()
-    expected_len = len(outputs[0].predict)
 
     for elem in outputs:
-        if len(elem.predict) != expected_len:
-            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
         if len(elem.predict.shape) == 1:
             features.append(elem.predict)
         else:
@@ -243,8 +257,48 @@ def _combine_datasets_table(outputs: List[OutputData]):
             number_of_variables_in_prediction = elem.predict.shape[1]
             for i in range(number_of_variables_in_prediction):
                 features.append(elem.predict[:, i])
-
     features = np.array(features).T
+
+    idx = outputs[0].idx
+    target = outputs[0].target
+    return idx, features, target
+
+
+def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
+    """ Function merge datasets with different amount of rows by idx field """
+
+    # Search overlapping indices in data
+    for i, idx in enumerate(idx_list):
+        idx = set(idx)
+        if i == 0:
+            common_idx = idx
+        else:
+            common_idx = common_idx & idx
+
+    # Convert to list
+    common_idx = np.array(list(common_idx))
+    features = list()
+
+    for i, elem in enumerate(outputs):
+        # Create mask where True - appropriate objects
+        mask = np.in1d(np.array(elem.idx), common_idx)
+
+        filtered_predict = elem.predict[mask]
+        features.append(filtered_predict)
+
+    old_target = outputs[-1].target
+    filtered_target = old_target[mask]
+    features = np.array(features).T
+    return common_idx, features, filtered_target
+
+
+def _combine_datasets_table(outputs: List[OutputData]):
+    are_lengths_equal, idx_list = _check_size_equality(outputs)
+
+    if are_lengths_equal:
+        features = merge_equal_outputs(outputs)
+    else:
+        features = merge_non_equal_outputs(outputs, idx_list)
 
     return features
 

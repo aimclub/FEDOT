@@ -40,6 +40,7 @@ from fedot.core.operations.evaluation.custom_models.models import CustomSVC
 from fedot.core.operations.tuning.hyperparams import params_range_by_operation
 from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -270,8 +271,17 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
+
         prediction = trained_operation.predict(predict_data.features)
-        return prediction
+        # Wrap prediction as features for next level
+        converted = OutputData(idx=predict_data.idx,
+                               features=predict_data.features,
+                               predict=prediction,
+                               task=predict_data.task,
+                               target=predict_data.target,
+                               data_type=DataTypesEnum.table)
+
+        return converted
 
 
 class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
@@ -289,7 +299,7 @@ class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
         else:
             sklearn_operation = self._sklearn_operation_impl()
 
-        sklearn_operation.fit(train_data.features)
+        sklearn_operation.fit(train_data)
         return sklearn_operation
 
     def predict(self, trained_operation, predict_data: InputData,
@@ -302,41 +312,8 @@ class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        prediction = trained_operation.transform(predict_data.features,
-                                                 is_fit_chain_stage)
-        return prediction
-
-
-class SkLearnFilteringStrategy(SkLearnEvaluationStrategy):
-
-    def fit(self, train_data: InputData):
-        """
-        This method is used for filtering operation training with the data provided
-
-        :param InputData train_data: data used for operation training
-        :return:
-        """
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            sklearn_operation = self._sklearn_operation_impl(**self.params_for_fit)
-        else:
-            sklearn_operation = self._sklearn_operation_impl()
-
-        sklearn_operation.fit(train_data.features, train_data.target)
-        return sklearn_operation
-
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
-        """
-        Transform method for preprocessing-filtering task
-
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
-        :return:
-        """
-
-        prediction = trained_operation.transform(predict_data.features,
+        # Prediction here is already OutputData type object
+        prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
         return prediction
 

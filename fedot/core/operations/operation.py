@@ -25,7 +25,7 @@ class Operation:
         self.operation_type = operation_type
         self.log = log
 
-        self._eval_strategy, self._data_preprocessing = None, None
+        self._eval_strategy = None
         self.params = DEFAULT_PARAMS_STUB
 
         if not log:

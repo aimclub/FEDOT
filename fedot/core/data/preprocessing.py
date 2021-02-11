@@ -11,7 +11,6 @@ from sklearn.impute import SimpleImputer
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-# TODO remove
 class PreprocessingStrategy:
     def fit(self, data) -> 'PreprocessingStrategy':
         raise NotImplementedError()
@@ -22,87 +21,6 @@ class PreprocessingStrategy:
     def fit_apply(self, data):
         self.fit(data)
         return self.apply(data)
-
-
-# TODO remove
-class ImputationStrategy(PreprocessingStrategy):
-    def __init__(self):
-        self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
-
-    def fit(self, data):
-        self.imputer.fit(data)
-        return self
-
-    def apply(self, data):
-        try:
-            modified = self.imputer.transform(data)
-        except NotFittedError:
-            modified = self.imputer.fit_transform(data)
-
-        return modified
-
-
-# TODO remove
-class EmptyStrategy(PreprocessingStrategy):
-    def fit(self, data):
-        return self
-
-    def apply(self, data):
-        result = np.asarray(data)
-        if len(result.shape) == 1:
-            result = np.expand_dims(result, axis=1)
-        return result
-
-
-# TODO remove
-class Scaling(PreprocessingStrategy):
-    def __init__(self):
-        self.scaler = preprocessing.StandardScaler()
-
-    def fit(self, data):
-        data = _expand_data(data)
-        self.scaler.fit(data)
-        return self
-
-    def apply(self, data):
-        data = _expand_data(data)
-        try:
-            resulted = self.scaler.transform(data)
-        except NotFittedError:
-            resulted = self.scaler.fit_transform(data)
-
-        return resulted
-
-
-# TODO remove
-class ScalingWithImputation(Scaling):
-    def __init__(self):
-        super(ScalingWithImputation, self).__init__()
-        self.default = ImputationStrategy()
-
-    def fit(self, data):
-        self.default.fit(data)
-        data = self.default.apply(data)
-        return super(ScalingWithImputation, self).fit(data)
-
-    def apply(self, data):
-        data = self.default.apply(data)
-        return super(ScalingWithImputation, self).apply(data)
-
-
-# TODO remove
-class Normalization(Scaling):
-    def __init__(self):
-        super(Normalization, self).__init__()
-        self.scaler = preprocessing.MinMaxScaler()
-
-
-# TODO remove
-class NormalizationWithImputation(ScalingWithImputation):
-    def __init__(self):
-        super(NormalizationWithImputation, self).__init__()
-        self.default = ImputationStrategy()
-        self.scaler = preprocessing.MinMaxScaler()
 
 
 class TextPreprocessingStrategy(PreprocessingStrategy):
@@ -162,46 +80,6 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
         text = re.sub(clean_pattern, ' ', raw_text)
 
         return text
-
-
-_preprocessing_for_input_data = {
-    DataTypesEnum.ts: EmptyStrategy,
-    DataTypesEnum.table: ScalingWithImputation,
-    DataTypesEnum.ts_lagged_table: Scaling,
-    DataTypesEnum.forecasted_ts: Scaling,
-}
-
-_label_for_preprocessing_strategy = {
-    'empty': EmptyStrategy,
-    'normalization_with_imputation': NormalizationWithImputation,
-    'normalization': Normalization,
-    'scaling_with_imputation': ScalingWithImputation,
-    'scaling': Scaling}
-
-
-def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy):
-    for label, strategy in _label_for_preprocessing_strategy.items():
-        if isinstance(target_strategy, strategy):
-            return label
-    return None
-
-
-def preprocessing_strategy_class_by_label(string: str) -> [PreprocessingStrategy, None]:
-    preprocessing_strategy = _label_for_preprocessing_strategy.get(string)
-
-    if preprocessing_strategy:
-        return preprocessing_strategy
-    return None
-
-
-def preprocessing_func_for_data(data: 'InputData', node: 'Node'):
-    preprocessing_func = EmptyStrategy
-    if 'without_preprocessing' not in node.model.metadata.tags:
-        if node.manual_preprocessing_func:
-            preprocessing_func = node.manual_preprocessing_func
-        else:
-            preprocessing_func = _preprocessing_for_input_data[data.data_type]
-    return preprocessing_func
 
 
 def _expand_data(data):

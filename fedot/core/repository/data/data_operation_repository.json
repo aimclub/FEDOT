@@ -33,7 +33,7 @@
 			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnFilteringStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
 		"sklearn_classification_filters": {
@@ -42,7 +42,7 @@
 			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnFilteringStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"time_series_transformation": {

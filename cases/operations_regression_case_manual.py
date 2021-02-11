@@ -8,8 +8,6 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.preprocessing import preprocessing_func_for_data, PreprocessingStrategy, \
-    Scaling, Normalization, ImputationStrategy, EmptyStrategy
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -57,13 +55,17 @@ def run_experiment(file_path, chain):
     print(f'RMSE - {mse(y_data_test, preds, squared=False):.2f}\n')
 
 
-
 if __name__ == '__main__':
-    node_encoder = PrimaryNode('one_hot_encoding', manual_preprocessing_func=EmptyStrategy)
-    node_poly = SecondaryNode('poly_features', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_encoder])
-    node_filter = SecondaryNode('rfe_lin_reg', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_poly])
-    node_scaling = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_filter])
-    node_final = SecondaryNode('linear', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_scaling])
+    # В данной цепочке наблюдается конфликт на этапе слияния предсказаний
+    # из node_filter_1-->node_ridge_1 и node_filter_2-->node_ridge_2 -
+    # количество элементов отличается, так как используются разные фильтры
+    # Ошибка будет "ValueError: Non-equal prediction length: 1102 and 1217"
+    node_encoder = PrimaryNode('one_hot_encoding')
+    node_filter_1 = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])
+    node_filter_2 = SecondaryNode('ransac_non_lin_reg', nodes_from=[node_encoder])
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_filter_1])
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_filter_2])
+    node_final = SecondaryNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
     chain = Chain(node_final)
 
     run_experiment('../cases/data/river_levels/station_levels.csv', chain)

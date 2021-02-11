@@ -8,7 +8,6 @@ from typing import List
 from uuid import uuid4
 
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
-from fedot.core.data.preprocessing import preprocessing_strategy_class_by_label, preprocessing_strategy_label_by_class
 from fedot.core.log import default_log, Log
 
 
@@ -186,8 +185,7 @@ class ChainTemplate:
                 raise FileNotFoundError(message)
 
             fitted_model = joblib.load(path_to_model)
-            node.cache.append(CachedState(preprocessor=model_object.preprocessor,
-                                          model=fitted_model))
+            node.cache.append(CachedState(model=fitted_model))
         visited_nodes[model_object.model_id] = node
         return node
 
@@ -203,7 +201,6 @@ class ModelTemplate:
         self.nodes_from = None
         self.fitted_model = None
         self.fitted_model_path = None
-        self.preprocessor = None
 
         if not log:
             self.log = default_log(__name__)
@@ -227,7 +224,6 @@ class ModelTemplate:
     def _extract_fields_of_fitted_model(self, node: Node):
         model_name = f'model_{str(self.model_id)}.pkl'
         self.fitted_model_path = os.path.join('fitted_models', model_name)
-        self.preprocessor = _extract_preprocessing_strategy(node)
         self.fitted_model = node.cache.actual_cached_state.model
 
     def export_pkl_model(self, path: str):
@@ -245,7 +241,6 @@ class ModelTemplate:
         return params
 
     def convert_to_dict(self) -> dict:
-        preprocessor_strategy = preprocessing_strategy_label_by_class(self.preprocessor)
 
         model_object = {
             "model_id": self.model_id,
@@ -255,7 +250,6 @@ class ModelTemplate:
             "params": self.params,
             "nodes_from": self.nodes_from,
             "fitted_model_path": self.fitted_model_path,
-            "preprocessor": preprocessor_strategy
         }
 
         return model_object
@@ -273,13 +267,9 @@ class ModelTemplate:
             self.custom_params = model_object['custom_params']
         if "model_name" in model_object:
             self.model_name = model_object['model_name']
-        if "preprocessor" in model_object:
-            preprocessor_strategy = preprocessing_strategy_class_by_label(model_object['preprocessor'])
-            if preprocessor_strategy:
-                self.preprocessor = preprocessor_strategy()
 
     def _validate_json_model_template(self, model_object: dict):
-        required_fields = ['model_id', 'model_type', 'params', 'nodes_from', 'preprocessor']
+        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
 
         for field in required_fields:
             if field not in model_object:
@@ -302,10 +292,6 @@ def _is_node_fitted(node: Node) -> bool:
 
 def _is_node_not_cached(node: Node) -> bool:
     return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
-
-
-def _extract_preprocessing_strategy(node: Node) -> str:
-    return node.cache.actual_cached_state.preprocessor
 
 
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):

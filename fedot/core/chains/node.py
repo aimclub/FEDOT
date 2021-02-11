@@ -5,12 +5,10 @@ from datetime import timedelta
 from typing import Callable, List, Optional
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.preprocessing import preprocessing_func_for_data
-from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
 from fedot.core.operations.strategy import StrategyOperator
 
-CachedState = namedtuple('CachedState', 'preprocessor model')
+CachedState = namedtuple('CachedState', 'model')
 
 
 class Node(ABC):
@@ -19,18 +17,13 @@ class Node(ABC):
 
     :param nodes_from: parent nodes which information comes from
     :param model_type: str type of the model defined in model repository
-    :param manual_preprocessing_func: optional function for data preprocessing. \
-    If not defined one of the available preprocessing strategies is used. \
-    See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
     :param log: Log object to record messages
     """
 
     def __init__(self, nodes_from: Optional[List['Node']], model_type: str,
-                 manual_preprocessing_func: Optional[Callable] = None,
                  log=None):
         self.nodes_from = nodes_from
         self.cache = FittedModelCache(self)
-        self.manual_preprocessing_func = manual_preprocessing_func
 
         if not log:
             self.log = default_log(__name__)
@@ -38,17 +31,20 @@ class Node(ABC):
             self.log = log
 
         # Define appropriate model or data operation
-        strategy_operator = StrategyOperator(model_type=model_type)
-        self.model = strategy_operator.get_operation()
+        self.strategy_operator = StrategyOperator(operation_name=model_type)
+        self.model = self.strategy_operator.get_operation()
 
     @property
     def descriptive_id(self):
         return self._descriptive_id_recursive(visited_nodes=[])
 
     def _descriptive_id_recursive(self, visited_nodes):
+        """
+        Method returns verbal description of the operation in the node
+        and its parameters
+        """
+
         node_label = self.model.description
-        if self.manual_preprocessing_func:
-            node_label = f'{node_label}_custom_preprocessing={self.manual_preprocessing_func.__name__}'
         full_path = ''
         if self in visited_nodes:
             return 'ID_CYCLED'
@@ -68,33 +64,6 @@ class Node(ABC):
     def model_tags(self) -> List[str]:
         return self.model.metadata.tags
 
-    def output_from_prediction(self, input_data, prediction):
-        return OutputData(idx=input_data.idx,
-                          features=input_data.features,
-                          predict=prediction, task=input_data.task,
-                          data_type=self.model.output_datatype(input_data.data_type))
-
-    def _transform(self, input_data: InputData):
-        transformed_data = transformation_function_for_data(
-            input_data_type=input_data.data_type,
-            required_data_types=self.model.metadata.input_types)(input_data)
-        return transformed_data
-
-    def _preprocess(self, data: InputData):
-        preprocessing_func = preprocessing_func_for_data(data, self)
-
-        if not self.cache.actual_cached_state:
-            # if fitted preprocessor not found in cache
-            preprocessing_strategy = \
-                preprocessing_func().fit(data.features)
-        else:
-            # if fitted preprocessor already exists
-            preprocessing_strategy = self.cache.actual_cached_state.preprocessor
-
-        data.features = preprocessing_strategy.apply(data.features)
-
-        return data, preprocessing_strategy
-
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
         Run training process in the node
@@ -102,25 +71,23 @@ class Node(ABC):
         :param input_data: data used for model training
         :param verbose: flag used for status printing to console, default False
         """
-        transformed = self._transform(input_data)
-        preprocessed_data, preproc_strategy = self._preprocess(transformed)
+        copied_input_data = copy(input_data)
 
         if not self.cache.actual_cached_state:
             if verbose:
                 print('Cache is not actual')
 
-            cached_model, model_predict = self.model.fit(data=preprocessed_data)
-            self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                          model=cached_model))
+            cached_model, model_predict = self.model.fit(data=copied_input_data)
+            self.cache.append(CachedState(model=cached_model))
         else:
             if verbose:
-                print('Model were obtained from cache')
+                print('Operation were obtained from cache')
 
             model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
-                                               data=preprocessed_data,
+                                               data=copied_input_data,
                                                is_fit_chain_stage=True)
 
-        return self.output_from_prediction(input_data, model_predict)
+        return model_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
         """
@@ -130,17 +97,16 @@ class Node(ABC):
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
         :param verbose: flag used for status printing to console, default False
         """
-        transformed = self._transform(input_data)
-        preprocessed_data, _ = self._preprocess(transformed)
+        copied_input_data = copy(input_data)
 
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
         model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
-                                           data=preprocessed_data, output_mode=output_mode,
+                                           data=copied_input_data, output_mode=output_mode,
                                            is_fit_chain_stage=False)
 
-        return self.output_from_prediction(input_data, model_predict)
+        return model_predict
 
     def fine_tune(self, input_data: InputData,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
@@ -151,16 +117,13 @@ class Node(ABC):
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
         """
+        copied_input_data = copy(input_data)
 
-        transformed = self._transform(input_data)
-        preprocessed_data, preproc_strategy = self._preprocess(transformed)
-
-        fitted_model, _ = self.model.fine_tune(preprocessed_data,
+        fitted_model, _ = self.model.fine_tune(copied_input_data,
                                                max_lead_time=max_lead_time,
                                                iterations=iterations)
 
-        self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                      model=fitted_model))
+        self.cache.append(CachedState(model=fitted_model))
 
     def __str__(self):
         model = f'{self.model}'
@@ -229,15 +192,11 @@ class PrimaryNode(Node):
     The class defines the interface of Primary nodes where initial task data is located
 
     :param model_type: str type of the model defined in model repository
-    :param manual_preprocessing_func: optional function for data preprocessing.
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, model_type: str, manual_preprocessing_func: Optional[Callable] = None,
-                 **kwargs):
-        super().__init__(nodes_from=None, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func,
-                         **kwargs)
+    def __init__(self, model_type: str, **kwargs):
+        super().__init__(nodes_from=None, model_type=model_type, **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
@@ -272,16 +231,13 @@ class SecondaryNode(Node):
 
     :param model_type: str type of the model defined in model repository
     :param nodes_from: parent nodes where data comes from
-    :param manual_preprocessing_func: optional function for data preprocessing.
     :param kwargs: optional arguments (i.e. logger)
     """
 
     def __init__(self, model_type: str, nodes_from: Optional[List['Node']] = None,
-                 manual_preprocessing_func: Optional[Callable] = None,
                  **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, model_type=model_type,
-                         manual_preprocessing_func=manual_preprocessing_func,
                          **kwargs)
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
@@ -395,19 +351,37 @@ def _combine_parents_simple(parent_nodes: List[Node],
                             input_data: InputData,
                             parent_operation: str,
                             max_tune_time: Optional[timedelta]):
-    target = input_data.target
+    """
+    Method for combining predictions from parent node or nodes
+
+    :param parent_nodes: list of parent nodes, from which predictions will
+    be combined
+    :param input_data: input data from chain abstraction (source input data)
+    :param parent_operation: name of parent operation (fit, predict or fine_tune)
+    :param max_tune_time: max time for tuning hyperparameters in nodes
+    :return parent_results: list with OutputData from parent nodes
+    :return target: target for final chain prediction
+    """
+
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
+            target = input_data.target
         elif parent_operation == 'fit':
             prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
+
+            # Update target, because some operations can affect on it
+            target = prediction.target
         elif parent_operation == 'fine_tune':
             parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
+
+            # Update target, because some operations can affect on it
+            target = prediction.target
         else:
             raise NotImplementedError()
 
