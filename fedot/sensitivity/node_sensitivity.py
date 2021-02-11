@@ -96,7 +96,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         if node_id == 0:
             # TODO or warning?
-            return 0.0
+            return 1.0
         else:
             shortend_chain = self.sample(node_id)
             loss = self._compare_with_origin_by_metric(shortend_chain)
@@ -140,7 +140,7 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
-                number_of_random_models: Optional[int] = 5) -> Union[List[dict], float]:
+                number_of_random_models: Optional[int] = None) -> Union[List[dict], float]:
 
         samples = self.sample(node_id=node_id,
                               nodes_to_replace_to=nodes_to_replace_to,
@@ -164,7 +164,7 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
 
     def sample(self, node_id: int,
                nodes_to_replace_to: Optional[List[Node]],
-               number_of_random_models: Optional[int]) -> Union[List[Chain], Chain]:
+               number_of_random_models: Optional[int] = None) -> Union[List[Chain], Chain]:
 
         # TODO Refactor according to future different types of Nodes
         if not nodes_to_replace_to:

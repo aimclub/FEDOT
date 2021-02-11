@@ -114,7 +114,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData, case_name: st
         chain = get_composed_chain(train_data, task,
                                    metric_function=metric)
     else:
-        if task.task_type == 'classification':
+        if task.task_type.name == 'classification':
             chain = get_three_depth_manual_class_chain()
         else:
             chain = get_three_depth_manual_regr_chain()
