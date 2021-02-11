@@ -2,14 +2,13 @@ from typing import Union
 
 import numpy as np
 
-from fedot.api.api_utils import compose_fedot_model, save_predict, array_to_input_data
+from fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
 from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task
-from fedot.core.repository.tasks import TaskTypesEnum, TaskParams
+from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum
 
 
 def default_evo_params():
@@ -204,6 +203,13 @@ class Fedot:
         :return: the json object containing a composite model
         """
         return self.current_model.save_chain(self.fedot_model_path)
+
+    def show_model(self):
+        from fedot.core.composer.visualisation import ChainVisualiser
+        if self.current_model is not None:
+            ChainVisualiser().visualise(self.current_model)
+        else:
+            self.log.error('No model to visualize')
 
     def quality_metric(self,
                        target: np.ndarray = None,
