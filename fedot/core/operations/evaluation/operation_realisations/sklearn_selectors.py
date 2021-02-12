@@ -34,7 +34,11 @@ class FeatureSelection(EncodedInvariantOperation):
 
         if len(ids_to_process) > 0:
             features_to_process = np.array(features[:, ids_to_process])
-            self.operation.fit(features_to_process, target)
+            try:
+                self.operation.fit(features_to_process, target)
+            except ValueError:
+                # For time series forecasting not available multi-targets
+                self.operation.fit(features_to_process, target[:, 0])
         else:
             pass
 

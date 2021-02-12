@@ -2,8 +2,6 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.preprocessing import preprocessing_func_for_data, PreprocessingStrategy, \
-    Scaling, Normalization, ImputationStrategy, EmptyStrategy
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.ts_chain import TsForecastingChain
@@ -11,6 +9,9 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from examples.time_series_gapfilling_example import generate_synthetic_data
+
+import warnings
+warnings.filterwarnings('ignore')
 
 np.random.seed(2020)
 
@@ -37,7 +38,7 @@ def make_forecast_old(chain, train_data, len_forecast: int, max_window_size: int
 
     # Prepare data to train the model
     train_input = InputData(idx=np.arange(0, len(train_data)),
-                            features=None,
+                            features=train_data,
                             target=train_data,
                             task=task,
                             data_type=DataTypesEnum.ts)
@@ -45,7 +46,7 @@ def make_forecast_old(chain, train_data, len_forecast: int, max_window_size: int
     # Make a "blank", here we need just help FEDOT understand that the
     # forecast should be made exactly the "len_forecast" length
     predict_input = InputData(idx=np.arange(0, len_forecast),
-                              features=None,
+                              features=train_data,
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)
@@ -104,7 +105,7 @@ def make_forecast_new(chain, train_data, len_forecast: int, max_window_size: int
     return predicted_values
 
 
-def run_experiment_old(time_series, chain, len_forecast = 3):
+def run_experiment_old(time_series, chain, len_forecast = 50):
     # Let's dividide our data on train and test samples
     train_data = time_series[:-len_forecast]
     test_data = time_series[-len_forecast:]
@@ -119,13 +120,13 @@ def run_experiment_old(time_series, chain, len_forecast = 3):
     print(f'RMSE - {mean_squared_error(test_data, predicted, squared=False):.2f}\n')
 
 
-def run_experiment_new(time_series, chain, len_forecast = 3):
+def run_experiment_new(time_series, chain, len_forecast = 10):
     # Let's dividide our data on train and test samples
     train_data = time_series[:-len_forecast]
     test_data = time_series[-len_forecast:]
 
     predicted = make_forecast_new(chain, train_data, len_forecast,
-                                  max_window_size=2)
+                                  max_window_size=10)
 
     predicted = np.ravel(np.array(predicted.predict))
     test_data = np.ravel(test_data)
@@ -142,10 +143,9 @@ if __name__ == '__main__':
     # run_experiment_old(time_series, chain)
 
     print('New scaling "node-based" preprocessing functionality')
-    node_lagged = PrimaryNode('lagged', manual_preprocessing_func=EmptyStrategy)
-    node_scaling = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy,
-                                 nodes_from=[node_lagged])
-    node_final = SecondaryNode('ridge', manual_preprocessing_func=EmptyStrategy,
-                               nodes_from=[node_scaling])
+    node_lagged = PrimaryNode('lagged')
+    node_ransac_1 = SecondaryNode('ransac_non_lin_reg', nodes_from=[node_lagged])
+    node_ransac_2 = SecondaryNode('ransac_lin_reg', nodes_from=[node_lagged])
+    node_final = SecondaryNode('linear', nodes_from=[node_ransac_1, node_ransac_2])
     chain = Chain(node_final)
     run_experiment_new(time_series, chain)

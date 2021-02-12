@@ -56,10 +56,6 @@ def run_experiment(file_path, chain):
 
 
 if __name__ == '__main__':
-    # В данной цепочке наблюдается конфликт на этапе слияния предсказаний
-    # из node_filter_1-->node_ridge_1 и node_filter_2-->node_ridge_2 -
-    # количество элементов отличается, так как используются разные фильтры
-    # Ошибка будет "ValueError: Non-equal prediction length: 1102 and 1217"
     node_encoder = PrimaryNode('one_hot_encoding')
     node_filter_1 = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])
     node_filter_2 = SecondaryNode('ransac_non_lin_reg', nodes_from=[node_encoder])

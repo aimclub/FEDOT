@@ -26,7 +26,7 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
-    import LaggedTransformation, lagged_data_mapping
+    import LaggedTransformation
 from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
     import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
     ScalingOperation, NormalizationOperation

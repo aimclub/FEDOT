@@ -362,26 +362,19 @@ def _combine_parents_simple(parent_nodes: List[Node],
     :return parent_results: list with OutputData from parent nodes
     :return target: target for final chain prediction
     """
-
+    target = input_data.target
     parent_results = []
     for parent in parent_nodes:
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
-            target = input_data.target
         elif parent_operation == 'fit':
             prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
-
-            # Update target, because some operations can affect on it
-            target = prediction.target
         elif parent_operation == 'fine_tune':
             parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
-
-            # Update target, because some operations can affect on it
-            target = prediction.target
         else:
             raise NotImplementedError()
 

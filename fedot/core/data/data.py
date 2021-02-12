@@ -266,6 +266,8 @@ def merge_equal_outputs(outputs: List[OutputData]):
 
 def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
     """ Function merge datasets with different amount of rows by idx field """
+    # TODO add ability to merge datasets with different amount of features
+    # TODO check correctness and implement exceptions if no common_idx founded
 
     # Search overlapping indices in data
     for i, idx in enumerate(idx_list):
@@ -283,8 +285,16 @@ def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
         # Create mask where True - appropriate objects
         mask = np.in1d(np.array(elem.idx), common_idx)
 
-        filtered_predict = elem.predict[mask]
-        features.append(filtered_predict)
+        if len(elem.predict.shape) == 1:
+            filtered_predict = elem.predict[mask]
+            features.append(filtered_predict)
+        else:
+            # if the model prediction is multivariate
+            number_of_variables_in_prediction = elem.predict.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                predict = elem.predict[:, i]
+                filtered_predict = predict[mask]
+                features.append(filtered_predict)
 
     old_target = outputs[-1].target
     filtered_target = old_target[mask]
@@ -293,14 +303,23 @@ def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
 
 
 def _combine_datasets_table(outputs: List[OutputData]):
+    """ Function for combining datasets from parents to make features to
+    another node. Features are tabular data.
+
+    :param outputs: list with outputs from parent nodes
+    :return idx: updated indices
+    :return features: new features obtained from predictions at previous level
+    :return target: updated target
+    """
+
     are_lengths_equal, idx_list = _check_size_equality(outputs)
 
     if are_lengths_equal:
-        features = merge_equal_outputs(outputs)
+        idx, features, target = merge_equal_outputs(outputs)
     else:
-        features = merge_non_equal_outputs(outputs, idx_list)
+        idx, features, target = merge_non_equal_outputs(outputs, idx_list)
 
-    return features
+    return idx, features, target
 
 
 def _combine_datasets_common(outputs: List[OutputData]):
