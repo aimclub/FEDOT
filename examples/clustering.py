@@ -10,7 +10,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -110,7 +110,7 @@ def run_clustering_example(is_fast=False):
     composite_model = get_composite_clustering_model(data_train, opt_time_sec)
 
     if not is_fast:
-        ComposerVisualiser.visualise(composite_model)
+        ChainVisualiser().visualise(composite_model)
 
     prediction_composite, _ = validate_model_quality(composite_model, data)
 

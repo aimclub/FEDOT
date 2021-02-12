@@ -88,3 +88,6 @@ class ConsensusClusterer:
         if self.n_clust is not None:
             self.best_clust_num = self.n_clust
         return k_means(data.features, n_clusters=self.best_clust_num)[1]
+
+    def get_params(self):
+        return {'n_clust': self.n_clust}
