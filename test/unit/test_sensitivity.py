@@ -161,7 +161,7 @@ def test_node_deletion_analyze_zero_node_id():
 
     # then
     assert isinstance(node_analysis_result, float)
-    assert node_analysis_result == 0.0
+    assert node_analysis_result == 1.0
 
 
 def test_node_tune_analyze():
