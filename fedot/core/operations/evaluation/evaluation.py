@@ -404,7 +404,7 @@ class TsTransformingStrategy(EvaluationStrategy):
                                                  is_fit_chain_stage)
         return prediction
 
-    def fit_tuned(self, train_data: InputData, iterations: int,
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
                   max_lead_time: timedelta = timedelta(minutes=5)):
         """
         This method is used for hyperparameter searching
@@ -412,7 +412,7 @@ class TsTransformingStrategy(EvaluationStrategy):
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
         :param max_lead_time: max time(seconds) for tuning evaluation
-        :return tuple(object, dict): operation with found hyperparameters and dictionary with found hyperparameters
+        :return:
         """
         raise NotImplementedError()
 

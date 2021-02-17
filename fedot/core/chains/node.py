@@ -32,7 +32,7 @@ class Node(ABC):
 
         # Define appropriate model or data operation
         self.strategy_operator = StrategyOperator(operation_name=model_type)
-        self.model = self.strategy_operator.get_operation()
+        self.operation = self.strategy_operator.get_operation()
 
     @property
     def descriptive_id(self):
@@ -44,7 +44,7 @@ class Node(ABC):
         and its parameters
         """
 
-        node_label = self.model.description
+        node_label = self.operation.description
         full_path = ''
         if self in visited_nodes:
             return 'ID_CYCLED'
@@ -61,8 +61,8 @@ class Node(ABC):
         return full_path
 
     @property
-    def model_tags(self) -> List[str]:
-        return self.model.metadata.tags
+    def operation_tags(self) -> List[str]:
+        return self.operation.metadata.tags
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
@@ -77,15 +77,15 @@ class Node(ABC):
             if verbose:
                 print('Cache is not actual')
 
-            cached_model, model_predict = self.model.fit(data=copied_input_data)
+            cached_model, model_predict = self.operation.fit(data=copied_input_data)
             self.cache.append(CachedState(model=cached_model))
         else:
             if verbose:
                 print('Operation were obtained from cache')
 
-            model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
-                                               data=copied_input_data,
-                                               is_fit_chain_stage=True)
+            model_predict = self.operation.predict(fitted_operation=self.cache.actual_cached_state.model,
+                                                   data=copied_input_data,
+                                                   is_fit_chain_stage=True)
 
         return model_predict
 
@@ -102,14 +102,15 @@ class Node(ABC):
         if not self.cache:
             raise ValueError('Model must be fitted before predict')
 
-        model_predict = self.model.predict(fitted_operation=self.cache.actual_cached_state.model,
-                                           data=copied_input_data, output_mode=output_mode,
-                                           is_fit_chain_stage=False)
+        model_predict = self.operation.predict(fitted_operation=self.cache.actual_cached_state.model,
+                                               data=copied_input_data, output_mode=output_mode,
+                                               is_fit_chain_stage=False)
 
         return model_predict
 
     def fine_tune(self, input_data: InputData,
-                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
+                  max_lead_time: timedelta = timedelta(minutes=5),
+                  iterations: int = 30):
         """
         Run the process of hyperparameter optimization for the node
 
@@ -119,15 +120,15 @@ class Node(ABC):
         """
         copied_input_data = copy(input_data)
 
-        fitted_model, _ = self.model.fine_tune(copied_input_data,
-                                               max_lead_time=max_lead_time,
-                                               iterations=iterations)
+        fitted_model, _ = self.operation.fine_tune(copied_input_data,
+                                                   max_lead_time=max_lead_time,
+                                                   iterations=iterations)
 
         self.cache.append(CachedState(model=fitted_model))
 
     def __str__(self):
-        model = f'{self.model}'
-        return model
+        operation = f'{self.operation}'
+        return operation
 
     @property
     def ordered_subnodes_hierarchy(self) -> List['Node']:
@@ -139,12 +140,12 @@ class Node(ABC):
 
     @property
     def custom_params(self) -> dict:
-        return self.model.params
+        return self.operation.params
 
     @custom_params.setter
     def custom_params(self, params):
         if params:
-            self.model.params = params
+            self.operation.params = params
 
 
 class FittedModelCache:
@@ -206,7 +207,7 @@ class PrimaryNode(Node):
         :param verbose: flag used for status printing to console, default False
         """
         if verbose:
-            self.log.info(f'Trying to fit primary node with model: {self.model}')
+            self.log.info(f'Trying to fit primary node with operation: {self.operation}')
 
         return super().fit(input_data, verbose)
 
@@ -220,7 +221,7 @@ class PrimaryNode(Node):
         :param verbose: flag used for status printing to console, default False
         """
         if verbose:
-            self.log.info(f'Predict in primary node by model: {self.model}')
+            self.log.info(f'Predict in primary node by operation: {self.operation}')
 
         return super().predict(input_data, output_mode, verbose)
 
@@ -248,7 +249,7 @@ class SecondaryNode(Node):
         :param verbose: flag used for status printing to console, default False
         """
         if verbose:
-            self.log.info(f'Trying to fit secondary node with model: {self.model}')
+            self.log.info(f'Trying to fit secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='fit',
@@ -264,7 +265,7 @@ class SecondaryNode(Node):
         :param verbose: flag used for status printing to console, default False
         """
         if verbose:
-            self.log.info(f'Obtain prediction in secondary node with model: {self.model}')
+            self.log.info(f'Obtain prediction in secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict',
@@ -285,7 +286,7 @@ class SecondaryNode(Node):
         :param verbose: flag used for status printing to console, default True
         """
         if verbose:
-            self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}')
+            self.log.info(f'Tune all parent nodes in secondary node with operation: {self.operation}')
 
         if recursive:
             secondary_input = self._input_from_parents(input_data=input_data,
@@ -310,12 +311,12 @@ class SecondaryNode(Node):
             raise ValueError()
 
         if verbose:
-            self.log.info(f'Fit all parent nodes in secondary node with model: {self.model}')
+            self.log.info(f'Fit all parent nodes in secondary node with operation: {self.operation}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
         are_prev_nodes_affect_target = \
-            ['affects_target' in parent_node.model_tags for parent_node in parent_nodes]
+            ['affects_target' in parent_node.operation_tags for parent_node in parent_nodes]
         if any(are_prev_nodes_affect_target):
             # is the previous model is the model that changes target
             parent_results, target = _combine_parents_that_affects_target(parent_nodes, input_data,

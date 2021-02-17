@@ -67,16 +67,16 @@ def has_no_isolated_components(chain: Chain):
 
 
 def _is_data_merged(chain: Chain):
-    root_node_merges_data = 'composition' in chain.root_node.model_tags
-    merging_is_required = any('decomposition' in node.model_tags for node in chain.nodes)
+    root_node_merges_data = 'composition' in chain.root_node.operation_tags
+    merging_is_required = any('decomposition' in node.operation_tags for node in chain.nodes)
     data_merged_or_merging_not_required = root_node_merges_data or not merging_is_required
 
     return data_merged_or_merging_not_required
 
 
 def _is_root_not_datamodel(chain: Chain):
-    return 'data_model' not in chain.root_node.model_tags and \
-           'decomposition' not in chain.root_node.model_tags
+    return 'data_model' not in chain.root_node.operation_tags and \
+           'decomposition' not in chain.root_node.operation_tags
 
 
 def has_correct_model_positions(chain: Chain, task: Optional[Task] = None):

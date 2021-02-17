@@ -10,7 +10,7 @@ from fedot.core.operations.evaluation.operation_realisations.\
 class FilterOperation(OperationRealisation):
     """ Base class for applying filtering operations on tabular data """
 
-    def __init__(self):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = None
         self.operation = None
@@ -79,8 +79,16 @@ class LinearRegRANSAC(FilterOperation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = LinearRegression()
-        self.operation = RANSACRegressor(base_estimator=self.inner_model)
+        self.inner_model = LinearRegression(normalize=True)
+
+        if not params:
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
+        else:
+            ransac_params = {k: params[k] for k in
+                             ['min_samples', 'residual_threshold', 'max_trials',
+                              'max_skips']}
+            self.operation = RANSACRegressor(base_estimator=self.inner_model,
+                                             **ransac_params)
         self.params = params
 
 
@@ -93,5 +101,13 @@ class NonLinearRegRANSAC(FilterOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = DecisionTreeRegressor()
-        self.operation = RANSACRegressor(base_estimator=self.inner_model)
+
+        if not params:
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
+        else:
+            ransac_params = {k: params[k] for k in
+                             ['min_samples', 'residual_threshold', 'max_trials',
+                              'max_skips']}
+            self.operation = RANSACRegressor(base_estimator=self.inner_model,
+                                             **ransac_params)
         self.params = params

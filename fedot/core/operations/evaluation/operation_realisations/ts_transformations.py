@@ -1,5 +1,5 @@
 from copy import copy
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import numpy as np
@@ -12,9 +12,13 @@ from fedot.core.operations.evaluation.\
 class LaggedTransformation(OperationRealisation):
     """ Realisation of lagged transformation for time series forecasting"""
 
-    def __init__(self, **params):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.params = params
+
+        if not params:
+            self.window_size = 10
+        else:
+            self.window_size = params.get('window_size')
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -36,10 +40,11 @@ class LaggedTransformation(OperationRealisation):
         if is_fit_chain_stage:
             # Transformation for fit stage of the chain
             target = input_data.target
+            features = input_data.features
             # Prepare features for training
             new_idx, features_columns = self._prepare_features(idx=old_idx,
-                                                               target=target,
-                                                               parameters=parameters)
+                                                               features=features,
+                                                               window_size=self.window_size)
 
             # Transform target
             new_idx, features_columns, new_target = self._prepare_target(idx=new_idx,
@@ -51,9 +56,9 @@ class LaggedTransformation(OperationRealisation):
         else:
             # Transformation for predict stage of the chain
             features = np.array(input_data.features)
-            features_columns = features[-parameters.max_window_size:]
+            features_columns = features[-self.window_size:]
             features_columns = features_columns.reshape(1, -1)
-            new_idx = old_idx[-parameters.max_window_size:]
+            new_idx = old_idx[-self.window_size:]
 
         # Update idx and features
         input_data.idx = new_idx
@@ -62,22 +67,22 @@ class LaggedTransformation(OperationRealisation):
         return output_data
 
     @staticmethod
-    def _prepare_features(idx, target, parameters):
+    def _prepare_features(idx, features, window_size):
         """ Method convert time series to lagged form. Transformation applied
         only for generating features table.
 
         :param idx: the indices of the time series to convert
-        :param target: source time series
-        :param parameters: parameters of the task
+        :param features: source time series
+        :param window_size: size of sliding window, which defines lag
 
         :return updated_idx: clipped indices of time series
         :return features_columns: lagged time series feature table
         """
 
         # Convert data to lagged form
-        lagged_dataframe = pd.DataFrame({'target': target})
+        lagged_dataframe = pd.DataFrame({'target': features})
         vals = lagged_dataframe['target']
-        for i in range(1, parameters.max_window_size + 1):
+        for i in range(1, window_size + 1):
             frames = [lagged_dataframe, vals.shift(i)]
             lagged_dataframe = pd.concat(frames, axis=1)
 
@@ -91,7 +96,7 @@ class LaggedTransformation(OperationRealisation):
         features_columns = np.fliplr(features_columns)
 
         # First n elements in time series are removed
-        updated_idx = idx[parameters.max_window_size:]
+        updated_idx = idx[window_size:]
 
         return updated_idx, features_columns
 
@@ -113,8 +118,6 @@ class LaggedTransformation(OperationRealisation):
 
         # Update target (clip first "window size" values)
         ts_target = target[idx]
-
-        window_size = parameters.max_window_size
 
         # Multi-target transformation
         if parameters.forecast_length > 1:

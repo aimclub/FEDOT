@@ -23,6 +23,7 @@ class PCAOperation(OperationRealisation):
         if not params:
             self.pca = PCA(svd_solver='randomized', iterated_power='auto')
         else:
+            # Checking the appropriate params are using or not
             pca_params = {k: params[k] for k in
                           ['svd_solver', 'iterated_power']}
             self.pca = PCA(**pca_params)
@@ -50,13 +51,14 @@ class PCAOperation(OperationRealisation):
         explained_variance_thr = DEFAULT_EXPLAINED_VARIANCE_THR
         min_explained_variance = DEFAULT_MIN_EXPLAINED_VARIANCE
         if self.params:
-            explained_variance_thr = self.params.get('explained_variance')
+            explained_variance_thr = self.params.get('explained_variance_thr')
             min_explained_variance = self.params.get('min_explained_variance')
 
         # Column ids with attributes that explain the desired ratio of variance
         significant_ids = np.argwhere(cumulative_variance < explained_variance_thr)
         significant_ids = np.ravel(significant_ids)
 
+        print(len(significant_ids))
         if len(significant_ids) > 1:
             # Update amounts of components
             setattr(self.pca, 'n_components', len(significant_ids))
@@ -70,6 +72,7 @@ class PCAOperation(OperationRealisation):
         Method for transformation tabular data using PCA
 
         :param input_data: data with features, target and ids for PCA applying
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return input_data: data with transformed features attribute
         """
 
@@ -199,11 +202,13 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
-            self.operation = PolynomialFeatures()
+            self.operation = PolynomialFeatures(include_bias=False)
         else:
-            # TODO implement it - need help and advises
-            poly_params = {}
-            self.operation = PolynomialFeatures(**poly_params)
+            # Checking the appropriate params are using ow not
+            poly_params = {k: params[k] for k in
+                           ['degree', 'interaction_only']}
+            self.operation = PolynomialFeatures(include_bias=False,
+                                                **poly_params)
         self.params = params
 
 

@@ -83,7 +83,7 @@ def make_forecast_new(chain, train_data, len_forecast: int, max_window_size: int
 
     # Prepare data to train the model
     train_input = InputData(idx=np.arange(0, len(train_data)),
-                            features=None,
+                            features=train_data,
                             target=train_data,
                             task=task,
                             data_type=DataTypesEnum.ts)
@@ -138,14 +138,10 @@ def run_experiment_new(time_series, chain, len_forecast = 10):
 if __name__ == '__main__':
     time_series = generate_synthetic_data()
 
-    print('Old scaling built-in preprocessing functionality')
-    # chain = TsForecastingChain(PrimaryNode('ridge'))
-    # run_experiment_old(time_series, chain)
-
     print('New scaling "node-based" preprocessing functionality')
     node_lagged = PrimaryNode('lagged')
-    node_ransac_1 = SecondaryNode('ransac_non_lin_reg', nodes_from=[node_lagged])
-    node_ransac_2 = SecondaryNode('ransac_lin_reg', nodes_from=[node_lagged])
-    node_final = SecondaryNode('linear', nodes_from=[node_ransac_1, node_ransac_2])
+    node_lagged.custom_params = {'window_size': 10}
+
+    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
     chain = Chain(node_final)
     run_experiment_new(time_series, chain)

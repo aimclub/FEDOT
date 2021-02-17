@@ -12,7 +12,7 @@ from fedot.core.operations.evaluation.\
 class FeatureSelection(EncodedInvariantOperation):
     """ Class for applying feature selection operations on tabular data """
 
-    def __init__(self):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = None
         self.operation = None
@@ -100,8 +100,15 @@ class LinearRegFS(FeatureSelection):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = LinearRegression()
-        self.operation = RFE(estimator=self.inner_model)
+        self.inner_model = LinearRegression(normalize=True)
+
+        if not params:
+            self.operation = RFE(estimator=self.inner_model)
+        else:
+            # Checking the appropriate params are using or not
+            rfe_params = {k: params[k] for k in
+                          ['n_features_to_select', 'step']}
+            self.operation = RFE(estimator=self.inner_model, **rfe_params)
         self.params = params
 
 
@@ -115,5 +122,12 @@ class NonLinearRegFS(FeatureSelection):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = DecisionTreeRegressor()
-        self.operation = RFE(estimator=self.inner_model)
+
+        if not params:
+            self.operation = RFE(estimator=self.inner_model)
+        else:
+            # Checking the appropriate params are using or not
+            rfe_params = {k: params[k] for k in
+                          ['n_features_to_select', 'step']}
+            self.operation = RFE(estimator=self.inner_model, **rfe_params)
         self.params = params

@@ -77,5 +77,43 @@ params_range_by_operation = {
         'min_samples_split': range(2, 21),
         'min_samples_leaf': range(1, 21),
         'bootstrap': [True, False]
+    },
+    'lasso': {
+        'alpha': np.arange(0.1, 1.0, 0.1),
+    },
+    'ridge': {
+        'alpha': np.arange(0.1, 1.0, 0.1),
+    },
+    'pca': {
+        'svd_solver': ['auto', 'full', 'arpack', 'randomized'],
+        'iterated_power': ['auto', 0, 10, 50, 100],
+        'explained_variance_thr': [0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
+    },
+    'poly_features': {
+        'degree': [2, 3, 4],
+        'interaction_only': [True, False],
+    },
+    'rfe_lin_reg': {
+        'n_features_to_select': [0.5, 0.7, 0.9],
+        'step': [0.1, 0.15, 0.2],
+    },
+    'rfe_non_lin_reg': {
+        'n_features_to_select': [0.5, 0.7, 0.9],
+        'step': [0.1, 0.15, 0.2],
+    },
+    'ransac_lin_reg': {
+        'min_samples': np.arange(0.1, 0.9, 0.1),
+        'residual_threshold': [None, 0.1, 1.0, 100.0, 500.0, 1000.0],
+        'max_trials': [50, 100, 200],
+        'max_skips': [50, 200, np.inf]
+    },
+    'ransac_non_lin_reg': {
+        'min_samples': np.arange(0.1, 0.9, 0.1),
+        'residual_threshold': [None, 0.1, 1.0, 100.0, 500.0, 1000.0],
+        'max_trials': [50, 100, 200],
+        'max_skips': [50, 200, np.inf]
+    },
+    'lagged': {
+        'window_size': np.arange(0, 1000, 10)[1:]
     }
 }

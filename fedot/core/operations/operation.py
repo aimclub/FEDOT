@@ -287,7 +287,7 @@ class DataOperation(Operation):
         return prediction
 
     def fine_tune(self, data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
+                  max_lead_time: timedelta = timedelta(minutes=5),):
         """
         This method is used for hyperparameter searching
 
@@ -315,7 +315,8 @@ class DataOperation(Operation):
             fitted_operation = self._eval_strategy.fit(train_data=data)
             self.params = DEFAULT_PARAMS_STUB
 
-        predict_train = self.predict(fitted_operation, data)
+        predict_train = self.predict(fitted_operation, data,
+                                     is_fit_chain_stage=False)
 
         return fitted_operation, predict_train
 

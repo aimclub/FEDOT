@@ -18,6 +18,37 @@ from fedot.utilities.synthetic.data import regression_dataset
 np.random.seed(10)
 
 
+def chain_tuning(nodes_to_tune: str, chain: Chain, train_input: InputData,
+                 predict_input: InputData, y_test: np.array, local_iter: int,
+                 tuner_iter_num: int = 50) -> (float, list):
+    several_iter_scores_test = []
+
+    if nodes_to_tune == 'primary':
+        print('primary_node_tuning')
+        chain_tune_strategy = chain.fine_tune_primary_nodes
+    elif nodes_to_tune == 'root':
+        print('root_node_tuning')
+        chain_tune_strategy = chain.fine_tune_all_nodes
+    else:
+        raise ValueError(f'Invalid type of nodes. Nodes must be primary or root')
+
+    for iteration in range(local_iter):
+        print(f'current local iteration {iteration}')
+
+        # Chain tuning
+        chain_tune_strategy(train_input, iterations=tuner_iter_num)
+
+        # After tuning prediction
+        chain.fit(train_input)
+        predicted = chain.predict(predict_input)
+
+        # Metrics
+        mse_metric = mse(y_test, predicted.predict)
+        several_iter_scores_test.append(mse_metric)
+
+    return float(np.mean(several_iter_scores_test)), several_iter_scores_test
+
+
 def run_experiment(file_path, chain):
     df = pd.read_csv(file_path)
     df['date'] = pd.to_datetime(df['date'])
@@ -47,12 +78,22 @@ def run_experiment(file_path, chain):
     chain.fit(train_input, verbose=True)
     # Predict
     predicted_values = chain.predict(predict_input)
-    preds = predicted_values.predict
+    before_tuning_predicted = predicted_values.predict
 
     y_data_test = np.ravel(y_data_test)
-    print(f'Predicted values: {preds[:5]}')
-    print(f'Actual values: {y_data_test[:5]}')
-    print(f'RMSE - {mse(y_data_test, preds, squared=False):.2f}\n')
+    print(f'RMSE before tuning - {mse(y_data_test, before_tuning_predicted, squared=False):.2f}\n')
+
+    # Chain tuning
+    local_iter=5
+    after_tune_mse, several_iter_scores_test = chain_tuning(nodes_to_tune='primary',
+                                                            chain=chain,
+                                                            train_input=train_input,
+                                                            predict_input=predict_input,
+                                                            y_test=y_data_test,
+                                                            local_iter=local_iter)
+
+    print(f'Several test scores {several_iter_scores_test}')
+    print(f'Mean test score over {local_iter} iterations: {after_tune_mse}')
 
 
 if __name__ == '__main__':
@@ -60,12 +101,8 @@ if __name__ == '__main__':
 
     # Chain with custom hyperparameters in nodes
     node_rans = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])
-    node_rans.custom_params = {'min_samples': 0.5,
-                               'residual_threshold': None,
-                               'max_trials': 50,
-                               'max_skips': 50}
     node_scaling = SecondaryNode('scaling', nodes_from=[node_rans])
-    node_final = SecondaryNode('linear', nodes_from=[node_scaling])
+    node_final = SecondaryNode('ridge', nodes_from=[node_scaling])
     chain = Chain(node_final)
 
     run_experiment('../cases/data/river_levels/station_levels.csv', chain)
