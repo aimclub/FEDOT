@@ -1,12 +1,20 @@
 from os.path import join
 from typing import List, Optional, Type
 
-from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.data.data import InputData
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach, \
     NodeAnalysis
 import matplotlib.pyplot as plt
+
+
+def get_nodes_degrees(chain: Chain):
+    """ Nodes degree as the number of edges the node has:
+     k = k(in) + k(out)"""
+    graph, _ = chain_as_nx_graph(chain)
+    degrees = [degree[1] for degree in graph.degree]
+    return degrees
 
 
 class ChainStructureAnalyze:
@@ -51,13 +59,12 @@ class ChainStructureAnalyze:
             nodes_results[f'id = {index}, model = {self.chain.nodes[index].model.model_type}'] = node_result
 
         self._visualize(nodes_results, model_types)
+        if self.all_nodes:
+            self._visualize_degree_correlation(nodes_results)
         return nodes_results
 
     def _visualize(self, results: dict, types: list):
-        gathered_results = []
-        for approach in self.approaches:
-            approach_result = [result[f'{approach.__name__}'] - 1 for result in results.values()]
-            gathered_results.append(approach_result)
+        gathered_results = self.extract_result_values(results)
 
         for index, result in enumerate(gathered_results):
             colors = ['r' if y < 0 else 'g' for y in result]
@@ -72,3 +79,20 @@ class ChainStructureAnalyze:
 
             plt.savefig(join(self.path_to_save,
                              f'{self.approaches[index].__name__}.jpg'))
+
+    def _visualize_degree_correlation(self, results: dict):
+        nodes_degrees = get_nodes_degrees(self.chain)
+        gathered_results = self.extract_result_values(results)
+        for index, result in enumerate(gathered_results):
+            fig, ax = plt.subplots(figsize=(15, 10))
+            ax.scatter(nodes_degrees, result)
+            plt.savefig(join(self.path_to_save,
+                             f'{self.approaches[index].__name__}_cor.jpg'))
+
+    def extract_result_values(self, results):
+        gathered_results = []
+        for approach in self.approaches:
+            approach_result = [result[f'{approach.__name__}'] - 1 for result in results.values()]
+            gathered_results.append(approach_result)
+
+        return gathered_results

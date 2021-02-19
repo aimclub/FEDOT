@@ -293,7 +293,7 @@ def test_delete_node_with_redirection():
     chain = Chain()
     chain.add_node(final)
 
-    chain.delete_node_with_redirection(third)
+    chain.delete_node(third)
 
     assert len(chain.nodes) == 3
     assert first in chain.root_node.nodes_from
@@ -310,10 +310,37 @@ def test_delete_primary_node_with_redirection():
     chain.add_node(final)
 
     # when
-    chain.delete_node_with_redirection(first)
+    chain.delete_node(first)
 
     new_primary_node = [node for node in chain.nodes if node.model.model_type == 'knn'][0]
 
     # then
     assert len(chain.nodes) == 3
     assert isinstance(new_primary_node, PrimaryNode)
+
+
+def test_delete_secondary_node_with_multiple_children_and_redirection():
+    # given
+    logit_first = PrimaryNode(model_type='logit')
+    lda_first = PrimaryNode(model_type='lda')
+    knn_center = SecondaryNode(model_type='knn', nodes_from=[logit_first, lda_first])
+    logit_second = SecondaryNode(model_type='logit', nodes_from=[knn_center])
+    lda_second = SecondaryNode(model_type='lda', nodes_from=[knn_center])
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[logit_second, lda_second])
+
+    chain = Chain()
+    chain.add_node(final)
+
+    # when
+    chain.delete_node(knn_center)
+
+    # then
+    updated_logit_second_parents = chain.nodes[1].nodes_from
+    updated_lda_second_parents = chain.nodes[4].nodes_from
+
+    assert len(chain.nodes) == 5
+    assert updated_logit_second_parents[0] is logit_first
+    assert updated_logit_second_parents[1] is lda_first
+    assert updated_lda_second_parents[0] is logit_first
+    assert updated_lda_second_parents[1] is lda_first

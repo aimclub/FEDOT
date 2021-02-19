@@ -100,13 +100,14 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         else:
             shortend_chain = self.sample(node_id)
             loss = self._compare_with_origin_by_metric(shortend_chain)
+            del shortend_chain
 
             return loss
 
     def sample(self, node_id: int):
         chain_sample = deepcopy(self._chain)
         node_to_delete = chain_sample.nodes[node_id]
-        chain_sample.delete_node_with_redirection(node_to_delete)
+        chain_sample.delete_node(node_to_delete)
 
         return chain_sample
 
@@ -160,6 +161,7 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
                         y_values=loss_values,
                         node_id=node_id)
 
+        del samples
         return float(avg_loss)
 
     def sample(self, node_id: int,

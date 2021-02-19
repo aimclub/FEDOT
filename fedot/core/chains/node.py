@@ -169,12 +169,15 @@ class Node(ABC):
     def __repr__(self):
         return self.__str__()
 
-    @property
-    def ordered_subnodes_hierarchy(self) -> List['Node']:
+    def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
+        if visited is None:
+            visited = []
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.ordered_subnodes_hierarchy
+                if parent not in visited:
+                    nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+
         return nodes
 
     @property
