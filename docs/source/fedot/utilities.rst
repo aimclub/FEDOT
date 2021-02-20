@@ -8,4 +8,4 @@ There are additional utilities, that implemented as a part of FEDOT.
 
    utilities/synthetic
    utilities/chain_json
-   utilities/atomized_modelg
+   utilities/atomized_model
