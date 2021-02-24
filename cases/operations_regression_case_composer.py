@@ -6,20 +6,12 @@ from scipy import interpolate
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
 from matplotlib import pyplot as plt
 import timeit
+
 from pylab import rcParams
 rcParams['figure.figsize'] = 18, 7
 import warnings
 warnings.filterwarnings('ignore')
-from scipy import stats
-import statsmodels.api as sm
-import pylab
 import datetime
-
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
-from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
@@ -30,14 +22,11 @@ from fedot.core.repository.quality_metrics_repository import \
 from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
 
-from fedot.core.data.preprocessing import preprocessing_func_for_data, PreprocessingStrategy, \
-    Scaling, Normalization, ImputationStrategy, EmptyStrategy
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import regression_dataset
 
 np.random.seed(10)
 
@@ -68,10 +57,10 @@ def run_experiment(file_path, chain):
                               task=task,
                               data_type=DataTypesEnum.table)
 
-    available_model_types_primary = ['one_hot_encoding', 'scaling']
+    available_model_types_primary = ['one_hot_encoding']
 
-    available_model_types_secondary = ['ridge', 'rfr', 'poly_features', 'scaling',
-                                       'pca']
+    available_model_types_secondary = ['ridge', 'dtreg', 'poly_features', 'scaling',
+                                       'ransac_lin_reg', 'rfe_lin_reg', 'pca']
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types_primary,
@@ -79,7 +68,7 @@ def run_experiment(file_path, chain):
         max_depth=8, pop_size=10, num_of_generations=12,
         crossover_prob=0.8, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=5),
-        add_single_model_chains=True)
+        add_single_operation_chains=True)
 
     metric_function = MetricsRepository().metric_by_id(
         RegressionMetricsEnum.RMSE)
@@ -111,13 +100,14 @@ def run_experiment(file_path, chain):
     print(f'RMSE - {mse(y_data_test, preds, squared=False):.2f}\n')
 
 
-
 if __name__ == '__main__':
-    node_encoder = PrimaryNode('one_hot_encoding', manual_preprocessing_func=EmptyStrategy)
-    node_poly = SecondaryNode('poly_features', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_encoder])
-    node_scaling = SecondaryNode('scaling', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_poly])
-    node_final = SecondaryNode('svr', manual_preprocessing_func=EmptyStrategy, nodes_from=[node_encoder])
+
+    node_encoder = PrimaryNode('one_hot_encoding')
+    node_rans = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])
+    node_scaling = SecondaryNode('scaling', nodes_from=[node_rans])
+    node_final = SecondaryNode('linear', nodes_from=[node_scaling])
     chain = Chain(node_final)
+
     run_experiment('../cases/data/river_levels/station_levels.csv', chain)
 
 

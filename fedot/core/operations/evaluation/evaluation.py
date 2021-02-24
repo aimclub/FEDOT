@@ -26,7 +26,9 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
-    import LaggedTransformation
+    import LaggedTransformation, TsSmoothing
+from fedot.core.operations.evaluation.operation_realisations.\
+    ts_models import ARIMAModel
 from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
     import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
     ScalingOperation, NormalizationOperation
@@ -366,7 +368,8 @@ class TsTransformingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'lagged': LaggedTransformation}
+        'lagged': LaggedTransformation,
+        'smoothing': TsSmoothing}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation = self._convert_to_operation(operation_type)
@@ -421,6 +424,74 @@ class TsTransformingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain TsTransforming strategy for {operation_type}')
+
+
+class TsForecastingStrategy(EvaluationStrategy):
+    """
+    This class defines the certain classical models implementation for time
+    series forecasting (e.g. AR, ARIMA)
+
+    :param str operation_type: str type of the operation defined in operation or
+    data operation repositories
+    :param dict params: hyperparameters to fit the model with
+    """
+
+    __operations_by_types = {
+        'arima': ARIMAModel}
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.operation = self._convert_to_operation(operation_type)
+        self.params_for_fit = params
+        super().__init__(operation_type, params)
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for operation training with the data provided
+
+        :param InputData train_data: data used for operation training
+        :return: trained model
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            model = self.operation(**self.params_for_fit)
+        else:
+            model = self.operation()
+
+        model.fit(train_data)
+        return model
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
+        """
+        This method used for prediction of the target data.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return OutputData: passed data with new predicted target
+        """
+
+        prediction = trained_operation.predict(predict_data,
+                                               is_fit_chain_stage)
+        return prediction
+
+    def fit_tuned(self, train_data: InputData, iterations: int = 30,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
+        """
+        This method is used for hyperparameter searching
+
+        :param train_data: data used for hyperparameter searching
+        :param iterations: max number of iterations evaluable for hyperparameter optimization
+        :param max_lead_time: max time(seconds) for tuning evaluation
+        :return:
+        """
+        raise NotImplementedError()
+
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain TsForecasting strategy for {operation_type}')
 
 
 def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):

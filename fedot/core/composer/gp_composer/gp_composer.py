@@ -15,7 +15,8 @@ from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import \
+    ModelTypesRepository, DataOperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -147,6 +148,9 @@ class GPComposerBuilder:
     def set_default_composer_params(self):
         if not self._composer.composer_requirements:
             models, _ = ModelTypesRepository().suitable_operation(task_type=self.task.task_type)
+            data_operations, _ = DataOperationTypesRepository().suitable_operation(task_type=self.task.task_type)
+
+            # TODO make unit function for merging two dictionaries
             self._composer.composer_requirements = GPComposerRequirements(primary=models, secondary=models)
         if not self._composer.metrics:
             metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)

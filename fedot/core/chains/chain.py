@@ -6,7 +6,7 @@ from uuid import uuid4
 import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from fedot.core.chains.node import (FittedOperationCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -75,7 +75,7 @@ class Chain:
         use_cache = self.cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
         if not use_cache:
-            self._clean_model_cache()
+            self._clean_operation_cache()
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             if input_data.task.task_params.make_future_prediction:
@@ -192,9 +192,9 @@ class Chain:
         for subtree_node in node.ordered_subnodes_hierarchy:
             self.nodes.remove(subtree_node)
 
-    def _clean_model_cache(self):
+    def _clean_operation_cache(self):
         for node in self.nodes:
-            node.cache = FittedModelCache(node)
+            node.cache = FittedOperationCache(node)
 
     def is_all_cache_actual(self):
         cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]
@@ -267,13 +267,13 @@ class SharedChain(Chain):
         super().__init__(log=log)
         self.nodes = copy(base_chain.nodes)
         for node in self.nodes:
-            node.cache = SharedCache(node, global_cached_models=shared_cache)
+            node.cache = SharedCache(node, global_cached_operations=shared_cache)
 
     def unshare(self) -> Chain:
         chain = Chain()
         chain.nodes = copy(self.nodes)
         for node in chain.nodes:
-            node.cache = FittedModelCache(node)
+            node.cache = FittedOperationCache(node)
         return chain
 
 

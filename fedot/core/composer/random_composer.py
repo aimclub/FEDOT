@@ -81,13 +81,13 @@ class RandomSearchOptimiser:
 
         # random primary nodes
         num_of_primary = randint(1, len(primary_requirements))
-        random_first_models = random.choice(primary_requirements, num_of_primary, replace=False)
-        [new_set.append(self.__primary_node_func(model)) for model in random_first_models]
+        random_first_operations = random.choice(primary_requirements, num_of_primary, replace=False)
+        [new_set.append(self.__primary_node_func(operation)) for operation in random_first_operations]
 
         # random final node
         if len(new_set) > 1:
-            random_final_model = random.choice(secondary_requirements, replace=False)
+            random_final_operation = random.choice(secondary_requirements, replace=False)
             parent_nodes = copy(new_set)
-            new_set.append(self.__secondary_node_func(random_final_model, parent_nodes))
+            new_set.append(self.__secondary_node_func(random_final_operation, parent_nodes))
 
         return new_set

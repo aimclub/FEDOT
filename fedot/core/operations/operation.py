@@ -126,7 +126,6 @@ class Model(Operation):
         :return: tuple of trained model and prediction on train data
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
-        print(f'{self.operation_type} fit stage')
         self._init(data.task)
 
         prepared_data = data.prepare_for_modelling(is_for_fit=True)
@@ -153,7 +152,7 @@ class Model(Operation):
 
         prediction = self._eval_strategy.predict(trained_operation=fitted_operation,
                                                  predict_data=prepared_data,
-                                                 is_fit_chain_stage=False)
+                                                 is_fit_chain_stage=is_fit_chain_stage)
 
         prediction = _post_process_prediction_using_original_input(prediction=prediction, input_data=data)
 
@@ -228,8 +227,6 @@ class DataOperation(Operation):
     def metadata(self) -> OperationMetaInfo:
         operation_info = DataOperationTypesRepository().operation_info_by_id(self.operation_type)
         if not operation_info:
-            d=DataOperationTypesRepository()
-            print(operation_info)
             raise ValueError(f'Data operation {self.operation_type} not found')
         return operation_info
 
@@ -251,7 +248,6 @@ class DataOperation(Operation):
         :return: tuple of trained operation and prediction on train data
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
-        print(f'Fit model {self.operation_type}, {is_fit_chain_stage}')
         self._init(data.task)
 
         prepared_data = data.prepare_for_modelling(is_for_fit=True)
@@ -272,7 +268,6 @@ class DataOperation(Operation):
         :param data: data used for prediction
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
-        print(f'{self.operation_type}, {is_fit_chain_stage}')
         self._init(data.task, output_mode=output_mode)
 
         prepared_data = data.prepare_for_modelling(is_for_fit=False)

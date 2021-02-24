@@ -6,6 +6,7 @@ from networkx.algorithms.isolate import isolates
 
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.repository.operation_types_repository import ModelTypesRepository
 from fedot.core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -18,7 +19,8 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_no_self_cycled_nodes(chain)
     has_no_isolated_nodes(chain)
     has_primary_nodes(chain)
-    has_correct_model_positions(chain, task)
+    has_correct_operation_positions(chain, task)
+    has_at_least_one_model(chain)
     return True
 
 
@@ -79,14 +81,35 @@ def _is_root_not_datamodel(chain: Chain):
            'decomposition' not in chain.root_node.operation_tags
 
 
-def has_correct_model_positions(chain: Chain, task: Optional[Task] = None):
+def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
     is_root_satisfy_task_type = True
     if task:
-        is_root_satisfy_task_type = task.task_type in chain.root_node.model.acceptable_task_types
+        is_root_satisfy_task_type = task.task_type in chain.root_node.operation.acceptable_task_types
 
     if not _is_root_not_datamodel(chain) or \
             not _is_data_merged(chain) or \
             not is_root_satisfy_task_type:
-        raise ValueError(f'{ERROR_PREFIX} Chain has incorrect models positions')
+        raise ValueError(f'{ERROR_PREFIX} Chain has incorrect operations positions')
 
+    return True
+
+
+def has_at_least_one_model(chain: Chain):
+    # Get available models
+    operations_repo = ModelTypesRepository()
+    models_ids = operations_repo.operations
+
+    # Check is there at least one model in the chain
+    data_operations = []
+    models = []
+    for node in chain.nodes:
+        name_operation = node.operation.operation_type
+        if any(name_operation == model.id for model in models_ids):
+            models.append(name_operation)
+        else:
+            data_operations.append(name_operation)
+
+    if len(models) == 0:
+        raise ValueError(f'{ERROR_PREFIX} Chain consists only of data '
+                         f'operations, at least one model needed')
     return True

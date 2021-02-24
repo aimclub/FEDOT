@@ -13,13 +13,13 @@ class ComposerRequirements:
     """
     This dataclass is for defining the requirements of composition process
 
-    :param primary: List of model types (str) for Primary Nodes
-    :param secondary: List of model types (str) for Secondary Nodes
+    :param primary: List of operation types (str) for Primary Nodes
+    :param secondary: List of operation types (str) for Secondary Nodes
     :param max_lead_time: max time in minutes available for composition process
     :param max_depth: max depth of the result chain
     :param max_arity: maximal number of parent for node
     :param min_arity: minimal number of parent for node
-    :param add_single_model_chains: allow to have chain with only one node
+    :param add_single_operation_chains: allow to have chain with only one node
     """
     primary: List[str]
     secondary: List[str]
@@ -27,7 +27,7 @@ class ComposerRequirements:
     max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
-    add_single_model_chains: bool = True
+    add_single_operation_chains: bool = True
 
     def __post_init__(self):
         if self.max_depth < 0:
@@ -40,7 +40,7 @@ class ComposerRequirements:
 
 class Composer(ABC):
     """
-    Base class used for receiving composite models via optimization
+    Base class used for receiving composite operations via optimization
     :param metrics: metrics used to define the quality of found solution
     :param composer_requirements: requirements for composition process
     :param optimiser_parameters: parameters used by optimization process (i.e. GPComposerRequirements)

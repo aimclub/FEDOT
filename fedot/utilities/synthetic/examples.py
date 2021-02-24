@@ -59,9 +59,9 @@ def synthetic_benchmark_composing_example():
 
 
 def two_level_chain():
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='knn')
-    third = SecondaryNode(model_type='xgboost',
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='knn')
+    third = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second])
 
     chain = Chain()

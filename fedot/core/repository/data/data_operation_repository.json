@@ -48,7 +48,7 @@
 		"time_series_transformation": {
 			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
-			"output_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.ts], [DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "TsTransformingStrategy"],
@@ -99,6 +99,10 @@
 		"lagged": {
 			"meta": "time_series_transformation",
 			"tags": ["affects_target", "dimensionality_transforming"]
+		},
+		"smoothing": {
+			"meta": "time_series_transformation",
+			"tags": ["simple"]
 		}
 	}
 }

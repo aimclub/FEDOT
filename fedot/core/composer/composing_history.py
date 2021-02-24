@@ -35,19 +35,19 @@ class ComposingHistory:
         idx = 0
         for gen_num, gen_chains in enumerate(self.chains):
             for chain in gen_chains:
-                self._add_history_to_csv(file, chain.fitness, len(chain.model_templates), chain.depth, idx, gen_num)
+                self._add_history_to_csv(file, chain.fitness, len(chain.operation_templates), chain.depth, idx, gen_num)
                 idx += 1
 
     def _write_header_to_csv(self, f):
         with open(f, 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-            writer.writerow(['index', 'generation', 'fitness', 'quantity_of_models', 'depth'])
+            writer.writerow(['index', 'generation', 'fitness', 'quantity_of_operations', 'depth'])
 
-    def _add_history_to_csv(self, f, fitness: float, models_quantity: int, depth: int, idx: int = None,
+    def _add_history_to_csv(self, f, fitness: float, operations_quantity: int, depth: int, idx: int = None,
                            generation: int = None):
         with open(f, 'a', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-            writer.writerow([idx, generation, fitness, models_quantity, depth])
+            writer.writerow([idx, generation, fitness, operations_quantity, depth])
 
     @property
     def all_historical_fitness(self):

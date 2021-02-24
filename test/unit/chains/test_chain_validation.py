@@ -1,9 +1,9 @@
 import pytest
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import (has_correct_model_positions, has_no_cycle, has_no_isolated_components,
+from fedot.core.chains.chain_validation import (has_correct_operation_positions, has_no_cycle, has_no_isolated_components,
                                                 has_no_isolated_nodes, has_no_self_cycled_nodes, has_primary_nodes,
-                                                validate)
+                                                validate, has_at_least_one_model)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -11,12 +11,12 @@ ERROR_PREFIX = 'Invalid chain configuration:'
 
 
 def valid_chain():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
-    third = SecondaryNode(model_type='logit',
+    third = SecondaryNode(operation_type='logit',
                           nodes_from=[second])
-    last = SecondaryNode(model_type='logit',
+    last = SecondaryNode(operation_type='logit',
                          nodes_from=[third])
 
     chain = Chain()
@@ -27,10 +27,10 @@ def valid_chain():
 
 
 def chain_with_cycle():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
-    third = SecondaryNode(model_type='logit',
+    third = SecondaryNode(operation_type='logit',
                           nodes_from=[second, first])
     second.nodes_from.append(third)
     chain = Chain()
@@ -41,12 +41,12 @@ def chain_with_cycle():
 
 
 def chain_with_isolated_nodes():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
-    third = SecondaryNode(model_type='logit',
+    third = SecondaryNode(operation_type='logit',
                           nodes_from=[second])
-    isolated = SecondaryNode(model_type='logit',
+    isolated = SecondaryNode(operation_type='logit',
                              nodes_from=[])
     chain = Chain()
 
@@ -57,10 +57,10 @@ def chain_with_isolated_nodes():
 
 
 def chain_with_multiple_roots():
-    first = PrimaryNode(model_type='logit')
-    root_first = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    root_first = SecondaryNode(operation_type='logit',
                                nodes_from=[first])
-    root_second = SecondaryNode(model_type='logit',
+    root_second = SecondaryNode(operation_type='logit',
                                 nodes_from=[first])
     chain = Chain()
 
@@ -71,9 +71,9 @@ def chain_with_multiple_roots():
 
 
 def chain_with_secondary_nodes_only():
-    first = SecondaryNode(model_type='logit',
+    first = SecondaryNode(operation_type='logit',
                           nodes_from=[])
-    second = SecondaryNode(model_type='logit',
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
     chain = Chain()
     chain.add_node(first)
@@ -83,8 +83,8 @@ def chain_with_secondary_nodes_only():
 
 
 def chain_with_self_cycle():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
     second.nodes_from.append(second)
 
@@ -96,12 +96,12 @@ def chain_with_self_cycle():
 
 
 def chain_with_isolated_components():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
-    third = SecondaryNode(model_type='logit',
+    third = SecondaryNode(operation_type='logit',
                           nodes_from=[])
-    fourth = SecondaryNode(model_type='logit',
+    fourth = SecondaryNode(operation_type='logit',
                            nodes_from=[third])
 
     chain = Chain()
@@ -111,10 +111,10 @@ def chain_with_isolated_components():
     return chain
 
 
-def chain_with_incorrect_root_model():
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='logit')
-    final = SecondaryNode(model_type='direct_data_model',
+def chain_with_incorrect_root_operation():
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='logit')
+    final = SecondaryNode(operation_type='direct_data_model',
                           nodes_from=[first, second])
 
     chain = Chain(final)
@@ -123,9 +123,9 @@ def chain_with_incorrect_root_model():
 
 
 def chain_with_incorrect_task_type():
-    first = PrimaryNode(model_type='linear')
-    second = PrimaryNode(model_type='linear')
-    final = SecondaryNode(model_type='kmeans',
+    first = PrimaryNode(operation_type='linear')
+    second = PrimaryNode(operation_type='linear')
+    final = SecondaryNode(operation_type='kmeans',
                           nodes_from=[first, second])
 
     chain = Chain(final)
@@ -134,9 +134,9 @@ def chain_with_incorrect_task_type():
 
 
 def chain_with_incorrect_decomposition_structure():
-    first = PrimaryNode(model_type='trend_data_model')
-    second = PrimaryNode(model_type='residual_data_model')
-    final = SecondaryNode(model_type='trend_data_model',
+    first = PrimaryNode(operation_type='trend_data_model')
+    second = PrimaryNode(operation_type='residual_data_model')
+    final = SecondaryNode(operation_type='trend_data_model',
                           nodes_from=[first, second])
 
     chain = Chain(final)
@@ -145,10 +145,20 @@ def chain_with_incorrect_decomposition_structure():
 
 
 def chain_with_correct_decomposition_structure():
-    first = PrimaryNode(model_type='trend_data_model')
-    second = PrimaryNode(model_type='residual_data_model')
-    final = SecondaryNode(model_type='linear',
+    first = PrimaryNode(operation_type='trend_data_model')
+    second = PrimaryNode(operation_type='residual_data_model')
+    final = SecondaryNode(operation_type='linear',
                           nodes_from=[first, second])
+
+    chain = Chain(final)
+
+    return chain
+
+
+def chain_with_only_data_operations():
+    first = PrimaryNode(operation_type='one_hot_encoding')
+    second = SecondaryNode(operation_type='scaling', nodes_from=[first])
+    final = SecondaryNode(operation_type='ransac_lin_reg', nodes_from=[second])
 
     chain = Chain(final)
 
@@ -214,27 +224,35 @@ def test_chain_with_isolated_components_raise_exception():
     assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated components'
 
 
-def test_chain_with_incorrect_root_model_raise_exception():
-    chain = chain_with_incorrect_root_model()
+def test_chain_with_incorrect_root_operation_raise_exception():
+    chain = chain_with_incorrect_root_operation()
     with pytest.raises(Exception) as exc:
-        assert has_correct_model_positions(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect models positions'
+        assert has_correct_operation_positions(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
 
 
 def test_chain_with_incorrect_decomposition_raise_exception():
     chain = chain_with_incorrect_decomposition_structure()
     with pytest.raises(Exception) as exc:
-        assert has_correct_model_positions(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect models positions'
+        assert has_correct_operation_positions(chain)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
 
 
 def test_chain_with_incorrect_task_type_raise_exception():
     chain, task = chain_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:
-        assert has_correct_model_positions(chain, task)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect models positions'
+        assert has_correct_operation_positions(chain, task)
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
 
 
 def test_chain_with_correct_decomposition_raise_exception():
     chain = chain_with_correct_decomposition_structure()
-    assert has_correct_model_positions(chain)
+    assert has_correct_operation_positions(chain)
+
+
+def test_chain_with_incorrect_model_amount_raise_exception():
+    incorrect_chain = chain_with_only_data_operations()
+    with pytest.raises(Exception) as exc:
+        assert has_at_least_one_model(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain consists only of data operations, at least one model needed'

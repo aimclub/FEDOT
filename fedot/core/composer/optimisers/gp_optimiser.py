@@ -118,9 +118,9 @@ class GPChainOptimiser:
 
         with CompositionTimer() as t:
 
-            if self.requirements.add_single_model_chains:
-                best_single_model, self.requirements.primary = \
-                    self._best_single_models(objective_function)
+            if self.requirements.add_single_operation_chains:
+                best_single_operation, self.requirements.primary = \
+                    self._best_single_operations(objective_function)
 
             for ind in self.population:
                 ind.fitness = objective_function(ind)
@@ -176,9 +176,9 @@ class GPChainOptimiser:
 
             best = self.best_individual
 
-            if self.requirements.add_single_model_chains and \
-                    (best_single_model.fitness <= best.fitness):
-                best = best_single_model
+            if self.requirements.add_single_operation_chains and \
+                    (best_single_operation.fitness <= best.fitness):
+                best = best_single_operation
         return best
 
     @property
@@ -225,8 +225,8 @@ class GPChainOptimiser:
         simpler_equivalents = {}
         for i in sort_inds:
             is_fitness_equals_to_best = self.is_equal_fitness(best_ind.fitness, individuals[i].fitness)
-            has_less_num_of_models_than_best = len(individuals[i].nodes) < len(best_ind.nodes)
-            if is_fitness_equals_to_best and has_less_num_of_models_than_best:
+            has_less_num_of_operations_than_best = len(individuals[i].nodes) < len(best_ind.nodes)
+            if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
                 simpler_equivalents[i] = len(individuals[i].nodes)
         return simpler_equivalents
 
@@ -248,21 +248,21 @@ class GPChainOptimiser:
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
-        model_chains = []
-        while len(model_chains) < pop_size:
+        operation_chains = []
+        while len(operation_chains) < pop_size:
             chain = self.chain_generation_function()
             if constraint_function(chain):
-                model_chains.append(chain)
-        return model_chains
+                operation_chains.append(chain)
+        return operation_chains
 
-    def _best_single_models(self, objective_function: Callable, num_best: int = 7):
-        single_models_inds = []
-        for model in self.requirements.primary:
-            single_models_ind = self.chain_class([self.primary_node_func(model)])
-            single_models_ind.fitness = objective_function(single_models_ind)
-            single_models_inds.append(single_models_ind)
-        best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
-        return best_inds[0], [i.nodes[0].model.operation_type for i in best_inds][:num_best]
+    def _best_single_operations(self, objective_function: Callable, num_best: int = 7):
+        single_operations_inds = []
+        for operation in self.requirements.primary:
+            single_operations_ind = self.chain_class([self.primary_node_func(operation)])
+            single_operations_ind.fitness = objective_function(single_operations_ind)
+            single_operations_inds.append(single_operations_ind)
+        best_inds = sorted(single_operations_inds, key=lambda ind: ind.fitness)
+        return best_inds[0], [i.nodes[0].operation.operation_type for i in best_inds][:num_best]
 
     def offspring_size(self, offspring_rate: float = None):
         default_offspring_rate = 0.5 if not offspring_rate else offspring_rate

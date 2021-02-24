@@ -30,14 +30,6 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
-	"stats_ar": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.forecasted_ts]",
-	  "strategies": ["fedot.core.operations.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
-	  "tags": ["statistical", "autoreg"],
-	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
-	},
 	"data_model": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
@@ -78,6 +70,14 @@
 	  "strategies": ["fedot.core.operations.evaluation.vectorize", "VectorizeStrategy"],
 	  "tags": ["nlp", "non-default"],
 	  "description": "Text classification"
+	},
+	"ts_model": {
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": ["fedot.core.operations.evaluation.evaluation", "TsForecastingStrategy"],
+	  "tags": ["time_series"],
+	  "description": "Implementations of the time series models"
 	}
   },
   "models": {
@@ -166,11 +166,11 @@
 	  "meta": "sklearn_regr"
 	},
 	"arima": {
-	  "meta": "stats_ar",
+	  "meta": "ts_model",
 	  "tags": ["simple", "interpretable"]
 	},
 	"ar": {
-	  "meta": "stats_ar",
+	  "meta": "ts_model",
 	  "tags": ["simple", "interpretable"]
 	},
 	"kmeans": {

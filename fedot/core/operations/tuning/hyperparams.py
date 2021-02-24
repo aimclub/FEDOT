@@ -1,4 +1,11 @@
 import numpy as np
+from itertools import product
+
+
+# Parameters for arima model
+ps = range(0, 5)
+ds = range(0, 2)
+qs = range(0, 5)
 
 # the parameters ranges are partially derived from https://github.com/EpistasisLab/tpot
 params_range_by_operation = {
@@ -114,6 +121,12 @@ params_range_by_operation = {
         'max_skips': [50, 200, np.inf]
     },
     'lagged': {
-        'window_size': np.arange(0, 1000, 10)[1:]
+        'window_size': np.arange(10, 1000, 10)
+    },
+    'smoothing': {
+        'window_size': np.arange(2, 20, 1)
+    },
+    'arima': {
+        'order': product(ps, ds, qs)
     }
 }

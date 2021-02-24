@@ -209,25 +209,6 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     return train_data, test_data
 
 
-def _combine_datasets_ts(outputs: List[OutputData]):
-    features_list = list()
-
-    expected_len = max([len(output.predict) for output in outputs])
-
-    for elem in outputs:
-        predict = elem.predict
-        if len(elem.predict) != expected_len:
-            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
-        features_list.append(predict)
-
-    if len(features_list) > 1:
-        features = np.column_stack(features_list)
-    else:
-        features = features_list[0]
-
-    return features
-
-
 def _check_size_equality(outputs: List[OutputData]):
     """ Function check the size of combining datasets """
     idx_lengths = list()
@@ -319,6 +300,15 @@ def _combine_datasets_table(outputs: List[OutputData]):
     else:
         idx, features, target = merge_non_equal_outputs(outputs, idx_list)
 
+    return idx, features, target
+
+
+def _combine_datasets_ts(outputs: List[OutputData]):
+    first_output = outputs[0]
+
+    idx = first_output.idx
+    features = first_output.predict
+    target = first_output.target
     return idx, features, target
 
 

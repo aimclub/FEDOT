@@ -6,8 +6,8 @@ from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-class OperationRealisation(ABC):
-    """ Interface for operations realisations methods
+class DataOperationRealisation(ABC):
+    """ Interface for data operations realisations methods
     Contains abstract methods, which should be implemented for applying EA
     optimizer on it
     """
@@ -40,11 +40,13 @@ class OperationRealisation(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _convert_to_output(input_data, transformed_features):
+    def _convert_to_output(input_data, transformed_features,
+                           data_type=DataTypesEnum.table):
         """ Method prepare prediction of operation as OutputData object
 
         :param input_data: data with features, target and ids to process
         :param transformed_features: transformed features
+        :param data_type: type of output data
         """
 
         # After preprocessing operations by default we get tabular data
@@ -53,12 +55,12 @@ class OperationRealisation(ABC):
                                predict=transformed_features,
                                task=input_data.task,
                                target=input_data.target,
-                               data_type=DataTypesEnum.table)
+                               data_type=data_type)
 
         return converted
 
 
-class EncodedInvariantOperation(OperationRealisation):
+class EncodedInvariantOperation(DataOperationRealisation):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean
@@ -166,3 +168,57 @@ class EncodedInvariantOperation(OperationRealisation):
                 bool_ids.append(column_id)
 
         return bool_ids, non_bool_ids
+
+
+class ModelRealisation(ABC):
+    """ Interface for models realisations methods
+    Contains abstract methods, which should be implemented for applying EA
+    optimizer on it
+    """
+
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def fit(self, input_data):
+        """ Method fit model on a dataset
+
+        :param input_data: data with features, target and ids to process
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """ Method make prediction
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_params(self):
+        """ Method return parameters, which can be optimized for particular
+        operation
+        """
+        raise NotImplementedError()
+
+    @staticmethod
+    def _convert_to_output(input_data, predict,
+                           data_type=DataTypesEnum.table):
+        """ Method prepare prediction of operation as OutputData object
+
+        :param input_data: data with features, target and ids to process
+        :param predict: prediction of the model
+        :param data_type: type of output data
+        """
+
+        # After preprocessing operations by default we get tabular data
+        converted = OutputData(idx=input_data.idx,
+                               features=input_data.features,
+                               predict=predict,
+                               task=input_data.task,
+                               target=input_data.target,
+                               data_type=data_type)
+
+        return converted

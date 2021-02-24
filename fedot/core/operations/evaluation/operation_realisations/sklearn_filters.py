@@ -4,10 +4,10 @@ from typing import Optional
 from sklearn.linear_model import RANSACRegressor, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from fedot.core.operations.evaluation.operation_realisations.\
-    abs_interfaces import OperationRealisation
+    abs_interfaces import DataOperationRealisation
 
 
-class FilterOperation(OperationRealisation):
+class FilterOperation(DataOperationRealisation):
     """ Base class for applying filtering operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):
@@ -103,8 +103,6 @@ class NonLinearRegRANSAC(FilterOperation):
         self.inner_model = DecisionTreeRegressor()
 
         if not params:
-            self.operation = RANSACRegressor(base_estimator=self.inner_model)
-        else:
             ransac_params = {k: params[k] for k in
                              ['min_samples', 'residual_threshold', 'max_trials',
                               'max_skips']}

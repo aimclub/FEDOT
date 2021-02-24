@@ -5,13 +5,13 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
 from fedot.core.operations.evaluation.operation_realisations.\
-    abs_interfaces import OperationRealisation, EncodedInvariantOperation
+    abs_interfaces import DataOperationRealisation, EncodedInvariantOperation
 
 DEFAULT_EXPLAINED_VARIANCE_THR = 0.8
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
 
 
-class PCAOperation(OperationRealisation):
+class PCAOperation(DataOperationRealisation):
     """ Adapter class for automatically determining the number of components
     for PCA
 
@@ -58,7 +58,6 @@ class PCAOperation(OperationRealisation):
         significant_ids = np.argwhere(cumulative_variance < explained_variance_thr)
         significant_ids = np.ravel(significant_ids)
 
-        print(len(significant_ids))
         if len(significant_ids) > 1:
             # Update amounts of components
             setattr(self.pca, 'n_components', len(significant_ids))
@@ -87,7 +86,7 @@ class PCAOperation(OperationRealisation):
         return self.pca.get_params()
 
 
-class OneHotEncodingOperation(OperationRealisation):
+class OneHotEncodingOperation(DataOperationRealisation):
     """ Class for automatic categorical data detection and one hot encoding """
 
     def __init__(self):
@@ -211,6 +210,9 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
                                                 **poly_params)
         self.params = params
 
+    def get_params(self):
+        return self.operation.get_params()
+
 
 class ScalingOperation(EncodedInvariantOperation):
     """ Adapter class for application of Scaling operation on data,
@@ -230,6 +232,9 @@ class ScalingOperation(EncodedInvariantOperation):
             self.operation = StandardScaler(**scaling_params)
         self.params = params
 
+    def get_params(self):
+        return self.operation.get_params()
+
 
 class NormalizationOperation(EncodedInvariantOperation):
     """ Adapter class for application of MinMax normalization operation on data,
@@ -248,3 +253,6 @@ class NormalizationOperation(EncodedInvariantOperation):
             normalization_params = {}
             self.operation = MinMaxScaler(**normalization_params)
         self.params = params
+
+    def get_params(self):
+        return self.operation.get_params()
