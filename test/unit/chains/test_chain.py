@@ -256,7 +256,7 @@ def test_chain_str():
     assert actual_chain_description == expected_chain_description
 
 
-def test_cahin_repr():
+def test_chain_repr():
     first = PrimaryNode(model_type='logit')
     second = PrimaryNode(model_type='lda')
     third = PrimaryNode(model_type='knn')

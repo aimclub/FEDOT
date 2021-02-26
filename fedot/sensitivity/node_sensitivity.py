@@ -20,6 +20,12 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class NodeAnalysis:
+    """
+    :param approaches: methods applied to nodes to modify the chain or analyze certain models.
+    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
+    :param result_dir: path to save results to. Default: ~home/Fedot/sensitivity
+    """
+
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None, result_dir=None):
         if not approaches:
             self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
@@ -34,6 +40,16 @@ class NodeAnalysis:
     def analyze(self, chain: Chain, node_id: int,
                 train_data: InputData, test_data: InputData) -> dict:
 
+        """
+        Method runs Node analysis within defined approaches
+
+        :param chain: Chain containing the analyzed Node
+        :param node_id: node index in Chain
+        :param train_data: data used for Chain training
+        :param test_data: data used for Chain validation
+        :return: dict with Node analysis result per approach
+        """
+
         results = dict()
         for approach in self.approaches:
             results[f'{approach.__name__}'] = approach(chain=chain,
@@ -45,11 +61,21 @@ class NodeAnalysis:
 
 
 class NodeAnalyzeApproach(ABC):
+    """
+    Base class for analysis approach.
+
+    :param chain: Chain containing the analyzed Node
+    :param train_data: data used for Chain training
+    :param test_data: data used for Chain validation
+    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    """
+
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
         self._chain = chain
         self._train_data = train_data
         self._test_data = test_data
         self._origin_metric = None
+        self.label = None
 
         if not path_to_save:
             self._path_to_save = join(default_fedot_data_dir(), 'sensitivity')
@@ -91,7 +117,9 @@ class NodeAnalyzeApproach(ABC):
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super(NodeDeletionAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
+        super().__init__(chain, train_data, test_data, path_to_save)
+
+        self.label = 'NodeDeletionAnalyze'
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         if node_id == 0:
@@ -116,8 +144,13 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
 
 class NodeTuneAnalyze(NodeAnalyzeApproach):
+    """
+    Tune node and evaluate the score difference
+    """
+
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super(NodeTuneAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
+        super().__init__(chain, train_data, test_data, path_to_save)
+        self.label = 'NodeTuneAnalyze'
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         tuned_chain = Tune(self._chain).fine_tune_certain_node(model_id=node_id,
@@ -136,8 +169,14 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
 
 
 class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
+    """
+    Replace node with models available for the current task
+    and evaluate the score difference
+    """
+
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super(NodeReplaceModelAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
+        super().__init__(chain, train_data, test_data, path_to_save)
+        self.label = 'NodeReplaceModelAnalyze'
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
@@ -161,22 +200,14 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
                         y_values=loss_values,
                         node_id=node_id)
 
-        del samples
         return float(avg_loss)
 
     def sample(self, node_id: int,
                nodes_to_replace_to: Optional[List[Node]],
                number_of_random_models: Optional[int] = None) -> Union[List[Chain], Chain]:
 
-        # TODO Refactor according to future different types of Nodes
         if not nodes_to_replace_to:
-            if isinstance(self._chain.nodes[node_id], PrimaryNode):
-                node_type = PrimaryNode
-            elif isinstance(self._chain.nodes[node_id], SecondaryNode):
-                node_type = SecondaryNode
-            else:
-                raise ValueError('Unsupported type of Node. Expected Primary or Secondary')
-
+            node_type = type(self._chain.nodes[node_id])
             nodes_to_replace_to = self._node_generation(node_type=node_type,
                                                         number_of_models=number_of_random_models)
 

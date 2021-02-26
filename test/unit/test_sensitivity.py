@@ -3,7 +3,8 @@ from unittest.mock import patch
 import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.chains.node import SecondaryNode
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import SecondaryNode, PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import \
@@ -19,8 +20,20 @@ def scoring_dataset():
     return train_data, test_data
 
 
+def get_chain():
+    knn_node = PrimaryNode('knn')
+    lda_node = PrimaryNode('lda')
+    xgb_node = PrimaryNode('xgboost')
+
+    final = SecondaryNode('xgboost', nodes_from=[knn_node, lda_node, xgb_node])
+
+    chain = Chain(final)
+
+    return chain
+
+
 def given_data():
-    chain = create_four_depth_chain()
+    chain = get_chain()
     train_data, test_data = scoring_dataset()
     node_index = 2
 
@@ -32,6 +45,21 @@ def given_data():
 
 def test_chain_structure_analyze_init():
     # given
+    chain, train_data, test_data, node_ids = given_data()
+    approaches = [NodeDeletionAnalyze]
+
+    # when
+    chain_analyzer = ChainStructureAnalyze(chain=chain,
+                                           train_data=train_data,
+                                           test_data=test_data,
+                                           approaches=approaches,
+                                           nodes_ids_to_analyze=[node_ids])
+
+    assert isinstance(chain_analyzer, ChainStructureAnalyze)
+
+
+def test_chain_structure_init_result_path_defined():
+    # given
     chain, train_data, test_data, _ = given_data()
     approaches = [NodeDeletionAnalyze]
 
@@ -39,12 +67,13 @@ def test_chain_structure_analyze_init():
     chain_analyzer = ChainStructureAnalyze(chain=chain,
                                            train_data=train_data,
                                            test_data=test_data,
-                                           approaches=approaches)
+                                           approaches=approaches,
+                                           nodes_ids_to_analyze=[2],
+                                           path_to_save='.')
+    assert chain_analyzer.path_to_save == '.'
 
-    assert isinstance(chain_analyzer, ChainStructureAnalyze)
 
-
-def test_chain_structure_analyze_init_raise_exception():
+def test_chain_structure_analyze_init_all_and_ids_raise_exception():
     # given
     chain, train_data, test_data, _ = given_data()
     approaches = [NodeDeletionAnalyze]
@@ -62,8 +91,24 @@ def test_chain_structure_analyze_init_raise_exception():
                              "all_nodes and nodes_ids_to_analyze"
 
 
+def test_chain_structure_analyze_init_no_all_no_ids_raise_exception():
+    # given
+    chain, train_data, test_data, _ = given_data()
+    approaches = [NodeDeletionAnalyze]
+
+    # when
+    with pytest.raises(ValueError) as exc:
+        assert ChainStructureAnalyze(chain=chain,
+                                     train_data=train_data,
+                                     test_data=test_data,
+                                     approaches=approaches)
+
+    assert str(exc.value) == "Define nodes to analyze: " \
+                             "all_nodes or nodes_ids_to_analyze"
+
+
 # @patch('fedot.sensitivity.chain_sensitivity.ChainStructureAnalyze.analyze', return_value={'key': 'value'})
-def test_chain_structure_analyze_analyze_all_nodes():
+def test_chain_structure_analyze_analyze():
     # given
     chain, train_data, test_data, _ = given_data()
     approaches = [NodeDeletionAnalyze]
@@ -74,22 +119,6 @@ def test_chain_structure_analyze_analyze_all_nodes():
                                    test_data=test_data,
                                    approaches=approaches,
                                    all_nodes=True).analyze()
-
-    assert isinstance(result, dict)
-
-
-# @patch('fedot.sensitivity.chain_sensitivity.ChainStructureAnalyze.analyze', return_value={'key': 'value'})
-def test_chain_structure_analyze_analyze_certain_nodes():
-    # given
-    chain, train_data, test_data, _ = given_data()
-    approaches = [NodeDeletionAnalyze]
-
-    # when
-    result = ChainStructureAnalyze(chain=chain,
-                                   train_data=train_data,
-                                   test_data=test_data,
-                                   approaches=approaches,
-                                   nodes_ids_to_analyze=[2]).analyze()
     assert isinstance(result, dict)
 
 
@@ -97,7 +126,7 @@ def test_chain_structure_analyze_analyze_certain_nodes():
 # NodeAnalysis
 
 
-def test_node_analysis_facade_init_default():
+def test_node_analysis_init_default():
     # given
 
     # when
@@ -108,7 +137,7 @@ def test_node_analysis_facade_init_default():
     assert len(node_analyzer.approaches) == 3
 
 
-def test_node_analysis_facade_init_defined_approaches():
+def test_node_analysis_init_defined_approaches():
     # given
     approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
 
@@ -120,7 +149,7 @@ def test_node_analysis_facade_init_defined_approaches():
 
 
 # @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
-def test_node_analysis_facade_analyze():
+def test_node_analysis_analyze():
     # given
     chain, train_data, test_data, node_index = given_data()
 
@@ -181,7 +210,7 @@ def test_node_replacement_analyze_defined_nodes():
     # given
     chain, train_data, test_data, node_index = given_data()
 
-    replacing_node = SecondaryNode('lda')
+    replacing_node = PrimaryNode('lda')
 
     # when
     node_analysis_result = \

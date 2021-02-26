@@ -18,21 +18,43 @@ def get_nodes_degrees(chain: Chain):
 
 
 class ChainStructureAnalyze:
+    """
+    This class is for Chain Sensitivity analysis.
+    It takes nodes(indices) and approaches to be applied to chosen nodes.
+    To define which nodes to analyze
+    pass their ids to nodes_ids_to_analyze or pass True to all_nodes flag.
+
+    :param chain: chain object to analyze
+    :param train_data: data used for Chain training
+    :param test_data: data used for Chain validation
+    :param approaches: methods applied to nodes to modify the chain or analyze certain models.
+    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
+    :param metric: metric used for validation. Default: see MetricByTask
+    :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes
+    :param all_nodes: flag, used to choose all nodes to analyze.Default: False.
+    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    """
+
     def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  metric: str = None, nodes_ids_to_analyze: List[int] = None,
                  all_nodes: bool = False, path_to_save=None):
 
-        if all_nodes and nodes_ids_to_analyze:
-            raise ValueError("Choose only one parameter between all_nodes and nodes_ids_to_analyze")
-
         self.chain = chain
         self.train_data = train_data
         self.test_data = test_data
         self.approaches = approaches
-        self.certain_nodes = nodes_ids_to_analyze
-        self.all_nodes = all_nodes
         self.metric = metric
+
+        if all_nodes and nodes_ids_to_analyze:
+            raise ValueError("Choose only one parameter between all_nodes and nodes_ids_to_analyze")
+        elif not all_nodes and not nodes_ids_to_analyze:
+            raise ValueError("Define nodes to analyze: all_nodes or nodes_ids_to_analyze")
+
+        if all_nodes:
+            self.nodes_ids_to_analyze = [i for i in range(len(self.chain.nodes))]
+        else:
+            self.nodes_ids_to_analyze = nodes_ids_to_analyze
 
         if not path_to_save:
             self.path_to_save = join(default_fedot_data_dir(), 'sensitivity')
@@ -40,16 +62,15 @@ class ChainStructureAnalyze:
             self.path_to_save = path_to_save
 
     def analyze(self) -> dict:
-        if self.all_nodes:
-            nodes_ids_to_analyze = [i for i in range(len(self.chain.nodes))]
-        elif self.certain_nodes:
-            nodes_ids_to_analyze = self.certain_nodes
-        else:
-            raise ValueError("Define nodes to analyze: all_nodes or nodes_ids_to_analyze")
+        """
+        Main method to run the analyze process for every node.
+
+        :return nodes_results: dict with analysis result per Node
+        """
 
         nodes_results = dict()
         model_types = []
-        for index in nodes_ids_to_analyze:
+        for index in self.nodes_ids_to_analyze:
             node_result = NodeAnalysis(approaches=self.approaches, result_dir=self.path_to_save). \
                 analyze(chain=self.chain, node_id=index,
                         train_data=self.train_data,
@@ -59,12 +80,12 @@ class ChainStructureAnalyze:
             nodes_results[f'id = {index}, model = {self.chain.nodes[index].model.model_type}'] = node_result
 
         self._visualize(nodes_results, model_types)
-        if self.all_nodes:
+        if len(self.nodes_ids_to_analyze) == len(self.chain.nodes):
             self._visualize_degree_correlation(nodes_results)
         return nodes_results
 
     def _visualize(self, results: dict, types: list):
-        gathered_results = self.extract_result_values(results)
+        gathered_results = self._extract_result_values(results)
 
         for index, result in enumerate(gathered_results):
             colors = ['r' if y < 0 else 'g' for y in result]
@@ -77,19 +98,22 @@ class ChainStructureAnalyze:
             plt.xlabel('iteration')
             plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
 
-            plt.savefig(join(self.path_to_save,
-                             f'{self.approaches[index].__name__}.jpg'))
+            file_path = join(self.path_to_save,
+                             f'{self.approaches[index].__name__}.jpg')
+
+            plt.savefig(file_path)
 
     def _visualize_degree_correlation(self, results: dict):
         nodes_degrees = get_nodes_degrees(self.chain)
-        gathered_results = self.extract_result_values(results)
+        gathered_results = self._extract_result_values(results)
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))
             ax.scatter(nodes_degrees, result)
-            plt.savefig(join(self.path_to_save,
-                             f'{self.approaches[index].__name__}_cor.jpg'))
+            file_path = join(self.path_to_save,
+                             f'{self.approaches[index].__name__}_cor.jpg')
+            plt.savefig(file_path)
 
-    def extract_result_values(self, results):
+    def _extract_result_values(self, results):
         gathered_results = []
         for approach in self.approaches:
             approach_result = [result[f'{approach.__name__}'] - 1 for result in results.values()]

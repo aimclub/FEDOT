@@ -110,9 +110,9 @@ def get_cholesterol_data():
     return train, test
 
 
-def run_analysis_case(train_data: InputData, test_data: InputData, case_name: str, task, metric, is_composed=False):
+def chain_by_task(task, metric, data, is_composed):
     if is_composed:
-        chain = get_composed_chain(train_data, task,
+        chain = get_composed_chain(data, task,
                                    metric_function=metric)
     else:
         if task.task_type.name == 'classification':
@@ -120,13 +120,20 @@ def run_analysis_case(train_data: InputData, test_data: InputData, case_name: st
         else:
             chain = get_three_depth_manual_regr_chain()
 
+    return chain
+
+
+def run_analysis_case(train_data: InputData, test_data: InputData,
+                      case_name: str, task, metric, is_composed=False, result_path=None):
+    chain = chain_by_task(task=task, metric=metric,
+                          data=train_data, is_composed=is_composed)
+
     chain.fit(train_data)
 
-    print('Analysis is started')
-
-    result_path = join(default_fedot_data_dir(), 'sensitivity', f'{case_name}')
-    if not exists(result_path):
-        makedirs(result_path)
+    if not result_path:
+        result_path = join(default_fedot_data_dir(), 'sensitivity', f'{case_name}')
+        if not exists(result_path):
+            makedirs(result_path)
 
     visualiser = ChainVisualiser()
     visualiser.visualise(chain, save_path=result_path)
@@ -144,7 +151,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData, case_name: st
         file.write(json.dumps(chain_analysis_result, indent=4))
 
 
-def run_class_scoring_case(is_composed: bool):
+def run_class_scoring_case(is_composed: bool, path_to_save=None):
     train_data, test_data = get_scoring_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the chain quality assessment during composition
@@ -153,14 +160,16 @@ def run_class_scoring_case(is_composed: bool):
     if is_composed:
         case = 'scoring_composed'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=True)
+                          metric=metric_function,
+                          is_composed=True, result_path=path_to_save)
     else:
         case = 'scoring'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=False)
+                          metric=metric_function,
+                          is_composed=False, result_path=path_to_save)
 
 
-def run_class_kc2_case(is_composed: bool = False):
+def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_kc2_data()
     task = Task(TaskTypesEnum.classification)
     # the choice of the metric for the chain quality assessment during composition
@@ -169,14 +178,16 @@ def run_class_kc2_case(is_composed: bool = False):
     if is_composed:
         case = 'kc2_composed'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=True)
+                          metric=metric_function,
+                          is_composed=True, result_path=path_to_save)
     else:
         case = 'kc2'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=False)
+                          metric=metric_function,
+                          is_composed=False, result_path=path_to_save)
 
 
-def run_regr_case(is_composed: bool = False):
+def run_regr_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_cholesterol_data()
     task = Task(TaskTypesEnum.regression)
     # the choice of the metric for the chain quality assessment during composition
@@ -185,11 +196,13 @@ def run_regr_case(is_composed: bool = False):
     if is_composed:
         case = 'cholesterol_composed'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=True)
+                          metric=metric_function,
+                          is_composed=True, result_path=path_to_save)
     else:
         case = 'cholesterol'
         run_analysis_case(train_data, test_data, case, task,
-                          metric=metric_function, is_composed=False)
+                          metric=metric_function,
+                          is_composed=False, result_path=path_to_save)
 
 
 if __name__ == '__main__':

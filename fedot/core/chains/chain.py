@@ -178,8 +178,7 @@ class Chain:
         self._sort_nodes()
 
     def update_node(self, old_node: Node, new_node: Node):
-        if isinstance(old_node, SecondaryNode) and isinstance(new_node, PrimaryNode) or \
-                isinstance(old_node, PrimaryNode) and isinstance(new_node, SecondaryNode):
+        if type(new_node) is not type(old_node):
             raise ValueError(f"Can't update {old_node.__class__.__name__} "
                              f"with {new_node.__class__.__name__}")
 
