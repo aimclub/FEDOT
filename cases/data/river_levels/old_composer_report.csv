@@ -1,0 +1,11 @@
+Chain,Depth,MAE
+"['linear', 'adareg', 'linear', 'linear', 'adareg', 'linear', 'linear', 'knnreg', 'knnreg']",5,11.213697409352504
+"['knnreg', 'knnreg', 'lasso', 'lasso', 'lasso', 'ridge', 'svr', 'xgbreg', 'xgbreg']",5,10.897506925207756
+"['ridge', 'ridge', 'knnreg', 'svr', 'knnreg', 'lasso', 'svr', 'adareg', 'adareg', 'ridge', 'lasso', 'knnreg', 'lasso', 'lasso', 'linear', 'adareg', 'ridge']",6,11.10877730704994
+"['ridge', 'svr', 'linear', 'linear', 'knnreg', 'adareg', 'linear', 'svr', 'linear']",4,11.181529832069467
+"['linear', 'svr', 'ridge', 'linear', 'linear', 'ridge', 'ridge', 'svr', 'svr', 'lasso', 'knnreg', 'adareg', 'svr', 'lasso', 'ridge', 'adareg', 'svr']",8,11.473386622039934
+"['linear', 'linear', 'linear', 'adareg', 'knnreg', 'ridge', 'knnreg']",4,11.275817530708238
+"['lasso', 'linear', 'xgbreg']",2,10.417005612997187
+"['linear', 'adareg', 'linear', 'knnreg', 'lasso']",3,11.248022109252723
+"['lasso', 'svr', 'knnreg', 'knnreg', 'ridge', 'lasso', 'lasso']",4,11.251896762788967
+"['lasso', 'xgbreg', 'svr']",2,10.417005612997187
