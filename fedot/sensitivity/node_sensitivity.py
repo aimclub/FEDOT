@@ -23,7 +23,7 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 
 class NodeAnalysis:
     """
-    :param approaches: methods applied to nodes to modify the chain or analyze certain models.
+    :param approaches: methods applied to nodes to modify the chain or analyze certain models.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
@@ -122,7 +122,10 @@ class NodeAnalyzeApproach(ABC):
     @abstractmethod
     def analyze(self, node_id) -> Union[List[dict], float]:
         """Creates the difference metric(scorer, index, etc) of the changed
-        chain in relation to the original one"""
+        chain in relation to the original one
+
+        :param node_id: the sequence number of the node as in DFS result
+        """
         pass
 
     @abstractmethod
@@ -156,6 +159,10 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
                          path_to_save, interactive_mode=interactive_mode)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
+        """
+        :param node_id: the sequence number of the node as in DFS result
+        :return: the ratio of modified chain score to origin score
+        """
         if node_id == 0:
             # TODO or warning?
             return 1.0
@@ -167,6 +174,11 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
             return loss
 
     def sample(self, node_id: int):
+        """
+
+        :param node_id: the sequence number of the node as in DFS result
+        :return: Chain object without node with defined node_id
+        """
         chain_sample = deepcopy(self._chain)
         node_to_delete = chain_sample.nodes[node_id]
         chain_sample.delete_node(node_to_delete)
@@ -217,6 +229,14 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
                 number_of_random_models: Optional[int] = None) -> Union[List[dict], float]:
+        """
+
+        :param node_id:the sequence number of the node as in DFS result
+        :param nodes_to_replace_to: nodes provided for old_node replacement
+        :param number_of_random_models: number of replacement operations, \
+        if nodes_to_replace_to not provided
+        :return: the ratio of modified chain score to origin score
+        """
 
         samples = self.sample(node_id=node_id,
                               nodes_to_replace_to=nodes_to_replace_to,
@@ -241,6 +261,14 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
     def sample(self, node_id: int,
                nodes_to_replace_to: Optional[List[Node]],
                number_of_random_models: Optional[int] = None) -> Union[List[Chain], Chain]:
+        """
+
+        :param node_id:the sequence number of the node as in DFS result
+        :param nodes_to_replace_to: nodes provided for old_node replacement
+        :param number_of_random_models: number of replacement operations, \
+        if nodes_to_replace_to not provided
+        :return: Sequence of Chain objects with new models instead of old one.
+        """
 
         if not nodes_to_replace_to:
             node_type = type(self._chain.nodes[node_id])
