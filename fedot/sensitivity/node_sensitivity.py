@@ -26,10 +26,12 @@ class NodeAnalysis:
     :param approaches: methods applied to nodes to modify the chain or analyze certain models.
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
+    :param log: log: Log object to record messages
     """
 
-    def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None, path_to_save=None,
-                 interactive_mode=False, log: Log = None):
+    def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
+                 path_to_save=None, interactive_mode=False, log: Log = None):
 
         self.interactive_mode = interactive_mode
 
@@ -64,11 +66,12 @@ class NodeAnalysis:
 
         results = dict()
         for approach in self.approaches:
-            results[f'{approach.__name__}'] = approach(chain=chain,
-                                                       train_data=train_data,
-                                                       test_data=test_data,
-                                                       path_to_save=self.path_to_save,
-                                                       interactive_mode=self.interactive_mode).analyze(node_id=node_id)
+            results[f'{approach.__name__}'] = \
+                approach(chain=chain,
+                         train_data=train_data,
+                         test_data=test_data,
+                         path_to_save=self.path_to_save,
+                         interactive_mode=self.interactive_mode).analyze(node_id=node_id)
 
         if is_save:
             self._save_results_to_json(results)
@@ -91,6 +94,8 @@ class NodeAnalyzeApproach(ABC):
     :param train_data: data used for Chain training
     :param test_data: data used for Chain validation
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
+    :param log: log: Log object to record messages
     """
 
     def __init__(self, chain: Chain, train_data, test_data: InputData,
@@ -145,8 +150,10 @@ class NodeAnalyzeApproach(ABC):
 
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
-        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode=interactive_mode)
+    def __init__(self, chain: Chain, train_data, test_data: InputData,
+                 path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data,
+                         path_to_save, interactive_mode=interactive_mode)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         if node_id == 0:
@@ -175,8 +182,10 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
     Tune node and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
-        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode)
+    def __init__(self, chain: Chain, train_data, test_data: InputData,
+                 path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data,
+                         path_to_save, interactive_mode)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         tuned_chain = Tune(self._chain).fine_tune_certain_node(model_id=node_id,
@@ -200,8 +209,10 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
     and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
-        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode=interactive_mode)
+    def __init__(self, chain: Chain, train_data, test_data: InputData,
+                 path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data,
+                         path_to_save, interactive_mode=interactive_mode)
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,

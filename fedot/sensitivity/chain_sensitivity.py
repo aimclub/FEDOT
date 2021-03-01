@@ -35,6 +35,8 @@ class ChainStructureAnalyze:
     :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes
     :param all_nodes: flag, used to choose all nodes to analyze.Default: False.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
+    :param log: log: Log object to record messages
     """
 
     def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
