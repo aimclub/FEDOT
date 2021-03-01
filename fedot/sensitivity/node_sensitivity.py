@@ -1,3 +1,4 @@
+import json
 from abc import ABC
 from abc import abstractmethod
 from copy import deepcopy
@@ -14,6 +15,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_tune import Tune
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -23,22 +25,31 @@ class NodeAnalysis:
     """
     :param approaches: methods applied to nodes to modify the chain or analyze certain models.
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
-    :param result_dir: path to save results to. Default: ~home/Fedot/sensitivity
+    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     """
 
-    def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None, result_dir=None):
+    def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None, path_to_save=None,
+                 interactive_mode=False, log: Log = None):
+
+        self.interactive_mode = interactive_mode
+
         if not approaches:
             self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
         else:
             self.approaches = approaches
 
-        if not result_dir:
-            self.result_dir = join(default_fedot_data_dir(), 'sensitivity')
+        if not path_to_save:
+            self.path_to_save = join(default_fedot_data_dir(), 'sensitivity')
         else:
-            self.result_dir = result_dir
+            self.path_to_save = path_to_save
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def analyze(self, chain: Chain, node_id: int,
-                train_data: InputData, test_data: InputData) -> dict:
+                train_data: InputData, test_data: InputData, is_save=True) -> dict:
 
         """
         Method runs Node analysis within defined approaches
@@ -47,6 +58,7 @@ class NodeAnalysis:
         :param node_id: node index in Chain
         :param train_data: data used for Chain training
         :param test_data: data used for Chain validation
+        :param is_save: flag to save results to json or not
         :return: dict with Node analysis result per approach
         """
 
@@ -55,9 +67,20 @@ class NodeAnalysis:
             results[f'{approach.__name__}'] = approach(chain=chain,
                                                        train_data=train_data,
                                                        test_data=test_data,
-                                                       path_to_save=self.result_dir).analyze(node_id=node_id)
+                                                       path_to_save=self.path_to_save,
+                                                       interactive_mode=self.interactive_mode).analyze(node_id=node_id)
+
+        if is_save:
+            self._save_results_to_json(results)
 
         return results
+
+    def _save_results_to_json(self, results):
+        result_file = join(self.path_to_save, 'node_sa_results.json')
+        with open(result_file, 'w', encoding='utf-8') as file:
+            file.write(json.dumps(results, indent=4))
+
+        self.log.info(f'Node Sensitivity Analysis results were saved to {result_file}')
 
 
 class NodeAnalyzeApproach(ABC):
@@ -70,12 +93,13 @@ class NodeAnalyzeApproach(ABC):
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
+    def __init__(self, chain: Chain, train_data, test_data: InputData,
+                 path_to_save=None, interactive_mode=False, log: Log = None):
         self._chain = chain
         self._train_data = train_data
         self._test_data = test_data
         self._origin_metric = None
-        self.label = None
+        self.interactive_mode = interactive_mode
 
         if not path_to_save:
             self._path_to_save = join(default_fedot_data_dir(), 'sensitivity')
@@ -84,6 +108,11 @@ class NodeAnalyzeApproach(ABC):
 
         if not exists(self._path_to_save):
             makedirs(self._path_to_save)
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     @abstractmethod
     def analyze(self, node_id) -> Union[List[dict], float]:
@@ -116,10 +145,8 @@ class NodeAnalyzeApproach(ABC):
 
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super().__init__(chain, train_data, test_data, path_to_save)
-
-        self.label = 'NodeDeletionAnalyze'
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode=interactive_mode)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         if node_id == 0:
@@ -148,9 +175,8 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
     Tune node and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super().__init__(chain, train_data, test_data, path_to_save)
-        self.label = 'NodeTuneAnalyze'
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         tuned_chain = Tune(self._chain).fine_tune_certain_node(model_id=node_id,
@@ -174,9 +200,8 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
     and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super().__init__(chain, train_data, test_data, path_to_save)
-        self.label = 'NodeReplaceModelAnalyze'
+    def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None, interactive_mode=False):
+        super().__init__(chain, train_data, test_data, path_to_save, interactive_mode=interactive_mode)
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
@@ -237,7 +262,7 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
 
     def _visualize(self, x_values, y_values: list, node_id: int):
         data = zip(x_values, [(y - 1) for y in y_values])  # 3
-        model_type = self._chain.nodes[node_id].model.model_type
+        original_model_type = self._chain.nodes[node_id].model.model_type
 
         sorted_data = sorted(data, key=lambda tup: tup[1])
         x_values = [x[0] for x in sorted_data]
@@ -250,12 +275,19 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         ax.set_xticklabels(x_values, rotation=45)
         plt.xlabel('iteration')
         plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
-        if model_type in x_values:
-            original_model_index = x_values.index(model_type)
+
+        if original_model_type in x_values:
+            original_model_index = x_values.index(original_model_type)
             plt.gca().get_xticklabels()[original_model_index].set_color('red')
 
-        plt.savefig(join(self._path_to_save,
-                         f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'))
+        if self.interactive_mode:
+            plt.show()
+        else:
+            file_name = f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'
+            result_file = join(self._path_to_save, file_name)
+            plt.savefig(result_file)
+            self.log.info(f'NodeReplacementAnalysis for '
+                          f'{original_model_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
         return 'NodeReplaceModelAnalyze'

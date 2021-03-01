@@ -1,4 +1,3 @@
-import json
 from os import makedirs
 from os.path import join, exists
 
@@ -144,11 +143,6 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
                                                               NodeReplaceModelAnalyze]).analyze()
 
     print(f'chain analysis result {chain_analysis_result}')
-
-    file_path_to_save = join(result_path, 'sa_result.json')
-
-    with open(file_path_to_save, 'w', encoding='utf-8') as file:
-        file.write(json.dumps(chain_analysis_result, indent=4))
 
 
 def run_class_scoring_case(is_composed: bool, path_to_save=None):

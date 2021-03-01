@@ -1,8 +1,10 @@
+import json
 from os.path import join
 from typing import List, Optional, Type
 
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.data.data import InputData
+from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach, \
     NodeAnalysis
@@ -38,13 +40,14 @@ class ChainStructureAnalyze:
     def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  metric: str = None, nodes_ids_to_analyze: List[int] = None,
-                 all_nodes: bool = False, path_to_save=None):
+                 all_nodes: bool = False, path_to_save=None, interactive_mode=False, log: Log = None):
 
         self.chain = chain
         self.train_data = train_data
         self.test_data = test_data
         self.approaches = approaches
         self.metric = metric
+        self.interactive_mode = interactive_mode
 
         if all_nodes and nodes_ids_to_analyze:
             raise ValueError("Choose only one parameter between all_nodes and nodes_ids_to_analyze")
@@ -61,6 +64,11 @@ class ChainStructureAnalyze:
         else:
             self.path_to_save = path_to_save
 
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
     def analyze(self) -> dict:
         """
         Main method to run the analyze process for every node.
@@ -71,20 +79,29 @@ class ChainStructureAnalyze:
         nodes_results = dict()
         model_types = []
         for index in self.nodes_ids_to_analyze:
-            node_result = NodeAnalysis(approaches=self.approaches, result_dir=self.path_to_save). \
+            node_result = NodeAnalysis(approaches=self.approaches, path_to_save=self.path_to_save). \
                 analyze(chain=self.chain, node_id=index,
                         train_data=self.train_data,
-                        test_data=self.test_data)
+                        test_data=self.test_data,
+                        is_save=False)
             model_types.append(self.chain.nodes[index].model.model_type)
 
             nodes_results[f'id = {index}, model = {self.chain.nodes[index].model.model_type}'] = node_result
 
-        self._visualize(nodes_results, model_types)
+        self._visualize_result_per_approach(nodes_results, model_types)
         if len(self.nodes_ids_to_analyze) == len(self.chain.nodes):
             self._visualize_degree_correlation(nodes_results)
+        self._save_results_to_json(nodes_results)
         return nodes_results
 
-    def _visualize(self, results: dict, types: list):
+    def _save_results_to_json(self, result):
+        result_file = join(self.path_to_save, 'chain_SA_results.json')
+        with open(result_file, 'w', encoding='utf-8') as file:
+            file.write(json.dumps(result, indent=4))
+
+        self.log.info(f'Chain Sensitivity Analysis results were saved to {result_file}')
+
+    def _visualize_result_per_approach(self, results: dict, types: list):
         gathered_results = self._extract_result_values(results)
 
         for index, result in enumerate(gathered_results):
@@ -98,10 +115,14 @@ class ChainStructureAnalyze:
             plt.xlabel('iteration')
             plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
 
-            file_path = join(self.path_to_save,
-                             f'{self.approaches[index].__name__}.jpg')
+            if self.interactive_mode:
+                plt.show()
+            else:
+                file_path = join(self.path_to_save,
+                                 f'{self.approaches[index].__name__}.jpg')
 
-            plt.savefig(file_path)
+                plt.savefig(file_path)
+                self.log.info(f'Chain Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
         nodes_degrees = get_nodes_degrees(self.chain)
@@ -109,9 +130,13 @@ class ChainStructureAnalyze:
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))
             ax.scatter(nodes_degrees, result)
-            file_path = join(self.path_to_save,
-                             f'{self.approaches[index].__name__}_cor.jpg')
-            plt.savefig(file_path)
+            if self.interactive_mode:
+                plt.show()
+            else:
+                file_path = join(self.path_to_save,
+                                 f'{self.approaches[index].__name__}_cor.jpg')
+                plt.savefig(file_path)
+                self.log.info(f'Nodes degree correlation visualized results were saved to {file_path}')
 
     def _extract_result_values(self, results):
         gathered_results = []

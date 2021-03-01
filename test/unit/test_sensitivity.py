@@ -1,4 +1,4 @@
-from unittest.mock import patch
+import os
 
 import pytest
 
@@ -9,7 +9,15 @@ from fedot.core.data.data import InputData
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import \
     NodeDeletionAnalyze, NodeAnalysis, NodeTuneAnalyze, NodeReplaceModelAnalyze
-from test.unit.utilities.test_chain_import_export import create_four_depth_chain
+from test.unit.utilities.test_chain_import_export import create_func_delete_files
+
+
+@pytest.fixture(scope='session', autouse=True)
+def delete_files(request):
+    paths = ['sa_test_result_path']
+    delete_files = create_func_delete_files(paths)
+    delete_files()
+    request.addfinalizer(delete_files)
 
 
 def scoring_dataset():
@@ -36,8 +44,11 @@ def given_data():
     chain = get_chain()
     train_data, test_data = scoring_dataset()
     node_index = 2
+    result_path = 'sa_test_result_path'
+    if not os.path.exists(result_path):
+        os.mkdir(result_path)
 
-    return chain, train_data, test_data, node_index
+    return chain, train_data, test_data, node_index, result_path
 
 
 # ------------------------------------------------------------------------------
@@ -45,7 +56,7 @@ def given_data():
 
 def test_chain_structure_analyze_init():
     # given
-    chain, train_data, test_data, node_ids = given_data()
+    chain, train_data, test_data, node_ids, _ = given_data()
     approaches = [NodeDeletionAnalyze]
 
     # when
@@ -58,24 +69,9 @@ def test_chain_structure_analyze_init():
     assert isinstance(chain_analyzer, ChainStructureAnalyze)
 
 
-def test_chain_structure_init_result_path_defined():
-    # given
-    chain, train_data, test_data, _ = given_data()
-    approaches = [NodeDeletionAnalyze]
-
-    # when
-    chain_analyzer = ChainStructureAnalyze(chain=chain,
-                                           train_data=train_data,
-                                           test_data=test_data,
-                                           approaches=approaches,
-                                           nodes_ids_to_analyze=[2],
-                                           path_to_save='.')
-    assert chain_analyzer.path_to_save == '.'
-
-
 def test_chain_structure_analyze_init_all_and_ids_raise_exception():
     # given
-    chain, train_data, test_data, _ = given_data()
+    chain, train_data, test_data, _, _ = given_data()
     approaches = [NodeDeletionAnalyze]
 
     # when
@@ -93,7 +89,7 @@ def test_chain_structure_analyze_init_all_and_ids_raise_exception():
 
 def test_chain_structure_analyze_init_no_all_no_ids_raise_exception():
     # given
-    chain, train_data, test_data, _ = given_data()
+    chain, train_data, test_data, _, _ = given_data()
     approaches = [NodeDeletionAnalyze]
 
     # when
@@ -107,10 +103,9 @@ def test_chain_structure_analyze_init_no_all_no_ids_raise_exception():
                              "all_nodes or nodes_ids_to_analyze"
 
 
-# @patch('fedot.sensitivity.chain_sensitivity.ChainStructureAnalyze.analyze', return_value={'key': 'value'})
 def test_chain_structure_analyze_analyze():
     # given
-    chain, train_data, test_data, _ = given_data()
+    chain, train_data, test_data, _, result_dir = given_data()
     approaches = [NodeDeletionAnalyze]
 
     # when
@@ -118,7 +113,8 @@ def test_chain_structure_analyze_analyze():
                                    train_data=train_data,
                                    test_data=test_data,
                                    approaches=approaches,
-                                   all_nodes=True).analyze()
+                                   all_nodes=True,
+                                   path_to_save=result_dir).analyze()
     assert isinstance(result, dict)
 
 
@@ -151,13 +147,14 @@ def test_node_analysis_init_defined_approaches():
 # @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
 def test_node_analysis_analyze():
     # given
-    chain, train_data, test_data, node_index = given_data()
+    chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
-    node_analysis_result: dict = NodeAnalysis().analyze(chain=chain,
-                                                        node_id=node_index,
-                                                        train_data=train_data,
-                                                        test_data=test_data)
+    node_analysis_result: dict = NodeAnalysis(path_to_save=result_dir). \
+        analyze(chain=chain,
+                node_id=node_index,
+                train_data=train_data,
+                test_data=test_data)
 
     assert isinstance(node_analysis_result, dict)
 
@@ -165,15 +162,15 @@ def test_node_analysis_analyze():
 # ------------------------------------------------------------------------------
 # NodeAnalyzeApproach
 
-# @patch('fedot.sensitivity.sensitivity_facade.NodeDeletionAnalyze.analyze', return_value=0.0)
 def test_node_deletion_analyze():
     # given
-    chain, train_data, test_data, node_index = given_data()
+    chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
     node_analysis_result = NodeDeletionAnalyze(chain=chain,
                                                train_data=train_data,
-                                               test_data=test_data).analyze(node_id=node_index)
+                                               test_data=test_data,
+                                               path_to_save=result_dir).analyze(node_id=node_index)
 
     # then
     assert isinstance(node_analysis_result, float)
@@ -181,12 +178,13 @@ def test_node_deletion_analyze():
 
 def test_node_deletion_analyze_zero_node_id():
     # given
-    chain, train_data, test_data, _ = given_data()
+    chain, train_data, test_data, _, result_dir = given_data()
 
     # when
     node_analysis_result = NodeDeletionAnalyze(chain=chain,
                                                train_data=train_data,
-                                               test_data=test_data).analyze(node_id=0)
+                                               test_data=test_data,
+                                               path_to_save=result_dir).analyze(node_id=0)
 
     # then
     assert isinstance(node_analysis_result, float)
@@ -195,20 +193,20 @@ def test_node_deletion_analyze_zero_node_id():
 
 def test_node_tune_analyze():
     # given
-    chain, train_data, test_data, node_index = given_data()
+    chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
     node_analysis_result = NodeTuneAnalyze(chain=chain,
                                            train_data=train_data,
-                                           test_data=test_data).analyze(node_id=node_index)
+                                           test_data=test_data,
+                                           path_to_save=result_dir).analyze(node_id=node_index)
     # then
     assert isinstance(node_analysis_result, float)
 
 
-# @patch('fedot.sensitivity.sensitivity_facade.NodeReplaceModelAnalyze.analyze', return_value=[0.0])
 def test_node_replacement_analyze_defined_nodes():
     # given
-    chain, train_data, test_data, node_index = given_data()
+    chain, train_data, test_data, node_index, result_dir = given_data()
 
     replacing_node = PrimaryNode('lda')
 
@@ -216,23 +214,24 @@ def test_node_replacement_analyze_defined_nodes():
     node_analysis_result = \
         NodeReplaceModelAnalyze(chain=chain,
                                 train_data=train_data,
-                                test_data=test_data).analyze(node_id=node_index,
-                                                             nodes_to_replace_to=[replacing_node])
+                                test_data=test_data,
+                                path_to_save=result_dir).analyze(node_id=node_index,
+                                                                 nodes_to_replace_to=[replacing_node])
 
     # then
     assert isinstance(node_analysis_result, float)
 
 
-# @patch('fedot.sensitivity.sensitivity_facade.NodeReplaceModelAnalyze.analyze', return_value=[0.0, 0.0, 0.0])
 def test_node_replacement_analyze_random_nodes_default_number():
     # given
-    chain, train_data, test_data, node_index = given_data()
+    chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
     node_analysis_result = \
         NodeReplaceModelAnalyze(chain=chain,
                                 train_data=train_data,
-                                test_data=test_data). \
+                                test_data=test_data,
+                                path_to_save=result_dir). \
             analyze(node_id=node_index)
 
     # then
