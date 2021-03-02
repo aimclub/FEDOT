@@ -22,6 +22,7 @@ class ChainTemplate:
     :params chain: Chain object to export or empty Chain to import
     :params log: Log object to record messages
     """
+
     def __init__(self, chain=None, log: Log = None):
         self.total_chain_models = Counter()
         self.depth = chain.depth

@@ -87,6 +87,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     assert len(ts_forecast) == forecast_length
     assert metric['rmse'] >= 0
 
+
 def test_api_check_data_correct():
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
