@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from fedot.core.chains.chain_template import chain_template_as_nx_graph
-from fedot.core.chains.utils import chain_as_nx_graph
+from fedot.core.chains.chain_convert import chain_as_nx_graph
+from fedot.core.chains.chain_convert import chain_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 

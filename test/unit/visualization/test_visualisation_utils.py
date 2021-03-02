@@ -1,7 +1,8 @@
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_convert import chain_template_as_nx_graph
+from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
 from fedot.core.composer.visualisation import hierarchy_pos
-from fedot.core.chains.chain_template import chain_template_as_nx_graph, ChainTemplate
 
 
 def chain_first():  # tested chain

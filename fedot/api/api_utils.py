@@ -44,9 +44,10 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task_type, data_type=data_type)
 
 
-def _filter_models_by_preset(available_model_types: list,
-                             model_configuration: str):
+def filter_models_by_preset(available_model_types: list,
+                            model_configuration: str):
     excluded_models_dict = {'light': ['mlp', 'svc', ],
+                            'ultra_light': [],
                             'default': []}
 
     excluded_models = excluded_models_dict[model_configuration]
@@ -60,7 +61,7 @@ def _filter_models_by_preset(available_model_types: list,
     return available_model_types
 
 
-def compose_fedot_model(train_data: InputData,
+def compose_fedot_model(logger, train_data: InputData,
                         task: Task,
                         max_depth: int,
                         max_arity: int,
@@ -68,11 +69,12 @@ def compose_fedot_model(train_data: InputData,
                         num_of_generations: int,
                         learning_time: int = 5,
                         model_types: list = None,
-                        models_preset: str = 'light',
-                        with_tuning=True
+                        preset: str = 'light'
                         ):
     # the choice of the metric for the chain quality assessment during composition
     metric_function = get_metric_function(task)
+
+    is_tuning = '_tun' in preset or preset == 'full'
 
     learning_time = datetime.timedelta(minutes=learning_time)
 
@@ -82,7 +84,10 @@ def compose_fedot_model(train_data: InputData,
     if model_types is not None:
         available_model_types = model_types
 
-    available_model_types = _filter_models_by_preset(available_model_types, models_preset)
+    available_model_types = filter_models_by_preset(available_model_types, preset)
+
+    logger.info(f'{model_types} preset is used. Parameters tuning: {is_tuning}. '
+                f'Number of candidate models: {available_model_types}. Composing time limit: {learning_time}')
 
     # the choice and initialisation of the GP composer
     composer_requirements = GPComposerRequirements(
@@ -96,7 +101,8 @@ def compose_fedot_model(train_data: InputData,
     gp_composer = builder.build()
 
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
-    if with_tuning:
+
+    if is_tuning:
         chain_gp_composed.fine_tune_primary_nodes(input_data=train_data, verbose=True)
 
     return chain_gp_composed

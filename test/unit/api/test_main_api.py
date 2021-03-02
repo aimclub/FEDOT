@@ -17,7 +17,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'learning_time': 0.0001,
-                   'with_tuning': False}
+                   'preset': 'ultra_light'}
 
 
 def get_split_data_paths():
@@ -65,12 +65,11 @@ def test_api_predict_correct(task_type: str = 'classification'):
                   composer_params=composer_params)
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
-    metric = model.validate()
+    metric = model.get_metrics()
 
-    # TODO correct asserts
     assert isinstance(fedot_model, Chain)
     assert len(prediction) == len(test_data.target)
-    assert metric > 0
+    assert metric['f1'] > 0
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
@@ -83,11 +82,10 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 
     model.fit(features=train_data)
     ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
-    metric = model.validate(target=test_data.target[:forecast_length], metric_name='rmse')
+    metric = model.get_metrics(target=test_data.target[:forecast_length], metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
-    assert metric >= 0
-
+    assert metric['rmse'] >= 0
 
 def test_api_check_data_correct():
     task_type, x_train, x_test, y_train, y_test = get_split_data()
@@ -119,6 +117,6 @@ def test_baseline_with_api():
     assert len(prediction) == len(test_data.target)
 
     # evaluate quality metric for the test sample
-    baseline_f1 = baseline_model.validate(metric_name='f1')
+    baseline_metrics = baseline_model.get_metrics(metric_names='f1')
 
-    assert baseline_f1 > 0
+    assert baseline_metrics['f1'] > 0
