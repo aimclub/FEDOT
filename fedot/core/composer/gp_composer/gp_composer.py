@@ -150,8 +150,9 @@ class GPComposerBuilder:
             models, _ = ModelTypesRepository().suitable_operation(task_type=self.task.task_type)
             data_operations, _ = DataOperationTypesRepository().suitable_operation(task_type=self.task.task_type)
 
-            # TODO make unit function for merging two dictionaries
-            self._composer.composer_requirements = GPComposerRequirements(primary=models, secondary=models)
+            # Unit two dictionaries
+            operations = models + data_operations
+            self._composer.composer_requirements = GPComposerRequirements(primary=operations, secondary=operations)
         if not self._composer.metrics:
             metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
             if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):

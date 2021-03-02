@@ -24,6 +24,9 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.chains.chain_tune import Tune
+
+np.random.seed(10)
 
 
 def run_experiment(file_path, chain, file_to_save):
@@ -38,7 +41,8 @@ def run_experiment(file_path, chain, file_to_save):
     obt_chains = []
     depths = []
     maes = []
-    for i in range(0, 20):
+    maes_first = []
+    for i in range(0, 10):
         print(f'Iteration {i}')
 
         # Define regression task
@@ -67,7 +71,7 @@ def run_experiment(file_path, chain, file_to_save):
         composer_requirements = GPComposerRequirements(
             primary=['one_hot_encoding'],
             secondary=available_model_types_secondary, max_arity=3,
-            max_depth=8, pop_size=10, num_of_generations=12,
+            max_depth=8, pop_size=10, num_of_generations=3,
             crossover_prob=0.8, mutation_prob=0.8,
             max_lead_time=datetime.timedelta(minutes=5),
             add_single_operation_chains=True)
@@ -89,6 +93,16 @@ def run_experiment(file_path, chain, file_to_save):
         depth = int(obtained_chain.depth)
         print(f'Chain depth {depth}')
 
+        # Predict
+        predicted_values = obtained_chain.predict(predict_input)
+        preds = predicted_values.predict
+        y_data_test = np.ravel(y_data_test)
+        first_mae = mean_absolute_error(y_data_test, preds)
+        print(f'MAE before tuning - {first_mae:.2f}')
+
+        obtained_chain.fine_tune_all_nodes(train_input,
+                                           max_lead_time=datetime.timedelta(minutes=2),
+                                           iterations=30)
         # Fit it
         obtained_chain.fit_from_scratch(train_input)
 
@@ -108,7 +122,8 @@ def run_experiment(file_path, chain, file_to_save):
 
     report = pd.DataFrame({'Chain': obt_chains,
                            'Depth': depths,
-                           'MAE': maes})
+                           'MAE before tuning': maes_first,
+                           'MAE after tuning': maes})
     report.to_csv(file_to_save, index=False)
 
 
@@ -121,7 +136,7 @@ if __name__ == '__main__':
     chain = Chain(node_final)
 
     run_experiment('../cases/data/river_levels/station_levels.csv', chain,
-                   file_to_save='data/river_levels/old_composer_new_preprocessing_report.csv')
+                   file_to_save='data/river_levels/old_composer_new_preprocessing_report_tuner.csv')
 
 
 

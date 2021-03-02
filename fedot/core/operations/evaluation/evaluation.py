@@ -202,12 +202,14 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :return tuple(object, dict): operation with found hyperparameters and dictionary with found hyperparameters
         """
         trained_operation = self.fit(train_data=train_data)
+        print('Fit-tune after training')
         params_range = params_range_by_operation.get(self.operation_type, None)
         self._tune_strategy = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
             return trained_operation, trained_operation.get_params()
 
+        #print(params_range)
         tuned_params, best_operation = self._tune_strategy(trained_model=trained_operation,
                                                            tune_data=train_data,
                                                            params_range=params_range,

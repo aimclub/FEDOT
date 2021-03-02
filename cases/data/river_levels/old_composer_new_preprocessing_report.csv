@@ -1,0 +1,11 @@
+Chain,Depth,MAE
+"['xgbreg', 'normalization', 'one_hot_encoding']",3,10.443038507181521
+"['xgbreg', 'xgbreg', 'xgbreg', 'one_hot_encoding']",4,10.561556617969291
+"['linear', 'xgbreg', 'linear', 'xgbreg', 'normalization', 'poly_features', 'one_hot_encoding']",7,10.615729461416313
+"['linear', 'xgbreg', 'pca', 'one_hot_encoding']",4,10.45226145186913
+"['xgbreg', 'one_hot_encoding']",2,10.32351112894074
+"['linear', 'scaling', 'linear', 'scaling', 'one_hot_encoding']",5,12.343478418448257
+"['xgbreg', 'xgbreg', 'lasso', 'xgbreg', 'one_hot_encoding']",5,10.561556617969291
+"['knnreg', 'knnreg', 'xgbreg', 'one_hot_encoding']",4,10.534626038781163
+"['xgbreg', 'xgbreg', 'xgbreg', 'one_hot_encoding']",4,10.561556617969291
+"['knnreg', 'xgbreg', 'xgbreg', 'xgbreg', 'one_hot_encoding']",5,10.68808864265928

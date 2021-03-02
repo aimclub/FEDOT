@@ -41,7 +41,6 @@ class FeatureSelection(EncodedInvariantOperation):
                 self.operation.fit(features_to_process, target[:, 0])
         else:
             pass
-
         return self.operation
 
     def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
@@ -51,6 +50,7 @@ class FeatureSelection(EncodedInvariantOperation):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return output_data: filtered input data by columns
         """
+
         features = input_data.features
         if len(self.ids_to_process) > 0:
             transformed_features = self._make_new_table(features)

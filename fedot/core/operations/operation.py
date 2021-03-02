@@ -169,10 +169,8 @@ class Model(Operation):
         """
         self._init(data.task)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=True)
-
         try:
-            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=prepared_data,
+            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
                                                                        iterations=iterations,
                                                                        max_lead_time=max_lead_time)
             if fitted_model is None:
@@ -183,10 +181,12 @@ class Model(Operation):
                 self.params = DEFAULT_PARAMS_STUB
         except Exception as ex:
             print(f'Tuning failed because of {ex}')
-            fitted_model = self._eval_strategy.fit(train_data=data)
+            fitted_model = self._eval_strategy.fit(train_data=data,
+                                                   is_fit_chain_stage=True)
             self.params = DEFAULT_PARAMS_STUB
 
-        predict_train = self.predict(fitted_model, data)
+        predict_train = self.predict(fitted_model, data,
+                                     is_fit_chain_stage=False)
 
         return fitted_model, predict_train
 
@@ -292,11 +292,9 @@ class DataOperation(Operation):
         """
         self._init(data.task)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=True)
-
         try:
             fitted_operation, tuned_params = self._eval_strategy.fit_tuned(
-                train_data=prepared_data,
+                train_data=data,
                 iterations=iterations,
                 max_lead_time=max_lead_time)
             if fitted_operation is None:

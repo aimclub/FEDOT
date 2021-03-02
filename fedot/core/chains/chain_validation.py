@@ -21,6 +21,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_primary_nodes(chain)
     has_correct_operation_positions(chain, task)
     has_at_least_one_model(chain)
+    has_final_operation_as_model(chain)
     return True
 
 
@@ -111,5 +112,21 @@ def has_at_least_one_model(chain: Chain):
 
     if len(models) == 0:
         raise ValueError(f'{ERROR_PREFIX} Chain consists only of data '
-                         f'operations, at least one model needed')
+                         f'operations, at least one model required')
+    return True
+
+
+def has_final_operation_as_model(chain: Chain):
+    root_node = chain.root_node
+    root_operation = root_node.operation
+
+    # Get available models
+    operations_repo = ModelTypesRepository()
+    models_ids = operations_repo.operations
+
+    if any(str(root_operation) == model.id for model in models_ids):
+        pass
+    else:
+        raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
+
     return True

@@ -89,9 +89,12 @@ class PCAOperation(DataOperationRealisation):
 class OneHotEncodingOperation(DataOperationRealisation):
     """ Class for automatic categorical data detection and one hot encoding """
 
-    def __init__(self):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.encoder = OneHotEncoder()
+        if not params:
+            self.encoder = OneHotEncoder()
+        else:
+            self.encoder = OneHotEncoder(**params)
         self.categorical_ids = None
         self.non_categorical_ids = None
 
@@ -227,9 +230,7 @@ class ScalingOperation(EncodedInvariantOperation):
         if not params:
             self.operation = StandardScaler()
         else:
-            # TODO implement it - need help and advises
-            scaling_params = {}
-            self.operation = StandardScaler(**scaling_params)
+            self.operation = StandardScaler(**params)
         self.params = params
 
     def get_params(self):
@@ -249,9 +250,7 @@ class NormalizationOperation(EncodedInvariantOperation):
         if not params:
             self.operation = MinMaxScaler()
         else:
-            # TODO implement it - need help and advises
-            normalization_params = {}
-            self.operation = MinMaxScaler(**normalization_params)
+            self.operation = MinMaxScaler(**params)
         self.params = params
 
     def get_params(self):

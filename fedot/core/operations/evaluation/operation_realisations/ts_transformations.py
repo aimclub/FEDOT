@@ -17,7 +17,7 @@ class LaggedTransformation(DataOperationRealisation):
         if not params:
             self.window_size = 10
         else:
-            self.window_size = params.get('window_size')
+            self.window_size = int(round(params.get('window_size')))
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
