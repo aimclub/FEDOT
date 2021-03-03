@@ -109,7 +109,7 @@ class Chain:
         return result
 
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
-                                max_lead_time: timedelta = timedelta(minutes=5),
+                                max_lead_time: timedelta = timedelta(minutes=3),
                                 verbose=False):
         """
         Optimize hyperparameters in primary nodes models

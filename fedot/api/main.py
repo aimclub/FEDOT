@@ -1,4 +1,5 @@
-from typing import Union, List
+import random
+from typing import List, Union
 
 import numpy as np
 
@@ -23,12 +24,12 @@ def default_evo_params(problem):
                 'learning_time': 2,
                 'preset': 'light'}
     else:
-        return {'max_depth': 3,
+        return {'max_depth': 2,
                 'max_arity': 3,
                 'pop_size': 20,
                 'num_of_generations': 20,
                 'learning_time': 2,
-                'preset': 'light'}
+                'preset': 'light_tun'}
 
 
 def user_evo_params(max_depth: int = 2,
@@ -55,17 +56,26 @@ basic_metric_dict = {
 class Fedot:
     def __init__(self,
                  problem: str,
+                 preset: str = None,
                  composer_params: dict = None,
-                 task_params: TaskParams = None):
+                 task_params: TaskParams = None,
+                 seed=None):
         """
         :param problem: the name of modelling problem to solve:
             - classification
             - regression
             - ts_forecasting
             - clustering
+        :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
         :param composer_params: parameters of pipeline optimisation
         :param task_params:  additional parameters of the task
+        :param seed: value for fixed random seed
         """
+
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
+
         # metainfo
         self.problem = problem
         self.composer_params = composer_params
@@ -85,6 +95,9 @@ class Fedot:
             self.composer_params = default_evo_params(self.problem)
         else:
             self.composer_params = {**user_evo_params(), **self.composer_params}
+
+        if preset is not None:
+            self.composer_params['preset'] = preset
 
         if self.problem == 'ts_forecasting' and task_params is None:
             # TODO auto-estimate

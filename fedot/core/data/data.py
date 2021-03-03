@@ -273,6 +273,8 @@ def _combine_datasets_common(outputs: List[OutputData]):
 
 
 def _process_empty_features_for_task(features, task: Task):
-    if features.shape[1] == 0 and task.task_type == TaskTypesEnum.ts_forecasting:
+    if (features is not None and
+            features.shape[1] == 0 and
+            task.task_type == TaskTypesEnum.ts_forecasting):
         return None
     return features

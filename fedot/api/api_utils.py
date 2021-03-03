@@ -5,6 +5,7 @@ import pandas as pd
 
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
@@ -46,30 +47,30 @@ def array_to_input_data(features_array: np.array,
 
 def filter_models_by_preset(available_model_types: list,
                             model_configuration: str):
-    excluded_models_dict = {'light': ['mlp', 'svc', ],
-                            'ultra_light': [],
-                            'default': []}
+    excluded_models_dict = {'light': ['mlp', 'svc'],
+                            'light_tun': ['mlp', 'svc']}
 
-    excluded_models = excluded_models_dict[model_configuration]
+    if model_configuration in excluded_models_dict.keys():
+        excluded_models = excluded_models_dict[model_configuration]
+        available_model_types = [_ for _ in available_model_types if _ not in excluded_models]
 
-    available_model_types = [_ for _ in available_model_types if _ not in excluded_models]
-
-    if model_configuration == 'ultra_light':
+    if model_configuration in ['ultra_light', 'ultra_light_tun']:
         included_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn']
         available_model_types = [_ for _ in available_model_types if _ in included_models]
 
     return available_model_types
 
 
-def compose_fedot_model(logger, train_data: InputData,
+def compose_fedot_model(train_data: InputData,
                         task: Task,
+                        logger: Log,
                         max_depth: int,
                         max_arity: int,
                         pop_size: int,
                         num_of_generations: int,
                         learning_time: int = 5,
                         model_types: list = None,
-                        preset: str = 'light'
+                        preset: str = 'light_tun'
                         ):
     # the choice of the metric for the chain quality assessment during composition
     metric_function = get_metric_function(task)
@@ -86,7 +87,7 @@ def compose_fedot_model(logger, train_data: InputData,
 
     available_model_types = filter_models_by_preset(available_model_types, preset)
 
-    logger.info(f'{model_types} preset is used. Parameters tuning: {is_tuning}. '
+    logger.info(f'{preset} preset is used. Parameters tuning: {is_tuning}. '
                 f'Number of candidate models: {available_model_types}. Composing time limit: {learning_time}')
 
     # the choice and initialisation of the GP composer
