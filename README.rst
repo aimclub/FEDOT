@@ -307,4 +307,3 @@ Citation
 .. |tg| image:: https://img.shields.io/badge/Telegram-Group-blue.svg
           :target: https://t.me/FEDOT_helpdesk
           :alt: Telegram Chat
-

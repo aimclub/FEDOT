@@ -1,16 +1,15 @@
-from datetime import datetime
-import joblib
 import json
 import os
-import networkx as nx
-
 from collections import Counter
+from datetime import datetime
 from typing import List
 from uuid import uuid4
 
-from fedot.core.models.atomized_template import AtomizedModelTemplate
+import joblib
+
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
 from fedot.core.log import default_log, Log
+from fedot.core.models.atomized_template import AtomizedModelTemplate
 from fedot.core.models.model_template import ModelTemplate
 from fedot.core.repository.model_types_repository import atomized_model_type
 
@@ -23,6 +22,7 @@ class ChainTemplate:
     :params chain: Chain object to export or empty Chain to import
     :params log: Log object to record messages
     """
+
     def __init__(self, chain=None, log: Log = None):
         self.total_chain_models = Counter()
         self.depth = chain.depth
@@ -234,21 +234,3 @@ def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     root_node = chain_template.roll_chain_structure(root_node, {})
 
     return root_node
-
-
-def chain_template_as_nx_graph(chain: ChainTemplate):
-    graph = nx.DiGraph()
-    node_labels = {}
-    for model in chain.model_templates:
-        unique_id, label = model.model_id, model.model_type
-        node_labels[unique_id] = label
-        graph.add_node(unique_id)
-
-    def add_edges(graph, chain):
-        for model in chain.model_templates:
-            if model.nodes_from is not None:
-                for child in model.nodes_from:
-                    graph.add_edge(child, model.model_id)
-
-    add_edges(graph, chain)
-    return graph, node_labels

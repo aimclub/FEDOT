@@ -4,12 +4,12 @@ from datetime import timedelta
 import pytest
 from sklearn.metrics import mean_squared_error
 
-from test.unit.utilities.test_chain_import_export import create_func_delete_files, create_correct_path
+from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.models.atomized_model import AtomizedModel
 from fedot.core.data.data import InputData
-from cases.data.data_utils import get_scoring_case_data_paths
+from fedot.core.models.atomized_model import AtomizedModel
+from test.unit.utilities.test_chain_import_export import create_func_delete_files, create_correct_path
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -103,7 +103,7 @@ def create_data_for_train():
 def test_save_load_atomized_chain_correctly():
     chain = create_chain_with_several_nested_atomized_model()
 
-    json_actual = chain.save_chain('test_save_load_atomized_chain_correctly')
+    json_actual = chain.save('test_save_load_atomized_chain_correctly')
 
     json_path_load = create_correct_path('test_save_load_atomized_chain_correctly')
 
@@ -111,7 +111,7 @@ def test_save_load_atomized_chain_correctly():
         json_expected = json.load(json_file)
 
     chain_loaded = Chain()
-    chain_loaded.load_chain(json_path_load)
+    chain_loaded.load(json_path_load)
 
     assert chain.length == chain_loaded.length
     assert json_actual == json.dumps(json_expected)
@@ -123,13 +123,13 @@ def test_save_load_fitted_atomized_chain_correctly():
     train_data, test_data = create_data_for_train()
     chain.fit(train_data)
 
-    json_actual = chain.save_chain('test_save_load_fitted_atomized_chain_correctly')
+    json_actual = chain.save('test_save_load_fitted_atomized_chain_correctly')
 
     json_path_load = create_correct_path('test_save_load_fitted_atomized_chain_correctly')
 
     chain_loaded = Chain()
-    chain_loaded.load_chain(json_path_load)
-    json_expected = chain_loaded.save_chain('test_save_load_fitted_atomized_chain_correctly_loaded')
+    chain_loaded.load(json_path_load)
+    json_expected = chain_loaded.save('test_save_load_fitted_atomized_chain_correctly_loaded')
 
     assert chain.length == chain_loaded.length
     assert json_actual == json_expected

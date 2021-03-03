@@ -174,6 +174,7 @@ class SklearnCustomRandomTuner(Tuner):
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
             with TunerTimer() as timer:
+                self.log.info('Model tuning started')
                 best_model = self.trained_model
                 best_score, best_params = self.default_score, self.default_params
                 for _ in range(self.max_iterations):
@@ -181,12 +182,14 @@ class SklearnCustomRandomTuner(Tuner):
                     self.trained_model.set_params(**params)
                     score, _ = self.get_cross_val_score_and_params(self.trained_model)
                     if self._is_score_better(previous=best_score, current=score):
+                        self.log.info('Better solution found during hyperparameters tuning')
                         best_params = params
                         best_model = self.trained_model
                         best_score = score
 
                     if timer.is_time_limit_reached(self.time_limit):
                         break
+                self.log.info('Model tuning finished')
                 return best_params, best_model
         except Exception as ex:
             self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')

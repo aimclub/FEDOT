@@ -1,9 +1,9 @@
 import os
 from datetime import timedelta
 
-from fedot.core.repository.model_types_repository import ModelTypesRepository
 from examples.chain_from_automl import run_chain_from_automl
 from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
+from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.utils import project_root
 
 
@@ -22,7 +22,6 @@ def test_chain_from_automl_example():
 
 def test_tpot_vs_fedot_example():
     project_root_path = str(project_root())
-    test_file_path = str(os.path.dirname(__file__))
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
     file_path_test = file_path_train
 
