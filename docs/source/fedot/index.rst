@@ -13,4 +13,4 @@ FEDOT
    components
    algorithms
    real_cases
-   utilities
+   features

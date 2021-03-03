@@ -31,9 +31,8 @@ class NodeAnalysis:
     """
 
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
-                 path_to_save=None, interactive_mode=False, log: Log = None):
+                 path_to_save=None, log: Log = None):
 
-        self.interactive_mode = interactive_mode
 
         if not approaches:
             self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
@@ -70,8 +69,7 @@ class NodeAnalysis:
                 approach(chain=chain,
                          train_data=train_data,
                          test_data=test_data,
-                         path_to_save=self.path_to_save,
-                         interactive_mode=self.interactive_mode).analyze(node_id=node_id)
+                         path_to_save=self.path_to_save).analyze(node_id=node_id)
 
         if is_save:
             self._save_results_to_json(results)
@@ -99,12 +97,11 @@ class NodeAnalyzeApproach(ABC):
     """
 
     def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None, interactive_mode=False, log: Log = None):
+                 path_to_save=None, log: Log = None):
         self._chain = chain
         self._train_data = train_data
         self._test_data = test_data
         self._origin_metric = None
-        self.interactive_mode = interactive_mode
 
         if not path_to_save:
             self._path_to_save = join(default_fedot_data_dir(), 'sensitivity')
@@ -154,9 +151,9 @@ class NodeAnalyzeApproach(ABC):
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None, interactive_mode=False):
+                 path_to_save=None):
         super().__init__(chain, train_data, test_data,
-                         path_to_save, interactive_mode=interactive_mode)
+                         path_to_save)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         """
@@ -195,9 +192,9 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
     """
 
     def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None, interactive_mode=False):
+                 path_to_save=None):
         super().__init__(chain, train_data, test_data,
-                         path_to_save, interactive_mode)
+                         path_to_save)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
         tuned_chain = Tune(self._chain).fine_tune_certain_node(model_id=node_id,
@@ -222,9 +219,9 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
     """
 
     def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None, interactive_mode=False):
+                 path_to_save=None):
         super().__init__(chain, train_data, test_data,
-                         path_to_save, interactive_mode=interactive_mode)
+                         path_to_save)
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
@@ -319,14 +316,11 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
             original_model_index = x_values.index(original_model_type)
             plt.gca().get_xticklabels()[original_model_index].set_color('red')
 
-        if self.interactive_mode:
-            plt.show()
-        else:
-            file_name = f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'
-            result_file = join(self._path_to_save, file_name)
-            plt.savefig(result_file)
-            self.log.info(f'NodeReplacementAnalysis for '
-                          f'{original_model_type}(index:{node_id}) was saved to {result_file}')
+        file_name = f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'
+        result_file = join(self._path_to_save, file_name)
+        plt.savefig(result_file)
+        self.log.info(f'NodeReplacementAnalysis for '
+                      f'{original_model_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
         return 'NodeReplaceModelAnalyze'

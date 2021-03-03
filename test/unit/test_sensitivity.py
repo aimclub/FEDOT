@@ -6,6 +6,7 @@ from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
 from fedot.core.data.data import InputData
+from fedot.core.log import default_log
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import \
     NodeDeletionAnalyze, NodeAnalysis, NodeTuneAnalyze, NodeReplaceModelAnalyze
@@ -54,17 +55,19 @@ def given_data():
 # ------------------------------------------------------------------------------
 # ChainStructureAnalysis
 
-def test_chain_structure_analyze_init():
+def test_chain_structure_analyze_init_log_defined():
     # given
     chain, train_data, test_data, node_ids, _ = given_data()
     approaches = [NodeDeletionAnalyze]
+    test_log_object = default_log('test_log_sa')
 
     # when
     chain_analyzer = ChainStructureAnalyze(chain=chain,
                                            train_data=train_data,
                                            test_data=test_data,
                                            approaches=approaches,
-                                           nodes_ids_to_analyze=[node_ids])
+                                           nodes_ids_to_analyze=[node_ids],
+                                           log=test_log_object)
 
     assert isinstance(chain_analyzer, ChainStructureAnalyze)
 
