@@ -39,7 +39,7 @@ class OperationTypesRepository:
     _repo = None
 
     def __init__(self, repo_path=None):
-        if repo_path:
+        if repo_path is not None:
             self._repo = self._initialise_repo(repo_path)
         if not repo_path and not self._repo:
             self._set_repo_to_default_state()

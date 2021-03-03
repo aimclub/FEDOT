@@ -118,7 +118,7 @@ class GPChainOptimiser:
 
         with CompositionTimer() as t:
 
-            if self.requirements.add_single_operation_chains:
+            if self.requirements.allow_single_operations:
                 best_single_operation, self.requirements.primary = \
                     self._best_single_operations(objective_function)
 
@@ -176,7 +176,7 @@ class GPChainOptimiser:
 
             best = self.best_individual
 
-            if self.requirements.add_single_operation_chains and \
+            if self.requirements.allow_single_operations and \
                     (best_single_operation.fitness <= best.fitness):
                 best = best_single_operation
         return best

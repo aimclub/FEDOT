@@ -50,7 +50,7 @@ def chain_second():
 
 def chain_third():
     #      XG
-    #   |  |  \
+    #   /  |  \
     #  KNN LDA KNN
     root_of_tree = SecondaryNode('xgboost')
     for model_type in ('knn', 'lda', 'knn'):
@@ -85,7 +85,7 @@ def equality_cases():
 
     # the following changes don't affect to chains equality:
     for node_num, type in enumerate(['knn', 'lda']):
-        pairs[1][1].root_node.nodes_from[node_num].model.model_type = type
+        pairs[1][1].root_node.nodes_from[node_num].operation.operation_type = type
 
     for node_num in ((2, 1), (1, 2)):
         old_node = pairs[2][1].root_node.nodes_from[node_num[0]]

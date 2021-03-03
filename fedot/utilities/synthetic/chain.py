@@ -63,9 +63,9 @@ def chain_balanced_tree(depth: int, models_per_level: List[int],
     the resulted chain.
     :return: Chain with balanced tree-like structure.
     """
-    template = chain_template_balanced_tree(model_types=used_models,
+    template = chain_template_balanced_tree(operation_types=used_models,
                                             depth=depth,
-                                            models_per_level=models_per_level,
+                                            operations_per_level=models_per_level,
                                             samples=100, features=10)
     fit_template(chain_template=template, classes=2, skip_fit=True)
     resulted_chain = real_chain(chain_template=template)
@@ -78,9 +78,9 @@ def separately_fit_chain(samples: int, features_amount: int, classes: int,
     if chain is None:
         models = ['logit', 'xgboost',
                   'knn']
-        template = chain_template_balanced_tree(model_types=models,
+        template = chain_template_balanced_tree(operation_types=models,
                                                 depth=3,
-                                                models_per_level=[4, 2, 1],
+                                                operations_per_level=[4, 2, 1],
                                                 samples=samples, features=features_amount)
         fit_template(chain_template=template, classes=classes, skip_fit=False)
         chain = real_chain(chain_template=template)

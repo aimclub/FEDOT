@@ -3,15 +3,20 @@ from hyperopt import hp
 
 
 params_by_operation = {
+    'logit': ['C'],
+    'rf': ['n_estimators', 'criterion', 'max_features', 'min_samples_split',
+           'min_samples_leaf', 'bootstrap'],
     'lasso': ['alpha'],
     'ridge': ['alpha'],
     'dtreg': ['max_depth', 'min_samples_split', 'min_samples_leaf'],
     'knnreg': ['n_neighbors', 'weights', 'p'],
     'rfr': ['n_estimators', 'max_features', 'min_samples_split',
             'min_samples_leaf', 'bootstrap'],
-    'rfe_lin_reg': ['n_features_to_select', 'step'],
+    'xgbreg': ['n_estimators', 'max_depth', 'learning_rate', 'subsample',
+               'min_child_weight', 'objective'],
     'ransac_lin_reg': ['min_samples', 'residual_threshold',
                        'max_trials', 'max_skips'],
+    'poly_features': ['degree', 'interaction_only'],
     'lagged': ['window_size'],
 }
 
@@ -27,13 +32,17 @@ def __get_range_by_parameter(label, parameter_name):
     """
 
     range_by_parameter = {
+        'logit | C': hp.uniform(label, 1e-2, 10.0),
+
+        'rf | n_estimators': hp.choice(label, [100]),
+        'rf | criterion': hp.choice(label, ["gini", "entropy"]),
+        'rf | max_features': hp.uniform(label, 0.05, 1.01),
+        'rf | min_samples_split': hp.choice(label, range(2, 10)),
+        'rf | min_samples_leaf': hp.choice(label, range(1, 15)),
+        'rf | bootstrap': hp.choice(label, [True, False]),
+
         'lasso | alpha': hp.uniform(label, 0.01, 1.0),
         'ridge | alpha': hp.uniform(label, 0.01, 1.0),
-
-        'ransac_lin_reg | min_samples': hp.uniform(label, 0.1, 0.9),
-        'ransac_lin_reg | residual_threshold': hp.choice(label, [0.1, 1.0, 100.0, 500.0, 1000.0]),
-        'ransac_lin_reg | max_trials': hp.uniform(label, 50, 500),
-        'ransac_lin_reg | max_skips': hp.uniform(label, 50, 500000),
 
         'rfr | n_estimators': hp.choice(label, [100]),
         'rfr | max_features': hp.uniform(label, 0.05, 1.01),
@@ -41,13 +50,28 @@ def __get_range_by_parameter(label, parameter_name):
         'rfr | min_samples_leaf': hp.choice(label, range(1, 21)),
         'rfr | bootstrap': hp.choice(label, [True, False]),
 
+        'xgbreg | n_estimators': hp.choice(label, [100]),
+        'xgbreg | max_depth': hp.choice(label, range(1, 11)),
+        'xgbreg | learning_rate': hp.choice(label, [1e-3, 1e-2, 1e-1, 0.5, 1.]),
+        'xgbreg | subsample': hp.choice(label, np.arange(0.05, 1.01, 0.05)),
+        'xgbreg | min_child_weight': hp.choice(label, range(1, 21)),
+        'xgbreg | objective': hp.choice(label, ['reg:squarederror']),
+
         'dtreg | max_depth': hp.choice(label, range(1, 11)),
         'dtreg | min_samples_split': hp.choice(label, range(2, 21)),
         'dtreg | min_samples_leaf': hp.choice(label, range(1, 21)),
 
         'knnreg | n_neighbors': hp.choice(label, range(1, 101)),
         'knnreg | weights': hp.choice(label, ["uniform", "distance"]),
-        'knnreg | p': hp.choice(label, [True, False]),
+        'knnreg | p': hp.choice(label, [1, 2]),
+
+        'ransac_lin_reg | min_samples': hp.uniform(label, 0.1, 0.9),
+        'ransac_lin_reg | residual_threshold': hp.choice(label, [0.1, 1.0, 100.0, 500.0, 1000.0]),
+        'ransac_lin_reg | max_trials': hp.uniform(label, 50, 500),
+        'ransac_lin_reg | max_skips': hp.uniform(label, 50, 500000),
+
+        'poly_features | degree': hp.choice(label, [2, 3, 4]),
+        'poly_features | interaction_only': hp.choice(label, [True, False]),
 
         'lagged | window_size': hp.uniform(label, 10, 1000),
     }

@@ -33,10 +33,10 @@ def model_metrics_info(class_name, y_true, y_pred):
 
 def test_node_factory_log_reg_correct(data_setup):
     model_type = 'logit'
-    node = PrimaryNode(model_type=model_type)
+    node = PrimaryNode(operation_type=model_type)
 
-    expected_model = Model(model_type=model_type).__class__
-    actual_model = node.model.__class__
+    expected_model = Model(operation_type=model_type).__class__
+    actual_model = node.operation.__class__
 
     assert node.__class__ == PrimaryNode
     assert expected_model == actual_model
@@ -51,7 +51,7 @@ def test_eval_strategy_logreg(data_setup):
     test_skl_model.fit(train.features, train.target)
     expected_result = test_skl_model.predict(test.features)
 
-    test_model_node = PrimaryNode(model_type='logit')
+    test_model_node = PrimaryNode(operation_type='logit')
     test_model_node.fit(input_data=train)
     actual_result = test_model_node.predict(input_data=test)
 

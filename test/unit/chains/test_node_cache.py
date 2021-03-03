@@ -5,7 +5,7 @@ import pytest
 from sklearn.datasets import load_breast_cancer, load_iris
 
 from fedot.core.chains.chain import Chain, SharedChain
-from fedot.core.chains.node import FittedModelCache, \
+from fedot.core.chains.node import FittedOperationCache, \
     PrimaryNode, SecondaryNode, SharedCache
 from fedot.core.data.data import InputData, split_train_test
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -318,12 +318,12 @@ def test_multi_chain_caching_local_cache(data_setup):
 
 def test_chain_sharing_and_unsharing(data_setup):
     chain = chain_first()
-    assert all([isinstance(node.cache, FittedModelCache) for node in chain.nodes])
+    assert all([isinstance(node.cache, FittedOperationCache) for node in chain.nodes])
     chain = SharedChain(chain, {})
 
     assert all([isinstance(node.cache, SharedCache) for node in chain.nodes])
     chain = chain.unshare()
-    assert all([isinstance(node.cache, FittedModelCache) for node in chain.nodes])
+    assert all([isinstance(node.cache, FittedOperationCache) for node in chain.nodes])
     assert isinstance(chain, Chain)
 
 

@@ -37,7 +37,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types, _ = ModelTypesRepository().suitable_operation(task_type=task.task_type)
 
     # the choice of the metric for the chain quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)

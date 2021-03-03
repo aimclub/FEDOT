@@ -137,7 +137,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         max_depth=2, pop_size=10, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=time_limit_min),
-        add_single_model_chains=False)
+        add_single_operation_chains=False)
 
     builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
         metric_function)

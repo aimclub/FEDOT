@@ -206,8 +206,7 @@ def real_chain(chain_template, with_cache=True):
             node.operation = template.operation_instance
             if with_cache:
                 cache = FittedOperationCache(related_node=node)
-                cache.append(CachedState(preprocessor=template.preprocessor,
-                                         operation=template.fitted_operation))
+                cache.append(CachedState(operation=template.fitted_operation))
                 node.cache = cache
             nodes_by_templates.append((node, template))
 

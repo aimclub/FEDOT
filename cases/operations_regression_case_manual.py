@@ -1,77 +1,113 @@
-""" Тестовый пример задачи регрессии на основе данных измерений уровня воды """
-import os
+import datetime
+import warnings
+from copy import copy
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
 
-from sklearn.metrics import mean_squared_error as mse
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import regression_dataset
+from fedot.core.operations.tuning.hyperopt_tune.\
+    tuners import SequentialTuner, ChainTuner
 
-np.random.seed(10)
+warnings.filterwarnings('ignore')
 
 
-def run_experiment(file_path, chain):
+def run_experiment(file_path, chain, iterations=20, tuner=None):
+    """ Function launch experiment for river level prediction. Tuner processes
+    are available for such experiment.
+
+    :param file_path: path to the file with river level data
+    :param сhain: chain to fit and make prediction
+    :param iterations: amount of iterations to process
+    :param tuner: if tuning after composing process is required or not. tuner -
+    NodesTuner or ChainTuner.
+    """
+
+    # Read dataframe and prepare train and test data
     df = pd.read_csv(file_path)
-    df['date'] = pd.to_datetime(df['date'])
     x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(
-        np.array(df[['level_station_1', 'month', 'mean_temp', 'precip']]),
+        np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']]),
         np.array(df['level_station_2']),
         test_size=0.2,
         shuffle=True,
         random_state=10)
 
-    # Define regression task
-    task = Task(TaskTypesEnum.regression)
+    for i in range(0, iterations):
+        print(f'Iteration {i}\n')
 
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                            features=x_data_train,
-                            target=y_data_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
+        # To avoid inplace transformations make copy
+        current_chain = copy(chain)
 
-    predict_input = InputData(idx=np.arange(0, len(x_data_test)),
-                              features=x_data_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
-    # Fit it
-    chain.fit(train_input, verbose=True)
-    # Predict
-    predicted_values = chain.predict(predict_input)
-    preds = predicted_values.predict
+        # Define regression task
+        task = Task(TaskTypesEnum.regression)
 
-    y_data_test = np.ravel(y_data_test)
-    print(f'Predicted values: {preds[:5]}')
-    print(f'Actual values: {y_data_test[:5]}')
-    print(f'RMSE - {mse(y_data_test, preds, squared=False):.2f}\n')
+        # Prepare data to train the model
+        train_input = InputData(idx=np.arange(0, len(x_data_train)),
+                                features=x_data_train,
+                                target=y_data_train,
+                                task=task,
+                                data_type=DataTypesEnum.table)
+
+        predict_input = InputData(idx=np.arange(0, len(x_data_test)),
+                                  features=x_data_test,
+                                  target=None,
+                                  task=task,
+                                  data_type=DataTypesEnum.table)
+
+        # Fit it
+        current_chain.fit_from_scratch(train_input)
+
+        # Predict
+        predicted_values = current_chain.predict(predict_input)
+        preds = predicted_values.predict
+
+        y_data_test = np.ravel(y_data_test)
+        mse_value = mean_squared_error(y_data_test, preds, squared=False)
+        mae_value = mean_absolute_error(y_data_test, preds)
+
+        print(f'Obtained metrics for current iteration {i}:')
+        print(f'RMSE - {mse_value:.2f}')
+        print(f'MAE - {mae_value:.2f}\n')
+
+        if tuner is not None:
+            print(f'Start tuning process ...')
+            chain_tuner = tuner(chain=current_chain, task=task,
+                                iterations=100)
+            tuned_chain = chain_tuner.tune_chain(input_data=train_input,
+                                                 loss_function=mean_absolute_error)
+
+            # Predict
+            predicted_values_tuned = tuned_chain.predict(predict_input)
+            preds_tuned = predicted_values_tuned.predict
+
+            mse_value = mean_squared_error(y_data_test, preds_tuned,
+                                           squared=False)
+            mae_value = mean_absolute_error(y_data_test, preds_tuned)
+
+            print(f'Obtained metrics for current iteration {i} after tuning:')
+            print(f'RMSE - {mse_value:.2f}')
+            print(f'MAE - {mae_value:.2f}\n')
 
 
 if __name__ == '__main__':
+
     node_encoder = PrimaryNode('one_hot_encoding')
+    node_scaling = SecondaryNode('scaling', nodes_from=[node_encoder])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
+    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
+    node_final = SecondaryNode('rfr', nodes_from=[node_ridge, node_lasso])
 
-    # Parameters
-    node_rans = SecondaryNode('rfe_lin_reg', nodes_from=[node_encoder])
-    node_rans.custom_params = {'n_features_to_select': 0.9, 'step': 0.2}
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_rans])
-    node_final = SecondaryNode('linear', nodes_from=[node_scaling])
-    chain = Chain(node_final)
+    init_chain = Chain(node_final)
 
-    run_experiment('../cases/data/river_levels/station_levels.csv', chain)
-
-
-
-
-
-
-
-
-
+    # Available tuners for application: ChainTuner, NodesTuner
+    run_experiment(file_path='../cases/data/river_levels/station_levels.csv',
+                   chain=init_chain,
+                   iterations=20,
+                   tuner=ChainTuner)

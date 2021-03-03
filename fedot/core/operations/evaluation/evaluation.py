@@ -11,12 +11,12 @@ from sklearn.ensemble import (AdaBoostRegressor,
                               GradientBoostingRegressor,
                               RandomForestClassifier,
                               RandomForestRegressor)
+from sklearn.impute import SimpleImputer as SklearnImputer
 from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LinearRegression as SklearnLinReg,
                                   LogisticRegression as SklearnLogReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-from sklearn.impute import SimpleImputer as SklearnImputer
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neighbors import (KNeighborsClassifier as SklearnKNN,
@@ -25,24 +25,25 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
-from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
-    import LaggedTransformation, TsSmoothing
-from fedot.core.operations.evaluation.operation_realisations.\
-    ts_models import ARIMAModel
-from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
-    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
-    ScalingOperation, NormalizationOperation
-from fedot.core.operations.evaluation.operation_realisations.\
-    sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
-from fedot.core.operations.evaluation.operation_realisations.\
-    sklearn_selectors import LinearRegFS, NonLinearRegFS
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.custom_models.models import CustomSVC
+from fedot.core.operations.evaluation.operation_realisations. \
+    sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
+from fedot.core.operations.evaluation.operation_realisations. \
+    sklearn_selectors import LinearRegFS, NonLinearRegFS
+from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
+    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
+    ScalingOperation, NormalizationOperation
+from fedot.core.operations.evaluation.operation_realisations. \
+    ts_models import ARIMAModel
+from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
+    import LaggedTransformation, TsSmoothing
 from fedot.core.operations.tuning.hyperparams import params_range_by_operation
 from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -89,20 +90,6 @@ class EvaluationStrategy:
         :param InputData predict_data: data to predict
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return OutputData: passed data with new predicted target
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fit_tuned(self, train_data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        Main method used for hyperparameter searching
-
-        :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter
-        optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        :return:
         """
         raise NotImplementedError()
 
@@ -191,38 +178,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         """
         raise NotImplementedError()
 
-    def fit_tuned(self, train_data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        This method is used for hyperparameter searching
-
-        :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        :return tuple(object, dict): operation with found hyperparameters and dictionary with found hyperparameters
-        """
-        trained_operation = self.fit(train_data=train_data)
-        print('Fit-tune after training')
-        params_range = params_range_by_operation.get(self.operation_type, None)
-        self._tune_strategy = SklearnCustomRandomTuner
-        if not params_range:
-            self.params_for_fit = None
-            return trained_operation, trained_operation.get_params()
-
-        #print(params_range)
-        tuned_params, best_operation = self._tune_strategy(trained_model=trained_operation,
-                                                           tune_data=train_data,
-                                                           params_range=params_range,
-                                                           cross_val_fold_num=5,
-                                                           time_limit=max_lead_time,
-                                                           iterations=iterations).tune()
-
-        if best_operation or tuned_params:
-            self.params_for_fit = tuned_params
-            trained_operation = best_operation
-
-        return trained_operation, tuned_params
-
     def _convert_to_sklearn(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
@@ -261,7 +216,14 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
                 prediction = prediction[:, 1]
         else:
             raise ValueError(f'Output model {self.output_mode} is not supported')
-        return prediction
+
+        converted = OutputData(idx=predict_data.idx,
+                               features=predict_data.features,
+                               predict=prediction,
+                               task=predict_data.task,
+                               target=predict_data.target,
+                               data_type=DataTypesEnum.table)
+        return converted
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
@@ -346,18 +308,6 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         prediction = trained_operation.predict(predict_data.features)
         return prediction
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        This method is used for hyperparameter searching
-
-        :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        :return:
-        """
-        raise NotImplementedError()
-
 
 class TsTransformingStrategy(EvaluationStrategy):
     """
@@ -408,18 +358,6 @@ class TsTransformingStrategy(EvaluationStrategy):
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
         return prediction
-
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        This method is used for hyperparameter searching
-
-        :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        :return:
-        """
-        raise NotImplementedError()
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -477,18 +415,6 @@ class TsForecastingStrategy(EvaluationStrategy):
                                                is_fit_chain_stage)
         return prediction
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        This method is used for hyperparameter searching
-
-        :param train_data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        :return:
-        """
-        raise NotImplementedError()
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
@@ -513,6 +439,7 @@ def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData)
         multiout_func = MultiOutputRegressor
     else:
         return None
+
     # apply MultiOutput
     sklearn_model = multiout_func(sklearn_model)
     sklearn_model.fit(train_data.features, train_data.target)

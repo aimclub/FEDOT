@@ -3,7 +3,6 @@ from datetime import timedelta
 
 import numpy as np
 
-from fedot.core.algorithms.time_series.prediction import post_process_forecasted_ts
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -55,11 +54,6 @@ class Operation:
     @abstractmethod
     def predict(self, fitted_operation, data: InputData, is_fit_chain_stage: bool,
                 output_mode: str):
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fine_tune(self, data: InputData, iterations: int,
-                  max_lead_time: timedelta):
         raise NotImplementedError()
 
     def __str__(self):
@@ -158,41 +152,6 @@ class Model(Operation):
 
         return prediction
 
-    def fine_tune(self, data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        """
-        This method is used for hyperparameter searching
-
-        :param data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        """
-        self._init(data.task)
-
-        try:
-            fitted_model, tuned_params = self._eval_strategy.fit_tuned(train_data=data,
-                                                                       iterations=iterations,
-                                                                       max_lead_time=max_lead_time)
-            if fitted_model is None:
-                raise ValueError(f'{self.operation_type} can not be fitted')
-
-            self.params = tuned_params
-            if not self.params:
-                self.params = DEFAULT_PARAMS_STUB
-        except Exception as ex:
-            print(f'Tuning failed because of {ex}')
-            fitted_model = self._eval_strategy.fit(train_data=data,
-                                                   is_fit_chain_stage=True)
-            self.params = DEFAULT_PARAMS_STUB
-
-        predict_train = self.predict(fitted_model, data,
-                                     is_fit_chain_stage=False)
-
-        return fitted_model, predict_train
-
-    def __str__(self):
-        return f'{self.operation_type}'
-
 
 class DataOperation(Operation):
 
@@ -280,41 +239,6 @@ class DataOperation(Operation):
             prediction=prediction, input_data=data)
 
         return prediction
-
-    def fine_tune(self, data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5),):
-        """
-        This method is used for hyperparameter searching
-
-        :param data: data used for hyperparameter searching
-        :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
-        """
-        self._init(data.task)
-
-        try:
-            fitted_operation, tuned_params = self._eval_strategy.fit_tuned(
-                train_data=data,
-                iterations=iterations,
-                max_lead_time=max_lead_time)
-            if fitted_operation is None:
-                raise ValueError(f'{self.operation_type} can not be fitted')
-
-            self.params = tuned_params
-            if not self.params:
-                self.params = DEFAULT_PARAMS_STUB
-        except Exception as ex:
-            print(f'Tuning failed because of {ex}')
-            fitted_operation = self._eval_strategy.fit(train_data=data)
-            self.params = DEFAULT_PARAMS_STUB
-
-        predict_train = self.predict(fitted_operation, data,
-                                     is_fit_chain_stage=False)
-
-        return fitted_operation, predict_train
-
-    def __str__(self):
-        return f'{self.operation_type}'
 
 
 def _eval_strategy_for_task(operation_type: str, task_type_for_data: TaskTypesEnum,

@@ -51,10 +51,10 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='lda', nodes_from=[first])
-    third = SecondaryNode(model_type='qda', nodes_from=[first])
-    final = SecondaryNode(model_type='knn', nodes_from=[second, third])
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='lda', nodes_from=[first])
+    third = SecondaryNode(operation_type='qda', nodes_from=[first])
+    final = SecondaryNode(operation_type='knn', nodes_from=[second, third])
 
     train_predicted = final.fit(input_data=train)
 
@@ -73,10 +73,10 @@ def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit', nodes_from=[first])
-    third = SecondaryNode(model_type='logit', nodes_from=[first])
-    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit', nodes_from=[first])
+    third = SecondaryNode(operation_type='logit', nodes_from=[first])
+    final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -101,10 +101,10 @@ def test_chain_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit', nodes_from=[first])
-    third = SecondaryNode(model_type='logit', nodes_from=[second])
-    final = SecondaryNode(model_type='logit', nodes_from=[third])
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit', nodes_from=[first])
+    third = SecondaryNode(operation_type='logit', nodes_from=[second])
+    final = SecondaryNode(operation_type='logit', nodes_from=[third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -150,10 +150,10 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
 
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='lda')
-    third = PrimaryNode(model_type='knn')
-    final = SecondaryNode(model_type='xgboost',
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='lda')
+    third = PrimaryNode(operation_type='knn')
+    final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second, third])
 
     chain = Chain()
@@ -203,9 +203,9 @@ def test_chain_with_custom_params_for_model(data_setup):
                          weights='uniform',
                          p=1)
 
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='lda')
-    final = SecondaryNode(model_type='knn', nodes_from=[first, second])
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='lda')
+    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)

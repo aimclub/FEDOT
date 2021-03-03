@@ -19,7 +19,7 @@ class ComposerRequirements:
     :param max_depth: max depth of the result chain
     :param max_arity: maximal number of parent for node
     :param min_arity: minimal number of parent for node
-    :param add_single_operation_chains: allow to have chain with only one node
+    :param allow_single_operations: allow to have chain with only one node
     """
     primary: List[str]
     secondary: List[str]
@@ -27,7 +27,7 @@ class ComposerRequirements:
     max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
-    add_single_operation_chains: bool = True
+    allow_single_operations: bool = True
 
     def __post_init__(self):
         if self.max_depth < 0:

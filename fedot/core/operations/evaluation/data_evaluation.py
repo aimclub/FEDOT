@@ -3,7 +3,6 @@ from typing import Optional
 import numpy as np
 from sklearn.decomposition import PCA
 
-from fedot.core.algorithms.time_series.scale import estimate_period, split_ts_to_components
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
 
@@ -20,22 +19,6 @@ def get_difference(trained_model, predict_data: InputData):
     if number_of_inputs != 1:
         raise ValueError('Too many inputs for the differential model')
     return predict_data.features[:, 0] - predict_data.target
-
-
-def fit_decomposition(train_data: InputData, params: Optional[dict]):
-    target = train_data.target
-    period = estimate_period(target)
-    return period
-
-
-def get_residual(trained_model, predict_data: InputData):
-    _, target_residual = split_ts_to_components(trained_model, predict_data)
-    return target_residual
-
-
-def get_trend(trained_model, predict_data: InputData):
-    target_trend, _ = split_ts_to_components(trained_model, predict_data)
-    return target_trend
 
 
 def fit_pca(train_data: InputData, params: Optional[dict]):
@@ -77,8 +60,6 @@ def predict_pca(pca_model, predict_data: InputData):
 class DataModellingStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'direct_data_model': (None, get_data),
-        'trend_data_model': (fit_decomposition, get_trend),
-        'residual_data_model': (fit_decomposition, get_residual),
         'pca_data_model': (fit_pca, predict_pca)
     }
 
