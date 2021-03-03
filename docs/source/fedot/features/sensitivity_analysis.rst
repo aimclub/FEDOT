@@ -17,7 +17,7 @@ by using `ChainStructureAnalysis`_ or `NodeAnalysis`_. The difference is:
 - additionally, you may use every approach directly.
 
 ChainStructureAnalysis
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
