@@ -235,3 +235,112 @@ def test_chain_with_wrong_data():
 
     with pytest.raises(ValueError):
         chain.fit(data)
+
+
+def test_chain_str():
+    # given
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[first, second, third])
+    chain = Chain()
+    chain.add_node(final)
+
+    expected_chain_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+
+    # when
+    actual_chain_description = str(chain)
+
+    # then
+    assert actual_chain_description == expected_chain_description
+
+
+def test_chain_repr():
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[first, second, third])
+    chain = Chain()
+    chain.add_node(final)
+
+    expected_chain_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+
+    assert repr(chain) == expected_chain_description
+
+
+def test_update_node_in_chain_raise_exception():
+    first = PrimaryNode(model_type='logit')
+    final = SecondaryNode(model_type='xgboost', nodes_from=[first])
+
+    chain = Chain()
+    chain.add_node(final)
+    replacing_node = SecondaryNode('logit')
+
+    with pytest.raises(ValueError) as exc:
+        chain.update_node(old_node=first, new_node=replacing_node)
+
+    assert str(exc.value) == "Can't update PrimaryNode with SecondaryNode"
+
+
+def test_delete_node_with_redirection():
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = SecondaryNode(model_type='knn', nodes_from=[first, second])
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[third])
+    chain = Chain()
+    chain.add_node(final)
+
+    chain.delete_node(third)
+
+    assert len(chain.nodes) == 3
+    assert first in chain.root_node.nodes_from
+
+
+def test_delete_primary_node_with_redirection():
+    # given
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = SecondaryNode(model_type='knn', nodes_from=[first])
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[second, third])
+    chain = Chain()
+    chain.add_node(final)
+
+    # when
+    chain.delete_node(first)
+
+    new_primary_node = [node for node in chain.nodes if node.model.model_type == 'knn'][0]
+
+    # then
+    assert len(chain.nodes) == 3
+    assert isinstance(new_primary_node, PrimaryNode)
+
+
+def test_delete_secondary_node_with_multiple_children_and_redirection():
+    # given
+    logit_first = PrimaryNode(model_type='logit')
+    lda_first = PrimaryNode(model_type='lda')
+    knn_center = SecondaryNode(model_type='knn', nodes_from=[logit_first, lda_first])
+    logit_second = SecondaryNode(model_type='logit', nodes_from=[knn_center])
+    lda_second = SecondaryNode(model_type='lda', nodes_from=[knn_center])
+    final = SecondaryNode(model_type='xgboost',
+                          nodes_from=[logit_second, lda_second])
+
+    chain = Chain()
+    chain.add_node(final)
+
+    # when
+    chain.delete_node(knn_center)
+
+    # then
+    updated_logit_second_parents = chain.nodes[1].nodes_from
+    updated_lda_second_parents = chain.nodes[4].nodes_from
+
+    assert len(chain.nodes) == 5
+    assert updated_logit_second_parents[0] is logit_first
+    assert updated_logit_second_parents[1] is lda_first
+    assert updated_lda_second_parents[0] is logit_first
+    assert updated_lda_second_parents[1] is lda_first

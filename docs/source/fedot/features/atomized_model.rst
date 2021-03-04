@@ -1,5 +1,5 @@
 Using the chain as an atomic model
---------------------------------------------------
+----------------------------------
 
 To create more complex chains from other nested chains, we created a class
 AtomizedModel, which wraps the chain in a wrapper and provides an interface

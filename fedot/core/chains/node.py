@@ -166,12 +166,18 @@ class Node(ABC):
         model = f'{self.model}'
         return model
 
-    @property
-    def ordered_subnodes_hierarchy(self) -> List['Node']:
+    def __repr__(self):
+        return self.__str__()
+
+    def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
+        if visited is None:
+            visited = []
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.ordered_subnodes_hierarchy
+                if parent not in visited:
+                    nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+
         return nodes
 
     @property

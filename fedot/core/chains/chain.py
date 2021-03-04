@@ -170,25 +170,73 @@ class Chain:
             old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
 
     def replace_node_with_parents(self, old_node: Node, new_node: Node):
+        """Exchange subtrees with old and new nodes as roots of subtrees"""
         new_node = deepcopy(new_node)
         self._actualise_old_node_childs(old_node, new_node)
-        new_nodes = [parent for parent in new_node.ordered_subnodes_hierarchy if not parent in self.nodes]
-        old_nodes = [node for node in self.nodes if not node in old_node.ordered_subnodes_hierarchy]
-        self.nodes = new_nodes + old_nodes
+        self.delete_subtree(old_node)
+        self.add_node(new_node)
         self._sort_nodes()
 
     def update_node(self, old_node: Node, new_node: Node):
+        if type(new_node) is not type(old_node):
+            raise ValueError(f"Can't update {old_node.__class__.__name__} "
+                             f"with {new_node.__class__.__name__}")
+
         self._actualise_old_node_childs(old_node, new_node)
         new_node.nodes_from = old_node.nodes_from
         self.nodes.remove(old_node)
         self.nodes.append(new_node)
         self._sort_nodes()
 
+    def delete_subtree(self, subtree_root_node: Node):
+        """Delete node with all the parents it has"""
+        for node_child in self.node_childs(subtree_root_node):
+            node_child.nodes_from.remove(subtree_root_node)
+        for subtree_node in subtree_root_node.ordered_subnodes_hierarchy():
+            self.nodes.remove(subtree_node)
+
     def delete_node(self, node: Node):
+        """ This method redirects edges of parents to
+        all the childs old node had.
+        PNode    PNode              PNode    PNode
+            \  /                      |  \   / |
+            SNode <- delete this      |   \/   |
+            / \                       |   /\   |
+        SNode   SNode               SNode   SNode
+        """
+
+        def make_secondary_node_as_primary(node_child):
+            extracted_type = node_child.model.model_type
+            new_primary_node = PrimaryNode(extracted_type)
+            this_node_children = self.node_childs(node_child)
+            for node in this_node_children:
+                index = node.nodes_from.index(node_child)
+                node.nodes_from.remove(node_child)
+                node.nodes_from.insert(index, new_primary_node)
+
+        node_children_cached = self.node_childs(node)
+        self_root_node_cached = self.root_node
+
         for node_child in self.node_childs(node):
             node_child.nodes_from.remove(node)
-        for subtree_node in node.ordered_subnodes_hierarchy:
-            self.nodes.remove(subtree_node)
+
+        if isinstance(node, SecondaryNode) and len(node.nodes_from) > 1 \
+                and len(node_children_cached) > 1:
+
+            for child in node_children_cached:
+                for node_from in node.nodes_from:
+                    child.nodes_from.append(node_from)
+
+        else:
+            if isinstance(node, SecondaryNode):
+                for node_from in node.nodes_from:
+                    node_children_cached[0].nodes_from.append(node_from)
+            elif isinstance(node, PrimaryNode):
+                for node_child in node_children_cached:
+                    if not node_child.nodes_from:
+                        make_secondary_node_as_primary(node_child)
+        self.nodes.clear()
+        self.add_node(self_root_node_cached)
 
     def _clean_model_cache(self):
         for node in self.nodes:
@@ -215,7 +263,7 @@ class Chain:
 
     def _sort_nodes(self):
         """layer by layer sorting"""
-        nodes = self.root_node.ordered_subnodes_hierarchy
+        nodes = self.root_node.ordered_subnodes_hierarchy()
         self.nodes = nodes
 
     def save(self, path: str):
@@ -241,6 +289,17 @@ class Chain:
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
+
+    def __str__(self):
+        description = {
+            'depth': self.depth,
+            'length': self.length,
+            'nodes': self.nodes,
+        }
+        return f'{description}'
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def root_node(self) -> Optional[Node]:
