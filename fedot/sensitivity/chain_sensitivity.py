@@ -2,7 +2,8 @@ import json
 from os.path import join
 from typing import List, Optional, Type
 
-from fedot.core.chains.chain import Chain, chain_as_nx_graph
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir

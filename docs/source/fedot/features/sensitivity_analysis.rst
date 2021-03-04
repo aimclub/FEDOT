@@ -103,13 +103,13 @@ What if to replace original model(in red) to the certain one
 |id_0| |id_1|
 
 .. |DeletionAnalysis| image:: ../img/img_sensitivity/NodeDeletionAnalyze.jpg
-   :width: 50%
+   :width: 45%
 .. |ReplacementAnalysis| image:: ../img/img_sensitivity/NodeReplaceModelAnalyze.jpg
-   :width: 50%
+   :width: 45%
 .. |id_0| image:: ../img/img_sensitivity/knn_id_0_replacement.jpg
-   :width: 50%
+   :width: 45%
 .. |id_1| image:: ../img/img_sensitivity/qda_id_1_replacement.jpg
-   :width: 50%
+   :width: 45%
 
 
 .. _ChainStructureAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.chain_sensitivity.ChainStructureAnalyze
