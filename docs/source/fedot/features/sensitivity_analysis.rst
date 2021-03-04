@@ -59,7 +59,8 @@ NodeAnalysis
                         train_data=self.train_data,
                         test_data=self.test_data)
 
-The result is a json file(default location at ``~home\Fedot\sensitivity``)
+The evaluation result represents the ratio of origin quality score to score of the modified model.
+After SA there will be a json file(default location at ``~home\Fedot\sensitivity``)
 including the results per Node and detailed visualisation.
 
 Result file example:
@@ -95,14 +96,20 @@ Result file example:
 
 Result visualization example:
 
-|DeletionAnalysis| |id_0| |id_1|
+What if to delete or replace every node in the chain
+|DeletionAnalysis| |ReplacementAnalysis|
+
+What if to replace original model(in red) to the certain one
+|id_0| |id_1|
 
 .. |DeletionAnalysis| image:: ../img/img_sensitivity/NodeDeletionAnalyze.jpg
-   :width: 30%
+   :width: 50%
+.. |ReplacementAnalysis| image:: ../img/img_sensitivity/NodeReplaceModelAnalyze.jpg
+   :width: 50%
 .. |id_0| image:: ../img/img_sensitivity/knn_id_0_replacement.jpg
-   :width: 30%
+   :width: 50%
 .. |id_1| image:: ../img/img_sensitivity/qda_id_1_replacement.jpg
-   :width: 30%
+   :width: 50%
 
 
 .. _ChainStructureAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.chain_sensitivity.ChainStructureAnalyze
