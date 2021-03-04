@@ -6,6 +6,7 @@ from typing import List
 from uuid import uuid4
 
 import joblib
+from log_calls import record_history
 
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
 from fedot.core.log import default_log, Log
@@ -14,6 +15,7 @@ from fedot.core.models.model_template import ModelTemplate
 from fedot.core.repository.model_types_repository import atomized_model_type
 
 
+@record_history(enabled=False)
 class ChainTemplate:
     """
     Chain wrapper with 'export_chain'/'import_chain' methods
@@ -228,9 +230,29 @@ def _is_nested_path(path):
     return path.find('nested') == -1
 
 
+@record_history(enabled=False)
 def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
     root_node = [model_template for model_template in chain_template.model_templates
                  if model_template.model_id == root_model_id][0]
     root_node = chain_template.roll_chain_structure(root_node, {})
 
     return root_node
+
+
+@record_history(enabled=False)
+def chain_template_as_nx_graph(chain: ChainTemplate):
+    graph = nx.DiGraph()
+    node_labels = {}
+    for model in chain.model_templates:
+        unique_id, label = model.model_id, model.model_type
+        node_labels[unique_id] = label
+        graph.add_node(unique_id)
+
+    def add_edges(graph, chain):
+        for model in chain.model_templates:
+            if model.nodes_from is not None:
+                for child in model.nodes_from:
+                    graph.add_edge(child, model.model_id)
+
+    add_edges(graph, chain)
+    return graph, node_labels

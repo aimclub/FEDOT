@@ -3,6 +3,7 @@ from abc import abstractmethod
 from datetime import timedelta
 from typing import Optional
 
+from log_calls import record_history
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
@@ -35,6 +36,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
+@record_history(enabled=False)
 class EvaluationStrategy:
     """
     Base class to define the evaluation strategy of Model object:
@@ -96,6 +98,7 @@ class EvaluationStrategy:
         return 'No description'
 
 
+@record_history(enabled=False)
 class SkLearnEvaluationStrategy(EvaluationStrategy):
     """
     This class defines the certain model implementation for the sklearn models defined in model repository
@@ -217,6 +220,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return str(self._convert_to_sklearn(self.model_type))
 
 
+@record_history(enabled=False)
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         """
@@ -240,6 +244,7 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         return prediction
 
 
+@record_history(enabled=False)
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_model, predict_data: InputData):
         """
@@ -253,6 +258,7 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         return prediction
 
 
+@record_history(enabled=False)
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     def fit(self, train_data: InputData):
         """
@@ -288,6 +294,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
     if train_data.task.task_type == TaskTypesEnum.classification:
         multiout_func = MultiOutputClassifier

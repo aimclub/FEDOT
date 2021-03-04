@@ -4,11 +4,14 @@ import warnings
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
+from log_calls import record_history
+
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+@record_history(enabled=False)
 @dataclass
 class ModelMetaInfo:
     id: str
@@ -25,6 +28,7 @@ class ModelMetaInfo:
         return self.supported_strategies
 
 
+@record_history(enabled=False)
 class ModelTypesRepository:
     _repo = None
 
@@ -134,6 +138,7 @@ class ModelTypesRepository:
         return [m.id for m in models_info], models_info
 
 
+@record_history(enabled=False)
 def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str], is_full_match: bool):
     matches = ([(tag in model_tags) for tag in candidate_tags])
     if is_full_match:
@@ -144,7 +149,3 @@ def _is_tags_contains_in_model(candidate_tags: List[str], model_tags: List[str],
 
 def atomized_model_type():
     return 'atomized_model'
-
-
-def atomized_model_meta_tags():
-    return ['random'], ['any'], ['atomized']

@@ -2,6 +2,7 @@ import sys
 from abc import abstractmethod
 from copy import copy
 
+from log_calls import record_history
 import numpy as np
 from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, \
     silhouette_score
@@ -11,6 +12,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+@record_history(enabled=False)
 def from_maximised_metric(metric_func):
     def wrapper(*args, **kwargs):
         return -metric_func(*args, **kwargs)
@@ -18,6 +20,7 @@ def from_maximised_metric(metric_func):
     return wrapper
 
 
+@record_history(enabled=False)
 class Metric:
     @classmethod
     @abstractmethod
@@ -25,6 +28,7 @@ class Metric:
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 class QualityMetric:
     max_penalty_part = 0.01
     default_value = None
@@ -64,6 +68,7 @@ class QualityMetric:
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 class RmseMetric(QualityMetric):
     default_value = sys.maxsize
 
@@ -73,6 +78,7 @@ class RmseMetric(QualityMetric):
                                   y_pred=predicted.predict, squared=False)
 
 
+@record_history(enabled=False)
 class F1Metric(QualityMetric):
     default_value = 0
 
@@ -89,6 +95,7 @@ class F1Metric(QualityMetric):
         return f1_score(y_true=reference.target, y_pred=predicted_labels, **additional_params)
 
 
+@record_history(enabled=False)
 class MaeMetric(QualityMetric):
     default_value = sys.maxsize
 
@@ -97,6 +104,7 @@ class MaeMetric(QualityMetric):
         return mean_squared_error(y_true=reference.target, y_pred=predicted.predict)
 
 
+@record_history(enabled=False)
 class RocAucMetric(QualityMetric):
     default_value = 0.5
 
@@ -116,6 +124,7 @@ class RocAucMetric(QualityMetric):
         return score
 
 
+@record_history(enabled=False)
 class SilhouetteMetric(QualityMetric):
     default_value = 1
 
@@ -125,6 +134,7 @@ class SilhouetteMetric(QualityMetric):
         return silhouette_score(reference.features, labels=predicted.predict)
 
 
+@record_history(enabled=False)
 class StructuralComplexityMetric(Metric):
     @classmethod
     def get_value(cls, chain: Chain, **args) -> float:
@@ -132,6 +142,7 @@ class StructuralComplexityMetric(Metric):
         return (chain.depth ** 2 + chain.length) / norm_constant
 
 
+@record_history(enabled=False)
 class NodeNum(Metric):
     @classmethod
     def get_value(cls, chain: Chain, **args) -> float:

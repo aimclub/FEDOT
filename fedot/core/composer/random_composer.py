@@ -3,6 +3,7 @@ from functools import partial
 from random import randint
 from typing import (Any, Callable, List, Optional)
 
+from log_calls import record_history
 from numpy import random
 
 from fedot.core.chains.chain import Chain, Node
@@ -11,6 +12,7 @@ from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.data.data import InputData
 
 
+@record_history(enabled=False)
 class RandomSearchComposer:
     def __init__(self, iter_num: int = 10):
         self.__iter_num = iter_num
@@ -38,18 +40,21 @@ class RandomSearchComposer:
         return best_chain
 
 
+@record_history(enabled=False)
 def nodes_to_chain(nodes: List[Node]) -> Chain:
     chain = Chain()
     [chain.add_node(nodes) for nodes in nodes]
     return chain
 
 
+@record_history(enabled=False)
 def metric_for_nodes(metric_function, nodes: List[Node], train_data: InputData, test_data: InputData) -> float:
     chain = nodes_to_chain(nodes)
     chain.fit(input_data=train_data)
     return metric_function(chain, test_data)
 
 
+@record_history(enabled=False)
 class RandomSearchOptimiser:
     def __init__(self, iter_num: int, primary_node_func: Callable, secondary_node_func: Callable):
         self.__iter_num = iter_num

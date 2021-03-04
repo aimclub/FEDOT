@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import (Any, Callable, List, Optional)
 
+from log_calls import record_history
+
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -10,6 +12,7 @@ class RegularizationTypesEnum(Enum):
     decremental = 'decremental'
 
 
+@record_history(enabled=False)
 def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
                            objective_function: Callable,
                            chain_class: Any, size: Optional[int] = None) -> List[Any]:
@@ -22,6 +25,7 @@ def regularized_population(reg_type: RegularizationTypesEnum, population: List[A
         raise ValueError(f'Required regularization type not found: {type}')
 
 
+@record_history(enabled=False)
 def decremental_regularization(population: List[Any], objective_function: Callable,
                                chain_class: Any, size: Optional[int] = None) -> List[Any]:
     size = size if size else len(population)
@@ -45,5 +49,6 @@ def decremental_regularization(population: List[Any], objective_function: Callab
     return additional_inds
 
 
+@record_history(enabled=False)
 def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:
     return node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_state

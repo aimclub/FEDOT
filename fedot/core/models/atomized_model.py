@@ -1,13 +1,16 @@
 from datetime import timedelta
 from uuid import uuid4
 
+from log_calls import record_history
+
 from fedot.core.chains.chain_tune import Tune
 from fedot.core.data.data import InputData
 from fedot.core.models.model import Model
 from fedot.core.utils import make_chain_generator
-from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_type, atomized_model_meta_tags
+from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_type
 
 
+@record_history(enabled=False)
 class AtomizedModel(Model):
     def __init__(self, chain: 'Chain'):
         if not chain.root_node:

@@ -3,10 +3,13 @@ import os
 import itertools
 from typing import (Any, List)
 
+from log_calls import record_history
+
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.utils import default_fedot_data_dir
 
 
+@record_history(enabled=False)
 class ComposingHistory:
     """
     Contain history, convert Chain to ChainTemplate, save history to csv

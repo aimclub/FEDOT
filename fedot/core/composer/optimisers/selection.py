@@ -2,6 +2,8 @@ import math
 from random import choice, randint
 from typing import (Any, List)
 
+from log_calls import record_history
+
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -9,6 +11,7 @@ class SelectionTypesEnum(Enum):
     tournament = 'tournament'
 
 
+@record_history(enabled=False)
 def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: int) -> List[Any]:
     selection_by_type = {
         SelectionTypesEnum.tournament: tournament_selection,
@@ -21,6 +24,7 @@ def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: 
         raise ValueError(f'Required selection not found: {type}')
 
 
+@record_history(enabled=False)
 def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any], pop_size: int) -> List[Any]:
     if pop_size == len(individuals):
         chosen = individuals
@@ -34,10 +38,12 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
     return chosen
 
 
+@record_history(enabled=False)
 def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
     return [individuals[randint(0, len(individuals) - 1)] for _ in range(pop_size)]
 
 
+@record_history(enabled=False)
 def tournament_selection(individuals: List[Any], pop_size: int, fraction: float = 0.1) -> List[Any]:
     group_size = math.ceil(len(individuals) * fraction)
     min_group_size = 2 if len(individuals) > 1 else 1

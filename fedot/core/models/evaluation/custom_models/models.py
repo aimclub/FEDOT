@@ -1,8 +1,10 @@
+from log_calls import record_history
 import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
 
+@record_history(enabled=False)
 class CustomSVC:
     def __init__(self):
         self.fitted_model = None

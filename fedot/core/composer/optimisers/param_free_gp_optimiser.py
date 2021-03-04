@@ -1,6 +1,9 @@
 from copy import deepcopy
 import numpy as np
 from typing import (Optional, List, Any, Tuple)
+
+from log_calls import record_history
+
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.regularization import regularized_population
 from fedot.core.composer.optimisers.selection import selection
@@ -11,6 +14,7 @@ from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crosso
 from fedot.core.log import Log
 
 
+@record_history(enabled=False)
 class GPChainParameterFreeOptimiser(GPChainOptimiser):
     """
     Implementation of the parameter-free adaptive evolutionary optimiser

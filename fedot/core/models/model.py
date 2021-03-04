@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from log_calls import record_history
 import numpy as np
 
 from fedot.core.algorithms.time_series.prediction import post_process_forecasted_ts
@@ -12,6 +13,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_typ
 DEFAULT_PARAMS_STUB = 'default_params'
 
 
+@record_history(enabled=False)
 class Model:
     """
     Base object with fit/predict methods defining the evaluation strategy for the task
@@ -146,6 +148,7 @@ class Model:
         return f'{self.model_type}'
 
 
+@record_history(enabled=False)
 def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
     models_repo = ModelTypesRepository()
     model_info = models_repo.model_info_by_id(model_type)
@@ -167,6 +170,7 @@ def _eval_strategy_for_task(model_type: str, task_type_for_data: TaskTypesEnum):
     return strategy
 
 
+@record_history(enabled=False)
 def _post_process_prediction_using_original_input(prediction, input_data: InputData):
     processed_predict = prediction
     if input_data.task.task_type == TaskTypesEnum.ts_forecasting:

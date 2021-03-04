@@ -1,7 +1,10 @@
 import datetime
 from abc import abstractmethod, ABC
 
+from log_calls import record_history
 
+
+@record_history(enabled=False)
 class Timer(ABC):
     def __init__(self, verbose=True):
         self.verbose = verbose
@@ -19,6 +22,7 @@ class Timer(ABC):
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 class CompositionTimer(Timer):
     def __init__(self, verbose=True):
         super().__init__(verbose=verbose)
@@ -61,6 +65,7 @@ class CompositionTimer(Timer):
                 print('Algorithm was terminated due to processing time limit')
 
 
+@record_history(enabled=False)
 class TunerTimer(Timer):
     def __init__(self, verbose=False):
         super().__init__(verbose=verbose)

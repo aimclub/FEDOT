@@ -1,3 +1,4 @@
+from log_calls import record_history
 import numpy as np
 from sklearn.metrics import mean_squared_error as mse_metric
 
@@ -5,6 +6,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams
 
 
+@record_history(enabled=False)
 def multistep_prediction_to_ts(prediction):
     # choose the early steps of first prediction
     first_pred_part = prediction[0, :-1]
@@ -13,6 +15,7 @@ def multistep_prediction_to_ts(prediction):
     return np.concatenate((first_pred_part, prediction))
 
 
+@record_history(enabled=False)
 def cut_future_prediction_part(prediction, task_params: TsForecastingParams):
     # TODO add multivariate
 
@@ -20,6 +23,7 @@ def cut_future_prediction_part(prediction, task_params: TsForecastingParams):
     return prediction[:-length_of_cut]
 
 
+@record_history(enabled=False)
 def preserve_prediction_length(prediction, expected_length: int):
     if len(prediction) < expected_length:
         zeros = expected_length - len(prediction)
@@ -34,6 +38,7 @@ def preserve_prediction_length(prediction, expected_length: int):
     return prediction
 
 
+@record_history(enabled=False)
 def post_process_forecasted_ts(prediction, input_data: 'InputData'):
     task = input_data.task
     expected_length = len(input_data.idx)
@@ -57,6 +62,7 @@ def post_process_forecasted_ts(prediction, input_data: 'InputData'):
     return prediction
 
 
+@record_history(enabled=False)
 def ts_mse(obs, pred) -> float:
     return mse_metric(y_true=obs[~np.isnan(pred)],
                       y_pred=pred[~np.isnan(pred)],

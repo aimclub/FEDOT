@@ -4,6 +4,8 @@ from typing import (
     Optional,
 )
 
+from log_calls import record_history
+
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerBuilder
@@ -21,6 +23,7 @@ class GPComposerRequirements(ComposerRequirements):
     mutation_prob: Optional[float] = None
 
 
+@record_history(enabled=False)
 class FixedStructureComposer(GPComposer):
     def __init__(self, optimiser=None, metrics: Optional[Callable] = None,
                  composer_requirements: GPComposerRequirements = None,
@@ -32,6 +35,7 @@ class FixedStructureComposer(GPComposer):
         return super().compose_chain(data, is_visualise)
 
 
+@record_history(enabled=False)
 class FixedStructureComposerBuilder(GPComposerBuilder):
     def __init__(self, task: Task):
         super().__init__(task=task)

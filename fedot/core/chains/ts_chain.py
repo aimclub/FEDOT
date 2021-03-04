@@ -1,5 +1,6 @@
 from copy import copy
 
+from log_calls import record_history
 import numpy as np
 
 from fedot.core.chains.chain import Chain
@@ -7,6 +8,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+@record_history(enabled=False)
 class TsForecastingChain(Chain):
 
     def forecast(self, initial_data: InputData, supplementary_data: InputData) -> OutputData:
@@ -78,6 +80,7 @@ class TsForecastingChain(Chain):
         return output_data
 
 
+@record_history(enabled=False)
 def _extend_idx_for_prediction(exiting_idx, forecast_length):
     if forecast_length > 1:
         indices_for_forecast = (exiting_idx[-1] +
@@ -90,6 +93,7 @@ def _extend_idx_for_prediction(exiting_idx, forecast_length):
     return new_idx
 
 
+@record_history(enabled=False)
 def _prepare_exog_features(data_for_prediction: InputData,
                            exog_data: InputData,
                            last_prediction: np.array,
@@ -133,6 +137,7 @@ def _prepare_exog_features(data_for_prediction: InputData,
     return data_for_prediction
 
 
+@record_history(enabled=False)
 def convert_to_tschain(chain):
     """
     The method convert base chain object into TsChain

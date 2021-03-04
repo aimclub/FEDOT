@@ -1,6 +1,10 @@
 from copy import copy, deepcopy
 from datetime import timedelta
 from typing import List, Optional, Union
+from uuid import uuid4
+
+from log_calls import record_history
+import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
@@ -12,6 +16,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
+@record_history(enabled=False)
 class Chain:
     """
     Base class used for composite model structure definition
@@ -328,6 +333,7 @@ class Chain:
         return _depth_recursive(self.root_node)
 
 
+@record_history(enabled=False)
 class SharedChain(Chain):
     def __init__(self, base_chain: Chain, shared_cache: dict, log=None):
         super().__init__(log=log)
@@ -343,6 +349,28 @@ class SharedChain(Chain):
         return chain
 
 
+@record_history(enabled=False)
+def chain_as_nx_graph(chain: Chain):
+    graph = nx.DiGraph()
+    node_labels = {}
+    new_node_idx = {}
+    for node in chain.nodes:
+        unique_id, label = uuid4(), node
+        node_labels[unique_id] = node
+        new_node_idx[node] = unique_id
+        graph.add_node(unique_id)
+
+    def add_edges(graph, chain, new_node_idx):
+        for node in chain.nodes:
+            if node.nodes_from is not None:
+                for child in node.nodes_from:
+                    graph.add_edge(new_node_idx[child], new_node_idx[node])
+
+    add_edges(graph, chain, new_node_idx)
+    return graph, node_labels
+
+
+@record_history(enabled=False)
 def check_data_appropriate_for_task(data: InputData):
     if (data.task.task_type == TaskTypesEnum.ts_forecasting and
             data.target is not None and

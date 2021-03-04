@@ -2,9 +2,12 @@ from copy import deepcopy
 from random import choice, randint
 from typing import (Any, List, Tuple)
 
+from log_calls import record_history
+
 from fedot.core.composer.constraint import constraint_function
 
 
+@record_history(enabled=False)
 def node_height(chain: Any, node: Any) -> int:
     def recursive_child_height(parent_node: Any) -> int:
         node_child = chain.node_childs(parent_node)
@@ -18,6 +21,7 @@ def node_height(chain: Any, node: Any) -> int:
     return height
 
 
+@record_history(enabled=False)
 def node_depth(node: Any) -> int:
     if not node.nodes_from:
         return 0
@@ -25,6 +29,7 @@ def node_depth(node: Any) -> int:
         return 1 + max([node_depth(next_node) for next_node in node.nodes_from])
 
 
+@record_history(enabled=False)
 def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
     def get_nodes(node: Any, current_height):
         nodes = []
@@ -40,6 +45,7 @@ def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
     return nodes
 
 
+@record_history(enabled=False)
 def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     secondary_node_func = chain_generation_params.secondary_node_func
     primary_node_func = chain_generation_params.primary_node_func
@@ -72,6 +78,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     return chain
 
 
+@record_history(enabled=False)
 def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, Any]]:
     """Finds the similar subtree in two given trees"""
 
@@ -94,6 +101,7 @@ def equivalent_subtree(chain_first: Any, chain_second: Any) -> List[Tuple[Any, A
     return pairs_set
 
 
+@record_history(enabled=False)
 def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, node_from_second: Any,
                      layer_in_first: int, layer_in_second: int, max_depth: int):
     node_from_chain_first_copy = deepcopy(node_from_first)
@@ -107,5 +115,6 @@ def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, 
         chain_second.replace_node_with_parents(node_from_second, node_from_chain_first_copy)
 
 
+@record_history(enabled=False)
 def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
     return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1

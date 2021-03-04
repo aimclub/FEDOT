@@ -1,5 +1,6 @@
 import re
 
+from log_calls import record_history
 import nltk
 import numpy as np
 from nltk.corpus import stopwords
@@ -11,6 +12,7 @@ from sklearn.impute import SimpleImputer
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
+@record_history(enabled=False)
 class PreprocessingStrategy:
     def fit(self, data) -> 'PreprocessingStrategy':
         raise NotImplementedError()
@@ -23,6 +25,7 @@ class PreprocessingStrategy:
         return self.apply(data)
 
 
+@record_history(enabled=False)
 class ImputationStrategy(PreprocessingStrategy):
     def __init__(self):
         self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
@@ -40,6 +43,7 @@ class ImputationStrategy(PreprocessingStrategy):
         return modified
 
 
+@record_history(enabled=False)
 class EmptyStrategy(PreprocessingStrategy):
     def fit(self, data):
         return self
@@ -51,6 +55,7 @@ class EmptyStrategy(PreprocessingStrategy):
         return result
 
 
+@record_history(enabled=False)
 class Scaling(PreprocessingStrategy):
     def __init__(self):
         self.scaler = preprocessing.StandardScaler()
@@ -70,6 +75,7 @@ class Scaling(PreprocessingStrategy):
         return resulted
 
 
+@record_history(enabled=False)
 class ScalingWithImputation(Scaling):
     def __init__(self):
         super(ScalingWithImputation, self).__init__()
@@ -85,12 +91,14 @@ class ScalingWithImputation(Scaling):
         return super(ScalingWithImputation, self).apply(data)
 
 
+@record_history(enabled=False)
 class Normalization(Scaling):
     def __init__(self):
         super(Normalization, self).__init__()
         self.scaler = preprocessing.MinMaxScaler()
 
 
+@record_history(enabled=False)
 class NormalizationWithImputation(ScalingWithImputation):
     def __init__(self):
         super(NormalizationWithImputation, self).__init__()
@@ -98,6 +106,7 @@ class NormalizationWithImputation(ScalingWithImputation):
         self.scaler = preprocessing.MinMaxScaler()
 
 
+@record_history(enabled=False)
 class TextPreprocessingStrategy(PreprocessingStrategy):
     def __init__(self):
         self.stemmer = PorterStemmer()
@@ -172,6 +181,7 @@ _label_for_preprocessing_strategy = {
     'scaling': Scaling}
 
 
+@record_history(enabled=False)
 def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy):
     for label, strategy in _label_for_preprocessing_strategy.items():
         if isinstance(target_strategy, strategy):
@@ -179,6 +189,7 @@ def preprocessing_strategy_label_by_class(target_strategy: PreprocessingStrategy
     return None
 
 
+@record_history(enabled=False)
 def preprocessing_strategy_class_by_label(string: str) -> [PreprocessingStrategy, None]:
     preprocessing_strategy = _label_for_preprocessing_strategy.get(string)
 
@@ -187,6 +198,7 @@ def preprocessing_strategy_class_by_label(string: str) -> [PreprocessingStrategy
     return None
 
 
+@record_history(enabled=False)
 def preprocessing_func_for_data(data: 'InputData', node: 'Node'):
     preprocessing_func = EmptyStrategy
     if 'without_preprocessing' not in node.model.metadata.tags:
@@ -197,6 +209,7 @@ def preprocessing_func_for_data(data: 'InputData', node: 'Node'):
     return preprocessing_func
 
 
+@record_history(enabled=False)
 def _expand_data(data):
     if len(data.shape) == 1:
         data = data[:, None]

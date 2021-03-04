@@ -6,6 +6,7 @@ import h2o
 import numpy as np
 from h2o import H2OFrame
 from h2o.automl import H2OAutoML
+from log_calls import record_history
 from tpot import TPOTClassifier, TPOTRegressor
 
 from fedot.core.data.data import InputData
@@ -13,6 +14,7 @@ from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
+@record_history(enabled=False)
 def fit_tpot(data: InputData, max_run_time_min: int):
     models_hyperparameters = _get_models_hyperparameters(max_run_time_min)['TPOT']
     estimator = None
@@ -32,10 +34,12 @@ def fit_tpot(data: InputData, max_run_time_min: int):
     return model
 
 
+@record_history(enabled=False)
 def predict_tpot_reg(trained_model, predict_data):
     return trained_model.predict(predict_data.features)
 
 
+@record_history(enabled=False)
 def predict_tpot_class(trained_model, predict_data):
     try:
         return trained_model.predict_proba(predict_data.features)[:, 1]
@@ -44,6 +48,7 @@ def predict_tpot_class(trained_model, predict_data):
         return trained_model.predict(predict_data.features)
 
 
+@record_history(enabled=False)
 def fit_h2o(train_data: InputData, max_run_time_min: int):
     model_hyperparameters = _get_models_hyperparameters(max_run_time_min)['H2O']
 
@@ -69,6 +74,7 @@ def fit_h2o(train_data: InputData, max_run_time_min: int):
     return best_model
 
 
+@record_history(enabled=False)
 def predict_h2o(trained_model, predict_data: InputData) -> np.array:
     test_frame = _data_transform(predict_data)
 
@@ -83,12 +89,14 @@ def predict_h2o(trained_model, predict_data: InputData) -> np.array:
     return np.array(prediction_proba_one)
 
 
+@record_history(enabled=False)
 def _data_transform(data: InputData) -> H2OFrame:
     conc_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
     frame = H2OFrame(python_obj=conc_data)
     return frame
 
 
+@record_history(enabled=False)
 def _get_models_hyperparameters(timedelta: int = 5) -> dict:
     # MAX_RUNTIME_MINS should be equivalent to MAX_RUNTIME_SECS
 
@@ -126,12 +134,14 @@ def _get_models_hyperparameters(timedelta: int = 5) -> dict:
     return config_dictionary
 
 
+@record_history(enabled=False)
 def _get_h2o_connect_config():
     IP = '127.0.0.1'
     PORT = 8888
     return IP, PORT
 
 
+@record_history(enabled=False)
 class AutoMLEvaluationStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'tpot': (fit_tpot, predict_tpot_class),
@@ -167,6 +177,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
     _model_functions_by_type = {
         'tpot': (fit_tpot, predict_tpot_reg),

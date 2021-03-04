@@ -1,5 +1,6 @@
 from typing import Optional
 
+from log_calls import record_history
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -11,10 +12,12 @@ DEFAULT_EXPLAINED_VARIANCE_THR = 0.9
 DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
 
 
+@record_history(enabled=False)
 def get_data(trained_model, predict_data: InputData):
     return predict_data.features
 
 
+@record_history(enabled=False)
 def get_difference(trained_model, predict_data: InputData):
     number_of_inputs = predict_data.features.shape[1]
     if number_of_inputs != 1:
@@ -22,22 +25,26 @@ def get_difference(trained_model, predict_data: InputData):
     return predict_data.features[:, 0] - predict_data.target
 
 
+@record_history(enabled=False)
 def fit_decomposition(train_data: InputData, params: Optional[dict]):
     target = train_data.target
     period = estimate_period(target)
     return period
 
 
+@record_history(enabled=False)
 def get_residual(trained_model, predict_data: InputData):
     _, target_residual = split_ts_to_components(trained_model, predict_data)
     return target_residual
 
 
+@record_history(enabled=False)
 def get_trend(trained_model, predict_data: InputData):
     target_trend, _ = split_ts_to_components(trained_model, predict_data)
     return target_trend
 
 
+@record_history(enabled=False)
 def fit_pca(train_data: InputData, params: Optional[dict]):
     if not params:
         pca = PCA(svd_solver='randomized', iterated_power='auto')
@@ -70,10 +77,12 @@ def fit_pca(train_data: InputData, params: Optional[dict]):
     return pca
 
 
+@record_history(enabled=False)
 def predict_pca(pca_model, predict_data: InputData):
     return pca_model.transform(predict_data.features)[:, :(pca_model.last_component_ind + 1)]
 
 
+@record_history(enabled=False)
 class DataModellingStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'direct_data_model': (None, get_data),

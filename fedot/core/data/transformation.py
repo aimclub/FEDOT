@@ -1,6 +1,7 @@
 from copy import copy
 from typing import List
 
+from log_calls import record_history
 import numpy as np
 import pandas as pd
 
@@ -11,6 +12,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import extract_task_param
 
 
+@record_history(enabled=False)
 def ts_to_lagged_table(input_data: InputData) -> InputData:
     window_len, prediction_len = extract_task_param(input_data.task)
 
@@ -63,6 +65,7 @@ def ts_to_lagged_table(input_data: InputData) -> InputData:
     return transformed_data
 
 
+@record_history(enabled=False)
 def direct(input_data: InputData) -> InputData:
     return copy(input_data)
 
@@ -76,6 +79,7 @@ _transformation_functions_for_data_types = {
 }
 
 
+@record_history(enabled=False)
 def transformation_function_for_data(input_data_type: DataTypesEnum,
                                      required_data_types: List[DataTypesEnum]):
     if input_data_type in required_data_types:

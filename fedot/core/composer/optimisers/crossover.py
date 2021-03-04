@@ -2,6 +2,8 @@ from copy import deepcopy
 from random import choice, random
 from typing import Any, List
 
+from log_calls import record_history
+
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_operators import \
     (equivalent_subtree, node_depth,
@@ -15,6 +17,7 @@ class CrossoverTypesEnum(Enum):
     none = 'none'
 
 
+@record_history(enabled=False)
 def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int,
               crossover_prob: float = 0.8) -> Any:
     type = choice(types)
@@ -39,6 +42,7 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
         return chain_first_copy, chain_second_copy
 
 
+@record_history(enabled=False)
 def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
     """Performed by the replacement of random subtree
     in first selected parent to random subtree from the second parent"""
@@ -55,6 +59,7 @@ def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> An
     return chain_first, chain_second
 
 
+@record_history(enabled=False)
 def one_point_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:
     """Finds common structural parts between two trees, and after that randomly
     chooses the location of nodes, subtrees of which will be swapped"""

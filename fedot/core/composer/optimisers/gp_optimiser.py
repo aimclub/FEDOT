@@ -3,6 +3,7 @@ from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple)
 
+from log_calls import record_history
 import numpy as np
 
 from fedot.core.composer.constraint import constraint_function
@@ -17,6 +18,7 @@ from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import default_log, Log
 
 
+@record_history(enabled=False)
 class GPChainOptimiserParameters:
     """
         This class is for defining the parameters of optimiser
@@ -59,6 +61,7 @@ class GPChainOptimiserParameters:
             self.mutation_types = [MutationTypesEnum.simple]
 
 
+@record_history(enabled=False)
 class GPChainOptimiser:
     """
     Base class of evolutionary chain optimiser

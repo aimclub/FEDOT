@@ -1,3 +1,4 @@
+from log_calls import record_history
 import numpy as np
 from scipy import signal
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -5,6 +6,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from fedot.core.data.data import InputData
 
 
+@record_history(enabled=False)
 def split_ts_to_components(trained_model, predict_data: InputData):
     """
     :param trained_model: in this case it is the value of period obtained during fitting
@@ -24,6 +26,7 @@ def split_ts_to_components(trained_model, predict_data: InputData):
     return trend, residual
 
 
+@record_history(enabled=False)
 def _estimate_max_possible_period(current_period: int, target):
     # TODO implement better decomposition, now it is workaround for 'x must have 2 complete cycles' error
     if current_period * 2 >= len(target):
@@ -31,6 +34,7 @@ def _estimate_max_possible_period(current_period: int, target):
     return current_period
 
 
+@record_history(enabled=False)
 def merge_component_with_exog(component, predict_data: InputData):
     features_same_as_target = np.array_equal(predict_data.target, predict_data.features)
     if predict_data.features is not None and not features_same_as_target:
@@ -39,6 +43,7 @@ def merge_component_with_exog(component, predict_data: InputData):
     return component
 
 
+@record_history(enabled=False)
 def estimate_period(variable):
     analyse_ratio = 10
     f, pxx_den = signal.welch(variable, fs=1, scaling='spectrum',

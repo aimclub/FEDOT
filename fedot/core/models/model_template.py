@@ -2,11 +2,14 @@ from abc import ABC, abstractmethod
 import joblib
 import os
 
+from log_calls import record_history
+
 from fedot.core.chains.node import Node
 from fedot.core.data.preprocessing import preprocessing_strategy_class_by_label, preprocessing_strategy_label_by_class
 from fedot.core.log import default_log, Log
 
 
+@record_history(enabled=False)
 class ModelTemplateAbstract(ABC):
     """
     Base class used for create different types of Model("atomized_model" or others like("knn", "xgboost")).
@@ -61,6 +64,7 @@ class ModelTemplateAbstract(ABC):
                 raise RuntimeError(message)
 
 
+@record_history(enabled=False)
 class ModelTemplate(ModelTemplateAbstract):
     def __init__(self, node: Node = None, model_id: int = None,
                  nodes_from: list = None):
@@ -146,26 +150,32 @@ class ModelTemplate(ModelTemplateAbstract):
                 self.preprocessor = preprocessor_strategy()
 
 
+@record_history(enabled=False)
 def _check_existing_path(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
 
 
-def extract_model_params(node: Node):
+@record_history(enabled=False)
+def _extract_model_params(node: Node):
     return node.cache.actual_cached_state.model.get_params()
 
 
+@record_history(enabled=False)
 def _extract_model_name(node: Node):
     return node.cache.actual_cached_state.model.__class__.__name__
 
 
+@record_history(enabled=False)
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
 
 
+@record_history(enabled=False)
 def _is_node_not_cached(node: Node) -> bool:
     return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
 
 
+@record_history(enabled=False)
 def _extract_preprocessing_strategy(node: Node) -> str:
     return node.cache.actual_cached_state.preprocessor

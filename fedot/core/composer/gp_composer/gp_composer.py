@@ -6,6 +6,8 @@ from typing import (
     Optional
 )
 
+from log_calls import record_history
+
 from fedot.core.chains.chain import Chain, SharedChain
 from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -59,6 +61,7 @@ class ChainGenerationParams:
     chain_class: Callable = Chain
 
 
+@record_history(enabled=False)
 class GPComposer(Composer):
     """
     Genetic programming based composer
@@ -121,6 +124,7 @@ class GPComposer(Composer):
         return self.optimiser.history
 
 
+@record_history(enabled=False)
 class GPComposerBuilder:
     def __init__(self, task: Task):
         self._composer = GPComposer()

@@ -6,6 +6,7 @@ from os import remove
 from time import time
 from typing import Optional
 
+from log_calls import record_history
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -17,6 +18,7 @@ from fedot.core.chains.chain_convert import chain_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
+@record_history(enabled=False)
 class ChainVisualiser:
 
     def __init__(self):
@@ -166,22 +168,26 @@ class ChainVisualiser:
             print(ex)
 
 
+@record_history(enabled=False)
 def figure_to_array(fig):
     img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8)
     img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return img
 
 
+@record_history(enabled=False)
 def colors_by_node_labels(node_labels: dict):
     colors = [color for color in range(len(node_labels.keys()))]
     return colors
 
 
+@record_history(enabled=False)
 def scaled_node_size(nodes_amount):
     size = int(7000.0 / ceil(log2(nodes_amount)))
     return size
 
 
+@record_history(enabled=False)
 def hierarchy_pos(graph, root, levels=None, width=1., height=1.):
     """If there is a cycle that is reachable from root, then this will see infinite recursion.
        graph: the graph

@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 
+from log_calls import record_history
 import numpy as np
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima_model import ARIMA
@@ -10,15 +11,18 @@ from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.models.tuning.tuners import ForecastingCustomRandomTuner
 
 
+@record_history(enabled=False)
 def fit_ar(train_data: InputData, params):
     return AutoReg(train_data.target, **params,
                    exog=train_data.features).fit()
 
 
+@record_history(enabled=False)
 def fit_arima(train_data: InputData, params):
     return ARIMA(train_data.target, **params).fit(disp=0)
 
 
+@record_history(enabled=False)
 def predict_ar(trained_model, predict_data: InputData) -> OutputData:
     prediction = None
 
@@ -39,6 +43,7 @@ def predict_ar(trained_model, predict_data: InputData) -> OutputData:
     return prediction
 
 
+@record_history(enabled=False)
 def predict_arima(trained_model, predict_data: InputData):
     prediction = []
 
@@ -61,6 +66,7 @@ def predict_arima(trained_model, predict_data: InputData):
     return np.stack(prediction)
 
 
+@record_history(enabled=False)
 class StatsModelsForecastingStrategy(EvaluationStrategy):
     __model_functions_by_types = {
         'arima': (fit_arima, predict_arima),

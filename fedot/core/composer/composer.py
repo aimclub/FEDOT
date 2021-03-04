@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import (Any, Callable, List, Optional)
 
+from log_calls import record_history
+
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
@@ -38,6 +40,7 @@ class ComposerRequirements:
             raise ValueError(f'invalid min_arity value')
 
 
+@record_history(enabled=False)
 class Composer(ABC):
     """
     Base class used for receiving composite models via optimization

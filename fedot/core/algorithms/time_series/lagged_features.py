@@ -1,9 +1,11 @@
 from copy import copy
 from typing import List
 
+from log_calls import record_history
 import numpy as np
 
 
+@record_history(enabled=False)
 def prepare_lagged_ts_for_prediction(data: 'InputData', is_for_fit: bool = True):
     criteria = ['features']
 
@@ -18,6 +20,7 @@ def prepare_lagged_ts_for_prediction(data: 'InputData', is_for_fit: bool = True)
     return cleaned_data
 
 
+@record_history(enabled=False)
 def _clean_nans_in_lagged_features(data: 'InputData', criteria: List[str]):
     """Removes data items that corresponds to NaNs in array_with_nans
     :param data: dataset to filter

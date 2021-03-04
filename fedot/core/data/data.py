@@ -4,9 +4,11 @@ from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from log_calls import record_history
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+
 
 from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
 from fedot.core.data.load_data import TextBatchLoader
@@ -15,6 +17,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
+@record_history(enabled=False)
 @dataclass
 class Data:
     """
@@ -110,6 +113,7 @@ class Data:
                          target=target, task=task, data_type=data_type)
 
 
+@record_history(enabled=False)
 @dataclass
 class InputData(Data):
     """
@@ -166,6 +170,7 @@ class InputData(Data):
         return prepared_data
 
 
+@record_history(enabled=False)
 @dataclass
 class OutputData(Data):
     """
@@ -174,6 +179,7 @@ class OutputData(Data):
     predict: np.array = None
 
 
+@record_history(enabled=False)
 def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = None):
     assert 0. <= split_ratio <= 1.
     if task is not None and task.task_type == TaskTypesEnum.ts_forecasting:
@@ -190,6 +196,7 @@ def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = Non
     return data_train, data_test
 
 
+@record_history(enabled=False)
 def _convert_dtypes(data_frame: pd.DataFrame):
     objects: pd.DataFrame = data_frame.select_dtypes('object')
     for column_name in objects:
@@ -200,6 +207,7 @@ def _convert_dtypes(data_frame: pd.DataFrame):
     return data_frame
 
 
+@record_history(enabled=False)
 def train_test_data_setup(data: InputData, split_ratio=0.8,
                           shuffle_flag=False, task: Task = None) -> Tuple[InputData, InputData]:
     if data.features is not None:
@@ -216,6 +224,7 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     return train_data, test_data
 
 
+@record_history(enabled=False)
 def _combine_datasets_ts(outputs: List[OutputData]):
     features_list = list()
 
@@ -235,6 +244,7 @@ def _combine_datasets_ts(outputs: List[OutputData]):
     return features
 
 
+@record_history(enabled=False)
 def _combine_datasets_table(outputs: List[OutputData]):
     features = list()
     expected_len = len(outputs[0].predict)
@@ -255,6 +265,7 @@ def _combine_datasets_table(outputs: List[OutputData]):
     return features
 
 
+@record_history(enabled=False)
 def _combine_datasets_common(outputs: List[OutputData]):
     features = list()
 

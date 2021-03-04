@@ -1,10 +1,13 @@
+from datetime import timedelta
+
+from log_calls import record_history
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
-from datetime import timedelta
 
 
+@record_history(enabled=False)
 class VectorizeStrategy(EvaluationStrategy):
     __vectorizers_dict = {
         'tfidf': TfidfVectorizer,

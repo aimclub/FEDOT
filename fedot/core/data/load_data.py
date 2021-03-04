@@ -1,9 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 
+from log_calls import record_history
 import pandas as pd
 
 
+@record_history(enabled=False)
 class BatchLoader(ABC):
     def __init__(self, path: str):
         self.path = path
@@ -49,6 +51,7 @@ class BatchLoader(ABC):
             self.meta_df.to_csv(os.path.abspath(path))
 
 
+@record_history(enabled=False)
 class TextBatchLoader(BatchLoader):
     def __init__(self, path: str):
         if os.path.isfile(path):

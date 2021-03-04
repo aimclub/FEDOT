@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from log_calls import record_history
 from sklearn.model_selection import train_test_split
 
 
@@ -12,6 +13,7 @@ def project_root() -> Path:
     return Path(__file__).parent.parent.parent
 
 
+@record_history(enabled=False)
 def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/Fedot
@@ -22,6 +24,7 @@ def default_fedot_data_dir() -> str:
     return default_data_path
 
 
+@record_history(enabled=False)
 def labels_to_dummy_probs(prediction: np.array):
     """Returns converted predictions
     using one-hot probability encoding"""
@@ -30,6 +33,7 @@ def labels_to_dummy_probs(prediction: np.array):
     return pred_probas
 
 
+@record_history(enabled=False)
 def probs_to_labels(prediction: np.array):
     list_with_labels = []
     for list_with_probs in prediction:
@@ -38,6 +42,7 @@ def probs_to_labels(prediction: np.array):
     return list_with_labels
 
 
+@record_history(enabled=False)
 def ensure_features_2d(features: np.array):
     if len(features.shape) >= 3:
         num_of_samples = features.shape[1]
@@ -47,15 +52,18 @@ def ensure_features_2d(features: np.array):
         return features
 
 
+@record_history(enabled=False)
 def split_data(df: pd.DataFrame, t_size: float = 0.2):
     train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
     return train, test
 
 
+@record_history(enabled=False)
 def save_file_to_csv(df: pd.DataFrame, path_to_save: str):
     return df.to_csv(path_to_save, sep=',')
 
 
+@record_history(enabled=False)
 def get_split_data_paths(directory_names: list):
     train_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'train.csv')
     full_train_file_path = os.path.join(str(project_root()), train_file_path)
@@ -64,6 +72,7 @@ def get_split_data_paths(directory_names: list):
     return full_train_file_path, full_test_file_path
 
 
+@record_history(enabled=False)
 def ensure_directory_exists(dir_names: list):
     main_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1])
     dataset_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1], dir_names[2])
@@ -73,6 +82,7 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
+@record_history(enabled=False)
 def make_chain_generator(chain):
     visited_nodes = []
 

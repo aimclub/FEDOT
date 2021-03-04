@@ -2,6 +2,7 @@ import operator
 from datetime import timedelta
 from typing import Callable, Tuple, Union
 
+from log_calls import record_history
 from numpy.random import choice as nprand_choice, randint
 from sklearn.metrics import make_scorer, mean_squared_error, mean_squared_error as mse, roc_auc_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
@@ -16,6 +17,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
 
 
+@record_history(enabled=False)
 class Tuner:
     """
     Base class for tuning strategy
@@ -90,6 +92,7 @@ class Tuner:
         return score, params
 
 
+@record_history(enabled=False)
 class SklearnTuner(Tuner):
     """
     Base tuning strategy used for sklearn models
@@ -125,6 +128,7 @@ class SklearnTuner(Tuner):
             return None, None
 
 
+@record_history(enabled=False)
 class SklearnRandomTuner(SklearnTuner):
     """
     Sklearn tuning strategy using RandomSearchCV
@@ -139,6 +143,7 @@ class SklearnRandomTuner(SklearnTuner):
         return self._sklearn_tune(tune_data=self.tune_data)
 
 
+@record_history(enabled=False)
 class SklearnGridSearchTuner(SklearnTuner):
     """
     Sklearn tuning strategy using GridSearchCV
@@ -152,6 +157,7 @@ class SklearnGridSearchTuner(SklearnTuner):
         return self._sklearn_tune(self.tune_data)
 
 
+@record_history(enabled=False)
 class SklearnBayesSearchCV(SklearnTuner):
     """
     Sklearn tuning strategy using BayesSearchCV
@@ -166,6 +172,7 @@ class SklearnBayesSearchCV(SklearnTuner):
         return self._sklearn_tune(self.tune_data)
 
 
+@record_history(enabled=False)
 class SklearnCustomRandomTuner(Tuner):
     """
     Sklearn tuning strategy using customized version of RandomSearch with cross validation
@@ -196,6 +203,7 @@ class SklearnCustomRandomTuner(Tuner):
             return None, None
 
 
+@record_history(enabled=False)
 class ForecastingCustomRandomTuner:
     """
     Tuning strategy used for forecasting models
@@ -247,6 +255,7 @@ class ForecastingCustomRandomTuner:
         return best_params
 
 
+@record_history(enabled=False)
 def get_random_params(params_range):
     candidate_params = {}
     for param in params_range:
@@ -264,6 +273,7 @@ def get_random_params(params_range):
     return candidate_params
 
 
+@record_history(enabled=False)
 def get_constant_length_range(left_range, right_range):
     candidate_param = []
     for sub_param_ind in range(len(left_range)):
@@ -273,6 +283,7 @@ def get_constant_length_range(left_range, right_range):
     return tuple(candidate_param)
 
 
+@record_history(enabled=False)
 def get_varied_length_range(left_range, right_range):
     candidate_param = []
     subparams_num = randint(1, len(right_range))
@@ -283,10 +294,12 @@ def get_varied_length_range(left_range, right_range):
     return candidate_param
 
 
+@record_history(enabled=False)
 def _regression_prediction_quality(prediction, real):
     return mse(y_true=real, y_pred=prediction, squared=False)
 
 
+@record_history(enabled=False)
 class TPETuner(Tuner):
     """
     Tuning strategy using Tree Parzen Estimator from hyperopt library

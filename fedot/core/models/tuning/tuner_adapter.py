@@ -1,9 +1,11 @@
 from copy import deepcopy
 
 from hyperopt import tpe, fmin, Trials, space_eval, hp
+from log_calls import record_history
 from sklearn.model_selection import cross_val_score
 
 
+@record_history(enabled=False)
 def _search_space_transform(params):
     space = {}
     for param_name, param_space in params.items():
@@ -11,6 +13,7 @@ def _search_space_transform(params):
     return space
 
 
+@record_history(enabled=False)
 class TunerAdapter:
     def __init__(self, tuner: 'Tuner'):
         self.tuner = tuner
@@ -21,6 +24,7 @@ class TunerAdapter:
         self.best_params: dict = dict()
 
 
+@record_history(enabled=False)
 class HyperoptAdapter(TunerAdapter):
     def __init__(self, tuner: 'TPE'):
         super(HyperoptAdapter, self).__init__(tuner)

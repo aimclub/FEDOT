@@ -2,6 +2,7 @@ from copy import copy
 from datetime import timedelta
 from typing import Optional
 
+from log_calls import record_history
 import numpy as np
 import tensorflow as tf
 
@@ -13,6 +14,7 @@ forecast_length = 1
 
 
 # TODO inherit this and similar from custom strategy
+@record_history(enabled=False)
 class KerasForecastingStrategy(EvaluationStrategy):
     def __init__(self, model_type: str, params: Optional[dict] = None):
         self._init_lstm_model_functions(model_type)
@@ -39,6 +41,7 @@ class KerasForecastingStrategy(EvaluationStrategy):
         raise NotImplementedError()
 
 
+@record_history(enabled=False)
 def _rmse_only_last(y_true, y_pred):
     """
     Computes rmse only on the last `prediction_len` values - forecasting
@@ -51,6 +54,7 @@ def _rmse_only_last(y_true, y_pred):
     return tf.keras.backend.sqrt(mse)
 
 
+@record_history(enabled=False)
 def _create_lstm(train_data: InputData):
     reg = 0.001
     shape = train_data.features.shape[-1]
@@ -91,6 +95,7 @@ def _create_lstm(train_data: InputData):
 
 
 # TODO move hyperparameters to params
+@record_history(enabled=False)
 def fit_lstm(train_data: InputData, epochs: int = 1):
     global forecast_length
 
@@ -116,6 +121,7 @@ def fit_lstm(train_data: InputData, epochs: int = 1):
     return model
 
 
+@record_history(enabled=False)
 def predict_lstm(trained_model, predict_data: InputData) -> OutputData:
     window_len, prediction_len = extract_task_param(predict_data.task)
 
@@ -125,6 +131,7 @@ def predict_lstm(trained_model, predict_data: InputData) -> OutputData:
     return pred[:, -prediction_len:, 0]
 
 
+@record_history(enabled=False)
 def _lagged_data_to_3d(input_data: InputData) -> InputData:
     transformed_data = copy(input_data)
 

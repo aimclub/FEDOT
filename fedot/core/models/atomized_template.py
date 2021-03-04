@@ -1,10 +1,13 @@
 import os
 from typing import Tuple
 
+from log_calls import record_history
+
 from fedot.core.chains.node import Node
 from fedot.core.models.model_template import ModelTemplateAbstract, _check_existing_path
 
 
+@record_history(enabled=False)
 class AtomizedModelTemplate(ModelTemplateAbstract):
     def __init__(self, node: Node = None, model_id: int = None, nodes_from: list = None, path: str = None):
         # Need use the imports inside the class because of the problem of circular imports.

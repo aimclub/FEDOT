@@ -4,6 +4,8 @@ from copy import copy
 from datetime import timedelta
 from typing import Callable, List, Optional
 
+from log_calls import record_history
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.preprocessing import preprocessing_func_for_data
 from fedot.core.data.transformation import transformation_function_for_data
@@ -13,6 +15,7 @@ from fedot.core.models.model import Model
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
+@record_history(enabled=False)
 class Node(ABC):
     """
     Base class for Node definition in Chain structure
@@ -76,6 +79,7 @@ class Node(ABC):
                           predict=prediction, task=input_data.task,
                           data_type=self.model.output_datatype(input_data.data_type))
 
+    @record_history(enabled=False)
     def _transform(self, input_data: InputData):
         transformed_data = transformation_function_for_data(
             input_data_type=input_data.data_type,
@@ -190,6 +194,7 @@ class Node(ABC):
             self.model.params = params
 
 
+@record_history(enabled=False)
 class FittedModelCache:
     def __init__(self, related_node: Node):
         self._local_cached_models = {}
@@ -211,6 +216,7 @@ class FittedModelCache:
         return found_model
 
 
+@record_history(enabled=False)
 class SharedCache(FittedModelCache):
     def __init__(self, related_node: Node, global_cached_models: dict):
         super().__init__(related_node)
@@ -230,6 +236,7 @@ class SharedCache(FittedModelCache):
         return found_model
 
 
+@record_history(enabled=False)
 class PrimaryNode(Node):
     """
     The class defines the interface of Primary nodes where initial task data is located
@@ -272,6 +279,7 @@ class PrimaryNode(Node):
         return super().predict(input_data, output_mode, verbose)
 
 
+@record_history(enabled=False)
 class SecondaryNode(Node):
     """
     The class defines the interface of Secondary nodes modifying tha data flow in Chain
@@ -379,6 +387,7 @@ class SecondaryNode(Node):
         return secondary_input
 
 
+@record_history(enabled=False)
 def _combine_parents_that_affects_target(parent_nodes: List[Node],
                                          input_data: InputData,
                                          parent_operation: str):
@@ -396,6 +405,7 @@ def _combine_parents_that_affects_target(parent_nodes: List[Node],
     return [parent_result], target
 
 
+@record_history(enabled=False)
 def _combine_parents_simple(parent_nodes: List[Node],
                             input_data: InputData,
                             parent_operation: str,

@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from log_calls import record_history
+
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
@@ -7,6 +9,7 @@ from fedot.core.log import Log, default_log, start_end_log_decorator
 from fedot.core.chains.chain_template import ChainTemplate, ModelTemplate, extract_subtree_root
 
 
+@record_history(enabled=False)
 class Tune:
     def __init__(self, chain,
                  log: Log = default_log(__name__), verbose=False):
