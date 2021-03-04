@@ -50,7 +50,7 @@ class Tune:
         """
 
         node = self.chain.root_node
-        if isinstance(node, PrimaryNode):
+        if type(node) is PrimaryNode:
             # if mono-node chains
             node.fine_tune(input_data=input_data, max_lead_time=max_lead_time,
                            iterations=iterations)

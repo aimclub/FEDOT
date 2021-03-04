@@ -5,19 +5,15 @@ from typing import List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
-from SALib.analyze.morris import analyze as morris_analyze
 from SALib.analyze.sobol import analyze as sobol_analyze
 from SALib.sample import saltelli
 from SALib.sample.latin import sample as lhc_sample
-from SALib.sample.morris import sample as morris_sample
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.models.model_template import extract_model_params
 from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach
-from fedot.sensitivity.sensitivity_utils import \
-    model_params_with_bounds_by_model_name, INTEGER_PARAMS
 
 
 class ModelAnalyze(NodeAnalyzeApproach):
@@ -56,8 +52,8 @@ class ModelAnalyze(NodeAnalyzeApproach):
         converted_samples = _convert_sample_to_dict(self.problem, samples)
         clean_sample_variables(converted_samples)
 
-        response_matrix = self.get_model_response_matrix(samples, node_id)
-        indices = self.analyze_method(self.problem, response_matrix)
+        response_matrix = self.get_model_response_matrix(converted_samples, node_id)
+        indices = self.analyze_method(self.problem, samples, response_matrix)
         converted_to_json_indices = convert_results_to_json(problem=self.problem,
                                                             si=indices)
 
@@ -152,27 +148,8 @@ def sobol_method(problem, samples, model_response) -> dict:
     return indices
 
 
-def morris_method(problem, samples, model_response) -> dict:
-    indices = morris_analyze(problem=problem,
-                             X=samples, Y=model_response, print_to_console=False)
-
-    return indices
-
-
 def make_saltelly_sample(problem, num_of_samples=100):
     samples = saltelli.sample(problem, num_of_samples)
-
-    return samples
-
-
-def make_moris_sample(problem, num_of_samples=100):
-    samples = morris_sample(problem, num_of_samples, num_levels=4)
-
-    return samples
-
-
-def make_latin_hypercube_sample(problem, num_of_samples=100):
-    samples = lhc_sample(problem, num_of_samples)
 
     return samples
 
@@ -241,13 +218,27 @@ def convert_results_to_json(problem: dict, si: dict):
 
 analyze_method_by_name = {
     'sobol': sobol_method,
-    'morris': morris_method,
 }
 
 sample_method_by_name = {
-    'saltelli': make_saltelly_sample,
-    'morris': make_saltelly_sample,
-    'sobol_sequence': None,
-    'latin_hyper_cube': make_latin_hypercube_sample,
+    'saltelli': make_saltelly_sample
 
 }
+
+model_params_with_bounds_by_model_name = {
+    'xgboost': {
+        'n_estimators': [10, 100],
+        'max_depth': [1, 7],
+        'learning_rate': [0.1, 0.9],
+        'subsample': [0.05, 1.0],
+        'min_child_weight': [1, 21]},
+    'logit': {
+        'C': [1e-2, 10.]},
+    'knn': {
+        'n_neighbors': [1, 50],
+        'p': [1, 2]},
+    'qda': {
+        'reg_param': [0.1, 0.5]},
+}
+
+INTEGER_PARAMS = ['n_estimators', 'n_neighbors', 'p', 'min_child_weight', 'max_depth']
