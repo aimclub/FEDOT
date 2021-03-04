@@ -2,17 +2,17 @@ Sensitivity analysis
 --------------------
 
 Sensitivity analysis algorithms are used to find uncertainties in the input parameters
-of data or meta-parameters that affect the output. But the model complexity
+of data or in meta-parameters that affect the output. But the model complexity
 can also affect the result. To evaluate the potential contribution of certain component
 of the composite model we introduce the composite model Structure Analysis.
 
 Structural Analysis means structure modification of some sort like Node deletion,
-replacement or anything else(see `NodeAnalyzeApproach`_). In FEDOT you can apply such an analysis
-by using `ChainStructureAnalysis`_ or `NodeAnalysis`_. The difference is:
+replacement or anything else(see `NodeAnalyzeApproach`_). Within FEDOT, you can apply such an analysis
+to the model by using `ChainStructureAnalysis`_ or `NodeAnalysis`_. The difference is:
 
-- ChainStructureAnalysis allows you to apply several approaches to several (all or defined) Nodes;
+- ``ChainStructureAnalysis`` allows you to apply several approaches to several (all or defined) Nodes;
 
-- NodeAnalysis allows you to apply several approaches to one Node;
+- ``NodeAnalysis`` allows you to apply several approaches to one Node;
 
 - additionally, you may use every approach directly.
 
