@@ -97,9 +97,11 @@ Result file example:
 Result visualization example:
 
 What if to delete or replace every node in the chain
+
 |DeletionAnalysis| |ReplacementAnalysis|
 
 What if to replace original model(in red) to the certain one
+
 |id_0| |id_1|
 
 .. |DeletionAnalysis| image:: ../img/img_sensitivity/NodeDeletionAnalyze.jpg

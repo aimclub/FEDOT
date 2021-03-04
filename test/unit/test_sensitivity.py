@@ -60,7 +60,7 @@ def test_chain_structure_analyze_init_log_defined():
     # given
     chain, train_data, test_data, node_ids, _ = given_data()
     approaches = [NodeDeletionAnalyze]
-    test_log_object = default_log('test_log_sa')
+    test_log_object = default_log('test_log_chain_sa')
 
     # when
     chain_analyzer = ChainStructureAnalyze(chain=chain,
@@ -137,15 +137,18 @@ def test_node_analysis_init_default():
     assert len(node_analyzer.approaches) == 3
 
 
-def test_node_analysis_init_defined_approaches():
+def test_node_analysis_init_defined_approaches_and_log():
     # given
     approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
+    test_log_object = default_log('test_log_node_sa')
 
-    node_analyzer = NodeAnalysis(approaches=approaches)
+    node_analyzer = NodeAnalysis(approaches=approaches,
+                                 log=test_log_object)
 
     # then
     assert isinstance(node_analyzer, NodeAnalysis)
     assert len(node_analyzer.approaches) == 2
+    assert node_analyzer.log is test_log_object
 
 
 # @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
