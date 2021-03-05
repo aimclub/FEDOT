@@ -1,10 +1,8 @@
 from copy import copy, deepcopy
 from datetime import timedelta
 from typing import List, Optional, Union
-from uuid import uuid4
 
 from log_calls import record_history
-import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
@@ -347,27 +345,6 @@ class SharedChain(Chain):
         for node in chain.nodes:
             node.cache = FittedModelCache(node)
         return chain
-
-
-@record_history(enabled=False)
-def chain_as_nx_graph(chain: Chain):
-    graph = nx.DiGraph()
-    node_labels = {}
-    new_node_idx = {}
-    for node in chain.nodes:
-        unique_id, label = uuid4(), node
-        node_labels[unique_id] = node
-        new_node_idx[node] = unique_id
-        graph.add_node(unique_id)
-
-    def add_edges(graph, chain, new_node_idx):
-        for node in chain.nodes:
-            if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(new_node_idx[child], new_node_idx[node])
-
-    add_edges(graph, chain, new_node_idx)
-    return graph, node_labels
 
 
 @record_history(enabled=False)
