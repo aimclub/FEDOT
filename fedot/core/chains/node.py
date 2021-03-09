@@ -12,6 +12,8 @@ from fedot.core.models.model import Model
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
+DEFAULT_VERBOSITY = 5
+
 
 class Node(ABC):
     """
@@ -97,39 +99,37 @@ class Node(ABC):
 
         return data, preprocessing_strategy
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Run training process in the node
 
         :param input_data: data used for model training
-        :param verbose: flag used for status printing to console, default False
         """
         transformed = self._transform(input_data)
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
 
         if not self.cache.actual_cached_state:
-            if verbose:
-                print('Cache is not actual')
+            self.log.info('Cache is not actual',
+                          for_verbosity=DEFAULT_VERBOSITY)
 
             cached_model, model_predict = self.model.fit(data=preprocessed_data)
             self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
                                           model=cached_model))
         else:
-            if verbose:
-                print('Model were obtained from cache')
+            self.log.info('Model were obtained from cache',
+                          for_verbosity=DEFAULT_VERBOSITY)
 
             model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
 
         return self.output_from_prediction(input_data, model_predict)
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
         Run prediction process in the node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
         """
         transformed = self._transform(input_data)
         preprocessed_data, _ = self._preprocess(transformed)
@@ -245,31 +245,29 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Fit the model located in the primary node
 
         :param input_data: data used for model training
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Trying to fit primary node with model: {self.model}')
+        self.log.info(f'Trying to fit primary node with model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
-        return super().fit(input_data, verbose)
+        return super().fit(input_data)
 
     def predict(self, input_data: InputData,
-                output_mode: str = 'default', verbose=False) -> OutputData:
+                output_mode: str = 'default', ) -> OutputData:
         """
         Predict using the model located in the primary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Predict in primary node by model: {self.model}')
+        self.log.info(f'Predict in primary node by model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
-        return super().predict(input_data, output_mode, verbose)
+        return super().predict(input_data, output_mode)
 
 
 class SecondaryNode(Node):
@@ -289,41 +287,36 @@ class SecondaryNode(Node):
         super().__init__(nodes_from=nodes_from, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData, ) -> OutputData:
         """
         Fit the model located in the secondary node
 
         :param input_data: data used for model training
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Trying to fit secondary node with model: {self.model}')
+        self.log.info(f'Trying to fit secondary node with model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
         secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='fit',
-                                                   verbose=verbose)
+                                                   parent_operation='fit')
         return super().fit(input_data=secondary_input)
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
         Predict using the model located in the secondary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Obtain prediction in secondary node with model: {self.model}')
+        self.log.info(f'Obtain prediction in secondary node with model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
         secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='predict',
-                                                   verbose=verbose)
+                                                   parent_operation='predict')
 
-        return super().predict(input_data=secondary_input, output_mode=output_mode, verbose=verbose)
+        return super().predict(input_data=secondary_input, output_mode=output_mode)
 
     def fine_tune(self, input_data: InputData, recursive: bool = True,
-                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
-                  verbose: bool = False):
+                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
         """
         Run the process of hyperparameter optimization for the node
 
@@ -331,19 +324,18 @@ class SecondaryNode(Node):
         :param input_data: data used for tuning
         :param max_lead_time: max time available for tuning process
         :param iterations: max number of iterations
-        :param verbose: flag used for status printing to console, default True
         """
-        if verbose:
-            self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}')
+        self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
         if recursive:
             secondary_input = self._input_from_parents(input_data=input_data,
                                                        parent_operation='fine_tune',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
+                                                       max_tune_time=max_lead_time)
         else:
             secondary_input = self._input_from_parents(input_data=input_data,
                                                        parent_operation='fit',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
+                                                       max_tune_time=max_lead_time)
 
         return super().fine_tune(input_data=secondary_input)
 
@@ -353,13 +345,12 @@ class SecondaryNode(Node):
 
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str,
-                            max_tune_time: Optional[timedelta] = None,
-                            verbose=False) -> InputData:
+                            max_tune_time: Optional[timedelta] = None) -> InputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
 
-        if verbose:
-            self.log.info(f'Fit all parent nodes in secondary node with model: {self.model}')
+        self.log.info(f'Fit all parent nodes in secondary node with model: {self.model}',
+                      for_verbosity=DEFAULT_VERBOSITY)
 
         parent_nodes = self._nodes_from_with_fixed_order()
 

@@ -59,7 +59,7 @@ class Fedot:
                  preset: str = None,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
-                 seed=None):
+                 seed=None, verbose_level: int = 1):
         """
         :param problem: the name of modelling problem to solve:
             - classification
@@ -71,6 +71,8 @@ class Fedot:
         :param task_params:  additional parameters of the task
         :param seed: value for fixed random seed
         """
+
+        self._verbose_level = verbose_level
 
         if seed is not None:
             np.random.seed(seed)
@@ -89,7 +91,7 @@ class Fedot:
         self.test_data = None
         self.prediction = None
 
-        self.log = default_log(__name__)
+        self.log = default_log('FEDOT logger')
 
         if self.composer_params is None:
             self.composer_params = default_evo_params(self.problem)
@@ -127,7 +129,8 @@ class Fedot:
     def _obtain_model(self, is_composing_required: bool = True):
         execution_params = self._get_params()
         if is_composing_required:
-            self.current_model = compose_fedot_model(**execution_params)
+            self.current_model = compose_fedot_model(**execution_params,
+                                                     logger=self.log)
 
         self.current_model.fit_from_scratch(self.train_data)
 

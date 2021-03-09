@@ -105,7 +105,8 @@ class Log:
 
     def __init__(self, logger_name: str,
                  config_json_file: str,
-                 log_file: str = None):
+                 output_verbosity_level=1,
+                 log_file: str = None, ):
         if not log_file:
             self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
         else:
@@ -116,18 +117,21 @@ class Log:
         self.logger = LogManager().get_logger(logger_name,
                                               config_file=self.config_file,
                                               log_file=self.log_file)
+        self.verbosity_level = output_verbosity_level
 
-    def info(self, message):
+    def info(self, message, for_verbosity: int = 1):
         """Record the INFO log massage"""
-        self.logger.info(message)
+        if self.verbosity_level >= for_verbosity:
+            self.logger.info(message)
 
     def debug(self, message):
         """Record the DEBUG log massage"""
         self.logger.debug(message)
 
-    def warn(self, message):
+    def warn(self, message, for_verbosity: int = 1):
         """Record the WARN log massage"""
-        self.logger.warning(message)
+        if self.verbosity_level >= for_verbosity:
+            self.logger.warning(message)
 
     def error(self, message):
         """Record the ERROR log massage"""

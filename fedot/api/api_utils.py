@@ -88,7 +88,8 @@ def compose_fedot_model(train_data: InputData,
     available_model_types = filter_models_by_preset(available_model_types, preset)
 
     logger.info(f'{preset} preset is used. Parameters tuning: {is_tuning}. '
-                f'Number of candidate models: {available_model_types}. Composing time limit: {learning_time}')
+                f'Number of candidate models: {available_model_types}. Composing time limit: {learning_time}',
+                for_verbosity=0)
 
     # the choice and initialisation of the GP composer
     composer_requirements = GPComposerRequirements(
@@ -98,12 +99,14 @@ def compose_fedot_model(train_data: InputData,
         max_lead_time=learning_time)
 
     # Create GP-based composer
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function). \
+        with_logger(logger)
     gp_composer = builder.build()
 
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
+    chain_gp_composed.log = logger
 
     if is_tuning:
-        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data, verbose=True)
+        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
 
     return chain_gp_composed

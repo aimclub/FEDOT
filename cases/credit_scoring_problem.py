@@ -66,9 +66,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     if with_tuning:
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
-                                                   iterations=50, verbose=True)
+                                                   iterations=50)
 
-    chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
+    chain_evo_composed.fit(input_data=dataset_to_compose)
 
     if is_visualise:
         visualiser = ChainVisualiser()

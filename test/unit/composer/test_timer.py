@@ -1,13 +1,14 @@
-from fedot.core.composer.timer import CompositionTimer, TunerTimer
-import time
 import datetime
+import time
+
+from fedot.core.composer.timer import CompositionTimer, TunerTimer
 
 
 def test_composition_timer():
     generation_num = 100
     reached = False
     start = datetime.datetime.now()
-    with CompositionTimer(verbose=True) as timer:
+    with CompositionTimer() as timer:
         for generation in range(generation_num):
             time.sleep(1)
             if timer.is_time_limit_reached(max_lead_time=datetime.timedelta(minutes=0.01),
