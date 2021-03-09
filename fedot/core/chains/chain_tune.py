@@ -1,19 +1,18 @@
 from datetime import timedelta
 
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_template import ChainTemplate, ModelTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log, start_end_log_decorator
-from fedot.core.chains.chain_template import ChainTemplate, ModelTemplate, extract_subtree_root
 
 
 class Tune:
     def __init__(self, chain,
-                 log: Log = default_log(__name__), verbose=False):
+                 log: Log = default_log(__name__)):
         self.chain = chain
         self.chain_template = ChainTemplate(self.chain)
         self.log = log
-        self.verbose = verbose
 
     @start_end_log_decorator(start_msg='Starting tuning primary nodes',
                              end_msg='Primary nodes tuning is finished')
@@ -25,7 +24,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -45,7 +43,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -70,7 +67,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -92,7 +88,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 

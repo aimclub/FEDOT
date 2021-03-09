@@ -4,13 +4,13 @@ import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import SecondaryNode, PrimaryNode
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
-from fedot.sensitivity.node_sensitivity import \
-    NodeDeletionAnalyze, NodeAnalysis, NodeTuneAnalyze, NodeReplaceModelAnalyze
 from fedot.sensitivity.model_sensitivity import ModelAnalyze
+from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceModelAnalyze, \
+    NodeTuneAnalyze
 from test.unit.utilities.test_chain_import_export import create_func_delete_files
 
 
@@ -235,11 +235,11 @@ def test_node_replacement_analyze_random_nodes_default_number():
 
     # when
     node_analysis_result = \
-        NodeReplaceModelAnalyze(chain=chain,
-                                train_data=train_data,
-                                test_data=test_data,
-                                path_to_save=result_dir). \
-            analyze(node_id=node_index)
+        (NodeReplaceModelAnalyze(chain=chain,
+                                 train_data=train_data,
+                                 test_data=test_data,
+                                 path_to_save=result_dir).
+         analyze(node_id=node_index))
 
     # then
     assert isinstance(node_analysis_result, float)

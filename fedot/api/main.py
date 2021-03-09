@@ -2,6 +2,7 @@ import random
 from typing import List, Union
 
 import numpy as np
+import pandas as pd
 
 from fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
 from fedot.core.chains.chain import Chain
@@ -90,6 +91,7 @@ class Fedot:
         self.train_data = None
         self.test_data = None
         self.prediction = None
+        self.prediction_labels = None
 
         self.log = default_log('FEDOT logger')
 
@@ -129,8 +131,7 @@ class Fedot:
     def _obtain_model(self, is_composing_required: bool = True):
         execution_params = self._get_params()
         if is_composing_required:
-            self.current_model = compose_fedot_model(**execution_params,
-                                                     logger=self.log)
+            self.current_model = compose_fedot_model(**execution_params)
 
         self.current_model.fit_from_scratch(self.train_data)
 
@@ -146,8 +147,8 @@ class Fedot:
         self.current_model = None
 
     def fit(self,
-            features: Union[str, np.ndarray, InputData],
-            target: Union[str, np.ndarray] = 'target',
+            features: Union[str, np.ndarray, pd.DataFrame, InputData],
+            target: Union[str, np.ndarray, pd.Series] = 'target',
             predefined_model: Union[str, Chain] = None):
         """
         :param features: the array with features of train data
@@ -177,7 +178,7 @@ class Fedot:
         return self._obtain_model(is_composing_required)
 
     def predict(self,
-                features: Union[str, np.ndarray, InputData],
+                features: Union[str, np.ndarray, pd.DataFrame, InputData],
                 save_predictions: bool = False):
         """
         :param features: the array with features of test data
@@ -190,13 +191,42 @@ class Fedot:
         self.test_data = _define_data(ml_task=self.problem,
                                       features=features, is_predict=True)
 
-        if self.metric_name == 'f1':
+        if self.problem == TaskTypesEnum.classification:
             self.prediction = self.current_model.predict(self.test_data, output_mode='labels')
         else:
             self.prediction = self.current_model.predict(self.test_data)
 
         if save_predictions:
             save_predict(self.prediction)
+        return self.prediction.predict
+
+    def predict_proba(self,
+                      features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                      save_predictions: bool = False,
+                      probs_for_all_classes: bool = False):
+        """
+        :param features: the array with features of test data
+        :param save_predictions: if True-save predictions as csv-file in working directory.
+        :param probs_for_all_classes: return probability for each class even for binary case
+        :return: the array with prediction values
+        """
+
+        if self.problem.task_type == TaskTypesEnum.classification:
+            if self.current_model is None:
+                self.current_model = self._obtain_model()
+
+            self.test_data = _define_data(ml_task=self.problem,
+                                          features=features, is_predict=True)
+
+            mode = 'full_probs' if probs_for_all_classes else 'probs'
+
+            self.prediction = self.current_model.predict(self.test_data, output_mode=mode)
+
+            if save_predictions:
+                save_predict(self.prediction)
+        else:
+            raise ValueError('Probabilities of predictions are available only for classification')
+
         return self.prediction.predict
 
     def forecast(self,
@@ -255,7 +285,7 @@ class Fedot:
             self.log.error('No prediction to visualize')
 
     def get_metrics(self,
-                    target: np.ndarray = None,
+                    target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
         :param target: the array with target values of test data
@@ -296,12 +326,22 @@ class Fedot:
 
 
 def _define_data(ml_task: Task,
-                 features: Union[str, np.ndarray, InputData],
-                 target: Union[str, np.ndarray] = None,
+                 features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                 target: Union[str, np.ndarray, pd.Series] = None,
                  is_predict=False):
     if type(features) == InputData:
+        # native FEDOT format for input data
         data = features
+    elif type(features) == pd.DataFrame:
+        # pandas format for input data
+        if target is None:
+            target = np.array([])
+
+        data = array_to_input_data(features_array=np.asarray(features),
+                                   target_array=np.asarray(target),
+                                   task_type=ml_task)
     elif type(features) == np.ndarray:
+        # numpy format for input data
         if target is None:
             target = np.array([])
 
@@ -309,6 +349,7 @@ def _define_data(ml_task: Task,
                                    target_array=target,
                                    task_type=ml_task)
     elif type(features) == str:
+        # CSV files as input data
         if target is None:
             target = 'target'
         elif is_predict:

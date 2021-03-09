@@ -25,8 +25,8 @@ def test_tuner_timer():
     time_limit = datetime.timedelta(minutes=0.01)
     start = datetime.datetime.now()
     reached = False
-    with TunerTimer(verbose=True) as timer:
-        for iteration in range(iter_number):
+    with TunerTimer() as timer:
+        for _ in range(iter_number):
             time.sleep(1)
             if timer.is_time_limit_reached(limit=time_limit):
                 reached = True

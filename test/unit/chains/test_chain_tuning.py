@@ -128,10 +128,9 @@ def test_tune_primary_with_tune_class_correctly(data_fixture, request):
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    tuned_chain = Tune(chain=chain,
-                       verbose=True).fine_tune_primary_nodes(input_data=train_data,
-                                                             max_lead_time=timedelta(minutes=1),
-                                                             iterations=30)
+    tuned_chain = Tune(chain=chain).fine_tune_primary_nodes(input_data=train_data,
+                                                            max_lead_time=timedelta(minutes=1),
+                                                            iterations=30)
     tuned_chain.fit_from_scratch(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
 
@@ -153,9 +152,9 @@ def test_tune_all_with_tune_class_correctly(data_fixture, request):
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    tuned_chain = Tune(chain, verbose=True).fine_tune_all_nodes(input_data=train_data,
-                                                                max_lead_time=timedelta(minutes=1),
-                                                                iterations=30)
+    tuned_chain = Tune(chain).fine_tune_all_nodes(input_data=train_data,
+                                                  max_lead_time=timedelta(minutes=1),
+                                                  iterations=30)
 
     tuned_chain.fit_from_scratch(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
@@ -178,9 +177,9 @@ def test_tune_root_with_tune_class_correctly(data_fixture, request):
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    tuned_chain = Tune(chain, verbose=True).fine_tune_root_node(input_data=train_data,
-                                                                max_lead_time=timedelta(minutes=1),
-                                                                iterations=30)
+    tuned_chain = Tune(chain).fine_tune_root_node(input_data=train_data,
+                                                  max_lead_time=timedelta(minutes=1),
+                                                  iterations=30)
 
     tuned_chain.fit_from_scratch(train_data)
     after_tun_root_node_predicted = tuned_chain.predict(test_data)
