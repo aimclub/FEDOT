@@ -6,7 +6,8 @@ from networkx.algorithms.isolate import isolates
 
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.operations.operation import Model
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -96,21 +97,13 @@ def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
 
 
 def has_at_least_one_model(chain: Chain):
-    # Get available models
-    operations_repo = ModelTypesRepository()
-    models_ids = operations_repo.operations
-
     # Check is there at least one model in the chain
-    data_operations = []
-    models = []
+    models_amount = 0
     for node in chain.nodes:
-        name_operation = node.operation.operation_type
-        if any(name_operation == model.id for model in models_ids):
-            models.append(name_operation)
-        else:
-            data_operations.append(name_operation)
+        if type(node.operation) is Model:
+            models_amount = models_amount + 1
 
-    if len(models) == 0:
+    if models_amount == 0:
         raise ValueError(f'{ERROR_PREFIX} Chain consists only of data '
                          f'operations, at least one model required')
     return True
@@ -121,7 +114,7 @@ def has_final_operation_as_model(chain: Chain):
     root_operation = root_node.operation
 
     # Get available models
-    operations_repo = ModelTypesRepository()
+    operations_repo = OperationTypesRepository()
     models_ids = operations_repo.operations
 
     if any(str(root_operation) == model.id for model in models_ids):

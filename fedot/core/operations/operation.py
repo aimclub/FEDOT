@@ -6,8 +6,8 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
-    ModelTypesRepository, DataOperationTypesRepository
+from fedot.core.repository.operation_types_repository import \
+    OperationMetaInfo, OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -72,7 +72,7 @@ class Model(Operation):
         super().__init__(operation_type=operation_type, log=log)
 
     def _init(self, task: Task, **kwargs):
-        operations_repo = ModelTypesRepository()
+        operations_repo = OperationTypesRepository()
         params_for_fit = None
         if self.params != DEFAULT_PARAMS_STUB:
             params_for_fit = self.params
@@ -92,12 +92,14 @@ class Model(Operation):
 
     @property
     def acceptable_task_types(self):
-        model_info = ModelTypesRepository().operation_info_by_id(self.operation_type)
+        operations_repo = OperationTypesRepository()
+        model_info = operations_repo.operation_info_by_id(self.operation_type)
         return model_info.task_type
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        model_info = ModelTypesRepository().operation_info_by_id(self.operation_type)
+        operations_repo = OperationTypesRepository()
+        model_info = operations_repo.operation_info_by_id(self.operation_type)
         if not model_info:
             raise ValueError(f'Model {self.operation_type} not found')
         return model_info
@@ -122,9 +124,7 @@ class Model(Operation):
         """
         self._init(data.task)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=True)
-
-        fitted_model = self._eval_strategy.fit(train_data=prepared_data)
+        fitted_model = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(fitted_model, data, is_fit_chain_stage)
 
@@ -142,10 +142,8 @@ class Model(Operation):
         """
         self._init(data.task, output_mode=output_mode)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=False)
-
         prediction = self._eval_strategy.predict(trained_operation=fitted_operation,
-                                                 predict_data=prepared_data,
+                                                 predict_data=data,
                                                  is_fit_chain_stage=is_fit_chain_stage)
 
         prediction = _post_process_prediction_using_original_input(prediction=prediction, input_data=data)
@@ -159,7 +157,7 @@ class DataOperation(Operation):
         super().__init__(operation_type, log)
 
     def _init(self, task: Task, **kwargs):
-        operations_repo = DataOperationTypesRepository()
+        operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
         params_for_fit = None
         if self.params != DEFAULT_PARAMS_STUB:
             params_for_fit = self.params
@@ -179,12 +177,14 @@ class DataOperation(Operation):
 
     @property
     def acceptable_task_types(self):
-        operation_info = DataOperationTypesRepository().operation_info_by_id(self.operation_type)
+        operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+        operation_info = operations_repo.operation_info_by_id(self.operation_type)
         return operation_info.task_type
 
     @property
     def metadata(self) -> OperationMetaInfo:
-        operation_info = DataOperationTypesRepository().operation_info_by_id(self.operation_type)
+        operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+        operation_info = operations_repo.operation_info_by_id(self.operation_type)
         if not operation_info:
             raise ValueError(f'Data operation {self.operation_type} not found')
         return operation_info
@@ -209,9 +209,7 @@ class DataOperation(Operation):
         """
         self._init(data.task)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=True)
-
-        fitted_operation = self._eval_strategy.fit(train_data=prepared_data)
+        fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(fitted_operation, data, is_fit_chain_stage)
 
@@ -229,10 +227,8 @@ class DataOperation(Operation):
         """
         self._init(data.task, output_mode=output_mode)
 
-        prepared_data = data.prepare_for_modelling(is_for_fit=False)
-
         prediction = self._eval_strategy.predict(trained_operation=fitted_operation,
-                                                 predict_data=prepared_data,
+                                                 predict_data=data,
                                                  is_fit_chain_stage=is_fit_chain_stage)
 
         prediction = _post_process_prediction_using_original_input(
@@ -267,16 +263,13 @@ def _eval_strategy_for_task(operation_type: str, task_type_for_data: TaskTypesEn
 
 def _post_process_prediction_using_original_input(prediction, input_data: InputData):
     # TODO add docstring description
-    processed_predict = prediction
-    if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
-        processed_predict = post_process_forecasted_ts(prediction, input_data)
     # else:
     #     if np.array([np.isnan(_) for _ in prediction]).any():
-    #         processed_predict = np.nan_to_num(prediction)
+    #         prediction = np.nan_to_num(prediction)
     # TODO у меня возникают проблемы во время этой проверки после encoding'а
     # + я не очень понимаю зачем она, ведь при нормальной работе моделей и
     # методов предобработки пропусков вообще появляться не должно. Если смысл
     # в том, чтобы заполнять пропуски в исходных данных. то эта операция
     # дублирует Imputation стратегию -> надо разобраться
 
-    return processed_predict
+    return prediction

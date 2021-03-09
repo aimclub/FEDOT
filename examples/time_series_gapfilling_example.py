@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.chains.node import PrimaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
+from fedot.core.chains.chain import Chain
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 
 

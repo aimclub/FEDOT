@@ -136,7 +136,7 @@ def test_cache_actuality_after_model_change(data_setup):
     chain = chain_first()
     train, _ = data_setup
     chain.fit(input_data=train)
-    new_node = SecondaryNode(model_type='logit')
+    new_node = SecondaryNode(operation_type='logit')
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=new_node)
 
@@ -196,7 +196,7 @@ def test_cache_historical_state_using(data_setup):
 
     # chain fitted, model goes to cache
     chain.fit(input_data=train)
-    new_node = SecondaryNode(model_type='logit')
+    new_node = SecondaryNode(operation_type='logit')
     old_node = chain.root_node.nodes_from[0]
 
     # change child node to new one

@@ -124,8 +124,6 @@ class InputData(Data):
         idx = outputs[0].idx
 
         dataset_merging_funcs = {
-            DataTypesEnum.forecasted_ts: _combine_datasets_ts,
-            DataTypesEnum.ts: _combine_datasets_ts,
             DataTypesEnum.table: _combine_datasets_table
         }
         dataset_merging_funcs.setdefault(data_type, _combine_datasets_common)
@@ -144,17 +142,6 @@ class InputData(Data):
             new_features = self.features[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
-
-    def prepare_for_modelling(self, is_for_fit: bool = False):
-        prepared_data = self
-        if (self.data_type == DataTypesEnum.ts_lagged_table or
-                self.data_type == DataTypesEnum.forecasted_ts):
-            prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
-        elif self.data_type in [DataTypesEnum.table, DataTypesEnum.forecasted_ts]:
-            # TODO implement NaN filling here
-            pass
-
-        return prepared_data
 
 
 @dataclass
@@ -227,8 +214,8 @@ def _check_size_equality(outputs: List[OutputData]):
 
 def merge_equal_outputs(outputs: List[OutputData]):
     """ Function merge datasets with equal amount of rows """
-    features = list()
 
+    features = []
     for elem in outputs:
         if len(elem.predict.shape) == 1:
             features.append(elem.predict)
@@ -237,8 +224,8 @@ def merge_equal_outputs(outputs: List[OutputData]):
             number_of_variables_in_prediction = elem.predict.shape[1]
             for i in range(number_of_variables_in_prediction):
                 features.append(elem.predict[:, i])
-    features = np.array(features).T
 
+    features = np.array(features).T
     idx = outputs[0].idx
     target = outputs[0].target
     return idx, features, target
@@ -261,7 +248,7 @@ def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
     common_idx = np.array(list(common_idx))
     features = list()
 
-    for i, elem in enumerate(outputs):
+    for elem in outputs:
         # Create mask where True - appropriate objects
         mask = np.in1d(np.array(elem.idx), common_idx)
 
@@ -302,18 +289,9 @@ def _combine_datasets_table(outputs: List[OutputData]):
     return idx, features, target
 
 
-def _combine_datasets_ts(outputs: List[OutputData]):
-    first_output = outputs[0]
-
-    idx = first_output.idx
-    features = first_output.predict
-    target = first_output.target
-    return idx, features, target
-
-
 def _combine_datasets_common(outputs: List[OutputData]):
-    features = list()
 
+    features = list()
     for elem in outputs:
         if len(elem.predict) != len(outputs[0].predict):
             raise NotImplementedError(f'Non-equal prediction length: '

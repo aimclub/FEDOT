@@ -11,79 +11,33 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.operations.tuning.hyperopt_tune.\
-    tuners import SequentialTuner, ChainTuner
 from matplotlib import pyplot as plt
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast(chain, train_input, predict_input, task):
+def make_forecast(chain):
     """
     Function for predicting values in a time series
 
     :param chain: TsForecastingChain object
-    :param train_input: InputData for fit
-    :param predict_input: InputData for predict
-    :param task: Ts_forecasting task
 
     :return predicted_values: numpy array, forecast of model
     """
 
     # Fit it
     start_time = timeit.default_timer()
-    chain.fit_from_scratch(train_input, verbose=True)
+    chain.fit_from_scratch()
     amount_of_seconds = timeit.default_timer()-start_time
 
     print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
 
     # Predict
-    predicted_values = chain.predict(predict_input)
-    old_predicted_values = predicted_values.predict
+    predicted_values = chain.predict()
+    predicted_values = predicted_values.predict
 
-    chain_tuner = ChainTuner(chain=chain, task=task,
-                             iterations=2)
-    chain = chain_tuner.tune_chain(input_data=train_input,
-                                   loss_function=mean_absolute_error)
-
-    print('\nChain parameters after tuning')
-    for node in chain.nodes:
-        print(f' Operation {node.operation}, - {node.custom_params}')
-
-    # Fit it
-    chain.fit_from_scratch(train_input)
-
-    # Predict
-    predicted_values = chain.predict(predict_input)
-    new_predicted_values = predicted_values.predict
-
-    return old_predicted_values, new_predicted_values
-
-
-def get_chain():
-    """
-    Chain looking like this
-    lagged - ridge \
-                    \
-                     ridge -> final forecast
-                    /
-    lagged - ridge /
-    """
-
-    # First level
-    node_lagged_1 = PrimaryNode('lagged')
-    node_lagged_2 = PrimaryNode('lagged')
-
-    # Second level
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
-
-    # Third level - root node
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-    chain = Chain(node_final)
-
-    return chain
+    return predicted_values
 
 
 def prepare_input_data(len_forecast, train_data_features, train_data_target,
@@ -109,6 +63,7 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
                             task=task,
                             data_type=DataTypesEnum.ts)
 
+    # Determine indices for forecast
     start_forecast = len(train_data_features)
     end_forecast = start_forecast + len_forecast
     predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
@@ -120,16 +75,24 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_experiment(time_series, len_forecast=250):
-    """ Function with example how time series forecasting can be made
+def run_experiment(time_series, neighboring_level, len_forecast=250,
+                   with_exog=True) -> None:
+    """ Function with example how time series forecasting can be made with using
+    exogenous features
 
     :param time_series: time series for prediction
+    :param neighboring_level: exogenous time series
     :param len_forecast: forecast length
+    :param with_exog: is it needed to make prediction with exogenous time series
     """
 
     # Let's divide our data on train and test samples
     train_data = time_series[:-len_forecast]
     test_data = time_series[-len_forecast:]
+
+    # Exog feature
+    train_data_exog = neighboring_level[:-len_forecast]
+    test_data_exog = neighboring_level[-len_forecast:]
 
     # Source time series
     train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
@@ -137,32 +100,49 @@ def run_experiment(time_series, len_forecast=250):
                                                           train_data_target=train_data,
                                                           test_data_features=train_data)
 
-    chain = get_chain()
+    # Exogenous time series
+    train_input_exog, \
+    predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
+                                               train_data_features=train_data_exog,
+                                               train_data_target=train_data,
+                                               test_data_features=test_data_exog)
 
-    old_predicted, new_predicted = make_forecast(chain, train_input,
-                                                 predict_input, task)
+    if with_exog is True:
+        # Example with exogenous time series
+        node_lagged_1 = PrimaryNode('lagged', node_data={'fit': train_input,
+                                                         'predict': predict_input})
+        node_exog = PrimaryNode('exog', node_data={'fit': train_input_exog,
+                                                   'predict': predict_input_exog})
 
-    old_predicted = np.ravel(np.array(old_predicted))
-    new_predicted = np.ravel(np.array(new_predicted))
+        node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
+        chain = Chain(node_final)
+    else:
+        # Simple example without exogenous time series
+        node_lagged_1 = PrimaryNode('lagged', node_data={'fit': train_input,
+                                                         'predict': predict_input})
+        node_lagged_2 = PrimaryNode('lagged', node_data={'fit': train_input,
+                                                         'predict': predict_input})
+        node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+        node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+        node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+        chain = Chain(node_final)
+
+    predicted = make_forecast(chain)
+
+    predicted = np.ravel(np.array(predicted))
     test_data = np.ravel(test_data)
 
-    print(f'Predicted values before tuning: {old_predicted[:5]}')
-    print(f'Predicted values after tuning: {new_predicted[:5]}')
+    print(f'Predicted values: {predicted[:5]}')
     print(f'Actual values: {test_data[:5]}')
 
-    mse_before = mean_squared_error(test_data, old_predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, old_predicted)
-    print(f'RMSE before tuning - {mse_before:.4f}')
-    print(f'MAE before tuning - {mae_before:.4f}\n')
+    mse_before = mean_squared_error(test_data, predicted, squared=False)
+    mae_before = mean_absolute_error(test_data, predicted)
+    print(f'RMSE - {mse_before:.4f}')
+    print(f'MAE - {mae_before:.4f}\n')
 
-    mse_after = mean_squared_error(test_data, new_predicted, squared=False)
-    mae_after = mean_absolute_error(test_data, new_predicted)
-    print(f'RMSE after tuning - {mse_after:.4f}')
-    print(f'MAE after tuning - {mae_after:.4f}\n')
 
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(train_data), len(time_series)), old_predicted, label='Forecast before tuning')
-    plt.plot(range(len(train_data), len(time_series)), new_predicted, label='Forecast after tuning')
+    plt.plot(range(len(train_data), len(time_series)), predicted, label='Forecast')
     plt.legend()
     plt.grid()
     plt.show()
@@ -170,5 +150,9 @@ def run_experiment(time_series, len_forecast=250):
 
 df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
 time_series = np.array(df['Level'])
+neighboring_level = np.array(df['Neighboring level'])
 if __name__ == '__main__':
-    run_experiment(time_series, len_forecast=250)
+    run_experiment(time_series=time_series,
+                   neighboring_level=neighboring_level,
+                   len_forecast=250,
+                   with_exog=True)

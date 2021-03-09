@@ -12,9 +12,6 @@ class TaskParams:
 @dataclass
 class TsForecastingParams(TaskParams):
     forecast_length: int
-    max_window_size: int
-    return_all_steps: bool = False
-    make_future_prediction: bool = False
 
     def __post_init__(self):
         if self.forecast_length < 1:

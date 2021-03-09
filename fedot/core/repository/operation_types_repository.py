@@ -36,13 +36,17 @@ class OperationMetaInfo:
 
 
 class OperationTypesRepository:
+    """ Class for connecting models and data operations with json files with
+    its descriptions and metadata"""
     _repo = None
 
-    def __init__(self, repo_path=None):
-        if repo_path is not None:
-            self._repo = self._initialise_repo(repo_path)
-        if not repo_path and not self._repo:
-            self._set_repo_to_default_state()
+    def __init__(self, repository_name: str = 'model_repository.json'):
+        # Path till current file with script
+        repo_folder_path = str(os.path.dirname(__file__))
+        # Path till repository file
+        file = os.path.join('data', repository_name)
+        repo_path = os.path.join(repo_folder_path, file)
+        self._repo = self._initialise_repo(repo_path)
 
         self._tags_excluded_by_default = ['non-default', 'expensive']
 
@@ -50,22 +54,16 @@ class OperationTypesRepository:
         return self
 
     def __exit__(self, type, value, traceback):
-        self._set_repo_to_default_state()
+        self.repo_path = None
 
-    @abstractmethod
-    def _set_repo_to_default_state(self):
-        raise NotImplementedError()
-
-    def _initialise_repo(self, repo_path: str,
-                         operations: str) -> List[OperationMetaInfo]:
+    def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
         with open(repo_path) as repository_json_file:
             repository_json = json.load(repository_json_file)
 
         metadata_json = repository_json['metadata']
-        operations_json = repository_json[operations]
+        operations_json = repository_json['operations']
 
         operations_list = []
-
         for current_operation_key in operations_json:
             operation_properties = \
             [operation_properties for operation_key, operation_properties in
@@ -116,10 +114,6 @@ class OperationTypesRepository:
 
         return operations_list
 
-    @property
-    def operations(self):
-        return self._repo
-
     def operation_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
         """ Get operation by it's name (id) """
 
@@ -152,33 +146,9 @@ class OperationTypesRepository:
                            (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
         return [m.id for m in operations_info], operations_info
 
-
-class ModelTypesRepository(OperationTypesRepository):
-
-    def __init__(self, repo_path=None):
-        super().__init__(repo_path=repo_path)
-
-    def _set_repo_to_default_state(self):
-        operations = 'models'
-        file = 'data/model_repository.json'
-        repo_folder_path = str(os.path.dirname(__file__))
-        repo_path = os.path.join(repo_folder_path, file)
-        ModelTypesRepository._repo = self._initialise_repo(repo_path,
-                                                           operations)
-
-
-class DataOperationTypesRepository(OperationTypesRepository):
-
-    def __init__(self, repo_path=None):
-        super().__init__(repo_path=repo_path)
-
-    def _set_repo_to_default_state(self):
-        operations = 'data_operations'
-        file = 'data/data_operation_repository.json'
-        repo_folder_path = str(os.path.dirname(__file__))
-        repo_path = os.path.join(repo_folder_path, file)
-        DataOperationTypesRepository._repo = self._initialise_repo(repo_path,
-                                                                   operations)
+    @property
+    def operations(self):
+        return self._repo
 
 
 def _is_tags_contains_in_operation(candidate_tags: List[str],

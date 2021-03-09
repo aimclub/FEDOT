@@ -31,16 +31,16 @@ def classification_dataset():
 
 
 def get_regr_chain():
-    final = PrimaryNode(model_type='xgbreg')
+    final = PrimaryNode(operation_type='xgbreg')
     chain = Chain(final)
 
     return chain
 
 
 def get_class_chain():
-    first = PrimaryNode(model_type='xgboost')
-    second = PrimaryNode(model_type='pca_data_model')
-    final = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='xgboost')
+    second = PrimaryNode(operation_type='pca_data_model')
+    final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 
     chain = Chain(final)

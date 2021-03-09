@@ -84,7 +84,7 @@
             "description": "Implementations of the keras-based neural models for the time series forecasting"
         }
     },
-    "models": {
+    "operations": {
         "logit": {
             "meta": "sklearn_class",
             "tags": ["simple", "linear", "interpretable"]

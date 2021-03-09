@@ -73,7 +73,7 @@ def __get_range_by_parameter(label, parameter_name):
         'poly_features | degree': hp.choice(label, [2, 3, 4]),
         'poly_features | interaction_only': hp.choice(label, [True, False]),
 
-        'lagged | window_size': hp.uniform(label, 10, 1000),
+        'lagged | window_size': hp.uniform(label, 10, 500),
     }
 
     return range_by_parameter.get(parameter_name)

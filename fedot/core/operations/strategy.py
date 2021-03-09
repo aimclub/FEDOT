@@ -1,4 +1,4 @@
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.operations.operation import Operation, Model, DataOperation
 
 
@@ -41,12 +41,12 @@ class StrategyOperator:
          or not
         """
 
-        # Get available models
-        operations_repo = ModelTypesRepository()
-        operations = operations_repo.operations
+        # Get available models from model_repository.json file
+        operations_repo = OperationTypesRepository()
+        models = operations_repo.operations
 
         # If there is a such model in the list
-        if any(self.operation_name == model.id for model in operations):
+        if any(self.operation_name == model.id for model in models):
             operation_type = 'model'
         # Overwise - it is preprocessing operations
         else:

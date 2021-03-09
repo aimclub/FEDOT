@@ -80,7 +80,7 @@
 	  "description": "Implementations of the time series models"
 	}
   },
-  "models": {
+  "operations": {
 	"logit": {
 	  "meta": "sklearn_class",
 	  "tags": ["simple", "linear", "interpretable"]

@@ -39,7 +39,7 @@ from fedot.core.operations.evaluation.operation_realisations.sklearn_transformat
 from fedot.core.operations.evaluation.operation_realisations. \
     ts_models import ARIMAModel
 from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
-    import LaggedTransformation, TsSmoothing
+    import LaggedTransformation, TsSmoothing, ExogDataTransformation
 from fedot.core.operations.tuning.hyperparams import params_range_by_operation
 from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -321,7 +321,8 @@ class TsTransformingStrategy(EvaluationStrategy):
 
     __operations_by_types = {
         'lagged': LaggedTransformation,
-        'smoothing': TsSmoothing}
+        'smoothing': TsSmoothing,
+        'exog': ExogDataTransformation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation = self._convert_to_operation(operation_type)

@@ -15,8 +15,7 @@ from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.operation_types_repository import \
-    ModelTypesRepository, DataOperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -147,16 +146,21 @@ class GPComposerBuilder:
 
     def set_default_composer_params(self):
         if not self._composer.composer_requirements:
-            models, _ = ModelTypesRepository().suitable_operation(task_type=self.task.task_type)
-            data_operations, _ = DataOperationTypesRepository().suitable_operation(task_type=self.task.task_type)
+            models_repo = OperationTypesRepository()
+            models, _ = models_repo.suitable_operation(task_type=self.task.task_type)
 
-            # Unit two dictionaries
+            data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+            data_operations, _ = data_operations_repo.suitable_operation(task_type=self.task.task_type)
+
+            # Unit two lists
             operations = models + data_operations
             self._composer.composer_requirements = GPComposerRequirements(primary=operations, secondary=operations)
         if not self._composer.metrics:
             metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+
             if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
                 metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+
             self._composer.metrics = metric_function
 
     def build(self) -> Composer:

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error as mse
 
+from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -13,11 +13,11 @@ from fedot.core.utils import project_root
 
 
 def get_composite_chain():
-    chain = TsForecastingChain()
-    node_trend = PrimaryNode('trend_data_model')
+    chain = Chain()
+    node_trend = PrimaryNode('trend_model')
     node_model_trend = SecondaryNode('linear', nodes_from=[node_trend])
 
-    node_residual = PrimaryNode('residual_data_model')
+    node_residual = PrimaryNode('residual_model')
     node_model_residual = SecondaryNode('linear', nodes_from=[node_residual])
 
     node_final = SecondaryNode('linear',
@@ -76,7 +76,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(
         full_path_test, task=task_to_solve, data_type=DataTypesEnum.ts)
 
-    chain_simple = TsForecastingChain(PrimaryNode('linear'))
+    chain_simple = Chain(PrimaryNode('linear'))
     chain_simple.fit(input_data=dataset_to_train, verbose=False)
     rmse_on_valid_simple = calculate_validation_metric(
         chain_simple.predict(dataset_to_validate), dataset_to_validate,
@@ -107,4 +107,5 @@ if __name__ == '__main__':
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
     run_metocean_forecasting_problem(full_path_train, full_path_test,
-                                     forecast_length=72, max_window_size=72, is_visualise=True)
+                                     forecast_length=72, max_window_size=72,
+                                     is_visualise=True)

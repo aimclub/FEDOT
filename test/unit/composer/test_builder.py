@@ -2,7 +2,7 @@ import datetime
 
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -10,7 +10,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 def test_gp_composer_builder():
     task = Task(TaskTypesEnum.classification)
 
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 

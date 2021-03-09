@@ -130,7 +130,7 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 
     chain = Chain()
 
-    node_data = PrimaryNode('direct_data_model')
+    node_data = PrimaryNode('logit')
     node_first = PrimaryNode('bernb')
     node_second = SecondaryNode('rf')
 
@@ -164,7 +164,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(model_type='xgboost',
+    final_shuffled = SecondaryNode(operation_type='xgboost',
                                    nodes_from=[third, first, second])
 
     chain_shuffled = Chain()

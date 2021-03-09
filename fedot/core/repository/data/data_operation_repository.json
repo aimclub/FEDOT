@@ -55,7 +55,7 @@
 			"tags": ["time_series"],
 			"description": "Preprocessing for converting uni-variate time-series into table form"}
 	},
-	"data_operations":{
+	"operations":{
 		"scaling": {
 			"meta": "sklearn_preprocessing",
 			"tags": ["simple"]
@@ -101,6 +101,10 @@
 			"tags": ["affects_target", "dimensionality_transforming"]
 		},
 		"smoothing": {
+			"meta": "time_series_transformation",
+			"tags": ["simple"]
+		},
+		"exog": {
 			"meta": "time_series_transformation",
 			"tags": ["simple"]
 		}

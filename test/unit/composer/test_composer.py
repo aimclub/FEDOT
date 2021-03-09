@@ -15,7 +15,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPCom
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.chains.test_chain_tuning import get_class_chain
@@ -44,7 +44,7 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types, _ = ModelTypesRepository().suitable_model(
+    available_model_types, _ = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
@@ -80,7 +80,7 @@ def test_fixed_structure_composer(data_fixture, request):
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5,
-                                 add_single_model_chains=False)
+                                 allow_single_operations=False)
 
     reference_chain = get_class_chain()
     builder = FixedStructureComposerBuilder(task=Task(TaskTypesEnum.classification)).with_initial_chain(
@@ -108,7 +108,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
     task = Task(TaskTypesEnum.classification)
-    available_model_types, _ = ModelTypesRepository().suitable_model(
+    available_model_types, _ = OperationTypesRepository().suitable_operation(
         task_type=task.task_type)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
@@ -132,7 +132,7 @@ def test_gp_composer_build_chain_correct(data_fixture, request):
 
 def baseline_chain():
     chain = Chain()
-    last_node = SecondaryNode(model_type='xgboost',
+    last_node = SecondaryNode(operation_type='xgboost',
                               nodes_from=[])
     for requirement_model in ['knn', 'logit']:
         new_node = PrimaryNode(requirement_model)
@@ -187,7 +187,7 @@ def test_parameter_free_composer_build_chain_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
-    available_model_types, _ = ModelTypesRepository().suitable_model(
+    available_model_types, _ = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)

@@ -255,4 +255,5 @@ def test_chain_with_incorrect_model_amount_raise_exception():
     with pytest.raises(Exception) as exc:
         assert has_at_least_one_model(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain consists only of data operations, at least one model needed'
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain consists only of data ' \
+                             f'operations, at least one model required'

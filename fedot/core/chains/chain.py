@@ -45,7 +45,7 @@ class Chain:
                 self.add_node(nodes)
         self.fitted_on_data = None
 
-    def fit_from_scratch(self, input_data: InputData, verbose=False):
+    def fit_from_scratch(self, input_data: InputData = None, verbose=False):
         """
         Method used for training the chain without using cached information
 
@@ -64,7 +64,7 @@ class Chain:
                 cache_status = False
         return cache_status
 
-    def fit(self, input_data: InputData, use_cache=True, verbose=False):
+    def fit(self, input_data: Optional[InputData] = None, use_cache=True, verbose=False):
         """
         Run training process in all nodes in chain starting with root.
 
@@ -77,19 +77,12 @@ class Chain:
         if not use_cache:
             self._clean_operation_cache()
 
-        if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
-            if input_data.task.task_params.make_future_prediction:
-                input_data.task.task_params.return_all_steps = True
-            # the make_future_prediction is useless for the fit stage
-            input_data.task.task_params.make_future_prediction = False
-            check_data_appropriate_for_task(input_data)
-
         if not use_cache or self.fitted_on_data is None:
             self.fitted_on_data = input_data
         train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
         return train_predicted
 
-    def predict(self, input_data: InputData, output_mode: str = 'default'):
+    def predict(self, input_data: InputData = None, output_mode: str = 'default'):
         """
         Run the predict process in all nodes in chain starting with root.
 
@@ -113,6 +106,7 @@ class Chain:
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
                                 max_lead_time: timedelta = timedelta(minutes=5),
                                 verbose=False):
+        # TODO remove
         """
         Optimize hyperparameters in primary nodes models
 
@@ -136,6 +130,7 @@ class Chain:
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5),
                             verbose=False):
+        # TODO remove
         """
         Optimize hyperparameters in all nodes models
 
@@ -278,6 +273,7 @@ class SharedChain(Chain):
 
 
 def chain_as_nx_graph(chain: Chain):
+    # TODO add docstring description
     graph = nx.DiGraph()
     node_labels = {}
     new_node_idx = {}
@@ -298,6 +294,7 @@ def chain_as_nx_graph(chain: Chain):
 
 
 def check_data_appropriate_for_task(data: InputData):
+    # TODO add docstring description
     if (data.task.task_type == TaskTypesEnum.ts_forecasting and
             data.target is not None and
             data.task.task_params.max_window_size > data.target.shape[0]):

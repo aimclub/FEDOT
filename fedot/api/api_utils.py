@@ -5,7 +5,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPCom
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import (
-    ModelTypesRepository
+    OperationTypesRepository
 )
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, RegressionMetricsEnum, \
     MetricsRepository, ClusteringMetricsEnum
@@ -69,7 +69,7 @@ def compose_fedot_model(train_data: InputData,
     learning_time = datetime.timedelta(minutes=learning_time)
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     if model_types is not None:
         available_model_types = model_types

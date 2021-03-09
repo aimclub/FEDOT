@@ -2,7 +2,7 @@ from abc import ABC
 from collections import namedtuple
 from copy import copy
 from datetime import timedelta
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
@@ -114,6 +114,7 @@ class Node(ABC):
     def fine_tune(self, input_data: InputData,
                   max_lead_time: timedelta = timedelta(minutes=5),
                   iterations: int = 30):
+        # TODO remove
         """
         Run the process of hyperparameter optimization for the node
 
@@ -196,11 +197,21 @@ class PrimaryNode(Node):
     The class defines the interface of Primary nodes where initial task data is located
 
     :param operation_type: str type of the operation defined in operation repository
+    :param node_data: dictionary with InputData for fit and predict stage
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: str, **kwargs):
+    def __init__(self, operation_type: str, node_data: dict = None,
+                 **kwargs):
         super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
+
+        if node_data is None:
+            self.node_data = {}
+            self.direct_set = False
+        else:
+            self.node_data = node_data
+            # Was the data passed directly to the node or not
+            self.direct_set = True
 
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
@@ -212,6 +223,10 @@ class PrimaryNode(Node):
         if verbose:
             self.log.info(f'Trying to fit primary node with operation: {self.operation}')
 
+        if self.direct_set is True:
+            input_data = self.node_data.get('fit')
+        else:
+            self.node_data.update({'fit': input_data})
         return super().fit(input_data, verbose)
 
     def predict(self, input_data: InputData,
@@ -226,7 +241,15 @@ class PrimaryNode(Node):
         if verbose:
             self.log.info(f'Predict in primary node by operation: {self.operation}')
 
+        if self.direct_set is True:
+            input_data = self.node_data.get('predict')
+        else:
+            self.node_data.update({'predict': input_data})
         return super().predict(input_data, output_mode, verbose)
+
+    def get_data_from_node(self):
+        """ Method returns data if the data was set to the nodes directly """
+        return self.node_data
 
 
 class SecondaryNode(Node):
@@ -279,6 +302,7 @@ class SecondaryNode(Node):
     def fine_tune(self, input_data: InputData, recursive: bool = True,
                   max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
                   verbose: bool = False):
+        # TODO remove
         """
         Run the process of hyperparameter optimization for the node
 
@@ -318,15 +342,8 @@ class SecondaryNode(Node):
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
-        are_prev_nodes_affect_target = \
-            ['affects_target' in parent_node.operation_tags for parent_node in parent_nodes]
-        if any(are_prev_nodes_affect_target):
-            # is the previous operation is the operation that changes target
-            parent_results, target = _combine_parents_that_affects_target(parent_nodes, input_data,
-                                                                          parent_operation)
-        else:
-            parent_results, target = _combine_parents_simple(parent_nodes, input_data,
-                                                             parent_operation, max_tune_time)
+        parent_results, target = _combine_parents(parent_nodes, input_data,
+                                                  parent_operation, max_tune_time)
 
         secondary_input = InputData.from_predictions(outputs=parent_results,
                                                      target=target)
@@ -334,27 +351,10 @@ class SecondaryNode(Node):
         return secondary_input
 
 
-def _combine_parents_that_affects_target(parent_nodes: List[Node],
-                                         input_data: InputData,
-                                         parent_operation: str):
-    if len(parent_nodes) > 1:
-        raise NotImplementedError()
-
-    if parent_operation == 'predict':
-        parent_result = parent_nodes[0].predict(input_data=input_data)
-    elif parent_operation == 'fit' or parent_operation == 'fine_tune':
-        parent_result = parent_nodes[0].fit(input_data=input_data)
-    else:
-        raise NotImplementedError()
-
-    target = parent_result.predict
-    return [parent_result], target
-
-
-def _combine_parents_simple(parent_nodes: List[Node],
-                            input_data: InputData,
-                            parent_operation: str,
-                            max_tune_time: Optional[timedelta]):
+def _combine_parents(parent_nodes: List[Node],
+                     input_data: InputData,
+                     parent_operation: str,
+                     max_tune_time: Optional[timedelta]):
     """
     Method for combining predictions from parent node or nodes
 
@@ -366,9 +366,13 @@ def _combine_parents_simple(parent_nodes: List[Node],
     :return parent_results: list with OutputData from parent nodes
     :return target: target for final chain prediction
     """
-    target = input_data.target
+
+    if input_data is not None:
+        # InputData was set to chain
+        target = input_data.target
     parent_results = []
     for parent in parent_nodes:
+
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
@@ -381,5 +385,9 @@ def _combine_parents_simple(parent_nodes: List[Node],
             parent_results.append(prediction)
         else:
             raise NotImplementedError()
+
+        if input_data is None:
+            # InputData was set to primary nodes
+            target = prediction.target
 
     return parent_results, target

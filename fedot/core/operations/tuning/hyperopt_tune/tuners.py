@@ -1,6 +1,6 @@
 import datetime
 from abc import ABC, abstractmethod
-from copy import copy
+from copy import deepcopy
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from functools import partial
 from fedot.core.operations.tuning.hyperopt_tune.hp_hyperparams import get_node_params, convert_params
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 
 from hyperopt import fmin, tpe, space_eval
 from sklearn.model_selection import train_test_split
@@ -77,7 +78,7 @@ class HyperoptTuner(ABC):
         """
 
         # Train chain
-        self.init_chain = copy(self.chain)
+        self.init_chain = deepcopy(self.chain)
 
         self.init_metric = self.get_metric_value(train_input=train_input,
                                                  predict_input=predict_input,
@@ -97,25 +98,30 @@ class HyperoptTuner(ABC):
         prefix_tuned_phrase = '\nReturn tuned chain due to the fact that obtained metric'
         prefix_init_phrase = '\nReturn init chain due to the fact that obtained metric'
 
+        # 5% deviation is acceptable
+        deviation = (self.init_metric / 100.0) * 5
+
         if self.is_need_to_maximize is True:
             # Maximization
-            if obtained_metric >= self.init_metric:
-                print(f'{prefix_tuned_phrase} {obtained_metric:.2f} equal or '
-                      f'bigger than initial {self.init_metric:.2f}')
+            init_metric = self.init_metric - deviation
+            if obtained_metric >= init_metric:
+                print(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                      f'bigger than initial (- 5% deviation) {init_metric:.3f}')
                 return tuned_chain
             else:
-                print(f'{prefix_init_phrase} {obtained_metric:.2f} '
-                      f'smaller than initial {self.init_metric:.2f}')
+                print(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                      f'smaller than initial (- 5% deviation) {init_metric:.3f}')
                 return self.init_chain
         else:
             # Minimization
-            if obtained_metric <= self.init_metric:
-                print(f'{prefix_tuned_phrase} {obtained_metric:.2f} equal or '
-                      f'smaller than initial {self.init_metric:.2f}')
+            init_metric = self.init_metric + deviation
+            if obtained_metric <= init_metric:
+                print(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                      f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
                 return tuned_chain
             else:
-                print(f'{prefix_init_phrase} {obtained_metric:.2f} '
-                      f'bigger than initial {self.init_metric:.2f}')
+                print(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                      f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_chain
 
     def _validation_split(self, input_data):
@@ -132,13 +138,8 @@ class HyperoptTuner(ABC):
         input_features = input_data.features
         input_target = input_data.target
 
-        # TODO refactor it
-        try:
-            trigger = self.task.task_params.forecast_length
-        except Exception:
-            trigger = None
-        if trigger is not None:
-            # Time series forecasting task
+        if self.task.task_type == TaskTypesEnum.ts_forecasting:
+            # Time series forecasting task - TODO not optimal split -> vital!
             forecast_length = self.task.task_params.forecast_length
             x_data_train = input_features[:-forecast_length]
             x_data_test = input_features[:-forecast_length]
@@ -152,7 +153,7 @@ class HyperoptTuner(ABC):
             x_data_train, x_data_test, \
             y_data_train, y_data_test = train_test_split(input_features,
                                                          input_target,
-                                                         test_size=0.33)
+                                                         test_size=0.6)
             idx_for_train = np.arange(0, len(x_data_train))
             idx_for_predict = np.arange(0, len(x_data_test))
 

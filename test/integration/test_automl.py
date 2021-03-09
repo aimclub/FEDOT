@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from fedot.core.repository.operation_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from examples.chain_from_automl import run_chain_from_automl
 from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
 from fedot.core.utils import project_root
@@ -9,9 +9,8 @@ from fedot.core.utils import project_root
 
 def test_chain_from_automl_example():
     project_root_path = str(project_root())
-    experimental_repo_path = os.path.join(project_root_path,
-                                          'fedot/core/repository/data/model_repository_with_automl.json')
-    with ModelTypesRepository(experimental_repo_path) as _:
+    experimental_repo_file = os.path.join('model_repository_with_automl.json')
+    with OperationTypesRepository(experimental_repo_file) as _:
         file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
         file_path_test = file_path_train
 

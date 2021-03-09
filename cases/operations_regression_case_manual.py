@@ -1,4 +1,3 @@
-import datetime
 import warnings
 from copy import copy
 
@@ -24,7 +23,7 @@ def run_experiment(file_path, chain, iterations=20, tuner=None):
     are available for such experiment.
 
     :param file_path: path to the file with river level data
-    :param сhain: chain to fit and make prediction
+    :param chain: chain to fit and make prediction
     :param iterations: amount of iterations to process
     :param tuner: if tuning after composing process is required or not. tuner -
     NodesTuner or ChainTuner.
@@ -32,34 +31,36 @@ def run_experiment(file_path, chain, iterations=20, tuner=None):
 
     # Read dataframe and prepare train and test data
     df = pd.read_csv(file_path)
+    features = np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']])
+    target = np.array(df['level_station_2'])
     x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(
-        np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']]),
-        np.array(df['level_station_2']),
+        features,
+        target,
         test_size=0.2,
         shuffle=True,
         random_state=10)
+
+    # Define regression task
+    task = Task(TaskTypesEnum.regression)
+
+    # Prepare data to train the model
+    train_input = InputData(idx=np.arange(0, len(x_data_train)),
+                            features=x_data_train,
+                            target=y_data_train,
+                            task=task,
+                            data_type=DataTypesEnum.table)
+
+    predict_input = InputData(idx=np.arange(0, len(x_data_test)),
+                              features=x_data_test,
+                              target=None,
+                              task=task,
+                              data_type=DataTypesEnum.table)
 
     for i in range(0, iterations):
         print(f'Iteration {i}\n')
 
         # To avoid inplace transformations make copy
         current_chain = copy(chain)
-
-        # Define regression task
-        task = Task(TaskTypesEnum.regression)
-
-        # Prepare data to train the model
-        train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                                features=x_data_train,
-                                target=y_data_train,
-                                task=task,
-                                data_type=DataTypesEnum.table)
-
-        predict_input = InputData(idx=np.arange(0, len(x_data_test)),
-                                  features=x_data_test,
-                                  target=None,
-                                  task=task,
-                                  data_type=DataTypesEnum.table)
 
         # Fit it
         current_chain.fit_from_scratch(train_input)
