@@ -140,7 +140,6 @@ def run_experiment(time_series, neighboring_level, len_forecast=250,
     print(f'RMSE - {mse_before:.4f}')
     print(f'MAE - {mae_before:.4f}\n')
 
-
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
     plt.plot(range(len(train_data), len(time_series)), predicted, label='Forecast')
     plt.legend()

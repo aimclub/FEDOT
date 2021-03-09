@@ -97,7 +97,7 @@ def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
 
 
 def has_at_least_one_model(chain: Chain):
-    # Check is there at least one model in the chain
+    """ Check is there at least one model in the chain """
     models_amount = 0
     for node in chain.nodes:
         if type(node.operation) is Model:
@@ -110,14 +110,10 @@ def has_at_least_one_model(chain: Chain):
 
 
 def has_final_operation_as_model(chain: Chain):
+    """ Check if the operation in root node is model or not """
     root_node = chain.root_node
-    root_operation = root_node.operation
 
-    # Get available models
-    operations_repo = OperationTypesRepository()
-    models_ids = operations_repo.operations
-
-    if any(str(root_operation) == model.id for model in models_ids):
+    if type(root_node.operation) is Model:
         pass
     else:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')

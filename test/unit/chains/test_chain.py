@@ -226,9 +226,7 @@ def test_chain_with_wrong_data():
     chain = Chain(PrimaryNode('linear'))
     data_seq = np.arange(0, 10)
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10,
-                                    max_window_size=len(data_seq) + 1,
-                                    return_all_steps=False))
+                TsForecastingParams(forecast_length=10))
 
     data = InputData(idx=data_seq, features=data_seq, target=data_seq,
                      data_type=DataTypesEnum.ts, task=task)
