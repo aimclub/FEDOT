@@ -82,7 +82,6 @@ class Fedot:
         self.train_data = None
         self.test_data = None
         self.prediction = None
-        self.prediction_labels = None
 
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
