@@ -2,14 +2,14 @@ import json
 from os.path import join
 from typing import List, Optional, Type
 
+import matplotlib.pyplot as plt
+
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach, \
-    NodeAnalysis
-import matplotlib.pyplot as plt
+from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeAnalyzeApproach
 
 
 def get_nodes_degrees(chain: Chain):
@@ -102,7 +102,7 @@ class ChainStructureAnalyze:
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(result, indent=4))
 
-        self.log.info(f'Chain Sensitivity Analysis results were saved to {result_file}')
+        self.log.message(f'Chain Sensitivity Analysis results were saved to {result_file}')
 
     def _visualize_result_per_approach(self, results: dict, types: list):
         gathered_results = self._extract_result_values(results)
@@ -122,7 +122,7 @@ class ChainStructureAnalyze:
                              f'{self.approaches[index].__name__}.jpg')
 
             plt.savefig(file_path)
-            self.log.info(f'Chain Sensitivity Analysis visualized results were saved to {file_path}')
+            self.log.message(f'Chain Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
         nodes_degrees = get_nodes_degrees(self.chain)
@@ -134,7 +134,7 @@ class ChainStructureAnalyze:
             file_path = join(self.path_to_save,
                              f'{self.approaches[index].__name__}_cor.jpg')
             plt.savefig(file_path)
-            self.log.info(f'Nodes degree correlation visualized results were saved to {file_path}')
+            self.log.message(f'Nodes degree correlation visualized results were saved to {file_path}')
 
     def _extract_result_values(self, results):
         gathered_results = []

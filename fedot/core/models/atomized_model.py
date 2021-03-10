@@ -4,8 +4,8 @@ from uuid import uuid4
 from fedot.core.chains.chain_tune import Tune
 from fedot.core.data.data import InputData
 from fedot.core.models.model import Model
+from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_meta_tags, atomized_model_type
 from fedot.core.utils import make_chain_generator
-from fedot.core.repository.model_types_repository import ModelMetaInfo, atomized_model_type, atomized_model_meta_tags
 
 
 class AtomizedModel(Model):
@@ -17,22 +17,22 @@ class AtomizedModel(Model):
         self.chain = chain
         self.unique_id = uuid4()
 
-    def fit(self, data: InputData, use_cache=True, verbose=False):
-        predicted_train = self.chain.fit(input_data=data, verbose=False)
+    def fit(self, data: InputData, use_cache=True):
+        predicted_train = self.chain.fit(input_data=data)
         fitted_atomized_model_head = self.chain.root_node
 
         return fitted_atomized_model_head, predicted_train.predict
 
-    def predict(self, fitted_model, data: InputData,  output_mode: str = 'default'):
+    def predict(self, fitted_model, data: InputData, output_mode: str = 'default'):
         prediction = self.chain.predict(input_data=data, output_mode=output_mode)
 
         return prediction.predict
 
     def fine_tune(self, data: InputData, iterations: int,
                   max_lead_time: timedelta = timedelta(minutes=5)):
-        self.chain = Tune(self.chain, verbose=True).fine_tune_all_nodes(input_data=data,
-                                                                        max_lead_time=max_lead_time,
-                                                                        iterations=iterations)
+        self.chain = Tune(self.chain).fine_tune_all_nodes(input_data=data,
+                                                          max_lead_time=max_lead_time,
+                                                          iterations=iterations)
 
     @property
     def metadata(self) -> ModelMetaInfo:

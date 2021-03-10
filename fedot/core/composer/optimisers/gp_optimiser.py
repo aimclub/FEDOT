@@ -5,16 +5,16 @@ from typing import (Any, Callable, List, Optional, Tuple)
 
 import numpy as np
 
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.composing_history import ComposingHistory
+from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_operators import random_chain, num_of_parents_in_crossover
+from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.composer.optimisers.selection import SelectionTypesEnum, selection
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 
 
 class GPChainOptimiserParameters:
@@ -71,7 +71,8 @@ class GPChainOptimiser:
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params,
-                 parameters: Optional[GPChainOptimiserParameters] = None, log: Log = None):
+                 parameters: Optional[GPChainOptimiserParameters] = None,
+                 log: Log = None):
         self.chain_generation_params = chain_generation_params
         self.primary_node_func = self.chain_generation_params.primary_node_func
         self.secondary_node_func = self.chain_generation_params.secondary_node_func
@@ -82,6 +83,8 @@ class GPChainOptimiser:
             self.requirements.max_depth
 
         self.generation_num = 0
+        self.num_of_gens_without_improvements = 0
+
         if not log:
             self.log = default_log(__name__)
         else:
@@ -116,7 +119,7 @@ class GPChainOptimiser:
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
-        with CompositionTimer() as t:
+        with CompositionTimer(log=self.log) as t:
 
             if self.requirements.add_single_model_chains:
                 best_single_model, self.requirements.primary = \

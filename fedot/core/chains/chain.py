@@ -43,16 +43,15 @@ class Chain:
                 self.add_node(nodes)
         self.fitted_on_data = None
 
-    def fit_from_scratch(self, input_data: InputData, verbose=False):
+    def fit_from_scratch(self, input_data: InputData):
         """
         Method used for training the chain without using cached information
 
         :param input_data: data used for model training
-        :param verbose: flag used for status printing to console, default False
         """
         # Clean all cache and fit all models
         self.log.info('Fit chain from scratch')
-        self.fit(input_data, use_cache=False, verbose=verbose)
+        self.fit(input_data, use_cache=False)
 
     def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
         if self.fitted_on_data is not None and self.fitted_on_data is not new_input_data:
@@ -62,13 +61,12 @@ class Chain:
                 cache_status = False
         return cache_status
 
-    def fit(self, input_data: InputData, use_cache=True, verbose=False):
+    def fit(self, input_data: InputData, use_cache=True):
         """
         Run training process in all nodes in chain starting with root.
 
         :param input_data: data used for model training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
-        :param verbose: flag used for status printing to console, default False
         """
         use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
@@ -84,7 +82,7 @@ class Chain:
 
         if not use_cache or self.fitted_on_data is None:
             self.fitted_on_data = input_data
-        train_predicted = self.root_node.fit(input_data=input_data, verbose=verbose)
+        train_predicted = self.root_node.fit(input_data=input_data)
         return train_predicted
 
     def predict(self, input_data: InputData, output_mode: str = 'default'):
@@ -109,47 +107,40 @@ class Chain:
         return result
 
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
-                                max_lead_time: timedelta = timedelta(minutes=3),
-                                verbose=False):
+                                max_lead_time: timedelta = timedelta(minutes=3)):
         """
         Optimize hyperparameters in primary nodes models
 
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         """
         # Select all primary nodes
         # Perform fine-tuning for each model in node
-        if verbose:
-            self.log.info('Start tuning of primary nodes')
+        self.log.info('Start tuning of primary nodes')
 
         all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
         for node in all_primary_nodes:
             node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
-        if verbose:
-            self.log.info('End tuning')
+        self.log.info('End tuning')
 
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
-                            max_lead_time: timedelta = timedelta(minutes=5),
-                            verbose=False):
+                            max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters in all nodes models
 
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info('Start tuning of chain')
+
+        self.log.info('Start tuning of chain')
 
         node = self.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
-        if verbose:
-            self.log.info('End tuning')
+        self.log.info('End tuning')
 
     def add_node(self, new_node: Node):
         """

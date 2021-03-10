@@ -15,6 +15,7 @@ from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
@@ -71,11 +72,17 @@ class GPComposer(Composer):
     def __init__(self, optimiser=None,
                  composer_requirements: Optional[GPComposerRequirements] = None,
                  metrics: Optional[Callable] = None,
-                 initial_chain: Optional[Chain] = None):
+                 initial_chain: Optional[Chain] = None,
+                 logger: Log = None):
 
         super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_chain=initial_chain)
         self.shared_cache = {}
         self.optimiser = optimiser
+
+        if not logger:
+            self.log = default_log(__name__)
+        else:
+            self.log = logger
 
     def compose_chain(self, data: InputData, is_visualise: bool = False,
                       is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
@@ -104,16 +111,20 @@ class GPComposer(Composer):
                          chain: Chain) -> float:
         try:
             validate(chain)
+            chain.log = self.log
             if is_chain_shared:
                 chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
             chain.fit(input_data=train_data)
-            return metric_function(chain, test_data)
+            metric = metric_function(chain, test_data)
+            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metric {metric}')
+            return metric
         except Exception as ex:
-            # self.log.info(f'Error in chain assessment during composition: {ex}. Continue.')
+            self.log.warn(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
 
     @staticmethod
     def tune_chain(chain: Chain, data: InputData, time_limit):
+        # TODO investigate is it necessary
         chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)
 
     @property
@@ -142,6 +153,10 @@ class GPComposerBuilder:
 
     def with_initial_chain(self, initial_chain):
         self._composer.initial_chain = initial_chain
+        return self
+
+    def with_logger(self, logger):
+        self._composer.logger = logger
         return self
 
     def set_default_composer_params(self):

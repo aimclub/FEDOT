@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fedot.api.main import Fedot, _define_data
@@ -113,11 +114,37 @@ def test_baseline_with_api():
     baseline_model.fit(features=train_data, target='target', predefined_model='xgboost')
 
     # evaluate the prediction with test data
-    prediction = baseline_model.predict(features=test_data)
+    prediction = baseline_model.predict_proba(features=test_data)
 
     assert len(prediction) == len(test_data.target)
 
     # evaluate quality metric for the test sample
     baseline_metrics = baseline_model.get_metrics(metric_names='f1')
+
+    assert baseline_metrics['f1'] > 0
+
+
+def test_pandas_input_for_api():
+    train_data, test_data, threshold = get_dataset('classification')
+
+    train_features = pd.DataFrame(train_data.features)
+    train_target = pd.Series(train_data.target)
+
+    test_features = pd.DataFrame(test_data.features)
+    test_target = pd.Series(test_data.target)
+
+    # task selection, initialisation of the framework
+    baseline_model = Fedot(problem='classification')
+
+    # fit model without optimisation - single XGBoost node is used
+    baseline_model.fit(features=train_features, target=train_target, predefined_model='xgboost')
+
+    # evaluate the prediction with test data
+    prediction = baseline_model.predict(features=test_features)
+
+    assert len(prediction) == len(test_target)
+
+    # evaluate quality metric for the test sample
+    baseline_metrics = baseline_model.get_metrics(metric_names='f1', target=test_target)
 
     assert baseline_metrics['f1'] > 0

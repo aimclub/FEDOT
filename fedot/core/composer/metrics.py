@@ -79,8 +79,13 @@ class F1Metric(QualityMetric):
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
-        bound = np.mean(predicted.predict)
-        predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
+        if len(predicted.predict.shape) > 1 and predicted.predict.shape[1] > 1:
+            # for multicalss probabilities
+            predicted_labels = [list(x).index(max(x)) for x in predicted.predict]
+        else:
+            # for single-class probabilities
+            bound = np.mean(predicted.predict)
+            predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
         n_classes = reference.num_classes
         if n_classes > 2:
             additional_params = {'average': 'macro'}

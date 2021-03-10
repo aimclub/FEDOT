@@ -8,7 +8,7 @@ from uuid import uuid4
 import joblib
 
 from fedot.core.chains.node import CachedState, Node, PrimaryNode, SecondaryNode
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.models.atomized_template import AtomizedModelTemplate
 from fedot.core.models.model_template import ModelTemplate
 from fedot.core.repository.model_types_repository import atomized_model_type
@@ -90,7 +90,7 @@ class ChainTemplate:
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
-            self.log.info(f"The chain saved in the path: {resulted_path}.")
+            self.log.message(f"The chain saved in the path: {resulted_path}.")
 
         self._create_fitted_models(absolute_path)
 
@@ -135,7 +135,7 @@ class ChainTemplate:
 
         with open(path) as json_file:
             json_object_chain = json.load(json_file)
-            self.log.info(f"The chain was imported from the path: {path}.")
+            self.log.message(f"The chain was imported from the path: {path}.")
 
         self._extract_models(json_object_chain, path)
         self.convert_to_chain(self.link_to_empty_chain, path)

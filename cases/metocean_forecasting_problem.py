@@ -77,7 +77,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
         full_path_test, task=task_to_solve, data_type=DataTypesEnum.ts)
 
     chain_simple = TsForecastingChain(PrimaryNode('linear'))
-    chain_simple.fit(input_data=dataset_to_train, verbose=False)
+    chain_simple.fit(input_data=dataset_to_train)
     rmse_on_valid_simple = calculate_validation_metric(
         chain_simple.predict(dataset_to_validate), dataset_to_validate,
         f'full-simple_{forecast_length}',
@@ -85,7 +85,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     print(f'RMSE simple: {rmse_on_valid_simple}')
 
     chain_composite_lstm = get_composite_chain()
-    chain_composite_lstm.fit(input_data=dataset_to_train, verbose=False)
+    chain_composite_lstm.fit(input_data=dataset_to_train)
     rmse_on_valid_lstm_only = calculate_validation_metric(
         chain_composite_lstm.predict(dataset_to_validate), dataset_to_validate,
         f'full-lstm-only_{forecast_length}',

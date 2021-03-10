@@ -1,12 +1,11 @@
 import json
-from abc import ABC
-from abc import abstractmethod
+import random
+from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
 from os import makedirs
-from os.path import join, exists
-import random
-from typing import Optional, List, Union, Type
+from os.path import exists, join
+from typing import List, Optional, Type, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -81,7 +80,7 @@ class NodeAnalysis:
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(results, indent=4))
 
-        self.log.info(f'Node Sensitivity Analysis results were saved to {result_file}')
+        self.log.message(f'Node Sensitivity analysis results were saved to {result_file}')
 
 
 class NodeAnalyzeApproach(ABC):
@@ -319,8 +318,8 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         file_name = f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
-        self.log.info(f'NodeReplacementAnalysis for '
-                      f'{original_model_type}(index:{node_id}) was saved to {result_file}')
+        self.log.message(f'NodeReplacementAnalysis for '
+                         f'{original_model_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
         return 'NodeReplaceModelAnalyze'

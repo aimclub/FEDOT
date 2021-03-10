@@ -110,7 +110,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     for model in available_model_types:
         chain = TsForecastingChain(PrimaryNode(model))
 
-        chain.fit(input_data=dataset_to_train, verbose=False)
+        chain.fit(input_data=dataset_to_train)
         calculate_validation_metric(
             chain.predict(dataset_to_validate), dataset_to_validate,
             is_visualise=with_visualisation, label=model)
@@ -118,14 +118,14 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     # static multiscale chain
     multiscale_chain = get_composite_multiscale_chain()
 
-    multiscale_chain.fit(input_data=dataset_to_train, verbose=False)
+    multiscale_chain.fit(input_data=dataset_to_train)
     calculate_validation_metric(
         multiscale_chain.predict(dataset_to_validate), dataset_to_validate,
         is_visualise=with_visualisation, label='Fixed multiscale')
 
     # static all-in-one ensemble chain
     ens_chain = get_ensemble_chain()
-    ens_chain.fit(input_data=dataset_to_train, verbose=False)
+    ens_chain.fit(input_data=dataset_to_train)
     calculate_validation_metric(
         ens_chain.predict(dataset_to_validate), dataset_to_validate,
         is_visualise=with_visualisation, label='Ensemble composite')
@@ -145,10 +145,10 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     chain = composer.compose_chain(data=dataset_to_train,
                                    is_visualise=False)
-    chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
+    chain.fit_from_scratch(input_data=dataset_to_train)
 
     if with_visualisation:
-        ComposerVisualiser.visualise(chain)
+        chain.show()
 
     calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,
@@ -177,7 +177,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     chain = composer.compose_chain(data=dataset_to_train,
                                    is_visualise=False)
-    chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
+    chain.fit_from_scratch(input_data=dataset_to_train)
 
     if with_visualisation:
         visualiser = ChainVisualiser()

@@ -66,21 +66,21 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     if with_tuning:
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
-                                                   iterations=50, verbose=True)
+                                                   iterations=50)
 
-    chain_evo_composed.fit(input_data=dataset_to_compose, verbose=True)
+    chain_evo_composed.fit(input_data=dataset_to_compose)
 
     if is_visualise:
         visualiser = ChainVisualiser()
 
-        composer.log.info('History visualization started')
+        composer.log.debug('History visualization started')
         visualiser.visualise_history(composer.history)
-        composer.log.info('History visualization finished')
+        composer.log.debug('History visualization finished')
         composer.history.write_composer_history_to_csv()
 
-        composer.log.info('Best chain visualization started')
+        composer.log.debug('Best chain visualization started')
         visualiser.visualise(chain_evo_composed)
-        composer.log.info('Best chain visualization finished')
+        composer.log.debug('Best chain visualization finished')
 
     # the quality assessment for the obtained composite models
     roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
