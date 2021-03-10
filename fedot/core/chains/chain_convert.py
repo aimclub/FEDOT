@@ -1,10 +1,12 @@
 from uuid import uuid4
 
+from log_calls import record_history
 import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
 
 
+@record_history(enabled=False)
 def chain_as_nx_graph(chain: 'Chain'):
     graph = nx.DiGraph()
     node_labels = {}
@@ -25,6 +27,7 @@ def chain_as_nx_graph(chain: 'Chain'):
     return graph, node_labels
 
 
+@record_history(enabled=False)
 def chain_template_as_nx_graph(chain: ChainTemplate):
     graph = nx.DiGraph()
     node_labels = {}

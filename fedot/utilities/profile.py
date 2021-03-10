@@ -2,7 +2,6 @@ import inspect
 import types
 from typing import Optional
 
-import copy
 from humanfriendly import format_timespan
 import networkx as nx
 import pandas as pd
@@ -23,7 +22,7 @@ class Profiler:
     --------
     >>> p = Profile()
     >>> 'some code'
-    >>> p.profile(report.html)
+    >>> p.profile('report.html')
     """
 
     _DROP_FUNCS = ['get_record_history_wrapper', '__repr__']
@@ -100,8 +99,6 @@ class Profiler:
                         'ffa800', 'ffa100', 'ff9900', 'ff9000', 'ff8800',
                         'ff8000', 'ff7700', 'ff6e00', 'ff6400', 'ff5a00',
                         'ff4f00', 'ff4300', 'ff3500', 'ff2400', 'ff0000']
-
-    _ADD_MODULS = [copy]
 
     def __init__(self, drop_funcs: Optional[list] = None):
         """Profiler init function.
