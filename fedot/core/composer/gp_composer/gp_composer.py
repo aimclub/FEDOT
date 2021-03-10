@@ -111,15 +111,15 @@ class GPComposer(Composer):
                          chain: Chain) -> float:
         try:
             validate(chain)
-            chain.log = self.logger
+            chain.log = self.log
             if is_chain_shared:
                 chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
             chain.fit(input_data=train_data)
             metric = metric_function(chain, test_data)
-            self.log.info(f'Chain {chain.root_node.descriptive_id} with metric {metric}', for_verbosity=3)
+            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metric {metric}')
             return metric
         except Exception as ex:
-            self.log.warn(f'Error in chain assessment during composition: {ex}. Continue.', for_verbosity=2)
+            self.log.warn(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
 
     @staticmethod

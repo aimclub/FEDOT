@@ -60,11 +60,9 @@ class CompositionTimer(Timer):
         return reached
 
     def __exit__(self, *args):
-        self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min',
-                      for_verbosity=1)
+        self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min')
         if self.process_terminated:
-            self.log.info('Algorithm was terminated due to processing time limit',
-                          for_verbosity=1)
+            self.log.info('Algorithm was terminated due to processing time limit')
 
 
 class TunerTimer(Timer):
@@ -74,8 +72,7 @@ class TunerTimer(Timer):
     def is_time_limit_reached(self, limit) -> bool:
         if datetime.datetime.now() - self.start >= limit:
             self.process_terminated = True
-            self.log.info('Tuning completed because of the time limit reached',
-                          for_verbosity=1)
+            self.log.info('Tuning completed because of the time limit reached')
         return self.process_terminated
 
     def __exit__(self, *args):

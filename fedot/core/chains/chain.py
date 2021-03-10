@@ -117,13 +117,13 @@ class Chain:
         """
         # Select all primary nodes
         # Perform fine-tuning for each model in node
-        self.log.info('Start tuning of primary nodes', for_verbosity=5)
+        self.log.info('Start tuning of primary nodes')
 
         all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
         for node in all_primary_nodes:
             node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
-        self.log.info('End tuning', for_verbosity=5)
+        self.log.info('End tuning')
 
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5)):
@@ -135,12 +135,12 @@ class Chain:
         :param max_lead_time: max time available for tuning process
         """
 
-        self.log.info('Start tuning of chain', for_verbosity=5)
+        self.log.info('Start tuning of chain')
 
         node = self.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
-        self.log.info('End tuning', for_verbosity=5)
+        self.log.info('End tuning')
 
     def add_node(self, new_node: Node):
         """

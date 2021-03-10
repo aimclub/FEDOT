@@ -71,6 +71,9 @@ class Fedot:
         :param composer_params: parameters of pipeline optimisation
         :param task_params:  additional parameters of the task
         :param seed: value for fixed random seed
+        :param verbose_level: level of the output detalization
+        (-1 - nothing, 0 - erros, 1 - messages, 2 - warnings,
+        3 - info, 4-5 - basic and detailed debug)
         """
 
         self._verbose_level = verbose_level

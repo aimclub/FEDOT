@@ -83,6 +83,8 @@ class GPChainOptimiser:
             self.requirements.max_depth
 
         self.generation_num = 0
+        self.num_of_gens_without_improvements = 0
+
         if not log:
             self.log = default_log(__name__)
         else:

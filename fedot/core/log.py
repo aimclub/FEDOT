@@ -119,23 +119,41 @@ class Log:
                                               log_file=self.log_file)
         self.verbosity_level = output_verbosity_level
 
-    def info(self, message, for_verbosity: int = 1):
-        """Record the INFO log massage"""
+    def message(self, message):
+        """Record the message to user"""
+        for_verbosity = 1
+        if self.verbosity_level >= for_verbosity:
+            self.logger.info(message)
+
+    def info(self, message):
+        """Record the INFO log message"""
+        for_verbosity = 3
         if self.verbosity_level >= for_verbosity:
             self.logger.info(message)
 
     def debug(self, message):
-        """Record the DEBUG log massage"""
-        self.logger.debug(message)
+        """Record the DEBUG log message"""
+        for_verbosity = 4
+        if self.verbosity_level >= for_verbosity:
+            self.logger.debug(message)
 
-    def warn(self, message, for_verbosity: int = 1):
-        """Record the WARN log massage"""
+    def ext_debug(self, message):
+        """Record the extended DEBUG log message"""
+        for_verbosity = 5
+        if self.verbosity_level >= for_verbosity:
+            self.logger.debug(message)
+
+    def warn(self, message):
+        """Record the WARN log message"""
+        for_verbosity = 2
         if self.verbosity_level >= for_verbosity:
             self.logger.warning(message)
 
     def error(self, message):
-        """Record the ERROR log massage"""
-        self.logger.error(message, exc_info=True)
+        """Record the ERROR log message"""
+        for_verbosity = 0
+        if self.verbosity_level >= for_verbosity:
+            self.logger.error(message, exc_info=True)
 
     @property
     def handlers(self):

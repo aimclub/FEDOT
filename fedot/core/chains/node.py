@@ -12,9 +12,6 @@ from fedot.core.models.model import Model
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
-DEFAULT_VERBOSITY = 5
-
-
 class Node(ABC):
     """
     Base class for Node definition in Chain structure
@@ -109,15 +106,13 @@ class Node(ABC):
         preprocessed_data, preproc_strategy = self._preprocess(transformed)
 
         if not self.cache.actual_cached_state:
-            self.log.info('Cache is not actual',
-                          for_verbosity=DEFAULT_VERBOSITY)
+            self.log.ext_debug('Cache is not actual')
 
             cached_model, model_predict = self.model.fit(data=preprocessed_data)
             self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
                                           model=cached_model))
         else:
-            self.log.info('Model were obtained from cache',
-                          for_verbosity=DEFAULT_VERBOSITY)
+            self.log.ext_debug('Model were obtained from cache')
 
             model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
                                                data=preprocessed_data)
@@ -251,8 +246,7 @@ class PrimaryNode(Node):
 
         :param input_data: data used for model training
         """
-        self.log.info(f'Trying to fit primary node with model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Trying to fit primary node with model: {self.model}')
 
         return super().fit(input_data)
 
@@ -264,8 +258,7 @@ class PrimaryNode(Node):
         :param input_data: data used for prediction
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
         """
-        self.log.info(f'Predict in primary node by model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Predict in primary node by model: {self.model}')
 
         return super().predict(input_data, output_mode)
 
@@ -293,8 +286,7 @@ class SecondaryNode(Node):
 
         :param input_data: data used for model training
         """
-        self.log.info(f'Trying to fit secondary node with model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Trying to fit secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='fit')
@@ -307,8 +299,7 @@ class SecondaryNode(Node):
         :param input_data: data used for prediction
         :param output_mode: desired output for models (e.g. labels, probs, full_probs)
         """
-        self.log.info(f'Obtain prediction in secondary node with model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Obtain prediction in secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict')
@@ -325,8 +316,7 @@ class SecondaryNode(Node):
         :param max_lead_time: max time available for tuning process
         :param iterations: max number of iterations
         """
-        self.log.info(f'Tune all parent nodes in secondary node with model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Tune all parent nodes in secondary node with model: {self.model}')
 
         if recursive:
             secondary_input = self._input_from_parents(input_data=input_data,
@@ -349,8 +339,7 @@ class SecondaryNode(Node):
         if len(self.nodes_from) == 0:
             raise ValueError()
 
-        self.log.info(f'Fit all parent nodes in secondary node with model: {self.model}',
-                      for_verbosity=DEFAULT_VERBOSITY)
+        self.log.ext_debug(f'Fit all parent nodes in secondary node with model: {self.model}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
