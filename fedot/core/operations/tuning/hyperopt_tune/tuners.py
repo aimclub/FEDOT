@@ -141,36 +141,35 @@ class HyperoptTuner(ABC):
         if self.task.task_type == TaskTypesEnum.ts_forecasting:
             # Time series forecasting task - TODO not optimal split -> vital!
             forecast_length = self.task.task_params.forecast_length
-            x_data_train = input_features[:-forecast_length]
-            x_data_test = input_features[:-forecast_length]
+            x_train = input_features[:-forecast_length]
+            x_test = input_features[:-forecast_length]
 
-            y_data_train = x_data_train
-            y_data_test = input_target[-forecast_length:]
+            y_train = x_train
+            y_test = input_target[-forecast_length:]
 
-            idx_for_train = np.arange(0, len(x_data_train))
+            idx_for_train = np.arange(0, len(x_train))
             idx_for_predict = idx_for_train
         else:
-            x_data_train, x_data_test, \
-            y_data_train, y_data_test = train_test_split(input_features,
-                                                         input_target,
-                                                         test_size=0.6)
-            idx_for_train = np.arange(0, len(x_data_train))
-            idx_for_predict = np.arange(0, len(x_data_test))
+            x_train, x_test, y_train, y_test = train_test_split(input_features,
+                                                                input_target,
+                                                                test_size=0.6)
+            idx_for_train = np.arange(0, len(x_train))
+            idx_for_predict = np.arange(0, len(x_test))
 
         # Prepare data to train the model
         train_input = InputData(idx=idx_for_train,
-                                features=x_data_train,
-                                target=y_data_train,
+                                features=x_train,
+                                target=y_train,
                                 task=self.task,
                                 data_type=DataTypesEnum.table)
 
         predict_input = InputData(idx=idx_for_predict,
-                                  features=x_data_test,
+                                  features=x_test,
                                   target=None,
                                   task=self.task,
                                   data_type=DataTypesEnum.table)
 
-        return train_input, predict_input, y_data_test
+        return train_input, predict_input, y_test
 
 
 def _greater_is_better(target, loss_function) -> bool:

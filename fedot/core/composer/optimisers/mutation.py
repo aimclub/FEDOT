@@ -71,7 +71,7 @@ def simple_mutation(chain: Any, requirements, chain_generation_params) -> Any:
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                secondary_node = chain_generation_params.secondary_node_func(operation_type=choice(requirements.secondary),
+                secondary_node = chain_generation_params.secondary_node_func(choice(requirements.secondary),
                                                                              nodes_from=node.nodes_from)
                 chain.update_node(node, secondary_node)
             for child in node.nodes_from:

@@ -125,8 +125,8 @@ class Node(ABC):
         copied_input_data = copy(input_data)
 
         fitted_operation, _ = self.operation.fine_tune(copied_input_data,
-                                                   max_lead_time=max_lead_time,
-                                                   iterations=iterations)
+                                                       max_lead_time=max_lead_time,
+                                                       iterations=iterations)
 
         self.cache.append(CachedState(operation=fitted_operation))
 

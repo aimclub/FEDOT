@@ -139,7 +139,7 @@ class ChainTemplate:
 
     def convert_to_chain(self, chain_to_convert_to: 'Chain'):
         visited_nodes = {}
-        root_template = [operation_template for operation_template in self.operation_templates if operation_template.operation_id == 0][0]
+        root_template = [template for template in self.operation_templates if template.operation_id == 0][0]
         root_node = _roll_chain_structure(root_template, visited_nodes, self)
         chain_to_convert_to.nodes.clear()
         chain_to_convert_to.add_node(root_node)

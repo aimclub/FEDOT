@@ -90,24 +90,23 @@ def run_experiment(chain, tuner=None):
               f'amount of clsses {classes_amount}, '
               f'additional options {features_options}')
 
-        x_data_train, y_data_train, \
-        x_data_test, y_data_test = get_classification_dataset(features_options,
-                                                              samples_amount,
-                                                              features_amount,
-                                                              classes_amount)
+        x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
+                                                                      samples_amount,
+                                                                      features_amount,
+                                                                      classes_amount)
 
         # Define regression task
         task = Task(TaskTypesEnum.classification)
 
         # Prepare data to train the model
-        train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                                features=x_data_train,
-                                target=y_data_train,
+        train_input = InputData(idx=np.arange(0, len(x_train)),
+                                features=x_train,
+                                target=y_train,
                                 task=task,
                                 data_type=DataTypesEnum.table)
 
-        predict_input = InputData(idx=np.arange(0, len(x_data_test)),
-                                  features=x_data_test,
+        predict_input = InputData(idx=np.arange(0, len(x_test)),
+                                  features=x_test,
                                   target=None,
                                   task=task,
                                   data_type=DataTypesEnum.table)
@@ -119,7 +118,7 @@ def run_experiment(chain, tuner=None):
         predicted_labels = chain.predict(predict_input)
         preds = predicted_labels.predict
 
-        print(f"{roc_auc(y_data_test, preds):.4f}\n")
+        print(f"{roc_auc(y_test, preds):.4f}\n")
 
         if tuner is not None:
             print(f'Start tuning process ...')
@@ -134,7 +133,7 @@ def run_experiment(chain, tuner=None):
             preds_tuned = predicted_values_tuned.predict
 
             print(f'Obtained metrics after tuning:')
-            print(f"{roc_auc(y_data_test, preds_tuned):.4f}\n")
+            print(f"{roc_auc(y_test, preds_tuned):.4f}\n")
 
 
 # Script for testing is chain can process different datasets for classification
@@ -146,5 +145,3 @@ if __name__ == '__main__':
     chain_for_experiment = Chain(node_final)
 
     run_experiment(chain=chain_for_experiment, tuner=ChainTuner)
-
-

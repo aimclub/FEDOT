@@ -98,19 +98,6 @@ class ARIMAModel(ModelRealisation):
             input_data.idx = new_idx
             input_data.target = target_columns
 
-
-            # predicted = self.arima.predict(start=old_idx[-forecast_length],
-            #                                end=old_idx[-1]+150)
-            # predicted = self._inverse_boxcox(predicted=predicted,
-            #                                  lmbda=self.lmbda)
-            # # Undo shift operation
-            # predict = self._inverse_shift(predicted)
-            #
-            # plt.plot(range(0, len(fitted_values)), fitted_values)
-            # plt.plot(range(len(fitted_values)-forecast_length, len(fitted_values)-forecast_length+len(predict)), predict)
-            # plt.plot(range(0, len(fitted_values)), self.sts)
-            # plt.show()
-
         # For predict stage we can make prediction
         else:
             start_id = old_idx[-1] + 1

@@ -250,12 +250,16 @@ def _eval_strategy_for_task(operation_type: str, task_type_for_data: TaskTypesEn
 
     # if the operation can't be used directly for the task type from data
     if task_type_for_operation not in task_types_acceptable_for_operation:
+
         # search the supplementary task types, that can be included in chain which solves original task
         globally_compatible_task_types = compatible_task_types(task_type_for_operation)
-        compatible_task_types_acceptable_for_operation = list(set(task_types_acceptable_for_operation).intersection(set(globally_compatible_task_types)))
-        if len(compatible_task_types_acceptable_for_operation) == 0:
+
+        set_types_acceptable_for_operation = set(task_types_acceptable_for_operation)
+        globally_set = set(globally_compatible_task_types)
+        comp_types_acceptable_for_operation = list(set_types_acceptable_for_operation.intersection(globally_set))
+        if len(comp_types_acceptable_for_operation) == 0:
             raise ValueError(f'Operation {operation_type} can not be used as a part of {task_type_for_operation}.')
-        task_type_for_operation = compatible_task_types_acceptable_for_operation[0]
+        task_type_for_operation = comp_types_acceptable_for_operation[0]
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(task_type_for_operation)
     return strategy

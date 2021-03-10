@@ -3,7 +3,6 @@ import os
 import warnings
 from dataclasses import dataclass
 from typing import Any, List, Optional
-from abc import abstractmethod
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field

@@ -1,11 +1,10 @@
-import datetime
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synthetic.data import regression_dataset
@@ -48,10 +47,10 @@ def get_regression_dataset(features_options, samples_amount=250,
         x_data[:, i] = rescaled
 
     # Train and test split
-    x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(x_data, y_data,
-                                                                            test_size = 0.3)
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data,
+                                                        test_size=0.3)
 
-    return x_data_train, y_data_train, x_data_test, y_data_test
+    return x_train, y_train, x_test, y_test
 
 
 def run_experiment(chain, tuner):
@@ -61,8 +60,7 @@ def run_experiment(chain, tuner):
                {'informative': 2, 'bias': 2.0},
                {'informative': 1, 'bias': 3.0}]
 
-    for samples_amount, features_amount, \
-        features_options in zip(samples, features, options):
+    for samples_amount, features_amount, features_options in zip(samples, features, options):
         print('=======================================')
         print(f'\nAmount of samples {samples_amount}, '
               f'amount of features {features_amount}, '

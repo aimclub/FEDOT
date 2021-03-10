@@ -30,17 +30,16 @@ def test_data_merge_in_chain():
     chain = Chain(node_final)
 
     features_options = {'informative': 2, 'bias': 2.0}
-    x_data_train, y_data_train, \
-    x_data_test, y_data_test = get_regression_dataset(features_options=features_options,
-                                                      samples_amount=100,
-                                                      features_amount=5)
+    x_train, y_train, x_test, y_test = get_regression_dataset(features_options=features_options,
+                                                              samples_amount=100,
+                                                              features_amount=5)
     # Define regression task
     task = Task(TaskTypesEnum.regression)
 
     # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                            features=x_data_train,
-                            target=y_data_train,
+    train_input = InputData(idx=np.arange(0, len(x_train)),
+                            features=x_train,
+                            target=y_train,
                             task=task,
                             data_type=DataTypesEnum.table)
 
