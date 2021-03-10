@@ -34,7 +34,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         super().__init__(initial_chain, requirements, chain_generation_params, parameters, log)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
-            self.log.error(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
+            self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         self.sequence_function = sequence_function

@@ -72,11 +72,9 @@ class Fedot:
         :param task_params:  additional parameters of the task
         :param seed: value for fixed random seed
         :param verbose_level: level of the output detalization
-        (-1 - nothing, 0 - erros, 1 - messages, 2 - warnings,
-        3 - info, 4-5 - basic and detailed debug)
+        (-1 - nothing, 0 - erros, 1 - messages,
+        2 - warnings and info, 3-4 - basic and detailed debug)
         """
-
-        self._verbose_level = verbose_level
 
         if seed is not None:
             np.random.seed(seed)
@@ -96,7 +94,7 @@ class Fedot:
         self.prediction = None
         self.prediction_labels = None
 
-        self.log = default_log('FEDOT logger')
+        self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
         if self.composer_params is None:
             self.composer_params = default_evo_params(self.problem)

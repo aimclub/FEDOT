@@ -6,6 +6,7 @@ from functools import wraps
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 from threading import RLock
+from typing import Optional
 
 from fedot.core.utils import default_fedot_data_dir
 
@@ -80,17 +81,20 @@ class LogManager(metaclass=SingletonMeta):
 
 
 def default_log(logger_name: str,
-                log_file=None) -> 'Log':
+                log_file: Optional[str] = None,
+                verbose_level: int = 1) -> 'Log':
     """
     :param logger_name: string name for logger
     :param log_file: path to the file where log messages will be recorded to
+    :param verbose_level level of detalization
     :return Log: Log object
     """
     if not log_file:
         log_file = os.path.join(default_fedot_data_dir(), 'log.log')
     log = Log(logger_name=logger_name,
               config_json_file='default',
-              log_file=log_file)
+              log_file=log_file,
+              output_verbosity_level=verbose_level)
     return log
 
 
@@ -127,19 +131,19 @@ class Log:
 
     def info(self, message):
         """Record the INFO log message"""
-        for_verbosity = 3
+        for_verbosity = 2
         if self.verbosity_level >= for_verbosity:
             self.logger.info(message)
 
     def debug(self, message):
         """Record the DEBUG log message"""
-        for_verbosity = 4
+        for_verbosity = 3
         if self.verbosity_level >= for_verbosity:
             self.logger.debug(message)
 
     def ext_debug(self, message):
         """Record the extended DEBUG log message"""
-        for_verbosity = 5
+        for_verbosity = 4
         if self.verbosity_level >= for_verbosity:
             self.logger.debug(message)
 
