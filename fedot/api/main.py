@@ -33,18 +33,6 @@ def default_evo_params(problem):
                 'preset': 'light_tun'}
 
 
-def user_evo_params(max_depth: int = 2,
-                    max_arity: int = 2,
-                    pop_size: int = 20,
-                    num_of_generations: int = 20,
-                    learning_time: int = 2):
-    return {'max_depth': max_depth,
-            'max_arity': max_arity,
-            'pop_size': pop_size,
-            'num_of_generations': num_of_generations,
-            'learning_time': learning_time}
-
-
 basic_metric_dict = {
     'regression': ['rmse', 'mae'],
     'classification': ['roc_auc', 'f1'],
@@ -58,6 +46,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
+                 learning_time: int = 2,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 1):
@@ -68,6 +57,7 @@ class Fedot:
             - ts_forecasting
             - clustering
         :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
+        :param learning_time: time for model design (in minutes)
         :param composer_params: parameters of pipeline optimisation
         :param task_params:  additional parameters of the task
         :param seed: value for fixed random seed
@@ -99,10 +89,13 @@ class Fedot:
         if self.composer_params is None:
             self.composer_params = default_evo_params(self.problem)
         else:
-            self.composer_params = {**user_evo_params(), **self.composer_params}
+            self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
 
         if preset is not None:
             self.composer_params['preset'] = preset
+
+        if learning_time is not None:
+            self.composer_params['learning_time'] = learning_time
 
         if self.problem == 'ts_forecasting' and task_params is None:
             # TODO auto-estimate
