@@ -91,35 +91,22 @@ To use the API, follow these steps:
 
 .. code-block:: python
 
- from fedot.api.api_runner import Fedot
+from fedot.api.main import Fedot
 
-2. Select the type of modeling problem and the hyperparameters of the optimization algorithm (optional).
-
-.. code-block:: python
-
-   task = 'classification'
-   composer_params = {'max_depth': 3,
-                      'learning_time': 10}
-
-3. Initialize the Fedot object with parameters. It provides a fit/predict interface:
+2. Initialize the Fedot object and define the type of modeling problem. It provides a fit/predict interface:
 
 - fedot.fit runs the optimization and returns the resulting composite model;
 - fedot.predict returns the prediction for the given input data;
-- fedot.quality_metric estimates the quality of predictions.
+- fedot.get_metrics estimates the quality of predictions using selected metrics.
 
 .. code-block:: python
 
- train_file = pd.read_csv(train_file_path)
- x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
- x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+model = Fedot(problem='classification', seed = 42)
 
- model = Fedot(ml_task=task,
-               composer_params=composer_params)
- fedot_model = model.fit(features=x_train,
-                         target=y_train)
- prediction = model.predict(features=x_test)
- metric = model.quality_metric(target=y_test)
+model.fit(features=train_data, target='target')
+prediction = model.predict(features=test_data)
 
+metrics = auto_model.get_metrics()
 
 How to use (advanced approach)
 ==========
