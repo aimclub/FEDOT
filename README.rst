@@ -101,7 +101,7 @@ from fedot.api.main import Fedot
 
 .. code-block:: python
 
-model = Fedot(problem='classification', seed = 42)
+model = Fedot(problem='classification')
 
 model.fit(features=train_data, target='target')
 prediction = model.predict(features=test_data)
