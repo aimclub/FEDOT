@@ -1,69 +1,39 @@
 from typing import Optional
 
 import numpy as np
-from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
+from sklearn.decomposition import PCA, KernelPCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
 from fedot.core.operations.evaluation.operation_realisations.\
     abs_interfaces import DataOperationRealisation, EncodedInvariantOperation
 
-DEFAULT_EXPLAINED_VARIANCE_THR = 0.8
-DEFAULT_MIN_EXPLAINED_VARIANCE = 0.01
 
-
-class PCAOperation(DataOperationRealisation):
-    """ Adapter class for automatically determining the number of components
-    for PCA
+class ComponentAnalysisOperation(DataOperationRealisation):
+    """ Class for applying PCA and kernel PCA models form sklearn
 
     :param params: optional, dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        if not params:
-            self.pca = PCA(svd_solver='randomized', iterated_power='auto')
-        else:
-            # Checking the appropriate params are using or not
-            pca_params = {k: params[k] for k in
-                          ['svd_solver', 'iterated_power']}
-            self.pca = PCA(**pca_params)
-        self.params = params
+        self.pca = None
+        self.params = None
+        self.amount_of_features = None
 
     def fit(self, input_data):
         """
-        The method trains the PCA model and selects only those features in
-        which the ratio of the total explained variance reaches the desired
-        threshold
-        TODO make comparison with PCA model from
-         /operations/evaluation/data_evaluation.py
+        The method trains the PCA model
 
         :param input_data: data with features, target and ids for PCA training
         :return pca: trained PCA model (optional output)
         """
-        global DEFAULT_EXPLAINED_VARIANCE_THR
-        global DEFAULT_MIN_EXPLAINED_VARIANCE
+        self.amount_of_features = np.array(input_data.features).shape[1]
 
-        self.pca.fit(input_data.features)
-
-        # The proportion of the explained variance in the data
-        cumulative_variance = np.cumsum(self.pca.explained_variance_ratio_)
-
-        explained_variance_thr = DEFAULT_EXPLAINED_VARIANCE_THR
-        min_explained_variance = DEFAULT_MIN_EXPLAINED_VARIANCE
-        if self.params:
-            explained_variance_thr = self.params.get('explained_variance_thr')
-            min_explained_variance = self.params.get('min_explained_variance')
-
-        # Column ids with attributes that explain the desired ratio of variance
-        significant_ids = np.argwhere(cumulative_variance < explained_variance_thr)
-        significant_ids = np.ravel(significant_ids)
-
-        if len(significant_ids) > 1:
-            # Update amounts of components
-            setattr(self.pca, 'n_components', len(significant_ids))
+        if self.amount_of_features > 1:
+            self.correct_params()
             self.pca.fit(input_data.features)
-        else:
-            pass
+
         return self.pca
 
     def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
@@ -75,15 +45,59 @@ class PCAOperation(DataOperationRealisation):
         :return input_data: data with transformed features attribute
         """
 
-        transformed_features = self.pca.transform(input_data.features)
+        if self.amount_of_features > 1:
+            transformed_features = self.pca.transform(input_data.features)
+        else:
+            transformed_features = input_data.features
 
         # Update features
         output_data = self._convert_to_output(input_data,
                                               transformed_features)
         return output_data
 
+    def correct_params(self) -> None:
+        """ Method check if amount of features in data enough for n_components
+        parameter in PCA or not
+        """
+        current_parameters = self.pca.get_params()
+
+        if type(current_parameters['n_components']) == int:
+            if current_parameters['n_components'] > self.amount_of_features:
+                current_parameters['n_components'] = self.amount_of_features
+
+        self.pca.set_params(**current_parameters)
+        self.params = current_parameters
+
     def get_params(self):
         return self.pca.get_params()
+
+
+class PCAOperation(ComponentAnalysisOperation):
+    """ Adapter class for automatically determining the number of components
+    for PCA
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.pca = PCA(svd_solver='full', n_components='mle')
+        else:
+            self.pca = PCA(**params)
+        self.params = params
+        self.amount_of_features = None
+
+
+class KernelPCAOperation(ComponentAnalysisOperation):
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.pca = KernelPCA()
+        else:
+            self.pca = KernelPCA(**params)
+        self.params = params
 
 
 class OneHotEncodingOperation(DataOperationRealisation):
@@ -206,7 +220,7 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
         if not params:
             self.operation = PolynomialFeatures(include_bias=False)
         else:
-            # Checking the appropriate params are using ow not
+            # Checking the appropriate params are using or not
             poly_params = {k: params[k] for k in
                            ['degree', 'interaction_only']}
             self.operation = PolynomialFeatures(include_bias=False,
@@ -255,3 +269,47 @@ class NormalizationOperation(EncodedInvariantOperation):
 
     def get_params(self):
         return self.operation.get_params()
+
+
+class ImputationOperation(DataOperationRealisation):
+    """ Class for applying imputation on tabular data
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.imputer = SimpleImputer()
+        else:
+            self.imputer = SimpleImputer(**params)
+        self.params = params
+
+    def fit(self, input_data):
+        """
+        The method trains SimpleImputer
+
+        :param input_data: data with features
+        :return imputer: trained SimpleImputer model
+        """
+
+        self.imputer.fit(input_data.features)
+        return self.imputer
+
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """
+        Method for transformation tabular data using SimpleImputer
+
+        :param input_data: data with features
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return input_data: data with transformed features attribute
+        """
+        transformed_features = self.imputer.transform(input_data.features)
+
+        # Update features
+        output_data = self._convert_to_output(input_data,
+                                              transformed_features)
+        return output_data
+
+    def get_params(self):
+        return self.imputer.get_params()

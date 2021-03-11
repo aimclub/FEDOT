@@ -66,23 +66,22 @@ def run_experiment(chain, tuner):
               f'amount of features {features_amount}, '
               f'additional options {features_options}')
 
-        x_data_train, y_data_train, \
-        x_data_test, y_data_test = get_regression_dataset(features_options,
-                                                          samples_amount,
-                                                          features_amount)
+        x_train, y_train, x_test, y_test = get_regression_dataset(features_options,
+                                                                  samples_amount,
+                                                                  features_amount)
 
         # Define regression task
         task = Task(TaskTypesEnum.regression)
 
         # Prepare data to train the model
-        train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                                features=x_data_train,
-                                target=y_data_train,
+        train_input = InputData(idx=np.arange(0, len(x_train)),
+                                features=x_train,
+                                target=y_train,
                                 task=task,
                                 data_type=DataTypesEnum.table)
 
-        predict_input = InputData(idx=np.arange(0, len(x_data_test)),
-                                  features=x_data_test,
+        predict_input = InputData(idx=np.arange(0, len(x_test)),
+                                  features=x_test,
                                   target=None,
                                   task=task,
                                   data_type=DataTypesEnum.table)
@@ -94,7 +93,7 @@ def run_experiment(chain, tuner):
         predicted_values = chain.predict(predict_input)
         chain_prediction = predicted_values.predict
 
-        mae_value = mean_absolute_error(y_data_test, chain_prediction)
+        mae_value = mean_absolute_error(y_test, chain_prediction)
         print(f'Mean absolute error - {mae_value:.4f}\n')
 
         if tuner is not None:
@@ -108,7 +107,7 @@ def run_experiment(chain, tuner):
             predicted_values_tuned = tuned_chain.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict
 
-            mae_value = mean_absolute_error(y_data_test, preds_tuned)
+            mae_value = mean_absolute_error(y_test, preds_tuned)
 
             print(f'Obtained metrics after tuning:')
             print(f'MAE - {mae_value:.4f}\n')

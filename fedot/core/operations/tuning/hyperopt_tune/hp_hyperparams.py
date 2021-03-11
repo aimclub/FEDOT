@@ -14,10 +14,13 @@ params_by_operation = {
             'min_samples_leaf', 'bootstrap'],
     'xgbreg': ['n_estimators', 'max_depth', 'learning_rate', 'subsample',
                'min_child_weight', 'objective'],
+
+    'pca': ['n_components', 'svd_solver'],
+    'kernel_pca': ['n_components'],
     'ransac_lin_reg': ['min_samples', 'residual_threshold',
                        'max_trials', 'max_skips'],
     'poly_features': ['degree', 'interaction_only'],
-    'lagged': ['window_size'],
+    'lagged': ['window_size']
 }
 
 
@@ -64,6 +67,11 @@ def __get_range_by_parameter(label, parameter_name):
         'knnreg | n_neighbors': hp.choice(label, range(1, 101)),
         'knnreg | weights': hp.choice(label, ["uniform", "distance"]),
         'knnreg | p': hp.choice(label, [1, 2]),
+
+        'pca | n_components': hp.uniform(label, 0.1, 0.99),
+        'pca | svd_solver': hp.choice(label, ['full']),
+
+        'kernel_pca | n_components': hp.choice(label, range(1, 20)),
 
         'ransac_lin_reg | min_samples': hp.uniform(label, 0.1, 0.9),
         'ransac_lin_reg | residual_threshold': hp.choice(label, [0.1, 1.0, 100.0, 500.0, 1000.0]),

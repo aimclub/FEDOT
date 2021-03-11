@@ -197,8 +197,8 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
 
 def _check_size_equality(outputs: List[OutputData]):
     """ Function check the size of combining datasets """
-    idx_lengths = list()
-    idx_list = list()
+    idx_lengths = []
+    idx_list = []
     for elem in outputs:
         idx_lengths.append(len(elem.idx))
         idx_list.append(elem.idx)
@@ -234,7 +234,7 @@ def merge_equal_outputs(outputs: List[OutputData]):
 def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
     """ Function merge datasets with different amount of rows by idx field """
     # TODO add ability to merge datasets with different amount of features
-    # TODO check correctness and implement exceptions if no common_idx founded
+    # TODO implement exceptions if no common_idx founded
 
     # Search overlapping indices in data
     for i, idx in enumerate(idx_list):

@@ -101,12 +101,12 @@ def run_experiment(file_path, init_chain, file_to_save,
                               task=task,
                               data_type=DataTypesEnum.table)
 
-    available_model_types_secondary = ['ridge', 'lasso', 'dtreg',
-                                       'xgbreg', 'adareg', 'knnreg',
-                                       'linear', 'svr', 'poly_features',
-                                       'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
-                                       'pca',  'ransac_non_lin_reg',
-                                       'rfe_non_lin_reg', 'normalization']
+    available_operations_types = ['ridge', 'lasso', 'dtreg',
+                                  'xgbreg', 'adareg', 'knnreg',
+                                  'linear', 'svr', 'poly_features',
+                                  'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
+                                  'pca',  'ransac_non_lin_reg',
+                                  'rfe_non_lin_reg', 'normalization']
 
     # Report arrays
     obtained_chains = []
@@ -117,7 +117,7 @@ def run_experiment(file_path, init_chain, file_to_save,
 
         composer_requirements = GPComposerRequirements(
             primary=['one_hot_encoding'],
-            secondary=available_model_types_secondary, max_arity=3,
+            secondary=available_operations_types, max_arity=3,
             max_depth=8, pop_size=10, num_of_generations=5,
             crossover_prob=0.8, mutation_prob=0.8,
             max_lead_time=datetime.timedelta(minutes=5),

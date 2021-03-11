@@ -54,9 +54,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
         with CompositionTimer() as t:
 
-            if self.requirements.add_single_model_chains:
-                best_single_model, self.requirements.primary = \
-                    self._best_single_models(objective_function)
+            if self.requirements.allow_single_operations:
+                best_single_operation, self.requirements.primary = \
+                    self._best_single_operations(objective_function)
 
             for ind in self.population:
                 ind.fitness = objective_function(ind)
@@ -119,9 +119,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 self.generation_num += 1
 
             best = self.best_individual
-            if self.requirements.add_single_model_chains and \
-                    (best_single_model.fitness <= best.fitness):
-                best = best_single_model
+            if self.requirements.allow_single_operations and \
+                    (best_single_operation.fitness <= best.fitness):
+                best = best_single_operation
         return best
 
     @property

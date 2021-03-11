@@ -72,6 +72,10 @@
 			"meta": "sklearn_dimension_transformation",
 			"tags": ["linear", "dimensionality_transforming"]
 		},
+		"kernel_pca": {
+			"meta": "sklearn_dimension_transformation",
+			"tags": ["non_linear", "dimensionality_transforming"]
+		},
 		"poly_features": {
 			"meta": "sklearn_dimension_transformation",
 			"tags": ["non_linear", "dimensionality_transforming"]
@@ -82,11 +86,11 @@
 		},
 		"ransac_lin_reg": {
 			"meta": "sklearn_regression_filters",
-			"tags": ["linear", "filtering"]
+			"tags": ["affects_target", "linear", "filtering"]
 		},
 		"ransac_non_lin_reg": {
 			"meta": "sklearn_regression_filters",
-			"tags": ["non_linear", "filtering"]
+			"tags": ["affects_target", "non_linear", "filtering"]
 		},
 		"rfe_lin_reg": {
 			"meta": "sklearn_regression_filters",
@@ -94,6 +98,14 @@
 		},
 		"rfe_non_lin_reg": {
 			"meta": "sklearn_regression_filters",
+			"tags": ["non_linear", "feature_selection"]
+		},
+		"rfe_lin_class": {
+			"meta": "sklearn_classification_filters",
+			"tags": ["linear", "feature_selection"]
+		},
+		"rfe_non_lin_class": {
+			"meta": "sklearn_classification_filters",
 			"tags": ["non_linear", "feature_selection"]
 		},
 		"lagged": {

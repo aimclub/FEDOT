@@ -1,11 +1,7 @@
 from abc import abstractmethod
-from datetime import timedelta
-
-import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import \
     OperationMetaInfo, OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -15,7 +11,7 @@ DEFAULT_PARAMS_STUB = 'default_params'
 
 class Operation:
     """
-    Base object for operators in nodes. Operators could be machine learning
+    Base class for operators in nodes. Operators could be machine learning
     (or statistical) models or data operations
 
     """
@@ -38,22 +34,13 @@ class Operation:
         operation_params = self.params
         return f'n_{operation_type}_{operation_params}'
 
-    def output_datatype(self, input_datatype: DataTypesEnum) -> DataTypesEnum:
-        output_types = self.metadata.output_types
-        if input_datatype in output_types:
-            return input_datatype
-        elif input_datatype == DataTypesEnum.ts:
-            return DataTypesEnum.forecasted_ts
-        else:
-            return output_types[0]
-
     @abstractmethod
     def fit(self, data: InputData, is_fit_chain_stage: bool):
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, fitted_operation, data: InputData, is_fit_chain_stage: bool,
-                output_mode: str):
+    def predict(self, fitted_operation, data: InputData,
+                is_fit_chain_stage: bool, output_mode: str = 'default'):
         raise NotImplementedError()
 
     def __str__(self):
@@ -62,7 +49,7 @@ class Operation:
 
 class Model(Operation):
     """
-    Base object with fit/predict methods defining the evaluation strategy for the task
+    Class with fit/predict methods defining the evaluation strategy for the task
 
     :param operation_type: str type of the model defined in model repository
     :param log: Log object to record messages
@@ -104,15 +91,6 @@ class Model(Operation):
             raise ValueError(f'Model {self.operation_type} not found')
         return model_info
 
-    def output_datatype(self, input_datatype: DataTypesEnum) -> DataTypesEnum:
-        output_types = self.metadata.output_types
-        if input_datatype in output_types:
-            return input_datatype
-        elif input_datatype == DataTypesEnum.ts:
-            return DataTypesEnum.forecasted_ts
-        else:
-            return output_types[0]
-
     def fit(self, data: InputData, is_fit_chain_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
@@ -130,8 +108,8 @@ class Model(Operation):
 
         return fitted_model, predict_train
 
-    def predict(self, fitted_operation, data: InputData, is_fit_chain_stage: bool,
-                output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData,
+                is_fit_chain_stage: bool, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
@@ -139,6 +117,8 @@ class Model(Operation):
         :param fitted_operation: trained model object
         :param data: data used for prediction
         :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param output_mode: string with information about output of operation,
+        for example, is the operation predict probabilities or class labels
         """
         self._init(data.task, output_mode=output_mode)
 
@@ -146,12 +126,17 @@ class Model(Operation):
                                                  predict_data=data,
                                                  is_fit_chain_stage=is_fit_chain_stage)
 
-        prediction = _post_process_prediction_using_original_input(prediction=prediction, input_data=data)
-
         return prediction
 
 
 class DataOperation(Operation):
+    """
+    Class with fit/predict methods defining the evaluation strategy for the task
+
+    :param operation_type: str type of the data operation defined in data_operation
+    repository
+    :param log: Log object to record messages
+    """
 
     def __init__(self, operation_type: str, log: Log = None):
         super().__init__(operation_type, log)
@@ -189,15 +174,6 @@ class DataOperation(Operation):
             raise ValueError(f'Data operation {self.operation_type} not found')
         return operation_info
 
-    def output_datatype(self, input_datatype: DataTypesEnum) -> DataTypesEnum:
-        output_types = self.metadata.output_types
-        if input_datatype in output_types:
-            return input_datatype
-        elif input_datatype == DataTypesEnum.ts:
-            return DataTypesEnum.forecasted_ts
-        else:
-            return output_types[0]
-
     def fit(self, data: InputData, is_fit_chain_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
@@ -215,8 +191,8 @@ class DataOperation(Operation):
 
         return fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, is_fit_chain_stage: bool,
-                output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData,
+                is_fit_chain_stage: bool, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
@@ -224,15 +200,14 @@ class DataOperation(Operation):
         :param fitted_operation: trained operation object
         :param data: data used for prediction
         :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param output_mode: string with information about output of operation,
+        for example, is the operation predict probabilities or class labels
         """
         self._init(data.task, output_mode=output_mode)
 
         prediction = self._eval_strategy.predict(trained_operation=fitted_operation,
                                                  predict_data=data,
                                                  is_fit_chain_stage=is_fit_chain_stage)
-
-        prediction = _post_process_prediction_using_original_input(
-            prediction=prediction, input_data=data)
 
         return prediction
 
@@ -263,17 +238,3 @@ def _eval_strategy_for_task(operation_type: str, task_type_for_data: TaskTypesEn
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(task_type_for_operation)
     return strategy
-
-
-def _post_process_prediction_using_original_input(prediction, input_data: InputData):
-    # TODO add docstring description
-    # else:
-    #     if np.array([np.isnan(_) for _ in prediction]).any():
-    #         prediction = np.nan_to_num(prediction)
-    # TODO у меня возникают проблемы во время этой проверки после encoding'а
-    # + я не очень понимаю зачем она, ведь при нормальной работе моделей и
-    # методов предобработки пропусков вообще появляться не должно. Если смысл
-    # в том, чтобы заполнять пропуски в исходных данных. то эта операция
-    # дублирует Imputation стратегию -> надо разобраться
-
-    return prediction

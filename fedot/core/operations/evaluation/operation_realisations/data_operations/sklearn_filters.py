@@ -84,11 +84,8 @@ class LinearRegRANSAC(FilterOperation):
         if not params:
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
         else:
-            ransac_params = {k: params[k] for k in
-                             ['min_samples', 'residual_threshold', 'max_trials',
-                              'max_skips']}
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
-                                             **ransac_params)
+                                             **params)
         self.params = params
 
 
@@ -103,9 +100,6 @@ class NonLinearRegRANSAC(FilterOperation):
         self.inner_model = DecisionTreeRegressor()
 
         if not params:
-            ransac_params = {k: params[k] for k in
-                             ['min_samples', 'residual_threshold', 'max_trials',
-                              'max_skips']}
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
-                                             **ransac_params)
+                                             **params)
         self.params = params

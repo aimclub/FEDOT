@@ -1,12 +1,6 @@
 import numpy as np
 from itertools import product
 
-
-# Parameters for arima model
-ps = range(0, 5)
-ds = range(0, 2)
-qs = range(0, 5)
-
 # the parameters ranges are partially derived from https://github.com/EpistasisLab/tpot
 params_range_by_operation = {
     'kmeans': {'n_clusters': list(range(2, 5))},
@@ -127,6 +121,6 @@ params_range_by_operation = {
         'window_size': np.arange(2, 20, 1)
     },
     'arima': {
-        'order': product(ps, ds, qs)
+        'order': [(0, 1, 0), (1, 1, 0), (2, 1, 1)]
     }
 }

@@ -4,13 +4,11 @@ import numpy as np
 
 from statsmodels.tsa.arima_model import ARIMA
 from scipy import stats
-from matplotlib import pyplot as plt
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.\
     operation_realisations.abs_interfaces import ModelRealisation
-from fedot.core.operations.evaluation.operation_realisations.\
-    ts_transformations import _ts_to_table
+from fedot.core.operations.evaluation.operation_realisations.data_operations.ts_transformations import _ts_to_table
 
 
 class ARIMAModel(ModelRealisation):

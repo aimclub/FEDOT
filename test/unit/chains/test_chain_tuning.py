@@ -39,7 +39,7 @@ def get_regr_chain():
 
 def get_class_chain():
     first = PrimaryNode(operation_type='xgboost')
-    second = PrimaryNode(operation_type='pca_data_model')
+    second = PrimaryNode(operation_type='pca')
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 

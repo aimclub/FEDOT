@@ -178,8 +178,8 @@ def _ts_to_table(idx, time_series, window_size):
     """
 
     # Convert data to lagged form
-    lagged_dataframe = pd.DataFrame({'target': time_series})
-    vals = lagged_dataframe['target']
+    lagged_dataframe = pd.DataFrame({'t_id': time_series})
+    vals = lagged_dataframe['t_id']
     for i in range(1, window_size + 1):
         frames = [lagged_dataframe, vals.shift(i)]
         lagged_dataframe = pd.concat(frames, axis=1)
@@ -220,8 +220,8 @@ def _prepare_target(idx, features_columns, target, forecast_length):
     # Multi-target transformation
     if forecast_length > 1:
         # Target transformation
-        df = pd.DataFrame({'target': ts_target})
-        vals = df['target']
+        df = pd.DataFrame({'t_id': ts_target})
+        vals = df['t_id']
         for i in range(1, forecast_length):
             frames = [df, vals.shift(-i)]
             df = pd.concat(frames, axis=1)

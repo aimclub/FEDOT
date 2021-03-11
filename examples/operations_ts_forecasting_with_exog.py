@@ -101,10 +101,10 @@ def run_experiment(time_series, neighboring_level, len_forecast=250,
                                                           test_data_features=train_data)
 
     # Exogenous time series
-    train_input_exog,predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
-                                                                train_data_features=train_data_exog,
-                                                                train_data_target=train_data,
-                                                                test_data_features=test_data_exog)
+    train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
+                                                                 train_data_features=train_data_exog,
+                                                                 train_data_target=train_data,
+                                                                 test_data_features=test_data_exog)
 
     if with_exog is True:
         # Example with exogenous time series

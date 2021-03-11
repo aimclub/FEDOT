@@ -1,17 +1,15 @@
 import warnings
 from abc import abstractmethod
-from datetime import timedelta
 from typing import Optional
 
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
-                                           QuadraticDiscriminantAnalysis)
+from fedot.core.operations.evaluation.operation_realisations.models.\
+    discriminant_analysis import LDAModel, QDAModel
 from sklearn.ensemble import (AdaBoostRegressor,
                               ExtraTreesRegressor,
                               GradientBoostingRegressor,
                               RandomForestClassifier,
                               RandomForestRegressor)
-from sklearn.impute import SimpleImputer as SklearnImputer
 from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LinearRegression as SklearnLinReg,
                                   LogisticRegression as SklearnLogReg,
@@ -28,20 +26,18 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.custom_models.models import CustomSVC
-from fedot.core.operations.evaluation.operation_realisations. \
-    sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
-from fedot.core.operations.evaluation.operation_realisations. \
-    sklearn_selectors import LinearRegFS, NonLinearRegFS
-from fedot.core.operations.evaluation.operation_realisations.sklearn_transformations \
-    import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
-    ScalingOperation, NormalizationOperation
-from fedot.core.operations.evaluation.operation_realisations. \
-    ts_models import ARIMAModel
-from fedot.core.operations.evaluation.operation_realisations.ts_transformations \
+from fedot.core.operations.evaluation.operation_realisations.models.svc import CustomSVC
+from fedot.core.operations.evaluation.operation_realisations.\
+    data_operations.sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
+from fedot.core.operations.evaluation.operation_realisations.\
+    data_operations.sklearn_selectors import LinearRegFS, NonLinearRegFS, LinearClassFS, NonLinearClassFS
+from fedot.core.operations.evaluation.operation_realisations.data_operations.\
+    sklearn_transformations import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
+    ScalingOperation, NormalizationOperation, KernelPCAOperation, ImputationOperation
+from fedot.core.operations.evaluation.operation_realisations.models.ts_models import ARIMAModel
+from fedot.core.operations.evaluation.operation_realisations.data_operations.ts_transformations \
     import LaggedTransformation, TsSmoothing, ExogDataTransformation
-from fedot.core.operations.tuning.hyperparams import params_range_by_operation
-from fedot.core.operations.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
+from fedot.core.operations.tuning.tuners import SklearnTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -120,8 +116,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'rf': RandomForestClassifier,
         'rfr': RandomForestRegressor,
         'mlp': MLPClassifier,
-        'lda': LinearDiscriminantAnalysis,
-        'qda': QuadraticDiscriminantAnalysis,
+        'lda': LDAModel,
+        'qda': QDAModel,
         'linear': SklearnLinReg,
         'logit': SklearnLogReg,
         'ridge': SklearnRidgeReg,
@@ -134,14 +130,17 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'multinb': SklearnMultinomialNB,
         'scaling': ScalingOperation,
         'normalization': NormalizationOperation,
-        'simple_imputation': SklearnImputer,
+        'simple_imputation': ImputationOperation,
         'pca': PCAOperation,
+        'kernel_pca': KernelPCAOperation,
         'poly_features': PolyFeaturesOperation,
         'one_hot_encoding': OneHotEncodingOperation,
         'ransac_lin_reg': LinearRegRANSAC,
         'ransac_non_lin_reg': NonLinearRegRANSAC,
         'rfe_lin_reg': LinearRegFS,
-        'rfe_non_lin_reg': NonLinearRegFS
+        'rfe_non_lin_reg': NonLinearRegFS,
+        'rfe_lin_class': LinearClassFS,
+        'rfe_non_lin_class': NonLinearClassFS
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

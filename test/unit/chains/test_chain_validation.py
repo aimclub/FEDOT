@@ -225,20 +225,6 @@ def test_chain_with_isolated_components_raise_exception():
     assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated components'
 
 
-def test_chain_with_incorrect_root_operation_raise_exception():
-    chain = chain_with_incorrect_root_operation()
-    with pytest.raises(Exception) as exc:
-        assert has_correct_operation_positions(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
-
-
-def test_chain_with_incorrect_decomposition_raise_exception():
-    chain = chain_with_incorrect_decomposition_structure()
-    with pytest.raises(Exception) as exc:
-        assert has_correct_operation_positions(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
-
-
 def test_chain_with_incorrect_task_type_raise_exception():
     chain, task = chain_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:

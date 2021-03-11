@@ -131,3 +131,45 @@ class NonLinearRegFS(FeatureSelection):
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
         self.params = params
+
+
+class LinearClassFS(FeatureSelection):
+    """
+    Class for feature selection based on Recursive Feature Elimination (RFE) and
+    LogisticRegression as core model
+    Task type - classification
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.inner_model = LogisticRegression()
+
+        if not params:
+            self.operation = RFE(estimator=self.inner_model)
+        else:
+            # Checking the appropriate params are using or not
+            rfe_params = {k: params[k] for k in
+                          ['n_features_to_select', 'step']}
+            self.operation = RFE(estimator=self.inner_model, **rfe_params)
+        self.params = params
+
+
+class NonLinearClassFS(FeatureSelection):
+    """
+    Class for feature selection based on Recursive Feature Elimination (RFE) and
+    DecisionTreeClassifier as core model
+    Task type - classification
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.inner_model = DecisionTreeClassifier()
+
+        if not params:
+            self.operation = RFE(estimator=self.inner_model)
+        else:
+            # Checking the appropriate params are using or not
+            rfe_params = {k: params[k] for k in
+                          ['n_features_to_select', 'step']}
+            self.operation = RFE(estimator=self.inner_model, **rfe_params)
+        self.params = params

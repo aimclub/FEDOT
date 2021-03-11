@@ -43,7 +43,7 @@ def make_forecast(chain, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     chain_tuner = ChainTuner(chain=chain, task=task,
-                             iterations=2)
+                             iterations=5)
     chain = chain_tuner.tune_chain(input_data=train_input,
                                    loss_function=mean_absolute_error)
 

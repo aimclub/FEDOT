@@ -60,10 +60,6 @@ class Node(ABC):
         full_path += f'/{node_label}'
         return full_path
 
-    @property
-    def operation_tags(self) -> List[str]:
-        return self.operation.metadata.tags
-
     def fit(self, input_data: InputData, verbose=False) -> OutputData:
         """
         Run training process in the node
@@ -77,7 +73,8 @@ class Node(ABC):
             if verbose:
                 print('Cache is not actual')
 
-            cached_operation, operation_predict = self.operation.fit(data=copied_input_data)
+            cached_operation, operation_predict = self.operation.fit(data=copied_input_data,
+                                                                     is_fit_chain_stage=True)
             self.cache.append(CachedState(operation=cached_operation))
         else:
             if verbose:
@@ -90,7 +87,7 @@ class Node(ABC):
 
         return operation_predict
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
+    def predict(self, input_data: InputData, output_mode, verbose=False) -> OutputData:
         """
         Run prediction process in the node
 
@@ -106,8 +103,8 @@ class Node(ABC):
         fitted = self.cache.actual_cached_state.operation
         operation_predict = self.operation.predict(fitted_operation=fitted,
                                                    data=copied_input_data,
-                                                   output_mode=output_mode,
-                                                   is_fit_chain_stage=False)
+                                                   is_fit_chain_stage=False,
+                                                   output_mode=output_mode,)
 
         return operation_predict
 

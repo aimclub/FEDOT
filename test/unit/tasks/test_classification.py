@@ -23,7 +23,7 @@ def chain_simple() -> Chain:
 
 
 def chain_with_pca() -> Chain:
-    node_first = PrimaryNode('pca_data_model')
+    node_first = PrimaryNode('pca')
     node_second = PrimaryNode('lda')
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
 

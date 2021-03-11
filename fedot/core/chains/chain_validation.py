@@ -7,7 +7,6 @@ from networkx.algorithms.isolate import isolates
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.operation import Model
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -70,27 +69,12 @@ def has_no_isolated_components(chain: Chain):
     return True
 
 
-def _is_data_merged(chain: Chain):
-    root_node_merges_data = 'composition' in chain.root_node.operation_tags
-    merging_is_required = any('decomposition' in node.operation_tags for node in chain.nodes)
-    data_merged_or_merging_not_required = root_node_merges_data or not merging_is_required
-
-    return data_merged_or_merging_not_required
-
-
-def _is_root_not_datamodel(chain: Chain):
-    return 'data_model' not in chain.root_node.operation_tags and \
-           'decomposition' not in chain.root_node.operation_tags
-
-
 def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
     is_root_satisfy_task_type = True
     if task:
         is_root_satisfy_task_type = task.task_type in chain.root_node.operation.acceptable_task_types
 
-    if not _is_root_not_datamodel(chain) or \
-            not _is_data_merged(chain) or \
-            not is_root_satisfy_task_type:
+    if not is_root_satisfy_task_type:
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect operations positions')
 
     return True
