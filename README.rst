@@ -91,7 +91,7 @@ To use the API, follow these steps:
 
 .. code-block:: python
 
-from fedot.api.main import Fedot
+ from fedot.api.main import Fedot
 
 2. Initialize the Fedot object and define the type of modeling problem. It provides a fit/predict interface:
 
@@ -101,12 +101,12 @@ from fedot.api.main import Fedot
 
 .. code-block:: python
 
-model = Fedot(problem='classification')
+ model = Fedot(problem='classification')
 
-model.fit(features=train_data, target='target')
-prediction = model.predict(features=test_data)
+ model.fit(features=train_data, target='target')
+ prediction = model.predict(features=test_data)
 
-metrics = auto_model.get_metrics()
+ metrics = auto_model.get_metrics()
 
 How to use (advanced approach)
 ==========
