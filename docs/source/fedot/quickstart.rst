@@ -69,7 +69,7 @@ How to setup the development environments for the Fedot
 
    -  Next, you need to create virtual enviroment in your Pycharm
       project. To do this, go through the following sections:
-      'File-Settings-Project Interprenter-Add new'.
+      'File - Settings - Project Interpreter - Add new'.
    -  For more details, take a look at the picture below.
 
         |Step 2|

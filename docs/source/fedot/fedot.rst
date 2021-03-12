@@ -21,5 +21,6 @@ The main features of the framework are as follows:
 Thus, compared to other frameworks, FEDOT:
 
 - Is not limited to specific modeling tasks and claims versatility and expandability;
-- Allows managing the complexity of models and thereby achieving better results.
+- Supports the the complex modelling pipelines with variable shape and structure;
 - Allows building models using input data of various nature (texts, images, tables, etc.) and consisting of different types of models.
+- Allows managing the complexity of models and thereby achieving better results.
