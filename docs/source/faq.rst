@@ -17,18 +17,18 @@ In practice, the existing AutoML solutions are really effective for the
 limited set of problems only. During the model learning, modern AutoML
 mostly focused on relatively simple tasks of hyperparameters
 optimization, input data preprocessing, selecting a single model or a
-set of models [1] (this approach is also referred to as the Combined
+set of models (this approach is also referred to as the Combined
 Algorithm Selection and Hyperparameters optimization - CASH) since the
 overall learning and meta-learning process is extremely expensive. In
-the Fedot we have used the Knowledge-Enriched AutoML concept. We claim,
+the Fedot we have used the composite models concept. We claim,
 that it allows us to solve many actual real-world problems in a more
 efficient way. Also, we are aimed to outperform the existing solutions
-even for well-known benchmarks (i.e. PMLB datasets).
+even for well-known benchmarks (e.g. PMLB datasets).
 
 Can I install Fedot using pip/conda?
 ------------------------------------
 
-Not now, but this we will publish the Fedot package ASAP.
+`Yes <https://pypi.org/project/fedot>`__
 
 Why *feature_name* is not supported?
 ------------------------------------

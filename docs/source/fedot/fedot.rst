@@ -1,69 +1,25 @@
-FEDOT.Ideas
-===========
+Intro to FEDOT
+==============
 
-What ideas are implemented in the framework FEDOT?
+FEDOT - an open-source framework for automated modeling and machine learning (AutoML). It can build custom modeling pipelines for different real-world processes in an automated way using an evolutionary approach. FEDOT supports classification (binary and multiclass), regression, clustering, and time series prediction tasks.
+
+The framework is not limited to specific AutoML tasks (such as pre-processing of input data, feature selection, or optimization of model hyperparameters), but allows you to solve a more general structural learning problem - for a given data set, a solution is built in the form of a graph (DAG), the nodes of which are represented by ML models, pre-processing procedures, and data transformation.
 
 
--  ML and AutoML should be more “omnivorous.” The FEDOT framework will
-   allow to create mathematical models for solving subject problems with
-   the possibility to attract additional specific knowledge (for
-   example, in the form of custom models or simulation of expert logic
-   in model construction).
--  The AutoML should be simpler and more flexible to manage. FEDOT
-   framework enables flexible integration of user-friendly ML task
-   management solutions, as well as the use of a constantly replenished
-   repository of model workpieces and generative algorithms for growing
-   solutions, which greatly simplifies its use.
--  The ML must be reproducible. The FEDOT framework will allow you to
-   keep a detailed description of the model configurations and learning
-   process, as well as the model itself, making the results
-   reproducible.
+FEDOT features
+==============
 
-Framework structure
--------------------
+The main features of the framework are as follows:
 
-A framework kernel configured for different task classes, such as: \*
-predictions modeling; \* creation of system dynamics models; \*
-imitating modeling; A library with independent implementations of
-intelligent composite algorithms to identify data-driven models with
-different requirements to structure and data; Alienated composite models
-(model chains) for solving specific domain problems (socio-financial,
-metocean, physical, etc.)
+- The FEDOT architecture is highly flexible and therefore the framework can be used to automate the creation of mathematical models for various problems, types of data, and models;
+- FEDOT already supports popular ML libraries (scikit-learn, keras, statsmodels, etc.), but you can also integrate custom tools into the framework if necessary;
+- Pipeline optimization algorithms are not tied to specific data types or tasks, but you can use special templates for a specific task class or data type (time series forecasting, NLP, tabular data, etc.) to increase the efficiency;
+- The framework is not limited only to machine learning, it is possible to embed models related to specific areas into pipelines (for example, models in ODE or PDE);
+- Additional methods for hyperparameters tuning can be seamlessly integrated into FEDOT (in addition to those already supported);
+- The resulting pipelines can be exported in a human-readable JSON format, which allows you to achieve reproducibility of the experiments.
 
-The Fedot can solve following classes of problems:
---------------------------------------------------
+Thus, compared to other frameworks, FEDOT:
 
-1. Label new objects based on existing reference labels for other
-   objects (classification)
-2. Estimate object characteristic’ values based on known characteristic
-   values for other objects (regression)
-3. Predict future behavior of the object based on historical data
-   (forecasting)
-4. Split objects into several significant groups (clustering)
-5. Create new synthetic objects that reproduce the characteristics and
-   behavior of the real (synthetic data generation)
-6. Interpret an existing model by building a new, well interpreted model
-   on its input and output data (interpretation)
-7. Improve the quality of modeling for an existing model (hybrid
-   modelling)
-8. Build a model that approximates an unknown time-spatial function by
-   data (surrogate modelling).
-
-Main advantages
----------------
-
--  A high-level task description language that allows you to configure
-   the framework very flexibly;
--  Possibility to obtain models with specified quality, complexity,
-   interpretability (including for multicriteria cases);
--  Ability to get any-time result;
--  Ability to suspend and resume model identification;
--  The ability to integrate many popular Python open source solutions
-   for AutoML/MetaLearning, optimization, quality evaluation, etc.;
--  Reuse of created models by the user or other users;
-
-Data and execution flow
------------------------
-
-.. figure::  img/img-components/flow.png
-   :align:   center
+- Is not limited to specific modeling tasks and claims versatility and expandability;
+- Allows managing the complexity of models and thereby achieving better results.
+- Allows building models using input data of various nature (texts, images, tables, etc.) and consisting of different types of models.
