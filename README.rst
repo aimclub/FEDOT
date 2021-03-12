@@ -1,5 +1,5 @@
 FEDOT
-============
+=====
 
 .. start-badges
 .. list-table::
@@ -78,7 +78,7 @@ In order to work with FEDOT source code:
 
 
 How to use (simple approach)
-==========
+============================
 
 FEDOT provides a high-level API that allows you to use its capabilities in a simple way.
 At the moment, the API can be used for classification and regression tasks only.
@@ -111,7 +111,7 @@ Numpy arrays, pandas data frames, and file paths can be used as sources of input
  metrics = auto_model.get_metrics()
 
 How to use (advanced approach)
-==========
+==============================
 
 The main purpose of FEDOT is to identify a suitable composite model for a given dataset.
 The model is obtained via an optimization process (we also call it 'composing') that can be configured in a more detailed way if necessary.
@@ -227,7 +227,7 @@ Acknowledgments
 We acknowledge the contributors for their important impact and the participants of the numerous scientific conferences and workshops for their valuable advice and suggestions.
 
 Contacts
-============
+========
 - `Telegram channel for solving problems and answering questions on FEDOT <https://t.me/FEDOT_helpdesk>`_
 - `Natural System Simulation Team <https://itmo-nss-team.github.io/>`_
 - `Anna Kalyuzhnaya <https://scholar.google.com/citations?user=bjiILqcAAAAJ&hl=ru>`_, team leader (anna.kalyuzhnaya@itmo.ru)
