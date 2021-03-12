@@ -14,6 +14,8 @@ params_by_operation = {
             'min_samples_leaf', 'bootstrap'],
     'xgbreg': ['n_estimators', 'max_depth', 'learning_rate', 'subsample',
                'min_child_weight', 'objective'],
+    'arima': ['order'],
+    'ar': ['lags'],
 
     'pca': ['n_components', 'svd_solver'],
     'kernel_pca': ['n_components'],
@@ -67,6 +69,10 @@ def __get_range_by_parameter(label, parameter_name):
         'knnreg | n_neighbors': hp.choice(label, range(1, 101)),
         'knnreg | weights': hp.choice(label, ["uniform", "distance"]),
         'knnreg | p': hp.choice(label, [1, 2]),
+
+        'arima | order': hp.choice(label, [(1, 0, 1), (2, 0, 1), (3, 0, 1), (3, 1, 1),
+                                           (3, 0, 2), (3, 0, 3), (1, 0, 3)]),
+        'ar | lags': hp.choice(label, [[5, 10], [10, 50], [50, 150], [20, 150], [100, 200], [200, 350]]),
 
         'pca | n_components': hp.uniform(label, 0.1, 0.99),
         'pca | svd_solver': hp.choice(label, ['full']),

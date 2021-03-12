@@ -4,6 +4,7 @@ import pytest
 from sklearn.datasets import load_iris, make_regression
 
 from fedot.core.data.data import InputData
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.preprocessing import TextPreprocessingStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -35,24 +36,23 @@ def np_array_regression_with_missing_values() -> np.array:
     return data
 
 
-# TODO: refactor to DataOperation test
-@pytest.mark.skip('TODO: Use the content of the test for DataOperation tests')
 def test_scaling_with_imputation(np_array_regression_with_missing_values):
-    pass
-    # scaler = ScalingWithImputation()
-    # actual_scaled_data = scaler.fit_apply(np_array_regression_with_missing_values)
-    #
-    # scaler = StandardScaler()
-    # df = pd.DataFrame(np_array_regression_with_missing_values)
-    # data = df.fillna(df.mean()).to_numpy()
-    # expected_scaled_data = scaler.fit_transform(data)
-    #
-    # result = []
-    # for i in range(len(actual_scaled_data)):
-    #     for j in range(len(actual_scaled_data[0])):
-    #         result.append(math.isclose(actual_scaled_data[i][j], expected_scaled_data[i][j], abs_tol=0.00001))
-    #
-    # assert all(result)
+
+    node_imputation = PrimaryNode('simple_imputation')
+    node_scaling = SecondaryNode('scaling', nodes_from=[node_imputation])
+    node_ridge = SecondaryNode('linear', nodes_from=[node_scaling])
+
+    scaler = StandardScaler()
+    df = pd.DataFrame(np_array_regression_with_missing_values)
+    data = df.fillna(df.mean()).to_numpy()
+    expected_scaled_data = scaler.fit_transform(data)
+
+    result = []
+    for i in range(len(actual_scaled_data)):
+        for j in range(len(actual_scaled_data[0])):
+            result.append(math.isclose(actual_scaled_data[i][j], expected_scaled_data[i][j], abs_tol=0.00001))
+
+    assert all(result)
 
 
 def test_text_preprocessing_strategy():

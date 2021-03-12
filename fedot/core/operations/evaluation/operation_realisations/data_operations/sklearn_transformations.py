@@ -82,6 +82,7 @@ class PCAOperation(ComponentAnalysisOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.pca = PCA(svd_solver='full', n_components='mle')
         else:
             self.pca = PCA(**params)
@@ -94,6 +95,7 @@ class KernelPCAOperation(ComponentAnalysisOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.pca = KernelPCA()
         else:
             self.pca = KernelPCA(**params)
@@ -106,6 +108,7 @@ class OneHotEncodingOperation(DataOperationRealisation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.encoder = OneHotEncoder()
         else:
             self.encoder = OneHotEncoder(**params)
@@ -218,6 +221,7 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.operation = PolynomialFeatures(include_bias=False)
         else:
             # Checking the appropriate params are using or not
@@ -242,6 +246,7 @@ class ScalingOperation(EncodedInvariantOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.operation = StandardScaler()
         else:
             self.operation = StandardScaler(**params)
@@ -262,6 +267,7 @@ class NormalizationOperation(EncodedInvariantOperation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.operation = MinMaxScaler()
         else:
             self.operation = MinMaxScaler(**params)
@@ -280,6 +286,7 @@ class ImputationOperation(DataOperationRealisation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
+            # Default parameters
             self.imputer = SimpleImputer()
         else:
             self.imputer = SimpleImputer(**params)

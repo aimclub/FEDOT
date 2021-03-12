@@ -1,4 +1,9 @@
 import warnings
+import re
+
+import nltk
+import numpy as np
+
 from abc import abstractmethod
 from typing import Optional
 
@@ -24,6 +29,9 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_realisations.models.svc import CustomSVC
@@ -34,7 +42,7 @@ from fedot.core.operations.evaluation.operation_realisations.\
 from fedot.core.operations.evaluation.operation_realisations.data_operations.\
     sklearn_transformations import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
     ScalingOperation, NormalizationOperation, KernelPCAOperation, ImputationOperation
-from fedot.core.operations.evaluation.operation_realisations.models.ts_models import ARIMAModel
+from fedot.core.operations.evaluation.operation_realisations.models.ts_models import ARIMAModel, AutoRegModel
 from fedot.core.operations.evaluation.operation_realisations.data_operations.ts_transformations \
     import LaggedTransformation, TsSmoothing, ExogDataTransformation
 from fedot.core.operations.tuning.tuners import SklearnTuner
@@ -127,20 +135,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
         'bernb': SklearnBernoulliNB,
-        'multinb': SklearnMultinomialNB,
-        'scaling': ScalingOperation,
-        'normalization': NormalizationOperation,
-        'simple_imputation': ImputationOperation,
-        'pca': PCAOperation,
-        'kernel_pca': KernelPCAOperation,
-        'poly_features': PolyFeaturesOperation,
-        'one_hot_encoding': OneHotEncodingOperation,
-        'ransac_lin_reg': LinearRegRANSAC,
-        'ransac_non_lin_reg': NonLinearRegRANSAC,
-        'rfe_lin_reg': LinearRegFS,
-        'rfe_non_lin_reg': NonLinearRegFS,
-        'rfe_lin_class': LinearClassFS,
-        'rfe_non_lin_class': NonLinearClassFS
+        'multinb': SklearnMultinomialNB
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -249,40 +244,6 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         return converted
 
 
-class SkLearnPreprocessingStrategy(SkLearnEvaluationStrategy):
-
-    def fit(self, train_data: InputData):
-        """
-        This method is used for operation training with the data provided
-
-        :param InputData train_data: data used for operation training
-        :return:
-        """
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            sklearn_operation = self._sklearn_operation_impl(**self.params_for_fit)
-        else:
-            sklearn_operation = self._sklearn_operation_impl()
-
-        sklearn_operation.fit(train_data)
-        return sklearn_operation
-
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
-        """
-        Transform method for preprocessing task
-
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
-        :return:
-        """
-        # Prediction here is already OutputData type object
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
-        return prediction
-
-
 class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     def fit(self, train_data: InputData):
         """
@@ -306,6 +267,70 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         """
         prediction = trained_operation.predict(predict_data.features)
         return prediction
+
+
+class SkLearnPreprocessingStrategy(EvaluationStrategy):
+    __operations_by_types = {
+        'scaling': ScalingOperation,
+        'normalization': NormalizationOperation,
+        'simple_imputation': ImputationOperation,
+        'pca': PCAOperation,
+        'kernel_pca': KernelPCAOperation,
+        'poly_features': PolyFeaturesOperation,
+        'one_hot_encoding': OneHotEncodingOperation,
+        'ransac_lin_reg': LinearRegRANSAC,
+        'ransac_non_lin_reg': NonLinearRegRANSAC,
+        'rfe_lin_reg': LinearRegFS,
+        'rfe_non_lin_reg': NonLinearRegFS,
+        'rfe_lin_class': LinearClassFS,
+        'rfe_non_lin_class': NonLinearClassFS
+    }
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self._sklearn_operation_impl = self._convert_to_operation(operation_type)
+        super().__init__(operation_type, params)
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for operation training with the data provided
+
+        :param InputData train_data: data used for operation training
+        :return:
+        """
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            sklearn_operation = self._sklearn_operation_impl(
+                **self.params_for_fit)
+        else:
+            sklearn_operation = self._sklearn_operation_impl()
+
+        sklearn_operation.fit(train_data)
+        return sklearn_operation
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool):
+        """
+        Transform method for preprocessing task
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return:
+        """
+        # Prediction here is already OutputData type object
+        prediction = trained_operation.transform(predict_data,
+                                                 is_fit_chain_stage)
+        return prediction
+
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain SkLearnPreprocessing strategy for {operation_type}')
+
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
 
 
 class TsTransformingStrategy(EvaluationStrategy):
@@ -365,6 +390,10 @@ class TsTransformingStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain TsTransforming strategy for {operation_type}')
 
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
+
 
 class TsForecastingStrategy(EvaluationStrategy):
     """
@@ -377,7 +406,8 @@ class TsForecastingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'arima': ARIMAModel}
+        'arima': ARIMAModel,
+        'ar': AutoRegModel}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation = self._convert_to_operation(operation_type)
@@ -420,6 +450,85 @@ class TsForecastingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain TsForecasting strategy for {operation_type}')
+
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
+
+
+class TextPreprocessingStrategy(EvaluationStrategy):
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        super().__init__(operation_type, params)
+        self.stemmer = PorterStemmer()
+        self.lemmanizer = WordNetLemmatizer()
+        self.lang = 'english'
+        self._download_nltk_resources()
+
+    def fit(self, data_to_fit):
+        return self
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
+        clean_data = []
+        for text in predict_data.features:
+            words = set(self._word_vectorize(text))
+            without_stop_words = self._remove_stop_words(words)
+            words = self._lemmatization(without_stop_words)
+            words = [word for word in words if word.isalpha()]
+            new_text = ' '.join(words)
+            new_text = self._clean_html_text(new_text)
+            clean_data.append(new_text)
+
+        # Wrap prediction as features for next level
+        converted = OutputData(idx=predict_data.idx,
+                               features=predict_data.features,
+                               predict=np.array(clean_data),
+                               task=predict_data.task,
+                               target=predict_data.target,
+                               data_type=DataTypesEnum.table)
+
+        return converted
+
+    @staticmethod
+    def _download_nltk_resources():
+        for resource in ['punkt', 'stopwords', 'wordnet']:
+            try:
+                nltk.data.find(f'tokenizers/{resource}')
+            except LookupError:
+                nltk.download(f'{resource}')
+
+    def _word_vectorize(self, text):
+        words = nltk.word_tokenize(text)
+
+        return words
+
+    def _remove_stop_words(self, words: set):
+        stop_words = set(stopwords.words(self.lang))
+        cleared_words = [word for word in words if word not in stop_words]
+
+        return cleared_words
+
+    def _stemming(self, words):
+        stemmed_words = [self.stemmer.stem(word) for word in words]
+
+        return stemmed_words
+
+    def _lemmatization(self, words):
+        # TODO pos
+        lemmas = [self.lemmanizer.lemmatize(word) for word in words]
+
+        return lemmas
+
+    def _clean_html_text(self, raw_text):
+        clean_pattern = re.compile('<.*?>')
+        text = re.sub(clean_pattern, ' ', raw_text)
+
+        return text
+
+    @property
+    def implementation_info(self) -> str:
+        return 'No info'
 
 
 def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):

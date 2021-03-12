@@ -342,8 +342,7 @@ class SecondaryNode(Node):
         parent_results, target = _combine_parents(parent_nodes, input_data,
                                                   parent_operation, max_tune_time)
 
-        secondary_input = InputData.from_predictions(outputs=parent_results,
-                                                     target=target)
+        secondary_input = InputData.from_predictions(outputs=parent_results)
 
         return secondary_input
 

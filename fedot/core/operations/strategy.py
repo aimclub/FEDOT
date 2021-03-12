@@ -25,6 +25,8 @@ class StrategyOperator:
             operation = Model(operation_type=self.operation_name)
         elif self.operation_type == 'data_operation':
             operation = DataOperation(operation_type=self.operation_name)
+        else:
+            raise ValueError(f'Operation type {self.operation_type} is not supported')
 
         return operation
 
@@ -37,8 +39,6 @@ class StrategyOperator:
         The method determines what type of operations is set for this node
 
         :return : operations type 'model' or 'data_operation'
-        TODO need to add a flag for whether preprocessing is used in the node
-         or not
         """
 
         # Get available models from model_repository.json file

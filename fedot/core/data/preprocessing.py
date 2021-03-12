@@ -81,8 +81,7 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
 
         return text
 
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
 
-def _expand_data(data):
-    if len(data.shape) == 1:
-        data = data[:, None]
-    return data

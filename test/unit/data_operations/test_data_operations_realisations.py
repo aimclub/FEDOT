@@ -128,10 +128,25 @@ def test_classification_data_operations():
         assert len(predicted) == len(y_test)
 
 
-def test_ts_forecasting_data_operations():
+def test_ts_forecasting_lagged_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
     node_lagged = PrimaryNode('lagged')
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    chain = Chain(node_ridge)
+
+    chain.fit_from_scratch(train_input)
+    predicted_output = chain.predict(predict_input)
+    predicted = np.ravel(predicted_output.predict)
+
+    assert len(predicted) == len(np.ravel(y_test))
+
+
+def test_ts_forecasting_smoothing_data_operation():
+    train_input, predict_input, y_test = get_time_series()
+
+    node_smoothing = PrimaryNode('smoothing')
+    node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
     chain = Chain(node_ridge)
 

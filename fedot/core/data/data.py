@@ -115,18 +115,18 @@ class InputData(Data):
             return None
 
     @staticmethod
-    def from_predictions(outputs: List['OutputData'], target: np.array):
+    def from_predictions(outputs: List['OutputData']):
         if len(set([output.task.task_type for output in outputs])) > 1:
             raise ValueError('Inconsistent task types')
 
         task = outputs[0].task
         data_type = outputs[0].data_type
-        idx = outputs[0].idx
 
         dataset_merging_funcs = {
-            DataTypesEnum.table: _combine_datasets_table
+            DataTypesEnum.table: _combine_datasets_table,
+            DataTypesEnum.ts: _combine_datasets_ts
         }
-        dataset_merging_funcs.setdefault(data_type, _combine_datasets_common)
+        dataset_merging_funcs.setdefault(data_type, _combine_datasets_table)
 
         # Update not only features but idx and target also
         idx, features, target = dataset_merging_funcs[data_type](outputs)
@@ -234,7 +234,6 @@ def merge_equal_outputs(outputs: List[OutputData]):
 def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
     """ Function merge datasets with different amount of rows by idx field """
     # TODO add ability to merge datasets with different amount of features
-    # TODO implement exceptions if no common_idx founded
 
     # Search overlapping indices in data
     for i, idx in enumerate(idx_list):
@@ -246,7 +245,10 @@ def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
 
     # Convert to list
     common_idx = np.array(list(common_idx))
-    features = list()
+    if len(common_idx) == 0:
+        raise ValueError(f'There are no common indices for outputs')
+
+    features = []
 
     for elem in outputs:
         # Create mask where True - appropriate objects
@@ -286,6 +288,28 @@ def _combine_datasets_table(outputs: List[OutputData]):
     else:
         idx, features, target = merge_non_equal_outputs(outputs, idx_list)
 
+    return idx, features, target
+
+
+def _combine_datasets_ts(outputs: List[OutputData]):
+    """ Function for combining datasets from parents to make features to
+    another node. Features are time series data.
+
+    :param outputs: list with outputs from parent nodes
+    :return idx: updated indices
+    :return features: new features obtained from predictions at previous level
+    :return target: updated target
+    """
+
+    are_lengths_equal, idx_list = _check_size_equality(outputs)
+
+    if are_lengths_equal:
+        idx, features, target = merge_equal_outputs(outputs)
+    else:
+        idx, features, target = merge_non_equal_outputs(outputs, idx_list)
+
+    features = np.ravel(np.array(features))
+    target = np.ravel(np.array(target))
     return idx, features, target
 
 

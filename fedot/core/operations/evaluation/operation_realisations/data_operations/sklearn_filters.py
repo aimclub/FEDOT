@@ -82,6 +82,7 @@ class LinearRegRANSAC(FilterOperation):
         self.inner_model = LinearRegression(normalize=True)
 
         if not params:
+            # Default parameters
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
         else:
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
@@ -100,6 +101,9 @@ class NonLinearRegRANSAC(FilterOperation):
         self.inner_model = DecisionTreeRegressor()
 
         if not params:
+            # Default parameters
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
+        else:
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params

@@ -15,6 +15,7 @@ class LaggedTransformation(DataOperationRealisation):
         super().__init__()
 
         if not params:
+            # Default parameters
             self.window_size = 10
         else:
             self.window_size = int(round(params.get('window_size')))
@@ -40,7 +41,7 @@ class LaggedTransformation(DataOperationRealisation):
         if is_fit_chain_stage:
             # Transformation for fit stage of the chain
             target = input_data.target
-            features = input_data.features
+            features = np.array(input_data.features)
             # Prepare features for training
             new_idx, features_columns = _ts_to_table(idx=old_idx,
                                                      time_series=features,
@@ -75,6 +76,7 @@ class TsSmoothing(DataOperationRealisation):
         super().__init__()
 
         if not params:
+            # Default parameters
             self.window_size = 10
         else:
             self.window_size = int(round(params.get('window_size')))

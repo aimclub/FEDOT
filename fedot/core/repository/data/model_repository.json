@@ -38,22 +38,6 @@
 	  "tags": ["without_preprocessing", "data_model"],
 	  "description": "Implementations of the models for the data injection into features of secondary nodes"
 	},
-	"ts_data_model": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing"],
-	  "description": "Implementations of the models for the data modification during time series forecasting"
-	},
-	"dim_red_data_model": {
-	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing", "data_model"],
-	  "description": "Implementations of the models for the feature preprocessing (dimensionality reduction, etc)"
-	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts_lagged_table]",
@@ -175,21 +159,6 @@
 	},
 	"kmeans": {
 	  "meta": "sklearn_clust"
-	},
-	"direct_data_model": {
-	  "meta": "data_model"
-	},
-	"trend_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["affects_target", "decomposition"]
-	},
-	"residual_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["affects_target", "decomposition"]
-	},
-	"pca_data_model": {
-	  "meta": "dim_red_data_model",
-	  "tags": ["linear"]
 	},
 	"lstm": {
 	  "meta": "keras_forecasting",

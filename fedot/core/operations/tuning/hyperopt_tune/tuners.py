@@ -148,7 +148,10 @@ class HyperoptTuner(ABC):
             y_test = input_target[-forecast_length:]
 
             idx_for_train = np.arange(0, len(x_train))
-            idx_for_predict = idx_for_train
+
+            start_forecast = len(x_train)
+            end_forecast = start_forecast + forecast_length
+            idx_for_predict = np.arange(start_forecast, end_forecast)
         else:
             x_train, x_test, y_train, y_test = train_test_split(input_features,
                                                                 input_target,

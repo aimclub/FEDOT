@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 
 from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.ar_model import AutoReg
 from scipy import stats
 
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -44,11 +45,11 @@ class ARIMAModel(ModelRealisation):
 
         transformed_ts, self.lmbda = stats.boxcox(source_ts)
 
-        if self.params:
-            self.arima = ARIMA(transformed_ts, **self.params).fit()
-        else:
+        if not self.params:
             # Default data
             self.params = {'order': (2, 0, 2)}
+            self.arima = ARIMA(transformed_ts, **self.params).fit()
+        else:
             self.arima = ARIMA(transformed_ts, **self.params).fit()
 
         return self.arima
@@ -98,8 +99,8 @@ class ARIMAModel(ModelRealisation):
 
         # For predict stage we can make prediction
         else:
-            start_id = old_idx[-1] + 1
-            end_id = old_idx[-1] + forecast_length
+            start_id = old_idx[-1] - forecast_length + 1
+            end_id = old_idx[-1]
             predicted = self.arima.predict(start=start_id,
                                            end=end_id)
             predicted = self._inverse_boxcox(predicted=predicted,
@@ -139,3 +140,89 @@ class ARIMAModel(ModelRealisation):
             values = values - self.scope
 
         return values
+
+
+class AutoRegModel(ModelRealisation):
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.params = params
+        self.actual_ts_len = None
+        self.autoreg = None
+
+    def fit(self, input_data):
+        """ Class fit arima model on data
+
+        :param input_data: data with features, target and ids to process
+        """
+
+        source_ts = np.array(input_data.features)
+        self.actual_ts_len = len(source_ts)
+
+        if not self.params:
+            # Default data
+            self.params = {'lags': [12, 24, 60]}
+            self.autoreg = AutoReg(source_ts, **self.params).fit()
+        else:
+            self.autoreg = AutoReg(source_ts, **self.params).fit()
+
+        return self.autoreg
+
+    def predict(self, input_data, is_fit_chain_stage: bool):
+        """ Method for smoothing time series
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return output_data: output data with smoothed time series
+        """
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
+        old_idx = input_data.idx
+        target = input_data.target
+
+        if is_fit_chain_stage:
+            fitted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
+            # First n elements in time series are skipped
+            diff = self.actual_ts_len - len(fitted)
+
+            # Fill nans with first values
+            first_element = fitted[0]
+            first_elements = [first_element] * diff
+            first_elements.extend(list(fitted))
+
+            fitted = np.array(first_elements)
+
+            _, predict = _ts_to_table(idx=old_idx,
+                                      time_series=fitted,
+                                      window_size=forecast_length)
+
+            new_idx, target_columns = _ts_to_table(idx=old_idx,
+                                                   time_series=target,
+                                                   window_size=forecast_length)
+
+            # Update idx and target
+            input_data.idx = new_idx
+            input_data.target = target_columns
+
+        # For predict stage we can make prediction
+        else:
+            start_id = old_idx[-1] - forecast_length + 1
+            end_id = old_idx[-1]
+            predicted = self.autoreg.predict(start=start_id,
+                                             end=end_id)
+
+            # Convert one-dim array as column
+            predict = np.array(predicted).reshape(1, -1)
+            new_idx = np.arange(start_id, end_id + 1)
+
+            # Update idx
+            input_data.idx = new_idx
+
+            # Update idx and features
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
+
+    def get_params(self):
+        raise self.params

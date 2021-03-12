@@ -103,6 +103,7 @@ class LinearRegFS(FeatureSelection):
         self.inner_model = LinearRegression(normalize=True)
 
         if not params:
+            # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
@@ -124,6 +125,7 @@ class NonLinearRegFS(FeatureSelection):
         self.inner_model = DecisionTreeRegressor()
 
         if not params:
+            # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
@@ -145,6 +147,7 @@ class LinearClassFS(FeatureSelection):
         self.inner_model = LogisticRegression()
 
         if not params:
+            # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
@@ -166,6 +169,7 @@ class NonLinearClassFS(FeatureSelection):
         self.inner_model = DecisionTreeClassifier()
 
         if not params:
+            # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
