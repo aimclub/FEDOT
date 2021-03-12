@@ -1,4 +1,4 @@
-Chain
+FEDOT API
 =====
 
 .. automodule:: fedot.api.main
