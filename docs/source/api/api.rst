@@ -1,7 +1,7 @@
 Chain
 =====
 
-.. automodule:: fedot.api
+.. automodule:: fedot.api.main
    :members:
    :undoc-members:
    :show-inheritance:
