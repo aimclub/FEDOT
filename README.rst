@@ -97,14 +97,16 @@ To use the API, follow these steps:
 
 - fedot.fit runs the optimization and returns the resulting composite model;
 - fedot.predict returns the prediction for the given input data;
-- fedot.get_metrics estimates the quality of predictions using selected metrics.
+- fedot.get_metrics estimates the quality of predictions using selected metrics
+
+Numpy arrays, pandas data frames, and file paths can be used as sources of input data.
 
 .. code-block:: python
 
  model = Fedot(problem='classification')
 
- model.fit(features=train_data, target='target')
- prediction = model.predict(features=test_data)
+ model.fit(features=train_data.features, target=train_data.target)
+ prediction = model.predict(features=test_data.features)
 
  metrics = auto_model.get_metrics()
 
