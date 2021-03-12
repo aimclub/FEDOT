@@ -10,7 +10,4 @@ FEDOT
    fedot
    installation
    quickstart
-   components
-   algorithms
-   real_cases
    features

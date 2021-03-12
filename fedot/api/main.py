@@ -43,6 +43,24 @@ basic_metric_dict = {
 
 
 class Fedot:
+    """
+    Main class for FEDOT API
+
+    :param problem: the name of modelling problem to solve:
+        - classification
+        - regression
+        - ts_forecasting
+        - clustering
+    :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
+    :param learning_time: time for model design (in minutes)
+    :param composer_params: parameters of pipeline optimisation
+    :param task_params:  additional parameters of the task
+    :param seed: value for fixed random seed
+    :param verbose_level: level of the output detalization
+        (-1 - nothing, 0 - errors, 1 - messages,
+        2 - warnings and info, 3-4 - basic and detailed debug)
+    """
+
     def __init__(self,
                  problem: str,
                  preset: str = None,
@@ -50,22 +68,6 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 1):
-        """
-        :param problem: the name of modelling problem to solve:
-            - classification
-            - regression
-            - ts_forecasting
-            - clustering
-        :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
-        :param learning_time: time for model design (in minutes)
-        :param composer_params: parameters of pipeline optimisation
-        :param task_params:  additional parameters of the task
-        :param seed: value for fixed random seed
-        :param verbose_level: level of the output detalization
-        (-1 - nothing, 0 - erros, 1 - messages,
-        2 - warnings and info, 3-4 - basic and detailed debug)
-        """
-
         if seed is not None:
             np.random.seed(seed)
             random.seed(seed)
@@ -136,6 +138,9 @@ class Fedot:
             self.metric_name = 'f1'
 
     def clean(self):
+        """
+        Cleans fitted model and obtained predictions
+        """
         self.prediction = None
         self.current_model = None
 
@@ -144,6 +149,8 @@ class Fedot:
             target: Union[str, np.ndarray, pd.Series] = 'target',
             predefined_model: Union[str, Chain] = None):
         """
+        Fit the chain with a predefined structure or compose and fit the new chain
+
         :param features: the array with features of train data
         :param target: the array with target values of train data
         :param predefined_model: the name of the atomic model or Chain instance
@@ -174,6 +181,8 @@ class Fedot:
                 features: Union[str, np.ndarray, pd.DataFrame, InputData],
                 save_predictions: bool = False):
         """
+        Predict new target using already fitted model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
@@ -198,6 +207,8 @@ class Fedot:
                       save_predictions: bool = False,
                       probs_for_all_classes: bool = False):
         """
+        Predict the probability of new target using already fitted classification model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :param probs_for_all_classes: return probability for each class even for binary case
@@ -227,6 +238,8 @@ class Fedot:
                  forecast_length: int = 1,
                  save_predictions: bool = False):
         """
+        Forecast the new values of time series
+
         :param pre_history: the array with features for pre-history of the forecast
         :param forecast_length: num of steps to forecast
         :param save_predictions: if True-save predictions as csv-file in working directory.
@@ -262,11 +275,16 @@ class Fedot:
 
     def load(self, path):
         """
+        Load saved chain from disk
+
         :param path to json file with model
         """
         self.current_model.load(path)
 
     def plot_prediction(self):
+        """
+        Plot the prediction obtained from chain
+        """
         if self.prediction is not None:
             if self.problem.task_type == TaskTypesEnum.ts_forecasting:
                 plot_forecast(pre_history=self.train_data, forecast=self.prediction)
@@ -281,9 +299,11 @@ class Fedot:
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
+        Get quality metrics for the fitted chain
+
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics
-        :return: the value of quality metric
+        :return: the values of quality metrics
         """
         if metric_names is None:
             metric_names = self.metric_name
