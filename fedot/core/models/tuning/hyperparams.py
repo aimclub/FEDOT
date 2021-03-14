@@ -23,6 +23,11 @@ params_range_by_model = {
         'min_samples_split': list(range(2, 10)),
         'min_samples_leaf': list(range(1, 15)),
         'bootstrap': [True, False]},
+    'dt': {
+        'max_depth': range(1, 11),
+        'min_samples_split': range(2, 21),
+        'min_samples_leaf': range(1, 21)
+    },
     'xgbreg': {
         'n_estimators': [100],
         'max_depth': range(1, 11),
@@ -77,5 +82,11 @@ params_range_by_model = {
         'min_samples_split': range(2, 21),
         'min_samples_leaf': range(1, 21),
         'bootstrap': [True, False]
+    },
+    'lasso': {
+        'alpha': np.arange(0.01, 10.0, 0.1)
+    },
+    'ridge': {
+        'alpha': np.arange(0.01, 10.0, 0.1)
     }
 }
