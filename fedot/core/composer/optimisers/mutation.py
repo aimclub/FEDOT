@@ -6,6 +6,7 @@ from typing import Any
 from fedot.core.chains.chain import Chain, List
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_operators import node_depth, node_height, nodes_from_height, random_chain
+from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -33,7 +34,7 @@ def get_mutation_prob(mut_id, root_node):
     return mutation_prob
 
 
-def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements,
+def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements, log: Log,
              max_depth: int = None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
@@ -57,6 +58,8 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
             is_correct_chain = constraint_function(new_chain)
             if number_of_attempts == 10:
                 new_chain = deepcopy(chain)
+                log.warn(
+                    'Number of crossover attempts exceeded. Please check composer requirements for correctness.')
                 break
     else:
         raise ValueError(f'Required mutation type is not found: {type}')

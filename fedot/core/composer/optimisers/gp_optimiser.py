@@ -280,14 +280,14 @@ class GPChainOptimiser:
                                  selected_individual_first,
                                  selected_individual_second,
                                  crossover_prob=self.requirements.crossover_prob,
-                                 max_depth=self.max_depth)
+                                 max_depth=self.max_depth, log=self.log)
         else:
             new_inds = [selected_individual_first]
 
         new_inds = tuple([mutation(types=self.parameters.mutation_types,
                                    chain_generation_params=self.chain_generation_params,
                                    chain=new_ind, requirements=self.requirements,
-                                   max_depth=self.max_depth) for new_ind in new_inds])
+                                   max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
 
         return new_inds
 
