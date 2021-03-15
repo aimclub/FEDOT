@@ -291,12 +291,3 @@ def chain_as_nx_graph(chain: Chain):
 
     add_edges(graph, chain, new_node_idx)
     return graph, node_labels
-
-
-def check_data_appropriate_for_task(data: InputData):
-    # TODO add docstring description
-    if (data.task.task_type == TaskTypesEnum.ts_forecasting and
-            data.target is not None and
-            data.task.task_params.max_window_size > data.target.shape[0]):
-        raise ValueError(f'Window size {data.task.task_params.max_window_size} is '
-                         f'more then data length {data.target.shape[0]}')
