@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from copy import deepcopy
 from deap import tools
+from copy import deepcopy
 from functools import partial
 from typing import (
     Callable,
@@ -106,6 +106,7 @@ class GPComposer(Composer):
         train_data, test_data = train_test_data_setup(data,
                                                       sample_split_ration_for_tasks[data.task.task_type],
                                                       task=data.task)
+
         self.shared_cache.clear()
         metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data, True)
 

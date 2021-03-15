@@ -39,8 +39,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
     available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
-    import multiprocessing
-    print(multiprocessing.__version__)
     # the choice of the metric for the chain quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
     # the choice and initialisation of the GP search

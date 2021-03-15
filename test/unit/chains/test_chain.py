@@ -1,10 +1,14 @@
 import os
-from copy import deepcopy
-from random import seed
+import platform
+import pytest
 
 import numpy as np
 import pandas as pd
-import pytest
+
+from copy import deepcopy
+from multiprocessing import set_start_method
+from random import seed
+
 from sklearn.datasets import load_iris
 
 from fedot.core.chains.chain import Chain
@@ -13,6 +17,8 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
+
+from test.unit.chains.test_chain_tuning import chain_first, classification_dataset
 
 seed(1)
 np.random.seed(1)
@@ -344,3 +350,29 @@ def test_delete_secondary_node_with_multiple_children_and_redirection():
     assert updated_logit_second_parents[1] is lda_first
     assert updated_lda_second_parents[0] is logit_first
     assert updated_lda_second_parents[1] is lda_first
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_chain_fit_time_constraint(data_fixture, request):
+    system = platform.system()
+    if system == 'Linux':
+        set_start_method("spawn", force=True)
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+    test_chain_first = chain_first()
+    time_constraint = 3
+    predicted_first = None
+    computation_time_first = None
+    try:
+        predicted_first = test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
+    except Exception as ex:
+        received_ex = ex
+        computation_time_first = test_chain_first.computation_time
+        assert type(received_ex) is TimeoutError
+    test_chain_second = chain_first()
+    predicted_second = test_chain_second.fit(input_data=train_data)
+    computation_time_second = test_chain_second.computation_time
+    assert computation_time_first is None
+    assert predicted_first is None
+    assert computation_time_second is not None
+    assert predicted_second is not None
