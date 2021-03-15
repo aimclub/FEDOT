@@ -21,6 +21,7 @@ class ARIMAModel(ModelRealisation):
         self.lmbda = None
         self.scope = None
         self.actual_ts_len = None
+        self.sts = None
         # TODO for some configuration of p,d,q got ValueError
 
     def fit(self, input_data):
@@ -47,10 +48,13 @@ class ARIMAModel(ModelRealisation):
 
         if not self.params:
             # Default data
-            self.params = {'order': (2, 0, 2)}
-            self.arima = ARIMA(transformed_ts, **self.params).fit()
-        else:
-            self.arima = ARIMA(transformed_ts, **self.params).fit()
+            self.params = {'p': 2, 'd': 0, 'q': 2}
+
+        p = int(self.params.get('p'))
+        d = int(self.params.get('d'))
+        q = int(self.params.get('q'))
+        params = {'order': (p, d, q)}
+        self.arima = ARIMA(transformed_ts, **params).fit()
 
         return self.arima
 
@@ -161,10 +165,12 @@ class AutoRegModel(ModelRealisation):
 
         if not self.params:
             # Default data
-            self.params = {'lags': [12, 24, 60]}
-            self.autoreg = AutoReg(source_ts, **self.params).fit()
-        else:
-            self.autoreg = AutoReg(source_ts, **self.params).fit()
+            self.params = {'lag_1': 12, 'lag_2': 60}
+
+        lag_1 = int(self.params.get('lag_1'))
+        lag_2 = int(self.params.get('lag_2'))
+        params = {'lags': [lag_1, lag_2]}
+        self.autoreg = AutoReg(source_ts, **params).fit()
 
         return self.autoreg
 

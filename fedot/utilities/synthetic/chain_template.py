@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from fedot.core.operations.strategy import StrategyOperator
+from fedot.core.operations.strategy import OperationFactory
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import CachedState, FittedOperationCache, Node, PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
@@ -154,7 +154,7 @@ def fit_template(chain_template, classes, with_gaussian=False, skip_fit=False):
     for operation_template in itertools.chain.from_iterable(chain_template):
 
         # Get appropriate operation (DataOperation or Model)
-        strategy_operator = StrategyOperator(operation_name=operation_template.operation_type)
+        strategy_operator = OperationFactory(operation_name=operation_template.operation_type)
         operation_instance = strategy_operator.get_operation()
 
         operation_template.operation_instance = operation_instance

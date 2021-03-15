@@ -9,13 +9,18 @@ params_by_operation = {
     'lasso': ['alpha'],
     'ridge': ['alpha'],
     'dtreg': ['max_depth', 'min_samples_split', 'min_samples_leaf'],
+    'dt': ['max_depth', 'min_samples_split', 'min_samples_leaf'],
     'knnreg': ['n_neighbors', 'weights', 'p'],
+    'knn': ['n_neighbors', 'weights', 'p'],
     'rfr': ['n_estimators', 'max_features', 'min_samples_split',
             'min_samples_leaf', 'bootstrap'],
     'xgbreg': ['n_estimators', 'max_depth', 'learning_rate', 'subsample',
                'min_child_weight', 'objective'],
-    'arima': ['order'],
-    'ar': ['lags'],
+    'xgboost': ['n_estimators', 'max_depth', 'learning_rate', 'subsample',
+                'min_child_weight', 'nthread'],
+    'svr': ['loss', 'tol', 'C', 'epsilon'],
+    'arima': ['p', 'd', 'q'],
+    'ar': ['lag_1', 'lag_2'],
 
     'pca': ['n_components', 'svd_solver'],
     'kernel_pca': ['n_components'],
@@ -24,7 +29,6 @@ params_by_operation = {
     'poly_features': ['degree', 'interaction_only'],
     'lagged': ['window_size']
 }
-
 
 def __get_range_by_parameter(label, parameter_name):
     """
@@ -46,8 +50,8 @@ def __get_range_by_parameter(label, parameter_name):
         'rf | min_samples_leaf': hp.choice(label, range(1, 15)),
         'rf | bootstrap': hp.choice(label, [True, False]),
 
-        'lasso | alpha': hp.uniform(label, 0.01, 1.0),
-        'ridge | alpha': hp.uniform(label, 0.01, 1.0),
+        'lasso | alpha': hp.uniform(label, 0.01, 10.0),
+        'ridge | alpha': hp.uniform(label, 0.01, 10.0),
 
         'rfr | n_estimators': hp.choice(label, [100]),
         'rfr | max_features': hp.uniform(label, 0.05, 1.01),
@@ -62,17 +66,41 @@ def __get_range_by_parameter(label, parameter_name):
         'xgbreg | min_child_weight': hp.choice(label, range(1, 21)),
         'xgbreg | objective': hp.choice(label, ['reg:squarederror']),
 
+        'xgboost | n_estimators': hp.choice(label, [100]),
+        'xgboost | max_depth': hp.choice(label, range(1, 7)),
+        'xgboost | learning_rate': hp.uniform(label, 0.1, 0.9),
+        'xgboost | subsample': hp.uniform(label, 0.05, 0.99),
+        'xgboost | min_child_weight': hp.choice(label, range(1, 21)),
+        'xgboost | nthread': hp.choice(label, [1]),
+
+        'svr | loss': hp.choice(label, ["epsilon_insensitive",
+                                        "squared_epsilon_insensitive"]),
+        'svr | tol': hp.choice(label, [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]),
+        'svr | C': hp.uniform(label, 1e-4, 25.0),
+        'svr | epsilon': hp.uniform(label, 1e-4, 1.0),
+
         'dtreg | max_depth': hp.choice(label, range(1, 11)),
         'dtreg | min_samples_split': hp.choice(label, range(2, 21)),
         'dtreg | min_samples_leaf': hp.choice(label, range(1, 21)),
 
-        'knnreg | n_neighbors': hp.choice(label, range(1, 101)),
+        'dt | max_depth': hp.choice(label, range(1, 11)),
+        'dt | min_samples_split': hp.choice(label, range(2, 21)),
+        'dt | min_samples_leaf': hp.choice(label, range(1, 21)),
+
+        'knnreg | n_neighbors': hp.choice(label, range(1, 50)),
         'knnreg | weights': hp.choice(label, ["uniform", "distance"]),
         'knnreg | p': hp.choice(label, [1, 2]),
 
-        'arima | order': hp.choice(label, [(1, 0, 1), (2, 0, 1), (3, 0, 1), (3, 1, 1),
-                                           (3, 0, 2), (3, 0, 3), (1, 0, 3)]),
-        'ar | lags': hp.choice(label, [[5, 10], [10, 50], [50, 150], [20, 150], [100, 200], [200, 350]]),
+        'knn | n_neighbors': hp.choice(label, range(1, 50)),
+        'knn | weights': hp.choice(label, ["uniform", "distance"]),
+        'knn | p': hp.choice(label, [1, 2]),
+
+        'arima | p': hp.choice(label, [1, 2, 3, 4, 5, 6]),
+        'arima | d': hp.choice(label, [0, 1]),
+        'arima | q': hp.choice(label, [1, 2, 3, 4]),
+
+        'ar | lag_1': hp.uniform(label, 2, 200),
+        'ar | lag_2': hp.uniform(label, 2, 800),
 
         'pca | n_components': hp.uniform(label, 0.1, 0.99),
         'pca | svd_solver': hp.choice(label, ['full']),

@@ -301,11 +301,18 @@ class ChainTuner(HyperoptTuner):
         # Set hyperparameters for every node
         chain = ChainTuner.set_arg_chain(chain=chain, parameters=parameters_dict)
 
-        min_function = ChainTuner.get_metric_value(train_input=train_input,
-                                                   predict_input=predict_input,
-                                                   test_target=test_target,
-                                                   chain=chain,
-                                                   loss_function=loss_function)
+        try:
+            min_function = ChainTuner.get_metric_value(train_input=train_input,
+                                                       predict_input=predict_input,
+                                                       test_target=test_target,
+                                                       chain=chain,
+                                                       loss_function=loss_function)
+        except Exception:
+            if is_need_to_maximize is True:
+                min_function = -999999.0
+            else:
+                min_function = 999999.0
+
         if is_need_to_maximize is True:
             return -min_function
         else:
@@ -497,11 +504,18 @@ class SequentialTuner(HyperoptTuner):
                                              node_id=node_id,
                                              node_params=node_params)
 
-        min_function = SequentialTuner.get_metric_value(train_input=train_input,
-                                                        predict_input=predict_input,
-                                                        test_target=test_target,
-                                                        chain=chain,
-                                                        loss_function=loss_function)
+        try:
+            min_function = SequentialTuner.get_metric_value(train_input=train_input,
+                                                            predict_input=predict_input,
+                                                            test_target=test_target,
+                                                            chain=chain,
+                                                            loss_function=loss_function)
+        except Exception:
+            if is_need_to_maximize is True:
+                min_function = -999999.0
+            else:
+                min_function = 999999.0
+
         if is_need_to_maximize is True:
             return -min_function
         else:

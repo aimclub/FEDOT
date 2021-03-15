@@ -6,7 +6,7 @@ from networkx.algorithms.isolate import isolates
 
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.operations.operation import Model
+from fedot.core.operations.model import Model
 from fedot.core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -20,7 +20,6 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_no_isolated_nodes(chain)
     has_primary_nodes(chain)
     has_correct_operation_positions(chain, task)
-    has_at_least_one_model(chain)
     has_final_operation_as_model(chain)
     return True
 
@@ -77,19 +76,6 @@ def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
     if not is_root_satisfy_task_type:
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect operations positions')
 
-    return True
-
-
-def has_at_least_one_model(chain: Chain):
-    """ Check is there at least one model in the chain """
-    models_amount = 0
-    for node in chain.nodes:
-        if type(node.operation) is Model:
-            models_amount = models_amount + 1
-
-    if models_amount == 0:
-        raise ValueError(f'{ERROR_PREFIX} Chain consists only of data '
-                         f'operations, at least one model required')
     return True
 
 

@@ -4,7 +4,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_validation import (has_correct_operation_positions, has_no_cycle,
                                                 has_no_isolated_components, has_no_isolated_nodes,
                                                 has_no_self_cycled_nodes, has_primary_nodes,
-                                                validate, has_at_least_one_model)
+                                                validate, has_final_operation_as_model)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -237,10 +237,10 @@ def test_chain_with_correct_decomposition_raise_exception():
     assert has_correct_operation_positions(chain)
 
 
-def test_chain_with_incorrect_model_amount_raise_exception():
+def test_chain_without_model_in_root_node():
     incorrect_chain = chain_with_only_data_operations()
-    with pytest.raises(Exception) as exc:
-        assert has_at_least_one_model(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain consists only of data ' \
-                             f'operations, at least one model required'
+    with pytest.raises(Exception) as exc:
+        assert has_final_operation_as_model(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} Root operation is not a model'

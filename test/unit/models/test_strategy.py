@@ -1,5 +1,5 @@
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.vectorize import VectorizeStrategy
+from fedot.core.operations.evaluation.text import VectorizeStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from sklearn.feature_extraction.text import TfidfVectorizer

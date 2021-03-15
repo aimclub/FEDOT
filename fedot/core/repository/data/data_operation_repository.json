@@ -2,8 +2,8 @@
 	"metadata":{
 		"sklearn_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
@@ -11,8 +11,8 @@
 			"description": "Implementations of the preprocessing from scikit-learn framework"},
 		"sklearn_categorical": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
-			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["primary"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
@@ -20,8 +20,8 @@
 			"description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"},
 		"sklearn_dimension_transformation": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
@@ -29,8 +29,8 @@
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
 		"sklearn_regression_filters": {
 			"tasks": "[TaskTypesEnum.regression]",
-			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
@@ -38,8 +38,8 @@
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
 		"sklearn_classification_filters": {
 			"tasks": "[TaskTypesEnum.classification]",
-			"input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
@@ -48,12 +48,21 @@
 		"time_series_transformation": {
 			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
-			"output_type": "[DataTypesEnum.ts], [DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.evaluation", "TsTransformingStrategy"],
 			"tags": ["time_series"],
-			"description": "Preprocessing for converting uni-variate time-series into table form"}
+			"description": "Preprocessing for converting uni-variate time-series into table form"},
+		"text_preprocessing": {
+			"tasks": "[TaskTypesEnum.classification]",
+			"input_type": "[DataTypesEnum.text]",
+			"output_type": "[DataTypesEnum.text, DataTypesEnum.table]",
+			"accepted_node_types": ["any"],
+			"forbidden_node_types": "[]",
+			"strategies": ["fedot.core.operations.evaluation.text", "TextPreprocessingStrategy"],
+			"tags": ["text"],
+			"description": "Preprocessing operations for text classification"}
 	},
 	"operations":{
 		"scaling": {
@@ -119,6 +128,10 @@
 		"exog": {
 			"meta": "time_series_transformation",
 			"tags": ["simple"]
+		},
+		"text_clean": {
+			"meta": "text_preprocessing",
+			"tags": []
 		}
 	}
 }

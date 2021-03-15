@@ -1,8 +1,10 @@
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.operations.operation import Operation, Model, DataOperation
+from fedot.core.operations.operation import Operation
+from fedot.core.operations.model import Model
+from fedot.core.operations.data_operation import DataOperation
 
 
-class StrategyOperator:
+class OperationFactory:
     """
     Base class for determining what type of operations should be defined
     in the node. Possible operations are models (ML models with fit and predict

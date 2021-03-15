@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, classification_report
 
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.operations.operation import Model
+from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
-from fedot.core.operations.strategy import StrategyOperator
+from fedot.core.operations.strategy import OperationFactory
 
 CachedState = namedtuple('CachedState', 'operation')
 
@@ -31,7 +31,7 @@ class Node(ABC):
             self.log = log
 
         # Define appropriate model or data operation
-        self.strategy_operator = StrategyOperator(operation_name=operation_type)
+        self.strategy_operator = OperationFactory(operation_name=operation_type)
         self.operation = self.strategy_operator.get_operation()
 
     @property

@@ -145,6 +145,7 @@ class GPComposerBuilder:
         return self
 
     def set_default_composer_params(self):
+        """ Method set metrics and composer requirements """
         if not self._composer.composer_requirements:
             models_repo = OperationTypesRepository()
             models, _ = models_repo.suitable_operation(task_type=self.task.task_type)
@@ -154,6 +155,8 @@ class GPComposerBuilder:
 
             # Unit two lists
             operations = models + data_operations
+
+            # Set protected attributes to composer
             self._composer.composer_requirements = GPComposerRequirements(primary=operations, secondary=operations)
         if not self._composer.metrics:
             metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
@@ -161,6 +164,7 @@ class GPComposerBuilder:
             if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
                 metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
+            # Set metric
             self._composer.metrics = metric_function
 
     def build(self) -> Composer:

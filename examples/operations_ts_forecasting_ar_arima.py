@@ -43,7 +43,7 @@ def make_forecast(chain, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     chain_tuner = ChainTuner(chain=chain, task=task,
-                             iterations=5)
+                             iterations=10)
     chain = chain_tuner.tune_chain(input_data=train_input,
                                    loss_function=mean_absolute_error)
 
@@ -64,20 +64,11 @@ def make_forecast(chain, train_input, predict_input, task):
 def get_chain():
     """
     Chain looking like this
-    lagged - ridge \
-                    \
-          AR ------> ridge -> final forecast
-                    /
-        ARIMA      /
+    AR -> final forecast
     """
 
-    node_arima = PrimaryNode('ar')
-
-    node_lagged = PrimaryNode('lagged')
-    node_linear = SecondaryNode('linear', nodes_from=[node_lagged])
-
-    node_final = SecondaryNode('ridge', nodes_from=[node_arima, node_linear])
-    chain = Chain(node_arima)
+    node_ar = PrimaryNode('arima')
+    chain = Chain(node_ar)
 
     return chain
 
