@@ -1,9 +1,9 @@
 import os
-import numpy as np
-import pytest
 from datetime import timedelta
 from random import seed
 
+import numpy as np
+import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
 from fedot.core.chains.chain import Chain
@@ -136,7 +136,7 @@ def test_custom_params_setter(data_fixture, request):
 
     chain.root_node.custom_params = custom_params
     chain.fit(data)
-    params = chain.root_node.cache.actual_cached_state.model.get_params()
+    params = chain.root_node.fitted_model.get_params()
 
     assert params['C'] == 10
 

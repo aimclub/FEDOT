@@ -1,5 +1,4 @@
 from abc import ABC
-from collections import namedtuple
 from copy import copy
 from datetime import timedelta
 from multiprocessing import Manager
@@ -11,7 +10,6 @@ from fedot.core.data.transformation import transformation_function_for_data
 from fedot.core.log import default_log
 from fedot.core.models.model import Model
 
-CachedState = namedtuple('CachedState', 'preprocessor model')
 
 class Node(ABC):
     """
@@ -21,7 +19,7 @@ class Node(ABC):
     :param model_type: str type of the model defined in model repository
     :param manual_preprocessing_func: optional function for data preprocessing.
     If not defined one of the available preprocessing strategies is used. \
-    See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/core/models/preprocessing.py>`__
+    See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/fedot/core/data/preprocessing.py>`__
     :param log: Log object to record messages
     """
 
@@ -29,9 +27,10 @@ class Node(ABC):
                  manual_preprocessing_func: Optional[Callable] = None,
                  log=None):
         self.nodes_from = nodes_from
-        self.cache = FittedModelCache(self)
         self.manual_preprocessing_func = manual_preprocessing_func
         self.log = log
+        self.fitted_preprocessor = None
+        self.fitted_model = None
 
         if not log:
             self.log = default_log(__name__)
@@ -70,6 +69,10 @@ class Node(ABC):
     def model_tags(self) -> List[str]:
         return self.model.metadata.tags
 
+    def unfit(self):
+        self.fitted_model = None
+        self.fitted_preprocessor = None
+
     def output_from_prediction(self, input_data, prediction):
         return OutputData(idx=input_data.idx,
                           features=input_data.features,
@@ -85,44 +88,33 @@ class Node(ABC):
     def _preprocess(self, data: InputData):
         preprocessing_func = preprocessing_func_for_data(data, self)
 
-        if not self.cache.actual_cached_state:
-            # if fitted preprocessor not found in cache
+        if not self.fitted_preprocessor:
+            # if fitted preprocessor not found
             preprocessing_strategy = \
                 preprocessing_func().fit(data.features)
         else:
             # if fitted preprocessor already exists
-            preprocessing_strategy = self.cache.actual_cached_state.preprocessor
+            preprocessing_strategy = self.fitted_preprocessor
 
         data.features = preprocessing_strategy.apply(data.features)
 
         return data, preprocessing_strategy
 
-    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Run training process in the node
 
         :param input_data: data used for model training
-        :param return_dict: this dictionary is used for saving global cache of
         composer in a case when process created
         """
         transformed = self._transform(input_data)
-        preprocessed_data, preproc_strategy = self._preprocess(transformed)
 
-        if not self.cache.actual_cached_state:
-            self.log.ext_debug('Cache is not actual')
+        preprocessed_data, self.fitted_preprocessor = self._preprocess(transformed)
 
-            cached_model, model_predict = self.model.fit(data=preprocessed_data)
-
-            if isinstance(self.cache, SharedCache):
-                self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                              model=cached_model), return_dict=return_dict)
-            else:
-                self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                              model=cached_model))
+        if self.fitted_model is None:
+            self.fitted_model, model_predict = self.model.fit(data=preprocessed_data)
         else:
-            self.log.ext_debug('Model were obtained from cache')
-
-            model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
+            model_predict = self.model.predict(fitted_model=self.fitted_model,
                                                data=preprocessed_data)
 
         return self.output_from_prediction(input_data, model_predict)
@@ -137,10 +129,10 @@ class Node(ABC):
         transformed = self._transform(input_data)
         preprocessed_data, _ = self._preprocess(transformed)
 
-        if not self.cache:
+        if not self.fitted_preprocessor:
             raise ValueError('Model must be fitted before predict')
 
-        model_predict = self.model.predict(fitted_model=self.cache.actual_cached_state.model,
+        model_predict = self.model.predict(fitted_model=self.fitted_model,
                                            data=preprocessed_data, output_mode=output_mode)
 
         return self.output_from_prediction(input_data, model_predict)
@@ -156,14 +148,11 @@ class Node(ABC):
         """
 
         transformed = self._transform(input_data)
-        preprocessed_data, preproc_strategy = self._preprocess(transformed)
+        preprocessed_data, self.fitted_preprocessor = self._preprocess(transformed)
 
-        fitted_model, _ = self.model.fine_tune(preprocessed_data,
-                                               max_lead_time=max_lead_time,
-                                               iterations=iterations)
-
-        self.cache.append(CachedState(preprocessor=copy(preproc_strategy),
-                                      model=fitted_model))
+        self.fitted_model, _ = self.model.fine_tune(preprocessed_data,
+                                                    max_lead_time=max_lead_time,
+                                                    iterations=iterations)
 
     def __str__(self):
         model = f'{self.model}'
@@ -193,54 +182,6 @@ class Node(ABC):
             self.model.params = params
 
 
-class FittedModelCache:
-    def __init__(self, related_node: Node):
-        self._local_cached_models = {}
-        self._related_node_ref = related_node
-
-    def append(self, fitted_model):
-        self._local_cached_models[self._related_node_ref.descriptive_id] = fitted_model
-
-    def import_from_other_cache(self, other_cache: 'FittedModelCache'):
-        for entry_key in other_cache._local_cached_models.keys():
-            self._local_cached_models[entry_key] = other_cache._local_cached_models[entry_key]
-
-    def local_cache_update(self, updated_local_cache):
-        self._local_cached_models = updated_local_cache
-
-    def clear(self):
-        self._local_cached_models = {}
-
-    @property
-    def actual_cached_state(self):
-        found_model = self._local_cached_models.get(self._related_node_ref.descriptive_id, None)
-        return found_model
-
-
-class SharedCache(FittedModelCache):
-    def __init__(self, related_node: Node, global_cached_models: dict):
-        super().__init__(related_node)
-        self._global_cached_models = global_cached_models
-
-    def append(self, fitted_model, return_dict: Manager = None):
-        super().append(fitted_model)
-        if self._global_cached_models is not None:
-            self._global_cached_models[self._related_node_ref.descriptive_id] = fitted_model
-            if return_dict is not None:
-                return_dict[self._related_node_ref.descriptive_id] = fitted_model
-
-    def global_cache_update(self, new_cache):
-        self._global_cached_models.update(new_cache)
-
-    @property
-    def actual_cached_state(self):
-        found_model = super().actual_cached_state
-
-        if not found_model and self._global_cached_models:
-            found_model = self._global_cached_models.get(self._related_node_ref.descriptive_id, None)
-        return found_model
-
-
 class PrimaryNode(Node):
     """
     The class defines the interface of Primary nodes where initial task data is located
@@ -256,17 +197,16 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Fit the model located in the primary node
 
         :param input_data: data used for model training
-        :param return_dict: this dictionary is used for saving global cache of
         composer in a case when process created
         """
         self.log.ext_debug(f'Trying to fit primary node with model: {self.model}')
 
-        return super().fit(input_data, return_dict)
+        return super().fit(input_data)
 
     def predict(self, input_data: InputData,
                 output_mode: str = 'default', ) -> OutputData:
@@ -298,7 +238,7 @@ class SecondaryNode(Node):
         super().__init__(nodes_from=nodes_from, model_type=model_type,
                          manual_preprocessing_func=manual_preprocessing_func, **kwargs)
 
-    def fit(self, input_data: InputData, return_dict: Manager = None) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Fit the model located in the secondary node
 
@@ -306,10 +246,9 @@ class SecondaryNode(Node):
         """
         self.log.ext_debug(f'Trying to fit secondary node with model: {self.model}')
 
-        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit',
-                                                   return_dict=return_dict)
+        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
 
-        return super().fit(input_data=secondary_input, return_dict=return_dict)
+        return super().fit(input_data=secondary_input)
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
@@ -387,7 +326,7 @@ def _combine_parents_that_affects_target(parent_nodes: List[Node],
     if parent_operation == 'predict':
         parent_result = parent_nodes[0].predict(input_data=input_data)
     elif parent_operation == 'fit' or parent_operation == 'fine_tune':
-        parent_result = parent_nodes[0].fit(input_data=input_data, return_dict=return_dict)
+        parent_result = parent_nodes[0].fit(input_data=input_data)
     else:
         raise NotImplementedError()
 
@@ -406,7 +345,7 @@ def _combine_parents_simple(parent_nodes: List[Node],
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data, return_dict=return_dict)
+            prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fine_tune':
             parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)

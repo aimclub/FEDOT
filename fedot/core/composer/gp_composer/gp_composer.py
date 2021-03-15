@@ -1,18 +1,14 @@
-from dataclasses import dataclass
-from deap import tools
 from copy import deepcopy
+from dataclasses import dataclass
 from functools import partial
-from typing import (
-    Callable,
-    Optional,
-    Tuple,
-    Any,
-    Union,
-    List
-)
-from fedot.core.chains.chain import Chain, SharedChain
+from typing import (Any, Callable, List, Optional, Tuple, Union)
+
+from deap import tools
+
+from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.cache import ModelsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
@@ -22,8 +18,8 @@ from fedot.core.composer.optimisers.regularization import RegularizationTypesEnu
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsEnum, MetricsRepository, \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 sample_split_ration_for_tasks = {
@@ -88,7 +84,9 @@ class GPComposer(Composer):
                  logger: Log = None):
 
         super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_chain=initial_chain)
-        self.shared_cache = {}
+
+        self.shared_cache = ModelsCache()
+
         self.optimiser = optimiser
 
         if not logger:
@@ -108,7 +106,7 @@ class GPComposer(Composer):
                                                       task=data.task)
 
         self.shared_cache.clear()
-        metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data, True)
+        metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
                                              on_next_iteration_callback=on_next_iteration_callback)
@@ -119,8 +117,8 @@ class GPComposer(Composer):
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
 
-    def composer_metric(self, metrics, train_data: InputData, test_data: InputData,
-                        is_chain_shared: bool, chain: Chain) -> Optional[Tuple[Any]]:
+    def composer_metric(self, metrics, train_data: InputData,
+                        test_data: InputData, chain: Chain) -> Optional[Tuple[Any]]:
         try:
             validate(chain)
             chain.log = self.log
@@ -128,19 +126,19 @@ class GPComposer(Composer):
             if type(metrics) is not list:
                 metrics = [metrics]
 
-            if is_chain_shared:
-                evaluating_chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
-            else:
-                evaluating_chain = chain
-            evaluating_chain.fit(input_data=train_data,
-                                 time_constraint=self.composer_requirements.model_fit_time_constraint)
-            if is_chain_shared:
-                chain.computation_time = evaluating_chain.computation_time
+            if self.shared_cache is not None:
+                chain.fit_from_cache(self.shared_cache)
+
+            if not chain.is_fitted():
+                chain.fit(input_data=train_data,
+                          time_constraint=self.composer_requirements.model_fit_time_constraint)
+
+            self.shared_cache.save_chain(chain)
 
             evaluated_metrics = []
             for metric in metrics:
                 metric_func = MetricsRepository().metric_by_id(metric)
-                evaluated_metrics.append(metric_func(evaluating_chain, reference_data=test_data))
+                evaluated_metrics.append(metric_func(chain, reference_data=test_data))
 
             evaluated_metrics = tuple(evaluated_metrics)
 

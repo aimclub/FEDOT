@@ -1,14 +1,12 @@
 import os
 import platform
-import pytest
-
-import numpy as np
-import pandas as pd
-
 from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
+import numpy as np
+import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 
 from fedot.core.chains.chain import Chain
@@ -17,8 +15,7 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
-
-from test.unit.chains.test_chain_tuning import chain_first, classification_dataset
+from test.unit.chains.test_chain_tuning import chain_first
 
 seed(1)
 np.random.seed(1)
@@ -72,7 +69,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
         'n_knn_default_params')
 
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.cache.actual_cached_state is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_hierarchy_fit_correct(data_setup):
@@ -88,7 +85,8 @@ def test_chain_hierarchy_fit_correct(data_setup):
     for node in [first, second, third, final]:
         chain.add_node(node)
 
-    train_predicted = chain.fit(input_data=train, use_cache=False)
+    chain.unfit()
+    train_predicted = chain.fit(input_data=train)
 
     assert chain.root_node.descriptive_id == (
         '((/n_logit_default_params;)/'
@@ -100,7 +98,7 @@ def test_chain_hierarchy_fit_correct(data_setup):
     assert chain.length == 4
     assert chain.depth == 3
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.cache.actual_cached_state is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_sequential_fit_correct(data_setup):
@@ -127,7 +125,7 @@ def test_chain_sequential_fit_correct(data_setup):
     assert chain.length == 4
     assert chain.depth == 4
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.cache.actual_cached_state is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_with_datamodel_fit_correct(data_setup):
@@ -195,7 +193,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     # change parents order for the nodes fitted chain
     nodes_for_change = chain.nodes[3].nodes_from
     chain.nodes[3].nodes_from = [nodes_for_change[2], nodes_for_change[0], nodes_for_change[1]]
-    chain.nodes[3].cache.clear()
+    chain.nodes[3].unfit()
     chain.fit(train)
     test_predicted_re_shuffled = chain.predict(input_data=test)
 

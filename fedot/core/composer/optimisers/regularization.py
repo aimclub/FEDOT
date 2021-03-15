@@ -49,4 +49,4 @@ def decremental_regularization(population: List[Any], objective_function: Callab
 
 
 def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:
-    return node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.cache.actual_cached_state
+    return node.nodes_from and not node.descriptive_id in prev_nodes_ids and node.fitted_model

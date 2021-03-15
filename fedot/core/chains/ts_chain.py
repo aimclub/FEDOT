@@ -19,7 +19,7 @@ class TsForecastingChain(Chain):
         :return: forecasted time series
         """
 
-        if not self.is_all_cache_actual():
+        if not self.is_fitted():
             raise ValueError('Chain for the time series forecasting was not fitted yet.')
 
         if supplementary_data.task.task_type is not TaskTypesEnum.ts_forecasting:

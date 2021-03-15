@@ -1,12 +1,12 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import List, Optional, Union
 
 from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import (FittedModelCache, Node, PrimaryNode, SecondaryNode, SharedCache)
-from fedot.core.composer.visualisation import ChainVisualiser
+from fedot.core.chains.node import (Node, PrimaryNode, SecondaryNode)
 from fedot.core.composer.timer import Timer
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -53,6 +53,7 @@ class Chain:
         """
         # Clean all cache and fit all models
         self.log.info('Fit chain from scratch')
+        self.unfit()
         self.fit(input_data, use_cache=False)
 
     def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
@@ -62,9 +63,6 @@ class Chain:
                               'Parameter use_cache value changed to False')
                 cache_status = False
         return cache_status
-
-    def global_cache_update_outside_the_process(self, new_cache):
-        self.nodes[0].cache.global_cache_update(new_cache)
 
     def _fit_with_time_limit(self, input_data: InputData, use_cache=False, time: int = 900) -> Manager:
         """
@@ -76,10 +74,7 @@ class Chain:
         """
         manager = Manager()
         chain_params_dict = manager.dict()
-        global_cache_dict = None
-        if isinstance(self, SharedChain):
-            global_cache_dict = manager.dict()
-        p = Process(target=self._fit, args=(input_data, use_cache, chain_params_dict, global_cache_dict),
+        p = Process(target=self._fit, args=(input_data, use_cache, chain_params_dict),
                     kwargs={})
         p.start()
         p.join(time)
@@ -88,11 +83,12 @@ class Chain:
             raise TimeoutError(f'Chain fitness evaluation time limit is expired')
         if not use_cache or self.fitted_on_data is None:
             self.fitted_on_data = input_data
+
         self.computation_time = chain_params_dict['chain'].computation_time
-        for node_num, node in enumerate(self.nodes):
-            node.cache.local_cache_update(chain_params_dict['chain'].nodes[node_num].cache._local_cached_models)
-        if isinstance(self, SharedChain):
-            self.global_cache_update_outside_the_process(dict(global_cache_dict))
+        for node_num, node in enumerate(chain_params_dict['chain'].nodes):
+            self.nodes[node_num].fitted_model = node.fitted_model
+            self.nodes[node_num].fitted_preprocessor = node.fitted_preprocessor
+
         return chain_params_dict['train_predicted']
 
     def _fit(self, input_data: InputData, use_cache=False, chain_params_dict: Manager = None,
@@ -111,7 +107,7 @@ class Chain:
         use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
         if not use_cache:
-            self._clean_model_cache()
+            self.unfit()
 
         if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
             if input_data.task.task_params.make_future_prediction:
@@ -124,10 +120,10 @@ class Chain:
             self.fitted_on_data = input_data
 
         with Timer(log=self.log) as t:
-            computation_time_update = True if not use_cache or not self.root_node.cache.actual_cached_state or \
+            computation_time_update = True if not use_cache or not self.root_node.fitted_model or \
                                               self.computation_time is None else False
 
-            train_predicted = self.root_node.fit(input_data=input_data, return_dict=global_cache_dict)
+            train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 
@@ -165,7 +161,7 @@ class Chain:
         :return: array of prediction target values
         """
 
-        if not self.is_all_cache_actual():
+        if not self.is_fitted():
             ex = 'Trained model cache is not actual or empty'
             self.log.error(ex)
             raise ValueError(ex)
@@ -296,13 +292,14 @@ class Chain:
         self.nodes.clear()
         self.add_node(self_root_node_cached)
 
-    def _clean_model_cache(self):
-        for node in self.nodes:
-            node.cache = FittedModelCache(node)
+    def is_fitted(self):
+        return all([(node.fitted_model is not None and
+                     node.fitted_preprocessor is not None) for node in self.nodes])
 
-    def is_all_cache_actual(self):
-        cache_status = [node.cache.actual_cached_state is not None for node in self.nodes]
-        return all(cache_status)
+    def unfit(self):
+        for node in self.nodes:
+            node.fitted_preprocessor = None
+            node.fitted_preprocessor = None
 
     def node_childs(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) and
@@ -311,13 +308,12 @@ class Chain:
     def _is_node_has_child(self, node) -> bool:
         return any(self.node_childs(node))
 
-    def import_cache(self, fitted_chain: 'Chain'):
+    def fit_from_cache(self, cache):
         for node in self.nodes:
-            if not node.cache.actual_cached_state:
-                for fitted_node in fitted_chain.nodes:
-                    if fitted_node.descriptive_id == node.descriptive_id:
-                        node.cache.import_from_other_cache(fitted_node.cache)
-                        break
+            cached_state = cache.get(node)
+            if cached_state:
+                node.fitted_model = cached_state.model
+                node.fitted_preprocessor = cached_state.preprocessor
 
     def _sort_nodes(self):
         """layer by layer sorting"""
@@ -384,22 +380,6 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
-
-
-class SharedChain(Chain):
-    def __init__(self, base_chain: Chain, shared_cache: dict, log=None):
-        super().__init__(log=log)
-        self.nodes = copy(base_chain.nodes)
-        for node in self.nodes:
-            node.cache = SharedCache(node, global_cached_models=shared_cache)
-        self.computation_time = base_chain.computation_time
-
-    def unshare(self) -> Chain:
-        chain = Chain()
-        chain.nodes = copy(self.nodes)
-        for node in chain.nodes:
-            node.cache = FittedModelCache(node)
-        return chain
 
 
 def check_data_appropriate_for_task(data: InputData):
