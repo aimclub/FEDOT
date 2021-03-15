@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fedot.api.main import Fedot, _define_data
@@ -83,6 +82,20 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 
     model.fit(features=train_data)
     ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
+    metric = model.get_metrics(target=test_data.target[:forecast_length], metric_names='rmse')
+
+    assert len(ts_forecast) == forecast_length
+    assert metric['rmse'] >= 0
+
+
+def test_api_forecast_other_data_format_correct(task_type: str = 'ts_forecasting'):
+    forecast_length = 10
+    train_data, test_data, _ = get_dataset(task_type)
+    model = Fedot(problem='ts_forecasting')
+
+    model.fit(features=train_data.features, target=train_data.target, predefined_model='linear')
+    ts_forecast = model.forecast(pre_history=(train_data.features, train_data.target),
+                                 forecast_length=forecast_length)
     metric = model.get_metrics(target=test_data.target[:forecast_length], metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length

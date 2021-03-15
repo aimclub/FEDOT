@@ -1,10 +1,11 @@
 import random
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
+                                 save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
@@ -13,7 +14,8 @@ from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import (Task, TaskParams,
+                                         TaskTypesEnum, TsForecastingParams)
 
 
 def default_evo_params(problem):
@@ -234,7 +236,7 @@ class Fedot:
         return self.prediction.predict
 
     def forecast(self,
-                 pre_history: Union[str, np.ndarray, InputData],
+                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData],
                  forecast_length: int = 1,
                  save_predictions: bool = False):
         """
@@ -352,7 +354,7 @@ def _define_data(ml_task: Task,
 
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target),
-                                   task_type=ml_task)
+                                   task=ml_task)
     elif type(features) == np.ndarray:
         # numpy format for input data
         if target is None:
@@ -360,7 +362,11 @@ def _define_data(ml_task: Task,
 
         data = array_to_input_data(features_array=features,
                                    target_array=target,
-                                   task_type=ml_task)
+                                   task=ml_task)
+    elif type(features) == tuple:
+        data = array_to_input_data(features_array=features[0],
+                                   target_array=features[1],
+                                   task=ml_task)
     elif type(features) == str:
         # CSV files as input data
         if target is None:
