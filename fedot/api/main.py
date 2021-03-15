@@ -312,11 +312,13 @@ class Fedot:
 
         if target is not None:
             if self.test_data is None:
-                self.test_data = InputData(idx=range(len(target)), features=None, target=target,
+                self.test_data = InputData(idx=range(len(self.prediction.predict)),
+                                           features=None,
+                                           target=target[:len(self.prediction.predict)],
                                            task=self.train_data.task,
                                            data_type=self.train_data.data_type)
             else:
-                self.test_data.target = target
+                self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
         __metric_dict = {'rmse': RmseMetric.metric,
