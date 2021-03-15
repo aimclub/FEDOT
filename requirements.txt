@@ -7,7 +7,7 @@ numpy==1.19.2
 pytest==5.2.0
 anytree==2.8.0
 typing==3.7.4.1
-scikit_learn==0.22.1
+scikit_learn==0.24.1
 matplotlib==3.0.2; python_version < '3.8'
 matplotlib==3.3.1; python_version == '3.8'
 

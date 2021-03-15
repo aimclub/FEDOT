@@ -1,11 +1,16 @@
+import os
 import shelve
 from collections import namedtuple
+
+from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
 class ModelsCache:
-    def __init__(self, db_path='cache_db'):
+    def __init__(self, db_path=None):
+        if not db_path:
+            db_path = f'{str(default_fedot_data_dir())}/cache_db'
         self.db_path = db_path
         self.clear()
 
@@ -22,9 +27,9 @@ class ModelsCache:
                                              node.fitted_model))
 
     def clear(self):
-        # if os.path.exists(self.db_path):
-        #    os.remove(self.db_path)
-        pass
+        for ext in ['bak', 'dir', 'dat']:
+            if os.path.exists(f'{self.db_path}.{ext}'):
+                os.remove(f'{self.db_path}.{ext}')
 
     def get(self, node):
         found_model = _load_cache_for_node(self.db_path, node.descriptive_id)

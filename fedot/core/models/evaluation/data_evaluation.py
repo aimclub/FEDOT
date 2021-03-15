@@ -97,4 +97,4 @@ class DataModellingStrategy(EvaluationStrategy):
         return self._model_specific_predict(trained_model, predict_data)
 
     def fit_tuned(self, **args):
-        return object(), None
+        return None, None

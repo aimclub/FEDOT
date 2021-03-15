@@ -130,10 +130,8 @@ class GPComposer(Composer):
                 chain.fit_from_cache(self.shared_cache)
 
             if not chain.is_fitted():
-                chain.fit(input_data=train_data,
-                          time_constraint=self.composer_requirements.model_fit_time_constraint)
-
-            self.shared_cache.save_chain(chain)
+                chain.fit(input_data=train_data)
+                self.shared_cache.save_chain(chain)
 
             evaluated_metrics = []
             for metric in metrics:

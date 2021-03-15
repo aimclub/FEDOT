@@ -76,6 +76,7 @@ class Chain:
         chain_params_dict = manager.dict()
         p = Process(target=self._fit, args=(input_data, use_cache, chain_params_dict),
                     kwargs={})
+
         p.start()
         p.join(time)
         if p.is_alive():
@@ -141,6 +142,9 @@ class Chain:
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param time_constraint: time constraint for model fitting (seconds)
         """
+        if not use_cache:
+            self.unfit()
+
         if time_constraint is None:
             train_predicted = self._fit(input_data=input_data, use_cache=use_cache)
         else:
@@ -298,7 +302,7 @@ class Chain:
 
     def unfit(self):
         for node in self.nodes:
-            node.fitted_preprocessor = None
+            node.fitted_model = None
             node.fitted_preprocessor = None
 
     def node_childs(self, node) -> List[Optional[Node]]:

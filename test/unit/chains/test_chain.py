@@ -15,10 +15,12 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
-from test.unit.chains.test_chain_tuning import chain_first
+from test.unit.chains.test_chain_tuning import chain_first, classification_dataset
 
 seed(1)
 np.random.seed(1)
+
+tmp = classification_dataset
 
 
 @pytest.fixture()
