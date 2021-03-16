@@ -29,8 +29,7 @@ class TextVectorizeStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        features = np.array(train_data.features, dtype=str)
-        features_list = list(features)
+        features_list = self._convert_to_one_dim(train_data.features)
 
         vectorizer = self.vectorizer().fit(features_list)
 
@@ -39,7 +38,8 @@ class TextVectorizeStrategy(EvaluationStrategy):
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_chain_stage: bool) -> OutputData:
 
-        predicted = trained_operation.transform(list(predict_data.features)).toarray()
+        features_list = self._convert_to_one_dim(predict_data.features)
+        predicted = trained_operation.transform(features_list).toarray()
 
         # Wrap prediction as features for next level
         converted = OutputData(idx=predict_data.idx,
@@ -55,6 +55,17 @@ class TextVectorizeStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain TextVectorize strategy for {operation_type}')
+
+    @staticmethod
+    def _convert_to_one_dim(array_with_text):
+        """ Method converts array with text into one-dimensional list
+
+        :param array_with_text: numpy array or list with text data
+        :return features_list: one-dimensional list with text
+        """
+        features = np.ravel(np.array(array_with_text, dtype=str))
+        features_list = list(features)
+        return features_list
 
     @property
     def implementation_info(self) -> str:
