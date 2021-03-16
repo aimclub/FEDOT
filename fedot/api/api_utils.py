@@ -13,18 +13,20 @@ from fedot.core.repository.model_types_repository import (
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum, \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.utilities.define_metric_by_task import MetricByTask
 
-
-def get_metric_function(task: Task):
-    if task.task_type == TaskTypesEnum.classification:
-        metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-    elif task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
-        metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    elif task.task_type == TaskTypesEnum.clustering:
-        metric_function = MetricsRepository().metric_by_id(ClusteringMetricsEnum.silhouette)
-    else:
-        raise ValueError('Incorrect type of ML task')
-    return metric_function
+_metrics_mapping = dict(
+    acc=ClassificationMetricsEnum.accuracy,
+    auc=ClassificationMetricsEnum.ROCAUC,
+    f1=ClassificationMetricsEnum.f1,
+    logloss=ClassificationMetricsEnum.logloss,
+    mae=RegressionMetricsEnum.MAE,
+    mse=RegressionMetricsEnum.MSE,
+    msle=RegressionMetricsEnum.MSLE,
+    r2=RegressionMetricsEnum.R2,
+    rmse=RegressionMetricsEnum.RMSE,
+    silhouette=ClusteringMetricsEnum.silhouette
+)
 
 
 def autodetect_data_type(task: Task) -> DataTypesEnum:
@@ -77,11 +79,19 @@ def compose_fedot_model(train_data: InputData,
                         num_of_generations: int,
                         learning_time: int = 5,
                         model_types: list = None,
-                        preset: str = 'light_tun'
+                        preset: str = 'light_tun',
+                        metric=None
                         ):
     # the choice of the metric for the chain quality assessment during composition
-    metric_function = get_metric_function(task)
+    if metric is None:
+        metric_function = MetricByTask(task.task_type).metric
+    else:
+        metric_id = _metrics_mapping.get(metric, None)
+        if metric_id is None:
+            raise ValueError(f'Incorrect metric {metric}')
+        metric_function = MetricsRepository().metric_by_id(metric_id)
 
+    # TODO search for best ideas imp;
     is_tuning = '_tun' in preset or preset == 'full'
 
     learning_time = datetime.timedelta(minutes=learning_time)
@@ -105,8 +115,8 @@ def compose_fedot_model(train_data: InputData,
         max_lead_time=learning_time)
 
     # Create GP-based composer
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function). \
-        with_logger(logger)
+    builder = GPComposerBuilder(task).with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_logger(logger)
     gp_composer = builder.build()
 
     logger.message('Model composition started')

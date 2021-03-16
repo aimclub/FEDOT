@@ -127,7 +127,7 @@ def test_baseline_with_api():
     baseline_model.fit(features=train_data, target='target', predefined_model='xgboost')
 
     # evaluate the prediction with test data
-    prediction = baseline_model.predict_proba(features=test_data)
+    prediction = baseline_model.predict(features=test_data)
 
     assert len(prediction) == len(test_data.target)
 
@@ -161,3 +161,16 @@ def test_pandas_input_for_api():
     baseline_metrics = baseline_model.get_metrics(metric_names='f1', target=test_target)
 
     assert baseline_metrics['f1'] > 0
+
+
+def test_custom_metric_for_api():
+    train_data, test_data, _ = get_dataset('classification')
+    composer_params['metric'] = 'f1'
+    model = Fedot(problem='classification',
+                  composer_params=composer_params)
+    model.fit(features=train_data)
+    prediction = model.predict(features=test_data)
+    metric = model.get_metrics()
+
+    assert len(prediction) == len(test_data.target)
+    assert metric['f1'] > 0

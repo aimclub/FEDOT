@@ -9,7 +9,7 @@ from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
-from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric
+from fedot.core.composer.metrics import F1, MAE, RMSE, ROCAUC, Silhouette
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
@@ -195,7 +195,7 @@ class Fedot:
         self.test_data = _define_data(ml_task=self.problem,
                                       features=features, is_predict=True)
 
-        if self.problem == TaskTypesEnum.classification:
+        if self.problem.task_type == TaskTypesEnum.classification:
             self.prediction = self.current_model.predict(self.test_data, output_mode='labels')
         else:
             self.prediction = self.current_model.predict(self.test_data)
@@ -321,11 +321,11 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        __metric_dict = {'rmse': RmseMetric.metric,
-                         'mae': MaeMetric.metric,
-                         'roc_auc': RocAucMetric.metric,
-                         'f1': F1Metric.metric,
-                         'silhouette': NotImplemented
+        __metric_dict = {'rmse': RMSE.metric,
+                         'mae': MAE.metric,
+                         'roc_auc': ROCAUC.metric,
+                         'f1': F1.metric,
+                         'silhouette': Silhouette.metric
                          }
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
