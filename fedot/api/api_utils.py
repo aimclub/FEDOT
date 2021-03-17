@@ -84,14 +84,14 @@ def compose_fedot_model(train_data: InputData,
                         ):
     # the choice of the metric for the chain quality assessment during composition
     if metric is None:
-        metric_function = MetricByTask(task.task_type).metric
+        metric_function = MetricByTask(task.task_type).metric_cls.get_value
     else:
         metric_id = _metrics_mapping.get(metric, None)
         if metric_id is None:
             raise ValueError(f'Incorrect metric {metric}')
         metric_function = MetricsRepository().metric_by_id(metric_id)
 
-    # TODO search for best ideas imp;
+    # TODO search for best implementation ideas
     is_tuning = '_tun' in preset or preset == 'full'
 
     learning_time = datetime.timedelta(minutes=learning_time)

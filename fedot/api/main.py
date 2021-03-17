@@ -86,6 +86,7 @@ class Fedot:
         self.train_data = None
         self.test_data = None
         self.prediction = None
+        self.prediction_labels = None  # classification-only
 
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
@@ -144,6 +145,7 @@ class Fedot:
         Cleans fitted model and obtained predictions
         """
         self.prediction = None
+        self.prediction_labels = None
         self.current_model = None
 
     def fit(self,
@@ -190,13 +192,14 @@ class Fedot:
         :return: the array with prediction values
         """
         if self.current_model is None:
-            self.current_model = self._obtain_model()
+            raise ValueError('The model was not fitted yet')
 
         self.test_data = _define_data(ml_task=self.problem,
                                       features=features, is_predict=True)
 
         if self.problem.task_type == TaskTypesEnum.classification:
-            self.prediction = self.current_model.predict(self.test_data, output_mode='labels')
+            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
+            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
         else:
             self.prediction = self.current_model.predict(self.test_data)
 
@@ -217,9 +220,10 @@ class Fedot:
         :return: the array with prediction values
         """
 
+        if self.current_model is None:
+            raise ValueError('The model was not fitted yet')
+
         if self.problem.task_type == TaskTypesEnum.classification:
-            if self.current_model is None:
-                self.current_model = self._obtain_model()
 
             self.test_data = _define_data(ml_task=self.problem,
                                           features=features, is_predict=True)
@@ -227,6 +231,7 @@ class Fedot:
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
             self.prediction = self.current_model.predict(self.test_data, output_mode=mode)
+            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
 
             if save_predictions:
                 save_predict(self.prediction)
@@ -248,6 +253,9 @@ class Fedot:
         :return: the array with prediction values
         """
 
+        if self.current_model is None:
+            raise ValueError('The model was not fitted yet')
+
         if self.problem.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
@@ -255,10 +263,6 @@ class Fedot:
 
         self.train_data = _define_data(ml_task=self.problem,
                                        features=pre_history, is_predict=True)
-
-        if self.current_model is None:
-            self.composer_params['with_tuning'] = False
-            self.current_model = self._obtain_model()
 
         self.current_model = TsForecastingChain(self.current_model.root_node)
 
@@ -321,11 +325,11 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        __metric_dict = {'rmse': RMSE.metric,
-                         'mae': MAE.metric,
-                         'roc_auc': ROCAUC.metric,
-                         'f1': F1.metric,
-                         'silhouette': Silhouette.metric
+        __metric_dict = {'rmse': RMSE,
+                         'mae': MAE,
+                         'roc_auc': ROCAUC,
+                         'f1': F1,
+                         'silhouette': Silhouette
                          }
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
@@ -335,8 +339,12 @@ class Fedot:
             if __metric_dict[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
-                metric_value = abs(__metric_dict[metric_name](reference=self.test_data,
-                                                              predicted=self.prediction))
+                prediction = self.prediction
+                metric_cls = __metric_dict[metric_name]
+                if metric_cls.output_mode == 'labels':
+                    prediction = self.prediction_labels
+                metric_value = abs(metric_cls.metric(reference=self.test_data,
+                                                     predicted=prediction))
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics

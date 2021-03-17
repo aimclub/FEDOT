@@ -127,7 +127,7 @@ def test_baseline_with_api():
     baseline_model.fit(features=train_data, target='target', predefined_model='xgboost')
 
     # evaluate the prediction with test data
-    prediction = baseline_model.predict(features=test_data)
+    prediction = baseline_model.predict_proba(features=test_data)
 
     assert len(prediction) == len(test_data.target)
 
