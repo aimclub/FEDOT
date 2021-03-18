@@ -18,8 +18,9 @@ from fedot.core.composer.optimisers.regularization import RegularizationTypesEnu
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
+                                                              MetricsRepository,
+                                                              RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 sample_split_ration_for_tasks = {
