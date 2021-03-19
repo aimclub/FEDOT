@@ -14,8 +14,8 @@ def test_classification_quality_improvement():
     problem = 'classification'
 
     baseline_model = Fedot(problem=problem)
-
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    expected_baseline_quality = 0.827
 
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
@@ -25,4 +25,4 @@ def test_classification_quality_improvement():
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
 
-    assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= 0.827
+    assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= expected_baseline_quality

@@ -1,6 +1,7 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import (Accuracy, F1, Logloss, MAE, MSE, MSLE, NodeNum, Precision, R2, RMSE, ROCAUC,
+from fedot.core.composer.metrics import (Metric, Accuracy, F1, Logloss, MAE, MSE, MSLE,
+                                         NodeNum, Precision, R2, RMSE, ROCAUC,
                                          Silhouette, StructuralComplexity)
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -41,7 +42,7 @@ class RegressionMetricsEnum(QualityMetricsEnum):
 
 
 class MetricsRepository:
-    __metrics_implementations = {
+    _metrics_implementations = {
         # classification
         ClassificationMetricsEnum.ROCAUC: ROCAUC.get_value,
         ClassificationMetricsEnum.ROCAUC_penalty: ROCAUC.get_value_with_penalty,
@@ -66,4 +67,7 @@ class MetricsRepository:
     }
 
     def metric_by_id(self, metric_id: MetricsEnum) -> Callable:
-        return self.__metrics_implementations[metric_id]
+        return self._metrics_implementations[metric_id]
+
+    def metric_class_by_id(self, metric_id: MetricsEnum) -> Metric:
+        return self._metrics_implementations[metric_id].__self__()

@@ -15,18 +15,18 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
-_metrics_mapping = dict(
-    acc=ClassificationMetricsEnum.accuracy,
-    auc=ClassificationMetricsEnum.ROCAUC,
-    f1=ClassificationMetricsEnum.f1,
-    logloss=ClassificationMetricsEnum.logloss,
-    mae=RegressionMetricsEnum.MAE,
-    mse=RegressionMetricsEnum.MSE,
-    msle=RegressionMetricsEnum.MSLE,
-    r2=RegressionMetricsEnum.R2,
-    rmse=RegressionMetricsEnum.RMSE,
-    silhouette=ClusteringMetricsEnum.silhouette
-)
+metrics_mapping = {
+    'acc': ClassificationMetricsEnum.accuracy,
+    'roc_auc': ClassificationMetricsEnum.ROCAUC,
+    'f1': ClassificationMetricsEnum.f1,
+    'logloss': ClassificationMetricsEnum.logloss,
+    'mae': RegressionMetricsEnum.MAE,
+    'mse': RegressionMetricsEnum.MSE,
+    'msle': RegressionMetricsEnum.MSLE,
+    'r2': RegressionMetricsEnum.R2,
+    'rmse': RegressionMetricsEnum.RMSE,
+    'silhouette': ClusteringMetricsEnum.silhouette
+}
 
 
 def autodetect_data_type(task: Task) -> DataTypesEnum:
@@ -54,16 +54,17 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 
-def filter_models_by_preset(available_model_types: list,
-                            model_configuration: str):
+def filter_models_by_preset(task, preset: str):
     excluded_models_dict = {'light': ['mlp', 'svc'],
                             'light_tun': ['mlp', 'svc']}
 
-    if model_configuration in excluded_models_dict.keys():
-        excluded_models = excluded_models_dict[model_configuration]
+    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+
+    if preset in excluded_models_dict.keys():
+        excluded_models = excluded_models_dict[preset]
         available_model_types = [_ for _ in available_model_types if _ not in excluded_models]
 
-    if model_configuration in ['ultra_light', 'ultra_light_tun']:
+    if preset in ['ultra_light', 'ultra_light_tun']:
         included_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn']
         available_model_types = [_ for _ in available_model_types if _ in included_models]
 
@@ -78,33 +79,25 @@ def compose_fedot_model(train_data: InputData,
                         pop_size: int,
                         num_of_generations: int,
                         learning_time: int = 5,
-                        model_types: list = None,
-                        preset: str = 'light_tun',
+                        available_model_types: list = None,
+                        with_tuning=False,
                         metric=None
                         ):
     # the choice of the metric for the chain quality assessment during composition
     if metric is None:
         metric_function = MetricByTask(task.task_type).metric_cls.get_value
     else:
-        metric_id = _metrics_mapping.get(metric, None)
+        metric_id = metrics_mapping.get(metric, None)
         if metric_id is None:
             raise ValueError(f'Incorrect metric {metric}')
         metric_function = MetricsRepository().metric_by_id(metric_id)
 
-    # TODO search for best implementation ideas
-    is_tuning = '_tun' in preset or preset == 'full'
-
     learning_time = datetime.timedelta(minutes=learning_time)
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    if available_model_types is None:
+        available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
-    if model_types is not None:
-        available_model_types = model_types
-
-    available_model_types = filter_models_by_preset(available_model_types, preset)
-
-    logger.message(f'{preset} preset is used. Parameters tuning: {is_tuning}. '
+    logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
                    f'Set of candidate models: {available_model_types}. Composing time limit: {learning_time}')
 
     # the choice and initialisation of the GP composer
@@ -123,7 +116,7 @@ def compose_fedot_model(train_data: InputData,
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
     chain_gp_composed.log = logger
 
-    if is_tuning:
+    if with_tuning:
         logger.message('Hyperparameters tuning started')
         chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
 

@@ -5,15 +5,16 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
-                                 save_predict)
+                                 save_predict, metrics_mapping,
+                                 filter_models_by_preset)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
-from fedot.core.composer.metrics import F1, MAE, RMSE, ROCAUC, Silhouette
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import (Task, TaskParams,
                                          TaskTypesEnum, TsForecastingParams)
 
@@ -24,18 +25,16 @@ def default_evo_params(problem):
                 'max_arity': 2,
                 'pop_size': 20,
                 'num_of_generations': 20,
-                'learning_time': 2,
-                'preset': 'light'}
+                'learning_time': 2}
     else:
         return {'max_depth': 2,
                 'max_arity': 3,
                 'pop_size': 20,
                 'num_of_generations': 20,
-                'learning_time': 2,
-                'preset': 'light_tun'}
+                'learning_time': 2}
 
 
-basic_metric_dict = {
+default_test_metric_dict = {
     'regression': ['rmse', 'mae'],
     'classification': ['roc_auc', 'f1'],
     'multiclassification': 'f1',
@@ -95,9 +94,6 @@ class Fedot:
         else:
             self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
 
-        if preset is not None:
-            self.composer_params['preset'] = preset
-
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
 
@@ -116,8 +112,17 @@ class Fedot:
         if self.problem == 'clustering':
             raise ValueError('This type of task is not not supported in API now')
 
-        self.metric_name = basic_metric_dict[self.problem]
+        self.metric_name = default_test_metric_dict[self.problem]
         self.problem = task_dict[self.problem]
+
+        if preset is None and 'preset' in self.composer_params:
+            preset = self.composer_params['preset']
+            del self.composer_params['preset']
+
+        if preset is not None:
+            available_model_types = filter_models_by_preset(self.problem, preset)
+            self.composer_params['available_model_types'] = available_model_types
+            self.composer_params['with_tuning'] = '_tun' in preset or preset is None
 
     def _get_params(self):
         param_dict = {'train_data': self.train_data,
@@ -325,22 +330,16 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        __metric_dict = {'rmse': RMSE,
-                         'mae': MAE,
-                         'roc_auc': ROCAUC,
-                         'f1': F1,
-                         'silhouette': Silhouette
-                         }
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if __metric_dict[metric_name] is NotImplemented:
+            if metrics_mapping[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
                 prediction = self.prediction
-                metric_cls = __metric_dict[metric_name]
+                metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
                 if metric_cls.output_mode == 'labels':
                     prediction = self.prediction_labels
                 metric_value = abs(metric_cls.metric(reference=self.test_data,

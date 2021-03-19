@@ -19,16 +19,24 @@ def from_maximised_metric(metric_func):
 
 
 class Metric:
+    output_mode = 'default'
+    default_value = 0
+
     @classmethod
     @abstractmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         raise NotImplementedError()
 
+    @staticmethod
+    @abstractmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        raise NotImplementedError()
+
 
 class QualityMetric:
     max_penalty_part = 0.01
-    default_value = 0
     output_mode = 'default'
+    default_value = 0
 
     @classmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
