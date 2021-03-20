@@ -1,305 +1,521 @@
-import operator
-from datetime import timedelta
-from typing import Callable, Tuple, Union
+from abc import ABC, abstractmethod
+from copy import deepcopy
 
-from numpy.random import choice as nprand_choice, randint
-from sklearn.metrics import make_scorer, mean_squared_error, mean_squared_error as mse, roc_auc_score
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
-from skopt import BayesSearchCV
+import numpy as np
 
-from fedot.core.composer.timer import TunerTimer
-from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.log import Log, default_log
-from fedot.core.operations.tuning.tuner_adapter import HyperoptAdapter
+from functools import partial
+
+from fedot.core.operations.tuning.hyperparams import get_node_params, convert_params
+from fedot.core.data.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
-TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
+from hyperopt import fmin, tpe, space_eval
+from sklearn.model_selection import train_test_split
 
 
-class Tuner:
+class HyperoptTuner(ABC):
     """
-    Base class for tuning strategy
+    Base class for hyperparameters optimization based on hyperopt library
 
-    :param trained_model: trained model object
-    :param tune_data: data used for hyperparameter searching
-    :param dict params_range: search space for hyperparameters
-    :param int cross_val_fold_num: number of folds used in cross validation
-    :param time_limit: max time available for tuning process
-    :param int iterations: max number of iterations
-    :param Log log: Log object to record messages
+    :param chain: chain to optimize
+    :param task: task (classification, regression, ts_forecasting, clustering)
+    :param iterations: max number of iterations
     """
-    __tuning_metric_by_type = {
-        TaskTypesEnum.classification:
-            make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
-        TaskTypesEnum.regression:
-            make_scorer(mean_squared_error, greater_is_better=False),
-    }
 
-    def __init__(self, trained_model, tune_data: InputData,
-                 params_range: dict,
-                 cross_val_fold_num: int,
-                 time_limit,
-                 iterations: int,
-                 log: Log = None):
-        self.time_limit: timedelta \
-            = time_limit
-        self.trained_model = trained_model
-        self.tune_data = tune_data
-        self.params_range = params_range
-        self.cross_val_fold_num = cross_val_fold_num
-        self.scorer = self.__tuning_metric_by_type.get(self.tune_data.task.task_type, None)
-        self.max_iterations = iterations
-        self.default_score, self.default_params = \
-            self.get_cross_val_score_and_params(self.trained_model)
+    def __init__(self, chain, task, iterations=100):
+        self.chain = chain
+        self.task = task
+        self.iterations = iterations
+        self.init_chain = None
+        self.init_metric = None
+        self.is_need_to_maximize = None
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
+    @abstractmethod
+    def tune_chain(self, input_data, loss_function):
         """
-        Main function to execute hyperparameter search process
+        Function for hyperparameters tuning on the chain
 
-        :rtype: Union[Tuple[dict, object], Tuple[None, None]]
-        :return: tuple of found hyperparameters and trained model object
+        :param input_data: data used for hyperparameter searching
+        :param loss_function: function to minimize (or maximize)
+        :return fitted_chain: chain with optimized hyperparameters
         """
         raise NotImplementedError()
 
-    def _is_score_better(self, previous, current):
-        __compare = {
-            TaskTypesEnum.classification: operator.gt,
-            TaskTypesEnum.regression: operator.gt
-        }
-        comparison = __compare.get(self.tune_data.task.task_type)
-        try:
-            return comparison(current, previous)
-        except Exception as ex:
-            self.log.error(f'Score comparison can not be held because {ex}')
-            return None, None
+    @staticmethod
+    def get_metric_value(train_input, predict_input, test_target,
+                         chain, loss_function):
+        """
+        Method calculates metric for algorithm validation
 
-    def is_better_than_default(self, score):
-        return self._is_score_better(self.default_score, score)
+        :param train_input: data for train chain
+        :param predict_input: data for prediction
+        :param test_target: target array for validation
+        :param chain: chain to process
+        :param loss_function: function to minimize (or maximize)
 
-    def get_cross_val_score_and_params(self, model):
-        score = cross_val_score(model, self.tune_data.features,
-                                self.tune_data.target, scoring=self.scorer,
-                                cv=self.cross_val_fold_num).mean()
-        params = model.get_params()
-
-        return score, params
-
-
-class SklearnTuner(Tuner):
-    """
-    Base tuning strategy used for sklearn models
-
-    :param search_strategy: strategy used for hyperparameter searching (i.e. random, Bayes, etc.)
-    """
-
-    def __init__(self, trained_model, tune_data: InputData,
-                 params_range: dict,
-                 cross_val_fold_num: int,
-                 time_limit, iterations):
-        super().__init__(trained_model=trained_model,
-                         tune_data=tune_data,
-                         params_range=params_range,
-                         cross_val_fold_num=cross_val_fold_num,
-                         time_limit=time_limit,
-                         iterations=iterations)
-        self.search_strategy = None
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        raise NotImplementedError()
-
-    def _sklearn_tune(self, tune_data: InputData):
-        try:
-            search = self.search_strategy.fit(tune_data.features, tune_data.target.ravel())
-            new_score, _ = self.get_cross_val_score_and_params(search.best_estimator_)
-            if self.is_better_than_default(new_score):
-                return search.best_params_, search.best_estimator_
-            else:
-                return self.default_params, self.trained_model
-        except Exception as ex:
-            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
-            return None, None
-
-
-class SklearnRandomTuner(SklearnTuner):
-    """
-    Sklearn tuning strategy using RandomSearchCV
-    """
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        self.search_strategy = RandomizedSearchCV(estimator=self.trained_model,
-                                                  param_distributions=self.params_range,
-                                                  n_iter=self.max_iterations,
-                                                  cv=self.cross_val_fold_num,
-                                                  scoring=self.scorer)
-        return self._sklearn_tune(tune_data=self.tune_data)
-
-
-class SklearnGridSearchTuner(SklearnTuner):
-    """
-    Sklearn tuning strategy using GridSearchCV
-    """
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        self.search_strategy = GridSearchCV(estimator=self.trained_model,
-                                            param_grid=self.params_range,
-                                            cv=self.cross_val_fold_num,
-                                            scoring=self.scorer)
-        return self._sklearn_tune(self.tune_data)
-
-
-class SklearnBayesSearchCV(SklearnTuner):
-    """
-    Sklearn tuning strategy using BayesSearchCV
-    """
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        self.search_strategy = BayesSearchCV(estimator=self.trained_model,
-                                             search_spaces=self.params_range,
-                                             n_iter=self.max_iterations,
-                                             cv=self.cross_val_fold_num,
-                                             scoring=self.scorer)
-        return self._sklearn_tune(self.tune_data)
-
-
-class SklearnCustomRandomTuner(Tuner):
-    """
-    Sklearn tuning strategy using customized version of RandomSearch with cross validation
-    """
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        try:
-            with TunerTimer() as timer:
-                best_model = self.trained_model
-                best_score, best_params = self.default_score, self.default_params
-                for _ in range(self.max_iterations):
-                    params = {k: nprand_choice(v) for k, v in self.params_range.items()}
-                    self.trained_model.set_params(**params)
-                    score, _ = self.get_cross_val_score_and_params(self.trained_model)
-                    if self._is_score_better(previous=best_score, current=score):
-                        best_params = params
-                        best_model = self.trained_model
-                        best_score = score
-
-                    if timer.is_time_limit_reached(self.time_limit):
-                        break
-                return best_params, best_model
-        except Exception as ex:
-            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
-            return None, None
-
-
-class ForecastingCustomRandomTuner:
-    """
-    Tuning strategy used for forecasting models
-    """
-
-    def __init__(self, **kwargs):
-        if 'log' not in kwargs:
-            self.logger = default_log(__name__)
-        else:
-            self.logger = kwargs['log']
-
-    # TODO discuss
-    def tune(self,
-             fit: Callable,
-             predict: Callable,
-             tune_data: InputData, params_range: dict,
-             default_params: dict, iterations: int) -> dict:
+        :return : value of loss function
         """
 
-        :param Callable fit: function used to fit the model
-        :param Callable predict: function used to predict the model
-        :param InputData tune_data: data used in hyperparameter searching
-        :param dict params_range: search space for hyperparameters
-        :param sict default_params: default values of model hyperparameters
-        :param int iterations: max number of iterations
-        :return: best parameters found via tuning
-        :rtype: dict
+        chain.fit_from_scratch(train_input)
+
+        # Make prediction
+        predicted_values = chain.predict(predict_input)
+        preds = np.ravel(np.array(predicted_values.predict))
+
+        return loss_function(test_target, preds)
+
+    def init_check(self, train_input, predict_input,
+                   test_target, loss_function) -> None:
         """
-        tune_train_data, tune_test_data = train_test_data_setup(tune_data, 0.5)
+        Method get metric on validation set before start optimization
 
-        trained_model_default = fit(tune_test_data, default_params)
-        prediction_default = predict(trained_model_default, tune_test_data)
-        best_quality_metric = _regression_prediction_quality(prediction=prediction_default,
-                                                             real=tune_test_data.target)
-        best_params = default_params
+        :param train_input: data for train chain
+        :param predict_input: data for prediction
+        :param test_target: target array for validation
+        :param loss_function: function to minimize (or maximize)
+        """
 
-        for _ in range(iterations):
-            random_params = get_random_params(params_range)
-            try:
-                trained_model_candidate = fit(tune_train_data, random_params)
-                prediction_candidate = predict(trained_model_candidate,
-                                               tune_test_data)
-                quality_metric = _regression_prediction_quality(prediction=prediction_candidate,
-                                                                real=tune_test_data.target)
-                if quality_metric < best_quality_metric:
-                    best_params = random_params
-            except Exception as ex:
-                self.logger.error(f'{TUNER_ERROR_PREFIX} {ex}')
-        return best_params
+        # Train chain
+        self.init_chain = deepcopy(self.chain)
 
+        self.init_metric = self.get_metric_value(train_input=train_input,
+                                                 predict_input=predict_input,
+                                                 test_target=test_target,
+                                                 chain=self.init_chain,
+                                                 loss_function=loss_function)
 
-def get_random_params(params_range):
-    candidate_params = {}
-    for param in params_range:
-        param_range = params_range[param]
-        param_range_left, param_range_right = param_range[0], param_range[1]
-        if isinstance(param_range_left, tuple):
-            # set-based params with constant length
-            candidate_param = get_constant_length_range(param_range_left, param_range_right)
-        elif isinstance(param_range_left, list):
-            # set-based params with varied length
-            candidate_param = get_varied_length_range(param_range_left, param_range_right)
-        else:
-            raise ValueError(f'Un-supported params range type {type(param_range_left)}')
-        candidate_params[param] = candidate_param
-    return candidate_params
+    def final_check(self, train_input, predict_input, test_target,
+                    tuned_chain, loss_function):
 
+        obtained_metric = self.get_metric_value(train_input=train_input,
+                                                predict_input=predict_input,
+                                                test_target=test_target,
+                                                chain=tuned_chain,
+                                                loss_function=loss_function)
 
-def get_constant_length_range(left_range, right_range):
-    candidate_param = []
-    for sub_param_ind in range(len(left_range)):
-        new_sub_param = randint(left_range[sub_param_ind],
-                                right_range[sub_param_ind] + 1)
-        candidate_param.append(new_sub_param)
-    return tuple(candidate_param)
+        prefix_tuned_phrase = '\nReturn tuned chain due to the fact that obtained metric'
+        prefix_init_phrase = '\nReturn init chain due to the fact that obtained metric'
 
+        # 5% deviation is acceptable
+        deviation = (self.init_metric / 100.0) * 5
 
-def get_varied_length_range(left_range, right_range):
-    candidate_param = []
-    subparams_num = randint(1, len(right_range))
-    for sub_param_ind in range(subparams_num):
-        new_sub_param = randint(left_range[sub_param_ind],
-                                right_range[sub_param_ind] + 1)
-        candidate_param.append(new_sub_param)
-    return candidate_param
-
-
-def _regression_prediction_quality(prediction, real):
-    return mse(y_true=real, y_pred=prediction, squared=False)
-
-
-class TPETuner(Tuner):
-    """
-    Tuning strategy using Tree Parzen Estimator from hyperopt library
-    """
-
-    def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
-        try:
-            adapter = HyperoptAdapter(self)
-            best_params, best_model = adapter.tune(iterations=self.max_iterations,
-                                                   timeout_sec=self.time_limit.seconds)
-            new_score, _ = self.get_cross_val_score_and_params(best_model)
-
-            if self.is_better_than_default(new_score):
-                return best_params, best_model
+        if self.is_need_to_maximize is True:
+            # Maximization
+            init_metric = self.init_metric - deviation
+            if obtained_metric >= init_metric:
+                print(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                      f'bigger than initial (- 5% deviation) {init_metric:.3f}')
+                return tuned_chain
             else:
-                return self.default_params, self.trained_model
-        except Exception as ex:
-            self.log.error(f'{TUNER_ERROR_PREFIX} {ex}')
-            return None, None
+                print(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                      f'smaller than initial (- 5% deviation) {init_metric:.3f}')
+                return self.init_chain
+        else:
+            # Minimization
+            init_metric = self.init_metric + deviation
+            if obtained_metric <= init_metric:
+                print(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                      f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
+                return tuned_chain
+            else:
+                print(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                      f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
+                return self.init_chain
+
+    def _validation_split(self, input_data):
+        """
+        Function for applying train test split for cross validation
+
+        :param input_data: data used for splitting
+
+        :return train_input: part of data for training
+        :return predict_input: part of data for predicting
+        :return y_data_test: actual values for validation
+        """
+
+        input_features = input_data.features
+        input_target = input_data.target
+
+        if self.task.task_type == TaskTypesEnum.ts_forecasting:
+            # Time series forecasting task - TODO not optimal split -> vital!
+            forecast_length = self.task.task_params.forecast_length
+            x_train = input_features[:-forecast_length]
+            x_test = input_features[:-forecast_length]
+
+            y_train = x_train
+            y_test = input_target[-forecast_length:]
+
+            idx_for_train = np.arange(0, len(x_train))
+
+            start_forecast = len(x_train)
+            end_forecast = start_forecast + forecast_length
+            idx_for_predict = np.arange(start_forecast, end_forecast)
+        else:
+            x_train, x_test, y_train, y_test = train_test_split(input_features,
+                                                                input_target,
+                                                                test_size=0.6)
+            idx_for_train = np.arange(0, len(x_train))
+            idx_for_predict = np.arange(0, len(x_test))
+
+        # Prepare data to train the model
+        train_input = InputData(idx=idx_for_train,
+                                features=x_train,
+                                target=y_train,
+                                task=self.task,
+                                data_type=DataTypesEnum.table)
+
+        predict_input = InputData(idx=idx_for_predict,
+                                  features=x_test,
+                                  target=None,
+                                  task=self.task,
+                                  data_type=DataTypesEnum.table)
+
+        return train_input, predict_input, y_test
+
+
+def _greater_is_better(target, loss_function) -> bool:
+    """ Function checks is metric (loss function) need to be minimized or
+    maximized
+
+    :param target: array with target
+    :param loss_function: loss function
+
+    :return : bool value is it good to maximize metric or not
+    """
+    metric = loss_function(target, target)
+    if int(round(metric)) == 0:
+        return False
+    else:
+        return True
+
+
+class ChainTuner(HyperoptTuner):
+    """
+    Class for hyperparameters optimization for all nodes simultaneously
+    """
+
+    def __init__(self, chain, task, iterations=100):
+        super().__init__(chain, task, iterations)
+
+    def tune_chain(self, input_data, loss_function):
+        """ Function for hyperparameters tuning on the entire chain """
+
+        parameters_dict = self._get_parameters_for_tune(self.chain)
+
+        # Train test split
+        train_input, predict_input, test_target = self._validation_split(input_data)
+
+        is_need_to_maximize = _greater_is_better(target=test_target,
+                                                 loss_function=loss_function)
+        self.is_need_to_maximize = is_need_to_maximize
+
+        # Check source metrics for data
+        self.init_check(train_input, predict_input, test_target, loss_function)
+
+        best = fmin(partial(self._objective,
+                            chain=self.chain,
+                            train_input=train_input,
+                            predict_input=predict_input,
+                            test_target=test_target,
+                            loss_function=loss_function,
+                            is_need_to_maximize=is_need_to_maximize),
+                    parameters_dict,
+                    algo=tpe.suggest,
+                    max_evals=self.iterations)
+
+        best = space_eval(space=parameters_dict, hp_assignment=best)
+
+        tuned_chain = self.set_arg_chain(chain=self.chain,
+                                         parameters=best)
+
+        # Validation is the optimization do well
+        final_chain = self.final_check(train_input=train_input,
+                                       predict_input=predict_input,
+                                       test_target=test_target,
+                                       tuned_chain=tuned_chain,
+                                       loss_function=loss_function)
+
+        return final_chain
+
+    @staticmethod
+    def set_arg_chain(chain, parameters):
+        """ Method for parameters setting to a chain
+
+        :param chain: chain to which parameters should ba assigned
+        :param parameters: dictionary with parameters to set
+        :return chain: chain with new hyperparameters in each node
+        """
+
+        # Set hyperparameters for every node
+        for node_id, _ in enumerate(chain.nodes):
+            node_params = parameters.get(node_id)
+
+            if node_params is not None:
+                # Delete all prefix strings to get appropriate parameters names
+                new_params = convert_params(node_params)
+
+                # Update parameters in nodes
+                chain.nodes[node_id].custom_params = new_params
+
+        return chain
+
+    @staticmethod
+    def _get_parameters_for_tune(chain):
+        """
+        Function for defining the search space
+
+        :param chain: chain to optimize
+        :return parameters_dict: dictionary with operation names and parameters
+        """
+
+        parameters_dict = {}
+        for node_id, node in enumerate(chain.nodes):
+            operation_name = str(node.operation)
+
+            # Assign unique prefix for each model hyperparameter
+            # label - number of node in the chain
+            node_params = get_node_params(node_id=node_id,
+                                          operation_name=operation_name)
+
+            parameters_dict.update({node_id: node_params})
+
+        return parameters_dict
+
+    @staticmethod
+    def _objective(parameters_dict, chain, train_input, predict_input,
+                   test_target, loss_function, is_need_to_maximize):
+        """
+        Objective function for minimization
+
+        :param parameters_dict: dictionary with operation names and parameters
+        :param chain: chain to optimize
+        :param train_input: input for train chain model
+        :param predict_input: input for test chain model
+        :param test_target: target for validation
+
+        :return min_function: value of objective function
+        """
+
+        # Set hyperparameters for every node
+        chain = ChainTuner.set_arg_chain(chain=chain, parameters=parameters_dict)
+
+        try:
+            min_function = ChainTuner.get_metric_value(train_input=train_input,
+                                                       predict_input=predict_input,
+                                                       test_target=test_target,
+                                                       chain=chain,
+                                                       loss_function=loss_function)
+        except Exception:
+            if is_need_to_maximize is True:
+                min_function = -999999.0
+            else:
+                min_function = 999999.0
+
+        if is_need_to_maximize is True:
+            return -min_function
+        else:
+            return min_function
+
+
+class SequentialTuner(HyperoptTuner):
+    """
+    Class for hyperparameters optimization for all nodes sequentially
+    """
+
+    def __init__(self, chain, task, iterations=100, inverse_node_order=False):
+        super().__init__(chain, task, iterations)
+        self.inverse_node_order = inverse_node_order
+
+    def tune_chain(self, input_data, loss_function):
+        """ Method for hyperparameters sequential tuning """
+
+        # Train test split
+        train_input, predict_input, test_target = self._validation_split(input_data)
+
+        is_need_to_maximize = _greater_is_better(target=test_target,
+                                                 loss_function=loss_function)
+        self.is_need_to_maximize = is_need_to_maximize
+
+        # Check source metrics for data
+        self.init_check(train_input, predict_input, test_target, loss_function)
+
+        # Calculate amount of iterations we can apply per node
+        nodes_amount = len(self.chain.nodes)
+        iterations_per_node = round(self.iterations/nodes_amount)
+        iterations_per_node = int(iterations_per_node)
+
+        # Tuning performed sequentially for every node - so get ids of nodes
+        nodes_ids = self.get_nodes_order(nodes_amount=nodes_amount)
+        for node_id in nodes_ids:
+            node = self.chain.nodes[node_id]
+            operation_name = str(node.operation)
+
+            # Get node's parameters to optimize
+            node_params = get_node_params(node_id=node_id,
+                                          operation_name=operation_name)
+
+            if node_params is None:
+                print(f'"{operation_name}" operation has no parameters to optimize')
+            else:
+                # Apply tuning for current node
+                self._optimize_node(node_id=node_id,
+                                    train_input=train_input,
+                                    predict_input=predict_input,
+                                    test_target=test_target,
+                                    node_params=node_params,
+                                    iterations_per_node=iterations_per_node,
+                                    loss_function=loss_function)
+
+        # Validation is the optimization do well
+        final_chain = self.final_check(train_input=train_input,
+                                       predict_input=predict_input,
+                                       test_target=test_target,
+                                       tuned_chain=self.chain,
+                                       loss_function=loss_function)
+
+        return final_chain
+
+    def tune_node(self, input_data, loss_function, node_id):
+        """ Method for hyperparameters tuning for particular node"""
+        # Train test split
+        train_input, predict_input, test_target = self._validation_split(input_data)
+
+        is_need_to_maximize = _greater_is_better(target=test_target,
+                                                 loss_function=loss_function)
+        self.is_need_to_maximize = is_need_to_maximize
+
+        # Check source metrics for data
+        self.init_check(train_input, predict_input, test_target, loss_function)
+
+        node = self.chain.nodes[node_id]
+        operation_name = str(node.operation)
+
+        # Get node's parameters to optimize
+        node_params = get_node_params(node_id=node_id,
+                                      operation_name=operation_name)
+
+        if node_params is None:
+            print(f'"{operation_name}" operation has no parameters to optimize')
+        else:
+            # Apply tuning for current node
+            self._optimize_node(node_id=node_id,
+                                train_input=train_input,
+                                predict_input=predict_input,
+                                test_target=test_target,
+                                node_params=node_params,
+                                iterations_per_node=self.iterations,
+                                loss_function=loss_function)
+
+        # Validation is the optimization do well
+        final_chain = self.final_check(train_input=train_input,
+                                       predict_input=predict_input,
+                                       test_target=test_target,
+                                       tuned_chain=self.chain,
+                                       loss_function=loss_function)
+
+        return final_chain
+
+    def get_nodes_order(self, nodes_amount):
+        """ Method returns list with indices of nodes in the chain """
+
+        if self.inverse_node_order is True:
+            # From source data to output
+            nodes_ids = range(nodes_amount-1, -1, -1)
+        else:
+            # From output to source data
+            nodes_ids = range(0, nodes_amount)
+
+        return nodes_ids
+
+    def _optimize_node(self, node_id, train_input, predict_input, test_target,
+                       node_params, iterations_per_node, loss_function):
+        """
+        Method for node optimization
+
+        :param node_id: id of the current node in the chain
+        :param train_input: input for train chain model
+        :param predict_input: input for test chain model
+        :param test_target: target for validation
+        :param node_params: dictionary with parameters for node
+        :param iterations_per_node: amount of iterations to produce
+        :param loss_function: loss function to minimize
+
+        :return : updated chain with tuned parameters in particular node
+        """
+        best_parameters = fmin(partial(self._objective,
+                                       chain=self.chain,
+                                       node_id=node_id,
+                                       train_input=train_input,
+                                       predict_input=predict_input,
+                                       test_target=test_target,
+                                       loss_function=loss_function,
+                                       is_need_to_maximize=self.is_need_to_maximize),
+                               node_params,
+                               algo=tpe.suggest,
+                               max_evals=iterations_per_node)
+
+        best_parameters = space_eval(space=node_params,
+                                     hp_assignment=best_parameters)
+
+        # Set best params for this node in the chain
+        self.chain = self.set_arg_node(chain=self.chain,
+                                       node_id=node_id,
+                                       node_params=best_parameters)
+        return self.chain
+
+    @staticmethod
+    def set_arg_node(chain, node_id, node_params):
+        """ Method for parameters setting to a chain
+
+        :param chain: chain with nodes
+        :param node_id: id of the node to which parameters should ba assigned
+        :param node_params: dictionary with labeled parameters to set
+        :return chain: chain with new hyperparameters in each node
+        """
+
+        # Remove label prefixes
+        node_params = convert_params(node_params)
+
+        # Update parameters in nodes
+        chain.nodes[node_id].custom_params = node_params
+
+        return chain
+
+    @staticmethod
+    def _objective(node_params, chain, node_id, train_input, predict_input,
+                   test_target, loss_function, is_need_to_maximize):
+        """
+        Objective function for minimization
+
+        :param node_params: dictionary with operation names and parameters
+        :param chain: chain to optimize
+        :param node_id: id of the node to which parameters should ba assigned
+        :param train_input: input for train chain model
+        :param predict_input: input for test chain model
+        :param test_target: target for validation
+
+        :return min_function: value of objective function
+        """
+
+        # Set hyperparameters for node
+        chain = SequentialTuner.set_arg_node(chain=chain,
+                                             node_id=node_id,
+                                             node_params=node_params)
+
+        try:
+            min_function = SequentialTuner.get_metric_value(train_input=train_input,
+                                                            predict_input=predict_input,
+                                                            test_target=test_target,
+                                                            chain=chain,
+                                                            loss_function=loss_function)
+        except Exception:
+            if is_need_to_maximize is True:
+                min_function = -999999.0
+            else:
+                min_function = 999999.0
+
+        if is_need_to_maximize is True:
+            return -min_function
+        else:
+            return min_function

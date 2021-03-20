@@ -6,7 +6,7 @@ from typing import List
 
 import numpy as np
 
-from fedot.core.operations.strategy import OperationFactory
+from fedot.core.operations.factory import OperationFactory
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import CachedState, FittedOperationCache, Node, PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData

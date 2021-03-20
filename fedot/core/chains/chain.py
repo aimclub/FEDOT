@@ -103,51 +103,6 @@ class Chain:
         result = self.root_node.predict(input_data=input_data, output_mode=output_mode)
         return result
 
-    def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
-                                max_lead_time: timedelta = timedelta(minutes=5),
-                                verbose=False):
-        # TODO remove
-        """
-        Optimize hyperparameters in primary nodes models
-
-        :param input_data: data used for tuning
-        :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
-        """
-        # Select all primary nodes
-        # Perform fine-tuning for each model in node
-        if verbose:
-            self.log.info('Start tuning of primary nodes')
-
-        all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
-        for node in all_primary_nodes:
-            node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
-
-        if verbose:
-            self.log.info('End tuning')
-
-    def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
-                            max_lead_time: timedelta = timedelta(minutes=5),
-                            verbose=False):
-        # TODO remove
-        """
-        Optimize hyperparameters in all nodes models
-
-        :param input_data: data used for tuning
-        :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
-        """
-        if verbose:
-            self.log.info('Start tuning of chain')
-
-        node = self.root_node
-        node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
-
-        if verbose:
-            self.log.info('End tuning')
-
     def add_node(self, new_node: Node):
         """
         Add new node to the Chain

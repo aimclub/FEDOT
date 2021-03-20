@@ -33,14 +33,15 @@ def test_metocean_forecasting_problem():
     full_path_train = os.path.join(str(project_root()), file_path_train)
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    rmse = run_metocean_forecasting_problem(full_path_train, full_path_test,
-                                            forecast_length=1, max_window_size=1)
+    rmse = run_metocean_forecasting_problem(full_path_train,
+                                            full_path_test,
+                                            forecast_length=2)
     assert rmse < 50
 
 
-def test_gapfiilling_problem():
+def test_gapfilling_problem():
     # Filling in the gaps in column "with_gap"
-    dataframe = run_gapfilling_case()
+    dataframe = run_gapfilling_case('test/data/simple_ts_gapfilling.csv')
 
     gap_array = np.array(dataframe['with_gap'])
     gap_ids = np.argwhere(gap_array == -100.0)
@@ -52,5 +53,5 @@ def test_gapfiilling_problem():
     rmse_ridge = mean_squared_error(actual, ridge_predicted, squared=False)
     rmse_composite = mean_squared_error(actual, composite_predicted, squared=False)
 
-    assert rmse_ridge < 5.0
-    assert rmse_composite < 6.0
+    assert rmse_ridge < 40.0
+    assert rmse_composite < 40.0

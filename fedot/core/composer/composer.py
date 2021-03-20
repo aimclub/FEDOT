@@ -13,13 +13,13 @@ class ComposerRequirements:
     """
     This dataclass is for defining the requirements of composition process
 
-    :param primary: List of operation types (str) for Primary Nodes
-    :param secondary: List of operation types (str) for Secondary Nodes
-    :param max_lead_time: max time in minutes available for composition process
-    :param max_depth: max depth of the result chain
-    :param max_arity: maximal number of parent for node
-    :param min_arity: minimal number of parent for node
-    :param allow_single_operations: allow to have chain with only one node
+    :attribute primary: List of operation types (str) for Primary Nodes
+    :attribute secondary: List of operation types (str) for Secondary Nodes
+    :attribute max_lead_time: max time in minutes available for composition process
+    :attribute max_depth: max depth of the result chain
+    :attribute max_arity: maximal number of parent for node
+    :attribute min_arity: minimal number of parent for node
+    :attribute allow_single_operations: allow to have chain with only one node
     """
     primary: List[str]
     secondary: List[str]

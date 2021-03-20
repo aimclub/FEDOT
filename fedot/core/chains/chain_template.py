@@ -185,7 +185,7 @@ class ChainTemplate:
                 raise FileNotFoundError(message)
 
             fitted_model = joblib.load(path_to_model)
-            node.cache.append(CachedState(model=fitted_model))
+            node.cache.append(CachedState(operation=fitted_model))
         visited_nodes[model_object.model_id] = node
         return node
 

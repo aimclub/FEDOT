@@ -16,15 +16,13 @@ def run_chain_from_automl(train_file_path: str, test_file_path: str,
     testing_target = test_data.target
 
     chain = Chain()
+    node_scaling = PrimaryNode('scaling')
     node_tpot = PrimaryNode('tpot')
 
     node_tpot.operation.params = {'max_run_time_sec': max_run_time.seconds}
 
-    node_lda = PrimaryNode('lda')
-    node_rf = SecondaryNode('rf')
-
-    node_rf.nodes_from = [node_tpot, node_lda]
-
+    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
+    node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])
     chain.add_node(node_rf)
 
     chain.fit(train_data)

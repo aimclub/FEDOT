@@ -11,8 +11,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.operations.tuning.hyperopt_tune.\
-    tuners import SequentialTuner, ChainTuner
+from fedot.core.operations.tuning.tuners import ChainTuner
 from matplotlib import pyplot as plt
 
 warnings.filterwarnings('ignore')

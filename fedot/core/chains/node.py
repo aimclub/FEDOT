@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
-from fedot.core.operations.strategy import OperationFactory
+from fedot.core.operations.factory import OperationFactory
 
 CachedState = namedtuple('CachedState', 'operation')
 
@@ -107,25 +107,6 @@ class Node(ABC):
                                                    output_mode=output_mode,)
 
         return operation_predict
-
-    def fine_tune(self, input_data: InputData,
-                  max_lead_time: timedelta = timedelta(minutes=5),
-                  iterations: int = 30):
-        # TODO remove
-        """
-        Run the process of hyperparameter optimization for the node
-
-        :param input_data: data used for tuning
-        :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
-        """
-        copied_input_data = copy(input_data)
-
-        fitted_operation, _ = self.operation.fine_tune(copied_input_data,
-                                                       max_lead_time=max_lead_time,
-                                                       iterations=iterations)
-
-        self.cache.append(CachedState(operation=fitted_operation))
 
     def __str__(self):
         operation = f'{self.operation}'
@@ -296,33 +277,6 @@ class SecondaryNode(Node):
 
         return super().predict(input_data=secondary_input, output_mode=output_mode, verbose=verbose)
 
-    def fine_tune(self, input_data: InputData, recursive: bool = True,
-                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30,
-                  verbose: bool = False):
-        # TODO remove
-        """
-        Run the process of hyperparameter optimization for the node
-
-        :param recursive: flag to initiate the tuning in the parent nodes or not, default: True
-        :param input_data: data used for tuning
-        :param max_lead_time: max time available for tuning process
-        :param iterations: max number of iterations
-        :param verbose: flag used for status printing to console, default True
-        """
-        if verbose:
-            self.log.info(f'Tune all parent nodes in secondary node with operation: {self.operation}')
-
-        if recursive:
-            secondary_input = self._input_from_parents(input_data=input_data,
-                                                       parent_operation='fine_tune',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
-        else:
-            secondary_input = self._input_from_parents(input_data=input_data,
-                                                       parent_operation='fit',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
-
-        return super().fine_tune(input_data=secondary_input)
-
     def _nodes_from_with_fixed_order(self):
         if self.nodes_from is not None:
             return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
@@ -357,7 +311,7 @@ def _combine_parents(parent_nodes: List[Node],
     :param parent_nodes: list of parent nodes, from which predictions will
     be combined
     :param input_data: input data from chain abstraction (source input data)
-    :param parent_operation: name of parent operation (fit, predict or fine_tune)
+    :param parent_operation: name of parent operation (fit or predict)
     :param max_tune_time: max time for tuning hyperparameters in nodes
     :return parent_results: list with OutputData from parent nodes
     :return target: target for final chain prediction
@@ -374,10 +328,6 @@ def _combine_parents(parent_nodes: List[Node],
             parent_results.append(prediction)
         elif parent_operation == 'fit':
             prediction = parent.fit(input_data=input_data)
-            parent_results.append(prediction)
-        elif parent_operation == 'fine_tune':
-            parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
-            prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         else:
             raise NotImplementedError()

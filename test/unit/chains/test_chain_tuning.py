@@ -10,8 +10,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.tuning.hyperopt_tune.\
-    tuners import SequentialTuner, ChainTuner
+from fedot.core.operations.tuning.tuners import SequentialTuner, ChainTuner
 from test.unit.utilities.test_chain_import_export import create_four_depth_chain
 
 seed(1)

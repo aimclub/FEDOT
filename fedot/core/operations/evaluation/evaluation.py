@@ -45,7 +45,6 @@ from fedot.core.operations.evaluation.operation_realisations.models.ts_models im
 from fedot.core.operations.evaluation.operation_realisations.data_operations.ts_transformations \
     import LaggedTransformation, TsSmoothing, ExogDataTransformation
 
-from fedot.core.operations.tuning.tuners import Tuner, SklearnCustomRandomTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -140,7 +139,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self._sklearn_operation_impl = self._convert_to_sklearn(operation_type)
-        self._tune_strategy: Type[Tuner] = SklearnCustomRandomTuner
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):

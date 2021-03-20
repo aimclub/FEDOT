@@ -6,13 +6,12 @@ import pandas as pd
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.operations.tuning.hyperopt_tune.\
-    tuners import SequentialTuner, ChainTuner
+from fedot.core.operations.tuning.tuners import ChainTuner
 from matplotlib import pyplot as plt
 
 warnings.filterwarnings('ignore')
@@ -67,7 +66,7 @@ def get_chain():
     AR -> final forecast
     """
 
-    node_ar = PrimaryNode('arima')
+    node_ar = PrimaryNode('ar')
     chain = Chain(node_ar)
 
     return chain
@@ -155,7 +154,6 @@ def run_experiment(time_series, len_forecast=250):
     plt.show()
 
 
-df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
-time_series = np.array(df['Level'])
 if __name__ == '__main__':
-    run_experiment(time_series, len_forecast=250)
+    df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
+    run_experiment(time_series=np.array(df['Level']), len_forecast=250)

@@ -1,16 +1,18 @@
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.operations.tuning.hyperopt_tune.hp_hyperparams import params_by_operation
+from fedot.core.operations.tuning.hyperparams import params_by_operation
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def print_models_info(task=None):
+def print_models_info(task_name):
     """ Function display models and information about it for considered task
 
-    :param task: task type, if None, return all models
+    :param task_name: name of available task type
     """
 
+    task = _get_task_by_name(task_name)
+
     repository = OperationTypesRepository()
-    # Filter operations
-    repository_operations_list = _filter_operations_by_type(repository, task)
+    repository_operations_list, i = repository.suitable_operation(task_type=task)
     for model in repository_operations_list:
         hyperparameters = params_by_operation.get(str(model.id))
         implementation_info = model.current_strategy(task)(model.id).implementation_info
@@ -20,11 +22,13 @@ def print_models_info(task=None):
         print(f"Model implementation - {implementation_info}\n")
 
 
-def print_data_operations_info(task=None):
+def print_data_operations_info(task_name):
     """ Function display data operations and information about it for considered task
 
-    :param task: task type, if None, return all models
+    :param task_name: name of available task type
     """
+
+    task = _get_task_by_name(task_name)
 
     repository = OperationTypesRepository(repository_name='data_operation_repository.json')
     # Filter operations
@@ -61,8 +65,46 @@ def _filter_operations_by_type(repository, task):
     return repository_operations_list
 
 
-if __name__ == '__main__':
-    print('======================== Models ===========================')
-    print_models_info()
-    print('======================== Data operations ===========================')
-    print_data_operations_info()
+def operations_for_task(task_name: str):
+    """ Function filter operations by task and returns dictionary with names of
+    models and data operations
+
+    :param task_name: name of available task type
+
+    :return dict_with_operations: dictionary with operations
+        - models: appropriate models for task
+        - data operations: appropriate data operations for task
+    """
+
+    task = _get_task_by_name(task_name)
+
+    # Get models and data operations
+    models_repo = OperationTypesRepository()
+    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+
+    appropriate_models, _ = models_repo.suitable_operation(task_type=task)
+    appropriate_data_operations, _ = data_operations_repo.suitable_operation(task_type=task)
+
+    dict_with_operations = {'models': appropriate_models,
+                            'data operations': appropriate_data_operations}
+
+    return dict_with_operations
+
+
+def _get_task_by_name(task_name):
+    """ Function return task by its name
+
+    :param task_name: name of available task type
+    :return task: TaskTypesEnum.<appropriate task>
+    """
+    task_by_name = {'regression': TaskTypesEnum.regression,
+                    'classification': TaskTypesEnum.classification,
+                    'clustering': TaskTypesEnum.clustering,
+                    'ts_forecasting': TaskTypesEnum.ts_forecasting}
+    try:
+        task = task_by_name[task_name]
+    except KeyError:
+        raise NotImplementedError(f'Task with name {task_name} not available, use one of '
+                                  f'the following task names: {list(task_by_name.keys())}')
+
+    return task

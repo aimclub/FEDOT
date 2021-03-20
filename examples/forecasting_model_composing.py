@@ -6,7 +6,6 @@ from sklearn.metrics import mean_squared_error as mse
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.visualisation import ChainVisualiser
@@ -83,9 +82,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
                                      max_window_size=64, with_visualisation=True):
     # specify the task to solve
     task_to_solve = Task(TaskTypesEnum.ts_forecasting,
-                         TsForecastingParams(forecast_length=forecast_length,
-                                             max_window_size=max_window_size,
-                                             return_all_steps=False))
+                         TsForecastingParams(forecast_length=forecast_length))
 
     full_path_train = os.path.join(str(project_root()), train_file_path)
     dataset_to_train = InputData.from_csv(
@@ -108,7 +105,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     # each possible single-model chain
     for model in available_model_types:
-        chain = TsForecastingChain(PrimaryNode(model))
+        chain = Chain(PrimaryNode(model))
 
         chain.fit(input_data=dataset_to_train, verbose=False)
         calculate_validation_metric(
@@ -137,7 +134,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
         max_depth=2, pop_size=10, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=time_limit_min),
-        add_single_operation_chains=False)
+        allow_single_operations=False)
 
     builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
         metric_function)
@@ -146,9 +143,6 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     chain = composer.compose_chain(data=dataset_to_train,
                                    is_visualise=False)
     chain.fit_from_scratch(input_data=dataset_to_train, verbose=False)
-
-    if with_visualisation:
-        ComposerVisualiser.visualise(chain)
 
     calculate_validation_metric(
         chain.predict(dataset_to_validate), dataset_to_validate,

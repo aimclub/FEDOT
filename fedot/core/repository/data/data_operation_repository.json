@@ -28,7 +28,7 @@
 			"tags": ["sklearn"],
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
 		"sklearn_regression_filters": {
-			"tasks": "[TaskTypesEnum.regression]",
+			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
@@ -46,7 +46,7 @@
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"time_series_transformation": {
-			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+			"tasks": "[TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],

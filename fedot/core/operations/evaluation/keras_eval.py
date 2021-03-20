@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import extract_task_param
 
 forecast_length = 1
@@ -23,20 +24,27 @@ class KerasForecastingStrategy(EvaluationStrategy):
 
         super().__init__(model_type, params)
 
-    def _init_lstm_model_functions(self, model_type):
-        if model_type != 'lstm':
-            raise ValueError(f'Impossible to obtain forecasting strategy for {model_type}')
-
     def fit(self, train_data: InputData):
         model = fit_lstm(train_data, epochs=self.epochs)
         return model
 
-    def predict(self, trained_model, predict_data: InputData):
-        return predict_lstm(trained_model, predict_data)
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        raise NotImplementedError()
+        predicted = predict_lstm(trained_operation, predict_data)
+        converted = OutputData(idx=predict_data.idx,
+                               features=predict_data.features,
+                               predict=predicted,
+                               task=predict_data.task,
+                               target=predict_data.target,
+                               data_type=DataTypesEnum.ts)
+        return converted
+
+    @staticmethod
+    def _init_lstm_model_functions(model_type):
+        if model_type != 'lstm':
+            raise ValueError(
+                f'Impossible to obtain forecasting strategy for {model_type}')
 
 
 def _rmse_only_last(y_true, y_pred):

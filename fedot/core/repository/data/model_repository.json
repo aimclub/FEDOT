@@ -11,9 +11,9 @@
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
 	"sklearn_regr": {
-	  "tasks": "[TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnRegressionStrategy"],
@@ -30,18 +30,10 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
-	"data_model": {
-	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification, TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.operations.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing", "data_model"],
-	  "description": "Implementations of the models for the data injection into features of secondary nodes"
-	},
 	"keras_forecasting": {
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.forecasted_ts]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.ts]",
 	  "strategies": ["fedot.core.operations.evaluation.keras_eval", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"

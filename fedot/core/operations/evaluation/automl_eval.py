@@ -8,9 +8,10 @@ from h2o import H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def fit_tpot(data: InputData, max_run_time_min: int):
@@ -135,7 +136,6 @@ def _get_h2o_connect_config():
 class AutoMLEvaluationStrategy(EvaluationStrategy):
     _model_functions_by_type = {
         'tpot': (fit_tpot, predict_tpot_class),
-        'h2o': (fit_h2o, predict_h2o)
     }
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
@@ -148,7 +148,6 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
 
         super().__init__(model_type, params)
 
-
     def _init_benchmark_model_functions(self, model_type):
         if model_type in self._model_functions_by_type.keys():
             return self._model_functions_by_type[model_type]
@@ -159,16 +158,21 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         benchmark_model = self._model_specific_fit(train_data, self.max_time_min)
         return benchmark_model
 
-    def predict(self, trained_model, predict_data: InputData):
-        return self._model_specific_predict(trained_model, predict_data)
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
+        predicted = self._model_specific_predict(trained_operation, predict_data)
+        # Wrap prediction as features for next level
+        converted = OutputData(idx=predict_data.idx,
+                               features=predict_data.features,
+                               predict=predicted,
+                               task=predict_data.task,
+                               target=predict_data.target,
+                               data_type=DataTypesEnum.table)
 
-    def fit_tuned(self, train_data: InputData, iterations: int = 30,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        raise NotImplementedError()
+        return converted
 
 
 class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
     _model_functions_by_type = {
         'tpot': (fit_tpot, predict_tpot_reg),
-        'h2o': (fit_h2o, predict_h2o)
     }

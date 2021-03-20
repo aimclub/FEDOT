@@ -79,7 +79,7 @@ def synthetic_forecasting_problem():
     features_lagged = feature_3d.reshape(feature_3d.shape[0], -1)
 
     ts_data_lagged = InputData(idx=range(len(ts)), features=features_lagged, target=target_lagged,
-                               task=task, data_type=DataTypesEnum.ts_lagged_table)
+                               task=task, data_type=DataTypesEnum.table)
 
     return task, ts_len, ts_data, ts_data_lagged
 

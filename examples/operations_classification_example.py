@@ -1,17 +1,14 @@
-import datetime
 import numpy as np
-from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synthetic.data import classification_dataset
-from fedot.core.operations.tuning.hyperopt_tune.\
-    tuners import SequentialTuner, ChainTuner
+from fedot.core.operations.tuning.tuners import ChainTuner
 
 np.random.seed(2020)
 
