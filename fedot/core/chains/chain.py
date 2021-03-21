@@ -318,6 +318,9 @@ class Chain:
             if cached_state:
                 node.fitted_model = cached_state.model
                 node.fitted_preprocessor = cached_state.preprocessor
+            else:
+                node.fitted_model = None
+                node.fitted_preprocessor = None
 
     def _sort_nodes(self):
         """layer by layer sorting"""

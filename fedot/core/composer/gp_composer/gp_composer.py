@@ -89,6 +89,7 @@ class GPComposer(Composer):
         self.shared_cache = ModelsCache()
 
         self.optimiser = optimiser
+        self.cache_path = None
 
         if not logger:
             self.log = default_log(__name__)
@@ -105,8 +106,10 @@ class GPComposer(Composer):
         train_data, test_data = train_test_data_setup(data,
                                                       sample_split_ration_for_tasks[data.task.task_type],
                                                       task=data.task)
-
-        self.shared_cache.clear()
+        if self.cache_path is None:
+            self.shared_cache.clear()
+        else:
+            self.shared_cache = ModelsCache(self.cache_path, clear_exiting=False)
         metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
@@ -199,6 +202,10 @@ class GPComposerBuilder:
 
     def with_logger(self, logger):
         self._composer.logger = logger
+        return self
+
+    def with_cache(self, cache_path: str):
+        self._composer.cache_path = cache_path
         return self
 
     def set_default_composer_params(self):

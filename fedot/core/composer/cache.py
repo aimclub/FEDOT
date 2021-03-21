@@ -8,11 +8,14 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 
 
 class ModelsCache:
-    def __init__(self, db_path=None):
+    def __init__(self, db_path=None, clear_exiting=True):
         if not db_path:
-            db_path = f'{str(default_fedot_data_dir())}/cache_db'
-        self.db_path = db_path
-        self.clear()
+            self.db_path = f'{str(default_fedot_data_dir())}/cache_db'
+        else:
+            self.db_path = db_path
+
+        if clear_exiting:
+            self.clear()
 
     def save_node(self, node):
         if node.fitted_model is not None:
@@ -36,9 +39,12 @@ class ModelsCache:
         return found_model
 
 
-def _save_cache_for_node(db_path: str, structural_id: str, node):
-    with shelve.open(db_path) as cache:
-        cache[structural_id] = node
+def _save_cache_for_node(db_path: str, structural_id: str,
+                         cache_from_node: CachedState):
+    if cache_from_node.model is not None:
+        # if node successfully fitted
+        with shelve.open(db_path) as cache:
+            cache[structural_id] = cache_from_node
 
 
 def _load_cache_for_node(db_path: str, structural_id: str):

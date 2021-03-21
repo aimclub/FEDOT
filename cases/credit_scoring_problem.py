@@ -29,9 +29,10 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
+                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=150),
                                is_visualise=False,
-                               with_tuning=False):
+                               with_tuning=False,
+                               cache_path=None):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
@@ -53,8 +54,11 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_parameters(optimiser_parameters)
+    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters)
+
+    if cache_path:
+        builder = builder.with_cache(cache_path)
 
     # Create GP-based composer
     composer = builder.build()
@@ -108,4 +112,5 @@ def get_scoring_data():
 
 if __name__ == '__main__':
     full_path_train, full_path_test = get_scoring_data()
-    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True)
+    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True,
+                               cache_path='credit_scoring_problem_cache')
