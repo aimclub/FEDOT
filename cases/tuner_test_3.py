@@ -12,9 +12,9 @@ from sklearn.metrics import make_scorer
 
 
 def tuner_function_20_reg(chain, train_input):
-    chain_tuner = ChainTuner(chain=chain,
-                             task=train_input.task,
-                             iterations=20)
+    chain_tuner = SequentialTuner(chain=chain,
+                                  task=train_input.task,
+                                  iterations=20)
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=mean_absolute_error)
 
@@ -22,9 +22,9 @@ def tuner_function_20_reg(chain, train_input):
 
 
 def tuner_function_100_reg(chain, train_input):
-    chain_tuner = ChainTuner(chain=chain,
-                             task=train_input.task,
-                             iterations=100)
+    chain_tuner = SequentialTuner(chain=chain,
+                                  task=train_input.task,
+                                  iterations=100)
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=mean_absolute_error)
 
@@ -36,7 +36,10 @@ def tuner_function_20_class(chain, train_input):
                              task=train_input.task,
                              iterations=20)
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
-                                         loss_function=roc_auc)
+                                         loss_function=make_scorer(roc_auc,
+                                                                   greater_is_better=True,
+                                                                   needs_proba=True,
+                                                                   multi_class='ovr'))
 
     return tuned_chain
 
@@ -46,7 +49,10 @@ def tuner_function_100_class(chain, train_input):
                              task=train_input.task,
                              iterations=100)
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
-                                         loss_function=roc_auc)
+                                         loss_function=make_scorer(roc_auc,
+                                                                   greater_is_better=True,
+                                                                   needs_proba=True,
+                                                                   multi_class='ovr'))
 
     return tuned_chain
 
@@ -113,7 +119,7 @@ def run_experiment(tuner_iterations, folder_to_save):
 
 if __name__ == '__main__':
     run_experiment(tuner_iterations=20,
-                   folder_to_save='D:/ITMO/tuning_exp_2/chain_tuner/20')
+                   folder_to_save='D:/ITMO/tuning_exp_2/seq_tuner/20')
 
     run_experiment(tuner_iterations=100,
-                   folder_to_save='D:/ITMO/tuning_exp_2/chain_tuner/100')
+                   folder_to_save='D:/ITMO/tuning_exp_2/seq_tuner/100')

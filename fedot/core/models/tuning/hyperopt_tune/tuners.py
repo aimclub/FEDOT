@@ -13,6 +13,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 from hyperopt import fmin, tpe, space_eval
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score as roc_auc
 
 
 class HyperoptTuner(ABC):
@@ -58,9 +59,9 @@ class HyperoptTuner(ABC):
 
         # Make prediction
         predicted_values = chain.predict(predict_input)
-        preds = np.ravel(np.array(predicted_values.predict))
+        preds = np.array(predicted_values.predict)
 
-        return loss_function(test_target, preds)
+        return roc_auc(test_target, preds, multi_class='ovr')
 
     def init_check(self, train_input, predict_input,
                    test_target, loss_function) -> None:
@@ -148,7 +149,8 @@ class HyperoptTuner(ABC):
         else:
             x_train, x_test, y_train, y_test = train_test_split(input_features,
                                                                 input_target,
-                                                                test_size=0.6)
+                                                                train_size=0.6,
+                                                                random_state=1)
             idx_for_train = np.arange(0, len(x_train))
             idx_for_predict = np.arange(0, len(x_test))
 
@@ -175,11 +177,12 @@ def _greater_is_better(target, loss_function) -> bool:
     :param loss_function: loss function
     :return : bool value is it good to maximize metric or not
     """
-    metric = loss_function(target, target)
-    if int(round(metric)) == 0:
-        return False
-    else:
-        return True
+    # metric = loss_function(target, target)
+    # if int(round(metric)) == 0:
+    #     return False
+    # else:
+    #     return True
+    return True
 
 
 class ChainTuner(HyperoptTuner):

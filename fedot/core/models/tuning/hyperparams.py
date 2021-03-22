@@ -51,7 +51,7 @@ params_range_by_model = {
         'epsilon': [1e-4, 1e-3, 1e-2, 1e-1, 1.]
     },
     'knnreg': {
-        'n_neighbors': range(1, 101),
+        'n_neighbors': range(1, 50),
         'weights': ["uniform", "distance"],
         'p': [1, 2]
     },

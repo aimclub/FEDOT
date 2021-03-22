@@ -138,8 +138,8 @@ class Node(ABC):
 
         return self.output_from_prediction(input_data, model_predict)
 
-    def fine_tune(self, input_data: InputData,
-                  max_lead_time: timedelta = timedelta(minutes=5), iterations: int = 30):
+    def fine_tune(self, input_data: InputData, iterations,
+                  max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Run the process of hyperparameter optimization for the node
 
@@ -292,7 +292,8 @@ class SecondaryNode(Node):
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='fit',
-                                                   verbose=verbose)
+                                                   verbose=verbose,
+                                                   iterations=0)
         return super().fit(input_data=secondary_input)
 
     def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
@@ -308,7 +309,8 @@ class SecondaryNode(Node):
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict',
-                                                   verbose=verbose)
+                                                   verbose=verbose,
+                                                   iterations=0)
 
         return super().predict(input_data=secondary_input, output_mode=output_mode, verbose=verbose)
 
@@ -330,13 +332,17 @@ class SecondaryNode(Node):
         if recursive:
             secondary_input = self._input_from_parents(input_data=input_data,
                                                        parent_operation='fine_tune',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
+                                                       iterations=iterations,
+                                                       max_tune_time=max_lead_time,
+                                                       verbose=verbose)
         else:
             secondary_input = self._input_from_parents(input_data=input_data,
                                                        parent_operation='fit',
-                                                       max_tune_time=max_lead_time, verbose=verbose)
+                                                       iterations=iterations,
+                                                       max_tune_time=max_lead_time,
+                                                       verbose=verbose)
 
-        return super().fine_tune(input_data=secondary_input)
+        return super().fine_tune(input_data=secondary_input, iterations=iterations)
 
     def _nodes_from_with_fixed_order(self):
         if self.nodes_from is not None:
@@ -344,6 +350,7 @@ class SecondaryNode(Node):
 
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str,
+                            iterations: int,
                             max_tune_time: Optional[timedelta] = None,
                             verbose=False) -> InputData:
         if len(self.nodes_from) == 0:
@@ -362,7 +369,8 @@ class SecondaryNode(Node):
                                                                           parent_operation)
         else:
             parent_results, target = _combine_parents_simple(parent_nodes, input_data,
-                                                             parent_operation, max_tune_time)
+                                                             parent_operation, max_tune_time,
+                                                             iterations)
 
         secondary_input = InputData.from_predictions(outputs=parent_results,
                                                      target=target)
@@ -390,7 +398,8 @@ def _combine_parents_that_affects_target(parent_nodes: List[Node],
 def _combine_parents_simple(parent_nodes: List[Node],
                             input_data: InputData,
                             parent_operation: str,
-                            max_tune_time: Optional[timedelta]):
+                            max_tune_time: Optional[timedelta],
+                            iterations: int):
     target = input_data.target
     parent_results = []
     for parent in parent_nodes:
@@ -401,7 +410,8 @@ def _combine_parents_simple(parent_nodes: List[Node],
             prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fine_tune':
-            parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time)
+            parent.fine_tune(input_data=input_data, max_lead_time=max_tune_time,
+                             iterations=iterations)
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         else:

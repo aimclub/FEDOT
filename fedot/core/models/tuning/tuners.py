@@ -30,7 +30,7 @@ class Tuner:
     """
     __tuning_metric_by_type = {
         TaskTypesEnum.classification:
-            make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True),
+            make_scorer(roc_auc_score, greater_is_better=True, needs_proba=True, multi_class='ovr'),
         TaskTypesEnum.regression:
             make_scorer(mean_squared_error, greater_is_better=False),
     }
@@ -288,6 +288,25 @@ class TPETuner(Tuner):
     """
     Tuning strategy using Tree Parzen Estimator from hyperopt library
     """
+
+    def __init__(self, trained_model, tune_data: InputData,
+                 params_range: dict,
+                 cross_val_fold_num: int,
+                 time_limit,
+                 iterations: int,
+                 log: Log = None):
+        super().__init__(trained_model=trained_model,
+                         tune_data=tune_data,
+                         params_range=params_range,
+                         cross_val_fold_num=cross_val_fold_num,
+                         time_limit=time_limit,
+                         iterations=iterations,
+                         log=log)
+        self.max_iterations = iterations
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:

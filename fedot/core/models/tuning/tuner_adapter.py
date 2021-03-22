@@ -1,7 +1,12 @@
 from copy import deepcopy
+import numpy as np
 
 from hyperopt import tpe, fmin, Trials, space_eval, hp
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_absolute_error, make_scorer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score as roc_auc
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def _search_space_transform(params):
@@ -27,10 +32,27 @@ class HyperoptAdapter(TunerAdapter):
 
     def _objective_function(self, params):
         self.model_to_adapt.set_params(**params)
-        metric = cross_val_score(self.model_to_adapt,
-                                 self.data.features,
-                                 self.data.target,
-                                 cv=5, scoring=self.scorer).mean()
+
+        # train test split
+        input_features = np.array(self.data.features)
+        input_target = np.array(self.data.target)
+        x_train, x_test, y_train, y_test = train_test_split(input_features,
+                                                            input_target,
+                                                            train_size=0.6,
+                                                            random_state=1)
+        try:
+            self.model_to_adapt.fit(x_train, y_train)
+            predicted = self.model_to_adapt.predict(x_test)
+
+            if self.data.task.task_type == TaskTypesEnum.regression:
+                metric = mean_absolute_error(predicted, y_test)
+            elif self.data.task.task_type == TaskTypesEnum.classification:
+                metric = roc_auc(predicted, y_test, multi_class='ovr')
+        except ValueError:
+            if self.greater_is_better():
+                metric = -999999.0
+            else:
+                metric = 999999.0
 
         if self.greater_is_better():
             return -metric

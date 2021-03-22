@@ -29,7 +29,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.models.evaluation.custom_models.models import CustomSVC
 from fedot.core.models.tuning.hyperparams import params_range_by_model
-from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner
+from fedot.core.models.tuning.tuners import SklearnCustomRandomTuner, SklearnTuner, TPETuner
 from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -132,7 +132,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, model_type: str, params: Optional[dict] = None):
         self._sklearn_model_impl = self._convert_to_sklearn(model_type)
-        self._tune_strategy: SklearnTuner = Optional[SklearnTuner]
+        self._tune_strategy = TPETuner
         super().__init__(model_type, params)
 
     def fit(self, train_data: InputData):
@@ -183,7 +183,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         """
         trained_model = self.fit(train_data=train_data)
         params_range = params_range_by_model.get(self.model_type, None)
-        self._tune_strategy = SklearnCustomRandomTuner
         if not params_range:
             self.params_for_fit = None
             return trained_model, trained_model.get_params()
