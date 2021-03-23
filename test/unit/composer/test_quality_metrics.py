@@ -57,17 +57,10 @@ def test_classification_quality_metric(data_setup):
     chain = default_valid_chain()
     chain.fit(input_data=train)
 
-    metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-    metric_value = metric_function(chain=chain, reference_data=train)
-
-    metric_function_with_penalty = \
-        MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
-    metric_value_with_penalty = \
-        metric_function_with_penalty(chain=chain, reference_data=train)
-
-    assert 0.5 < abs(metric_value) < 1.0
-    assert 0.5 < abs(metric_value_with_penalty) < 1.0
-    assert metric_value < metric_value_with_penalty
+    for metric in ClassificationMetricsEnum:
+        metric_function = MetricsRepository().metric_by_id(metric)
+        metric_value = metric_function(chain=chain, reference_data=train)
+        assert abs(metric_value) > 0
 
 
 def test_regression_quality_metric(data_setup):
@@ -75,14 +68,7 @@ def test_regression_quality_metric(data_setup):
     chain = default_valid_chain()
     chain.fit(input_data=train)
 
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    metric_value = metric_function(chain=chain, reference_data=train)
-
-    metric_function_with_penalty = \
-        MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE_penalty)
-    metric_value_with_penalty = \
-        metric_function_with_penalty(chain=chain, reference_data=train)
-
-    assert metric_value > 0
-    assert metric_value_with_penalty > 0
-    assert metric_value < metric_value_with_penalty
+    for metric in RegressionMetricsEnum:
+        metric_function = MetricsRepository().metric_by_id(metric)
+        metric_value = metric_function(chain=chain, reference_data=train)
+        assert metric_value > 0
