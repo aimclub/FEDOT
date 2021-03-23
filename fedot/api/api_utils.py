@@ -94,8 +94,15 @@ def compose_fedot_model(train_data: InputData,
 
     learning_time = datetime.timedelta(minutes=learning_time)
 
+    models_repo = ModelTypesRepository()
     if available_model_types is None:
-        available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+        available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type,
+                                                                         forbidden_tags=['ensembler'])
+
+    if task.task_type == TaskTypesEnum.clustering:
+        secondary_model_types, _ = models_repo.models_with_tag(['ensembler'])
+    else:
+        secondary_model_types = available_model_types
 
     logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
                    f'Set of candidate models: {available_model_types}. Composing time limit: {learning_time}')
@@ -103,7 +110,7 @@ def compose_fedot_model(train_data: InputData,
     # the choice and initialisation of the GP composer
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
-        secondary=available_model_types, max_arity=max_arity,
+        secondary=secondary_model_types, max_arity=max_arity,
         max_depth=max_depth, pop_size=pop_size, num_of_generations=num_of_generations,
         max_lead_time=learning_time)
 

@@ -1,8 +1,7 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import (Metric, Accuracy, F1, Logloss, MAE, MSE, MSLE,
-                                         NodeNum, Precision, R2, RMSE, ROCAUC,
-                                         Silhouette, StructuralComplexity)
+from fedot.core.composer.metrics import (Accuracy, AdjustedRand, F1, Logloss, MAE, MSE, MSLE, Metric, NodeNum,
+                                         Precision, R2, RMSE, ROCAUC, Silhouette, StructuralComplexity)
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -20,7 +19,8 @@ class ComplexityMetricsEnum(MetricsEnum):
 
 
 class ClusteringMetricsEnum(QualityMetricsEnum):
-    silhouette = 'silhouette'
+    silhouette = 'silhouette',
+    adj_rand = 'adj_rand'
 
 
 class ClassificationMetricsEnum(QualityMetricsEnum):
@@ -60,6 +60,7 @@ class MetricsRepository:
 
         # clustering
         ClusteringMetricsEnum.silhouette: Silhouette.get_value,
+        ClusteringMetricsEnum.adj_rand: AdjustedRand.get_value,
         # structural
         ComplexityMetricsEnum.structural: StructuralComplexity.get_value,
         ComplexityMetricsEnum.node_num: NodeNum.get_value

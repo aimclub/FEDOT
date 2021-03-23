@@ -6,11 +6,10 @@ import numpy as np
 from sklearn.datasets import load_iris, make_blobs
 from sklearn.metrics import adjusted_rand_score
 
+from fedot.api.main import Fedot
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -40,13 +39,6 @@ def create_iris_clustering_example(data_size=-1):
                      idx=np.arange(0, data_size),
                      task=Task(TaskTypesEnum.clustering),
                      data_type=DataTypesEnum.table)
-
-
-def get_atomic_clustering_model(train_data: InputData):
-    chain = Chain(PrimaryNode('kmeans'))
-    chain.fit(input_data=train_data)
-
-    return chain
 
 
 def get_composite_clustering_model(train_data: InputData,
@@ -104,15 +96,18 @@ def run_clustering_example(is_fast=False):
     data_train = deepcopy(data)
     data_train.target = None
 
-    fitted_model = get_atomic_clustering_model(data_train)
-    prediction_basic, _ = validate_model_quality(fitted_model, data)
+    baseline_clustering_fedot = Fedot(problem='clustering')
+    baseline_clustering_fedot.fit(data_train, predefined_model='kmeans')
+    baseline_clustering_fedot.predict(data)
+    prediction_basic = baseline_clustering_fedot.get_metrics()
 
-    composite_model = get_composite_clustering_model(data_train, opt_time_sec)
+    auto_clustering_fedot = Fedot(problem='clustering', learning_time=opt_time_sec)
+    composite_model = auto_clustering_fedot.fit(data_train)
+    auto_clustering_fedot.predict(data)
+    prediction_composite = auto_clustering_fedot.get_metrics()
 
     if not is_fast:
-        ChainVisualiser().visualise(composite_model)
-
-    prediction_composite, _ = validate_model_quality(composite_model, data)
+        composite_model.show()
 
     print(f'adjusted_rand_score for basic model {prediction_basic} with iris')
     print(f'adjusted_rand_score for composite model {prediction_composite} with iris')
@@ -123,18 +118,20 @@ def run_clustering_example(is_fast=False):
     data_train = deepcopy(data)
     data_train.target = None
 
-    fitted_model = get_atomic_clustering_model(data_train)
-    prediction_basic, _ = validate_model_quality(fitted_model, data)
+    tuning_clustering_fedot = Fedot(problem='clustering')
+    baseline_model = tuning_clustering_fedot.fit(data_train, predefined_model='kmeans')
+    tuning_clustering_fedot.predict(data)
+    prediction_basic = tuning_clustering_fedot.get_metrics()
 
-    fitted_model.fine_tune_all_nodes(data_train, iterations=tune_iters)
-
-    prediction_tuned, predicted_labels = validate_model_quality(fitted_model, data)
+    baseline_model.fine_tune_all_nodes(data_train, iterations=tune_iters)
+    prediction = tuning_clustering_fedot.predict(data)
+    prediction_tuned = tuning_clustering_fedot.get_metrics()
 
     print(f'adjusted_rand_score for basic model {prediction_basic} with simple data')
     print(f'adjusted_rand_score for tuned model {prediction_tuned} with simple data')
 
     print(f'Real clusters number is {len(set(data.target))}, '
-          f'predicted number is {len(set(predicted_labels))}')
+          f'predicted number is {len(set(prediction))}')
 
     return prediction_basic, prediction_tuned, prediction_composite
 

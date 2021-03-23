@@ -37,7 +37,7 @@ default_test_metric_dict = {
     'regression': ['rmse', 'mae'],
     'classification': ['roc_auc', 'f1'],
     'multiclassification': 'f1',
-    'clustering': 'silhouette',
+    'clustering': 'adjusted_rand',
     'ts_forecasting': ['rmse', 'mae']
 }
 
@@ -115,9 +115,6 @@ class Fedot:
                      'clustering': Task(TaskTypesEnum.clustering, task_params=self.task_params),
                      'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=self.task_params)
                      }
-
-        if self.problem == 'clustering':
-            raise ValueError('This type of task is not not supported in API now')
 
         self.metric_name = default_test_metric_dict[self.problem]
         self.problem = task_dict[self.problem]

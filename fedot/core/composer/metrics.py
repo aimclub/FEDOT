@@ -3,8 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error, mean_squared_log_error,
-                             precision_score, r2_score, roc_auc_score, silhouette_score)
+from sklearn.metrics import (accuracy_score, adjusted_rand_score, f1_score, log_loss, mean_squared_error,
+                             mean_squared_log_error, precision_score, r2_score, roc_auc_score, silhouette_score)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -183,6 +183,15 @@ class Silhouette(QualityMetric):
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
         return silhouette_score(reference.features, labels=predicted.predict)
+
+
+class AdjustedRand(QualityMetric):
+    default_value = -1
+
+    @staticmethod
+    @from_maximised_metric
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return adjusted_rand_score(labels_true=reference.target, labels_pred=predicted.predict)
 
 
 class StructuralComplexity(Metric):
