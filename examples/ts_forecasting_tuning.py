@@ -6,7 +6,7 @@ import pandas as pd
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -42,7 +42,7 @@ def make_forecast(chain, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     chain_tuner = ChainTuner(chain=chain, task=task,
-                             iterations=10)
+                             iterations=5)
     chain = chain_tuner.tune_chain(input_data=train_input,
                                    loss_function=mean_absolute_error)
 
@@ -60,10 +60,37 @@ def make_forecast(chain, train_input, predict_input, task):
     return old_predicted_values, new_predicted_values
 
 
-def get_chain():
+def get_complex_chain():
     """
     Chain looking like this
-    AR -> final forecast
+    smoothing - lagged - ridge \
+                                \
+                                 ridge -> final forecast
+                                /
+                lagged - ridge /
+    """
+
+    # First level
+    node_smoothing = PrimaryNode('smoothing')
+
+    # Second level
+    node_lagged_1 = SecondaryNode('lagged', nodes_from=[node_smoothing])
+    node_lagged_2 = PrimaryNode('lagged')
+
+    # Third level
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+
+    # Fourth level - root node
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    chain = Chain(node_final)
+
+    return chain
+
+
+def get_ar_chain():
+    """
+    Function return chain with AR model
     """
 
     node_ar = PrimaryNode('ar')
@@ -106,10 +133,11 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_experiment(time_series, len_forecast=250):
+def run_experiment_with_tuning(time_series, with_ar_chain=False, len_forecast=250):
     """ Function with example how time series forecasting can be made
 
     :param time_series: time series for prediction
+    :param with_ar_chain: is it needed to use chain with AR model or not
     :param len_forecast: forecast length
     """
 
@@ -123,7 +151,11 @@ def run_experiment(time_series, len_forecast=250):
                                                           train_data_target=train_data,
                                                           test_data_features=train_data)
 
-    chain = get_chain()
+    # Get chain with several models and with arima chain
+    if with_ar_chain:
+        chain = get_ar_chain()
+    else:
+        chain = get_complex_chain()
 
     old_predicted, new_predicted = make_forecast(chain, train_input,
                                                  predict_input, task)
@@ -131,10 +163,6 @@ def run_experiment(time_series, len_forecast=250):
     old_predicted = np.ravel(np.array(old_predicted))
     new_predicted = np.ravel(np.array(new_predicted))
     test_data = np.ravel(test_data)
-
-    print(f'Predicted values before tuning: {old_predicted[:5]}')
-    print(f'Predicted values after tuning: {new_predicted[:5]}')
-    print(f'Actual values: {test_data[:5]}')
 
     mse_before = mean_squared_error(test_data, old_predicted, squared=False)
     mae_before = mean_absolute_error(test_data, old_predicted)
@@ -156,4 +184,8 @@ def run_experiment(time_series, len_forecast=250):
 
 if __name__ == '__main__':
     df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
-    run_experiment(time_series=np.array(df['Level']), len_forecast=250)
+    time_series = np.array(df['Level'])
+
+    run_experiment_with_tuning(time_series,
+                               with_ar_chain=True,
+                               len_forecast=250)

@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from examples.time_series_gapfilling_example import get_array_with_gaps
+from examples.ts_gapfilling_example import get_array_with_gaps
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.utilities.ts_gapfilling import ModelGapFiller

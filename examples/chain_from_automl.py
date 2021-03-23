@@ -10,6 +10,14 @@ from fedot.core.data.data import InputData
 
 def run_chain_from_automl(train_file_path: str, test_file_path: str,
                           max_run_time: timedelta = timedelta(minutes=10)):
+    """ Function run chain with Auto ML models in nodes
+
+    :param train_file_path: path to the csv file with data for train
+    :param test_file_path: path to the csv file with data for validation
+    :param max_run_time: maximum running time for customization of the "tpot" model
+
+    :return roc_auc_value: ROC AUC metric for chain
+    """
     train_data = InputData.from_csv(train_file_path)
     test_data = InputData.from_csv(test_file_path)
 

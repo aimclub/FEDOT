@@ -7,7 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData, _combine_datasets_table
 
-from examples.operations_regression_example import get_regression_dataset
+from examples.regression_with_tuning_example import get_regression_dataset
 
 np.random.seed(2021)
 

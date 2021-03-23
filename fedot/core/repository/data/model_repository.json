@@ -54,7 +54,16 @@
 	  "strategies": ["fedot.core.operations.evaluation.evaluation", "TsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
-	}
+	},
+	"automl": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "forbidden_node_types": "[]",
+      "strategies": ["fedot.core.operations.evaluation.automl", "AutoMlStrategy"],
+      "tags": ["automl", "expensive", "non-default"],
+      "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks"
+    }
   },
   "operations": {
 	"logit": {
@@ -163,6 +172,10 @@
     "tfidf": {
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
+    },
+	"tpot": {
+      "meta": "automl",
+	  "tags": ["automl", "non-default"]
     }
   }
 }

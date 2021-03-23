@@ -7,9 +7,9 @@ from fedot.core.log import default_log
 
 
 def get_simple_chain(log):
-    first = PrimaryNode(model_type='xgboost', log=log)
-    second = PrimaryNode(model_type='knn', log=log)
-    final = SecondaryNode(model_type='logit',
+    first = PrimaryNode(operation_type='xgboost', log=log)
+    second = PrimaryNode(operation_type='knn', log=log)
+    final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second],
                           log=log)
 

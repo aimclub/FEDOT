@@ -2,6 +2,8 @@ from typing import Dict
 
 from sklearn import datasets
 
+import numpy as np
+
 
 def classification_dataset(samples_amount: int, features_amount: int, classes_amount: int,
                            features_options: Dict, noise_fraction: float = 0.1,
@@ -85,3 +87,22 @@ def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
                                                         shuffle=full_shuffle,
                                                         mean=mean, cov=cov)
     return features, target
+
+
+def generate_synthetic_data(length: int = 2200, periods: int = 5):
+    """
+    The function generates a synthetic one-dimensional array without omissions
+
+    :param length: the length of the array
+    :param periods: the number of periods in the sine wave
+
+    :return synthetic_data: an array without gaps
+    """
+
+    sinusoidal_data = np.linspace(-periods * np.pi, periods * np.pi, length)
+    sinusoidal_data = np.sin(sinusoidal_data)
+    random_noise = np.random.normal(loc=0.0, scale=0.1, size=length)
+
+    # Combining a sine wave and random noise
+    synthetic_data = sinusoidal_data + random_noise
+    return synthetic_data

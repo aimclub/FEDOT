@@ -1,34 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
+from fedot.utilities.synthetic.data import generate_synthetic_data
 
 
-def generate_synthetic_data(length: int = 2200, periods: int = 5):
-    """
-    The function generates a synthetic one-dimensional array without omissions
-
-    :param length: the length of the array
-    :param periods: the number of periods in the sine wave
-
-    :return synthetic_data: an array without gaps
-    """
-
-    sinusoidal_data = np.linspace(-periods * np.pi, periods * np.pi, length)
-    sinusoidal_data = np.sin(sinusoidal_data)
-    random_noise = np.random.normal(loc=0.0, scale=0.1, size=length)
-
-    # Combining a sine wave and random noise
-    synthetic_data = sinusoidal_data + random_noise
-    return synthetic_data
-
-
-def generate_gaps(array_without_gaps, gap_dict, gap_value):
+def generate_gaps_in_ts(array_without_gaps, gap_dict, gap_value):
     """
     Function for generating gaps with predefined length in the desired indices
-    of an one-dimensional array
+    of an one-dimensional array (time series)
 
     :param array_without_gaps: an array without gaps
     :param gap_dict: a dictionary with omissions, where the key is the index in
@@ -74,9 +56,9 @@ def get_array_with_gaps(gap_dict=None, gap_value: float = -100.0):
     if gap_dict is None:
         gap_dict = {850: 100,
                     1400: 150}
-    array_with_gaps = generate_gaps(array_without_gaps=real_values,
-                                    gap_dict=gap_dict,
-                                    gap_value=gap_value)
+    array_with_gaps = generate_gaps_in_ts(array_without_gaps=real_values,
+                                          gap_dict=gap_dict,
+                                          gap_value=gap_value)
 
     return array_with_gaps, real_values
 
@@ -95,10 +77,12 @@ def run_gapfilling_example():
     gap_data, real_data = get_array_with_gaps()
 
     # Filling in gaps using chain from FEDOT
-    ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
+    node_lagged = PrimaryNode('lagged')
+    node_lagged.custom_params = {'window_size': 100}
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    ridge_chain = Chain(node_ridge)
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain,
-                                     max_window_size=150)
+                                     chain=ridge_chain)
     without_gap_arr_ridge = \
         ridge_gapfiller.forward_inverse_filling(gap_data)
 

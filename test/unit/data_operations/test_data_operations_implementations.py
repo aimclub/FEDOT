@@ -6,9 +6,9 @@ from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-from examples.operations_regression_example import get_regression_dataset
-from examples.operations_classification_example import get_classification_dataset
-from examples.time_series_gapfilling_example import generate_synthetic_data
+from examples.regression_with_tuning_example import get_regression_dataset
+from examples.classification_with_tuning_example import get_classification_dataset
+from examples.ts_gapfilling_example import generate_synthetic_data
 
 np.random.seed(2021)
 

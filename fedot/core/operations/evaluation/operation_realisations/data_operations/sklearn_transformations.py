@@ -211,7 +211,7 @@ class OneHotEncodingOperation(DataOperationRealisation):
 
 
 class PolyFeaturesOperation(EncodedInvariantOperation):
-    """ Adapter class for application of PolynomialFeatures operation on data,
+    """ Class for application of PolynomialFeatures operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
 
@@ -236,7 +236,7 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
 
 
 class ScalingOperation(EncodedInvariantOperation):
-    """ Adapter class for application of Scaling operation on data,
+    """ Class for application of Scaling operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
 
@@ -257,7 +257,7 @@ class ScalingOperation(EncodedInvariantOperation):
 
 
 class NormalizationOperation(EncodedInvariantOperation):
-    """ Adapter class for application of MinMax normalization operation on data,
+    """ Class for application of MinMax normalization operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
 
