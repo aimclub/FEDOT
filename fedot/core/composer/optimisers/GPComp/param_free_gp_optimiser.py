@@ -189,7 +189,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 std_max = self.max_std
         return std_max
 
-    def check_mo_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
+    def _check_mo_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
         complexity_decreased = False
         fitness_improved = False
         offspring_archive = tools.ParetoFront()
@@ -210,7 +210,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 complexity_decreased = True
         return fitness_improved, complexity_decreased
 
-    def check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
+    def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
         best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
         fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
         complexity_decreased = self.complexity_metric(best_in_offspring) < self.complexity_metric(
@@ -218,9 +218,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         return fitness_improved, complexity_decreased
 
     def next_population_size(self, offspring: List[Any]) -> int:
-        improvements_checker = self.check_so_improvements
+        improvements_checker = self._check_so_improvements
         if self.parameters.multi_objective:
-            improvements_checker = self.check_mo_improvements
+            improvements_checker = self._check_mo_improvements
         fitness_improved, complexity_decreased = improvements_checker(offspring)
         is_max_pop_size_reached = not self.iterator.has_next()
         progress_in_both_goals = fitness_improved and complexity_decreased and not is_max_pop_size_reached

@@ -145,6 +145,11 @@ class GPChainOptimiser:
             self.log_info_about_best()
 
             for self.generation_num in range(self.requirements.num_of_generations - 1):
+
+                if self.generation_num == 0:
+                    if t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
+                        break
+
                 self.log.info(f'Generation num: {self.generation_num}')
 
                 self.num_of_gens_without_improvements = self.update_stagnation_counter()
@@ -288,10 +293,18 @@ class GPChainOptimiser:
 
     def _make_population(self, pop_size: int) -> List[Any]:
         model_chains = []
+        iter_number = 0
         while len(model_chains) < pop_size:
+            iter_number += 1
             chain = self.chain_generation_function()
             if constraint_function(chain):
                 model_chains.append(chain)
+
+            if iter_number > 100000:
+                self.log.debug(
+                    'More than 100000 generated In population making function. Process is stopped')
+                break
+
         return model_chains
 
     def _best_single_models(self, objective_function: Callable, num_best: int = 7):

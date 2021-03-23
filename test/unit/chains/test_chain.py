@@ -1,6 +1,7 @@
 import os
 import platform
 import pytest
+import time
 
 import numpy as np
 import pandas as pd
@@ -367,15 +368,26 @@ def test_chain_fit_time_constraint(data_fixture, request):
     time_constraint = 1
     predicted_first = None
     computation_time_first = None
+    process_start_time = time.time()
     try:
         predicted_first = test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
         computation_time_first = test_chain_first.computation_time
         assert type(received_ex) is TimeoutError
+    comp_time_proc_with_first_constraint = (time.time() - process_start_time)
+    time_constraint = 5
+    process_start_time = time.time()
+    try:
+        test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
+    except Exception as ex:
+        received_ex = ex
+        assert type(received_ex) is TimeoutError
+    comp_time_proc_with_second_constraint = (time.time() - process_start_time)
     test_chain_second = chain_first()
     predicted_second = test_chain_second.fit(input_data=train_data)
     computation_time_second = test_chain_second.computation_time
+    assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None
     assert predicted_first is None
     assert computation_time_second is not None

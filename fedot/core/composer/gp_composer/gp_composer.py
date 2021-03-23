@@ -1,17 +1,11 @@
 import platform
-
 from dataclasses import dataclass
-from deap import tools
 from functools import partial
 from multiprocessing import set_start_method
-from typing import (
-    Callable,
-    Optional,
-    Tuple,
-    Any,
-    Union,
-    List
-)
+from typing import (Any, Callable, List, Optional, Tuple, Union)
+
+from deap import tools
+
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -20,8 +14,8 @@ from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from fedot.core.composer.optimisers.GPComp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.GPComp.operators.mutation import MutationStrengthEnum
-from fedot.core.composer.optimisers.GPComp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.composer.optimisers.GPComp.operators.regularization import RegularizationTypesEnum
+from fedot.core.composer.optimisers.GPComp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -148,14 +142,17 @@ class GPComposer(Composer):
 
             evaluated_metrics = ()
             for metric in metrics:
-                metric_func = MetricsRepository().metric_by_id(metric)
+                if callable(metric):
+                    metric_func = metric
+                else:
+                    metric_func = MetricsRepository().metric_by_id(metric)
                 evaluated_metrics = evaluated_metrics + (metric_func(chain, reference_data=test_data),)
 
             if len(metrics) > 1:
-                log_metrics = [str(metric) for metric in metrics]
+                log_metrics = [str(metric) for metric in evaluated_metrics]
                 log_info = 'metrics'
             else:
-                log_metrics = metrics[0]
+                log_metrics = evaluated_metrics[0]
                 log_info = 'metric'
             self.log.debug(f'Chain {chain.root_node.descriptive_id} with {log_info}: {log_metrics}')
 
@@ -211,7 +208,7 @@ class GPComposerBuilder:
         return self
 
     def with_logger(self, logger):
-        self._composer.logger = logger
+        self._composer.log = logger
         return self
 
     def with_cache(self, cache_path: str):
