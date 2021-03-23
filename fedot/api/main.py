@@ -4,9 +4,8 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
-                                 save_predict, metrics_mapping,
-                                 filter_models_by_preset)
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+                                 save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
@@ -55,9 +54,17 @@ class Fedot:
     :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
     :param learning_time: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
+        The possible parameters are:
+            'max_depth' - max depth of the chain
+            'max_arity' - max arity of the chain
+            'pop_size' - population size for composer
+            'num_of_generations' - number of generations for composer
+            'learning_time':- composing time (minutes)
+            'available_model_types' - list of model names to use
+            'with_tuning' - allow huperparameters tuning for the model
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detalization
+    :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
     """
