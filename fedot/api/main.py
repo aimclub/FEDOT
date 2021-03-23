@@ -1,19 +1,21 @@
 import random
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+                                 save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
-from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.quality_metrics_repository import MetricsRepository
+from fedot.core.repository.tasks import (Task, TaskParams,
+                                         TaskTypesEnum, TsForecastingParams)
 
 
 def default_evo_params(problem):
@@ -22,18 +24,16 @@ def default_evo_params(problem):
                 'max_arity': 2,
                 'pop_size': 20,
                 'num_of_generations': 20,
-                'learning_time': 2,
-                'preset': 'light'}
+                'learning_time': 2}
     else:
         return {'max_depth': 2,
                 'max_arity': 3,
                 'pop_size': 20,
                 'num_of_generations': 20,
-                'learning_time': 2,
-                'preset': 'light_tun'}
+                'learning_time': 2}
 
 
-basic_metric_dict = {
+default_test_metric_dict = {
     'regression': ['rmse', 'mae'],
     'classification': ['roc_auc', 'f1'],
     'multiclassification': 'f1',
@@ -54,9 +54,17 @@ class Fedot:
     :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
     :param learning_time: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
+        The possible parameters are:
+            'max_depth' - max depth of the chain
+            'max_arity' - max arity of the chain
+            'pop_size' - population size for composer
+            'num_of_generations' - number of generations for composer
+            'learning_time':- composing time (minutes)
+            'available_model_types' - list of model names to use
+            'with_tuning' - allow huperparameters tuning for the model
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detalization
+    :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
     """
@@ -84,6 +92,7 @@ class Fedot:
         self.train_data = None
         self.test_data = None
         self.prediction = None
+        self.prediction_labels = None  # classification-only
 
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
@@ -91,9 +100,6 @@ class Fedot:
             self.composer_params = default_evo_params(self.problem)
         else:
             self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
-
-        if preset is not None:
-            self.composer_params['preset'] = preset
 
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
@@ -113,8 +119,17 @@ class Fedot:
         if self.problem == 'clustering':
             raise ValueError('This type of task is not not supported in API now')
 
-        self.metric_name = basic_metric_dict[self.problem]
+        self.metric_name = default_test_metric_dict[self.problem]
         self.problem = task_dict[self.problem]
+
+        if preset is None and 'preset' in self.composer_params:
+            preset = self.composer_params['preset']
+            del self.composer_params['preset']
+
+        if preset is not None:
+            available_model_types = filter_models_by_preset(self.problem, preset)
+            self.composer_params['available_model_types'] = available_model_types
+            self.composer_params['with_tuning'] = '_tun' in preset or preset is None
 
     def _get_params(self):
         param_dict = {'train_data': self.train_data,
@@ -142,6 +157,7 @@ class Fedot:
         Cleans fitted model and obtained predictions
         """
         self.prediction = None
+        self.prediction_labels = None
         self.current_model = None
 
     def fit(self,
@@ -188,13 +204,14 @@ class Fedot:
         :return: the array with prediction values
         """
         if self.current_model is None:
-            self.current_model = self._obtain_model()
+            raise ValueError('The model was not fitted yet')
 
         self.test_data = _define_data(ml_task=self.problem,
                                       features=features, is_predict=True)
 
-        if self.problem == TaskTypesEnum.classification:
-            self.prediction = self.current_model.predict(self.test_data, output_mode='labels')
+        if self.problem.task_type == TaskTypesEnum.classification:
+            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
+            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
         else:
             self.prediction = self.current_model.predict(self.test_data)
 
@@ -215,9 +232,10 @@ class Fedot:
         :return: the array with prediction values
         """
 
+        if self.current_model is None:
+            raise ValueError('The model was not fitted yet')
+
         if self.problem.task_type == TaskTypesEnum.classification:
-            if self.current_model is None:
-                self.current_model = self._obtain_model()
 
             self.test_data = _define_data(ml_task=self.problem,
                                           features=features, is_predict=True)
@@ -225,6 +243,7 @@ class Fedot:
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
             self.prediction = self.current_model.predict(self.test_data, output_mode=mode)
+            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
 
             if save_predictions:
                 save_predict(self.prediction)
@@ -234,7 +253,7 @@ class Fedot:
         return self.prediction.predict
 
     def forecast(self,
-                 pre_history: Union[str, np.ndarray, InputData],
+                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData],
                  forecast_length: int = 1,
                  save_predictions: bool = False):
         """
@@ -246,6 +265,9 @@ class Fedot:
         :return: the array with prediction values
         """
 
+        if self.current_model is None:
+            raise ValueError('The model was not fitted yet')
+
         if self.problem.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
@@ -253,10 +275,6 @@ class Fedot:
 
         self.train_data = _define_data(ml_task=self.problem,
                                        features=pre_history, is_predict=True)
-
-        if self.current_model is None:
-            self.composer_params['with_tuning'] = False
-            self.current_model = self._obtain_model()
 
         self.current_model = TsForecastingChain(self.current_model.root_node)
 
@@ -310,29 +328,29 @@ class Fedot:
 
         if target is not None:
             if self.test_data is None:
-                self.test_data = InputData(idx=range(len(target)), features=None, target=target,
+                self.test_data = InputData(idx=range(len(self.prediction.predict)),
+                                           features=None,
+                                           target=target[:len(self.prediction.predict)],
                                            task=self.train_data.task,
                                            data_type=self.train_data.data_type)
             else:
-                self.test_data.target = target
+                self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        __metric_dict = {'rmse': RmseMetric.metric,
-                         'mae': MaeMetric.metric,
-                         'roc_auc': RocAucMetric.metric,
-                         'f1': F1Metric.metric,
-                         'silhouette': NotImplemented
-                         }
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if __metric_dict[metric_name] is NotImplemented:
+            if metrics_mapping[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
-                metric_value = abs(__metric_dict[metric_name](reference=self.test_data,
-                                                              predicted=self.prediction))
+                prediction = self.prediction
+                metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
+                if metric_cls.output_mode == 'labels':
+                    prediction = self.prediction_labels
+                metric_value = abs(metric_cls.metric(reference=self.test_data,
+                                                     predicted=prediction))
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
@@ -352,7 +370,7 @@ def _define_data(ml_task: Task,
 
         data = array_to_input_data(features_array=np.asarray(features),
                                    target_array=np.asarray(target),
-                                   task_type=ml_task)
+                                   task=ml_task)
     elif type(features) == np.ndarray:
         # numpy format for input data
         if target is None:
@@ -360,7 +378,11 @@ def _define_data(ml_task: Task,
 
         data = array_to_input_data(features_array=features,
                                    target_array=target,
-                                   task_type=ml_task)
+                                   task=ml_task)
+    elif type(features) == tuple:
+        data = array_to_input_data(features_array=features[0],
+                                   target_array=features[1],
+                                   task=ml_task)
     elif type(features) == str:
         # CSV files as input data
         if target is None:
