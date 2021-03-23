@@ -161,7 +161,7 @@ class GPComposerBuilder:
         return self
 
     def with_logger(self, logger):
-        self._composer.logger = logger
+        self._composer.log = logger
         return self
 
     def set_default_composer_params(self):

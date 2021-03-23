@@ -25,7 +25,8 @@ metrics_mapping = {
     'msle': RegressionMetricsEnum.MSLE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
-    'silhouette': ClusteringMetricsEnum.silhouette
+    'silhouette': ClusteringMetricsEnum.silhouette,
+    'adjusted_rand': ClusteringMetricsEnum.adj_rand
 }
 
 
@@ -101,6 +102,7 @@ def compose_fedot_model(train_data: InputData,
 
     if task.task_type == TaskTypesEnum.clustering:
         secondary_model_types, _ = models_repo.models_with_tag(['ensembler'])
+        max_depth = 1
     else:
         secondary_model_types = available_model_types
 

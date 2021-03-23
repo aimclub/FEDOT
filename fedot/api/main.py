@@ -4,7 +4,8 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
+                                 filter_models_by_preset, metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
@@ -37,7 +38,7 @@ default_test_metric_dict = {
     'regression': ['rmse', 'mae'],
     'classification': ['roc_auc', 'f1'],
     'multiclassification': 'f1',
-    'clustering': 'adjusted_rand',
+    'clustering': ['adjusted_rand'],
     'ts_forecasting': ['rmse', 'mae']
 }
 
@@ -172,6 +173,9 @@ class Fedot:
         self.train_data = _define_data(ml_task=self.problem,
                                        features=features,
                                        target=target)
+
+        if self.problem.task_type == TaskTypesEnum.clustering:
+            self.train_data.target = None
 
         is_composing_required = True
         if self.current_model is not None:

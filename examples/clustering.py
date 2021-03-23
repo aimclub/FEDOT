@@ -1,19 +1,15 @@
 import random
 from copy import deepcopy
-from datetime import timedelta
 
 import numpy as np
+import pandas as pd
 from sklearn.datasets import load_iris, make_blobs
-from sklearn.metrics import adjusted_rand_score
 
 from fedot.api.main import Fedot
 from fedot.core.chains.chain import Chain
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClusteringMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)
@@ -41,99 +37,42 @@ def create_iris_clustering_example(data_size=-1):
                      data_type=DataTypesEnum.table)
 
 
-def get_composite_clustering_model(train_data: InputData,
-                                   max_time: int = 60):
-    task = Task(task_type=TaskTypesEnum.clustering)
-    dataset_to_compose = train_data
-    pop_size = 20
-    if max_time <= 1:
-        pop_size = 2
-
-    models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type,
-                                                          forbidden_tags=['ensembler'])
-    secondary_model_types, _ = models_repo.models_with_tag(['ensembler'])
-
-    metric_function = MetricsRepository(). \
-        metric_by_id(ClusteringMetricsEnum.silhouette)
-
-    composer_requirements = GPComposerRequirements(
-        primary=available_model_types, secondary=secondary_model_types,
-        max_lead_time=timedelta(seconds=max_time), min_arity=3, max_arity=4, pop_size=pop_size)
-
-    # run the search of best suitable model
-    chain_evo_composed = GPComposerBuilder(task=task). \
-        with_requirements(composer_requirements). \
-        with_metrics(metric_function).build().compose_chain(data=dataset_to_compose)
-    chain_evo_composed.fit(input_data=dataset_to_compose)
-
-    return chain_evo_composed
-
-
-def validate_model_quality(model: Chain, dataset_to_validate: InputData):
-    predicted_labels = model.predict(dataset_to_validate).predict
-
-    prediction_valid = round(adjusted_rand_score(labels_true=dataset_to_validate.target,
-                                                 labels_pred=predicted_labels), 6)
-
-    return prediction_valid, predicted_labels
-
-
 def run_clustering_example(is_fast=False):
-    opt_time_sec = 60
-    tune_iters = 30
-    simple_data_size = 200
+    opt_time_sec = 30
     iris_size = -1
 
     if is_fast:
         opt_time_sec = 1
-        tune_iters = 1
-        simple_data_size = 10
         iris_size = 10
 
     # ensemble clustering example
-    data = create_iris_clustering_example(iris_size)
+    data = pd.read_csv('./data/heart.csv', sep=',')
     data_train = deepcopy(data)
-    data_train.target = None
+    del data_train['target']
 
     baseline_clustering_fedot = Fedot(problem='clustering')
-    baseline_clustering_fedot.fit(data_train, predefined_model='kmeans')
-    baseline_clustering_fedot.predict(data)
-    prediction_basic = baseline_clustering_fedot.get_metrics()
+    baseline_clustering_fedot.fit(data_train, predefined_model='aglo_clust')
+    baseline_clustering_fedot.predict(data_train)
+    prediction_basic = baseline_clustering_fedot.get_metrics(target=data['target'])
 
-    auto_clustering_fedot = Fedot(problem='clustering', learning_time=opt_time_sec)
-    composite_model = auto_clustering_fedot.fit(data_train)
-    auto_clustering_fedot.predict(data)
-    prediction_composite = auto_clustering_fedot.get_metrics()
+    auto_clustering_fedot = Fedot(problem='clustering', verbose_level=4,
+                                  learning_time=opt_time_sec, seed=42)
+
+    chain = Chain(SecondaryNode('consensus_ensembler',
+                                nodes_from=[PrimaryNode('meanshift_clust'),
+                                            PrimaryNode('kmeans'),
+                                            PrimaryNode('aglo_clust')]))
+    composite_model = auto_clustering_fedot.fit(data_train, predefined_model=chain)
+    auto_clustering_fedot.predict(data_train)
+    prediction_composite = auto_clustering_fedot.get_metrics(target=data['target'])
 
     if not is_fast:
         composite_model.show()
 
-    print(f'adjusted_rand_score for basic model {prediction_basic} with iris')
-    print(f'adjusted_rand_score for composite model {prediction_composite} with iris')
+    print(f'score for basic model {prediction_basic}')
+    print(f'score for composite model {prediction_composite}')
 
-    # clustering params tuning example
-
-    data = create_simple_clustering_example(simple_data_size)
-    data_train = deepcopy(data)
-    data_train.target = None
-
-    tuning_clustering_fedot = Fedot(problem='clustering')
-    baseline_model = tuning_clustering_fedot.fit(data_train, predefined_model='kmeans')
-    tuning_clustering_fedot.predict(data)
-    prediction_basic = tuning_clustering_fedot.get_metrics()
-
-    baseline_model.fine_tune_all_nodes(data_train, iterations=tune_iters)
-    prediction = tuning_clustering_fedot.predict(data)
-    prediction_tuned = tuning_clustering_fedot.get_metrics()
-
-    print(f'adjusted_rand_score for basic model {prediction_basic} with simple data')
-    print(f'adjusted_rand_score for tuned model {prediction_tuned} with simple data')
-
-    print(f'Real clusters number is {len(set(data.target))}, '
-          f'predicted number is {len(set(prediction))}')
-
-    return prediction_basic, prediction_tuned, prediction_composite
+    return prediction_basic, prediction_composite
 
 
 if __name__ == '__main__':
