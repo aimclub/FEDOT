@@ -1,21 +1,21 @@
 import math
-import numpy as np
 from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
+import numpy as np
+
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, duplicates_filtration, \
+    evaluate_individuals, num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
-    calculate_objective, evaluate_individuals
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
     regularized_population
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log, default_log
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -324,6 +324,7 @@ class GPChainOptimiser:
         best_inds = sorted(single_operations_inds, key=lambda ind: ind.fitness)
         if is_process_skipped:
             self.population = [best_inds[0]]
+
         if timer is not None:
             single_operations_eval_time = timer.minutes_from_start
             self.log.info(f'Single operations evaluation time: {single_operations_eval_time}')

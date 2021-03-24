@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
@@ -61,7 +63,7 @@ def test_classification_quality_metric(data_setup):
     for metric in ClassificationMetricsEnum:
         metric_function = MetricsRepository().metric_by_id(metric)
         metric_value = metric_function(chain=chain, reference_data=train)
-        assert abs(metric_value) > 0
+        assert 0 < abs(metric_value) < sys.maxsize
 
 
 def test_regression_quality_metric(data_setup):

@@ -51,7 +51,7 @@ class Data:
         if target_column == '':
             target_column = data_frame.columns[-1]
 
-        if target_column:
+        if target_column and target_column in data_frame.columns:
             target = np.array(data_frame[target_column]).astype(np.float)
             pos = list(data_frame.keys()).index(target_column)
             features = np.delete(data_array.T, [0, pos], axis=1)

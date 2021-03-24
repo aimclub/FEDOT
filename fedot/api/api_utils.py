@@ -2,24 +2,22 @@ import datetime
 
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error,
                              r2_score, roc_auc_score, mean_absolute_error)
 
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
+from fedot.core.repository.operation_types_repository import get_ts_operations
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
+                                                              ComplexityMetricsEnum, MetricsRepository,
+                                                              RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.repository.operation_types_repository import get_ts_operations
-
 
 composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -29,11 +27,12 @@ composer_metrics_mapping = {
     'mae': RegressionMetricsEnum.MAE,
     'mse': RegressionMetricsEnum.MSE,
     'msle': RegressionMetricsEnum.MSLE,
+    'mape': RegressionMetricsEnum.MAPE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
-    'silhouette': ClusteringMetricsEnum.silhouette
+    'silhouette': ClusteringMetricsEnum.silhouette,
+    'node_num': ComplexityMetricsEnum.node_num
 }
-
 
 tuner_metrics_mapping = {
     'acc': accuracy_score,
@@ -75,7 +74,7 @@ def tuner_metric_by_name(metric_name: str, train_data: InputData, task: Task):
     return tuner_loss, loss_params
 
 
-def autodetect_data_type(task: Task) -> DataTypesEnum:
+def _autodetect_data_type(task: Task) -> DataTypesEnum:
     if task.task_type == TaskTypesEnum.ts_forecasting:
         return DataTypesEnum.ts
     else:
@@ -94,7 +93,7 @@ def save_predict(predicted_data: OutputData):
 def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         task: Task = Task(TaskTypesEnum.classification)):
-    data_type = autodetect_data_type(task)
+    data_type = _autodetect_data_type(task)
     idx = np.arange(len(features_array))
 
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
@@ -132,9 +131,9 @@ def compose_fedot_model(train_data: InputData,
                         max_arity: int,
                         pop_size: int,
                         num_of_generations: int,
-                        learning_time: int = 5,
                         available_operations: list = None,
                         composer_metric=None,
+                        learning_time: float = 5,
                         with_tuning=False,
                         tuner_metric=None
                         ):
@@ -147,6 +146,17 @@ def compose_fedot_model(train_data: InputData,
         if metric_id is None:
             raise ValueError(f'Incorrect composer metric {composer_metric}')
         metric_function = MetricsRepository().metric_by_id(metric_id)
+
+    if isinstance(composer_metric, str):
+        composer_metric = [composer_metric]
+
+    metric_function = []
+    for specific_metric in composer_metric:
+        metric_id = composer_metrics_mapping.get(specific_metric, None)
+        if metric_id is None:
+            raise ValueError(f'Incorrect metric {specific_metric}')
+        specific_metric_function = MetricsRepository().metric_by_id(metric_id)
+        metric_function.append(specific_metric_function)
 
     learning_time = datetime.timedelta(minutes=learning_time)
 
@@ -177,27 +187,35 @@ def compose_fedot_model(train_data: InputData,
 
     logger.message('Model composition started')
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
-    chain_gp_composed.log = logger
+
+    chain_for_tune = chain_gp_composed
+    chain_for_return = chain_gp_composed
+
+    if isinstance(chain_gp_composed, list):
+        for chain in chain_gp_composed:
+            chain.log = logger
+        chain_for_tune = chain_gp_composed[0]
+        chain_for_return = gp_composer.optimiser.archive
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
 
-        if tuner_metric is None:
-            logger.message('Default loss function was set')
-            # Default metric for tuner
-            tune_metrics = TunerMetricByTask(task.task_type)
-            tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
-        else:
-            # Get metric and parameters by name
-            tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
-                                                           train_data=train_data,
-                                                           task=task)
+    if tuner_metric is None:
+        logger.message('Default loss function was set')
+        # Default metric for tuner
+        tune_metrics = TunerMetricByTask(task.task_type)
+        tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+    else:
+        # Get metric and parameters by name
+        tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
+                                                       train_data=train_data,
+                                                       task=task)
 
-        # Tune all nodes in the chain
-        chain_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
-                                              loss_params=loss_params,
-                                              input_data=train_data,
-                                              iterations=20)
+    # Tune all nodes in the chain
+    chain_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
+                                          loss_params=loss_params,
+                                          input_data=train_data,
+                                          iterations=20)
 
     logger.message('Model composition finished')
 
