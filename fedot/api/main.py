@@ -147,11 +147,6 @@ class Fedot:
 
         return self.current_model
 
-    def _check_num_classes(self,
-                           train_data: InputData):
-        if len(np.unique(train_data.target)) > 2:
-            self.metric_name = 'f1'
-
     def clean(self):
         """
         Cleans fitted model and obtained predictions
@@ -188,8 +183,6 @@ class Fedot:
                 self.current_model = Chain(PrimaryNode(predefined_model))
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-
-        self._check_num_classes(self.train_data)
 
         return self._obtain_model(is_composing_required)
 
@@ -363,6 +356,7 @@ def _define_data(ml_task: Task,
     if type(features) == InputData:
         # native FEDOT format for input data
         data = features
+        data.task = ml_task
     elif type(features) == pd.DataFrame:
         # pandas format for input data
         if target is None:
