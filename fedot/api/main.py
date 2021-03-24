@@ -1,14 +1,17 @@
 import random
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deap import tools
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model,
+                                 filter_models_by_preset, metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
+from fedot.core.composer.optimisers.utils.pareto import ParetoFront
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
@@ -17,20 +20,22 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import (Task, TaskParams,
                                          TaskTypesEnum, TsForecastingParams)
 
+NOT_FITTED_ERR_MSG = 'Model not fitted yet'
+
 
 def default_evo_params(problem):
     if problem == 'ts_forecasting':
         return {'max_depth': 1,
                 'max_arity': 2,
                 'pop_size': 20,
-                'num_of_generations': 20,
+                'num_of_generations': 200,
                 'learning_time': 2,
                 'preset': 'light'}
     else:
         return {'max_depth': 2,
                 'max_arity': 3,
                 'pop_size': 20,
-                'num_of_generations': 20,
+                'num_of_generations': 200,
                 'learning_time': 2,
                 'preset': 'light_tun'
                 }
@@ -75,7 +80,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 learning_time: int = 2,
+                 learning_time: Optional[float] = None,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 1):
@@ -91,6 +96,9 @@ class Fedot:
         # model to use
         self.current_model = None
 
+        # best models for multi-objective case
+        self.best_models = None
+
         # datasets
         self.train_data = None
         self.test_data = None
@@ -103,6 +111,10 @@ class Fedot:
             self.composer_params = default_evo_params(self.problem)
         else:
             self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
+
+        self.metric_to_compose = None
+        if 'metric' in self.composer_params:
+            self.metric_to_compose = self.composer_params['metric']
 
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
@@ -127,6 +139,8 @@ class Fedot:
 
         if preset is None and 'preset' in self.composer_params:
             preset = self.composer_params['preset']
+
+        if 'preset' in self.composer_params:
             del self.composer_params['preset']
 
         if preset is not None:
@@ -145,6 +159,14 @@ class Fedot:
         execution_params = self._get_params()
         if is_composing_required:
             self.current_model = compose_fedot_model(**execution_params)
+
+        if isinstance(self.current_model, tools.ParetoFront):
+            self.best_models = self.current_model
+            self.best_models.__class__ = ParetoFront
+            self.best_models.objective_names = self.metric_to_compose
+            self.current_model = self.current_model[0]
+        else:
+            self.best_models = [self.current_model]
 
         self.current_model.fit_from_scratch(self.train_data)
 
@@ -207,7 +229,7 @@ class Fedot:
         :return: the array with prediction values
         """
         if self.current_model is None:
-            raise ValueError('The model was not fitted yet')
+            raise ValueError(NOT_FITTED_ERR_MSG)
 
         self.test_data = _define_data(ml_task=self.problem,
                                       features=features, is_predict=True)
@@ -236,7 +258,7 @@ class Fedot:
         """
 
         if self.current_model is None:
-            raise ValueError('The model was not fitted yet')
+            raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.problem.task_type == TaskTypesEnum.classification:
 
@@ -269,7 +291,7 @@ class Fedot:
         """
 
         if self.current_model is None:
-            raise ValueError('The model was not fitted yet')
+            raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.problem.task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
@@ -371,8 +393,14 @@ def _define_data(ml_task: Task,
         if target is None:
             target = np.array([])
 
+        if isinstance(target, str):
+            target_array = features[target]
+            del features[target]
+        else:
+            target_array = target
+
         data = array_to_input_data(features_array=np.asarray(features),
-                                   target_array=np.asarray(target),
+                                   target_array=np.asarray(target_array),
                                    task=ml_task)
     elif type(features) == np.ndarray:
         # numpy format for input data
@@ -390,7 +418,7 @@ def _define_data(ml_task: Task,
         # CSV files as input data
         if target is None:
             target = 'target'
-        elif is_predict:
+        if is_predict:
             target = None
         data_type = DataTypesEnum.table
         if ml_task.task_type == TaskTypesEnum.ts_forecasting:

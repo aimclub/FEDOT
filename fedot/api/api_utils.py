@@ -10,8 +10,9 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
+                                                              ComplexityMetricsEnum, MetricsRepository,
+                                                              RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -25,7 +26,8 @@ metrics_mapping = {
     'msle': RegressionMetricsEnum.MSLE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
-    'silhouette': ClusteringMetricsEnum.silhouette
+    'silhouette': ClusteringMetricsEnum.silhouette,
+    'node_num': ComplexityMetricsEnum.node_num
 }
 
 
@@ -78,7 +80,7 @@ def compose_fedot_model(train_data: InputData,
                         max_arity: int,
                         pop_size: int,
                         num_of_generations: int,
-                        learning_time: int = 5,
+                        learning_time: float = 5,
                         available_model_types: list = None,
                         with_tuning=False,
                         metric=None
@@ -87,10 +89,16 @@ def compose_fedot_model(train_data: InputData,
     if metric is None:
         metric_function = MetricByTask(task.task_type).metric_cls.get_value
     else:
-        metric_id = metrics_mapping.get(metric, None)
-        if metric_id is None:
-            raise ValueError(f'Incorrect metric {metric}')
-        metric_function = MetricsRepository().metric_by_id(metric_id)
+        if isinstance(metric, str):
+            metric = [metric]
+
+        metric_function = []
+        for specific_metric in metric:
+            metric_id = metrics_mapping.get(specific_metric, None)
+            if metric_id is None:
+                raise ValueError(f'Incorrect metric {specific_metric}')
+            specific_metric_function = MetricsRepository().metric_by_id(metric_id)
+            metric_function.append(specific_metric_function)
 
     learning_time = datetime.timedelta(minutes=learning_time)
 

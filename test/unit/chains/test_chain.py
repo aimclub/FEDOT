@@ -1,16 +1,14 @@
 import datetime
 import os
 import platform
-import pytest
 import time
-
-import numpy as np
-import pandas as pd
-
 from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
+import numpy as np
+import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 
 from fedot.core.chains.chain import Chain
@@ -19,7 +17,6 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
-
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
 
