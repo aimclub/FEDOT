@@ -4,10 +4,11 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from examples.fedot_api_example import run_classification_example, run_ts_forecasting_example
 from examples.chain_and_history_visualisation import run_chain_ang_history_visualisation
 from examples.chain_log import run_log_example
 from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
+from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
+                                        run_ts_forecasting_example)
 from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
@@ -76,3 +77,6 @@ def test_api_example():
 
     forecast = run_ts_forecasting_example(with_plot=False, with_chain_vis=False)
     assert forecast is not None
+
+    pareto = run_classification_multiobj_example()
+    assert pareto is not None

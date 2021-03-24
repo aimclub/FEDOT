@@ -169,9 +169,10 @@ def test_pandas_input_for_api():
     assert baseline_metrics['f1'] > 0
 
 
-def test_custom_metric_for_api():
+def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
-    composer_params['composer_metric'] = 'f1'
+    composer_params['composer_metric'] = ['f1', 'node_num']
+
     model = Fedot(problem='classification',
                   composer_params=composer_params)
     model.fit(features=train_data)
@@ -180,3 +181,4 @@ def test_custom_metric_for_api():
 
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
+    assert model.best_models is not None

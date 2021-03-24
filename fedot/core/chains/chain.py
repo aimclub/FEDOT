@@ -78,7 +78,7 @@ class Chain:
                 cache_status = False
         return cache_status
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData]=None, use_cache=False,
+    def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_cache=False,
                              time: timedelta = timedelta(minutes=3)) -> Manager:
         """
         Run training process with time limit. Create
@@ -146,7 +146,7 @@ class Chain:
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Optional[InputData]=None, use_cache=True, time_constraint: Optional[timedelta] = None):
+    def fit(self, input_data: Optional[InputData] = None, use_cache=True, time_constraint: Optional[timedelta] = None):
         """
         Run training process in all nodes in chain starting with root.
 

@@ -1,20 +1,19 @@
 from copy import deepcopy
-from deap import tools
+from typing import (Any, List, Optional, Tuple)
+
 import numpy as np
-from typing import (Optional, List, Any, Tuple)
+from deap import tools
 
 from fedot.core.composer.iterator import SequenceIterator, fibonacci_sequence
-from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
+from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration, num_of_parents_in_crossover
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.gp_operators import num_of_parents_in_crossover
-from fedot.core.composer.optimisers.utils.population_utils import get_metric_position
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.composer.optimisers.gp_comp.operators.selection import selection
+from fedot.core.composer.optimisers.utils.population_utils import get_metric_position, is_equal_archive
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log
-from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsRepository, MetricsEnum, \
+from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository, \
     QualityMetricsEnum
 
 DEFAULT_MAX_POP_SIZE = 55

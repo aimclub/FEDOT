@@ -1,5 +1,7 @@
-import numpy as np
 from typing import Any
+
+import numpy as np
+
 from fedot.core.data.data import InputData
 
 
@@ -47,10 +49,10 @@ def input_data_characteristics(data: InputData, log):
         features_hash = hash(nested_list_transform_to_tuple(data.features))
     else:
         features_hash = None
-        log.info("Input data features is None")
+        log.info('Input data features is None')
     if data.target is not None:
         target_hash = hash(nested_list_transform_to_tuple(data.target))
     else:
-        log.info("Input data target is None")
+        log.info('Input data target is None')
         target_hash = None
     return data_type, features_hash, target_hash

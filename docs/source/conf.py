@@ -22,7 +22,7 @@ copyright = '2020-2021, NSS Lab'
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.1'
+release = '0.3.0'
 
 # -- General configuration ---------------------------------------------------
 
