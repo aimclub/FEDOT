@@ -10,8 +10,9 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
+                                                              ComplexityMetricsEnum, MetricsRepository,
+                                                              RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -23,13 +24,15 @@ metrics_mapping = {
     'mae': RegressionMetricsEnum.MAE,
     'mse': RegressionMetricsEnum.MSE,
     'msle': RegressionMetricsEnum.MSLE,
+    'mape': RegressionMetricsEnum.MAPE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
-    'silhouette': ClusteringMetricsEnum.silhouette
+    'silhouette': ClusteringMetricsEnum.silhouette,
+    'node_num': ComplexityMetricsEnum.node_num
 }
 
 
-def autodetect_data_type(task: Task) -> DataTypesEnum:
+def _autodetect_data_type(task: Task) -> DataTypesEnum:
     if task.task_type == TaskTypesEnum.ts_forecasting:
         return DataTypesEnum.ts
     else:
@@ -48,7 +51,7 @@ def save_predict(predicted_data: OutputData):
 def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         task: Task = Task(TaskTypesEnum.classification)):
-    data_type = autodetect_data_type(task)
+    data_type = _autodetect_data_type(task)
     idx = np.arange(len(features_array))
 
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
@@ -78,7 +81,7 @@ def compose_fedot_model(train_data: InputData,
                         max_arity: int,
                         pop_size: int,
                         num_of_generations: int,
-                        learning_time: int = 5,
+                        learning_time: float = 5,
                         available_model_types: list = None,
                         with_tuning=False,
                         metric=None
@@ -87,10 +90,16 @@ def compose_fedot_model(train_data: InputData,
     if metric is None:
         metric_function = MetricByTask(task.task_type).metric_cls.get_value
     else:
-        metric_id = metrics_mapping.get(metric, None)
-        if metric_id is None:
-            raise ValueError(f'Incorrect metric {metric}')
-        metric_function = MetricsRepository().metric_by_id(metric_id)
+        if isinstance(metric, str):
+            metric = [metric]
+
+        metric_function = []
+        for specific_metric in metric:
+            metric_id = metrics_mapping.get(specific_metric, None)
+            if metric_id is None:
+                raise ValueError(f'Incorrect metric {specific_metric}')
+            specific_metric_function = MetricsRepository().metric_by_id(metric_id)
+            metric_function.append(specific_metric_function)
 
     learning_time = datetime.timedelta(minutes=learning_time)
 
@@ -114,12 +123,20 @@ def compose_fedot_model(train_data: InputData,
 
     logger.message('Model composition started')
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
-    chain_gp_composed.log = logger
+
+    chain_for_tune = chain_gp_composed
+    chain_for_return = chain_gp_composed
+
+    if isinstance(chain_gp_composed, list):
+        for chain in chain_gp_composed:
+            chain.log = logger
+        chain_for_tune = chain_gp_composed[0]
+        chain_for_return = gp_composer.optimiser.archive
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
-        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
+        chain_for_tune.fine_tune_primary_nodes(input_data=train_data)
 
     logger.message('Model composition finished')
 
-    return chain_gp_composed
+    return chain_for_return

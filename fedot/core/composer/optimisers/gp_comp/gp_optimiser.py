@@ -1,21 +1,21 @@
 import math
-import numpy as np
 from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
+import numpy as np
+
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, duplicates_filtration, \
+    evaluate_individuals, num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
-    calculate_objective, evaluate_individuals
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
     regularized_population
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log, default_log
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -306,7 +306,7 @@ class GPChainOptimiser:
         return model_chains
 
     def _best_single_models(self, objective_function: Callable, num_best: int = 7, timer=None):
-        is_process_skipped = False
+        is_time_ended = False
         single_models_inds = []
         for model in self.requirements.primary:
             single_models_ind = self.chain_class([self.primary_node_func(model)])
@@ -315,14 +315,17 @@ class GPChainOptimiser:
             if single_models_ind.fitness is not None:
                 single_models_inds.append(single_models_ind)
 
-            if single_models_inds:
-                if timer is not None:
-                    if timer.is_time_limit_reached():
-                        break
+            if (single_models_inds and
+                    timer is not None and
+                    timer.is_time_limit_reached()):
+                is_time_ended = True
+                break
 
         best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
-        if is_process_skipped:
-            self.population = [best_inds[0]]
+
+        if is_time_ended:
+            self.population = best_inds
+
         if timer is not None:
             single_models_eval_time = timer.minutes_from_start
             self.log.info(f'Single models evaluation time: {single_models_eval_time}')
