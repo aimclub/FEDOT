@@ -1,6 +1,9 @@
+import glob
+import os
+
 import numpy as np
 import pytest
-from sklearn.datasets import load_breast_cancer, load_iris
+from sklearn.datasets import load_breast_cancer
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -30,17 +33,31 @@ def data_setup():
     return train_data, test_data
 
 
-@pytest.fixture()
-def iris_data_setup():
-    predictors, response = load_iris(return_X_y=True)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-    return data
+def create_func_delete_files(paths):
+    """
+    Create function to delete cache files after tests.
+    """
+
+    def wrapper():
+        for path in paths:
+            file_list = glob.glob(path)
+            # Iterate over the list of filepaths & remove each file.
+            for file_path in file_list:
+                try:
+                    os.remove(file_path)
+                except OSError:
+                    pass
+
+    return wrapper
+
+
+@pytest.fixture(scope='session', autouse=True)
+def preprocessing_files_before_and_after_tests(request):
+    paths = ['*.bak', '*.dat', '*.dir']
+
+    delete_files = create_func_delete_files(paths)
+    delete_files()
+    request.addfinalizer(delete_files)
 
 
 def chain_first():
@@ -132,7 +149,7 @@ def chain_fifth():
 def test_cache_actuality_after_model_change(data_setup):
     """The non-affected nodes has actual cache after changing the model"""
 
-    cache = ModelsCache('test_cache_actuality_after_model_change')
+    cache = ModelsCache()
 
     chain = chain_first()
     train, _ = data_setup
@@ -155,7 +172,7 @@ def test_cache_actuality_after_model_change(data_setup):
 
 def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     """The non-affected nodes has actual cache after changing the subtree to other pre-fitted subtree"""
-    cache = ModelsCache('test_cache_actuality_after_subtree_change_to_identical')
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -177,7 +194,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
 
 def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     """ The non-affected nodes has actual cache after changing the primary node to pre-fitted subtree"""
-    cache = ModelsCache('test_cache_actuality_after_primary_node_changed_to_subtree')
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -199,7 +216,7 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
 
 
 def test_cache_historical_state_using(data_setup):
-    cache = ModelsCache('test_cache_historical_state_using')
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
 
@@ -230,7 +247,7 @@ def test_cache_historical_state_using(data_setup):
 
 def test_multi_chain_caching_with_shared_cache(data_setup):
     train, _ = data_setup
-    cache = ModelsCache('test_multi_chain_caching_with_shared_cache')
+    cache = ModelsCache()
 
     main_chain = chain_second()
     other_chain = chain_first()
@@ -243,14 +260,14 @@ def test_multi_chain_caching_with_shared_cache(data_setup):
                                   [_ for _ in main_chain.root_node.nodes_from[0].nodes_from]
     nodes_with_actual_cache = [node for node in main_chain.nodes if node not in nodes_with_non_actual_cache]
 
-    # check that using of SharedChain make identical of the main_chain fitted,
+    # check that using of other_chain make identical of the main_chain fitted,
     # despite the main_chain.fit() was not called
     assert all([cache.get(node) for node in nodes_with_actual_cache])
     # the non-identical parts are still not fitted
     assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
 
     # check the same case with another chains
-    cache = ModelsCache('test_multi_chain_caching_with_shared_cache')
+    cache = ModelsCache()
 
     main_chain = chain_fourth()
 

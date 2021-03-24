@@ -1,5 +1,6 @@
 import os
 import shelve
+import uuid
 from collections import namedtuple
 
 from fedot.core.utils import default_fedot_data_dir
@@ -10,7 +11,7 @@ CachedState = namedtuple('CachedState', 'preprocessor model')
 class ModelsCache:
     def __init__(self, db_path=None, clear_exiting=True):
         if not db_path:
-            self.db_path = f'{str(default_fedot_data_dir())}/cache_db'
+            self.db_path = f'{str(default_fedot_data_dir())}/{str(uuid.uuid4())}'
         else:
             self.db_path = db_path
 

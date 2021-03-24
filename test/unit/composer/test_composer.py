@@ -1,12 +1,11 @@
 import datetime
 import os
-import pytest
 import random
 import shelve
 
 import numpy as np
 import pandas as pd
-
+import pytest
 from deap import tools
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -24,8 +23,8 @@ from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.chains.test_chain_tuning import get_class_chain
 from test.unit.chains.test_chain_comparison import chain_first
+from test.unit.chains.test_chain_tuning import get_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -293,8 +292,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser_parameters(optimiser_parameters).with_cache(
-        'test_gp_composer_saving_info_from_process')
+        quality_metric).with_optimiser_parameters(optimiser_parameters).with_cache()
     composer = builder.build()
     train_data, test_data = train_test_data_setup(data,
                                                   sample_split_ration_for_tasks[data.task.task_type],

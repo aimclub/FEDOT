@@ -120,6 +120,9 @@ class GPComposer(Composer):
 
         self.log.info('GP composition finished')
 
+        if self.cache_path is None:
+            self.shared_cache.clear()
+
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
@@ -211,7 +214,7 @@ class GPComposerBuilder:
         self._composer.log = logger
         return self
 
-    def with_cache(self, cache_path: str):
+    def with_cache(self, cache_path: str = None):
         self._composer.cache_path = cache_path
         return self
 
