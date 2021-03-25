@@ -32,11 +32,11 @@ class GPComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
-    :param pop_size: population size
-    :param num_of_generations: maximal number of evolutionary algorithm generations
-    :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
-    :param mutation_prob: mutation probability
-    :param mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :attribute pop_size: population size
+    :attribute num_of_generations: maximal number of evolutionary algorithm generations
+    :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
+    :attribute mutation_prob: mutation probability
+    :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 100
@@ -50,9 +50,9 @@ class ChainGenerationParams:
     """
     This dataclass is for defining the parameters using in chain generation process
 
-    :param primary_node_func: the function for primary node generation
-    :param secondary_node_func: the function for secondary node generation
-    :param chain_class: class for the chain object
+    :attribute primary_node_func: the function for primary node generation
+    :attribute secondary_node_func: the function for secondary node generation
+    :attribute chain_class: class for the chain object
     """
     primary_node_func: Callable = PrimaryNode
     secondary_node_func: Callable = SecondaryNode
@@ -79,13 +79,20 @@ class GPComposer(Composer):
 
     def compose_chain(self, data: InputData, is_visualise: bool = False,
                       is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
+        """ Function for optimal chain structure searching
 
+        :param data: InputData for chain composing
+        :param is_visualise: is it needed to visualise
+        :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
+        :param on_next_iteration_callback: TODO add description
+
+        :return best_chain: obtained chain after composing
+        """
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
         train_data, test_data = train_test_data_setup(data,
-                                                      sample_split_ration_for_tasks[data.task.task_type],
-                                                      task=data.task)
+                                                      sample_split_ration_for_tasks[data.task.task_type])
         self.shared_cache.clear()
         metric_function_for_nodes = partial(self.metric_for_nodes,
                                             self.metrics, train_data, test_data, True)
@@ -114,7 +121,7 @@ class GPComposer(Composer):
 
     @staticmethod
     def tune_chain(chain: Chain, data: InputData, time_limit):
-        chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)
+        raise NotImplementedError()
 
     @property
     def history(self):

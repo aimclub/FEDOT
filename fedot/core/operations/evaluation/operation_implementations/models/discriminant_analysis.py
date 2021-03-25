@@ -5,7 +5,7 @@ from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
 
 
-class DiscriminantAnalysisModel:
+class DiscriminantAnalysisImplementation:
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -55,7 +55,7 @@ class DiscriminantAnalysisModel:
         return self.model.classes_
 
 
-class LDAModel(DiscriminantAnalysisModel):
+class LDAImplementation(DiscriminantAnalysisImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -66,7 +66,7 @@ class LDAModel(DiscriminantAnalysisModel):
         self.params = params
 
 
-class QDAModel(DiscriminantAnalysisModel):
+class QDAImplementation(DiscriminantAnalysisImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()

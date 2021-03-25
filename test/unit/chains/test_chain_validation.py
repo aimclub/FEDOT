@@ -4,7 +4,8 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_validation import (has_correct_operation_positions, has_no_cycle,
                                                 has_no_isolated_components, has_no_isolated_nodes,
                                                 has_no_self_cycled_nodes, has_primary_nodes,
-                                                validate, has_final_operation_as_model)
+                                                validate, has_final_operation_as_model,
+                                                has_no_conflicts_with_data_flow)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -166,6 +167,17 @@ def chain_with_only_data_operations():
     return chain
 
 
+def chain_with_incorrect_data_flow():
+    """ When combining the features in the presented chain, a table with 5
+    columns will turn into a table with 10 columns """
+    first = PrimaryNode(operation_type='scaling')
+    second = PrimaryNode(operation_type='ransac_lin_reg')
+
+    final = SecondaryNode(operation_type='ridge', nodes_from=[first, second])
+    chain = Chain(final)
+    return chain
+
+
 def test_chain_with_cycle_raise_exception():
     chain = chain_with_cycle()
     with pytest.raises(Exception) as exc:
@@ -244,3 +256,12 @@ def test_chain_without_model_in_root_node():
         assert has_final_operation_as_model(incorrect_chain)
 
     assert str(exc.value) == f'{ERROR_PREFIX} Root operation is not a model'
+
+
+def test_chain_with_incorrect_data_flow():
+    incorrect_chain = chain_with_incorrect_data_flow()
+
+    with pytest.raises(Exception) as exc:
+        assert has_no_conflicts_with_data_flow(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'

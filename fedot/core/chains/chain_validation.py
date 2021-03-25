@@ -8,6 +8,7 @@ from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
 from fedot.core.repository.tasks import Task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -21,6 +22,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_primary_nodes(chain)
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
+    has_no_conflicts_with_data_flow(chain)
     return True
 
 
@@ -88,4 +90,38 @@ def has_final_operation_as_model(chain: Chain):
     else:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
+    return True
+
+
+def has_no_conflicts_with_data_flow(chain: Chain):
+    """ Check if the chain contains incorrect connections between nodes """
+    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    forbidden_parents_combination, _ = operation_repo.suitable_operation()
+    forbidden_parents_combination = set(forbidden_parents_combination)
+
+    for node in chain.nodes:
+        parent_nodes = node.nodes_from
+
+        if parent_nodes is None:
+            # There are no parent nodes for current one
+            pass
+        elif len(parent_nodes) == 1:
+            # There is only one parent node for current one
+            pass
+        else:
+            # There are several parents
+            operation_names = []
+            for parent in parent_nodes:
+                operation_names.append(str(parent.operation))
+
+            # If operations are identical
+            if len(set(operation_names)) == 1:
+                # And if it is forbidden to combine them
+                if operation_names[0] in forbidden_parents_combination:
+                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations')
+            else:
+                # Common operations from parent nodes and forbidden repository
+                common = set(operation_names) & forbidden_parents_combination
+                if len(common) > 0:
+                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
     return True

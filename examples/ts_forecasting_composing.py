@@ -1,20 +1,23 @@
 import datetime
-import os
-
+import warnings
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error as mse
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.chain import Chain
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import project_root
+
+warnings.filterwarnings('ignore')
 
 
 def get_source_chain():
@@ -40,29 +43,34 @@ def get_source_chain():
     return chain
 
 
+def get_available_operations():
+    """ Function returns available operations for primary and secondary nodes """
+    primary_operations = ['lagged', 'smoothing']
+    secondary_operations = ['ridge', 'lasso', 'dtreg', 'knnreg', 'linear',
+                            'svr', 'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
+                            'lagged']
+    return primary_operations, secondary_operations
+
+
 def display_validation_metric(predicted, real, actual_values,
-                              is_visualise: bool, label: str) -> float:
+                              is_visualise: bool) -> None:
     """ Function calculate metrics based on predicted and tests data
 
     :param predicted: predicted values
     :param real: real values
     :param actual_values: source time series
     :param is_visualise: is it needed to show the plots
-    :param label: label for display
     """
 
-    # plot results
+    rmse_value = mean_squared_error(real, predicted, squared=False)
+    mae_value = mean_absolute_error(real, predicted)
+    print(f'RMSE - {rmse_value:.2f}')
+    print(f'MAE - {mae_value:.2f}\n')
+
     if is_visualise:
         plot_results(actual_time_series=actual_values,
                      predicted_values=predicted,
                      len_train_data=len(actual_values)-len(predicted))
-
-    # the quality assessment for the simulation results
-    rmse = mse(y_true=real, y_pred=predicted, squared=False)
-
-    print(f'RESULT: {label}, RMSE: {round(rmse, 3)}')
-
-    return rmse
 
 
 def plot_results(actual_time_series, predicted_values, len_train_data,
@@ -91,6 +99,58 @@ def plot_results(actual_time_series, predicted_values, len_train_data,
     plt.show()
 
 
+def prepare_train_test_input(train_part, len_forecast):
+    """ Function return prepared data for fit and predict
+
+    :param len_forecast: forecast length
+    :param train_part: time series which can be used as predictors for train
+
+    :return train_input: Input Data for fit
+    :return predict_input: Input Data for predict
+    :return task: Time series forecasting task with parameters
+    """
+
+    # Specify the task to solve
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=len_forecast))
+
+    train_input = InputData(idx=np.arange(0, len(train_part)),
+                            features=train_part,
+                            target=train_part,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+
+    start_forecast = len(train_part)
+    end_forecast = start_forecast + len_forecast
+    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
+                              features=train_part,
+                              target=None,
+                              task=task,
+                              data_type=DataTypesEnum.ts)
+
+    return train_input, predict_input, task
+
+
+def fit_predict_for_chain(chain, train_input, predict_input):
+    """ Function apply fit and predict operations
+
+    :param chain: chain to process
+    :param train_input: InputData for fit
+    :param predict_input: InputData for predict
+
+    :return preds: prediction of the chain
+    """
+    # Fit it
+    chain.fit_from_scratch(train_input)
+
+    # Predict
+    predicted_values = chain.predict(predict_input)
+    # Convert to one dimensional array
+    preds = np.ravel(np.array(predicted_values.predict))
+
+    return preds
+
+
 def run_ts_forecasting_problem(forecast_length=50,
                                with_visualisation=True) -> None:
     """ Function launch time series task with composing
@@ -107,11 +167,50 @@ def run_ts_forecasting_problem(forecast_length=50,
     train_part = time_series[:-forecast_length]
     test_part = time_series[-forecast_length:]
 
-    # specify the task to solve
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
+    # Prepare data for train and test
+    train_input, predict_input, task = prepare_train_test_input(train_part,
+                                                                forecast_length)
 
-    # TODO finish this example
+    # Get chain with pre-defined structure
+    init_chain = get_source_chain()
+
+    # Init check
+    preds = fit_predict_for_chain(chain=init_chain,
+                                  train_input=train_input,
+                                  predict_input=predict_input)
+    display_validation_metric(predicted=preds,
+                              real=test_part,
+                              actual_values=time_series,
+                              is_visualise=with_visualisation)
+
+    # Get available_operations type
+    primary_operations, secondary_operations = get_available_operations()
+
+    # Composer parameters
+    composer_requirements = GPComposerRequirements(
+        primary=primary_operations,
+        secondary=secondary_operations, max_arity=3,
+        max_depth=8, pop_size=10, num_of_generations=5,
+        crossover_prob=0.8, mutation_prob=0.8,
+        max_lead_time=datetime.timedelta(minutes=5),
+        allow_single_operations=False)
+
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
+    builder = GPComposerBuilder(task=task).with_requirements(
+        composer_requirements).with_metrics(metric_function).with_initial_chain(
+        init_chain)
+    composer = builder.build()
+
+    obtained_chain = composer.compose_chain(data=train_input, is_visualise=False)
+
+    preds = fit_predict_for_chain(chain=obtained_chain,
+                                  train_input=train_input,
+                                  predict_input=predict_input)
+
+    display_validation_metric(predicted=preds,
+                              real=test_part,
+                              actual_values=time_series,
+                              is_visualise=with_visualisation)
 
 
 if __name__ == '__main__':

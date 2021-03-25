@@ -5,8 +5,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA, KernelPCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
-from fedot.core.operations.evaluation.operation_realisations.\
-    abs_interfaces import DataOperationRealisation, EncodedInvariantOperation
+from fedot.core.operations.evaluation.operation_implementations.\
+    implementation_interfaces import DataOperationRealisation, EncodedInvariantOperation
 
 
 class ComponentAnalysisOperation(DataOperationRealisation):

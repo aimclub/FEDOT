@@ -283,7 +283,6 @@ class SecondaryNode(Node):
 
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str,
-                            max_tune_time: Optional[timedelta] = None,
                             verbose=False) -> InputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
@@ -294,7 +293,7 @@ class SecondaryNode(Node):
         parent_nodes = self._nodes_from_with_fixed_order()
 
         parent_results, target = _combine_parents(parent_nodes, input_data,
-                                                  parent_operation, max_tune_time)
+                                                  parent_operation)
 
         secondary_input = InputData.from_predictions(outputs=parent_results)
 
@@ -303,8 +302,7 @@ class SecondaryNode(Node):
 
 def _combine_parents(parent_nodes: List[Node],
                      input_data: InputData,
-                     parent_operation: str,
-                     max_tune_time: Optional[timedelta]):
+                     parent_operation: str):
     """
     Method for combining predictions from parent node or nodes
 
@@ -312,7 +310,6 @@ def _combine_parents(parent_nodes: List[Node],
     be combined
     :param input_data: input data from chain abstraction (source input data)
     :param parent_operation: name of parent operation (fit or predict)
-    :param max_tune_time: max time for tuning hyperparameters in nodes
     :return parent_results: list with OutputData from parent nodes
     :return target: target for final chain prediction
     """

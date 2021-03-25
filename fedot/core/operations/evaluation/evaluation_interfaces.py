@@ -1,0 +1,163 @@
+import warnings
+
+from abc import abstractmethod
+from typing import Optional
+
+from sklearn.ensemble import (AdaBoostRegressor,
+                              ExtraTreesRegressor,
+                              GradientBoostingRegressor,
+                              RandomForestRegressor)
+from sklearn.linear_model import (Lasso as SklearnLassoReg,
+                                  LinearRegression as SklearnLinReg,
+                                  Ridge as SklearnRidgeReg,
+                                  SGDRegressor as SklearnSGD)
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
+from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
+from sklearn.neural_network import MLPClassifier
+from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
+from sklearn.cluster import KMeans as SklearnKmeans
+from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVC
+
+from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
+from sklearn.svm import LinearSVR as SklearnSVR
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
+
+
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
+class EvaluationStrategy:
+    """
+    Base class to define the evaluation strategy of Operation object:
+    the certain sklearn or any other operation with fit/predict methods.
+    :param operation_type: str type of the operation defined in operation repository
+    :param dict params: hyperparameters to fit the operation with
+    :param Log log: Log object to record messages
+    """
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None,
+                 log=None):
+        self.params_for_fit = params
+        self.operation_type = operation_type
+
+        self.output_mode = False
+
+        if not log:
+            self.log: Log = default_log(__name__)
+        else:
+            self.log: Log = log
+
+    @abstractmethod
+    def fit(self, train_data: InputData):
+        """
+        Main method to train the operation with the data provided
+        :param InputData train_data: data used for operation training
+        :return:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
+        """
+        Main method to predict the target data.
+        :param trained_operation: trained operation object
+        :param InputData predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return OutputData: passed data with new predicted target
+        """
+        raise NotImplementedError()
+
+    @property
+    def implementation_info(self) -> str:
+        return 'No description'
+
+
+class SkLearnEvaluationStrategy(EvaluationStrategy):
+    """
+    This class defines the certain operation implementation for the sklearn operations
+    defined in operation repository
+    :param str operation_type: str type of the operation defined in operation or
+    data operation repositories
+    :param dict params: hyperparameters to fit the operation with
+    """
+    __operations_by_types = {
+        'xgbreg': XGBRegressor,
+        'adareg': AdaBoostRegressor,
+        'gbr': GradientBoostingRegressor,
+        'knnreg': SklearnKNNReg,
+        'dtreg': DecisionTreeRegressor,
+        'treg': ExtraTreesRegressor,
+        'rfr': RandomForestRegressor,
+        'linear': SklearnLinReg,
+        'ridge': SklearnRidgeReg,
+        'lasso': SklearnLassoReg,
+        'svr': SklearnSVR,
+        'sgdr': SklearnSGD,
+
+        'xgboost': XGBClassifier,
+        'logit': SklearnLogReg,
+        'bernb': SklearnBernoulliNB,
+        'multinb': SklearnMultinomialNB,
+        'knn': SklearnKNN,
+        'dt': DecisionTreeClassifier,
+        'svc': CustomSVC,
+        'rf': RandomForestClassifier,
+        'mlp': MLPClassifier,
+
+        'kmeans': SklearnKmeans,
+    }
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.operation_impl = self._convert_to_operation(operation_type)
+        super().__init__(operation_type, params)
+
+    def fit(self, train_data: InputData):
+        """
+        This method is used for operation training with the data provided
+        :param InputData train_data: data used for operation training
+        :return: trained Sklearn operation
+        """
+
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            operation_implementation = self.operation_impl(**self.params_for_fit)
+        else:
+            operation_implementation = self.operation_impl()
+
+        operation_implementation.fit(train_data.features, train_data.target)
+        return operation_implementation
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_chain_stage: bool) -> OutputData:
+        """
+        This method used for prediction of the target data.
+        :param trained_operation: operation object
+        :param predict_data: data to predict
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return OutputData: passed data with new predicted target
+        """
+        raise NotImplementedError()
+
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain SKlearn strategy for {operation_type}')
+
+    def _find_operation_by_impl(self, impl):
+        for operation, operation_impl in self.__operations_by_types.items():
+            if operation_impl == impl:
+                return operation
+
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))

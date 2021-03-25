@@ -6,7 +6,7 @@ from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.feature_selection import RFE
 
 from fedot.core.operations.evaluation.\
-    operation_realisations.abs_interfaces import EncodedInvariantOperation
+    operation_implementations.implementation_interfaces import EncodedInvariantOperation
 
 
 class FeatureSelection(EncodedInvariantOperation):

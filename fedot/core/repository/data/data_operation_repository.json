@@ -6,7 +6,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the preprocessing from scikit-learn framework"},
 		"sklearn_categorical": {
@@ -15,16 +15,16 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["primary"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"},
-		"sklearn_dimension_transformation": {
+		"dimension_transformation": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
 		"sklearn_regression_filters": {
@@ -33,7 +33,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.regression", "CustomRegressionPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
 		"sklearn_classification_filters": {
@@ -42,7 +42,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "SkLearnPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"time_series_transformation": {
@@ -51,7 +51,7 @@
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.evaluation", "TsTransformingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsTransformingStrategy"],
 			"tags": ["time_series"],
 			"description": "Preprocessing for converting uni-variate time-series into table form"},
 		"text_preprocessing": {
@@ -60,7 +60,7 @@
 			"output_type": "[DataTypesEnum.text, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.text", "TextPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.text", "CustomTextPreprocessingStrategy"],
 			"tags": ["text"],
 			"description": "Preprocessing operations for text classification"}
 	},
@@ -78,15 +78,15 @@
 			"tags": ["simple", "imputation"]
 		},
 		"pca": {
-			"meta": "sklearn_dimension_transformation",
+			"meta": "dimension_transformation",
 			"tags": ["linear", "dimensionality_transforming"]
 		},
 		"kernel_pca": {
-			"meta": "sklearn_dimension_transformation",
+			"meta": "dimension_transformation",
 			"tags": ["non_linear", "dimensionality_transforming"]
 		},
 		"poly_features": {
-			"meta": "sklearn_dimension_transformation",
+			"meta": "dimension_transformation",
 			"tags": ["non_linear", "dimensionality_transforming"]
 		},
 		"one_hot_encoding": {

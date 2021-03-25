@@ -1,6 +1,6 @@
 import os
 import warnings
-from copy import copy
+
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -22,6 +22,7 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    features_idx: Optional[np.array] = None
 
     @staticmethod
     def from_csv(file_path=None,
@@ -122,14 +123,8 @@ class InputData(Data):
         task = outputs[0].task
         data_type = outputs[0].data_type
 
-        dataset_merging_funcs = {
-            DataTypesEnum.table: _combine_datasets_table,
-            DataTypesEnum.ts: _combine_datasets_ts
-        }
-        dataset_merging_funcs.setdefault(data_type, _combine_datasets_table)
-
         # Update not only features but idx and target also
-        idx, features, target = dataset_merging_funcs[data_type](outputs)
+        idx, features, target = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
@@ -153,23 +148,270 @@ class OutputData(Data):
     target: Optional[np.array] = None
 
 
-def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = None):
-    assert 0. <= split_ratio <= 1.
-    if task is not None and task.task_type == TaskTypesEnum.ts_forecasting:
-        split_point = int(len(data) * split_ratio)
-        # move pre-history of time series from train to test sample
-        data_train, data_test = (data[:split_point],
-                                 copy(data[split_point - task.task_params.max_window_size:]))
-    else:
-        if with_shuffle:
-            data_train, data_test = train_test_split(data, test_size=1. - split_ratio, random_state=42)
+class DataMerger:
+    """
+    Class for merging data, when it comes from different nodes and there is a
+    need to merge it into next level node
+
+    :param outputs: list with outputs from parent nodes
+    """
+
+    def __init__(self, outputs: List[OutputData]):
+        self.outputs = outputs
+
+    def merge(self):
+        """ Method automatically determine which merge function should be
+        applied """
+        merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
+                                  DataTypesEnum.table: self.combine_datasets_table,
+                                  DataTypesEnum.text: self.combine_datasets_table,}
+
+        first_data_type = self.outputs[0].data_type
+        output_data_types = []
+        for output in self.outputs:
+            output_data_types.append(output.data_type)
+
+        # Check is all data types can be merged or not
+        if len(set(output_data_types)) > 1:
+            raise ValueError("There is no ability to merge different data types")
+
+        # Define appropriate strategy
+        merge_func = merge_function_by_type.get(first_data_type)
+        if merge_func is None:
+            message = f"For data type '{first_data_type}' doesn't exist merge function"
+            raise NotImplementedError(message)
         else:
-            split_point = int(len(data) * split_ratio)
-            data_train, data_test = data[:split_point], data[split_point:]
-    return data_train, data_test
+            idx, features, target = merge_func()
+
+        return idx, features, target
+
+    def combine_datasets_table(self):
+        """ Function for combining datasets from parents to make features to
+        another node. Features are tabular data.
+
+        :return idx: updated indices
+        :return features: new features obtained from predictions at previous level
+        :return target: updated target
+        """
+        are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
+
+        if are_lengths_equal:
+            idx, features, target = self._merge_equal_outputs(self.outputs)
+        else:
+            idx, features, target = self._merge_non_equal_outputs(self.outputs,
+                                                                  idx_list)
+
+        return idx, features, target
+
+    def combine_datasets_ts(self):
+        """ Function for combining datasets from parents to make features to
+        another node. Features are time series data.
+
+        :return idx: updated indices
+        :return features: new features obtained from predictions at previous level
+        :return target: updated target
+        """
+        are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
+
+        if are_lengths_equal:
+            idx, features, target = self._merge_equal_outputs(self.outputs)
+        else:
+            idx, features, target = self._merge_non_equal_outputs(self.outputs,
+                                                                  idx_list)
+
+        features = np.ravel(np.array(features))
+        target = np.ravel(np.array(target))
+        return idx, features, target
+
+    @staticmethod
+    def _merge_equal_outputs(outputs: List[OutputData]):
+        """ Method merge datasets with equal amount of rows """
+
+        features = []
+        for elem in outputs:
+            if len(elem.predict.shape) == 1:
+                features.append(elem.predict)
+            else:
+                # If the model prediction is multivariate
+                number_of_variables_in_prediction = elem.predict.shape[1]
+                for i in range(number_of_variables_in_prediction):
+                    features.append(elem.predict[:, i])
+
+        features = np.array(features).T
+        idx = outputs[0].idx
+        target = outputs[0].target
+        return idx, features, target
+
+    @staticmethod
+    def _merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
+        """ Method merge datasets with different amount of rows by idx field """
+        # TODO add ability to merge datasets with different amount of features
+
+        # Search overlapping indices in data
+        for i, idx in enumerate(idx_list):
+            idx = set(idx)
+            if i == 0:
+                common_idx = idx
+            else:
+                common_idx = common_idx & idx
+
+        # Convert to list
+        common_idx = np.array(list(common_idx))
+        if len(common_idx) == 0:
+            raise ValueError(f'There are no common indices for outputs')
+
+        features = []
+
+        for elem in outputs:
+            # Create mask where True - appropriate objects
+            mask = np.in1d(np.array(elem.idx), common_idx)
+
+            if len(elem.predict.shape) == 1:
+                filtered_predict = elem.predict[mask]
+                features.append(filtered_predict)
+            else:
+                # if the model prediction is multivariate
+                number_of_variables_in_prediction = elem.predict.shape[1]
+                for i in range(number_of_variables_in_prediction):
+                    predict = elem.predict[:, i]
+                    filtered_predict = predict[mask]
+                    features.append(filtered_predict)
+
+        old_target = outputs[-1].target
+        filtered_target = old_target[mask]
+        features = np.array(features).T
+        return common_idx, features, filtered_target
+
+    @staticmethod
+    def _check_size_equality(outputs: List[OutputData]):
+        """ Function check the size of combining datasets """
+        idx_lengths = []
+        idx_list = []
+        for elem in outputs:
+            idx_lengths.append(len(elem.idx))
+            idx_list.append(elem.idx)
+
+        # Check amount of unique lengths of datasets
+        if len(set(idx_lengths)) == 1:
+            are_lengths_equal = True
+        else:
+            are_lengths_equal = False
+
+        return are_lengths_equal, idx_list
+
+
+def split_time_series(data, task):
+    """ Split time series data into train and test parts
+
+    :param data: array with data to split (not InputData)
+    :param task: task to solve
+    """
+
+    input_features = data.features
+    input_target = data.target
+    forecast_length = task.task_params.forecast_length
+
+    # Source time series divide into two parts
+    x_train = input_features[:-forecast_length]
+    x_test = input_features[:-forecast_length]
+
+    y_train = x_train
+    y_test = input_target[-forecast_length:]
+
+    idx_for_train = np.arange(0, len(x_train))
+
+    # Define indices for test
+    start_forecast = len(x_train)
+    end_forecast = start_forecast + forecast_length
+    idx_for_predict = np.arange(start_forecast, end_forecast)
+
+    # Prepare data to train the model
+    train_data = InputData(idx=idx_for_train,
+                           features=x_train,
+                           target=y_train,
+                           task=task,
+                           data_type=DataTypesEnum.table)
+
+    test_data = InputData(idx=idx_for_predict,
+                          features=x_test,
+                          target=y_test,
+                          task=task,
+                          data_type=DataTypesEnum.table)
+
+    return train_data, test_data
+
+
+def split_table(data, task, split_ratio, with_shuffle=False):
+    """ Split table data into train and test parts
+
+    :param data: array with data to split (not InputData)
+    :param task: task to solve
+    :param split_ratio: threshold for partitioning
+    :param with_shuffle: is data needed to be shuffled or not
+    """
+
+    assert 0. <= split_ratio <= 1.
+    random_state = 42
+
+    # Predictors and target
+    input_features = data.features
+    input_target = data.target
+
+    x_train, x_test, y_train, y_test = train_test_split(input_features,
+                                                        input_target,
+                                                        test_size=1. - split_ratio,
+                                                        shuffle=with_shuffle,
+                                                        random_state=random_state)
+
+    idx_for_train = np.arange(0, len(x_train))
+    idx_for_predict = np.arange(0, len(x_test))
+
+    # Prepare data to train the model
+    train_data = InputData(idx=idx_for_train,
+                           features=x_train,
+                           target=y_train,
+                           task=task,
+                           data_type=DataTypesEnum.table)
+
+    test_data = InputData(idx=idx_for_predict,
+                          features=x_test,
+                          target=y_test,
+                          task=task,
+                          data_type=DataTypesEnum.table)
+
+    return train_data, test_data
+
+
+def train_test_data_setup(data: InputData, split_ratio=0.8,
+                          shuffle_flag=False) -> Tuple[InputData, InputData]:
+    """ Function for train and test split
+
+    :param data: InputData for train and test splitting
+    :param split_ratio: threshold for partitioning
+    :param shuffle_flag: is data needed to be shuffled or not
+
+    :return train_data: InputData for train
+    :return test_data: InputData for validation
+    """
+    # Split into train and test
+    if data.features is not None:
+        task = data.task
+        if data.data_type == DataTypesEnum.ts:
+            train_data, test_data = split_time_series(data, task)
+        elif data.data_type == DataTypesEnum.table:
+            train_data, test_data = split_table(data, task, split_ratio,
+                                                with_shuffle=shuffle_flag)
+        else:
+            train_data, test_data = split_table(data, task, split_ratio,
+                                                with_shuffle=shuffle_flag)
+    else:
+        raise ValueError('InputData must be not empty')
+
+    return train_data, test_data
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):
+    """ Function converts columns with objects into numerical form and fill na """
     objects: pd.DataFrame = data_frame.select_dtypes('object')
     for column_name in objects:
         warnings.warn(f'Automatic factorization for the column {column_name} with type "object" is applied.')
@@ -177,154 +419,3 @@ def _convert_dtypes(data_frame: pd.DataFrame):
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)
     return data_frame
-
-
-def train_test_data_setup(data: InputData, split_ratio=0.8,
-                          shuffle_flag=False, task: Task = None) -> Tuple[InputData, InputData]:
-    if data.features is not None:
-        train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag, task=task)
-    else:
-        train_data_x, test_data_x = None, None
-
-    train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag, task=task)
-    train_idx, test_idx = split_train_test(data.idx, split_ratio, with_shuffle=shuffle_flag, task=task)
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=train_idx, task=data.task, data_type=data.data_type)
-    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task=data.task,
-                          data_type=data.data_type)
-    return train_data, test_data
-
-
-def _check_size_equality(outputs: List[OutputData]):
-    """ Function check the size of combining datasets """
-    idx_lengths = []
-    idx_list = []
-    for elem in outputs:
-        idx_lengths.append(len(elem.idx))
-        idx_list.append(elem.idx)
-
-    # Check amount of unique lengths of datasets
-    if len(set(idx_lengths)) == 1:
-        are_lengths_equal = True
-    else:
-        are_lengths_equal = False
-
-    return are_lengths_equal, idx_list
-
-
-def merge_equal_outputs(outputs: List[OutputData]):
-    """ Function merge datasets with equal amount of rows """
-
-    features = []
-    for elem in outputs:
-        if len(elem.predict.shape) == 1:
-            features.append(elem.predict)
-        else:
-            # if the model prediction is multivariate
-            number_of_variables_in_prediction = elem.predict.shape[1]
-            for i in range(number_of_variables_in_prediction):
-                features.append(elem.predict[:, i])
-
-    features = np.array(features).T
-    idx = outputs[0].idx
-    target = outputs[0].target
-    return idx, features, target
-
-
-def merge_non_equal_outputs(outputs: List[OutputData], idx_list: List):
-    """ Function merge datasets with different amount of rows by idx field """
-    # TODO add ability to merge datasets with different amount of features
-
-    # Search overlapping indices in data
-    for i, idx in enumerate(idx_list):
-        idx = set(idx)
-        if i == 0:
-            common_idx = idx
-        else:
-            common_idx = common_idx & idx
-
-    # Convert to list
-    common_idx = np.array(list(common_idx))
-    if len(common_idx) == 0:
-        raise ValueError(f'There are no common indices for outputs')
-
-    features = []
-
-    for elem in outputs:
-        # Create mask where True - appropriate objects
-        mask = np.in1d(np.array(elem.idx), common_idx)
-
-        if len(elem.predict.shape) == 1:
-            filtered_predict = elem.predict[mask]
-            features.append(filtered_predict)
-        else:
-            # if the model prediction is multivariate
-            number_of_variables_in_prediction = elem.predict.shape[1]
-            for i in range(number_of_variables_in_prediction):
-                predict = elem.predict[:, i]
-                filtered_predict = predict[mask]
-                features.append(filtered_predict)
-
-    old_target = outputs[-1].target
-    filtered_target = old_target[mask]
-    features = np.array(features).T
-    return common_idx, features, filtered_target
-
-
-def _combine_datasets_table(outputs: List[OutputData]):
-    """ Function for combining datasets from parents to make features to
-    another node. Features are tabular data.
-
-    :param outputs: list with outputs from parent nodes
-    :return idx: updated indices
-    :return features: new features obtained from predictions at previous level
-    :return target: updated target
-    """
-
-    are_lengths_equal, idx_list = _check_size_equality(outputs)
-
-    if are_lengths_equal:
-        idx, features, target = merge_equal_outputs(outputs)
-    else:
-        idx, features, target = merge_non_equal_outputs(outputs, idx_list)
-
-    return idx, features, target
-
-
-def _combine_datasets_ts(outputs: List[OutputData]):
-    """ Function for combining datasets from parents to make features to
-    another node. Features are time series data.
-
-    :param outputs: list with outputs from parent nodes
-    :return idx: updated indices
-    :return features: new features obtained from predictions at previous level
-    :return target: updated target
-    """
-
-    are_lengths_equal, idx_list = _check_size_equality(outputs)
-
-    if are_lengths_equal:
-        idx, features, target = merge_equal_outputs(outputs)
-    else:
-        idx, features, target = merge_non_equal_outputs(outputs, idx_list)
-
-    features = np.ravel(np.array(features))
-    target = np.ravel(np.array(target))
-    return idx, features, target
-
-
-def _combine_datasets_common(outputs: List[OutputData]):
-
-    features = list()
-    for elem in outputs:
-        if len(elem.predict) != len(outputs[0].predict):
-            raise NotImplementedError(f'Non-equal prediction length: '
-                                      f'{len(elem.predict)} and {len(outputs[0].predict)}')
-        if len(elem.predict.shape) == 1:
-            features.append(elem.predict)
-        else:
-            # if the model prediction is multivariate
-            number_of_variables_in_prediction = elem.predict.shape[1]
-            for i in range(number_of_variables_in_prediction):
-                features.append(elem.predict[:, i])
-    return features

@@ -138,7 +138,7 @@ class HyperoptTuner(ABC):
         input_target = input_data.target
 
         if self.task.task_type == TaskTypesEnum.ts_forecasting:
-            # Time series forecasting task - TODO not optimal split -> vital!
+            # Time series forecasting task
             forecast_length = self.task.task_params.forecast_length
             x_train = input_features[:-forecast_length]
             x_test = input_features[:-forecast_length]

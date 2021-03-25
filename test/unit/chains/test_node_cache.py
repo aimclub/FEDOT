@@ -7,7 +7,7 @@ from sklearn.datasets import load_breast_cancer, load_iris
 from fedot.core.chains.chain import Chain, SharedChain
 from fedot.core.chains.node import FittedOperationCache, \
     PrimaryNode, SecondaryNode, SharedCache
-from fedot.core.data.data import InputData, split_train_test
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -21,8 +21,18 @@ def data_setup():
     np.random.shuffle(response)
     response = response[:100]
     predictors = predictors[:100]
-    train_data_x, test_data_x = split_train_test(predictors)
-    train_data_y, test_data_y = split_train_test(response)
+
+    input_data = InputData(idx=np.arange(0, len(predictors)),
+                           features=predictors,
+                           target=response,
+                           task=task,
+                           data_type=DataTypesEnum.table)
+    train_data, test_data = train_test_data_setup(data=input_data)
+    train_data_x = train_data.features
+    test_data_x = test_data.features
+    train_data_y = train_data.target
+    test_data_y = test_data.target
+
     train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=np.arange(0, len(train_data_y)),
                            task=task, data_type=DataTypesEnum.table)

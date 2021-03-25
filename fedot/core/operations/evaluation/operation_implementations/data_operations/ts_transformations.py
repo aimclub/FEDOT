@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.operations.evaluation.operation_realisations.\
-    abs_interfaces import DataOperationRealisation
+from fedot.core.operations.evaluation.operation_implementations.\
+    implementation_interfaces import DataOperationRealisation
 
 
 class LaggedTransformation(DataOperationRealisation):

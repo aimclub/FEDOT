@@ -8,6 +8,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 
 
+# TODO refactor is required
 def run_chain_from_automl(train_file_path: str, test_file_path: str,
                           max_run_time: timedelta = timedelta(minutes=10)):
     """ Function run chain with Auto ML models in nodes

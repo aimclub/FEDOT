@@ -8,8 +8,8 @@ from scipy import stats
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.\
-    operation_realisations.abs_interfaces import ModelRealisation
-from fedot.core.operations.evaluation.operation_realisations.data_operations.ts_transformations import _ts_to_table
+    operation_implementations.implementation_interfaces import ModelRealisation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 
 
 class ARIMAModel(ModelRealisation):

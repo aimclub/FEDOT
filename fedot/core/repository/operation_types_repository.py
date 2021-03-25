@@ -129,20 +129,33 @@ class OperationTypesRepository:
                            _is_tags_contains_in_operation(tags, m.tags, is_full_match)]
         return [m.id for m in operations_info], operations_info
 
-    def suitable_operation(self, task_type: TaskTypesEnum,
+    def suitable_operation(self, task_type: TaskTypesEnum = None,
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None):
+        """ Method returns operations from repository for desired task and / or
+        tags. Filtering method.
+
+        :param task_type: task filter
+        :param tags: operations with which tags are required
+        :param is_full_match: requires all tags to match, or at least one
+        :param forbidden_tags: operations with such tags shouldn't be returned
+        """
 
         if not forbidden_tags:
             forbidden_tags = []
 
         for excluded_default_tag in self._tags_excluded_by_default:
             if not tags or excluded_default_tag not in tags:
+                # Forbidden tags by default
                 forbidden_tags.append(excluded_default_tag)
 
-        operations_info = [m for m in self._repo if task_type in m.task_type and
-                           (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
-                           (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
+        if task_type is None:
+            operations_info = [m for m in self._repo if (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
+                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
+        else:
+            operations_info = [m for m in self._repo if task_type in m.task_type and
+                               (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
+                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
         return [m.id for m in operations_info], operations_info
 
     @property

@@ -10,16 +10,6 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
-	"discriminant_class": {
-	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "accepted_node_types": ["any"],
-	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
-	  "tags": ["ml", "sklearn"],
-	  "description": "Implementations of the classification models from scikit-learn framework"
-	},
 	"sklearn_regr": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.table]",
@@ -64,7 +54,16 @@
 	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
-	}
+	},
+	"automl": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "forbidden_node_types": "[]",
+      "strategies": ["fedot.core.operations.evaluation.utils", "AutoMlStrategy"],
+      "tags": ["automl", "expensive", "non-default"],
+      "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks"
+    }
   },
   "operations": {
 	"logit": {
@@ -72,11 +71,11 @@
 	  "tags": ["simple", "linear", "interpretable"]
 	},
 	"lda": {
-	  "meta": "discriminant_class",
+	  "meta": "sklearn_class",
 	  "tags": ["discriminant", "linear"]
 	},
 	"qda": {
-	  "meta": "discriminant_class",
+	  "meta": "sklearn_class",
 	  "tags": ["discriminant", "quadratic"]
 	},
 	"dt": {
@@ -173,6 +172,10 @@
     "tfidf": {
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
+    },
+	"tpot": {
+      "meta": "automl",
+	  "tags": ["automl", "non-default"]
     }
   }
 }

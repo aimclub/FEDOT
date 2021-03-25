@@ -1,23 +1,20 @@
-import re
+import warnings
 
-import nltk
 import numpy as np
 
 from typing import Optional
-from datetime import timedelta
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
-
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.operations.evaluation.evaluation import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_realisations.\
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.text_preprocessing import TextClean
 
+warnings.filterwarnings("ignore", category=UserWarning)
 
-class TextVectorizeStrategy(EvaluationStrategy):
+
+class SkLearnTextVectorizeStrategy(EvaluationStrategy):
     __operations_by_types = {
         'tfidf': TfidfVectorizer,
         'cntvect': CountVectorizer,
@@ -72,7 +69,7 @@ class TextVectorizeStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
 
-class TextPreprocessingStrategy(EvaluationStrategy):
+class CustomTextPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'text_clean': TextClean}
 
@@ -115,7 +112,7 @@ class TextPreprocessingStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TextPreprocessing strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain custom text preprocessing strategy for {operation_type}')
 
     @property
     def implementation_info(self) -> str:

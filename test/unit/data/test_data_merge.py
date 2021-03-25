@@ -5,7 +5,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.data import OutputData, _combine_datasets_table
+from fedot.core.data.data import OutputData, DataMerger
 
 from examples.regression_with_tuning_example import get_regression_dataset
 
@@ -73,6 +73,6 @@ def test_data_merge_function():
                                  data_type=DataTypesEnum.table)
         list_with_outputs.append(output_data)
 
-    idx, features, target = _combine_datasets_table(outputs=list_with_outputs)
+    idx, features, target = DataMerger(list_with_outputs).merge()
 
     assert tuple(idx) == tuple(idx_2)
