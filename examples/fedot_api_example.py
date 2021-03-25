@@ -25,9 +25,6 @@ def run_classification_example():
 
 def run_regression_example():
     data_path = f'{project_root()}/cases/data/cholesterol/cholesterol.csv'
-    # chol_data = pd.read_csv(data_path, sep=',')
-
-    # chol_data_train, chol_data_test = train_test_split(chol_data, test_size=0.3)
 
     data = InputData.from_csv(data_path)
     train, test = train_test_data_setup(data)
