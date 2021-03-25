@@ -205,12 +205,14 @@ class Fedot:
         if self.problem.task_type == TaskTypesEnum.classification:
             self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
             self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
+            output_prediction = self.prediction_labels
         else:
             self.prediction = self.current_model.predict(self.test_data)
+            output_prediction = self.prediction
 
         if save_predictions:
             save_predict(self.prediction)
-        return self.prediction.predict
+        return output_prediction.predict
 
     def predict_proba(self,
                       features: Union[str, np.ndarray, pd.DataFrame, InputData],
