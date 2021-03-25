@@ -215,8 +215,6 @@ class ChainTemplate:
             model_object.fitted_model = fitted_model
             node.fitted_model = fitted_model
             node.fitted_preprocessor = model_object.preprocessor
-            # node.cache.append(CachedState(preprocessor=model_object.preprocessor,
-            #                              model=fitted_model))
 
         nodes_from = [model_template for model_template in self.model_templates
                       if model_template.model_id in model_object.nodes_from]

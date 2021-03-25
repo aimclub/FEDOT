@@ -46,20 +46,26 @@ class CompositionTimer(Timer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _is_next_iteration_possible(self, time_constraint: float, generation_num: int = None) -> bool:
+    def _is_next_iteration_possible(self, time_constraint: float, generation_num: int = None,
+                                    additional_proc_time: float = None) -> bool:
         minutes = self.minutes_from_start
         if generation_num is not None:
-            possible = time_constraint > (minutes + (minutes / (generation_num + 1)))
+            evo_proc_minutes = minutes
+            if additional_proc_time:
+                evo_proc_minutes = minutes - additional_proc_time
+            possible = time_constraint > (minutes + (evo_proc_minutes / (generation_num + 1)))
         else:
             possible = time_constraint > minutes
         if not possible:
             self.process_terminated = True
         return possible
 
-    def is_time_limit_reached(self, max_lead_time: datetime.timedelta, generation_num: int = None) -> bool:
+    def is_time_limit_reached(self, max_lead_time: datetime.timedelta, generation_num: int = None,
+                              additional_proc_time: float = None) -> bool:
         max_lead_time = 0 if max_lead_time.total_seconds() < 0 else max_lead_time.total_seconds() / 60.
         if max_lead_time:
-            reached = not self._is_next_iteration_possible(generation_num=generation_num, time_constraint=max_lead_time)
+            reached = not self._is_next_iteration_possible(generation_num=generation_num, time_constraint=max_lead_time,
+                                                           additional_proc_time=additional_proc_time)
         else:
             self.process_terminated = True
             reached = True

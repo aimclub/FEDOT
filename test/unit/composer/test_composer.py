@@ -15,8 +15,8 @@ from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
     sample_split_ration_for_tasks
-from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.GPComp.operators.selection import SelectionTypesEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.model_types_repository import ModelTypesRepository

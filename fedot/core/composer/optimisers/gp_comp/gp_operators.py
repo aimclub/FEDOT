@@ -112,11 +112,17 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
     return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1
 
 
-def evaluate_individuals(individuals_set, objective_function, is_multi_objective: bool):
-    for ind in reversed(individuals_set):
+def evaluate_individuals(individuals_set, objective_function, is_multi_objective: bool, timer=None, max_lead_time=None):
+    reversed_set = individuals_set[::-1]
+    for ind_num, ind in enumerate(reversed_set):
         ind.fitness = calculate_objective(ind, objective_function, is_multi_objective)
         if ind.fitness is None:
             individuals_set.remove(ind)
+        if timer is not None:
+            if timer.is_time_limit_reached(max_lead_time):
+                for del_ind_num in range(ind_num + 1, len(individuals_set)):
+                    individuals_set.remove(reversed_set[del_ind_num])
+                break
     if len(individuals_set) == 0:
         raise AttributeError('List became empty after incorrect individuals removing.'
                              'It can occur because of too short model fitting time constraint')

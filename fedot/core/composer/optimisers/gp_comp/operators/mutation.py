@@ -5,9 +5,11 @@ from typing import Any
 
 from fedot.core.chains.chain import Chain, List
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.GPComp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
+from fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
+
+MAX_NUM_OF_ATTEMPTS = 10
 
 
 class MutationTypesEnum(Enum):
@@ -52,7 +54,7 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
             new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                chain_generation_params=chain_generation_params, max_depth=max_depth)
             is_correct_chain = constraint_function(new_chain)
-            if number_of_attempts == 10:
+            if number_of_attempts == MAX_NUM_OF_ATTEMPTS:
                 new_chain = deepcopy(chain)
                 log.debug(
                     'Number of mutation attempts exceeded. Please check composer requirements for correctness.')

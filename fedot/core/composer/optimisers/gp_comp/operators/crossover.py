@@ -3,11 +3,13 @@ from random import choice, random
 from typing import Any, List
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.GPComp.gp_operators import \
+from fedot.core.composer.optimisers.gp_comp.gp_operators import \
     (equivalent_subtree, node_depth,
      nodes_from_height, replace_subtrees)
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
+
+MAX_NUM_OF_ATTEMPTS = 10
 
 
 class CrossoverTypesEnum(Enum):
@@ -36,7 +38,7 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
                 for new_chain in new_chains:
                     is_correct_chains.append(constraint_function(new_chain))
                 is_correct = all(is_correct_chains)
-                if number_of_attempts == 10:
+                if number_of_attempts == MAX_NUM_OF_ATTEMPTS:
                     new_chains = [chain_first_copy, chain_second_copy]
                     log.debug(
                         'Number of crossover attempts exceeded. Please check composer requirements for correctness.')

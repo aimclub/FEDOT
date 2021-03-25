@@ -163,7 +163,7 @@ class Logloss(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return log_loss(y_true=reference.target, y_pred=predicted)
+        return log_loss(y_true=reference.target, y_pred=predicted.predict)
 
 
 class Accuracy(QualityMetric):

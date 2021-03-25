@@ -8,8 +8,8 @@ from cases.credit_scoring_problem import get_scoring_data
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.GPComp.operators.selection import SelectionTypesEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
@@ -29,7 +29,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=120),
+                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
                                is_visualise=False):
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)

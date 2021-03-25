@@ -6,19 +6,21 @@ from typing import (Any, Callable, List, Optional, Tuple)
 
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.GPComp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.GPComp.gp_operators import random_chain, num_of_parents_in_crossover, \
-    evaluate_individuals, calculate_objective
-from fedot.core.composer.optimisers.GPComp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.GPComp.gp_operators import duplicates_filtration
+from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
+    calculate_objective, evaluate_individuals
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
 from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
-from fedot.core.composer.optimisers.GPComp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.composer.optimisers.GPComp.operators.regularization import RegularizationTypesEnum, \
+from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
     regularized_population
-from fedot.core.composer.optimisers.GPComp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log, default_log
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+
+MAX_NUM_OF_GENERATED_INDS = 10000
 
 
 class GPChainOptimiserParameters:
@@ -73,7 +75,7 @@ class GPChainOptimiser:
     :param chain_generation_params: parameters for new chain generation
     :param metrics: quality metrics
     :param parameters: parameters of chain optimiser
-    :param log: optional parameter for log oject
+    :param log: optional parameter for log object
     :param archive_type: type of archive with best individuals
     """
 
@@ -89,10 +91,8 @@ class GPChainOptimiser:
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
             else self.requirements.max_depth
-
         self.generation_num = 0
         self.num_of_gens_without_improvements = 0
-
         if not log:
             self.log = default_log(__name__)
         else:
@@ -133,9 +133,10 @@ class GPChainOptimiser:
 
             if self.requirements.add_single_model_chains:
                 self.best_single_model, self.requirements.primary = \
-                    self._best_single_models(objective_function)
+                    self._best_single_models(objective_function, timer=t)
+            single_models_eval_time = t.minutes_from_start
 
-            evaluate_individuals(self.population, objective_function, self.parameters.multi_objective)
+            self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -144,17 +145,14 @@ class GPChainOptimiser:
 
             self.log_info_about_best()
 
-            for self.generation_num in range(self.requirements.num_of_generations - 1):
-
-                if self.generation_num == 0:
-                    if t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
-                        break
+            while t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num,
+                                          single_models_eval_time) is False \
+                    and self.generation_num != self.requirements.num_of_generations - 1:
 
                 self.log.info(f'Generation num: {self.generation_num}')
 
                 self.num_of_gens_without_improvements = self.update_stagnation_counter()
-                self.log.info(
-                    f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
 
                 if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
@@ -162,7 +160,8 @@ class GPChainOptimiser:
                 individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
                                                                population=self.population,
                                                                objective_function=objective_function,
-                                                               chain_class=self.chain_class)
+                                                               chain_class=self.chain_class, timer=t)
+
 
                 if self.parameters.multi_objective:
                     filtered_archive_items = duplicates_filtration(archive=self.archive,
@@ -181,7 +180,8 @@ class GPChainOptimiser:
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
-                evaluate_individuals(new_population, objective_function, self.parameters.multi_objective)
+                self._evaluate_individuals(new_population, objective_function, timer=t)
+                print("len", len(new_population))
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -199,8 +199,7 @@ class GPChainOptimiser:
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
 
-                if t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
-                    break
+                self.generation_num += 1
 
             best = self.result_individual()
             self.log.info('Result:')
@@ -288,7 +287,8 @@ class GPChainOptimiser:
                                    chain_generation_params=self.chain_generation_params,
                                    chain=new_ind, requirements=self.requirements,
                                    max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
-
+        for ind in new_inds:
+            ind.fitness = None
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
@@ -300,14 +300,14 @@ class GPChainOptimiser:
             if constraint_function(chain):
                 model_chains.append(chain)
 
-            if iter_number > 100000:
+            if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(
-                    'More than 100000 generated In population making function. Process is stopped')
+                    f'More than {MAX_NUM_OF_GENERATED_INDS} generated In population making function. Process is stopped')
                 break
 
         return model_chains
 
-    def _best_single_models(self, objective_function: Callable, num_best: int = 7):
+    def _best_single_models(self, objective_function: Callable, num_best: int = 7, timer=None):
         single_models_inds = []
         for model in self.requirements.primary:
             single_models_ind = self.chain_class([self.primary_node_func(model)])
@@ -317,6 +317,10 @@ class GPChainOptimiser:
                 single_models_inds.append(single_models_ind)
 
         best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
+        if timer is not None:
+            if timer.is_time_limit_reached(self.requirements.max_lead_time):
+                self.population = [best_inds[0]]
+            self.log.info(f'Single models evaluation time: {timer.minutes_from_start}')
         return best_inds[0], [i.nodes[0].model.model_type for i in best_inds][:num_best]
 
     def offspring_size(self, offspring_rate: float = None):
@@ -346,3 +350,26 @@ class GPChainOptimiser:
         else:
             best = self.archive
         return best
+
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
+        evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function, timer=timer,
+                             max_lead_time=self.requirements.max_lead_time,
+                             is_multi_objective=self.parameters.multi_objective)
+
+
+'''
+def evaluate_individuals(self, individuals_set, objective_function, timer=None):
+    reversed_set = individuals_set[::-1]
+    for ind_num, ind in enumerate(reversed_set):
+        ind.fitness = calculate_objective(ind, objective_function, self.parameters.multi_objective)
+        if ind.fitness is None:
+            individuals_set.remove(ind)
+        if timer is not None:
+            if timer.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num):
+                for del_ind_num in range(ind_num + 1, len(individuals_set)):
+                    individuals_set.remove(reversed_set[del_ind_num])
+                break
+    if len(individuals_set) == 0:
+        raise AttributeError('List became empty after incorrect individuals removing.'
+                             'It can occur because of too short model fitting time constraint')
+'''

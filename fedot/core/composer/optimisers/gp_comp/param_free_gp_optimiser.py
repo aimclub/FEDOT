@@ -4,14 +4,14 @@ import numpy as np
 from typing import (Optional, List, Any, Tuple)
 
 from fedot.core.composer.iterator import SequenceIterator, fibonacci_sequence
-from fedot.core.composer.optimisers.GPComp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive
-from fedot.core.composer.optimisers.GPComp.gp_operators import duplicates_filtration
-from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.GPComp.gp_operators import num_of_parents_in_crossover, evaluate_individuals
+from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
+from fedot.core.composer.optimisers.gp_comp.gp_operators import num_of_parents_in_crossover
 from fedot.core.composer.optimisers.utils.population_utils import get_metric_position
-from fedot.core.composer.optimisers.GPComp.operators.regularization import regularized_population
-from fedot.core.composer.optimisers.GPComp.operators.selection import selection
+from fedot.core.composer.optimisers.gp_comp.operators.regularization import regularized_population
+from fedot.core.composer.optimisers.gp_comp.operators.selection import selection
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsRepository, MetricsEnum, \
@@ -49,7 +49,6 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         self.iterator = SequenceIterator(sequence_func=self.sequence_function, min_sequence_value=1,
                                          max_sequence_value=self.max_pop_size,
                                          start_value=self.requirements.pop_size)
-        self.generation_num = 0
 
         self.requirements.pop_size = self.iterator.next()
 
@@ -59,8 +58,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         else:
             self.complexity_metric = complexity_metric
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback=None):
+    def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -74,9 +72,10 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
             if self.requirements.add_single_model_chains:
                 self.best_single_model, self.requirements.primary = \
-                    self._best_single_models(objective_function)
+                    self._best_single_models(objective_function, timer=t)
+            single_models_eval_time = t.minutes_from_start
 
-            evaluate_individuals(self.population, objective_function, self.parameters.multi_objective)
+            self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -85,7 +84,8 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
             self.log_info_about_best()
 
-            while not t.is_time_limit_reached(self.requirements.max_lead_time) \
+            while t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num,
+                                          single_models_eval_time) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
 
                 self.log.info(f'Generation num: {self.generation_num}')
@@ -101,7 +101,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
                                                                population=self.population,
                                                                objective_function=objective_function,
-                                                               chain_class=self.chain_class)
+                                                               chain_class=self.chain_class, timer=t)
 
                 if self.parameters.multi_objective:
                     filtered_archive_items = duplicates_filtration(archive=self.archive,
@@ -110,7 +110,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
                 if num_of_new_individuals == 1 and len(self.population) == 1:
                     new_population = list(self.reproduce(self.population[0]))
-                    evaluate_individuals(new_population, objective_function, self.parameters.multi_objective)
+                    self._evaluate_individuals(new_population, objective_function, timer=t)
                 else:
                     num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -124,7 +124,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                         new_population += self.reproduce(selected_individuals[parent_num],
                                                          selected_individuals[parent_num + 1])
 
-                    evaluate_individuals(new_population, objective_function, self.parameters.multi_objective)
+                    self._evaluate_individuals(new_population, objective_function, timer=t)
 
                 self.requirements.pop_size = self.next_population_size(new_population)
                 num_of_new_individuals = self.offspring_size(offspring_rate)
@@ -143,7 +143,6 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                     self.archive.update(self.population)
 
                 on_next_iteration_callback(self.population, self.archive)
-
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
 

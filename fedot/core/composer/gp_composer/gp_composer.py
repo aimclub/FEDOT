@@ -11,11 +11,11 @@ from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.cache import ModelsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
-from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.GPComp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.GPComp.operators.mutation import MutationStrengthEnum
-from fedot.core.composer.optimisers.GPComp.operators.regularization import RegularizationTypesEnum
-from fedot.core.composer.optimisers.GPComp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
+from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -29,6 +29,12 @@ sample_split_ration_for_tasks = {
     TaskTypesEnum.regression: 0.8,
     TaskTypesEnum.ts_forecasting: 0.5
 }
+
+
+def set_multiprocess_start_method():
+    system = platform.system()
+    if system == 'Linux':
+        set_start_method("spawn", force=True)
 
 
 @dataclass
@@ -96,12 +102,10 @@ class GPComposer(Composer):
 
     def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False,
                       on_next_iteration_callback: Optional[Callable] = None,
-                      clear_cache: bool = False) -> Union[Chain, List[Chain]]:
+                      clear_cache: bool = True) -> Union[Chain, List[Chain]]:
 
         if self.composer_requirements.max_chain_fit_time:
-            system = platform.system()
-            if system == 'Linux':
-                set_start_method("spawn", force=True)
+            set_multiprocess_start_method()
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')

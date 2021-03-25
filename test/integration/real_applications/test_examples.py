@@ -1,5 +1,4 @@
 import os
-import pytest
 from datetime import timedelta
 
 import numpy as np
@@ -15,7 +14,6 @@ from examples.time_series_gapfilling_example import run_gapfilling_example
 from fedot.core.utils import project_root
 
 
-@pytest.mark.skip('all chains fitness are not calculated')
 def test_forecasting_model_composing_example():
     project_root_path = str(project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_time_series.csv')

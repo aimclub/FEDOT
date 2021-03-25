@@ -7,7 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.GPComp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
@@ -29,7 +29,7 @@ def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) ->
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=150),
+                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
                                is_visualise=False,
                                with_tuning=False,
                                cache_path=None):
