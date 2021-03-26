@@ -47,12 +47,7 @@ def get_source_chain():
 
 
 def display_chain_info(chain):
-    """ Function print info about chain
-
-    :param chain: chain to process
-    :return obtained_operations: operations in the nodes
-    :return depth: depth of the chain
-    """
+    """ Function print info about chain """
 
     print('\nObtained chain:')
     for node in chain.nodes:
@@ -105,6 +100,7 @@ def plot_results(actual_time_series, predicted_values, len_train_data,
              actual_time_series, label='Actual values', c='green')
     plt.plot(np.arange(len_train_data, len_train_data + len(predicted_values)),
              predicted_values, label='Predicted', c='blue')
+
     # Plot black line which divide our array into train and test
     plt.plot([len_train_data, len_train_data],
              [min(actual_time_series), max(actual_time_series)], c='black',
@@ -227,8 +223,9 @@ def run_ts_forecasting_problem(forecast_length=50,
     ################################
     # Obtained chain visualisation #
     ################################
-    visualiser = ChainVisualiser()
-    visualiser.visualise(obtained_chain, save_path='D:/ITMO/obtained_chain.png')
+    if with_visualisation:
+        visualiser = ChainVisualiser()
+        visualiser.visualise(obtained_chain)
 
     preds = fit_predict_for_chain(chain=obtained_chain,
                                   train_input=train_input,

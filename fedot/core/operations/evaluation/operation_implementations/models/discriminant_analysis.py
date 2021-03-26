@@ -3,42 +3,44 @@ import numpy as np
 from typing import Optional
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
+from fedot.core.operations.evaluation.\
+    operation_implementations.implementation_interfaces import ModelImplementation
 
 
-class DiscriminantAnalysisImplementation:
+class DiscriminantAnalysisImplementation(ModelImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.params = params
         self.model = None
 
-    def fit(self, features, target):
+    def fit(self, train_data):
         """ Method fit model on a dataset
 
-        :param features: features for model
-        :param target: target for model
+        :param train_data: data to train the model
         """
-        self.model.fit(features, target)
+        self.model.fit(train_data.features, train_data.target)
 
         return self.model
 
-    def predict(self, features):
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
         """ Method make prediction with labels of classes
 
-        :param features: data with features to process
+        :param input_data: data with features to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         """
-        prediction = self.model.predict(features)
+        prediction = self.model.predict(input_data.features)
 
         prediction = nan_to_num(prediction)
 
         return prediction
 
-    def predict_proba(self, features):
+    def predict_proba(self, input_data):
         """ Method make prediction with probabilities of classes
 
-        :param features: data with features to process
+        :param input_data: data with features to process
         """
-        prediction = self.model.predict_proba(features)
+        prediction = self.model.predict_proba(input_data.features)
 
         prediction = nan_to_num(prediction)
 

@@ -12,7 +12,7 @@ from fedot.core.operations.evaluation.\
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 
 
-class ARIMAModel(ModelImplementation):
+class ARIMAImplementation(ModelImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -146,7 +146,7 @@ class ARIMAModel(ModelImplementation):
         return values
 
 
-class AutoRegModel(ModelImplementation):
+class AutoRegImplementation(ModelImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()

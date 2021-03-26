@@ -75,8 +75,8 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_experiment(time_series, exog_variable, len_forecast=250,
-                   with_exog=True) -> None:
+def run_exogenous_experiment(time_series, exog_variable, len_forecast=250,
+                             with_exog=True, with_visualisation=True) -> None:
     """ Function with example how time series forecasting can be made with using
     exogenous features
 
@@ -139,11 +139,12 @@ def run_experiment(time_series, exog_variable, len_forecast=250,
     print(f'RMSE - {mse_before:.4f}')
     print(f'MAE - {mae_before:.4f}\n')
 
-    plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(train_data), len(time_series)), predicted, label='Forecast')
-    plt.legend()
-    plt.grid()
-    plt.show()
+    if with_visualisation:
+        plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
+        plt.plot(range(len(train_data), len(time_series)), predicted, label='Forecast')
+        plt.legend()
+        plt.grid()
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -151,7 +152,7 @@ if __name__ == '__main__':
     time_series = np.array(df['Level'])
     neighboring_level = np.array(df['Neighboring level'])
 
-    run_experiment(time_series=time_series,
-                   exog_variable=neighboring_level,
-                   len_forecast=250,
-                   with_exog=True)
+    run_exogenous_experiment(time_series=time_series,
+                             exog_variable=neighboring_level,
+                             len_forecast=250,
+                             with_exog=True)

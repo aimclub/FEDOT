@@ -2,37 +2,13 @@ import os
 from datetime import timedelta
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from examples.ts_forecasting_composing import run_metocean_forecasting_problem
 from examples.multiclass_prediction import get_model
-from examples.time_series_forecasting import (run_multistep_composite_example, run_multistep_linear_example,
-                                              run_multistep_lstm_example, run_multistep_multiscale_example,
-                                              run_onestep_linear_example)
+from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
 from fedot.core.utils import project_root
-
-
-def test_forecasting_model_composing_example():
-    project_root_path = str(project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
-    file_path_test = os.path.join(project_root_path, 'test/data/simple_time_series_test.csv')
-
-    rmse = run_metocean_forecasting_problem(file_path_train, file_path_test,
-                                            max_window_size=1,
-                                            forecast_length=4,
-                                            with_visualisation=False)
-    assert rmse > 0
-
-
-def test_ts_forecasting_example():
-    data_length = 700
-    data_length_onestep = 64
-    run_onestep_linear_example(n_steps=data_length_onestep, is_visualise=False)
-    run_multistep_linear_example(n_steps=data_length, is_visualise=False)
-    run_multistep_multiscale_example(n_steps=data_length, is_visualise=False)
-    run_multistep_composite_example(n_steps=data_length, is_visualise=False)
-    run_multistep_lstm_example(n_steps=data_length, is_visualise=False)
 
 
 def test_multiclass_example():
@@ -56,3 +32,13 @@ def test_gapfilling_example():
 
         model_rmse = mean_squared_error(true_values, predicted_values, squared=False)
         assert model_rmse < 0.5
+
+
+def test_exogenous_ts_example():
+    project_root_path = str(project_root())
+    df = pd.read_csv(os.path.join(project_root_path, 'test/data/simple_sea_level.csv'))
+    time_series = np.array(df['Level'])
+    neighboring_level = np.array(df['Neighboring level'])
+    run_exogenous_experiment(time_series=time_series, exog_variable=neighboring_level,
+                             len_forecast=50, with_exog=True,
+                             with_visualisation=False)

@@ -2,7 +2,8 @@ import warnings
 
 from typing import Optional
 
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAModel, AutoRegModel
+from fedot.core.operations.evaluation.operation_implementations.models.\
+    ts_implementations import ARIMAImplementation, AutoRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
     import LaggedTransformation, TsSmoothing, ExogDataTransformation, GaussianFilter
 
@@ -23,8 +24,8 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'arima': ARIMAModel,
-        'ar': AutoRegModel}
+        'arima': ARIMAImplementation,
+        'ar': AutoRegImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)

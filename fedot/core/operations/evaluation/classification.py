@@ -1,5 +1,6 @@
 import warnings
 
+import numpy as np
 from typing import Optional
 
 from fedot.core.operations.evaluation.operation_implementations.models.\
@@ -68,7 +69,7 @@ class CustomClassificationStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        operation_implementation.fit(train_data.features, train_data.target)
+        operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
@@ -83,16 +84,15 @@ class CustomClassificationStrategy(EvaluationStrategy):
         """
         n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data.features)
+            prediction = trained_operation.predict(predict_data)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data.features)
+            prediction = trained_operation.predict_proba(predict_data)
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs':
                 prediction = prediction[:, 1]
         else:
-            raise ValueError(
-                f'Output model {self.output_mode} is not supported')
+            raise ValueError(f'Output model {self.output_mode} is not supported')
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

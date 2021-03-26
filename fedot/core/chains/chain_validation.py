@@ -107,7 +107,7 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     for node in chain.nodes:
         parent_nodes = node.nodes_from
 
-        if parent_nodes is not None and len(parent_nodes) > 2:
+        if parent_nodes is not None and len(parent_nodes) > 1:
             # There are several parents
             operation_names = []
             for parent in parent_nodes:
