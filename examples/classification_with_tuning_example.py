@@ -66,7 +66,7 @@ def convert_to_labels(root_operation, prediction):
     return preds
 
 
-def run_experiment(chain, tuner=None):
+def run_classification_tuning_experiment(chain, tuner=None):
 
     samples = [50, 550, 150]
     features = [1, 5, 10]
@@ -141,4 +141,5 @@ if __name__ == '__main__':
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])
     chain_for_experiment = Chain(node_final)
 
-    run_experiment(chain=chain_for_experiment, tuner=ChainTuner)
+    run_classification_tuning_experiment(chain=chain_for_experiment,
+                                         tuner=ChainTuner)

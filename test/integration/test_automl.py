@@ -1,4 +1,6 @@
 import os
+import pytest
+
 from datetime import timedelta
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -7,6 +9,7 @@ from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
 from fedot.core.utils import project_root
 
 
+@pytest.mark.skip('AutoMl models are not supported for now')
 def test_chain_from_automl_example():
     project_root_path = str(project_root())
     experimental_repo_file = os.path.join('model_repository_with_automl.json')

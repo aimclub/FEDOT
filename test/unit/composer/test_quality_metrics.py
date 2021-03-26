@@ -4,7 +4,7 @@ from sklearn.datasets import load_breast_cancer
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, split_train_test
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     (ClassificationMetricsEnum,

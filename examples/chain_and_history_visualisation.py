@@ -39,14 +39,18 @@ def generate_history(generations, pop_size):
     return history
 
 
-if __name__ == '__main__':
-    generations = 2
-    pop_size = 10
-
+def run_chain_ang_history_visualisation(generations=2, pop_size=10,
+                                        with_chain_visualisation=True):
+    """ Function run visualisation of composing history and chain """
+    # Generate chain and history
     chain = chain_first()
-
     history = generate_history(generations, pop_size)
 
     visualiser = ChainVisualiser()
     visualiser.visualise_history(history)
-    visualiser.visualise(chain)
+    if with_chain_visualisation:
+        visualiser.visualise(chain)
+
+
+if __name__ == '__main__':
+    run_chain_ang_history_visualisation()

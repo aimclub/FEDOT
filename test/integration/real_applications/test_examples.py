@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
+from examples.chain_and_history_visualisation import run_chain_ang_history_visualisation
+from examples.chain_log import run_log_example
+from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
 from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
@@ -42,3 +45,32 @@ def test_exogenous_ts_example():
     run_exogenous_experiment(time_series=time_series, exog_variable=neighboring_level,
                              len_forecast=50, with_exog=True,
                              with_visualisation=False)
+
+
+def test_chain_and_history_example():
+    run_chain_ang_history_visualisation(with_chain_visualisation=False)
+
+
+def test_log_example():
+    log_file_name = 'example_log.log'
+    run_log_example(log_file_name)
+
+    assert os.path.isfile(log_file_name)
+
+
+def test_chain_tuning_example():
+    project_root_path = str(project_root())
+    train_file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    test_file_path = train_file_path
+
+    train_data, test_data = get_case_train_test_data(train_file_path, test_file_path)
+
+    # Chain composition
+    chain = get_simple_chain()
+
+    # Chain tuning
+    after_tune_roc_auc, _ = chain_tuning(chain=chain,
+                                         train_data=train_data,
+                                         test_data=test_data,
+                                         local_iter=1,
+                                         tuner_iter_num=2)
