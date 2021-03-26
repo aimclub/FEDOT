@@ -1,5 +1,4 @@
 from copy import copy, deepcopy
-from datetime import timedelta
 from typing import List, Optional, Union
 from uuid import uuid4
 
@@ -9,7 +8,6 @@ from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedOperationCache, Node, PrimaryNode, SecondaryNode, SharedCache)
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.repository.tasks import TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 

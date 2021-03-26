@@ -2,9 +2,9 @@ import warnings
 
 from typing import Optional
 
-from fedot.core.operations.evaluation.operation_implementations.models.ts_models import ARIMAModel, AutoRegModel
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAModel, AutoRegModel
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
-    import LaggedTransformation, TsSmoothing, ExogDataTransformation
+    import LaggedTransformation, TsSmoothing, ExogDataTransformation, GaussianFilter
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -59,7 +59,9 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
 
         prediction = trained_operation.predict(predict_data,
                                                is_fit_chain_stage)
-        return prediction
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -86,7 +88,8 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'lagged': LaggedTransformation,
         'smoothing': TsSmoothing,
-        'exog': ExogDataTransformation}
+        'exog': ExogDataTransformation,
+        'gaussian_filter': GaussianFilter}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
@@ -121,7 +124,9 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
 
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
-        return prediction
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

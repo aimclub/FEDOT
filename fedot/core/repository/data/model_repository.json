@@ -153,11 +153,11 @@
 	},
 	"arima": {
 	  "meta": "ts_model",
-	  "tags": ["simple", "interpretable"]
+	  "tags": ["simple", "interpretable", "ts_specific"]
 	},
 	"ar": {
 	  "meta": "ts_model",
-	  "tags": ["simple", "interpretable"]
+	  "tags": ["simple", "interpretable", "ts_specific"]
 	},
 	"kmeans": {
 	  "meta": "sklearn_clust"

@@ -4,10 +4,10 @@ from typing import Optional
 from sklearn.linear_model import RANSACRegressor, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationRealisation
+    implementation_interfaces import DataOperationImplementation
 
 
-class FilterOperation(DataOperationRealisation):
+class FilterOperation(DataOperationImplementation):
     """ Base class for applying filtering operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):

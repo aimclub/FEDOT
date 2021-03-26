@@ -8,11 +8,11 @@ from scipy import stats
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.\
-    operation_implementations.implementation_interfaces import ModelRealisation
+    operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 
 
-class ARIMAModel(ModelRealisation):
+class ARIMAModel(ModelImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -146,7 +146,7 @@ class ARIMAModel(ModelRealisation):
         return values
 
 
-class AutoRegModel(ModelRealisation):
+class AutoRegModel(ModelImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -231,4 +231,4 @@ class AutoRegModel(ModelRealisation):
         return output_data
 
     def get_params(self):
-        raise self.params
+        return self.params

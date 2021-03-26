@@ -67,7 +67,7 @@ class GPChainOptimiser:
     :param requirements: composer requirements
     :param chain_generation_params: parameters for new chain generation
     :param parameters: parameters of chain optimiser
-    :param log: optional parameter for log oject
+    :param log: optional parameter for log object
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params,

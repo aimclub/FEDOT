@@ -2,14 +2,15 @@ from typing import Optional
 
 import pandas as pd
 import numpy as np
+from scipy.ndimage import gaussian_filter
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationRealisation
+    implementation_interfaces import DataOperationImplementation
 
 
-class LaggedTransformation(DataOperationRealisation):
-    """ Realisation of lagged transformation for time series forecasting"""
+class LaggedTransformation(DataOperationImplementation):
+    """ Implementation of lagged transformation for time series forecasting"""
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -70,7 +71,7 @@ class LaggedTransformation(DataOperationRealisation):
         return {'window_size': self.window_size}
 
 
-class TsSmoothing(DataOperationRealisation):
+class TsSmoothing(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -115,7 +116,7 @@ class TsSmoothing(DataOperationRealisation):
         return {'window_size': self.window_size}
 
 
-class ExogDataTransformation(DataOperationRealisation):
+class ExogDataTransformation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -166,6 +167,48 @@ class ExogDataTransformation(DataOperationRealisation):
 
     def get_params(self):
         return None
+
+
+class GaussianFilter(DataOperationImplementation):
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+
+        if not params:
+            # Default parameters
+            self.sigma = 1
+        else:
+            self.sigma = int(round(params.get('sigma')))
+
+    def fit(self, input_data):
+        """ Class doesn't support fit operation
+
+        :param input_data: data with features, target and ids to process
+        """
+        pass
+
+    def transform(self, input_data, is_fit_chain_stage: bool):
+        """ Method for smoothing time series
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return output_data: output data with smoothed time series
+        """
+
+        source_ts = np.array(input_data.features)
+
+        # Apply smoothing operation
+        smoothed_ts = gaussian_filter(source_ts, sigma=self.sigma)
+        smoothed_ts = np.array(smoothed_ts)
+
+        output_data = self._convert_to_output(input_data,
+                                              np.ravel(smoothed_ts),
+                                              data_type=DataTypesEnum.ts)
+
+        return output_data
+
+    def get_params(self):
+        return {'sigma': self.sigma}
 
 
 def _ts_to_table(idx, time_series, window_size):

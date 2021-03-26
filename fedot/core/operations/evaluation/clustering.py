@@ -42,13 +42,8 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         """
         prediction = trained_operation.predict(predict_data.features)
 
-        converted = OutputData(idx=predict_data.idx,
-                               features=predict_data.features,
-                               predict=prediction,
-                               task=predict_data.task,
-                               target=predict_data.target,
-                               data_type=DataTypesEnum.table)
-
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
         return converted
 
     def _convert_to_operation(self, operation_type: str):

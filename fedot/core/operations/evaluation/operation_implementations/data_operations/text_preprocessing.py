@@ -7,12 +7,12 @@ from typing import Optional
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationRealisation
+    implementation_interfaces import DataOperationImplementation
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 
 
-class TextClean(DataOperationRealisation):
+class TextClean(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         self.stemmer = PorterStemmer()

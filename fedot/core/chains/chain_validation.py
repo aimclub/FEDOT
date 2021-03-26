@@ -7,7 +7,7 @@ from networkx.algorithms.isolate import isolates
 from fedot.core.chains.chain import Chain, chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
-from fedot.core.repository.tasks import Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -23,6 +23,11 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
     has_no_conflicts_with_data_flow(chain)
+
+    # TSForecasting specific task validations
+    if is_chain_contains_ts_operations(chain) is True:
+        pass
+
     return True
 
 
@@ -102,17 +107,11 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     for node in chain.nodes:
         parent_nodes = node.nodes_from
 
-        if parent_nodes is None:
-            # There are no parent nodes for current one
-            pass
-        elif len(parent_nodes) == 1:
-            # There is only one parent node for current one
-            pass
-        else:
+        if parent_nodes is not None and len(parent_nodes) > 2:
             # There are several parents
             operation_names = []
             for parent in parent_nodes:
-                operation_names.append(str(parent.operation))
+                operation_names.append(parent.operation.operation_type)
 
             # If operations are identical
             if len(set(operation_names)) == 1:
@@ -125,3 +124,80 @@ def has_no_conflicts_with_data_flow(chain: Chain):
                 if len(common) > 0:
                     raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
     return True
+
+
+def _get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
+    """ Function returns operations names for time series forecasting task
+
+    :param tags: tags for grabbing when filtering
+    :param forbidden_tags: tags for skipping when filtering
+    :param mode: available modes 'models', 'data_operations' and 'all'
+    """
+    models_repo = OperationTypesRepository()
+    models, _ = models_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                               tags=tags, forbidden_tags=forbidden_tags)
+
+    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    data_operations, _ = data_operations_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                                                 tags=tags, forbidden_tags=forbidden_tags)
+
+    if mode == 'models':
+        return models
+    elif mode == 'data_operations':
+        return data_operations
+    elif mode == 'all':
+        # Unit two lists
+        ts_operations = models + data_operations
+        return ts_operations
+    else:
+        raise ValueError(f'Such mode "{mode}" is not supported')
+
+
+def is_chain_contains_ts_operations(chain: Chain):
+    """ Function checks is the model contains operations for time series
+    forecasting """
+    # Get time series specific operations with tag "ts_specific"
+    ts_operations = _get_ts_operations(tags=["ts_specific"], mode='all')
+
+    # List with operations in considering chain
+    operations_in_chain = []
+    for node in chain.nodes:
+        operations_in_chain.append(node.operation.operation_type)
+
+    if len(set(ts_operations) & set(operations_in_chain)) > 0:
+        return True
+    else:
+        return False
+
+
+def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
+    """ Function checks the correctness of connection between nodes """
+    models = _get_ts_operations(mode='models')
+    ts_data_operations = _get_ts_operations(mode='data_operations',
+                                            forbidden_tags=["ts_specific"])
+
+    # Dictionary as {'current operation in the node': 'parent operations list'}
+    wrong_connections = {'lagged': models + ts_data_operations + ['lagged'],
+                         'ar': models + ts_data_operations + ['lagged'],
+                         'arima': models + ts_data_operations + ['lagged']}
+
+    for node in chain.nodes:
+        # Operation name in the current node
+        current_operation = node.operation.operation_type
+        parent_nodes = node.nodes_from
+
+        if parent_nodes is not None:
+            # There are several parents for current node or at least 1
+            for parent in parent_nodes:
+                parent_operation = parent.operation.operation_type
+
+                forbidden_parents = wrong_connections.get(current_operation)
+                if forbidden_parents is not None:
+                    __check_connection(parent_operation, forbidden_parents)
+
+    return True
+
+
+def __check_connection(parent_operation, forbidden_parents):
+    if parent_operation in forbidden_parents:
+        raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')

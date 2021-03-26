@@ -6,7 +6,7 @@ from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-class DataOperationRealisation(ABC):
+class DataOperationImplementation(ABC):
     """ Interface for data operations realisations methods
     Contains abstract methods, which should be implemented for applying EA
     optimizer on it
@@ -60,7 +60,7 @@ class DataOperationRealisation(ABC):
         return converted
 
 
-class EncodedInvariantOperation(DataOperationRealisation):
+class EncodedInvariantOperation(DataOperationImplementation):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean
@@ -170,7 +170,7 @@ class EncodedInvariantOperation(DataOperationRealisation):
         return bool_ids, non_bool_ids
 
 
-class ModelRealisation(ABC):
+class ModelImplementation(ABC):
     """ Interface for models realisations methods
     Contains abstract methods, which should be implemented for applying EA
     optimizer on it

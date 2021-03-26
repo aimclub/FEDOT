@@ -6,10 +6,10 @@ from sklearn.decomposition import PCA, KernelPCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
 from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationRealisation, EncodedInvariantOperation
+    implementation_interfaces import DataOperationImplementation, EncodedInvariantOperation
 
 
-class ComponentAnalysisOperation(DataOperationRealisation):
+class ComponentAnalysisOperation(DataOperationImplementation):
     """ Class for applying PCA and kernel PCA models form sklearn
 
     :param params: optional, dictionary with the arguments
@@ -102,7 +102,7 @@ class KernelPCAOperation(ComponentAnalysisOperation):
         self.params = params
 
 
-class OneHotEncodingOperation(DataOperationRealisation):
+class OneHotEncodingOperation(DataOperationImplementation):
     """ Class for automatic categorical data detection and one hot encoding """
 
     def __init__(self, **params: Optional[dict]):
@@ -277,7 +277,7 @@ class NormalizationOperation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class ImputationOperation(DataOperationRealisation):
+class ImputationOperation(DataOperationImplementation):
     """ Class for applying imputation on tabular data
 
     :param params: optional, dictionary with the arguments

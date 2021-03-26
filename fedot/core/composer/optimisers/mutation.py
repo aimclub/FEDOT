@@ -7,6 +7,7 @@ from fedot.core.chains.chain import Chain, List
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.operations.tuning.hyperparams import get_new_operation_params
 
 
 class MutationTypesEnum(Enum):
@@ -14,6 +15,7 @@ class MutationTypesEnum(Enum):
     growth = 'growth'
     local_growth = 'local_growth'
     reduce = 'reduce'
+    parameter_change = 'parameter_change'
     none = 'none'
 
 
@@ -24,6 +26,13 @@ class MutationStrengthEnum(Enum):
 
 
 def get_mutation_prob(mut_id, root_node):
+    """ Function returns mutation probability for certain node in the chain
+
+    :param mut_id: MutationStrengthEnum mean weak or strong mutation
+    :param root_node: root node of the chain
+    :return mutation_prob: mutation probability
+    """
+
     default_mutation_prob = 0.7
     if mut_id in list(MutationStrengthEnum):
         mutation_strength = mut_id.value
@@ -35,6 +44,7 @@ def get_mutation_prob(mut_id, root_node):
 
 def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements,
              max_depth: int = None) -> Any:
+    """ Function apply mutation operator to chain """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
     if mutation_prob and random() > mutation_prob:
@@ -49,6 +59,8 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
             if type in (MutationTypesEnum.growth, MutationTypesEnum.local_growth):
                 new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                    chain_generation_params=chain_generation_params, max_depth=max_depth)
+            elif type == MutationTypesEnum.parameter_change:
+                new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements)
             else:
                 new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                    chain_generation_params=chain_generation_params)
@@ -134,9 +146,25 @@ def reduce_mutation(chain: Any, requirements, chain_generation_params) -> Any:
     return chain
 
 
+def parameter_change_mutation(chain: Any, requirements) -> Any:
+    """
+    This type of mutation is passed over all nodes and changes
+    hyperpearameters of the operations with probability - 'node mutation probability' which is inicialised inside the function
+    """
+    node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
+                                                  root_node=chain.root_node)
+    for node in chain.nodes:
+        if random() < node_mutation_probability:
+            operation_name = node.operation.operation_type
+            node.custom_params = get_new_operation_params(operation_name)
+
+    return chain
+
+
 mutation_by_type = {
     MutationTypesEnum.simple: simple_mutation,
     MutationTypesEnum.growth: partial(growth_mutation, local_growth=False),
     MutationTypesEnum.local_growth: partial(growth_mutation, local_growth=True),
-    MutationTypesEnum.reduce: reduce_mutation
+    MutationTypesEnum.reduce: reduce_mutation,
+    MutationTypesEnum.parameter_change: parameter_change_mutation
 }

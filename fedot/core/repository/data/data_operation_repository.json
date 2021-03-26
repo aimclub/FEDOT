@@ -45,7 +45,7 @@
 			"strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
-		"time_series_transformation": {
+		"custom_time_series_transformation": {
 			"tasks": "[TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.ts]",
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
@@ -53,7 +53,7 @@
 			"forbidden_node_types": "[]",
 			"strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsTransformingStrategy"],
 			"tags": ["time_series"],
-			"description": "Preprocessing for converting uni-variate time-series into table form"},
+			"description": "Preprocessing for converting uni-variate time-series into table form or transform it"},
 		"text_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification]",
 			"input_type": "[DataTypesEnum.text]",
@@ -118,15 +118,19 @@
 			"tags": ["non_linear", "feature_selection"]
 		},
 		"lagged": {
-			"meta": "time_series_transformation",
-			"tags": ["affects_target", "dimensionality_transforming"]
+			"meta": "custom_time_series_transformation",
+			"tags": ["affects_target", "dimensionality_transforming", "ts_specific"]
 		},
 		"smoothing": {
-			"meta": "time_series_transformation",
-			"tags": ["simple"]
+			"meta": "custom_time_series_transformation",
+			"tags": ["simple", "smoothing", "ts_specific"]
+		},
+		"gaussian_filter": {
+			"meta": "custom_time_series_transformation",
+			"tags": ["simple", "smoothing", "ts_specific"]
 		},
 		"exog": {
-			"meta": "time_series_transformation",
+			"meta": "custom_time_series_transformation",
 			"tags": ["simple"]
 		},
 		"text_clean": {

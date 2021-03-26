@@ -1,6 +1,5 @@
 import numpy as np
-from hyperopt import hp
-
+from hyperopt import hp, fmin, tpe, space_eval
 
 params_by_operation = {
     'kmeans': ['n_clusters'],
@@ -38,6 +37,7 @@ params_by_operation = {
     'poly_features': ['degree', 'interaction_only'],
     'lagged': ['window_size'],
     'smoothing': ['window_size'],
+    'gaussian_filter': ['sigma'],
 }
 
 
@@ -162,6 +162,8 @@ def __get_range_by_parameter(label, parameter_name):
         'lagged | window_size': hp.uniform(label, 10, 500),
 
         'smoothing | window_size': hp.uniform(label, 2, 20),
+
+        'gaussian_filter | sigma': hp.uniform(label, 1, 5),
     }
 
     return range_by_parameter.get(parameter_name)
@@ -170,7 +172,7 @@ def __get_range_by_parameter(label, parameter_name):
 def get_node_params(node_id, operation_name):
     """
     Function for forming dictionary with hyperparameters for considering
-    operation
+    operation as a part of the whole chain
 
     :param node_id: number of node in chain.nodes list
     :param operation_name: name of operation in the node
@@ -224,3 +226,40 @@ def convert_params(params):
             new_params.update({parameter_name: value})
 
     return new_params
+
+
+def get_new_operation_params(operation_name):
+    """ Function return a dictionary with new
+
+    :param operation_name: name of operation to get hyperparameters for
+    """
+
+    # Function to imitate objective
+    def fake_objective(fake_params):
+        return 0
+
+    # Get available parameters for operation
+    params_list = params_by_operation.get(operation_name)
+
+    if params_list is None:
+        params_dict = None
+    else:
+        params_dict = {}
+        for parameter_name in params_list:
+            # For operation get range where search can be done
+            new_parameter_name = ''.join((operation_name, ' | ', parameter_name))
+
+            space = __get_range_by_parameter(label=parameter_name,
+                                             parameter_name=new_parameter_name)
+
+            # Get parameters values for chosen parameter
+            small_dict = {parameter_name: space}
+            best = fmin(fake_objective,
+                        small_dict,
+                        algo=tpe.suggest,
+                        max_evals=1,
+                        show_progressbar=False)
+            best = space_eval(space=small_dict, hp_assignment=best)
+            params_dict.update(best)
+
+    return params_dict

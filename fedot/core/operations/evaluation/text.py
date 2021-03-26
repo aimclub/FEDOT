@@ -38,13 +38,8 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         features_list = self._convert_to_one_dim(predict_data.features)
         predicted = trained_operation.transform(features_list).toarray()
 
-        # Wrap prediction as features for next level
-        converted = OutputData(idx=predict_data.idx,
-                               features=predict_data.features,
-                               predict=predicted,
-                               task=predict_data.task,
-                               target=predict_data.target,
-                               data_type=DataTypesEnum.table)
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(predicted, predict_data)
         return converted
 
     def _convert_to_operation(self, operation_type: str):
@@ -106,7 +101,9 @@ class CustomTextPreprocessingStrategy(EvaluationStrategy):
 
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
-        return prediction
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

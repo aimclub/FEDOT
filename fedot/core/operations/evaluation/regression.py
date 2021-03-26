@@ -2,13 +2,12 @@ import warnings
 
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_selectors import LinearRegFS, NonLinearRegFS
-from fedot.core.repository.dataset_types import DataTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -25,13 +24,8 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         """
 
         prediction = trained_operation.predict(predict_data.features)
-        # Wrap prediction as features for next level
-        converted = OutputData(idx=predict_data.idx,
-                               features=predict_data.features,
-                               predict=prediction,
-                               task=predict_data.task,
-                               target=predict_data.target,
-                               data_type=DataTypesEnum.table)
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
 
         return converted
 
@@ -78,9 +72,11 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        # Prediction here is already OutputData type object
         prediction = trained_operation.transform(predict_data, is_fit_chain_stage)
-        return prediction
+
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

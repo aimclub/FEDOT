@@ -124,9 +124,9 @@ def run_experiment(file_path, init_chain, file_to_save,
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)
-        builder = GPComposerBuilder(task=task).with_requirements(
-            composer_requirements).with_metrics(metric_function).with_initial_chain(
-            init_chain)
+        builder = GPComposerBuilder(task=task).\
+            with_requirements(composer_requirements).\
+            with_metrics(metric_function).with_initial_chain(init_chain)
         composer = builder.build()
 
         obtained_chain = composer.compose_chain(data=train_input, is_visualise=False)

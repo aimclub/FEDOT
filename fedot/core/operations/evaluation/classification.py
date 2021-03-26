@@ -8,9 +8,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.\
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_selectors import LinearClassFS, NonLinearClassFS
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
-from fedot.core.repository.dataset_types import DataTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -40,12 +39,8 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         else:
             raise ValueError(f'Output model {self.output_mode} is not supported')
 
-        converted = OutputData(idx=predict_data.idx,
-                               features=predict_data.features,
-                               predict=prediction,
-                               task=predict_data.task,
-                               target=predict_data.target,
-                               data_type=DataTypesEnum.table)
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
         return converted
 
 
@@ -99,12 +94,8 @@ class CustomClassificationStrategy(EvaluationStrategy):
             raise ValueError(
                 f'Output model {self.output_mode} is not supported')
 
-        converted = OutputData(idx=predict_data.idx,
-                               features=predict_data.features,
-                               predict=prediction,
-                               task=predict_data.task,
-                               target=predict_data.target,
-                               data_type=DataTypesEnum.table)
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
         return converted
 
     def _convert_to_operation(self, operation_type: str):
@@ -145,7 +136,7 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        operation_implementation.fit(train_data.features)
+        operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
@@ -158,10 +149,12 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        # Prediction here is already OutputData type object
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
-        return prediction
+
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

@@ -11,6 +11,9 @@ from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
+from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
+from fedot.core.composer.optimisers.mutation import MutationTypesEnum
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
@@ -43,12 +46,26 @@ def get_source_chain():
     return chain
 
 
+def display_chain_info(chain):
+    """ Function print info about chain
+
+    :param chain: chain to process
+    :return obtained_operations: operations in the nodes
+    :return depth: depth of the chain
+    """
+
+    print('\nObtained chain:')
+    for node in chain.nodes:
+        print(f'{node.operation.operation_type}, params: {node.custom_params}')
+    depth = int(chain.depth)
+    print(f'Chain depth {depth}\n')
+
+
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing']
-    secondary_operations = ['ridge', 'lasso', 'dtreg', 'knnreg', 'linear',
-                            'svr', 'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
-                            'lagged']
+    primary_operations = ['lagged']
+    secondary_operations = ['ridge', 'lasso', 'knnreg', 'linear',
+                            'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
     return primary_operations, secondary_operations
 
 
@@ -190,18 +207,28 @@ def run_ts_forecasting_problem(forecast_length=50,
     composer_requirements = GPComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=5,
+        max_depth=8, pop_size=10, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=5),
         allow_single_operations=False)
 
+    mutation_types = [MutationTypesEnum.parameter_change, MutationTypesEnum.simple]
+    optimiser_parameters = GPChainOptimiserParameters(mutation_types=mutation_types)
+
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
-    builder = GPComposerBuilder(task=task).with_requirements(
-        composer_requirements).with_metrics(metric_function).with_initial_chain(
-        init_chain)
+    builder = GPComposerBuilder(task=task). \
+        with_optimiser_parameters(optimiser_parameters).\
+        with_requirements(composer_requirements).\
+        with_metrics(metric_function).with_initial_chain(init_chain)
     composer = builder.build()
 
     obtained_chain = composer.compose_chain(data=train_input, is_visualise=False)
+
+    ################################
+    # Obtained chain visualisation #
+    ################################
+    visualiser = ChainVisualiser()
+    visualiser.visualise(obtained_chain, save_path='D:/ITMO/obtained_chain.png')
 
     preds = fit_predict_for_chain(chain=obtained_chain,
                                   train_input=train_input,
@@ -211,6 +238,8 @@ def run_ts_forecasting_problem(forecast_length=50,
                               real=test_part,
                               actual_values=time_series,
                               is_visualise=with_visualisation)
+
+    display_chain_info(obtained_chain)
 
 
 if __name__ == '__main__':

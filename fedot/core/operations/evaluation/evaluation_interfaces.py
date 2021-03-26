@@ -29,6 +29,7 @@ from xgboost import XGBRegressor
 
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.log import Log, default_log
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -79,6 +80,31 @@ class EvaluationStrategy:
     @property
     def implementation_info(self) -> str:
         return 'No description'
+
+    @staticmethod
+    def _convert_to_output(prediction, predict_data: InputData,
+                           output_data_type: DataTypesEnum = DataTypesEnum.table) -> OutputData:
+        """ Method convert prediction into OutputData if it is not this type yet
+
+        :param prediction: output from model implementation
+        :param predict_data: InputData used for prediction
+        :param output_data_type: DataTypesEnum for output
+
+        :return : prediction as OutputData
+        """
+
+        if type(prediction) is not OutputData:
+            # Wrap prediction as OutputData
+            converted = OutputData(idx=predict_data.idx,
+                                   features=predict_data.features,
+                                   predict=prediction,
+                                   task=predict_data.task,
+                                   target=predict_data.target,
+                                   data_type=output_data_type)
+        else:
+            converted = prediction
+
+        return converted
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):

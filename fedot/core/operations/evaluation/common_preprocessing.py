@@ -52,10 +52,11 @@ class CustomPreprocessingStrategy(EvaluationStrategy):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return:
         """
-        # Prediction here is already OutputData type object
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_chain_stage)
-        return prediction
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

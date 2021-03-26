@@ -145,13 +145,14 @@ def test_ts_forecasting_lagged_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    node_smoothing = PrimaryNode('smoothing')
-    node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    chain = Chain(node_ridge)
+    for smoothing_operation in ['smoothing', 'gaussian_filter']:
+        node_smoothing = PrimaryNode(smoothing_operation)
+        node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
+        node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+        chain = Chain(node_ridge)
 
-    chain.fit_from_scratch(train_input)
-    predicted_output = chain.predict(predict_input)
-    predicted = np.ravel(predicted_output.predict)
+        chain.fit_from_scratch(train_input)
+        predicted_output = chain.predict(predict_input)
+        predicted = np.ravel(predicted_output.predict)
 
-    assert len(predicted) == len(np.ravel(y_test))
+        assert len(predicted) == len(np.ravel(y_test))
