@@ -20,9 +20,9 @@ class ChainTemplate:
     :params log: Log object to record messages
     """
     def __init__(self, chain=None, log: Log = None):
-        self.total_chain_models = Counter()
+        self.total_chain_operations = Counter()
         self.depth = chain.depth
-        self.model_templates = []
+        self.operation_templates = []
         self.unique_chain_id = str(uuid4())
 
         if not log:
@@ -38,10 +38,10 @@ class ChainTemplate:
         else:
             self.link_to_empty_chain = chain
 
-    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[str]):
+    def _extract_chain_structure(self, node: Node, operation_id: int, visited_nodes: List[str]):
         """
         Recursively go through the Chain from 'root_node' to PrimaryNode's,
-        creating a ModelTemplate with unique id for each Node. In addition,
+        creating a OperationTemplate with unique id for each Node. In addition,
         checking whether this Node has been visited yet.
         """
         if node.nodes_from:
@@ -56,12 +56,12 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        model_template = ModelTemplate(node, model_id, nodes_from)
+        operation_template = OperationTemplate(node, operation_id, nodes_from)
 
-        self.model_templates.append(model_template)
-        self.total_chain_models[model_template.model_type] += 1
+        self.operation_templates.append(operation_template)
+        self.total_chain_operations[operation_template.operation_type] += 1
 
-        return model_template
+        return operation_template
 
     def export_chain(self, path: str):
         path = self._prepare_paths(path)
@@ -78,29 +78,29 @@ class ChainTemplate:
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
             self.log.info(f"The chain saved in the path: {resulted_path}.")
 
-        self._create_fitted_models(absolute_path)
+        self._create_fitted_operations(absolute_path)
 
         return json_data
 
     def convert_to_dict(self) -> dict:
-        json_nodes = list(map(lambda model_template: model_template.convert_to_dict(), self.model_templates))
+        json_nodes = list(map(lambda operation_template: operation_template.convert_to_dict(), self.operation_templates))
 
         json_object = {
-            "total_chain_models": self.total_chain_models,
+            "total_chain_operations": self.total_chain_operations,
             "depth": self.depth,
             "nodes": json_nodes,
         }
 
         return json_object
 
-    def _create_fitted_models(self, path):
-        path_fitted_models = os.path.join(path, 'fitted_models')
+    def _create_fitted_operations(self, path):
+        path_fitted_operations = os.path.join(path, 'fitted_operations')
 
-        if not os.path.exists(path_fitted_models):
-            os.makedirs(path_fitted_models)
+        if not os.path.exists(path_fitted_operations):
+            os.makedirs(path_fitted_operations)
 
-        for model in self.model_templates:
-            model.export_pkl_model(path)
+        for operation in self.operation_templates:
+            operation.export_pkl_operation(path)
 
     def _prepare_paths(self, path: str):
         absolute_path = os.path.abspath(path)
@@ -125,7 +125,7 @@ class ChainTemplate:
             json_object_chain = json.load(json_file)
             self.log.info(f"The chain was imported from the path: {path}.")
 
-        self._extract_models(json_object_chain)
+        self._extract_operations(json_object_chain)
         self.convert_to_chain(self.link_to_empty_chain, path)
         self.depth = self.link_to_empty_chain.depth
 
@@ -140,67 +140,67 @@ class ChainTemplate:
             self.log.error(message)
             raise FileNotFoundError(message)
 
-    def _extract_models(self, chain_json):
-        model_objects = chain_json['nodes']
+    def _extract_operations(self, chain_json):
+        operation_objects = chain_json['nodes']
 
-        for model_object in model_objects:
-            model_template = ModelTemplate()
-            model_template.import_from_json(model_object)
-            self.model_templates.append(model_template)
-            self.total_chain_models[model_template.model_type] += 1
+        for operation_object in operation_objects:
+            operation_template = OperationTemplate()
+            operation_template.import_from_json(operation_object)
+            self.operation_templates.append(operation_template)
+            self.total_chain_operations[operation_template.operation_type] += 1
 
     def convert_to_chain(self, chain, path: str = None):
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
-        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
+        root_template = [operation_template for operation_template in self.operation_templates if operation_template.operation_id == 0][0]
         root_node = self.roll_chain_structure(root_template, visited_nodes, path)
         chain.nodes.clear()
         chain.add_node(root_node)
 
-    def roll_chain_structure(self, model_object: 'ModelTemplate', visited_nodes: dict, path: str = None):
+    def roll_chain_structure(self, operation_object: 'OperationTemplate', visited_nodes: dict, path: str = None):
         """
-        The function recursively traverses all disjoint models
-        and connects the models in a chain.
+        The function recursively traverses all disjoint operations
+        and connects the operations in a chain.
         :return: root_node
         """
-        if model_object.model_id in visited_nodes:
-            return visited_nodes[model_object.model_id]
-        if model_object.nodes_from:
-            node = SecondaryNode(model_object.model_type)
+        if operation_object.operation_id in visited_nodes:
+            return visited_nodes[operation_object.operation_id]
+        if operation_object.nodes_from:
+            node = SecondaryNode(operation_object.operation_type)
         else:
-            node = PrimaryNode(model_object.model_type)
+            node = PrimaryNode(operation_object.operation_type)
 
-        node.model.params = model_object.params
-        nodes_from = [model_template for model_template in self.model_templates
-                      if model_template.model_id in model_object.nodes_from]
+        node.operation.params = operation_object.params
+        nodes_from = [operation_template for operation_template in self.operation_templates
+                      if operation_template.operation_id in operation_object.nodes_from]
         node.nodes_from = [self.roll_chain_structure(node_from, visited_nodes, path) for node_from
                            in nodes_from]
 
-        if model_object.fitted_model_path and path is not None:
-            path_to_model = os.path.join(path, model_object.fitted_model_path)
-            if not os.path.isfile(path_to_model):
-                message = f"Fitted model on the path: {path_to_model} does not exist."
+        if operation_object.fitted_operation_path and path is not None:
+            path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
+            if not os.path.isfile(path_to_operation):
+                message = f"Fitted operation on the path: {path_to_operation} does not exist."
                 self.log.error(message)
                 raise FileNotFoundError(message)
 
-            fitted_model = joblib.load(path_to_model)
-            node.cache.append(CachedState(operation=fitted_model))
-        visited_nodes[model_object.model_id] = node
+            fitted_operation = joblib.load(path_to_operation)
+            node.cache.append(CachedState(operation=fitted_operation))
+        visited_nodes[operation_object.operation_id] = node
         return node
 
 
-class ModelTemplate:
-    def __init__(self, node: Node = None, model_id: int = None,
+class OperationTemplate:
+    def __init__(self, node: Node = None, operation_id: int = None,
                  nodes_from: list = None, log: Log = None):
-        self.model_id = None
-        self.model_type = None
-        self.model_name = None
+        self.operation_id = None
+        self.operation_type = None
+        self.operation_name = None
         self.custom_params = None
         self.params = None
         self.nodes_from = None
-        self.fitted_model = None
-        self.fitted_model_path = None
+        self.fitted_operation = None
+        self.fitted_operation_path = None
 
         if not log:
             self.log = default_log(__name__)
@@ -208,32 +208,41 @@ class ModelTemplate:
             self.log = log
 
         if node:
-            self._model_to_template(node, model_id, nodes_from)
+            self._operation_to_template(node, operation_id, nodes_from)
 
-    def _model_to_template(self, node: Node, model_id: int, nodes_from: list):
-        self.model_id = model_id
-        self.model_type = node.model.model_type
-        self.custom_params = node.model.params
+    def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
+        self.operation_id = operation_id
+        self.operation_type = node.operation.operation_type
+        self.custom_params = node.operation.params
         self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
 
-        if _is_node_fitted(node) and not _is_node_not_cached(node):
-            self.model_name = _extract_model_name(node)
-            self._extract_fields_of_fitted_model(node)
+        if _is_node_fitted(node):
+            self.operation_name = _extract_operation_name(node)
+            self._extract_fields_of_fitted_operation(node)
 
-    def _extract_fields_of_fitted_model(self, node: Node):
-        model_name = f'model_{str(self.model_id)}.pkl'
-        self.fitted_model_path = os.path.join('fitted_models', model_name)
-        self.fitted_model = node.cache.actual_cached_state.model
+    def _extract_fields_of_fitted_operation(self, node: Node):
+        operation_name = f'operation_{str(self.operation_id)}.pkl'
+        self.fitted_operation_path = os.path.join('fitted_operations', operation_name)
+        self.fitted_operation = node.cache.actual_cached_state.operation
 
-    def export_pkl_model(self, path: str):
-        if self.fitted_model:
-            joblib.dump(self.fitted_model, os.path.join(path, self.fitted_model_path))
+    def export_pkl_operation(self, path: str):
+        if self.fitted_operation:
+            joblib.dump(self.fitted_operation, os.path.join(path, self.fitted_operation_path))
 
     def _create_full_params(self, node: Node) -> dict:
+        wrapped_operations = ['base_estimator', 'estimator']
+
         params = {}
-        if _is_node_fitted(node) and not _is_node_not_cached(node):
-            params = _extract_model_params(node)
+        if _is_node_fitted(node):
+            params = _extract_operation_params(node)
+
+            # Check if it is needed to process "model in model" cases
+            # such strategy is needed for RANSAC or RFE algorithms
+            for wrapped_operation in wrapped_operations:
+                if wrapped_operation in params:
+                    del params[wrapped_operation]
+
             if isinstance(self.custom_params, dict):
                 for key, value in self.custom_params.items():
                     params[key] = value
@@ -242,61 +251,57 @@ class ModelTemplate:
 
     def convert_to_dict(self) -> dict:
 
-        model_object = {
-            "model_id": self.model_id,
-            "model_type": self.model_type,
-            "model_name": self.model_name,
+        operation_object = {
+            "operation_id": self.operation_id,
+            "operation_type": self.operation_type,
+            "operation_name": self.operation_name,
             "custom_params": self.custom_params,
             "params": self.params,
             "nodes_from": self.nodes_from,
-            "fitted_model_path": self.fitted_model_path,
+            "fitted_operation_path": self.fitted_operation_path,
         }
 
-        return model_object
+        return operation_object
 
-    def import_from_json(self, model_object: dict):
-        self._validate_json_model_template(model_object)
+    def import_from_json(self, operation_object: dict):
+        self._validate_json_operation_template(operation_object)
 
-        self.model_id = model_object['model_id']
-        self.model_type = model_object['model_type']
-        self.params = model_object['params']
-        self.nodes_from = model_object['nodes_from']
-        if "fitted_model_path" in model_object:
-            self.fitted_model_path = model_object['fitted_model_path']
-        if "custom_params" in model_object:
-            self.custom_params = model_object['custom_params']
-        if "model_name" in model_object:
-            self.model_name = model_object['model_name']
+        self.operation_id = operation_object['operation_id']
+        self.operation_type = operation_object['operation_type']
+        self.params = operation_object['params']
+        self.nodes_from = operation_object['nodes_from']
+        if "fitted_operation_path" in operation_object:
+            self.fitted_operation_path = operation_object['fitted_operation_path']
+        if "custom_params" in operation_object:
+            self.custom_params = operation_object['custom_params']
+        if "operation_name" in operation_object:
+            self.operation_name = operation_object['operation_name']
 
-    def _validate_json_model_template(self, model_object: dict):
-        required_fields = ['model_id', 'model_type', 'params', 'nodes_from']
+    def _validate_json_operation_template(self, operation_object: dict):
+        required_fields = ['operation_id', 'operation_type', 'params', 'nodes_from']
 
         for field in required_fields:
-            if field not in model_object:
+            if field not in operation_object:
                 message = f"Required field '{field}' is expected, but not found."
                 self.log.error(message)
                 raise RuntimeError(message)
 
 
-def _extract_model_params(node: Node):
-    return node.cache.actual_cached_state.model.get_params()
+def _extract_operation_params(node: Node):
+    return node.cache.actual_cached_state.operation.get_params()
 
 
-def _extract_model_name(node: Node):
-    return node.cache.actual_cached_state.model.__class__.__name__
+def _extract_operation_name(node: Node):
+    return node.cache.actual_cached_state.operation.__class__.__name__
 
 
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
 
 
-def _is_node_not_cached(node: Node) -> bool:
-    return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
-
-
-def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
-    root_node = [model_template for model_template in chain_template.model_templates
-                 if model_template.model_id == root_model_id][0]
+def extract_subtree_root(root_operation_id: int, chain_template: ChainTemplate):
+    root_node = [operation_template for operation_template in chain_template.operation_templates
+                 if operation_template.operation_id == root_operation_id][0]
     root_node = chain_template.roll_chain_structure(root_node, {})
 
     return root_node
