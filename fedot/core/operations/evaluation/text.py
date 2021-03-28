@@ -9,7 +9,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.text_preprocessing import TextClean
+    data_operations.text_preprocessing import TextCleanImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -66,7 +66,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
 
 class CustomTextPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'text_clean': TextClean}
+        'text_clean': TextCleanImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.text_processor = self._convert_to_operation(operation_type)

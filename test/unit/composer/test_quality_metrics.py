@@ -22,14 +22,15 @@ def data_setup():
     np.random.shuffle(response)
     response = response[:100]
     predictors = predictors[:100]
-    train_data_x, test_data_x = split_train_test(predictors)
-    train_data_y, test_data_y = split_train_test(response)
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)),
-                           task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
-    test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)),
-                          task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+
+    # Wrap data into TnputData
+    input_data = InputData(features=predictors,
+                           target=response,
+                           idx=np.arange(0, len(predictors)),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    # Train test split
+    train_data, test_data = train_test_data_setup(input_data)
     return train_data, test_data
 
 

@@ -3,8 +3,8 @@ import warnings
 from typing import Optional
 
 from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    sklearn_transformations import PCAOperation, PolyFeaturesOperation, OneHotEncodingOperation, \
-    ScalingOperation, NormalizationOperation, KernelPCAOperation, ImputationOperation
+    sklearn_transformations import PCAImplementation, PolyFeaturesImplementation, OneHotEncodingImplementation, \
+    ScalingImplementation, NormalizationImplementation, KernelPCAImplementation, ImputationImplementation
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
@@ -13,13 +13,13 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 class CustomPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'scaling': ScalingOperation,
-        'normalization': NormalizationOperation,
-        'simple_imputation': ImputationOperation,
-        'pca': PCAOperation,
-        'kernel_pca': KernelPCAOperation,
-        'poly_features': PolyFeaturesOperation,
-        'one_hot_encoding': OneHotEncodingOperation,
+        'scaling': ScalingImplementation,
+        'normalization': NormalizationImplementation,
+        'simple_imputation': ImputationImplementation,
+        'pca': PCAImplementation,
+        'kernel_pca': KernelPCAImplementation,
+        'poly_features': PolyFeaturesImplementation,
+        'one_hot_encoding': OneHotEncodingImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

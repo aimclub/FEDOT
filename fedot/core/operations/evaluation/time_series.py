@@ -5,7 +5,8 @@ from typing import Optional
 from fedot.core.operations.evaluation.operation_implementations.models.\
     ts_implementations import ARIMAImplementation, AutoRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
-    import LaggedTransformation, TsSmoothing, ExogDataTransformation, GaussianFilter
+    import LaggedTransformationImplementation, TsSmoothingImplementation, \
+    ExogDataTransformationImplementation, GaussianFilterImplementation
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -87,10 +88,10 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'lagged': LaggedTransformation,
-        'smoothing': TsSmoothing,
-        'exog': ExogDataTransformation,
-        'gaussian_filter': GaussianFilter}
+        'lagged': LaggedTransformationImplementation,
+        'smoothing': TsSmoothingImplementation,
+        'exog': ExogDataTransformationImplementation,
+        'gaussian_filter': GaussianFilterImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)

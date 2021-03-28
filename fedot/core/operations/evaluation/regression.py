@@ -5,9 +5,9 @@ from typing import Optional
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_filters import LinearRegRANSAC, NonLinearRegRANSAC
+    data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_selectors import LinearRegFS, NonLinearRegFS
+    data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -36,10 +36,10 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'ransac_lin_reg': LinearRegRANSAC,
-        'ransac_non_lin_reg': NonLinearRegRANSAC,
-        'rfe_lin_reg': LinearRegFS,
-        'rfe_non_lin_reg': NonLinearRegFS,
+        'ransac_lin_reg': LinearRegRANSACImplementation,
+        'ransac_non_lin_reg': NonLinearRegRANSACImplementation,
+        'rfe_lin_reg': LinearRegFSImplementation,
+        'rfe_non_lin_reg': NonLinearRegFSImplementation,
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

@@ -20,7 +20,6 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.cluster import KMeans as SklearnKmeans
-from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVC
 
 from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
 from sklearn.svm import LinearSVR as SklearnSVR
@@ -135,7 +134,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'multinb': SklearnMultinomialNB,
         'knn': SklearnKNN,
         'dt': DecisionTreeClassifier,
-        'svc': CustomSVC,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
 

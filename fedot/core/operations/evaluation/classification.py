@@ -5,9 +5,10 @@ from typing import Optional
 
 from fedot.core.operations.evaluation.operation_implementations.models.\
     discriminant_analysis import LDAImplementation, QDAImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVCImplementation
 
 from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_selectors import LinearClassFS, NonLinearClassFS
+    data_operations.sklearn_selectors import LinearClassFSImplementation, NonLinearClassFSImplementation
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
@@ -49,7 +50,8 @@ class CustomClassificationStrategy(EvaluationStrategy):
 
     __operations_by_types = {
         'lda': LDAImplementation,
-        'qda': QDAImplementation
+        'qda': QDAImplementation,
+        'svc': CustomSVCImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -115,8 +117,8 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'rfe_lin_class': LinearClassFS,
-        'rfe_non_lin_class': NonLinearClassFS
+        'rfe_lin_class': LinearClassFSImplementation,
+        'rfe_non_lin_class': NonLinearClassFSImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

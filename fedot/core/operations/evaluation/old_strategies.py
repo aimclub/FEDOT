@@ -99,12 +99,9 @@ def _create_lstm(train_data: InputData):
                                              kernel_regularizer=tf.keras.regularizers.l1(reg))(lstm_first_layer)
 
     concatenation = tf.keras.layers.Concatenate()([concatenation, lstm_second_layer])
-    output_layer = tf.keras.layers.TimeDistributed(
-        tf.keras.Sequential([
-            tf.keras.layers.Dropout(0.25),
-            tf.keras.layers.Dense(train_data.target.shape[-1],
-                                  kernel_regularizer=tf.keras.regularizers.l1(reg))
-        ]))(concatenation)
+    output_layer = tf.keras.layers.TimeDistributed(tf.keras.Sequential([tf.keras.layers.Dropout(0.25),
+                                                                        tf.keras.layers.Dense(train_data.target.shape[-1],
+                                                                                              kernel_regularizer=tf.keras.regularizers.l1(reg))]))(concatenation)
 
     return tf.keras.Model(inputs=input_layer, outputs=output_layer)
 

@@ -79,6 +79,7 @@ def roc_value(chain: Chain, dataset_to_validate) -> float:
 
 
 if __name__ == '__main__':
+    # TODO fix it cause sometimes it fails
     seed(15)
     np.random.seed(15)
     data_generator_example()

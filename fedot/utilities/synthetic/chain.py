@@ -76,8 +76,7 @@ def chain_balanced_tree(depth: int, models_per_level: List[int],
 def separately_fit_chain(samples: int, features_amount: int, classes: int,
                          chain: Chain = None):
     if chain is None:
-        models = ['logit', 'xgboost',
-                  'knn']
+        models = ['logit', 'xgboost', 'knn']
         template = chain_template_balanced_tree(operation_types=models,
                                                 depth=3,
                                                 operations_per_level=[4, 2, 1],

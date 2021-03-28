@@ -12,7 +12,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 
 
-class TextClean(DataOperationImplementation):
+class TextCleanImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         self.stemmer = PorterStemmer()

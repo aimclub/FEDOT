@@ -1,5 +1,5 @@
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.text import VectorizeStrategy
+from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -17,12 +17,15 @@ def test_vectorize_tfidf_strategy():
                           target=[0, 1, 0], data_type=DataTypesEnum.text,
                           task=Task(TaskTypesEnum.classification))
 
-    vectorizer = VectorizeStrategy(model_type='tfidf', params=None)
+    vectorizer = SkLearnTextVectorizeStrategy(operation_type='tfidf',
+                                              params=None)
 
     vectorizer_fitted = vectorizer.fit(train_data)
 
-    predicted = vectorizer.predict(trained_model=vectorizer_fitted,
-                                   predict_data=test_data)
+    predicted = vectorizer.predict(trained_operation=vectorizer_fitted,
+                                   predict_data=test_data,
+                                   is_fit_chain_stage=False)
+    predicted_labels = predicted.predict
 
     assert isinstance(vectorizer_fitted, TfidfVectorizer)
-    assert len(predicted[0]) == 7
+    assert len(predicted_labels[0]) == 7

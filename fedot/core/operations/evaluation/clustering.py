@@ -19,6 +19,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
         self.operation_impl = self._convert_to_operation(operation_type)
+        self.params_for_fit = params
 
     def fit(self, train_data: InputData):
         """
@@ -27,9 +28,15 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         :param train_data: data used for model training
         :return:
         """
-        sklearn_model = self._convert_to_operation(n_clusters=2)
-        sklearn_model = sklearn_model.fit(train_data.features)
-        return sklearn_model
+
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        if self.params_for_fit:
+            operation_implementation = self.operation_impl(**self.params_for_fit)
+        else:
+            operation_implementation = self.operation_impl(n_clusters=2)
+
+        operation_implementation.fit(train_data.features)
+        return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_chain_stage: bool) -> OutputData:

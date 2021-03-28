@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
 
 
-class LaggedTransformation(DataOperationImplementation):
+class LaggedTransformationImplementation(DataOperationImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
     def __init__(self, **params: Optional[dict]):
@@ -71,7 +71,7 @@ class LaggedTransformation(DataOperationImplementation):
         return {'window_size': self.window_size}
 
 
-class TsSmoothing(DataOperationImplementation):
+class TsSmoothingImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -116,7 +116,7 @@ class TsSmoothing(DataOperationImplementation):
         return {'window_size': self.window_size}
 
 
-class ExogDataTransformation(DataOperationImplementation):
+class ExogDataTransformationImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -169,7 +169,7 @@ class ExogDataTransformation(DataOperationImplementation):
         return None
 
 
-class GaussianFilter(DataOperationImplementation):
+class GaussianFilterImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()

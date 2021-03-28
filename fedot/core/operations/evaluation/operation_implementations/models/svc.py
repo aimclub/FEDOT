@@ -1,26 +1,59 @@
 import numpy as np
+
+from typing import Optional
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
+from fedot.core.operations.evaluation.\
+    operation_implementations.implementation_interfaces import ModelImplementation
 
 
-class CustomSVC:
-    def __init__(self):
-        self.fitted_model = None
-        self.classes_ = None
+class CustomSVCImplementation(ModelImplementation):
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            self.inner_model = SVC(kernel='linear',
+                                   probability=True,
+                                   class_weight='balanced')
+        else:
+            self.inner_model = SVC(**params)
+        self.params = params
+        self.model = OneVsRestClassifier(self.inner_model)
+        self.classes = None
 
-    def fit(self, train_data: np.array, target_data: np.array):
-        self.fitted_model = OneVsRestClassifier(SVC(kernel='linear',
-                                                    probability=True,
-                                                    class_weight='balanced'))
-        self.classes_ = np.unique(target_data)
-        self.fitted_model.fit(train_data, target_data)
-        return self.fitted_model
+    def fit(self, train_data):
+        """ Method fit model on a dataset
 
-    def predict(self, data_to_predict: np.array):
-        return self.fitted_model.predict(data_to_predict)
+        :param train_data: data to train the model
+        """
+        self.classes = np.unique(train_data.target)
+        self.model.fit(train_data.features, train_data.target)
+        return self.model
 
-    def predict_proba(self, data_to_predict: np.array):
-        return self.fitted_model.predict_proba(data_to_predict)
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """ Method make prediction with labels of classes
+
+        :param input_data: data with features to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        """
+        prediction = self.model.predict(input_data.features)
+
+        return prediction
+
+    def predict_proba(self, input_data):
+        """ Method make prediction with probabilities of classes
+
+        :param input_data: data with features to process
+        """
+        prediction = self.model.predict_proba(input_data.features)
+
+        return prediction
 
     def get_params(self):
-        return self.fitted_model.get_params()
+        """ Method return parameters, which can be optimized for particular
+        operation
+        """
+        return self.model.get_params()
+
+    @property
+    def classes_(self):
+        return self.classes

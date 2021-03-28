@@ -10,15 +10,15 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
-	"discriminant_class": {
+	"custom_class": {
 	  "tasks": "[TaskTypesEnum.classification]",
 	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
-	  "tags": ["ml", "sklearn"],
-	  "description": "Implementations of the classification models from scikit-learn framework"
+	  "tags": ["ml", "custom"],
+	  "description": "Implementations of the custom classification models"
 	},
 	"sklearn_regr": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
@@ -44,7 +44,7 @@
 	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.operations.evaluation.utils", "KerasForecastingStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.old_strategies", "KerasForecastingStrategy"],
 	  "tags": ["nn"],
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"
 	},
@@ -72,11 +72,11 @@
 	  "tags": ["simple", "linear", "interpretable"]
 	},
 	"lda": {
-	  "meta": "discriminant_class",
+	  "meta": "custom_class",
 	  "tags": ["discriminant", "linear"]
 	},
 	"qda": {
-	  "meta": "discriminant_class",
+	  "meta": "custom_class",
 	  "tags": ["discriminant", "quadratic"]
 	},
 	"dt": {
@@ -95,7 +95,7 @@
 	  "tags": ["simple"]
 	},
 	"svc": {
-	  "meta": "sklearn_class",
+	  "meta": "custom_class",
 	  "tags": ["no_prob", "expensive"]
 	},
 	"xgboost": {

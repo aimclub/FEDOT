@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation, EncodedInvariantOperation
 
 
-class ComponentAnalysisOperation(DataOperationImplementation):
+class ComponentAnalysisImplementation(DataOperationImplementation):
     """ Class for applying PCA and kernel PCA models form sklearn
 
     :param params: optional, dictionary with the arguments
@@ -72,7 +72,7 @@ class ComponentAnalysisOperation(DataOperationImplementation):
         return self.pca.get_params()
 
 
-class PCAOperation(ComponentAnalysisOperation):
+class PCAImplementation(ComponentAnalysisImplementation):
     """ Adapter class for automatically determining the number of components
     for PCA
 
@@ -90,7 +90,7 @@ class PCAOperation(ComponentAnalysisOperation):
         self.amount_of_features = None
 
 
-class KernelPCAOperation(ComponentAnalysisOperation):
+class KernelPCAImplementation(ComponentAnalysisImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -102,7 +102,7 @@ class KernelPCAOperation(ComponentAnalysisOperation):
         self.params = params
 
 
-class OneHotEncodingOperation(DataOperationImplementation):
+class OneHotEncodingImplementation(DataOperationImplementation):
     """ Class for automatic categorical data detection and one hot encoding """
 
     def __init__(self, **params: Optional[dict]):
@@ -210,7 +210,7 @@ class OneHotEncodingOperation(DataOperationImplementation):
         return categorical_ids, non_categorical_ids
 
 
-class PolyFeaturesOperation(EncodedInvariantOperation):
+class PolyFeaturesImplementation(EncodedInvariantOperation):
     """ Class for application of PolynomialFeatures operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
@@ -235,7 +235,7 @@ class PolyFeaturesOperation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class ScalingOperation(EncodedInvariantOperation):
+class ScalingImplementation(EncodedInvariantOperation):
     """ Class for application of Scaling operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
@@ -256,7 +256,7 @@ class ScalingOperation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class NormalizationOperation(EncodedInvariantOperation):
+class NormalizationImplementation(EncodedInvariantOperation):
     """ Class for application of MinMax normalization operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
@@ -277,7 +277,7 @@ class NormalizationOperation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class ImputationOperation(DataOperationImplementation):
+class ImputationImplementation(DataOperationImplementation):
     """ Class for applying imputation on tabular data
 
     :param params: optional, dictionary with the arguments

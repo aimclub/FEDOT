@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import EncodedInvariantOperation
 
 
-class FeatureSelection(EncodedInvariantOperation):
+class FeatureSelectionImplementation(EncodedInvariantOperation):
     """ Class for applying feature selection operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):
@@ -91,7 +91,7 @@ class FeatureSelection(EncodedInvariantOperation):
         return transformed_features
 
 
-class LinearRegFS(FeatureSelection):
+class LinearRegFSImplementation(FeatureSelectionImplementation):
     """
     Class for feature selection based on Recursive Feature Elimination (RFE) and
     LinearRegression as core model
@@ -113,7 +113,7 @@ class LinearRegFS(FeatureSelection):
         self.params = params
 
 
-class NonLinearRegFS(FeatureSelection):
+class NonLinearRegFSImplementation(FeatureSelectionImplementation):
     """
     Class for feature selection based on Recursive Feature Elimination (RFE) and
     DecisionTreeRegressor as core model
@@ -135,7 +135,7 @@ class NonLinearRegFS(FeatureSelection):
         self.params = params
 
 
-class LinearClassFS(FeatureSelection):
+class LinearClassFSImplementation(FeatureSelectionImplementation):
     """
     Class for feature selection based on Recursive Feature Elimination (RFE) and
     LogisticRegression as core model
@@ -157,7 +157,7 @@ class LinearClassFS(FeatureSelection):
         self.params = params
 
 
-class NonLinearClassFS(FeatureSelection):
+class NonLinearClassFSImplementation(FeatureSelectionImplementation):
     """
     Class for feature selection based on Recursive Feature Elimination (RFE) and
     DecisionTreeClassifier as core model

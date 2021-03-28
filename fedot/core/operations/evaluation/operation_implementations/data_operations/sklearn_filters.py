@@ -7,7 +7,7 @@ from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
 
 
-class FilterOperation(DataOperationImplementation):
+class FilterImplementation(DataOperationImplementation):
     """ Base class for applying filtering operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):
@@ -71,7 +71,7 @@ class FilterOperation(DataOperationImplementation):
         return modified_input_data
 
 
-class LinearRegRANSAC(FilterOperation):
+class LinearRegRANSACImplementation(FilterImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
     Task type - regression
@@ -90,7 +90,7 @@ class LinearRegRANSAC(FilterOperation):
         self.params = params
 
 
-class NonLinearRegRANSAC(FilterOperation):
+class NonLinearRegRANSACImplementation(FilterImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with DecisionTreeRegressor as core
     Task type - regression
