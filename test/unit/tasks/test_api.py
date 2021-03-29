@@ -1,6 +1,6 @@
-from fedot.api.api_runner import Fedot, check_data_type
-import pandas as pd
 import os
+import pytest
+import pandas as pd
 import numpy as np
 
 from fedot.core.data.data import train_test_data_setup, InputData
@@ -8,9 +8,12 @@ from fedot.core.utils import project_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from sklearn.model_selection import train_test_split
 
+from fedot.api.api_runner import Fedot, check_data_type
+from fedot.api.help import operations_for_task
+
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
@@ -50,7 +53,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_synthetic_ts_data_linear(forecast_length=1, max_window_size=10)
+        train_data, test_data = get_synthetic_ts_data_period(forecast_length=1)
         threshold = np.str(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -83,3 +86,14 @@ def test_api_check_data_correct():
     assert not type(string_data_input) == InputData \
            or type(array_data_input) == InputData \
            or type(fedot_data_input) == InputData
+
+
+def test_api_help_correct():
+    regression_operations = operations_for_task(task_name='regression')
+    regression_models = regression_operations.get('models')
+
+    classification_operations = operations_for_task(task_name='classification')
+    classification_models = classification_operations.get('models')
+
+    assert 'ridge' in regression_models
+    assert 'logit' in classification_models

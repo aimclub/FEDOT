@@ -120,15 +120,15 @@
 	},
 	"xgbreg": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"adareg": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"gbr": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"knnreg": {
 	  "meta": "sklearn_regr",
@@ -146,10 +146,12 @@
 	  "meta": "sklearn_regr"
 	},
 	"svr": {
-	  "meta": "sklearn_regr"
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
 	},
 	"sgdr": {
-	  "meta": "sklearn_regr"
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
 	},
 	"arima": {
 	  "meta": "ts_model",

@@ -127,4 +127,3 @@ def test_string_features_from_csv():
 
     assert expected_features.dtype == float
     assert np.isfinite(expected_features).all()
-

@@ -56,30 +56,21 @@ def synthetic_with_exogenous_ts():
     end_forecast = start_forecast + forecast_length
 
     # Input for source time series
-    train_input_source_ts = InputData(idx=np.arange(0, len(ts_train)),
-                                      features=ts_train,
-                                      target=ts_train,
-                                      task=task,
-                                      data_type=DataTypesEnum.ts)
-    predict_input_source_ts = InputData(idx=np.arange(start_forecast, end_forecast),
-                                        features=ts_train,
-                                        target=None,
-                                        task=task,
-                                        data_type=DataTypesEnum.ts)
+    train_source_ts = InputData(idx=np.arange(0, len(ts_train)),
+                                features=ts_train, target=ts_train,
+                                task=task, data_type=DataTypesEnum.ts)
+    predict_source_ts = InputData(idx=np.arange(start_forecast, end_forecast),
+                                  features=ts_train, target=None,
+                                  task=task, data_type=DataTypesEnum.ts)
 
     # Input for exogenous variable
-    train_input_exog_ts = InputData(idx=np.arange(0, len(ts_train)),
-                                    features=ts_exog,
-                                    target=ts_train,
-                                    task=task,
-                                    data_type=DataTypesEnum.ts)
-    predict_input_exog_ts = InputData(idx=np.arange(start_forecast, end_forecast),
-                                      features=ts_test_exog,
-                                      target=None,
-                                      task=task,
-                                      data_type=DataTypesEnum.ts)
-    return train_input_source_ts, predict_input_source_ts, \
-           train_input_exog_ts, predict_input_exog_ts, ts_test
+    train_exog_ts = InputData(idx=np.arange(0, len(ts_train)),
+                              features=ts_exog, target=ts_train,
+                              task=task, data_type=DataTypesEnum.ts)
+    predict_exog_ts = InputData(idx=np.arange(start_forecast, end_forecast),
+                                features=ts_test_exog, target=None,
+                                task=task, data_type=DataTypesEnum.ts)
+    return train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test
 
 
 def test_ts_to_lagged_table():

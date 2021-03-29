@@ -164,7 +164,7 @@ class DataMerger:
         applied """
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
                                   DataTypesEnum.table: self.combine_datasets_table,
-                                  DataTypesEnum.text: self.combine_datasets_table,}
+                                  DataTypesEnum.text: self.combine_datasets_table}
 
         first_data_type = self.outputs[0].data_type
         output_data_types = []

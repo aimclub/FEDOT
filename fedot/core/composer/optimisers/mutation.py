@@ -149,7 +149,8 @@ def reduce_mutation(chain: Any, requirements, chain_generation_params) -> Any:
 def parameter_change_mutation(chain: Any, requirements) -> Any:
     """
     This type of mutation is passed over all nodes and changes
-    hyperpearameters of the operations with probability - 'node mutation probability' which is inicialised inside the function
+    hyperpearameters of the operations with probability - 'node mutation probability'
+    which is initialised inside the function
     """
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
                                                   root_node=chain.root_node)

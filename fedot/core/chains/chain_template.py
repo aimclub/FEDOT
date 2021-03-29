@@ -83,7 +83,7 @@ class ChainTemplate:
         return json_data
 
     def convert_to_dict(self) -> dict:
-        json_nodes = list(map(lambda operation_template: operation_template.convert_to_dict(), self.operation_templates))
+        json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
 
         json_object = {
             "total_chain_operations": self.total_chain_operations,
@@ -153,7 +153,7 @@ class ChainTemplate:
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
-        root_template = [operation_template for operation_template in self.operation_templates if operation_template.operation_id == 0][0]
+        root_template = [op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
         root_node = self.roll_chain_structure(root_template, visited_nodes, path)
         chain.nodes.clear()
         chain.add_node(root_node)

@@ -91,7 +91,6 @@ def get_simple_chain():
     node_lagged.custom_params = {'window_size': 150}
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
     ridge_chain = Chain(node_ridge)
-    
     return ridge_chain
 
 

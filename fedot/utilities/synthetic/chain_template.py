@@ -108,7 +108,9 @@ def with_balanced_tree_links(operations_by_level):
 
         current_group_idx = 0
         for operation_idx in range(current_level_amount):
-            if (operation_idx % operations_per_group) == 0 and operation_idx != 0 and current_group_idx < next_level_amount - 1:
+            is_group_idx_correct = current_group_idx < next_level_amount - 1
+            is_non_zero = operation_idx != 0
+            if (operation_idx % operations_per_group) == 0 and is_non_zero and is_group_idx_correct:
                 current_group_idx += 1
             current_operation = operations_on_lvl[operation_idx]
             current_group_parent = operations_by_level[next_lvl][current_group_idx]
