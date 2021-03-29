@@ -48,14 +48,15 @@ def array_to_input_data(features_array: np.array,
 def filter_models_by_preset(available_model_types: list,
                             model_configuration: str):
     excluded_models_dict = {'light': ['mlp', 'svc'],
-                            'light_tun': ['mlp', 'svc']}
+                            'light_tun': ['mlp', 'svc'],
+                            'without_knn': ['mlp', 'svc', 'knnreg', 'knn']}
 
     if model_configuration in excluded_models_dict.keys():
         excluded_models = excluded_models_dict[model_configuration]
         available_model_types = [_ for _ in available_model_types if _ not in excluded_models]
 
     if model_configuration in ['ultra_light', 'ultra_light_tun']:
-        included_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn']
+        included_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge']
         available_model_types = [_ for _ in available_model_types if _ in included_models]
 
     return available_model_types

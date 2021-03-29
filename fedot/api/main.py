@@ -3,8 +3,9 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import balanced_accuracy_score
 
-from fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
+from FEDOT.fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
@@ -321,6 +322,7 @@ class Fedot:
                          'mae': MaeMetric.metric,
                          'roc_auc': RocAucMetric.metric,
                          'f1': F1Metric.metric,
+                         'balanced_accuracy': balanced_accuracy_score,
                          'silhouette': NotImplemented
                          }
         if not isinstance(metric_names, List):
@@ -331,7 +333,10 @@ class Fedot:
             if __metric_dict[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
-                metric_value = abs(__metric_dict[metric_name](reference=self.test_data,
+                if metric_name == 'balanced_accuracy':
+                    metric_value = round(balanced_accuracy_score(self.test_data.target, self.prediction.predicted), 3)
+                else:
+                    metric_value = abs(__metric_dict[metric_name](reference=self.test_data,
                                                               predicted=self.prediction))
                 calculated_metrics[metric_name] = metric_value
 
