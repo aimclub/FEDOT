@@ -72,15 +72,15 @@ def get_composite_chain():
     :return: TsForecastingChain object
     """
 
-    node_first = PrimaryNode('lagged')
-    node_first.custom_params = {'window_size': 150}
-    node_second = PrimaryNode('lagged')
-    node_second.custom_params = {'window_size': 100}
-    node_trend_model = SecondaryNode('linear', nodes_from=[node_first])
-    node_residual_model = SecondaryNode('linear', nodes_from=[node_second])
+    node_1 = PrimaryNode('lagged')
+    node_1.custom_params = {'window_size': 150}
+    node_2 = PrimaryNode('lagged')
+    node_2.custom_params = {'window_size': 100}
+    node_linear_1 = SecondaryNode('linear', nodes_from=[node_1])
+    node_linear_2 = SecondaryNode('linear', nodes_from=[node_2])
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_trend_model,
-                                                     node_residual_model])
+    node_final = SecondaryNode('ridge', nodes_from=[node_linear_1,
+                                                    node_linear_2])
     chain = Chain(node_final)
     return chain
 

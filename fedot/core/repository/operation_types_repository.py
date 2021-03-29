@@ -113,14 +113,14 @@ class OperationTypesRepository:
 
         return operations_list
 
-    def operation_info_by_id(self, id: str) -> Optional[OperationMetaInfo]:
+    def operation_info_by_id(self, operation_id: str) -> Optional[OperationMetaInfo]:
         """ Get operation by it's name (id) """
 
-        operations_with_id = [m for m in self._repo if m.id == id]
+        operations_with_id = [m for m in self._repo if m.id == operation_id]
         if len(operations_with_id) > 1:
             raise ValueError('Several operations with same id in repository')
         if len(operations_with_id) == 0:
-            warnings.warn('Operation {id} not found in the repository')
+            warnings.warn(f'Operation {operation_id} not found in the repository')
             return None
         return operations_with_id[0]
 

@@ -135,28 +135,6 @@ def chain_with_incorrect_task_type():
     return chain, Task(TaskTypesEnum.classification)
 
 
-def chain_with_incorrect_decomposition_structure():
-    first = PrimaryNode(operation_type='trend_data_model')
-    second = PrimaryNode(operation_type='residual_data_model')
-    final = SecondaryNode(operation_type='trend_data_model',
-                          nodes_from=[first, second])
-
-    chain = Chain(final)
-
-    return chain
-
-
-def chain_with_correct_decomposition_structure():
-    first = PrimaryNode(operation_type='trend_data_model')
-    second = PrimaryNode(operation_type='residual_data_model')
-    final = SecondaryNode(operation_type='linear',
-                          nodes_from=[first, second])
-
-    chain = Chain(final)
-
-    return chain
-
-
 def chain_with_only_data_operations():
     first = PrimaryNode(operation_type='one_hot_encoding')
     second = SecondaryNode(operation_type='scaling', nodes_from=[first])
@@ -242,11 +220,6 @@ def test_chain_with_incorrect_task_type_raise_exception():
     with pytest.raises(Exception) as exc:
         assert has_correct_operation_positions(chain, task)
     assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
-
-
-def test_chain_with_correct_decomposition_raise_exception():
-    chain = chain_with_correct_decomposition_structure()
-    assert has_correct_operation_positions(chain)
 
 
 def test_chain_without_model_in_root_node():

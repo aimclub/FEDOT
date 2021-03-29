@@ -47,29 +47,36 @@ class Operation:
         return f'{self.operation_type}'
 
 
-def _eval_strategy_for_task(operation_type: str, task_type_for_data: TaskTypesEnum,
+def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,
                             operations_repo):
     """
-    The function returns the strategy for the selected operation and task type
+    The function returns the strategy for the selected operation and task type.
+    And if it is necessary, found acceptable strategy for operation
+
+    :param operation_type: name of operation, for example, 'ridge'
+    :param current_task_type: task to solve
+    :param operations_repo: repository with operations
+
+    :return strategy: EvaluationStrategy class for this operation
     """
 
+    # Get acceptable task types for operation
     operation_info = operations_repo.operation_info_by_id(operation_type)
+    acceptable_task_types = operation_info.task_type
 
-    task_type_for_operation = task_type_for_data
-    task_types_acceptable_for_operation = operation_info.task_type
+    # If the operation can't be used directly for the task type from data
+    set_acceptable_types = set(acceptable_task_types)
+    if current_task_type not in acceptable_task_types:
 
-    # if the operation can't be used directly for the task type from data
-    if task_type_for_operation not in task_types_acceptable_for_operation:
-
-        # search the supplementary task types, that can be included in chain which solves original task
-        globally_compatible_task_types = compatible_task_types(task_type_for_operation)
-
-        set_types_acceptable_for_operation = set(task_types_acceptable_for_operation)
+        # Search the supplementary task types, that can be included in chain
+        # which solves main task
+        globally_compatible_task_types = compatible_task_types(current_task_type)
         globally_set = set(globally_compatible_task_types)
-        comp_types_acceptable_for_operation = list(set_types_acceptable_for_operation.intersection(globally_set))
-        if len(comp_types_acceptable_for_operation) == 0:
-            raise ValueError(f'Operation {operation_type} can not be used as a part of {task_type_for_operation}.')
-        task_type_for_operation = comp_types_acceptable_for_operation[0]
 
-    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(task_type_for_operation)
+        comp_types_acceptable_for_operation = list(set_acceptable_types.intersection(globally_set))
+        if len(comp_types_acceptable_for_operation) == 0:
+            raise ValueError(f'Operation {operation_type} can not be used as a part of {current_task_type}.')
+        current_task_type = comp_types_acceptable_for_operation[0]
+
+    strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy

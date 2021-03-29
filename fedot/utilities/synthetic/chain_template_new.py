@@ -191,7 +191,7 @@ class OperationTemplate:
         self.params = {}
         self.nodes_from = nodes_from
 
-        if _is_node_fitted(node) and not _is_node_not_cached(node):
+        if _is_node_fitted(node):
             self.operation_name = _extract_operation_name(node)
             self.params = _extract_operation_params(node, self.custom_params)
             self.fitted_operation_path = _extract_and_save_fitted_operation(node, chain_id, self.operation_id)
@@ -261,10 +261,6 @@ def _extract_and_save_fitted_operation(node: Node, chain_id: str, operation_id: 
 
 def _is_node_fitted(node: Node) -> bool:
     return bool(node.cache.actual_cached_state)
-
-
-def _is_node_not_cached(node: Node) -> bool:
-    return bool(node.operation.operation_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
 
 
 def extract_subtree_root(root_operation_id: int, chain_template: ChainTemplate):
