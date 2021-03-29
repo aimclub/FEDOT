@@ -12,20 +12,22 @@ from fedot.core.data.data import InputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
 
+from FEDOT.fedot.core.utils import probs_to_labels
+
 
 def fit_tpot(data: InputData, max_run_time_min: int):
     models_hyperparameters = _get_models_hyperparameters(max_run_time_min)['TPOT']
     estimator = None
-    if data.task.task_type == TaskTypesEnum.classification:
+    if data.task.task_type.task_type.name == 'classification':
         estimator = TPOTClassifier
-    elif data.task.task_type == TaskTypesEnum.regression:
+    elif data.task.task_type.task_type.name == 'regression':
         estimator = TPOTRegressor
 
     model = estimator(generations=models_hyperparameters['GENERATIONS'],
                       population_size=models_hyperparameters['POPULATION_SIZE'],
                       verbosity=2,
                       random_state=42,
-                      max_time_mins=models_hyperparameters['MAX_RUNTIME_MINS'])
+                      max_time_mins=max_run_time_min)
 
     model.fit(data.features, data.target)
 
@@ -38,10 +40,15 @@ def predict_tpot_reg(trained_model, predict_data):
 
 def predict_tpot_class(trained_model, predict_data):
     try:
-        return trained_model.predict_proba(predict_data.features)[:, 1]
+        preds = trained_model.predict_proba(predict_data.features)[:, 1]
+        labels = probs_to_labels(preds)
+        return preds, labels
     except AttributeError:
         # sklearn workaround for tpot
-        return trained_model.predict(predict_data.features)
+        trained_model.predict(predict_data.features)
+        preds = trained_model.predict(predict_data.features)
+        labels = probs_to_labels(preds)
+        return preds, labels
 
 
 def fit_h2o(train_data: InputData, max_run_time_min: int):

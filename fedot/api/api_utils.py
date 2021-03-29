@@ -56,7 +56,8 @@ def array_to_input_data(features_array: np.array,
 
 def filter_models_by_preset(task, preset: str):
     excluded_models_dict = {'light': ['mlp', 'svc'],
-                            'light_tun': ['mlp', 'svc']}
+                            'light_tun': ['mlp', 'svc'],
+                            'without_knn': ['mlp', 'svc', 'knnreg', 'knn']}
 
     available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
 
