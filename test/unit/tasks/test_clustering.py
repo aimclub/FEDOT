@@ -7,8 +7,9 @@ from test.unit.models.test_split_train_test import get_roc_auc_value, get_synthe
 
 
 def generate_chain() -> Chain:
-    node_first = PrimaryNode('kmeans')
-    node_second = PrimaryNode('kmeans')
+    node_scaling = PrimaryNode('scaling')
+    node_first = SecondaryNode('kmeans', nodes_from=[node_scaling])
+    node_second = SecondaryNode('kmeans', nodes_from=[node_scaling])
     node_root = SecondaryNode('logit', nodes_from=[node_first, node_second])
     chain = Chain(node_root)
     return chain

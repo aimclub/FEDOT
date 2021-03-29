@@ -20,16 +20,18 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.cluster import KMeans as SklearnKmeans
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 
 from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
 
-
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.log import Log, default_log
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -142,6 +144,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
+        self.operation_type = operation_type
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -157,7 +160,18 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        operation_implementation.fit(train_data.features, train_data.target)
+        # If model doesn't support mulio-utput and current task is ts_forecasting
+        current_task = train_data.task.task_type
+        models_repo = OperationTypesRepository()
+        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
+                                                             tags=['non_multi'])
+        is_model_not_support_multi = self.operation_type in non_multi_models
+        if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
+            # Manually wrap the regressor into multi-output model
+            operation_implementation = convert_to_multivariate_model(operation_implementation,
+                                                                     train_data)
+        else:
+            operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
@@ -185,3 +199,26 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     @property
     def implementation_info(self) -> str:
         return str(self._convert_to_operation(self.operation_type))
+
+
+def convert_to_multivariate_model(sklearn_model, train_data: InputData):
+    """
+    The function returns an iterator for multiple target for those models for
+    which such a function is not initially provided
+
+    :param sklearn_model: Sklearn model to train
+    :param train_data: data used for model training
+    :return : wrapped Sklearn model
+    """
+
+    if train_data.task.task_type == TaskTypesEnum.classification:
+        multiout_func = MultiOutputClassifier
+    elif train_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
+        multiout_func = MultiOutputRegressor
+    else:
+        raise ValueError(f"For task type '{train_data.task.task_type}' MultiOutput wrapper is not supported")
+
+    # Apply MultiOutput
+    sklearn_model = multiout_func(sklearn_model)
+    sklearn_model.fit(train_data.features, train_data.target)
+    return sklearn_model

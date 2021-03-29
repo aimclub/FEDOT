@@ -7,13 +7,14 @@ from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.operations.operation import Model
-from fedot.core.data.preprocessing import ScalingWithImputation
-from fedot.core.operations.tuning.tuners import get_random_params
+from fedot.core.operations.model import Model
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.chain import Chain
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
+# TODO refactor or remove - discussion is open
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
@@ -43,12 +44,15 @@ def scoring_dataset():
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_knn_classification_tune_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    data.features = ScalingWithImputation().fit(data.features).apply(data.features)
     train_data, test_data = train_test_data_setup(data=data)
 
-    knn = Model(model_type='knn')
-    model, _ = knn.fit(data=train_data)
-    test_predicted = knn.predict(fitted_model=model, data=test_data)
+    # Chain with normalization
+    node_normalize = PrimaryNode('normalization')
+    node_knn = SecondaryNode('knn', nodes_from=[node_normalize])
+    chain = Chain(node_knn)
+
+    chain.fit(train_data)
+    test_predicted = chain.predict(test_data)
 
     roc_on_test = roc_auc(y_true=test_data.target,
                           y_score=test_predicted)

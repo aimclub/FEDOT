@@ -14,7 +14,6 @@ import tensorflow as tf
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.repository.tasks import extract_task_param
@@ -334,27 +333,3 @@ class AutoMLRegressionStrategy(AutoMLEvaluationStrategy):
     _model_functions_by_type = {
         'tpot': (fit_tpot, predict_tpot_reg),
     }
-
-
-def convert_to_multivariate_model_manually(sklearn_model, train_data: InputData):
-    """
-    The function returns an iterator for multiple target for those models for
-    which such a function is not initially provided
-
-    :param sklearn_model: Sklearn model to train
-    :param train_data: data used for model training
-    :return : wrapped Sklearn model
-    """
-
-    if train_data.task.task_type == TaskTypesEnum.classification:
-        multiout_func = MultiOutputClassifier
-    elif train_data.task.task_type in \
-            [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-        multiout_func = MultiOutputRegressor
-    else:
-        return None
-
-    # apply MultiOutput
-    sklearn_model = multiout_func(sklearn_model)
-    sklearn_model.fit(train_data.features, train_data.target)
-    return sklearn_model

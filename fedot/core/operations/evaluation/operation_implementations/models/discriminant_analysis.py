@@ -23,7 +23,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
         return self.model
 
-    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
         """ Method make prediction with labels of classes
 
         :param input_data: data with features to process

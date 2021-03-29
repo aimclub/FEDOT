@@ -104,7 +104,7 @@ class Node(ABC):
         operation_predict = self.operation.predict(fitted_operation=fitted,
                                                    data=copied_input_data,
                                                    is_fit_chain_stage=False,
-                                                   output_mode=output_mode,)
+                                                   output_mode=output_mode)
 
         return operation_predict
 

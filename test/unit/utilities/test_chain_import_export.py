@@ -9,7 +9,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_template import ChainTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from test.unit.tasks.test_forecasting import get_multilinear_chain, get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_multiscale_chain, get_synthetic_ts_data_period
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -310,9 +310,9 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
 
 
 def test_data_model_types_forecasting_chain_fit():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10)
 
-    chain = get_multilinear_chain()
+    chain = get_multiscale_chain()
     chain.fit(train_data)
     chain.save_chain('data_model_forecasting')
 
