@@ -1,3 +1,4 @@
+import datetime
 import os
 import platform
 import pytest
@@ -365,7 +366,7 @@ def test_chain_fit_time_constraint(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     test_chain_first = chain_first()
-    time_constraint = 1
+    time_constraint = datetime.timedelta(minutes=0.01)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
@@ -376,7 +377,7 @@ def test_chain_fit_time_constraint(data_fixture, request):
         computation_time_first = test_chain_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = 5
+    time_constraint = datetime.timedelta(minutes=0.05)
     process_start_time = time.time()
     try:
         test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)

@@ -6,7 +6,6 @@ import shelve
 import numpy as np
 import pandas as pd
 import pytest
-from deap import tools
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
@@ -252,7 +251,7 @@ def test_multi_objective_composer(data_fixture, request):
         chains_roc_auc.append(roc_on_valid_gp_composed)
 
     assert type(composer.metrics) is list and len(composer.metrics) > 1
-    assert type(chains_evo_composed) is tools.ParetoFront
+    assert type(chains_evo_composed) is list
     assert composer.optimiser.parameters.multi_objective
     assert all([roc_auc > 0.6 for roc_auc in chains_roc_auc])
 
@@ -287,7 +286,8 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5, start_depth=2, max_chain_fit_time=900,
+                                 crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
+                                 max_chain_fit_time=datetime.timedelta(minutes=5),
                                  add_single_model_chains=False)
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
@@ -297,12 +297,12 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     train_data, test_data = train_test_data_setup(data,
                                                   sample_split_ration_for_tasks[data.task.task_type],
                                                   task=data.task)
-    composer.compose_chain(data=dataset_to_compose, is_visualise=True, clear_cache=True)
-    with shelve.open(composer.shared_cache.db_path) as cache:
+    composer.compose_chain(data=dataset_to_compose, is_visualise=True)
+    with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)
     new_chain = chain_first()
     composer.composer_metric([quality_metric], dataset_to_compose, test_data, new_chain)
-    with shelve.open(composer.shared_cache.db_path) as cache:
+    with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_after = len(cache.dict)
     assert global_cache_len_before < global_cache_len_after
     assert new_chain.computation_time is not None

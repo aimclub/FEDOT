@@ -245,7 +245,7 @@ def test_cache_historical_state_using(data_setup):
     assert cache.get(chain.root_node)
 
 
-def test_multi_chain_caching_with_shared_cache(data_setup):
+def test_multi_chain_caching_with_cache(data_setup):
     train, _ = data_setup
     cache = ModelsCache()
 

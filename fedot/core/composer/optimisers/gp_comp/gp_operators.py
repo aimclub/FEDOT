@@ -112,16 +112,19 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
     return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1
 
 
-def evaluate_individuals(individuals_set, objective_function, is_multi_objective: bool, timer=None, max_lead_time=None):
+def evaluate_individuals(individuals_set, objective_function, is_multi_objective: bool, timer=None):
+    num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
     for ind_num, ind in enumerate(reversed_set):
         ind.fitness = calculate_objective(ind, objective_function, is_multi_objective)
         if ind.fitness is None:
             individuals_set.remove(ind)
-        if timer is not None:
-            if timer.is_time_limit_reached(max_lead_time):
-                for del_ind_num in range(ind_num + 1, len(individuals_set)):
-                    individuals_set.remove(reversed_set[del_ind_num])
+        else:
+            num_of_successful_evals += 1
+        if timer is not None and num_of_successful_evals:
+            if timer.is_time_limit_reached():
+                for del_ind_num in range(0, len(individuals_set) - num_of_successful_evals):
+                    individuals_set.remove(individuals_set[0])
                 break
     if len(individuals_set) == 0:
         raise AttributeError('List became empty after incorrect individuals removing.'
@@ -139,6 +142,19 @@ def calculate_objective(ind: Any, objective_function: Callable, is_multi_objecti
         else:
             fitness = calculated_fitness[0]
     return fitness
+
+
+def filter_duplicates(archive, population) -> List[Any]:
+    filtered_archive = []
+    for ind in archive.items:
+        has_duplicate_in_pop = False
+        for pop_ind in population:
+            if ind.fitness == pop_ind.fitness:
+                has_duplicate_in_pop = True
+                break
+        if not has_duplicate_in_pop:
+            filtered_archive.append(ind)
+    return filtered_archive
 
 
 def duplicates_filtration(archive, population):

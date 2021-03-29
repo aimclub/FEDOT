@@ -19,6 +19,15 @@ random.seed(12)
 np.random.seed(12)
 
 
+def results_visualization(history, composed_chains):
+    visualiser = ChainVisualiser()
+    visualiser.visualise_history(history)
+    visualiser.pareto_gif_create(history.archive_history, history.chains)
+    visualiser.boxplots_gif_create(history.chains)
+    for chain_evo_composed in composed_chains:
+        visualiser.visualise(chain_evo_composed)
+
+
 def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) -> float:
     # the execution of the obtained composite models
     predicted = chain.predict(dataset_to_validate)
@@ -67,15 +76,12 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                                  is_visualise=True)
 
     composer.history.write_composer_history_to_csv()
-    visualiser = ChainVisualiser()
+
     if is_visualise:
-        visualiser.visualise_history(composer.history)
-        visualiser.pareto_gif_create(composer.history.archive_history, composer.history.chains)
-        visualiser.boxplots_gif_create(composer.history.chains)
+        results_visualization(composed_chains=chains_evo_composed, history=composer.history)
+
     chains_roc_auc = []
     for chain_num, chain_evo_composed in enumerate(chains_evo_composed):
-        if is_visualise:
-            visualiser.visualise(chain_evo_composed)
 
         chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
                                                    iterations=50)

@@ -47,15 +47,13 @@ class GPComposerRequirements(ComposerRequirements):
     :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
     :param mutation_prob: mutation probability
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
-    :param max_chain_fit_time: time constraint for model fitting (seconds)
     :param start_depth: start value of tree depth
     """
     pop_size: Optional[int] = 20
-    num_of_generations: Optional[int] = 100
+    num_of_generations: Optional[int] = 20
     crossover_prob: Optional[float] = 0.8
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
-    max_chain_fit_time: Optional[int] = None
     start_depth: int = None
 
 
@@ -84,16 +82,17 @@ class GPComposer(Composer):
 
     def __init__(self, optimiser=None,
                  composer_requirements: Optional[GPComposerRequirements] = None,
-                 metrics: Optional[Callable] = None,
+                 metrics: Union[List[MetricsEnum], MetricsEnum] = None,
                  initial_chain: Optional[Chain] = None,
                  logger: Log = None):
 
         super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_chain=initial_chain)
 
-        self.shared_cache = ModelsCache()
+        self.cache = ModelsCache()
 
         self.optimiser = optimiser
         self.cache_path = None
+        self.use_existing_cache = False
 
         if not logger:
             self.log = default_log(__name__)
@@ -101,8 +100,7 @@ class GPComposer(Composer):
             self.log = logger
 
     def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False,
-                      on_next_iteration_callback: Optional[Callable] = None,
-                      clear_cache: bool = True) -> Union[Chain, List[Chain]]:
+                      on_next_iteration_callback: Optional[Callable] = None) -> Union[Chain, List[Chain]]:
 
         if self.composer_requirements.max_chain_fit_time:
             set_multiprocess_start_method()
@@ -114,18 +112,16 @@ class GPComposer(Composer):
                                                       sample_split_ration_for_tasks[data.task.task_type],
                                                       task=data.task)
         if self.cache_path is None:
-            self.shared_cache.clear()
+            self.cache.clear()
         else:
-            self.shared_cache = ModelsCache(self.cache_path, clear_exiting=clear_cache)
+            self.cache = ModelsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
+
         metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
                                              on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
-        if self.cache_path is None:
-            self.shared_cache.clear()
 
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
@@ -140,12 +136,12 @@ class GPComposer(Composer):
             if type(metrics) is not list:
                 metrics = [metrics]
 
-            if self.shared_cache is not None:
-                chain.fit_from_cache(self.shared_cache)
+            if self.cache is not None:
+                chain.fit_from_cache(self.cache)
 
             if not chain.is_fitted():
                 chain.fit(input_data=train_data, time_constraint=self.composer_requirements.max_chain_fit_time)
-                self.shared_cache.save_chain(chain)
+                self.cache.save_chain(chain)
 
             evaluated_metrics = ()
             for metric in metrics:
@@ -204,7 +200,7 @@ class GPComposerBuilder:
         self._composer.composer_requirements = requirements
         return self
 
-    def with_metrics(self, metrics: Optional[MetricsEnum]):
+    def with_metrics(self, metrics: Union[List[MetricsEnum], MetricsEnum]):
         if type(metrics) is not list:
             metrics = [metrics]
         self._composer.metrics = metrics
@@ -218,8 +214,9 @@ class GPComposerBuilder:
         self._composer.log = logger
         return self
 
-    def with_cache(self, cache_path: str = None):
+    def with_cache(self, cache_path: str = None, use_existing=False):
         self._composer.cache_path = cache_path
+        self._composer.use_existing_cache = use_existing
         return self
 
     def set_default_composer_params(self):

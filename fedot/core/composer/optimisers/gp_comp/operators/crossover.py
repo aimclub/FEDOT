@@ -18,37 +18,35 @@ class CrossoverTypesEnum(Enum):
     none = 'none'
 
 
+def will_crossover_be_applied(chain_first, chain_second, crossover_prob, type) -> bool:
+    return not (chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none)
+
+
 def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int, log: Log,
               crossover_prob: float = 0.8) -> Any:
     type = choice(types)
     chain_first_copy = deepcopy(chain_first)
     chain_second_copy = deepcopy(chain_second)
     try:
-        if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
-            return [chain_first_copy, chain_second_copy]
-        if type in crossover_by_type.keys():
-            number_of_attempts = 0
-            is_correct = False
-            while not is_correct:
-                number_of_attempts += 1
-                is_correct_chains = []
-                chain_first_copy = deepcopy(chain_first)
-                chain_second_copy = deepcopy(chain_second)
-                new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
-                for new_chain in new_chains:
-                    is_correct_chains.append(constraint_function(new_chain))
-                is_correct = all(is_correct_chains)
-                if number_of_attempts == MAX_NUM_OF_ATTEMPTS:
-                    new_chains = [chain_first_copy, chain_second_copy]
-                    log.debug(
-                        'Number of crossover attempts exceeded. Please check composer requirements for correctness.')
-                    break
-            return new_chains
-        else:
-            raise ValueError(f'Required crossover not found: {type}')
+        if will_crossover_be_applied(chain_first, chain_second, crossover_prob, type):
+            if type in crossover_by_type.keys():
+                for i in range(MAX_NUM_OF_ATTEMPTS):
+                    new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
+                    are_correct = all([constraint_function(new_chain) for new_chain in new_chains])
+                    if are_correct:
+                        return new_chains
+                    else:
+                        chain_first_copy = deepcopy(chain_first)
+                        chain_second_copy = deepcopy(chain_second)
+                        if i == MAX_NUM_OF_ATTEMPTS - 1:
+                            info = 'Number of crossover attempts exceeded. ' \
+                                   'Please check composer requirements for correctness.'
+                            log.debug(info)
+            else:
+                raise ValueError(f'Required crossover type not found: {type}')
     except Exception as ex:
-        print(f'Crossover ex: {ex}')
-        return chain_first_copy, chain_second_copy
+        log.error(f'Crossover ex: {ex}')
+    return chain_first_copy, chain_second_copy
 
 
 def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:

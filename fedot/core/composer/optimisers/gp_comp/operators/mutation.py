@@ -36,33 +36,30 @@ def get_mutation_prob(mut_id, root_node):
     return mutation_prob
 
 
+def will_mutation_be_applied(mutation_prob, type) -> bool:
+    return not (random() > mutation_prob or type == MutationTypesEnum.none)
+
+
 def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements, log: Log,
              max_depth: int = None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
-    if mutation_prob and random() > mutation_prob:
-        return deepcopy(chain)
-
     type = choice(types)
-    if type == MutationTypesEnum.none:
-        new_chain = deepcopy(chain)
-    elif type in mutation_by_type:
-        number_of_attempts = 0
-        is_correct_chain = False
-        while not is_correct_chain:
-            number_of_attempts += 1
-            new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
-                                               chain_generation_params=chain_generation_params, max_depth=max_depth)
-            is_correct_chain = constraint_function(new_chain)
-            if number_of_attempts == MAX_NUM_OF_ATTEMPTS:
-                new_chain = deepcopy(chain)
-                log.debug(
-                    'Number of mutation attempts exceeded. Please check composer requirements for correctness.')
-                break
-    else:
-        raise ValueError(f'Required mutation type is not found: {type}')
-
-    return new_chain
+    if will_mutation_be_applied(mutation_prob, type):
+        if type in mutation_by_type:
+            for i in range(MAX_NUM_OF_ATTEMPTS):
+                new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
+                                                   chain_generation_params=chain_generation_params, max_depth=max_depth)
+                is_correct_chain = constraint_function(new_chain)
+                if is_correct_chain:
+                    return new_chain
+                else:
+                    if i == MAX_NUM_OF_ATTEMPTS - 1:
+                        log.debug(
+                            'Number of mutation attempts exceeded. Please check composer requirements for correctness.')
+        elif type != MutationTypesEnum.none:
+            raise ValueError(f'Required mutation type is not found: {type}')
+    return deepcopy(chain)
 
 
 def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:

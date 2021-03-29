@@ -18,6 +18,7 @@ class Node(ABC):
     :param model_type: str type of the model defined in model repository
     :param manual_preprocessing_func: optional function for data preprocessing.
     If not defined one of the available preprocessing strategies is used. \
+    #TODO: delete this comment after update of preprocessing
     See the `preprocessors <https://github.com/nccr-itmo/FEDOT/blob/master/fedot/core/data/preprocessing.py>`__
     :param log: Log object to record messages
     """

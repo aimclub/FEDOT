@@ -21,8 +21,8 @@ def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: 
     """
     selection_by_type = {
         SelectionTypesEnum.tournament: tournament_selection,
-        SelectionTypesEnum.nsga2: NSGA2_selection,
-        SelectionTypesEnum.spea2: SPEA2_selection
+        SelectionTypesEnum.nsga2: nsga2_selection,
+        SelectionTypesEnum.spea2: spea2_selection
     }
 
     type = choice(types)
@@ -63,11 +63,11 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
     return chosen
 
 
-def NSGA2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
+def nsga2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
     chosen = tools.selNSGA2(individuals, pop_size)
     return chosen
 
 
-def SPEA2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
+def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
     chosen = tools.selSPEA2(individuals, pop_size)
     return chosen

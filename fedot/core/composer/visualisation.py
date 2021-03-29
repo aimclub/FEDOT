@@ -186,17 +186,24 @@ class ChainVisualiser:
                 objectives_values_set[obj_num].append(value if value > 0 else -value)
         return objectives_values_set
 
-    def objectives_transform(self, individuals: List[List[Any]], objectives_numbers: Tuple[int] = None,
-                             transform_from_minimization=True):
-        objectives_numbers = [i for i in range(
-            len(individuals[0][0].fitness.values))] if not objectives_numbers else objectives_numbers
+    def extract_objectives(self, individuals: List[List[Any]], objectives_numbers: Tuple[int] = None,
+                           transform_from_minimization=True):
+        if not objectives_numbers:
+            objectives_numbers = [i for i in range(len(individuals[0][0].fitness.values))]
         all_inds = list(itertools.chain(*individuals))
         all_objectives = [[ind.fitness.values[i] for ind in all_inds] for i in objectives_numbers]
         if transform_from_minimization:
-            all_objectives = list(
-                map(lambda obj_values: obj_values if obj_values[0] > 0 else list(np.array(obj_values) * (-1)),
-                    all_objectives))
-        return all_objectives
+            transformed_objectives = []
+            for obj_values in all_objectives:
+                are_objectives_positive = all(np.array(obj_values) > 0)
+                if not are_objectives_positive:
+                    transformed_obj_values = list(np.array(obj_values) * (-1))
+                else:
+                    transformed_obj_values = obj_values
+                transformed_objectives.append(transformed_obj_values)
+        else:
+            transformed_objectives = all_objectives
+        return transformed_objectives
 
     def create_boxplot(self, individuals: List[Any], generation_num: int = None,
                        objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'), file_name: str = 'obj_boxplots.png',
@@ -219,7 +226,7 @@ class ChainVisualiser:
     def boxplots_gif_create(self, individuals: List[List[Any]],
                             objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'),
                             folder: str = None):
-        objectives = self.objectives_transform(individuals)
+        objectives = self.extract_objectives(individuals)
         objectives = list(itertools.chain(*objectives))
         min_y, max_y = min(objectives), max(objectives)
         files = []
@@ -295,7 +302,7 @@ class ChainVisualiser:
                           objectives_names: Tuple[str] = ('Complexity', 'ROC-AUC')):
         files = []
         array_for_analysis = individuals if individuals else pareto_fronts
-        all_objectives = self.objectives_transform(array_for_analysis, objectives_numbers)
+        all_objectives = self.extract_objectives(array_for_analysis, objectives_numbers)
         min_x, max_x = min(all_objectives[0]) - 0.01, max(all_objectives[0]) + 0.01
         min_y, max_y = min(all_objectives[1]) - 0.01, max(all_objectives[1]) + 0.01
         folder = f'{self.temp_path}'

@@ -1,5 +1,3 @@
-import numpy as np
-
 from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
@@ -12,6 +10,7 @@ from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -45,7 +44,7 @@ class Chain:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
-        self.fitted_on_data = dict()
+        self.fitted_on_data = {}
 
     def fit_from_scratch(self, input_data: InputData):
         """
@@ -58,42 +57,28 @@ class Chain:
         self.unfit()
         self.fit(input_data, use_cache=False)
 
-    def nested_list_transform_to_tuple(self, data_field):
-        return tuple(map(self.nested_list_transform_to_tuple, data_field)) if isinstance(data_field,
-                                                                                         (list,
-                                                                                          np.ndarray)) else data_field
-
-    def input_data_characteristics(self, data: InputData):
-        data_type = data.data_type
-        if data.features is not None:
-            features_hash = hash(self.nested_list_transform_to_tuple(data.features))
-        else:
-            features_hash = None
-            self.log.info("Input data features is None")
-        if data.target is not None:
-            target_hash = hash(self.nested_list_transform_to_tuple(data.target))
-        else:
-            self.log.info("Input data target is None")
-            target_hash = None
-        return data_type, features_hash, target_hash
-
     def update_fitted_on_data(self, data: InputData):
-        self.fitted_on_data['data_type'], self.fitted_on_data['features_hash'], self.fitted_on_data[
-            'target_hash'] = self.input_data_characteristics(data)
+        characteristics = input_data_characteristics(data=data, log=self.log)
+        self.fitted_on_data['data_type'] = characteristics[0]
+        self.fitted_on_data['features_hash'] = characteristics[1]
+        self.fitted_on_data['target_hash'] = characteristics[2]
 
     def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
-        new_data_type, new_features_hash, new_target_hash = self.input_data_characteristics(new_input_data)
+        new_data_params = input_data_characteristics(new_input_data, log=self.log)
         if cache_status and self.fitted_on_data:
-            if self.fitted_on_data['data_type'] != new_data_type or \
-                    self.fitted_on_data['features_hash'] != new_features_hash \
-                    or self.fitted_on_data['target_hash'] != new_target_hash:
-                self.log.info(
-                    'Trained model cache is not actual because you are using new dataset for training. '
-                    'Parameter use_cache value changed to False')
+            params_names = ('data_type', 'features_hash', 'target_hash')
+            are_data_params_different = any(
+                [new_data_param != self.fitted_on_data[param_name] for new_data_param, param_name in
+                 zip(new_data_params, params_names)])
+            if are_data_params_different:
+                info = 'Trained model cache is not actual because you are using new dataset for training. ' \
+                       'Parameter use_cache value changed to False'
+                self.log.info(info)
                 cache_status = False
         return cache_status
 
-    def _fit_with_time_limit(self, input_data: InputData, use_cache=False, time: int = 900) -> Manager:
+    def _fit_with_time_limit(self, input_data: InputData, use_cache=False,
+                             time: timedelta = timedelta(minutes=3)) -> Manager:
         """
             Run training process with time limit. Create
 
@@ -101,6 +86,7 @@ class Chain:
             :param use_cache: flag defining whether use cache information about previous executions or not, default True
             :param time: time constraint for model fitting process (seconds)
         """
+        time = int(time.total_seconds())
         manager = Manager()
         process_state_dict = manager.dict()
         fitted_models = manager.list()
@@ -166,7 +152,7 @@ class Chain:
                 fitted_models.append(node.fitted_model)
                 fitted_preprocessors.append(node.fitted_preprocessor)
 
-    def fit(self, input_data: InputData, use_cache=True, time_constraint: Optional[int] = None):
+    def fit(self, input_data: InputData, use_cache=True, time_constraint: Optional[timedelta] = None):
         """
         Run training process in all nodes in chain starting with root.
 

@@ -36,8 +36,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
     def __init__(self, initial_chain, requirements, chain_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPChainOptimiserParameters] = None, max_population_size: int = 55,
-                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None,
-                 complexity_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.computation_time)):
+                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None):
         super().__init__(initial_chain, requirements, chain_generation_params, metrics, parameters, log, archive_type)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
@@ -51,12 +50,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                                          start_value=self.requirements.pop_size)
 
         self.requirements.pop_size = self.iterator.next()
-
-        if self.parameters.multi_objective:
-            self.qual_position = get_metric_position(metrics, QualityMetricsEnum)
-            self.compl_position = get_metric_position(metrics, ComplexityMetricsEnum)
-        else:
-            self.complexity_metric = complexity_metric
+        self.metrics = metrics
 
     def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
@@ -68,24 +62,22 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
-        with CompositionTimer(log=self.log) as t:
+        with CompositionTimer(max_lead_time=self.requirements.max_lead_time, log=self.log) as t:
 
             if self.requirements.add_single_model_chains:
                 self.best_single_model, self.requirements.primary = \
                     self._best_single_models(objective_function, timer=t)
-            single_models_eval_time = t.minutes_from_start
 
             self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
                 self.archive.update(self.population)
 
-            on_next_iteration_callback(self.population, self.archive)
+                on_next_iteration_callback(self.population, self.archive)
 
             self.log_info_about_best()
 
-            while t.is_time_limit_reached(self.requirements.max_lead_time, self.generation_num,
-                                          single_models_eval_time) is False \
+            while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
 
                 self.log.info(f'Generation num: {self.generation_num}')
@@ -163,13 +155,10 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
     @property
     def current_std(self):
-        if self.requirements.pop_size == 1 and self.generation_num == 0:
-            std = 0
+        if self.parameters.multi_objective:
+            std = np.std([self.get_main_metric(ind) for ind in self.population])
         else:
-            if self.parameters.multi_objective:
-                std = np.std([ind.fitness.values[self.qual_position] for ind in self.population])
-            else:
-                std = np.std([ind.fitness for ind in self.population])
+            std = np.std([ind.fitness for ind in self.population])
         return std
 
     def update_max_std(self):
@@ -195,24 +184,21 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         offspring_archive.update(offspring)
         is_archive_improved = not is_equal_archive(self.archive, offspring_archive)
         if is_archive_improved:
-            best_metric_in_prev = max(self.archive.items,
-                                      key=lambda x: x.fitness.values[self.qual_position]).fitness.values
-            best_metric_in_current = max(offspring_archive.items,
-                                         key=lambda x: x.fitness.values[self.qual_position]).fitness.values
-            fitness_improved = best_metric_in_current[self.qual_position] < best_metric_in_prev[self.qual_position]
-            better_complexity_in_current = list(
-                filter(lambda x: x.fitness.values[self.qual_position] <= best_metric_in_prev[self.qual_position] and
-                       x.fitness.values[self.compl_position] < best_metric_in_prev[self.compl_position],
-                       offspring_archive.items))
-            complexity_decreased = False
-            if better_complexity_in_current:
-                complexity_decreased = True
+            best_ind_in_prev = min(self.archive.items, key=self.get_main_metric)
+            best_ind_in_current = min(offspring_archive.items, key=self.get_main_metric)
+            fitness_improved = self.get_main_metric(best_ind_in_current) < self.get_main_metric(best_ind_in_prev)
+            for offspring_ind in offspring_archive.items:
+                if self.get_main_metric(offspring_ind) <= self.get_main_metric(best_ind_in_prev) \
+                        and self.get_suppl_metric(offspring_ind) < self.get_suppl_metric(best_ind_in_prev):
+                    complexity_decreased = True
+                    break
         return fitness_improved, complexity_decreased
 
     def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
+        suppl_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.computation_time)
         best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
         fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
-        complexity_decreased = self.complexity_metric(best_in_offspring) < self.complexity_metric(
+        complexity_decreased = suppl_metric(best_in_offspring) < suppl_metric(
             self.best_individual) and best_in_offspring.fitness <= self.best_individual.fitness
         return fitness_improved, complexity_decreased
 
@@ -252,3 +238,13 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         else:
             num_of_new_individuals = 1
         return num_of_new_individuals
+
+    def get_main_metric(self, ind: Any) -> float:
+        main_metric_type = QualityMetricsEnum
+        self.qual_position = get_metric_position(self.metrics, main_metric_type)
+        return ind.fitness.values[self.qual_position]
+
+    def get_suppl_metric(self, ind: Any) -> float:
+        suppl_metric_type = ComplexityMetricsEnum
+        self.compl_position = get_metric_position(self.metrics, suppl_metric_type)
+        return ind.fitness.values[self.compl_position]
