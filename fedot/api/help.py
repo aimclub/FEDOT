@@ -104,7 +104,7 @@ def _get_task_by_name(task_name):
     try:
         task = task_by_name[task_name]
     except KeyError:
-        raise NotImplementedError(f'Task with name {task_name} not available, use one of '
+        raise NotImplementedError(f'Task with name "{task_name}" not available, use one of '
                                   f'the following task names: {list(task_by_name.keys())}')
 
     return task

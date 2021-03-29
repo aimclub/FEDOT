@@ -208,3 +208,19 @@ def test_parameter_free_composer_build_chain_correct(data_fixture, request):
                                        y_score=predicted_gp_composed.predict)
 
     assert roc_on_valid_gp_composed > 0.6
+
+
+def test_gp_composer_builder_default_params_correct():
+    task = Task(TaskTypesEnum.regression)
+    builder = GPComposerBuilder(task=task)
+
+    # Initialise default parameters
+    builder.set_default_composer_params()
+    composer_with_default_params = builder._composer
+
+    # Get default available operations for regression task
+    primary_operations = composer_with_default_params.composer_requirements.primary
+
+    # Data operations and models must be in this default primary operations list
+    assert 'ridge' in primary_operations
+    assert 'scaling' in primary_operations
