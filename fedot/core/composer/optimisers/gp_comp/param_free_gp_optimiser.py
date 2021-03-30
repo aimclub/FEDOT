@@ -17,6 +17,8 @@ from fedot.core.log import Log
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsRepository, MetricsEnum, \
     QualityMetricsEnum
 
+DEFAULT_MAX_POP_SIZE = 55
+
 
 class GPChainParameterFreeOptimiser(GPChainOptimiser):
     """
@@ -35,7 +37,8 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params, metrics: List[MetricsEnum],
-                 parameters: Optional[GPChainOptimiserParameters] = None, max_population_size: int = 55,
+                 parameters: Optional[GPChainOptimiserParameters] = None,
+                 max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  sequence_function=fibonacci_sequence, log: Log = None, archive_type=None):
         super().__init__(initial_chain, requirements, chain_generation_params, metrics, parameters, log, archive_type)
 
@@ -73,7 +76,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
             if self.archive is not None:
                 self.archive.update(self.population)
 
-                on_next_iteration_callback(self.population, self.archive)
+            on_next_iteration_callback(self.population, self.archive)
 
             self.log_info_about_best()
 

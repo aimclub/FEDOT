@@ -18,17 +18,18 @@ from typing import (Any, Optional, Tuple, List)
 
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.chain_convert import chain_template_as_nx_graph
+from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 
 
 class ChainVisualiser:
 
-    def __init__(self):
+    def __init__(self, log:Log = default_log(__name__)):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-
+        self.log = log
         self.chains_imgs = []
         self.convergence_imgs = []
         self.best_chains_imgs = []
@@ -44,7 +45,7 @@ class ChainVisualiser:
             else:
                 plt.savefig(save_path)
         except Exception as ex:
-            print(f'Visualisation failed with {ex}')
+            self.log.error(f'Visualisation failed with {ex}')
 
     def _visualise_chain(self, chain: 'Chain', ax=None, title=None,
                          in_graph_converter_function=chain_as_nx_graph):
@@ -143,7 +144,7 @@ class ChainVisualiser:
             self._combine_gifs()
             self._clean()
         except Exception as ex:
-            print(f'Visualisation failed with {ex}')
+            self.log.error(f'Visualisation failed with {ex}')
 
     def _merge_images(self):
         for i in range(1, len(self.chains_imgs)):
@@ -161,14 +162,11 @@ class ChainVisualiser:
                                  optimize=False, duration=0.5, loop=0)
 
     def _clean(self, with_gif=False):
-        try:
-            files = glob(f'{self.temp_path}*.png')
-            if with_gif:
-                files += glob(f'{self.temp_path}*.gif')
-            for file in files:
-                remove(file)
-        except Exception as ex:
-            print(ex)
+        files = glob(f'{self.temp_path}*.png')
+        if with_gif:
+            files += glob(f'{self.temp_path}*.gif')
+        for file in files:
+            remove(file)
 
     def create_gif_using_images(self, gif_path: str, files: List[str]):
         with get_writer(gif_path, mode='I', duration=0.5) as writer:
@@ -207,8 +205,8 @@ class ChainVisualiser:
 
     def create_boxplot(self, individuals: List[Any], generation_num: int = None,
                        objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'), file_name: str = 'obj_boxplots.png',
-                       folder: str = f'../../tmp/boxplots', y_limits: Tuple[float] = None):
-
+                       folder: str = None, y_limits: Tuple[float] = None):
+        folder = f'{self.temp_path}/boxplots' if folder is None else folder
         fig, ax = plt.subplots()
         ax.set_title(f'Generation: {generation_num}', fontsize=15)
         objectives = self.objectives_lists(individuals)
