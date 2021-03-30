@@ -39,10 +39,8 @@ def test_gapfilling_example():
 
 def test_exogenous_ts_example():
     project_root_path = str(project_root())
-    df = pd.read_csv(os.path.join(project_root_path, 'test/data/simple_sea_level.csv'))
-    time_series = np.array(df['Level'])
-    neighboring_level = np.array(df['Neighboring level'])
-    run_exogenous_experiment(time_series=time_series, exog_variable=neighboring_level,
+    path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
+    run_exogenous_experiment(path_to_file=path,
                              len_forecast=50, with_exog=True,
                              with_visualisation=False)
 
