@@ -5,8 +5,15 @@ from fedot.core.repository.dataset_types import *
 from fedot.core.repository.tasks import *
 
 
-def read_field(source, field_name, default):
-    # TODO add docstring
+def read_field(source: dict, field_name: str, default: list):
+    """ Function for reading field in the dictionary
+
+    :param source: dictionary with information
+    :param field_name: name of the field for searching for in it
+    :param default: default list if field_name is not in the source dict keys
+
+    :return : list with field values
+    """
     if field_name in source.keys():
         field_value = source[field_name]
         if isinstance(field_value, str):

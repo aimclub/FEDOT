@@ -56,6 +56,12 @@ class OperationTypesRepository:
         self.repo_path = None
 
     def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
+        """ Method parse JSON repository with operations descriptions and
+        wrapped information into OperationMetaInfo, then put it into the list
+
+        :return operations_list: list with OperationMetaInfo for every operation
+        from json repository
+        """
         with open(repo_path) as repository_json_file:
             repository_json = json.load(repository_json_file)
 
@@ -64,33 +70,25 @@ class OperationTypesRepository:
 
         operations_list = []
         for current_operation_key in operations_json:
-            operation_properties = \
-            [operation_properties for operation_key, operation_properties in
-             list(operations_json.items())
-             if operation_key == current_operation_key][0]
-            operation_metadata = metadata_json[operation_properties['meta']]
+            # Get information about operation
+            # properties - information about operation by key, for example tags
+            # metadata - information about meta of the operation
+            properties = operations_json.get(current_operation_key)
+            metadata = metadata_json[properties['meta']]
 
-            task_types = eval_field_str(operation_metadata['tasks'])
-            input_type = eval_field_str(operation_metadata['input_type'])
-            output_type = eval_field_str(operation_metadata['output_type'])
+            task_types = eval_field_str(metadata['tasks'])
+            input_type = eval_field_str(metadata['input_type'])
+            output_type = eval_field_str(metadata['output_type'])
 
-            strategies_json = operation_metadata['strategies']
-            if isinstance(strategies_json, list):
-                supported_strategies = eval_strategy_str(strategies_json)
-            else:
-                supported_strategies = {}
-                for strategy_dict_key in strategies_json.keys():
-                    supported_strategies[
-                        eval_field_str(strategy_dict_key)] = eval_strategy_str(
-                        strategies_json[strategy_dict_key])
+            # Get available strategies for obtained metadata
+            supported_strategies = self.get_strategies_by_metadata(metadata)
 
-            accepted_node_types = read_field(operation_metadata,
-                                             'accepted_node_types', ['any'])
-            forbidden_node_types = read_field(operation_metadata,
-                                              'forbidden_node_types', [])
-            meta_tags = read_field(operation_metadata, 'tags', [])
+            accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
+            forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
 
-            operation_tags = read_field(operation_properties, 'tags', [])
+            # Get tags for meta and for operation
+            meta_tags = read_field(metadata, 'tags', [])
+            operation_tags = read_field(properties, 'tags', [])
 
             allowed_positions = ['primary', 'secondary', 'root']
 
@@ -100,7 +98,8 @@ class OperationTypesRepository:
                 allowed_positions = [pos for pos in allowed_positions if
                                      pos not in forbidden_node_types]
 
-            tags = list(set(meta_tags + operation_tags))
+            # Unit tags
+            tags = meta_tags + operation_tags
 
             operation = OperationMetaInfo(id=current_operation_key,
                                           input_types=input_type,
@@ -112,6 +111,26 @@ class OperationTypesRepository:
             operations_list.append(operation)
 
         return operations_list
+
+    @staticmethod
+    def get_strategies_by_metadata(metadata: dict):
+        """ Method allow obtain strategy instance by the metadata
+
+        :param metadata: information about meta of the operation
+        :return supported_strategies: available strategies for current metadata
+        """
+        strategies_json = metadata['strategies']
+        if isinstance(strategies_json, list):
+            supported_strategies = eval_strategy_str(strategies_json)
+        else:
+            supported_strategies = {}
+            for strategy_dict_key in strategies_json.keys():
+                # Convert string into class path for import
+                import_path = eval_field_str(strategy_dict_key)
+                strategy_class = eval_strategy_str(strategies_json[strategy_dict_key])
+
+                supported_strategies.update({import_path: strategy_class})
+        return supported_strategies
 
     def operation_info_by_id(self, operation_id: str) -> Optional[OperationMetaInfo]:
         """ Get operation by it's name (id) """
