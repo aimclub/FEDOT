@@ -37,20 +37,26 @@ def run_image_recognitation_problem(train_dataset: Union[str, tuple],
                                     test_dataset: Union[str, tuple],
                                     augmentation_flag: bool = False,
                                     composite_model_flag: bool = False):
-    task = Task(TaskTypesEnum.image_classification)
+    task = Task(TaskTypesEnum.classification)
 
     if type(train_dataset) is tuple:
         X_train, y_train = train_dataset[0], train_dataset[1]
         X_test, y_test = test_dataset[0], test_dataset[1]
 
-    dataset_to_train = InputData.from_image(images=X_train, labels=y_train, task=task, aug_flag=augmentation_flag)
-    dataset_to_validate = InputData.from_image(images=X_test, labels=y_test, task=task, aug_flag=augmentation_flag)
+    dataset_to_train = InputData.from_image(images=X_train,
+                                            labels=y_train,
+                                            task=task,
+                                            aug_flag=augmentation_flag)
+    dataset_to_validate = InputData.from_image(images=X_test,
+                                               labels=y_test,
+                                               task=task,
+                                               aug_flag=augmentation_flag)
 
     chain = PrimaryNode(model_type='cnn')
+    chain.manual_preprocessing_func = EmptyStrategy
     if composite_model_flag:
         chain = get_composite_chain()
-    chain.manual_preprocessing_func = EmptyStrategy
-    chain.fit(input_data=dataset_to_train, verbose=False)
+    chain.fit(input_data=dataset_to_train)
     predictions = chain.predict(dataset_to_validate)
     roc_auc_on_valid_simple = calculate_validation_metric(predictions,
                                                           dataset_to_validate)
@@ -60,10 +66,7 @@ def run_image_recognitation_problem(train_dataset: Union[str, tuple],
 
 
 if __name__ == '__main__':
-    # the dataset was obtained from https://www.kaggle.com/c/GiveMeSomeCredit
-
-    # a dataset that will be used as a train and test set during composition
-    # load MNIST dataset
     training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
     run_image_recognitation_problem(train_dataset=training_set,
-                                    test_dataset=testing_set)
+                                    test_dataset=testing_set,
+                                    composite_model_flag=True)

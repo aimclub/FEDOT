@@ -8,18 +8,23 @@ import tensorflow as tf
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.tasks import extract_task_param
+from fedot.core.log import Log, default_log
 
 forecast_length = 1
 
 
 class KerasClassificationStrategy(EvaluationStrategy):
-    def __init__(self, model_type: str, params: Optional[dict] = None):
+    def __init__(self, model_type: str, params: Optional[dict] = None, log=None):
         self._init_CNN_model_functions(model_type)
-
         self.epochs = 15
         self.batch_size = 128
         if params:
             self.epochs = params.get('epochs', self.epochs)
+
+        if not log:
+            self.log: Log = default_log(__name__)
+        else:
+            self.log: Log = log
 
         super().__init__(model_type, params)
 
@@ -28,7 +33,8 @@ class KerasClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain classififcation strategy for {model_type}')
 
     def fit(self, train_data: InputData):
-        model = fit_cnn(train_data, epochs=self.epochs, batch_size=self.batch_size)
+        model = fit_cnn(train_data, epochs=self.epochs, batch_size=self.batch_size,
+                        verbosity_level_logger=self.log.verbosity_level)
         return model
 
     def predict(self, trained_model, predict_data: InputData):
@@ -61,8 +67,8 @@ def fit_cnn(train_data: InputData,
             image_shape: tuple = (28, 28, 1),
             num_classes: int = 10,
             epochs: int = 1,
-            batch_size: int = 128):
-
+            batch_size: int = 128,
+            verbosity_level_logger: int = 5):
     x_train, y_train = train_data.features, train_data.target
     x_train = x_train.astype("float32") / 255
     x_train = np.expand_dims(x_train, -1)
@@ -71,7 +77,13 @@ def fit_cnn(train_data: InputData,
     model = _create_cnn(input_shape=image_shape,
                         num_classes=num_classes)
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
+
+    if verbosity_level_logger == 5:
+        verbose = 2
+    else:
+        verbose = 0
+
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
 
     return model
 

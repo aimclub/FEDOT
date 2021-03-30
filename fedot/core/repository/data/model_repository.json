@@ -86,8 +86,8 @@
 	  "description": "Implementations of the keras-based neural models for the time series forecasting"
 	},
 	"image_class": {
-	  "tasks": "[TaskTypesEnum.image_classification]",
-	  "input_type": "[DataTypesEnum.table]",
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.image]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasClassificationStrategy"],
 	  "tags": ["nn"],

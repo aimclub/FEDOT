@@ -159,6 +159,7 @@ class TextPreprocessingStrategy(PreprocessingStrategy):
 
 _preprocessing_for_input_data = {
     DataTypesEnum.ts: EmptyStrategy,
+    DataTypesEnum.image: EmptyStrategy,
     DataTypesEnum.table: ScalingWithImputation,
     DataTypesEnum.ts_lagged_table: Scaling,
     DataTypesEnum.forecasted_ts: Scaling,

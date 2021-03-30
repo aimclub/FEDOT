@@ -2,6 +2,7 @@ import math
 import numpy as np
 import pandas as pd
 import pytest
+import tensorflow as tf
 
 from sklearn.datasets import load_iris, make_regression
 from sklearn.preprocessing import StandardScaler
@@ -72,6 +73,19 @@ def test_node_with_manual_preprocessing_has_correct_behaviour_and_attributes(dat
 
     assert node_manual.descriptive_id == '/n_logit_default_params_custom_preprocessing=Normalization'
 
+
+def test_image_preprocessing_strategy():
+
+    training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
+    task = Task(TaskTypesEnum.classification)
+
+    if type(training_set) is tuple:
+        training_image, test_image = training_set[0][:5], training_set[1][:5]
+
+    dataset_to_train = InputData.from_image(images=training_image, labels=test_image, task=task, aug_flag=False)
+
+    assert dataset_to_train.task.task_type == TaskTypesEnum.classification
+    assert dataset_to_train.data_type.name == 'image'
 
 def test_text_preprocessing_strategy():
     test_text = [

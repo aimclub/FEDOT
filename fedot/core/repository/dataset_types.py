@@ -14,3 +14,5 @@ class DataTypesEnum(Enum):
     ts_lagged_table = 'time_series_lagged_table'
 
     text = 'text'
+
+    image = 'image'

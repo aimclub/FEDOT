@@ -75,8 +75,8 @@ class Data:
     @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
-                   task: Task = Task(TaskTypesEnum.image_classification),
-                   data_type: DataTypesEnum = DataTypesEnum.table,
+                   task: Task = Task(TaskTypesEnum.classification),
+                   data_type: DataTypesEnum = DataTypesEnum.image,
                    aug_flag: bool = False):
         """
         :param images: the path to the directory with image data or np.ndarray with data
