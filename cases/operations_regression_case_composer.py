@@ -59,23 +59,8 @@ def fit_predict_for_chain(chain, train_input, predict_input):
     return preds
 
 
-def run_experiment(file_path, init_chain, file_to_save,
-                   iterations=20, tuner=None):
-    """ Function launch experiment for river level prediction. Composing and
-    tuner processes are available for such experiment.
-
-    :param file_path: path to the file with river level data
-    :param init_chain: chain to start composing process
-    :param file_to_save: path to the file and file name to save report
-    :param iterations: amount of iterations to process
-    :param tuner: if tuning after composing process is required or not. tuner -
-    NodesTuner or ChainTuner.
-    """
-
-    # Read dataframe and prepare train and test data
-    df = pd.read_csv(file_path)
-    features = np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']])
-    target = np.array(df['level_station_2'])
+def prepare_input_data(features, target):
+    """ Function create InputData with features """
     x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(
         features,
         target,
@@ -96,9 +81,34 @@ def run_experiment(file_path, init_chain, file_to_save,
 
     predict_input = InputData(idx=np.arange(0, len(x_data_test)),
                               features=x_data_test,
-                              target=None,
+                              target=y_data_test,
                               task=task,
                               data_type=DataTypesEnum.table)
+
+    return train_input, predict_input, task
+
+
+def run_experiment(file_path, init_chain, file_to_save,
+                   iterations=20, tuner=None):
+    """ Function launch experiment for river level prediction. Composing and
+    tuner processes are available for such experiment.
+
+    :param file_path: path to the file with river level data
+    :param init_chain: chain to start composing process
+    :param file_to_save: path to the file and file name to save report
+    :param iterations: amount of iterations to process
+    :param tuner: if tuning after composing process is required or not. tuner -
+    NodesTuner or ChainTuner.
+    """
+
+    # Read dataframe and prepare train and test data
+    df = pd.read_csv(file_path)
+    features = np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']])
+    target = np.array(df['level_station_2'])
+
+    # Prepare InputData for train and test
+    train_input, predict_input, task = prepare_input_data(features, target)
+    y_data_test = predict_input.target
 
     available_operations_types = ['ridge', 'lasso', 'dtreg',
                                   'xgbreg', 'adareg', 'knnreg',
