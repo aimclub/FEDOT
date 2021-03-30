@@ -18,6 +18,7 @@ np.random.seed(1)
 def get_composite_chain() -> Chain:
     node_first = PrimaryNode('cnn')
     node_second = PrimaryNode('cnn')
+    node_second.custom_params = {'complexity': False}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
 
     chain = Chain(node_final)

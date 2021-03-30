@@ -90,7 +90,7 @@
 	  "input_type": "[DataTypesEnum.image]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasClassificationStrategy"],
-	  "tags": ["nn"],
+	  "tags": ["nn","non-default"],
 	  "description": "Implementations of the keras-based neural models image classification model"
 	},
 	"text_classification": {

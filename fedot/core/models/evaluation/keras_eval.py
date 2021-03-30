@@ -16,10 +16,16 @@ forecast_length = 1
 class KerasClassificationStrategy(EvaluationStrategy):
     def __init__(self, model_type: str, params: Optional[dict] = None, log=None):
         self._init_CNN_model_functions(model_type)
+        self.complexity_flag = True
         self.epochs = 15
         self.batch_size = 128
+
         if params:
-            self.epochs = params.get('epochs', self.epochs)
+            try:
+                self.epochs = params.get('epochs')
+                self.complexity_flag = params.get('complexity')
+            except Exception:
+                print('Please choose number of epochs and type of model')
 
         if not log:
             self.log: Log = default_log(__name__)
@@ -34,7 +40,7 @@ class KerasClassificationStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         model = fit_cnn(train_data, epochs=self.epochs, batch_size=self.batch_size,
-                        verbosity_level_logger=self.log.verbosity_level)
+                        verbosity_level_logger=self.log.verbosity_level, complexity_flag=self.complexity_flag)
         return model
 
     def predict(self, trained_model, predict_data: InputData):
@@ -46,19 +52,35 @@ class KerasClassificationStrategy(EvaluationStrategy):
 
 
 def _create_cnn(input_shape: tuple,
-                num_classes: int):
-    model = tf.keras.Sequential(
-        [
-            tf.keras.Input(shape=input_shape),
-            tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
-            tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes, activation="softmax"),
-        ]
+                num_classes: int,
+                complexity_flag: bool = True):
+
+    if complexity_flag:
+        model = tf.keras.Sequential(
+            [
+                tf.keras.Input(shape=input_shape),
+                tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Conv2D(128, kernel_size=(3, 3), activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dropout(0.5),
+                tf.keras.layers.Dense(num_classes, activation="softmax"),
+            ]
     )
+    else:
+        model = tf.keras.Sequential(
+            [
+                tf.keras.Input(shape=input_shape),
+                tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+                tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dropout(0.5),
+                tf.keras.layers.Dense(num_classes, activation="softmax"),
+            ]
+        )
 
     return model
 
@@ -68,20 +90,25 @@ def fit_cnn(train_data: InputData,
             num_classes: int = 10,
             epochs: int = 1,
             batch_size: int = 128,
-            verbosity_level_logger: int = 5):
+            verbosity_level_logger: int = 5,
+            complexity_flag: bool = True):
     x_train, y_train = train_data.features, train_data.target
     x_train = x_train.astype("float32") / 255
     x_train = np.expand_dims(x_train, -1)
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
 
     model = _create_cnn(input_shape=image_shape,
-                        num_classes=num_classes)
+                        num_classes=num_classes,
+                        complexity_flag=complexity_flag)
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
     if verbosity_level_logger == 5:
         verbose = 2
     else:
         verbose = 0
+
+    if epochs is None:
+        epochs = 15
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
 
