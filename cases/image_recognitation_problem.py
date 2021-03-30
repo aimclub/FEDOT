@@ -18,7 +18,8 @@ np.random.seed(1)
 def get_composite_chain() -> Chain:
     node_first = PrimaryNode('cnn')
     node_second = PrimaryNode('cnn')
-    node_second.custom_params = {'complexity': False}
+    node_second.custom_params = {'complexity': False,
+                                 'epochs': 10}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
 
     chain = Chain(node_final)
@@ -36,7 +37,6 @@ def calculate_validation_metric(predicted: OutputData, dataset_to_validate: Inpu
 
 def run_image_recognitation_problem(train_dataset: Union[str, tuple],
                                     test_dataset: Union[str, tuple],
-                                    augmentation_flag: bool = False,
                                     composite_model_flag: bool = False):
     task = Task(TaskTypesEnum.classification)
 
@@ -46,12 +46,10 @@ def run_image_recognitation_problem(train_dataset: Union[str, tuple],
 
     dataset_to_train = InputData.from_image(images=X_train,
                                             labels=y_train,
-                                            task=task,
-                                            aug_flag=augmentation_flag)
+                                            task=task)
     dataset_to_validate = InputData.from_image(images=X_test,
                                                labels=y_test,
-                                               task=task,
-                                               aug_flag=augmentation_flag)
+                                               task=task)
 
     chain = PrimaryNode(model_type='cnn')
     chain.manual_preprocessing_func = EmptyStrategy

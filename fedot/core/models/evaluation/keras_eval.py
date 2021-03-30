@@ -17,7 +17,7 @@ class KerasClassificationStrategy(EvaluationStrategy):
     def __init__(self, model_type: str, params: Optional[dict] = None, log=None):
         self._init_CNN_model_functions(model_type)
         self.complexity_flag = True
-        self.epochs = 15
+        self.epochs = 10
         self.batch_size = 128
 
         if params:
@@ -108,7 +108,7 @@ def fit_cnn(train_data: InputData,
         verbose = 0
 
     if epochs is None:
-        epochs = 15
+        epochs = 10
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
 

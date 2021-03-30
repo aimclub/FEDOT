@@ -1,9 +1,10 @@
 import os
-
+import tensorflow as tf
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from cases.image_recognitation_problem import run_image_recognitation_problem
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
@@ -121,3 +122,12 @@ def test_output_mode_full_probs():
     assert np.array_equal(results_probs.predict, results_default.predict)
     assert results.predict.shape == (len(test_data.target), 2)
     assert results_probs.predict.shape == (len(test_data.target),)
+
+
+def test_image_classification():
+    training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
+    roc_auc_on_valid_simple = run_image_recognitation_problem(train_dataset=training_set,
+                                                              test_dataset=testing_set,
+                                                              composite_model_flag=True)
+
+    assert roc_auc_on_valid_simple > 0.95

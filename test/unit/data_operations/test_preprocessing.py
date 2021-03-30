@@ -82,7 +82,7 @@ def test_image_preprocessing_strategy():
     if type(training_set) is tuple:
         training_image, test_image = training_set[0][:5], training_set[1][:5]
 
-    dataset_to_train = InputData.from_image(images=training_image, labels=test_image, task=task, aug_flag=False)
+    dataset_to_train = InputData.from_image(images=training_image, labels=test_image, task=task)
 
     assert dataset_to_train.task.task_type == TaskTypesEnum.classification
     assert dataset_to_train.data_type.name == 'image'

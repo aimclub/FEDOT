@@ -73,66 +73,12 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
-def resizing_image(image: np.ndarray,
-                   new_width=None,
-                   new_height=None,
-                   interp=cv2.INTER_LINEAR):
-    h, w = image.shape[:2]
 
-    if new_width is None and new_height is None:
-        return image
-
-    if new_width is None:
-        ratio = new_height / h
-        dimension = (int(w * ratio), new_height)
-
-    else:
-        ratio = new_width / w
-        dimension = (new_width, int(h * ratio))
-
-    res_img = cv2.resize(image, dimension, interpolation=interp)
-
-    return res_img
-
-
-def get_more_images(imgs: np.ndarray):
-    more_images = []
-    vert_flip_imgs = []
-    hori_flip_imgs = []
-
-    for i in range(0, imgs.shape[0]):
-        a = imgs[i, :, :, 0]
-        b = imgs[i, :, :, 1]
-        c = imgs[i, :, :, 2]
-
-        av = cv2.flip(a, 1)
-        ah = cv2.flip(a, 0)
-        bv = cv2.flip(b, 1)
-        bh = cv2.flip(b, 0)
-        cv = cv2.flip(c, 1)
-        ch = cv2.flip(c, 0)
-
-        vert_flip_imgs.append(np.dstack((av, bv, cv)))
-        hori_flip_imgs.append(np.dstack((ah, bh, ch)))
-
-    v = np.array(vert_flip_imgs)
-    h = np.array(hori_flip_imgs)
-
-    more_images = np.concatenate((imgs, v, h))
-
-    return more_images
-
-
-def get_images_from_directory(path_to_images: str,
-                              new_shape: tuple = None):
+def get_images_from_directory(path_to_images: str):
     list_of_images = os.listdir(path=path_to_images)
     images = []
     for image_path in list_of_images:
         img = cv2.imread(image_path)
-        if new_shape is not None:
-            img = resizing_image(img,
-                                 new_width=new_shape[0],
-                                 new_height=new_shape[1])
         images.append(img)
 
     return np.concatenate(images)

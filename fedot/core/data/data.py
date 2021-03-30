@@ -13,8 +13,6 @@ from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import get_more_images, get_images_from_directory
-
 
 @dataclass
 class Data:
@@ -76,8 +74,7 @@ class Data:
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification),
-                   data_type: DataTypesEnum = DataTypesEnum.image,
-                   aug_flag: bool = False):
+                   data_type: DataTypesEnum = DataTypesEnum.image):
         """
         :param images: the path to the directory with image data or np.ndarray with data
         :param labels: name of target column (last column if empty and no target if None)
@@ -97,9 +94,6 @@ class Data:
 
         idx = np.arange(0, len(features))
 
-        if aug_flag:
-            features = get_more_images(features)
-            target = np.concatenate((target, target, target))
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
