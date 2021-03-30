@@ -4,7 +4,8 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from fedot.core.chains.chain import Chain, as_nx_graph
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task
 
@@ -28,7 +29,7 @@ def has_one_root(chain: Chain):
 
 
 def has_no_cycle(chain: Chain):
-    graph, _ = as_nx_graph(chain)
+    graph, _ = chain_as_nx_graph(chain)
     cycled = list(simple_cycles(graph))
     if len(cycled) > 0:
         raise ValueError(f'{ERROR_PREFIX} Chain has cycles')
@@ -37,7 +38,7 @@ def has_no_cycle(chain: Chain):
 
 
 def has_no_isolated_nodes(chain: Chain):
-    graph, _ = as_nx_graph(chain)
+    graph, _ = chain_as_nx_graph(chain)
     isolated = list(isolates(graph))
     if len(isolated) > 0 and chain.length != 1:
         raise ValueError(f'{ERROR_PREFIX} Chain has isolated nodes')
@@ -57,7 +58,7 @@ def has_no_self_cycled_nodes(chain: Chain):
 
 
 def has_no_isolated_components(chain: Chain):
-    graph, _ = as_nx_graph(chain)
+    graph, _ = chain_as_nx_graph(chain)
     ud_graph = nx.Graph()
     ud_graph.add_nodes_from(graph)
     ud_graph.add_edges_from(graph.edges)

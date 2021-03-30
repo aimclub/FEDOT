@@ -51,7 +51,6 @@ class Composer(ABC):
     def __init__(self, metrics: Optional[Callable], composer_requirements: ComposerRequirements,
                  optimiser_parameters: Any = None, initial_chain: Optional[Chain] = None,
                  log: Log = None):
-        self.history = None
         self.metrics = metrics
         self.composer_requirements = composer_requirements
         self.optimiser_parameters = optimiser_parameters

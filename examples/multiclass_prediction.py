@@ -9,7 +9,7 @@ from examples.utils import create_multi_clf_examples_from_excel
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ComposerVisualiser
+from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
@@ -28,7 +28,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a chain for the selected task
     models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type)
+    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type, tags=['simple'])
 
     metric_function = MetricsRepository(). \
         metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
@@ -78,7 +78,8 @@ if __name__ == '__main__':
 
     fitted_model = get_model(train_file_path)
 
-    ComposerVisualiser.visualise(fitted_model)
+    visualiser = ChainVisualiser()
+    visualiser.visualise(fitted_model)
 
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc}')

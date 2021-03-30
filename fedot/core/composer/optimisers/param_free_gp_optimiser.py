@@ -1,13 +1,15 @@
 from copy import deepcopy
+from typing import (Any, List, Optional, Tuple)
+
 import numpy as np
-from typing import (Optional, List, Any, Tuple)
+
+from fedot.core.composer.iterator import SequenceIterator, fibonacci_sequence
+from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover
+from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.regularization import regularized_population
 from fedot.core.composer.optimisers.selection import selection
-from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GPChainOptimiser
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.composer.iterator import fibonacci_sequence, SequenceIterator
-from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover
 from fedot.core.log import Log
 
 
@@ -27,11 +29,12 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
     def __init__(self, initial_chain, requirements, chain_generation_params,
                  parameters: Optional[GPChainOptimiserParameters] = None,
                  max_population_size: int = 55,
-                 sequence_function=fibonacci_sequence, log: Log = None):
+                 sequence_function=fibonacci_sequence,
+                 log: Log = None):
         super().__init__(initial_chain, requirements, chain_generation_params, parameters, log)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
-            self.log.error(f'Invalid genetic scheme type was changed to parameter-free . Continue.')
+            self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         self.sequence_function = sequence_function
@@ -42,15 +45,17 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         self.generation_num = 0
         self.requirements.pop_size = self.iterator.next()
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5):
+    def optimise(self, objective_function, offspring_rate: float = 0.5,
+                 on_next_iteration_callback=None):
+        if on_next_iteration_callback is None:
+            on_next_iteration_callback = self.default_on_next_iteration_callback
+
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
-        with CompositionTimer() as t:
-
-            self.history = []
+        with CompositionTimer(self.log) as t:
 
             if self.requirements.add_single_model_chains:
                 best_single_model, self.requirements.primary = \
@@ -59,7 +64,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
             for ind in self.population:
                 ind.fitness = objective_function(ind)
 
-            self._add_to_history(self.population)
+            on_next_iteration_callback(self.population)
 
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -110,7 +115,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 if self.with_elitism:
                     self.population.append(self.prev_best)
 
-                self._add_to_history(self.population)
+                on_next_iteration_callback(self.population)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -120,7 +125,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
             if self.requirements.add_single_model_chains and \
                     (best_single_model.fitness <= best.fitness):
                 best = best_single_model
-        return best, self.history
+        return best
 
     @property
     def with_elitism(self) -> bool:

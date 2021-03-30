@@ -5,15 +5,16 @@ from typing import (Any, Callable, List, Optional, Tuple)
 
 import numpy as np
 
+from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_operators import random_chain, num_of_parents_in_crossover
+from fedot.core.composer.optimisers.gp_operators import num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.composer.optimisers.selection import SelectionTypesEnum, selection
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 
 
 class GPChainOptimiserParameters:
@@ -70,18 +71,20 @@ class GPChainOptimiser:
     """
 
     def __init__(self, initial_chain, requirements, chain_generation_params,
-                 parameters: Optional[GPChainOptimiserParameters] = None, log: Log = None):
+                 parameters: Optional[GPChainOptimiserParameters] = None,
+                 log: Log = None):
         self.chain_generation_params = chain_generation_params
         self.primary_node_func = self.chain_generation_params.primary_node_func
         self.secondary_node_func = self.chain_generation_params.secondary_node_func
         self.chain_class = self.chain_generation_params.chain_class
         self.requirements = requirements
-        self.history = []
         self.parameters = GPChainOptimiserParameters() if parameters is None else parameters
         self.max_depth = self.parameters.start_depth if self.parameters.with_auto_depth_configuration else \
             self.requirements.max_depth
 
         self.generation_num = 0
+        self.num_of_gens_without_improvements = 0
+
         if not log:
             self.log = default_log(__name__)
         else:
@@ -104,15 +107,19 @@ class GPChainOptimiser:
         else:
             self.population = initial_chain
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5):
+        self.history = ComposingHistory()
+
+    def optimise(self, objective_function, offspring_rate: float = 0.5,
+                 on_next_iteration_callback: Optional[Callable] = None):
+        if on_next_iteration_callback is None:
+            on_next_iteration_callback = self.default_on_next_iteration_callback
+
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
-        with CompositionTimer() as t:
-
-            self.history = []
+        with CompositionTimer(log=self.log) as t:
 
             if self.requirements.add_single_model_chains:
                 best_single_model, self.requirements.primary = \
@@ -121,7 +128,7 @@ class GPChainOptimiser:
             for ind in self.population:
                 ind.fitness = objective_function(ind)
 
-            self._add_to_history(self.population)
+            on_next_iteration_callback(self.population)
 
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -163,7 +170,7 @@ class GPChainOptimiser:
                 if self.with_elitism:
                     self.population.append(self.prev_best)
 
-                self._add_to_history(self.population)
+                on_next_iteration_callback(self.population)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -175,7 +182,7 @@ class GPChainOptimiser:
             if self.requirements.add_single_model_chains and \
                     (best_single_model.fitness <= best.fitness):
                 best = best_single_model
-        return best, self.history
+        return best
 
     @property
     def best_individual(self) -> Any:
@@ -251,9 +258,6 @@ class GPChainOptimiser:
                 model_chains.append(chain)
         return model_chains
 
-    def _add_to_history(self, individuals: List[Any]):
-        self.history.append(individuals)
-
     def _best_single_models(self, objective_function: Callable, num_best: int = 7):
         single_models_inds = []
         for model in self.requirements.primary:
@@ -273,3 +277,6 @@ class GPChainOptimiser:
 
     def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
+
+    def default_on_next_iteration_callback(self, individuals):
+        self.history.add_to_history(individuals)

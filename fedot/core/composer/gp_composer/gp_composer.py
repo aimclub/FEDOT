@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 from functools import partial
 from sys import maxsize as max_int_value
@@ -15,13 +14,18 @@ from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiser, GPChai
 from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.param_free_gp_optimiser import GPChainParameterFreeOptimiser
-from fedot.core.composer.visualisation import ComposerVisualiser
-from fedot.core.composer.write_history import write_composer_history_to_csv
 from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.log import Log, default_log
 from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+sample_split_ration_for_tasks = {
+    TaskTypesEnum.classification: 0.8,
+    TaskTypesEnum.regression: 0.8,
+    TaskTypesEnum.ts_forecasting: 0.5
+}
 
 
 @dataclass
@@ -68,33 +72,35 @@ class GPComposer(Composer):
     def __init__(self, optimiser=None,
                  composer_requirements: Optional[GPComposerRequirements] = None,
                  metrics: Optional[Callable] = None,
-                 initial_chain: Optional[Chain] = None):
+                 initial_chain: Optional[Chain] = None,
+                 logger: Log = None):
 
         super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_chain=initial_chain)
         self.shared_cache = {}
         self.optimiser = optimiser
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False) -> Chain:
+        if not logger:
+            self.log = default_log(__name__)
+        else:
+            self.log = logger
+
+    def compose_chain(self, data: InputData, is_visualise: bool = False,
+                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        train_data, test_data = train_test_data_setup(data, 0.8, task=data.task)
+        train_data, test_data = train_test_data_setup(data,
+                                                      sample_split_ration_for_tasks[data.task.task_type],
+                                                      task=data.task)
         self.shared_cache.clear()
         metric_function_for_nodes = partial(self.metric_for_nodes,
                                             self.metrics, train_data, test_data, True)
 
-        best_chain, self.history = self.optimiser.optimise(metric_function_for_nodes)
+        best_chain = self.optimiser.optimise(metric_function_for_nodes,
+                                             on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
-        if is_visualise:
-            historical_fitness = [[chain.fitness for chain in pop] for pop in self.history]
-            all_historical_fitness = list(itertools.chain(*historical_fitness))
-            historical_chains = list(itertools.chain(*self.history))
-            ComposerVisualiser.visualise_history(historical_chains, all_historical_fitness)
-
-        write_composer_history_to_csv(historical_chains=self.history)
 
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
@@ -105,17 +111,25 @@ class GPComposer(Composer):
                          chain: Chain) -> float:
         try:
             validate(chain)
+            chain.log = self.log
             if is_chain_shared:
                 chain = SharedChain(base_chain=chain, shared_cache=self.shared_cache)
             chain.fit(input_data=train_data)
-            return metric_function(chain, test_data)
+            metric = metric_function(chain, test_data)
+            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metric {metric}')
+            return metric
         except Exception as ex:
-            self.log.info(f'Error in chain assessment during composition: {ex}. Continue.')
+            self.log.warn(f'Error in chain assessment during composition: {ex}. Continue.')
             return max_int_value
 
     @staticmethod
     def tune_chain(chain: Chain, data: InputData, time_limit):
+        # TODO investigate is it necessary
         chain.fine_tune_all_nodes(input_data=data, max_lead_time=time_limit)
+
+    @property
+    def history(self):
+        return self.optimiser.history
 
 
 class GPComposerBuilder:
@@ -139,6 +153,10 @@ class GPComposerBuilder:
 
     def with_initial_chain(self, initial_chain):
         self._composer.initial_chain = initial_chain
+        return self
+
+    def with_logger(self, logger):
+        self._composer.logger = logger
         return self
 
     def set_default_composer_params(self):

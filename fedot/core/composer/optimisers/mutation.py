@@ -127,7 +127,7 @@ def reduce_mutation(chain: Any, requirements, chain_generation_params) -> Any:
     childs = chain.node_childs(node_to_del)
     is_possible_to_delete = all([len(child.nodes_from) - 1 >= requirements.min_arity for child in childs])
     if is_possible_to_delete:
-        chain.delete_node(node_to_del)
+        chain.delete_subtree(node_to_del)
     else:
         primary_node = chain_generation_params.primary_node_func(model_type=choice(requirements.primary))
         chain.replace_node_with_parents(node_to_del, primary_node)

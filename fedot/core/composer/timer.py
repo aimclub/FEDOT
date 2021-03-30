@@ -1,10 +1,15 @@
 import datetime
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+
+from fedot.core.log import Log, default_log
 
 
 class Timer(ABC):
-    def __init__(self, verbose=True):
-        self.verbose = verbose
+    def __init__(self, log: Log = None):
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
         self.process_terminated = False
 
     def __enter__(self):
@@ -20,8 +25,8 @@ class Timer(ABC):
 
 
 class CompositionTimer(Timer):
-    def __init__(self, verbose=True):
-        super().__init__(verbose=verbose)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def start_time(self):
@@ -55,21 +60,19 @@ class CompositionTimer(Timer):
         return reached
 
     def __exit__(self, *args):
-        if self.verbose:
-            print(f'Composition time: {round(self.minutes_from_start, 3)} min')
-            if self.process_terminated:
-                print('Algorithm was terminated due to processing time limit')
+        self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min')
+        if self.process_terminated:
+            self.log.info('Algorithm was terminated due to processing time limit')
 
 
 class TunerTimer(Timer):
-    def __init__(self, verbose=False):
-        super().__init__(verbose=verbose)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def is_time_limit_reached(self, limit) -> bool:
         if datetime.datetime.now() - self.start >= limit:
             self.process_terminated = True
-            if self.verbose:
-                print('Tuning completed because of the time limit reached')
+            self.log.info('Tuning completed because of the time limit reached')
         return self.process_terminated
 
     def __exit__(self, *args):

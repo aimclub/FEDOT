@@ -1,21 +1,18 @@
 from datetime import timedelta
 
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_template import ChainTemplate, ModelTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log, start_end_log_decorator
-from fedot.utilities.synthetic.chain_template_new import ChainTemplate, \
-    ModelTemplate, extract_subtree_root
 
 
 class Tune:
-
     def __init__(self, chain,
-                 log: Log = default_log(__name__), verbose=False):
+                 log: Log = default_log(__name__)):
         self.chain = chain
         self.chain_template = ChainTemplate(self.chain)
         self.log = log
-        self.verbose = verbose
 
     @start_end_log_decorator(start_msg='Starting tuning primary nodes',
                              end_msg='Primary nodes tuning is finished')
@@ -27,7 +24,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -47,13 +43,17 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
         node = self.chain.root_node
-        node.fine_tune(input_data=input_data, max_lead_time=max_lead_time,
-                       iterations=iterations, recursive=False)
+        if type(node) is PrimaryNode:
+            # if mono-node chains
+            node.fine_tune(input_data=input_data, max_lead_time=max_lead_time,
+                           iterations=iterations)
+        else:
+            node.fine_tune(input_data=input_data, max_lead_time=max_lead_time,
+                           iterations=iterations, recursive=False)
 
         return self.chain
 
@@ -67,7 +67,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -89,7 +88,6 @@ class Tune:
         :param input_data: data used for tuning
         :param iterations: max number of iterations
         :param max_lead_time: max time available for tuning process
-        :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
 
@@ -107,14 +105,14 @@ class Tune:
                               updated_node=updated_subchain.root_node)
 
         updated_chain = Chain()
-        self.chain_template.convert_to_chain(chain_to_convert_to=updated_chain)
+        self.chain_template.convert_to_chain(chain=updated_chain)
 
         return updated_chain
 
     def _update_template(self, model_id, updated_node):
         model_template = [model_template for model_template in self.chain_template.model_templates
                           if model_template.model_id == model_id][0]
-        update_node_template = ModelTemplate(updated_node, chain_id=self.chain_template.unique_chain_id)
+        update_node_template = ModelTemplate(updated_node)
 
         model_template.params = update_node_template.params
         model_template.fitted_model_path = update_node_template.fitted_model_path

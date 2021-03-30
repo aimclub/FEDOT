@@ -219,7 +219,7 @@ class ModelGapFiller(SimpleGapFiller):
             result = np.average(preds, axis=0, weights=weights)
 
             gap = new_gap_list[batch_index]
-            # Replace gaps in an array with predicted values
+            # Replace gaps in an array with prediction values
             output_data[gap] = result
 
         return output_data
@@ -251,7 +251,7 @@ class ModelGapFiller(SimpleGapFiller):
             predicted = self.__chain_fit_predict(timeseries_train_part,
                                                  len_gap)
 
-            # Replace gaps in an array with predicted values
+            # Replace gaps in an array with prediction values
             output_data[gap] = predicted
         return output_data
 
@@ -266,7 +266,7 @@ class ModelGapFiller(SimpleGapFiller):
 
         :return weights_list: numpy array with prediction weights for
         averaging
-        :return predicted_values: numpy array with predicted values in the
+        :return predicted_values: numpy array with prediction values in the
         gap
         """
 
@@ -291,7 +291,7 @@ class ModelGapFiller(SimpleGapFiller):
 
         :return weights_list: numpy array with prediction weights for
         averaging
-        :return predicted_values: numpy array with predicted values in the
+        :return predicted_values: numpy array with prediction values in the
         gap
         """
 

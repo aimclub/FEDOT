@@ -9,10 +9,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
+from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.utils import get_more_images, get_images_from_directory
 
 
@@ -62,7 +62,13 @@ class Data:
             features = data_array[1:].T
             target = None
 
-        features = ImputationStrategy().fit(features).apply(features)
+        if features.shape[1] == 0 and task.task_type == TaskTypesEnum.ts_forecasting:
+            features = None
+
+        features = _process_empty_features_for_task(features, task)
+
+        if features is not None:
+            features = ImputationStrategy().fit(features).apply(features)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
@@ -195,7 +201,7 @@ class InputData(Data):
 @dataclass
 class OutputData(Data):
     """
-    Data type for data predicted in the node
+    Data type for data prediction in the node
     """
     predict: np.array = None
 
@@ -295,4 +301,12 @@ def _combine_datasets_common(outputs: List[OutputData]):
             number_of_variables_in_prediction = elem.predict.shape[1]
             for i in range(number_of_variables_in_prediction):
                 features.append(elem.predict[:, i])
+    return features
+
+
+def _process_empty_features_for_task(features, task: Task):
+    if (features is not None and
+            features.shape[1] == 0 and
+            task.task_type == TaskTypesEnum.ts_forecasting):
+        return None
     return features

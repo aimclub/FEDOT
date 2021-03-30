@@ -6,6 +6,7 @@ from functools import wraps
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 from threading import RLock
+from typing import Optional
 
 from fedot.core.utils import default_fedot_data_dir
 
@@ -80,17 +81,20 @@ class LogManager(metaclass=SingletonMeta):
 
 
 def default_log(logger_name: str,
-                log_file=None) -> 'Log':
+                log_file: Optional[str] = None,
+                verbose_level: int = 1) -> 'Log':
     """
     :param logger_name: string name for logger
     :param log_file: path to the file where log messages will be recorded to
+    :param verbose_level level of detalization
     :return Log: Log object
     """
     if not log_file:
         log_file = os.path.join(default_fedot_data_dir(), 'log.log')
     log = Log(logger_name=logger_name,
               config_json_file='default',
-              log_file=log_file)
+              log_file=log_file,
+              output_verbosity_level=verbose_level)
     return log
 
 
@@ -105,7 +109,8 @@ class Log:
 
     def __init__(self, logger_name: str,
                  config_json_file: str,
-                 log_file: str = None):
+                 output_verbosity_level=1,
+                 log_file: str = None, ):
         if not log_file:
             self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
         else:
@@ -116,22 +121,43 @@ class Log:
         self.logger = LogManager().get_logger(logger_name,
                                               config_file=self.config_file,
                                               log_file=self.log_file)
+        self.verbosity_level = output_verbosity_level
+
+    def message(self, message):
+        """Record the message to user"""
+        for_verbosity = 1
+        if self.verbosity_level >= for_verbosity:
+            self.logger.info(message)
 
     def info(self, message):
-        """Record the INFO log massage"""
-        self.logger.info(message)
+        """Record the INFO log message"""
+        for_verbosity = 2
+        if self.verbosity_level >= for_verbosity:
+            self.logger.info(message)
 
     def debug(self, message):
-        """Record the DEBUG log massage"""
-        self.logger.debug(message)
+        """Record the DEBUG log message"""
+        for_verbosity = 3
+        if self.verbosity_level >= for_verbosity:
+            self.logger.debug(message)
+
+    def ext_debug(self, message):
+        """Record the extended DEBUG log message"""
+        for_verbosity = 4
+        if self.verbosity_level >= for_verbosity:
+            self.logger.debug(message)
 
     def warn(self, message):
-        """Record the WARN log massage"""
-        self.logger.warning(message)
+        """Record the WARN log message"""
+        for_verbosity = 2
+        if self.verbosity_level >= for_verbosity:
+            self.logger.warning(message)
 
     def error(self, message):
-        """Record the ERROR log massage"""
-        self.logger.error(message, exc_info=True)
+        """Record the ERROR log message"""
+        for_verbosity = 0
+        if self.verbosity_level >= for_verbosity:
+            self.logger.error(message, exc_info=True)
 
     @property
     def handlers(self):
