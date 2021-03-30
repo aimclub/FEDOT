@@ -31,7 +31,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.amount_of_features = np.array(input_data.features).shape[1]
 
         if self.amount_of_features > 1:
-            self.correct_params()
+            self.check_and_correct_params()
             self.pca.fit(input_data.features)
 
         return self.pca
@@ -55,9 +55,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
                                               transformed_features)
         return output_data
 
-    def correct_params(self) -> None:
+    def check_and_correct_params(self) -> None:
         """ Method check if amount of features in data enough for n_components
-        parameter in PCA or not
+        parameter in PCA or not. And if not enough - fixes it
         """
         current_parameters = self.pca.get_params()
 
@@ -73,10 +73,9 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
 
 class PCAImplementation(ComponentAnalysisImplementation):
-    """ Adapter class for automatically determining the number of components
-    for PCA
+    """ Class for applying PCA from sklearn
 
-    :param params: optional, dictionary with the arguments
+    :param params: optional, dictionary with the hyperparameters
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -91,7 +90,10 @@ class PCAImplementation(ComponentAnalysisImplementation):
 
 
 class KernelPCAImplementation(ComponentAnalysisImplementation):
+    """ Class for applying kernel PCA from sklearn
 
+    :param params: optional, dictionary with the hyperparameters
+    """
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
@@ -140,7 +142,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
     def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """
         The method that transforms the categorical features in the original
-        dataset, but does not affect the rest
+        dataset, but does not affect the rest features
 
         :param input_data: data with features, target and ids for transformation
         :param is_fit_chain_stage: is this fit or predict stage for chain

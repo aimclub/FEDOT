@@ -13,6 +13,7 @@ from nltk.stem import PorterStemmer, WordNetLemmatizer
 
 
 class TextCleanImplementation(DataOperationImplementation):
+    """ Class for text cleaning (lemmatization and stemming) operation """
 
     def __init__(self, **params: Optional[dict]):
         self.stemmer = PorterStemmer()

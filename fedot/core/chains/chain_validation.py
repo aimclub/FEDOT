@@ -90,9 +90,7 @@ def has_final_operation_as_model(chain: Chain):
     """ Check if the operation in root node is model or not """
     root_node = chain.root_node
 
-    if type(root_node.operation) is Model:
-        pass
-    else:
+    if type(root_node.operation) is not Model:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
     return True

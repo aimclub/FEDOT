@@ -50,7 +50,7 @@ class OperationFactory:
         # If there is a such model in the list
         if any(self.operation_name == model.id for model in models):
             operation_type = 'model'
-        # Overwise - it is preprocessing operations
+        # Otherwise - it is preprocessing operations
         else:
             operation_type = 'data_operation'
         return operation_type
