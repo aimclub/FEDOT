@@ -75,16 +75,20 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_exogenous_experiment(time_series, exog_variable, len_forecast=250,
-                             with_exog=True, with_visualisation=True) -> None:
+def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
+                             with_visualisation=True) -> None:
     """ Function with example how time series forecasting can be made with using
     exogenous features
 
-    :param time_series: time series for prediction
-    :param exog_variable: exogenous time series
+    :param path_to_file: path to the csv file with dataframe
     :param len_forecast: forecast length
     :param with_exog: is it needed to make prediction with exogenous time series
+    :param with_visualisation: is it needed to make visualisations
     """
+
+    df = pd.read_csv(path_to_file)
+    time_series = np.array(df['Level'])
+    exog_variable = np.array(df['Neighboring level'])
 
     # Let's divide our data on train and test samples
     train_data = time_series[:-len_forecast]
@@ -148,11 +152,6 @@ def run_exogenous_experiment(time_series, exog_variable, len_forecast=250,
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
-    time_series = np.array(df['Level'])
-    neighboring_level = np.array(df['Neighboring level'])
-
-    run_exogenous_experiment(time_series=time_series,
-                             exog_variable=neighboring_level,
+    run_exogenous_experiment(path_to_file='../notebooks/time_series_forecasting/Sea_level.csv',
                              len_forecast=250,
                              with_exog=True)
