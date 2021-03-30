@@ -216,7 +216,7 @@ def test_gp_composer_builder_default_params_correct():
 
     # Initialise default parameters
     builder.set_default_composer_params()
-    composer_with_default_params = builder._composer
+    composer_with_default_params = builder.build()
 
     # Get default available operations for regression task
     primary_operations = composer_with_default_params.composer_requirements.primary

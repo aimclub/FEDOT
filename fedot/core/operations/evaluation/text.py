@@ -6,7 +6,6 @@ from typing import Optional
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.text_preprocessing import TextCleanImplementation

@@ -5,7 +5,6 @@ from typing import Optional
 from sklearn.cluster import KMeans as SklearnKmeans
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
 
 warnings.filterwarnings("ignore", category=UserWarning)

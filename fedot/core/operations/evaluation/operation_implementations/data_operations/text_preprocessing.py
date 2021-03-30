@@ -64,7 +64,8 @@ class TextCleanImplementation(DataOperationImplementation):
             except LookupError:
                 nltk.download(f'{resource}')
 
-    def _word_vectorize(self, text):
+    @staticmethod
+    def _word_vectorize(text):
         words = nltk.word_tokenize(text)
 
         return words
@@ -86,7 +87,8 @@ class TextCleanImplementation(DataOperationImplementation):
 
         return lemmas
 
-    def _clean_html_text(self, raw_text):
+    @staticmethod
+    def _clean_html_text(raw_text):
         clean_pattern = re.compile('<.*?>')
         text = re.sub(clean_pattern, ' ', raw_text)
 
