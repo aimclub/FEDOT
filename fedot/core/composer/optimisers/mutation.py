@@ -7,7 +7,7 @@ from fedot.core.chains.chain import Chain, List
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.utils import ComparableEnum as Enum
-from fedot.core.operations.tuning.hyperparams import get_new_operation_params
+from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 
 
 class MutationTypesEnum(Enum):

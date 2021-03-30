@@ -5,7 +5,7 @@ from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from fedot.core.operations.tuning.tuners import ChainTuner
+from fedot.core.chains.tuning.unified import ChainTuner
 
 
 def get_case_train_test_data(train_file_path, test_file_path):

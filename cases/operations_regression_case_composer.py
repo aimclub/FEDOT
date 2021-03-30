@@ -16,7 +16,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.tuning.tuners import ChainTuner
+from fedot.core.chains.tuning.unified import ChainTuner
 
 warnings.filterwarnings('ignore')
 

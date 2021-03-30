@@ -211,12 +211,9 @@ def convert_params(params):
     :param params: labeled parameters
     :return new_params: dictionary without labels of node_id and operation_name
     """
-    operation_parameters = list(params.keys())
 
     new_params = {}
-    for operation_parameter in operation_parameters:
-        value = params.get(operation_parameter)
-
+    for operation_parameter, value in params.items():
         # Remove right part of the parameter name
         parameter_name = operation_parameter.split(' | ')[-1]
 

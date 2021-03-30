@@ -11,7 +11,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.operations.tuning.tuners import ChainTuner
+from fedot.core.chains.tuning.sequential import SequentialTuner
 from matplotlib import pyplot as plt
 
 warnings.filterwarnings('ignore')
@@ -41,10 +41,11 @@ def make_forecast(chain, train_input, predict_input, task):
     predicted_values = chain.predict(predict_input)
     old_predicted_values = predicted_values.predict
 
-    chain_tuner = ChainTuner(chain=chain, task=task,
-                             iterations=5)
+    chain_tuner = SequentialTuner(chain=chain, task=task,
+                                  iterations=10)
     chain = chain_tuner.tune_chain(input_data=train_input,
-                                   loss_function=mean_absolute_error)
+                                   loss_function=mean_squared_error,
+                                   loss_params={'squared': False})
 
     print('\nChain parameters after tuning')
     for node in chain.nodes:

@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from random import seed
 
 import numpy as np
@@ -10,8 +9,8 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.tuning.tuners import SequentialTuner, ChainTuner
-from test.unit.utilities.test_chain_import_export import create_four_depth_chain
+from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.chains.tuning.sequential import SequentialTuner
 
 seed(1)
 np.random.seed(1)

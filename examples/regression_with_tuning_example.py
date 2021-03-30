@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synthetic.data import regression_dataset
-from fedot.core.operations.tuning.tuners import ChainTuner
+from fedot.core.chains.tuning.unified import ChainTuner
 
 np.random.seed(2020)
 
