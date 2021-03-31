@@ -97,7 +97,7 @@ class SequentialTuner(HyperoptTuner):
                         loss_function, loss_params)
 
         node = self.chain.nodes[node_id]
-        operation_name = str(node.operation)
+        operation_name = str(node.operation.operation_type)
 
         # Get node's parameters to optimize
         node_params = get_node_params(node_id=node_id,

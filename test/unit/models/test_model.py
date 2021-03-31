@@ -6,7 +6,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.data.data import InputData, OutputData, train_test_data_setup
 from fedot.core.operations.model import Model
 from fedot.core.operations.data_operation import DataOperation
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum

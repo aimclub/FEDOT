@@ -79,8 +79,10 @@ def test_hp_chain_tuner(data_fixture, request):
     chain_tuner = ChainTuner(chain=chain,
                              task=train_data.task,
                              iterations=30)
+    # Optimization will be performed on RMSE metric, so loss params are defined
     tuned_chain = chain_tuner.tune_chain(input_data=train_data,
-                                         loss_function=mse)
+                                         loss_function=mse,
+                                         loss_params={'squared': False})
 
     # After tuning prediction
     tuned_chain.fit_from_scratch(train_data)
@@ -92,8 +94,8 @@ def test_hp_chain_tuner(data_fixture, request):
     aft_tun_mse = mse(y_true=test_data.target,
                       y_pred=after_tuning_predicted.predict)
 
-    print(f'Before tune test {bfr_tun_mse}')
-    print(f'After tune test {aft_tun_mse}', '\n')
+    print(f'Before tune test {bfr_tun_mse:.2f}')
+    print(f'After tune test {aft_tun_mse:.2f}')
 
     assert aft_tun_mse <= bfr_tun_mse
 
@@ -126,7 +128,43 @@ def test_hp_sequential_tuner(data_fixture, request):
     bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
     aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tuning_predicted.predict), 1)
 
-    print(f'Before tune test {bfr_tun_roc_auc}')
-    print(f'After tune test {aft_tun_roc_auc}', '\n')
+    print(f'Before tune test {bfr_tun_roc_auc:.2f}')
+    print(f'After tune test {aft_tun_roc_auc:.2f}')
+
+    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_hp_sequential_tuner_node_tune(data_fixture, request):
+    """ Test SequentialTuner for particular node based on hyperopt library """
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    # Chain composition
+    chain = get_class_chain()
+
+    # Before tuning prediction
+    chain.fit(train_data, use_cache=False)
+    before_tuning_predicted = chain.predict(test_data)
+
+    # Chain tuning
+    sequential_tuner = SequentialTuner(chain=chain,
+                                       task=train_data.task,
+                                       iterations=20)
+    # For classification chain node_id 1 for node with xgboost
+    tuned_chain = sequential_tuner.tune_node(input_data=train_data,
+                                             node_id=1,
+                                             loss_function=roc)
+
+    # After tuning prediction
+    tuned_chain.fit_from_scratch(train_data)
+    after_tuning_predicted = tuned_chain.predict(test_data)
+
+    # Metrics
+    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
+    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tuning_predicted.predict), 1)
+
+    print(f'Before tune test {bfr_tun_roc_auc:.2f}')
+    print(f'After tune test {aft_tun_roc_auc:.2f}')
 
     assert aft_tun_roc_auc >= bfr_tun_roc_auc
