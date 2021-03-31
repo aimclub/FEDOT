@@ -40,23 +40,11 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _convert_to_output(input_data, transformed_features,
+    def _convert_to_output(input_data, predict,
                            data_type=DataTypesEnum.table):
-        """ Method prepare prediction of operation as OutputData object
+        """ Method prepare prediction of operation as OutputData object """
 
-        :param input_data: data with features, target and ids to process
-        :param transformed_features: transformed features
-        :param data_type: type of output data
-        """
-
-        # After preprocessing operations by default we get tabular data
-        converted = OutputData(idx=input_data.idx,
-                               features=input_data.features,
-                               predict=transformed_features,
-                               task=input_data.task,
-                               target=input_data.target,
-                               data_type=data_type)
-
+        converted = _convert_to_output_function(input_data, predict, data_type)
         return converted
 
 
@@ -206,19 +194,27 @@ class ModelImplementation(ABC):
     @staticmethod
     def _convert_to_output(input_data, predict,
                            data_type=DataTypesEnum.table):
-        """ Method prepare prediction of operation as OutputData object
+        """ Method prepare prediction of operation as OutputData object """
 
-        :param input_data: data with features, target and ids to process
-        :param predict: prediction of the model
-        :param data_type: type of output data
-        """
-
-        # After preprocessing operations by default we get tabular data
-        converted = OutputData(idx=input_data.idx,
-                               features=input_data.features,
-                               predict=predict,
-                               task=input_data.task,
-                               target=input_data.target,
-                               data_type=data_type)
-
+        converted = _convert_to_output_function(input_data, predict, data_type)
         return converted
+
+
+def _convert_to_output_function(input_data, transformed_features,
+                                data_type=DataTypesEnum.table):
+    """ Function prepare prediction of operation as OutputData object
+
+    :param input_data: data with features, target and ids to process
+    :param transformed_features: transformed features
+    :param data_type: type of output data
+    """
+
+    # After preprocessing operations by default we get tabular data
+    converted = OutputData(idx=input_data.idx,
+                           features=input_data.features,
+                           predict=transformed_features,
+                           task=input_data.task,
+                           target=input_data.target,
+                           data_type=data_type)
+
+    return converted

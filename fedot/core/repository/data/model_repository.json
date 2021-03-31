@@ -58,7 +58,7 @@
 	  "description": "Text classification"
 	},
 	"ts_model": {
-	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+	  "tasks": "[TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
@@ -163,10 +163,6 @@
 	},
 	"kmeans": {
 	  "meta": "sklearn_clust"
-	},
-	"lstm": {
-	  "meta": "keras_forecasting",
-	  "tags": ["deep"]
 	},
 	"multinb": {
 	  "meta": "sklearn_class",

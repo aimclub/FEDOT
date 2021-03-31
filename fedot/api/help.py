@@ -11,8 +11,10 @@ def print_models_info(task_name):
 
     task = _get_task_by_name(task_name)
 
-    repository = OperationTypesRepository()
-    repository_operations_list, i = repository.suitable_operation(task_type=task)
+    repository = OperationTypesRepository(repository_name='model_repository.json')
+
+    # Filter operations
+    repository_operations_list = _filter_operations_by_type(repository, task)
     for model in repository_operations_list:
         hyperparameters = params_by_operation.get(str(model.id))
         implementation_info = model.current_strategy(task)(model.id).implementation_info

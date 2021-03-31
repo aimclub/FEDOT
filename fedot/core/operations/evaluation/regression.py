@@ -83,7 +83,3 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain Custom Regression Preprocessing Strategy for {operation_type}')
-
-    @property
-    def implementation_info(self) -> str:
-        return str(self._convert_to_operation(self.operation_type))

@@ -78,9 +78,13 @@ class EvaluationStrategy:
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def _convert_to_operation(self, operation_type: str):
+        raise NotImplementedError()
+
     @property
     def implementation_info(self) -> str:
-        return 'No description'
+        return str(self._convert_to_operation(self.operation_type))
 
     @staticmethod
     def _convert_to_output(prediction, predict_data: InputData,

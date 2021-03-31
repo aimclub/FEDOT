@@ -72,10 +72,6 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain custom time series forecasting '
                              f'strategy for {operation_type}')
 
-    @property
-    def implementation_info(self) -> str:
-        return str(self._convert_to_operation(self.operation_type))
-
 
 class CustomTsTransformingStrategy(EvaluationStrategy):
     """
@@ -136,7 +132,3 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain custom time series transforming '
                              f'strategy for {operation_type}')
-
-    @property
-    def implementation_info(self) -> str:
-        return str(self._convert_to_operation(self.operation_type))

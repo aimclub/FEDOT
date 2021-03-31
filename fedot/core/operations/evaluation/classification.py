@@ -1,6 +1,5 @@
 import warnings
 
-import numpy as np
 from typing import Optional
 
 from fedot.core.operations.evaluation.operation_implementations.models.\
@@ -106,10 +105,6 @@ class CustomClassificationStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
 
-    @property
-    def implementation_info(self) -> str:
-        return str(self._convert_to_operation(self.operation_type))
-
 
 class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
     """ Strategy for applying custom algorithms from FEDOT to preprocess data
@@ -163,7 +158,3 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain custom classification preprocessing strategy for {operation_type}')
-
-    @property
-    def implementation_info(self) -> str:
-        return str(self._convert_to_operation(self.operation_type))

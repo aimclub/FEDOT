@@ -5,7 +5,8 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.data import OutputData, DataMerger
+from fedot.core.data.data import OutputData
+from fedot.core.data.merge import DataMerger
 
 from examples.regression_with_tuning_example import get_regression_dataset
 

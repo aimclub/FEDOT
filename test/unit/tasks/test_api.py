@@ -9,7 +9,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from sklearn.model_selection import train_test_split
 
 from fedot.api.api_runner import Fedot, check_data_type
-from fedot.api.help import operations_for_task
+from fedot.api.help import operations_for_task, print_data_operations_info, print_models_info
 
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
@@ -97,3 +97,10 @@ def test_api_help_correct():
 
     assert 'ridge' in regression_models
     assert 'logit' in classification_models
+
+
+def test_api_print_info_correct():
+    task_types = ['regression', 'classification', 'clustering', 'ts_forecasting']
+    for task_name in task_types:
+        print_models_info(task_name=task_name)
+        print_data_operations_info(task_name=task_name)
