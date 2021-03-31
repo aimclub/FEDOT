@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from datetime import timedelta
+
+from fedot.core.log import Log, default_log
 
 import numpy as np
 
@@ -13,13 +16,21 @@ class HyperoptTuner(ABC):
     :param iterations: max number of iterations
     """
 
-    def __init__(self, chain, task, iterations=100):
+    def __init__(self, chain, task, iterations=100,
+                 max_lead_time: timedelta = timedelta(minutes=5),
+                 log: Log = None):
         self.chain = chain
         self.task = task
         self.iterations = iterations
+        self.max_seconds = max_lead_time.seconds
         self.init_chain = None
         self.init_metric = None
         self.is_need_to_maximize = None
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     @abstractmethod
     def tune_chain(self, input_data, loss_function, loss_params=None):
@@ -75,7 +86,8 @@ class HyperoptTuner(ABC):
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
         """
-        self.chain.log.info('Hyperparameters optimization start')
+        self.log.info('Hyperparameters optimization start')
+
         # Train chain
         self.init_chain = deepcopy(self.chain)
 
@@ -106,7 +118,7 @@ class HyperoptTuner(ABC):
                                                 loss_function=loss_function,
                                                 loss_params=loss_params)
 
-        self.chain.log.info('Hyperparameters optimization finished')
+        self.log.info('Hyperparameters optimization finished')
 
         prefix_tuned_phrase = 'Return tuned chain due to the fact that obtained metric'
         prefix_init_phrase = 'Return init chain due to the fact that obtained metric'
@@ -118,23 +130,23 @@ class HyperoptTuner(ABC):
             # Maximization
             init_metric = self.init_metric - deviation
             if obtained_metric >= init_metric:
-                self.chain.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
-                                    f'bigger than initial (- 5% deviation) {init_metric:.3f}')
+                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                              f'bigger than initial (- 5% deviation) {init_metric:.3f}')
                 return tuned_chain
             else:
-                self.chain.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
-                                    f'smaller than initial (- 5% deviation) {init_metric:.3f}')
+                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                              f'smaller than initial (- 5% deviation) {init_metric:.3f}')
                 return self.init_chain
         else:
             # Minimization
             init_metric = self.init_metric + deviation
             if obtained_metric <= init_metric:
-                self.chain.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
-                                    f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
+                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+                              f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
                 return tuned_chain
             else:
-                self.chain.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
-                                    f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
+                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                              f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_chain
 
 

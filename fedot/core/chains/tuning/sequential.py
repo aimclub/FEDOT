@@ -1,9 +1,11 @@
 import numpy as np
 
+from datetime import timedelta
 from functools import partial
 
 from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
 from fedot.core.data.data import train_test_data_setup
+from fedot.core.log import Log
 from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
@@ -14,8 +16,10 @@ class SequentialTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes sequentially
     """
 
-    def __init__(self, chain, task, iterations=100, inverse_node_order=False):
-        super().__init__(chain, task, iterations)
+    def __init__(self, chain, task, iterations=100,
+                 max_lead_time: timedelta = timedelta(minutes=5),
+                 inverse_node_order=False, log: Log = None):
+        super().__init__(chain, task, iterations, max_lead_time, log)
         self.inverse_node_order = inverse_node_order
 
     def tune_chain(self, input_data, loss_function, loss_params=None):
@@ -153,7 +157,8 @@ class SequentialTuner(HyperoptTuner):
                                        loss_params=loss_params),
                                node_params,
                                algo=tpe.suggest,
-                               max_evals=iterations_per_node)
+                               max_evals=iterations_per_node,
+                               timeout=self.max_seconds)
 
         best_parameters = space_eval(space=node_params,
                                      hp_assignment=best_parameters)

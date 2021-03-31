@@ -1,8 +1,10 @@
 import warnings
-from copy import copy
 
 import pandas as pd
 import numpy as np
+
+from copy import copy
+from datetime import timedelta
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -15,7 +17,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.chains.tuning.unified import ChainTuner
 
 warnings.filterwarnings('ignore')
-
 
 
 def prepare_input_data(features, target):
@@ -91,7 +92,7 @@ def run_experiment(file_path, chain, iterations=20, tuner=None):
         if tuner is not None:
             print(f'Start tuning process ...')
             chain_tuner = tuner(chain=current_chain, task=task,
-                                iterations=100)
+                                iterations=100, max_lead_time=timedelta(seconds=30))
             tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                                  loss_function=mean_absolute_error)
 

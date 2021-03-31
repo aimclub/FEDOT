@@ -199,7 +199,8 @@ def split_table(data, task, split_ratio, with_shuffle=False):
     :param with_shuffle: is data needed to be shuffled or not
     """
 
-    assert 0. <= split_ratio <= 1.
+    if not 0. < split_ratio < 1.:
+        raise ValueError('Split ratio must belong to the interval (0; 1)')
     random_state = 42
 
     # Predictors and target
