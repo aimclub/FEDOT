@@ -3,8 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error, mean_squared_log_error,
-                             precision_score, r2_score, roc_auc_score, silhouette_score)
+from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error,
+                             mean_squared_log_error, precision_score, r2_score, roc_auc_score, silhouette_score)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -119,7 +119,7 @@ class MAE(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target, y_pred=predicted.predict)
+        return mean_absolute_error(y_true=reference.target, y_pred=predicted.predict)
 
 
 class R2(QualityMetric):

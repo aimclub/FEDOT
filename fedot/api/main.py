@@ -329,6 +329,8 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
+        real = self.test_data
+
         # TODO change to sklearn metrics
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
@@ -342,7 +344,11 @@ class Fedot:
                 metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
                 if metric_cls.output_mode == 'labels':
                     prediction = self.prediction_labels
-                metric_value = abs(metric_cls.metric(reference=self.test_data,
+                if self.problem.task_type == TaskTypesEnum.ts_forecasting:
+                    real.target = real.target[~np.isnan(prediction.predict)]
+                    prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+
+                metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
                 calculated_metrics[metric_name] = metric_value
 
