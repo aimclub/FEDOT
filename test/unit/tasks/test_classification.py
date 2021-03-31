@@ -57,11 +57,11 @@ def get_image_classification_data():
     train_labels_path = '../../data/training_labels.npy'
 
     test_file_path = str(os.path.dirname(__file__))
-    training_path_1 = os.path.join(test_file_path, train_data_path)
-    training_path_2 = os.path.join(test_file_path, train_labels_path)
-    test_path_1 = os.path.join(test_file_path, test_data_path)
-    test_path_2 = os.path.join(test_file_path, test_labels_path)
-    return training_path_1, training_path_2, test_path_1, test_path_2
+    training_path_features = os.path.join(test_file_path, train_data_path)
+    training_path_labels = os.path.join(test_file_path, train_labels_path)
+    test_path_features = os.path.join(test_file_path, test_data_path)
+    test_path_labels = os.path.join(test_file_path, test_labels_path)
+    return training_path_features, training_path_labels, test_path_features, test_path_labels
 
 
 def test_multiclassification_chain_fit_correct():
@@ -138,9 +138,9 @@ def test_output_mode_full_probs():
 
 
 def test_image_classification():
-    training_path_1, training_path_2, test_path_1, test_path_2 = get_image_classification_data()
-    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_1, training_path_2),
-                                                               test_dataset=(test_path_1, test_path_2),
+    training_path_features, training_path_labels, test_path_features, test_path_labels = get_image_classification_data()
+    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_features, training_path_labels),
+                                                               test_dataset=(test_path_features, test_path_labels),
                                                                composite_model_flag=True)
 
     assert roc_auc_on_valid_simple > 0.1
