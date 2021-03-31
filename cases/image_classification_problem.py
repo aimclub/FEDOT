@@ -36,8 +36,8 @@ def calculate_validation_metric(predicted: OutputData, dataset_to_validate: Inpu
 
 
 def run_image_classification_problem(train_dataset: Union[str, tuple],
-                                    test_dataset: Union[str, tuple],
-                                    composite_model_flag: bool = False):
+                                     test_dataset: Union[str, tuple],
+                                     composite_model_flag: bool = False):
     task = Task(TaskTypesEnum.classification)
 
     if type(train_dataset) is tuple:
@@ -67,5 +67,5 @@ def run_image_classification_problem(train_dataset: Union[str, tuple],
 if __name__ == '__main__':
     training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
     run_image_classification_problem(train_dataset=training_set,
-                                    test_dataset=testing_set,
-                                    composite_model_flag=True)
+                                     test_dataset=testing_set,
+                                     composite_model_flag=True)

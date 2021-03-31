@@ -14,6 +14,7 @@ from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+
 @dataclass
 class Data:
     """
@@ -92,7 +93,6 @@ class Data:
             target = np.load(labels)
 
         idx = np.arange(0, len(features))
-
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 

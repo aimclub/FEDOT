@@ -1,10 +1,8 @@
 from copy import copy
 from datetime import timedelta
 from typing import Optional
-
 import numpy as np
 import tensorflow as tf
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.models.evaluation.evaluation import EvaluationStrategy
 from fedot.core.repository.tasks import extract_task_param
@@ -54,7 +52,6 @@ class KerasClassificationStrategy(EvaluationStrategy):
 def _create_cnn(input_shape: tuple,
                 num_classes: int,
                 complexity_flag: bool = True):
-
     if complexity_flag:
         model = tf.keras.Sequential(
             [
@@ -69,7 +66,7 @@ def _create_cnn(input_shape: tuple,
                 tf.keras.layers.Dropout(0.5),
                 tf.keras.layers.Dense(num_classes, activation="softmax"),
             ]
-    )
+        )
     else:
         model = tf.keras.Sequential(
             [
