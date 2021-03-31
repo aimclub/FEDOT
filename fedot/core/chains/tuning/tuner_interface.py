@@ -22,7 +22,7 @@ class HyperoptTuner(ABC):
         self.chain = chain
         self.task = task
         self.iterations = iterations
-        self.max_seconds = max_lead_time.seconds
+        self.max_seconds = int(max_lead_time.seconds)
         self.init_chain = None
         self.init_metric = None
         self.is_need_to_maximize = None

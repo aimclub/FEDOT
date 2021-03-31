@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
+from datetime import timedelta
 
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
@@ -8,7 +9,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synthetic.data import regression_dataset
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.chains.tuning.sequential import SequentialTuner
 
 np.random.seed(2020)
 
@@ -98,7 +99,7 @@ def run_experiment(chain, tuner):
         if tuner is not None:
             print(f'Start tuning process ...')
             chain_tuner = tuner(chain=chain, task=task,
-                                iterations=20)
+                                iterations=20, max_lead_time=timedelta(seconds=50))
             tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                                  loss_function=mean_absolute_error)
 
@@ -121,4 +122,4 @@ if __name__ == '__main__':
     node_final = SecondaryNode('ridge', nodes_from=[node_scaling])
     chain = Chain(node_final)
 
-    run_experiment(chain, tuner=ChainTuner)
+    run_experiment(chain, tuner=SequentialTuner)

@@ -43,6 +43,10 @@ class SequentialTuner(HyperoptTuner):
         iterations_per_node = round(self.iterations/nodes_amount)
         iterations_per_node = int(iterations_per_node)
 
+        # Calculate amount of seconds we can apply per node
+        seconds_per_node = round(self.max_seconds / nodes_amount)
+        seconds_per_node = int(seconds_per_node)
+
         # Tuning performed sequentially for every node - so get ids of nodes
         nodes_ids = self.get_nodes_order(nodes_amount=nodes_amount)
         for node_id in nodes_ids:
@@ -63,6 +67,7 @@ class SequentialTuner(HyperoptTuner):
                                     test_target=test_target,
                                     node_params=node_params,
                                     iterations_per_node=iterations_per_node,
+                                    seconds_per_node=seconds_per_node,
                                     loss_function=loss_function,
                                     loss_params=loss_params)
 
@@ -108,7 +113,9 @@ class SequentialTuner(HyperoptTuner):
                                 test_target=test_target,
                                 node_params=node_params,
                                 iterations_per_node=self.iterations,
-                                loss_function=loss_function)
+                                seconds_per_node=self.max_seconds,
+                                loss_function=loss_function,
+                                loss_params=loss_params)
 
         # Validation is the optimization do well
         final_chain = self.final_check(train_input=train_input,
@@ -133,7 +140,8 @@ class SequentialTuner(HyperoptTuner):
         return nodes_ids
 
     def _optimize_node(self, node_id, train_input, predict_input, test_target,
-                       node_params, iterations_per_node, loss_function, loss_params):
+                       node_params, iterations_per_node, seconds_per_node,
+                       loss_function, loss_params):
         """
         Method for node optimization
 
@@ -143,6 +151,7 @@ class SequentialTuner(HyperoptTuner):
         :param test_target: target for validation
         :param node_params: dictionary with parameters for node
         :param iterations_per_node: amount of iterations to produce
+        :param seconds_per_node: amount of seconds to produce
         :param loss_function: loss function to minimize
 
         :return : updated chain with tuned parameters in particular node
@@ -158,7 +167,7 @@ class SequentialTuner(HyperoptTuner):
                                node_params,
                                algo=tpe.suggest,
                                max_evals=iterations_per_node,
-                               timeout=self.max_seconds)
+                               timeout=seconds_per_node)
 
         best_parameters = space_eval(space=node_params,
                                      hp_assignment=best_parameters)
