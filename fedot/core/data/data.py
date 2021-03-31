@@ -88,9 +88,8 @@ class Data:
         target = labels
 
         if type(images) is str:
-            features = get_images_from_directory(images)
-            target = pd.read_csv(target)
-            target = np.array(target)
+            features = np.load(images)
+            target = np.load(labels)
 
         idx = np.arange(0, len(features))
 

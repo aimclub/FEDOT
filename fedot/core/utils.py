@@ -1,7 +1,6 @@
 import os
 from enum import Enum
 from pathlib import Path
-import cv2
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -71,17 +70,6 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(main_dir)
     if not os.path.exists(dataset_dir):
         os.mkdir(dataset_dir)
-
-
-
-def get_images_from_directory(path_to_images: str):
-    list_of_images = os.listdir(path=path_to_images)
-    images = []
-    for image_path in list_of_images:
-        img = cv2.imread(image_path)
-        images.append(img)
-
-    return np.concatenate(images)
 
 
 def make_chain_generator(chain):

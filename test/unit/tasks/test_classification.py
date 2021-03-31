@@ -1,10 +1,9 @@
 import os
-import tensorflow as tf
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.image_recognitation_problem import run_image_recognitation_problem
+from cases.image_classification_problem import run_image_classification_problem
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
@@ -49,6 +48,20 @@ def get_binary_classification_data():
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
     return input_data
+
+
+def get_image_classification_data():
+    test_data_path = '../../data/test_data.npy'
+    test_labels_path = '../../data/test_labels.npy'
+    train_data_path = '../../data/training_data.npy'
+    train_labels_path = '../../data/training_labels.npy'
+
+    test_file_path = str(os.path.dirname(__file__))
+    training_path_1 = os.path.join(test_file_path, train_data_path)
+    training_path_2 = os.path.join(test_file_path, train_labels_path)
+    test_path_1 = os.path.join(test_file_path, test_data_path)
+    test_path_2 = os.path.join(test_file_path, test_labels_path)
+    return training_path_1, training_path_2, test_path_1, test_path_2
 
 
 def test_multiclassification_chain_fit_correct():
@@ -125,9 +138,9 @@ def test_output_mode_full_probs():
 
 
 def test_image_classification():
-    training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
-    roc_auc_on_valid_simple = run_image_recognitation_problem(train_dataset=training_set,
-                                                              test_dataset=testing_set,
-                                                              composite_model_flag=True)
+    training_path_1, training_path_2, test_path_1, test_path_2 = get_image_classification_data()
+    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_1, training_path_2),
+                                                               test_dataset=(test_path_1, test_path_2),
+                                                               composite_model_flag=True)
 
     assert roc_auc_on_valid_simple > 0.95
