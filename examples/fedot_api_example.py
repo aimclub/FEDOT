@@ -12,7 +12,7 @@ def run_classification_example():
     baseline_model = Fedot(problem=problem)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
 
-    baseline_model.predict_proba(features=test_data_path)
+    baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
     auto_model = Fedot(problem=problem, seed=42)
