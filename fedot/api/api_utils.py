@@ -23,6 +23,7 @@ metrics_mapping = {
     'mae': RegressionMetricsEnum.MAE,
     'mse': RegressionMetricsEnum.MSE,
     'msle': RegressionMetricsEnum.MSLE,
+    'mape': RegressionMetricsEnum.MAPE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
     'silhouette': ClusteringMetricsEnum.silhouette
