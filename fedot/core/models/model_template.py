@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
-import joblib
 import os
+from abc import ABC, abstractmethod
+
+import joblib
 
 from fedot.core.chains.node import Node
 from fedot.core.data.preprocessing import preprocessing_strategy_class_by_label, preprocessing_strategy_label_by_class
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 
 
 class ModelTemplateAbstract(ABC):
@@ -100,7 +101,7 @@ class ModelTemplate(ModelTemplateAbstract):
         model_name = f'model_{str(self.model_id)}.pkl'
         self.fitted_model_path = os.path.join('fitted_models', model_name)
         self.preprocessor = _extract_preprocessing_strategy(node)
-        self.fitted_model = node.cache.actual_cached_state.model
+        self.fitted_model = node.fitted_model
 
     def convert_to_dict(self) -> dict:
         preprocessor_strategy = preprocessing_strategy_label_by_class(self.preprocessor)
@@ -152,20 +153,21 @@ def _check_existing_path(path: str):
 
 
 def extract_model_params(node: Node):
-    return node.cache.actual_cached_state.model.get_params()
+    return node.fitted_model.get_params()
 
 
 def _extract_model_name(node: Node):
-    return node.cache.actual_cached_state.model.__class__.__name__
+    return node.fitted_model.__class__.__name__
 
 
 def _is_node_fitted(node: Node) -> bool:
-    return bool(node.cache.actual_cached_state)
+    return bool(node.fitted_model)
 
 
 def _is_node_not_cached(node: Node) -> bool:
+    # TODO remove or check by tag
     return bool(node.model.model_type in ['direct_data_model', 'trend_data_model', 'residual_data_model'])
 
 
 def _extract_preprocessing_strategy(node: Node) -> str:
-    return node.cache.actual_cached_state.preprocessor
+    return node.fitted_preprocessor

@@ -9,7 +9,6 @@ from fedot.core.utils import project_root
 from cases.time_series_gapfilling_case import run_gapfilling_case
 from sklearn.metrics import mean_squared_error
 
-
 random.seed(1)
 np.random.seed(1)
 
@@ -21,8 +20,7 @@ def test_credit_scoring_problem():
     full_path_train = os.path.join(str(project_root()), file_path_train)
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test,
-                                              max_lead_time=timedelta(minutes=0.1))
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, max_lead_time=timedelta(minutes=0.1))
     assert roc_auc_test > 0.5
 
 
