@@ -5,7 +5,9 @@ from fedot.core.chains.chain_validation import (has_correct_operation_positions,
                                                 has_no_isolated_components, has_no_isolated_nodes,
                                                 has_no_self_cycled_nodes, has_primary_nodes,
                                                 validate, has_final_operation_as_model,
-                                                has_no_conflicts_with_data_flow)
+                                                has_no_conflicts_with_data_flow,
+                                                is_chain_contains_ts_operations,
+                                                has_no_data_flow_conflicts_in_ts_chain)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -156,6 +158,35 @@ def chain_with_incorrect_data_flow():
     return chain
 
 
+def ts_chain_with_incorrect_data_flow():
+    """
+    Connection lagged -> lagged is incorrect
+    Connection ridge -> ar is incorrect also
+       lagged - lagged - ridge \
+                                \
+                                 ar -> final forecast
+                                /
+                lagged - ridge /
+    """
+
+    # First level
+    node_lagged = PrimaryNode('lagged')
+
+    # Second level
+    node_lagged_1 = SecondaryNode('lagged', nodes_from=[node_lagged])
+    node_lagged_2 = PrimaryNode('lagged')
+
+    # Third level
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+
+    # Fourth level - root node
+    node_final = SecondaryNode('ar', nodes_from=[node_ridge_1, node_ridge_2])
+    chain = Chain(node_final)
+
+    return chain
+
+
 def test_chain_with_cycle_raise_exception():
     chain = chain_with_cycle()
     with pytest.raises(Exception) as exc:
@@ -238,3 +269,15 @@ def test_chain_with_incorrect_data_flow():
         assert has_no_conflicts_with_data_flow(incorrect_chain)
 
     assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
+
+
+def test_ts_chain_with_incorrect_data_flow():
+    incorrect_chain = ts_chain_with_incorrect_data_flow()
+
+    if is_chain_contains_ts_operations(incorrect_chain):
+        with pytest.raises(Exception) as exc:
+            assert has_no_data_flow_conflicts_in_ts_chain(incorrect_chain)
+
+        assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
+    else:
+        assert False

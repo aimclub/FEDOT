@@ -26,7 +26,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
 
     # TSForecasting specific task validations
     if is_chain_contains_ts_operations(chain) is True:
-        pass
+        has_no_data_flow_conflicts_in_ts_chain(chain)
 
     return True
 
@@ -171,13 +171,22 @@ def is_chain_contains_ts_operations(chain: Chain):
 def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
     """ Function checks the correctness of connection between nodes """
     models = _get_ts_operations(mode='models')
+    # Preprocessing not only for time series
+    non_ts_data_operations = _get_ts_operations(mode='data_operations',
+                                                forbidden_tags=["ts_specific"])
     ts_data_operations = _get_ts_operations(mode='data_operations',
-                                            forbidden_tags=["ts_specific"])
+                                            tags=["ts_specific"])
+    # Remove lagged transformation
+    ts_data_operations.remove('lagged')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
-    wrong_connections = {'lagged': models + ts_data_operations + ['lagged'],
-                         'ar': models + ts_data_operations + ['lagged'],
-                         'arima': models + ts_data_operations + ['lagged']}
+    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],
+                         'ar': models + non_ts_data_operations + ['lagged'],
+                         'arima': models + non_ts_data_operations + ['lagged'],
+                         'ridge': ts_data_operations, 'linear': ts_data_operations,
+                         'lasso': ts_data_operations, 'dtreg': ts_data_operations,
+                         'knnreg': ts_data_operations, 'scaling': ts_data_operations,
+                         'ransac_lin_reg': ts_data_operations, 'rfe_lin_reg': ts_data_operations}
 
     for node in chain.nodes:
         # Operation name in the current node

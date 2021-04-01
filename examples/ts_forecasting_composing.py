@@ -58,8 +58,8 @@ def display_chain_info(chain):
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged']
-    secondary_operations = ['ridge', 'lasso', 'knnreg', 'linear',
+    primary_operations = ['lagged', 'smoothing', 'gaussian_filter']
+    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
                             'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
     return primary_operations, secondary_operations
 
@@ -203,12 +203,13 @@ def run_ts_forecasting_problem(forecast_length=50,
     composer_requirements = GPComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=10,
+        max_depth=8, pop_size=10, num_of_generations=15,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=5),
+        max_lead_time=datetime.timedelta(minutes=10),
         allow_single_operations=False)
 
-    mutation_types = [MutationTypesEnum.parameter_change, MutationTypesEnum.simple]
+    mutation_types = [MutationTypesEnum.parameter_change, MutationTypesEnum.simple,
+                      MutationTypesEnum.reduce]
     optimiser_parameters = GPChainOptimiserParameters(mutation_types=mutation_types)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
