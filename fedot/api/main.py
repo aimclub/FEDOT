@@ -104,6 +104,7 @@ class Fedot:
         self.test_data = None
         self.prediction = None
         self.prediction_labels = None  # classification-only
+        self.target_name = None
 
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
@@ -192,6 +193,8 @@ class Fedot:
         :param predefined_model: the name of the atomic model or Chain instance
         :return: Chain object
         """
+
+        self.target_name = target
         self.train_data = _define_data(ml_task=self.problem,
                                        features=features,
                                        target=target)
@@ -224,8 +227,8 @@ class Fedot:
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        self.test_data = _define_data(ml_task=self.problem,
-                                      features=features, is_predict=True)
+        self.test_data = _define_data(ml_task=self.problem, target=self.target_name,
+                                      features=features)
 
         if self.problem.task_type == TaskTypesEnum.classification:
             self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
@@ -256,9 +259,8 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.problem.task_type == TaskTypesEnum.classification:
-
-            self.test_data = _define_data(ml_task=self.problem,
-                                          features=features, is_predict=True)
+            self.test_data = _define_data(ml_task=self.problem, target=self.target_name,
+                                          features=features)
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
@@ -294,7 +296,7 @@ class Fedot:
         self.problem = self.train_data.task
 
         self.train_data = _define_data(ml_task=self.problem,
-                                       features=pre_history, is_predict=True)
+                                       features=pre_history)
 
         self.current_model = TsForecastingChain(self.current_model.root_node)
 
@@ -384,8 +386,7 @@ class Fedot:
 
 def _define_data(ml_task: Task,
                  features: Union[str, np.ndarray, pd.DataFrame, InputData],
-                 target: Union[str, np.ndarray, pd.Series] = None,
-                 is_predict=False):
+                 target: Union[str, np.ndarray, pd.Series] = None):
     if type(features) == InputData:
         # native FEDOT format for input data
         data = features
@@ -409,8 +410,14 @@ def _define_data(ml_task: Task,
         if target is None:
             target = np.array([])
 
+        if isinstance(target, str):
+            target_array = features[target]
+            del features[target]
+        else:
+            target_array = target
+
         data = array_to_input_data(features_array=features,
-                                   target_array=target,
+                                   target_array=target_array,
                                    task=ml_task)
     elif type(features) == tuple:
         data = array_to_input_data(features_array=features[0],
@@ -420,8 +427,7 @@ def _define_data(ml_task: Task,
         # CSV files as input data
         if target is None:
             target = 'target'
-        if is_predict:
-            target = None
+
         data_type = DataTypesEnum.table
         if ml_task.task_type == TaskTypesEnum.ts_forecasting:
             data_type = DataTypesEnum.ts
