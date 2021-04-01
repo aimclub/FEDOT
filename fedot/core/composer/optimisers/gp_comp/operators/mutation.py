@@ -53,12 +53,9 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
                 is_correct_chain = constraint_function(new_chain)
                 if is_correct_chain:
                     return new_chain
-                else:
-                    if i == MAX_NUM_OF_ATTEMPTS - 1:
-                        log.debug(
-                            'Number of mutation attempts exceeded. Please check composer requirements for correctness.')
         elif type != MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {type}')
+        log.debug('Number of mutation attempts exceeded. Please check composer requirements for correctness.')
     return deepcopy(chain)
 
 
