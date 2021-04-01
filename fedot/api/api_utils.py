@@ -3,17 +3,16 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from FEDOT.fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from FEDOT.fedot.core.data.data import InputData, OutputData
-from FEDOT.fedot.core.log import Log
-from FEDOT.fedot.core.repository.dataset_types import DataTypesEnum
-from FEDOT.fedot.core.repository.model_types_repository import (
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
-from FEDOT.fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
-from FEDOT.fedot.core.repository.tasks import Task, TaskTypesEnum
-from FEDOT.fedot.utilities.define_metric_by_task import MetricByTask
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum, \
+    MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,

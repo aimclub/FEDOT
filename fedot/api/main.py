@@ -3,7 +3,9 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import balanced_accuracy_score
 
+from FEDOT.fedot.api.api_utils import array_to_input_data, compose_fedot_model, save_predict
 from FEDOT.fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset,
                                        metrics_mapping,
                                        save_predict)
