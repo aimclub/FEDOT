@@ -1,8 +1,9 @@
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, List, Tuple)
+from typing import (Any, List, Tuple, Callable)
 
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
 
 def node_height(chain: Any, node: Any) -> int:
@@ -109,3 +110,52 @@ def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, 
 
 def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
     return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1
+
+
+def evaluate_individuals(individuals_set, objective_function, is_multi_objective: bool, timer=None):
+    num_of_successful_evals = 0
+    reversed_set = individuals_set[::-1]
+    for ind_num, ind in enumerate(reversed_set):
+        ind.fitness = calculate_objective(ind, objective_function, is_multi_objective)
+        if ind.fitness is None:
+            individuals_set.remove(ind)
+        else:
+            num_of_successful_evals += 1
+        if timer is not None and num_of_successful_evals:
+            if timer.is_time_limit_reached():
+                for del_ind_num in range(0, len(individuals_set) - num_of_successful_evals):
+                    individuals_set.remove(individuals_set[0])
+                break
+    if len(individuals_set) == 0:
+        raise AttributeError('List became empty after incorrect individuals removing.'
+                             'It can occur because of too short model fitting time constraint')
+
+
+def calculate_objective(ind: Any, objective_function: Callable, is_multi_objective: bool) -> Any:
+    calculated_fitness = objective_function(ind)
+    if calculated_fitness is None:
+        return None
+    else:
+        if is_multi_objective:
+            fitness = MultiObjFitness(values=calculated_fitness,
+                                      weights=tuple([-1 for _ in range(len(calculated_fitness))]))
+        else:
+            fitness = calculated_fitness[0]
+    return fitness
+
+
+def filter_duplicates(archive, population) -> List[Any]:
+    filtered_archive = []
+    for ind in archive.items:
+        has_duplicate_in_pop = False
+        for pop_ind in population:
+            if ind.fitness == pop_ind.fitness:
+                has_duplicate_in_pop = True
+                break
+        if not has_duplicate_in_pop:
+            filtered_archive.append(ind)
+    return filtered_archive
+
+
+def duplicates_filtration(archive, population):
+    return list(filter(lambda x: not any([x.fitness == pop_ind.fitness for pop_ind in population]), archive.items))

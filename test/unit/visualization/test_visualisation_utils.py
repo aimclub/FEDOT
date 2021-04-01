@@ -2,7 +2,8 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_template_as_nx_graph
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
-from fedot.core.composer.visualisation import hierarchy_pos
+from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.composer.visualisation import hierarchy_pos, ChainVisualiser
 
 
 def chain_first():  # tested chain
@@ -75,3 +76,18 @@ def test_hierarchy_pos():
                                                node_labels, 0, reverse=False)
     assert comparable_lists_y[0] == comparable_lists_y[1]  # check nodes hierarchy by y axis
     assert comparable_lists_x[0] == comparable_lists_x[1]  # check nodes hierarchy by x axis
+
+
+def test_extract_objectives():
+    visualiser = ChainVisualiser()
+    num_of_inds = 5
+    individuals = [chain_first() for _ in range(num_of_inds)]
+    fitness = (-0.8, 0.1)
+    weights = tuple([-1 for _ in range(len(fitness))])
+    for ind in individuals:
+        ind.fitness = MultiObjFitness(values=fitness, weights=weights)
+    populations_num = 3
+    individuals_history = [individuals for _ in range(populations_num)]
+    all_objectives = visualiser.extract_objectives(individuals=individuals_history, transform_from_minimization=True)
+    assert all_objectives[0][0] > 0 and all_objectives[0][2] > 0
+    assert all_objectives[1][0] > 0 and all_objectives[1][2] > 0

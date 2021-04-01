@@ -113,7 +113,7 @@ def test_custom_params_setter(data_fixture, request):
 
     chain.root_node.custom_params = custom_params
     chain.fit(data)
-    params = chain.root_node.cache.actual_cached_state.model.get_params()
+    params = chain.root_node.fitted_model.get_params()
 
     assert params['C'] == 10
 

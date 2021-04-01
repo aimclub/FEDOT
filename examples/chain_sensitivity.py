@@ -4,8 +4,8 @@ from os.path import join, exists
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters
-from fedot.core.composer.optimisers.inheritance import GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.model_types_repository import ModelTypesRepository

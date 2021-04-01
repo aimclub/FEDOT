@@ -4,7 +4,7 @@ from copy import copy
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error, mean_squared_log_error,
-                             precision_score, r2_score, roc_auc_score, silhouette_score)
+                             precision_score, r2_score, roc_auc_score, silhouette_score, mean_absolute_error)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -119,7 +119,7 @@ class MAE(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target, y_pred=predicted.predict)
+        return mean_absolute_error(y_true=reference.target, y_pred=predicted.predict)
 
 
 class R2(QualityMetric):
@@ -163,7 +163,7 @@ class Logloss(QualityMetric):
 
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
-        return log_loss(y_true=reference.target, y_pred=predicted)
+        return log_loss(y_true=reference.target, y_pred=predicted.predict)
 
 
 class Accuracy(QualityMetric):
@@ -197,3 +197,9 @@ class NodeNum(Metric):
     def get_value(cls, chain: Chain, **args) -> float:
         norm_constant = 10
         return chain.length / norm_constant
+
+
+class ComputationTime(Metric):
+    @classmethod
+    def get_value(cls, chain: Chain, **args) -> float:
+        return chain.computation_time
