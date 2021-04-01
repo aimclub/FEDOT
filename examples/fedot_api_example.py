@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.utils import project_root
@@ -70,6 +70,7 @@ def run_ts_forecasting_example(with_plot=True):
 
     return forecast
 
+
 def run_classification_multiobj_example(with_plot=True):
     train_data = pd.read_csv(f'./data/Hill_Valley_with_noise_Training.data')
     test_data = pd.read_csv(f'./data/Hill_Valley_with_noise_Testing.data')
@@ -77,7 +78,7 @@ def run_classification_multiobj_example(with_plot=True):
     del test_data['class']
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, learning_time=10, preset='light',
+    auto_model = Fedot(problem=problem, learning_time=5, preset='light',
                        composer_params={'metric': ['f1', 'node_num']}, seed=42)
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)

@@ -123,12 +123,20 @@ def compose_fedot_model(train_data: InputData,
 
     logger.message('Model composition started')
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
-    chain_gp_composed.log = logger
+
+    chain_for_tune = chain_gp_composed
+    chain_for_return = chain_gp_composed
+
+    if isinstance(chain_gp_composed, list):
+        for chain in chain_gp_composed:
+            chain.log = logger
+        chain_for_tune = chain_gp_composed[0]
+        chain_for_return = gp_composer.optimiser.archive
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
-        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
+        chain_for_tune.fine_tune_primary_nodes(input_data=train_data)
 
     logger.message('Model composition finished')
 
-    return chain_gp_composed
+    return chain_for_return
