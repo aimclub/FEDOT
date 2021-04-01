@@ -24,7 +24,7 @@ from fedot.core.utils import default_fedot_data_dir
 
 class ChainVisualiser:
 
-    def __init__(self, log:Log = default_log(__name__)):
+    def __init__(self, log: Log = default_log(__name__)):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
