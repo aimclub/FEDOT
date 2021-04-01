@@ -4,8 +4,9 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
-                                 save_predict)
+from FEDOT.fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset,
+                                       metrics_mapping,
+                                       save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.chains.ts_chain import TsForecastingChain
@@ -143,6 +144,7 @@ class Fedot:
 
     def _obtain_model(self, is_composing_required: bool = True):
         execution_params = self._get_params()
+        execution_params.pop("preset")
         if is_composing_required:
             self.current_model = compose_fedot_model(**execution_params)
 

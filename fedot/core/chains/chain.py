@@ -10,7 +10,7 @@ from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
+from FEDOT.fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 

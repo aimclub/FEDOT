@@ -3,11 +3,11 @@ from functools import partial
 from random import choice, randint, random
 from typing import Any
 
-from fedot.core.chains.chain import Chain, List
-from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
-from fedot.core.log import Log
-from fedot.core.utils import ComparableEnum as Enum
+from FEDOT.fedot.core.chains.chain import Chain, List
+from FEDOT.fedot.core.composer.constraint import constraint_function
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
+from FEDOT.fedot.core.log import Log
+from FEDOT.fedot.core.utils import ComparableEnum as Enum
 
 MAX_NUM_OF_ATTEMPTS = 10
 

@@ -3,17 +3,17 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.model_types_repository import (
+from FEDOT.fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from FEDOT.fedot.core.data.data import InputData, OutputData
+from FEDOT.fedot.core.log import Log
+from FEDOT.fedot.core.repository.dataset_types import DataTypesEnum
+from FEDOT.fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
+from FEDOT.fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.define_metric_by_task import MetricByTask
+from FEDOT.fedot.core.repository.tasks import Task, TaskTypesEnum
+from FEDOT.fedot.utilities.define_metric_by_task import MetricByTask
 
 metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -106,7 +106,9 @@ def compose_fedot_model(train_data: InputData,
         primary=available_model_types,
         secondary=available_model_types, max_arity=max_arity,
         max_depth=max_depth, pop_size=pop_size, num_of_generations=num_of_generations,
-        max_lead_time=learning_time)
+        max_lead_time=learning_time,
+        max_chain_fit_time=datetime.timedelta(minutes=2),
+        add_single_model_chains=False)
 
     # Create GP-based composer
     builder = GPComposerBuilder(task).with_requirements(composer_requirements). \

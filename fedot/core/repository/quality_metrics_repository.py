@@ -1,6 +1,6 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import (Metric, Accuracy, F1, Logloss, MAE, MSE, MSLE,
+from FEDOT.fedot.core.composer.metrics import (Metric, Accuracy, F1, Logloss, MAE, MSE, MSLE,
                                          NodeNum, Precision, R2, RMSE, ROCAUC,
                                          Silhouette, StructuralComplexity, ComputationTime)
 from fedot.core.utils import ComparableEnum as Enum

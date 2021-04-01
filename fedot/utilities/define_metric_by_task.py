@@ -1,4 +1,4 @@
-from fedot.core.composer.metrics import RMSE, ROCAUC, Silhouette
+from FEDOT.fedot.core.composer.metrics import RMSE, ROCAUC, Silhouette
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import TaskTypesEnum
 

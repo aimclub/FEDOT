@@ -2,8 +2,8 @@ from copy import deepcopy
 from random import choice, randint
 from typing import (Any, List, Tuple, Callable)
 
-from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from FEDOT.fedot.core.composer.constraint import constraint_function
+from FEDOT.fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
 
 def node_height(chain: Any, node: Any) -> int:

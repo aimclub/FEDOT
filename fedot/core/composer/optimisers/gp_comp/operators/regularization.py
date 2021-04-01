@@ -2,8 +2,8 @@ from copy import deepcopy
 from typing import (Any, Callable, List, Optional)
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals
+from FEDOT.fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import ComparableEnum as Enum
 
 

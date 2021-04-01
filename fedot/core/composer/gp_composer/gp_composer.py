@@ -6,23 +6,23 @@ from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 from deap import tools
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import validate
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.cache import ModelsCache
-from fedot.core.composer.composer import Composer, ComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
-from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
-from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.log import Log, default_log
-from fedot.core.repository.model_types_repository import ModelTypesRepository
-from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
+from FEDOT.fedot.core.chains.chain import Chain
+from FEDOT.fedot.core.chains.chain_validation import validate
+from FEDOT.fedot.core.chains.node import PrimaryNode, SecondaryNode
+from FEDOT.fedot.core.composer.cache import ModelsCache
+from FEDOT.fedot.core.composer.composer import Composer, ComposerRequirements
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from FEDOT.fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
+from FEDOT.fedot.core.data.data import InputData, train_test_data_setup
+from FEDOT.fedot.core.log import Log, default_log
+from FEDOT.fedot.core.repository.model_types_repository import ModelTypesRepository
+from FEDOT.fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository,
                                                               RegressionMetricsEnum)
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from FEDOT.fedot.core.repository.tasks import Task, TaskTypesEnum
 
 sample_split_ration_for_tasks = {
     TaskTypesEnum.classification: 0.8,

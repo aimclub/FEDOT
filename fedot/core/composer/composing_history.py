@@ -3,11 +3,11 @@ import os
 import itertools
 from typing import (Any, List)
 
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from fedot.core.composer.optimisers.utils.population_utils import get_metric_position
-from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
-from fedot.core.utils import default_fedot_data_dir
+from FEDOT.fedot.core.chains.chain_template import ChainTemplate
+from FEDOT.fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from FEDOT.fedot.core.composer.optimisers.utils.population_utils import get_metric_position
+from FEDOT.fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
+from FEDOT.fedot.core.utils import default_fedot_data_dir
 
 
 class ComposingHistory:

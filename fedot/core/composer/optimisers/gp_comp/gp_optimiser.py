@@ -4,21 +4,21 @@ from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
-from fedot.core.composer.composing_history import ComposingHistory
-from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
+from FEDOT.fedot.core.composer.composing_history import ComposingHistory
+from FEDOT.fedot.core.composer.constraint import constraint_function
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
     calculate_objective, evaluate_individuals
-from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
+from FEDOT.fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
     regularized_population
-from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
-from fedot.core.composer.timer import CompositionTimer
-from fedot.core.log import Log, default_log
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from FEDOT.fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from FEDOT.fedot.core.composer.timer import CompositionTimer
+from FEDOT.fedot.core.log import Log, default_log
+from FEDOT.fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2

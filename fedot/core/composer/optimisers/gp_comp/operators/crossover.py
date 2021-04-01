@@ -2,12 +2,12 @@ from copy import deepcopy
 from random import choice, random
 from typing import Any, List
 
-from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import \
+from FEDOT.fedot.core.composer.constraint import constraint_function
+from FEDOT.fedot.core.composer.optimisers.gp_comp.gp_operators import \
     (equivalent_subtree, node_depth,
      nodes_from_height, replace_subtrees)
-from fedot.core.log import Log
-from fedot.core.utils import ComparableEnum as Enum
+from FEDOT.fedot.core.log import Log
+from FEDOT.fedot.core.utils import ComparableEnum as Enum
 
 MAX_NUM_OF_ATTEMPTS = 10
 
