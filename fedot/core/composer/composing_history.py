@@ -19,6 +19,8 @@ class ComposingHistory:
         self.metrics = metrics
         self.chains = []
         self.archive_history = []
+        self.chains_comp_time_history = []
+        self.archive_comp_time_history = []
 
     def _convert_chain_to_template(self, chain):
         chain_template = ChainTemplate(chain)
@@ -27,15 +29,21 @@ class ComposingHistory:
 
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
+        chains_comp_time = []
         for chain in individuals:
             new_individuals.append(self._convert_chain_to_template(chain))
+            chains_comp_time.append(chain.computation_time)
         self.chains.append(new_individuals)
+        self.chains_comp_time_history.append(chains_comp_time)
 
     def add_to_archive_history(self, individuals: List[Any]):
         new_individuals = []
+        archive_comp_time = []
         for chain in individuals:
             new_individuals.append(self._convert_chain_to_template(chain))
+            archive_comp_time.append(chain.computation_time)
         self.archive_history.append(new_individuals)
+        self.archive_comp_time_history.append(archive_comp_time)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = os.path.join(default_fedot_data_dir(), 'composing_history')
@@ -45,12 +53,13 @@ class ComposingHistory:
         self._write_header_to_csv(file)
         idx = 0
         for gen_num, gen_chains in enumerate(self.chains):
-            for chain in gen_chains:
+            for chain_num, chain in enumerate(gen_chains):
                 if self.is_multi_objective:
                     fitness = chain.fitness.values
                 else:
                     fitness = chain.fitness
-                row = [idx, gen_num, fitness, len(chain.model_templates), chain.depth, chain.computation_time]
+                row = [idx, gen_num, fitness, len(chain.model_templates), chain.depth,
+                       self.chains_comp_time_history[gen_num][chain_num]]
                 self._add_history_to_csv(file, row)
                 idx += 1
 

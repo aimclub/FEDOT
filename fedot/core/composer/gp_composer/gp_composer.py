@@ -151,13 +151,7 @@ class GPComposer(Composer):
                     metric_func = MetricsRepository().metric_by_id(metric)
                 evaluated_metrics = evaluated_metrics + (metric_func(chain, reference_data=test_data),)
 
-            if len(metrics) > 1:
-                log_metrics = [str(metric) for metric in evaluated_metrics]
-                log_info = 'metrics'
-            else:
-                log_metrics = evaluated_metrics[0]
-                log_info = 'metric'
-            self.log.debug(f'Chain {chain.root_node.descriptive_id} with {log_info}: {log_metrics}')
+            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
 
         except Exception as ex:
             self.log.info(f'Chain assessment warning: {ex}. Continue.')
