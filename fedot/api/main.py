@@ -172,11 +172,6 @@ class Fedot:
 
         return self.current_model
 
-    def _check_num_classes(self,
-                           train_data: InputData):
-        if len(np.unique(train_data.target)) > 2:
-            self.metric_name = 'f1'
-
     def clean(self):
         """
         Cleans fitted model and obtained predictions
@@ -214,8 +209,6 @@ class Fedot:
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
-        self._check_num_classes(self.train_data)
-
         return self._obtain_model(is_composing_required)
 
     def predict(self,
@@ -237,12 +230,14 @@ class Fedot:
         if self.problem.task_type == TaskTypesEnum.classification:
             self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
             self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
+            output_prediction = self.prediction_labels
         else:
             self.prediction = self.current_model.predict(self.test_data)
+            output_prediction = self.prediction
 
         if save_predictions:
             save_predict(self.prediction)
-        return self.prediction.predict
+        return output_prediction.predict
 
     def predict_proba(self,
                       features: Union[str, np.ndarray, pd.DataFrame, InputData],
@@ -361,6 +356,8 @@ class Fedot:
             else:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
+        real = self.test_data
+
         # TODO change to sklearn metrics
         if not isinstance(metric_names, List):
             metric_names = [metric_names]
@@ -374,7 +371,11 @@ class Fedot:
                 metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
                 if metric_cls.output_mode == 'labels':
                     prediction = self.prediction_labels
-                metric_value = abs(metric_cls.metric(reference=self.test_data,
+                if self.problem.task_type == TaskTypesEnum.ts_forecasting:
+                    real.target = real.target[~np.isnan(prediction.predict)]
+                    prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+
+                metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
                 calculated_metrics[metric_name] = metric_value
 
@@ -388,6 +389,7 @@ def _define_data(ml_task: Task,
     if type(features) == InputData:
         # native FEDOT format for input data
         data = features
+        data.task = ml_task
     elif type(features) == pd.DataFrame:
         # pandas format for input data
         if target is None:
