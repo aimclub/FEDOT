@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
+from sklearn.metrics import roc_auc_score as roc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -29,6 +30,13 @@ def data_setup():
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
     return data
+
+
+@pytest.fixture()
+def classification_dataset():
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'advanced_classification.csv')
+    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
@@ -233,3 +241,23 @@ def test_chain_with_wrong_data():
 
     with pytest.raises(ValueError):
         chain.fit(data)
+
+
+def test_chain_fine_tune_all_nodes_correct(classification_dataset):
+    data = classification_dataset
+
+    first = PrimaryNode(operation_type='scaling')
+    second = PrimaryNode(operation_type='knn')
+    final = SecondaryNode(operation_type='dt', nodes_from=[first, second])
+
+    chain = Chain(final)
+
+    iterations_total, time_limit_minutes = 5, 1
+    tuned_chain = chain.fine_tune_all_nodes(loss_function=roc, input_data=data,
+                                            iterations=iterations_total,
+                                            max_lead_time=time_limit_minutes)
+    tuned_chain.predict(input_data=data)
+
+    is_tuning_finished = True
+
+    assert is_tuning_finished

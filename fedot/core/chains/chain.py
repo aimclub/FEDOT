@@ -1,4 +1,6 @@
 from copy import copy, deepcopy
+from datetime import timedelta
+from typing import Callable
 from typing import List, Optional, Union
 from uuid import uuid4
 
@@ -6,6 +8,7 @@ import networkx as nx
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (FittedOperationCache, Node, PrimaryNode, SecondaryNode, SharedCache)
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 
@@ -100,6 +103,25 @@ class Chain:
 
         result = self.root_node.predict(input_data=input_data, output_mode=output_mode)
         return result
+
+    def fine_tune_all_nodes(self, loss_function: Callable,
+                            input_data: Optional[InputData] = None,
+                            iterations=50, max_lead_time: int = 5) -> 'Chain':
+        '''
+
+        :return:
+        '''
+        max_lead_time = timedelta(minutes=max_lead_time)
+        chain_tuner = ChainTuner(chain=self,
+                                 task=input_data.task,
+                                 iterations=iterations,
+                                 max_lead_time=max_lead_time)
+        self.log.info('Start tuning of primary nodes')
+        tuned_chain = chain_tuner.tune_chain(input_data=input_data,
+                                             loss_function=loss_function)
+        self.log.info('Tuning was finished')
+
+        return tuned_chain
 
     def add_node(self, new_node: Node):
         """
