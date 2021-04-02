@@ -4,11 +4,11 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
 from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.data.data import InputData
 
 
-def get_case_train_test_data(train_file_path, test_file_path):
+def get_case_train_test_data():
     """ Function for getting data for train and validation """
     train_file_path, test_file_path = get_scoring_case_data_paths()
 
@@ -72,10 +72,7 @@ def chain_tuning(chain: Chain, train_data: InputData,
 
 
 if __name__ == '__main__':
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-
-    train_data, test_data = get_case_train_test_data(train_file_path,
-                                                     test_file_path)
+    train_data, test_data = get_case_train_test_data()
 
     # Chain composition
     chain = get_simple_chain()
