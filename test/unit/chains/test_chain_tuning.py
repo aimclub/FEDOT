@@ -4,13 +4,14 @@ from random import seed
 import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
+from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.sequential import SequentialTuner
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.chains.tuning.unified import ChainTuner
-from fedot.core.chains.tuning.sequential import SequentialTuner
 
 seed(1)
 np.random.seed(1)
@@ -63,7 +64,7 @@ def test_custom_params_setter(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
-def test_hp_chain_tuner(data_fixture, request):
+def test_chain_tuner_regression_correct(data_fixture, request):
     """ Test ChainTuner for chain based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -101,7 +102,7 @@ def test_hp_chain_tuner(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_hp_sequential_tuner(data_fixture, request):
+def test_sequential_tuner_classification_correct(data_fixture, request):
     """ Test SequentialTuner for chain based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -135,7 +136,7 @@ def test_hp_sequential_tuner(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_hp_sequential_tuner_node_tune(data_fixture, request):
+def test_certain_node_tuning_correct(data_fixture, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -168,3 +169,29 @@ def test_hp_sequential_tuner_node_tune(data_fixture, request):
     print(f'After tune test {aft_tun_roc_auc:.2f}')
 
     assert aft_tun_roc_auc >= bfr_tun_roc_auc
+
+
+# TODO: can be removed later
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_certain_node_tune_for_classification_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    # Chain with normalization
+    node_normalize = PrimaryNode('normalization')
+    node_knn = SecondaryNode('knn', nodes_from=[node_normalize])
+    chain = Chain(node_knn)
+
+    chain.fit(train_data)
+
+    iterations_total = 5
+    tuner = SequentialTuner(chain=chain,
+                            task=train_data.task,
+                            iterations=iterations_total)
+    tuner.tune_node(input_data=train_data, loss_function=roc_auc, node_id=1)
+    is_finished_correctly = True
+
+    assert is_finished_correctly
+
+# TODO: ChainTuner (classification + regression) + (single_chain(1 model)/multiple_nodes in chain)
+# TODO: Sequential (classification + regression) + (tune_model, tune_preprocessing) + ar_model
