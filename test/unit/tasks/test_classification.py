@@ -144,4 +144,4 @@ def test_image_classification():
                                                                test_dataset=(test_path_features,
                                                                              test_path_labels))
 
-    assert 0.4 < roc_auc_on_valid_simple > 0.6
+    assert 0.4 < roc_auc_on_valid_simple < 0.6
