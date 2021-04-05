@@ -23,17 +23,17 @@ class KerasClassificationStrategy(EvaluationStrategy):
         self.batch_size = 128
         self.output_mode = 'labels'
 
-        if params:
-            try:
-                self.epochs = params.get('epochs')
-                self.architecture_type = params.get('architecture')
-            except Exception:
-                print('Please choose number of epochs and type of model')
-
         if not log:
             self.log: Log = default_log(__name__)
         else:
             self.log: Log = log
+
+        if params:
+            try:
+                self.epochs = params.get('epochs')
+                self.architecture_type = params.get('architecture')
+            except Exception as ex:
+                self.log.error(f'{ex} during composition.Please choose number of epochs and type of model')
 
         super().__init__(model_type, params)
 
@@ -85,6 +85,7 @@ def _create_cnn(input_shape: tuple,
             ]
         )
     else:
+        model = None
         logger.error(f'{architecture_type} is incorrect type of NN architecture')
 
     return model
@@ -121,7 +122,7 @@ def fit_cnn(train_data: InputData,
     return model
 
 
-def predict_cnn(trained_model, predict_data: InputData, output_mode:str = 'labels') -> OutputData:
+def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
     x_test, y_test = predict_data.features, predict_data.target
     x_test = x_test.astype("float32") / 255
     x_test = np.expand_dims(x_test, -1)

@@ -41,13 +41,13 @@ def run_image_classification_problem(train_dataset: tuple,
                                      test_dataset: tuple):
     task = Task(TaskTypesEnum.classification)
 
-    X_train, y_train = train_dataset[0], train_dataset[1]
-    X_test, y_test = test_dataset[0], test_dataset[1]
+    x_train, y_train = train_dataset[0], train_dataset[1]
+    x_test, y_test = test_dataset[0], test_dataset[1]
 
-    dataset_to_train = InputData.from_image(images=X_train,
+    dataset_to_train = InputData.from_image(images=x_train,
                                             labels=y_train,
                                             task=task)
-    dataset_to_validate = InputData.from_image(images=X_test,
+    dataset_to_validate = InputData.from_image(images=x_test,
                                                labels=y_test,
                                                task=task)
 
