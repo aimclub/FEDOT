@@ -179,13 +179,13 @@ def split_time_series(data, task):
                            features=x_train,
                            target=y_train,
                            task=task,
-                           data_type=DataTypesEnum.table)
+                           data_type=DataTypesEnum.ts)
 
     test_data = InputData(idx=idx_for_predict,
                           features=x_test,
                           target=y_test,
                           task=task,
-                          data_type=DataTypesEnum.table)
+                          data_type=DataTypesEnum.ts)
 
     return train_data, test_data
 

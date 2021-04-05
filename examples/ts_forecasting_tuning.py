@@ -188,5 +188,5 @@ if __name__ == '__main__':
     time_series = np.array(df['Level'])
 
     run_experiment_with_tuning(time_series,
-                               with_ar_chain=False,
+                               with_ar_chain=True,
                                len_forecast=250)

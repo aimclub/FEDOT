@@ -12,6 +12,7 @@ from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 seed(1)
 np.random.seed(1)
@@ -31,14 +32,31 @@ def classification_dataset():
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
-def get_regr_chain():
+def get_simple_regr_chain():
     final = PrimaryNode(operation_type='xgbreg')
     chain = Chain(final)
 
     return chain
 
 
-def get_class_chain():
+def get_complex_regr_chain():
+    node_scaling = PrimaryNode(operation_type='scaling')
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
+    node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
+    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
+    chain = Chain(final)
+
+    return chain
+
+
+def get_simple_class_chain():
+    final = PrimaryNode(operation_type='logit')
+    chain = Chain(final)
+
+    return chain
+
+
+def get_complex_class_chain():
     first = PrimaryNode(operation_type='xgboost')
     second = PrimaryNode(operation_type='pca')
     final = SecondaryNode(operation_type='logit',
@@ -52,7 +70,7 @@ def get_class_chain():
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    chain = get_class_chain()
+    chain = get_complex_class_chain()
 
     custom_params = dict(C=10)
 
@@ -69,36 +87,65 @@ def test_chain_tuner_regression_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chain composition
-    chain = get_regr_chain()
+    # Chains for regression task
+    chain_simple = get_simple_regr_chain()
+    chain_complex = get_complex_regr_chain()
 
-    # Before tuning prediction
-    chain.fit(train_data, use_cache=False)
-    before_tuning_predicted = chain.predict(test_data)
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        chain_tuner = ChainTuner(chain=chain,
+                                 task=train_data.task,
+                                 iterations=1)
+        # Optimization will be performed on RMSE metric, so loss params are defined
+        tuned_chain = chain_tuner.tune_chain(input_data=train_data,
+                                             loss_function=mse,
+                                             loss_params={'squared': False})
 
-    # Chain tuning
-    chain_tuner = ChainTuner(chain=chain,
-                             task=train_data.task,
-                             iterations=30)
-    # Optimization will be performed on RMSE metric, so loss params are defined
-    tuned_chain = chain_tuner.tune_chain(input_data=train_data,
-                                         loss_function=mse,
-                                         loss_params={'squared': False})
+    assert True
 
-    # After tuning prediction
-    tuned_chain.fit_from_scratch(train_data)
-    after_tuning_predicted = tuned_chain.predict(test_data)
 
-    # Metrics
-    bfr_tun_mse = mse(y_true=test_data.target,
-                      y_pred=before_tuning_predicted.predict)
-    aft_tun_mse = mse(y_true=test_data.target,
-                      y_pred=after_tuning_predicted.predict)
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_chain_tuner_classification_correct(data_fixture, request):
+    """ Test ChainTuner for chain based on hyperopt library """
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
 
-    print(f'Before tune test {bfr_tun_mse:.2f}')
-    print(f'After tune test {aft_tun_mse:.2f}')
+    # Chains for classification task
+    chain_simple = get_simple_class_chain()
+    chain_complex = get_complex_class_chain()
 
-    assert aft_tun_mse <= bfr_tun_mse
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        chain_tuner = ChainTuner(chain=chain,
+                                 task=train_data.task,
+                                 iterations=1)
+        tuned_chain = chain_tuner.tune_chain(input_data=train_data,
+                                             loss_function=roc)
+
+    assert True
+
+
+@pytest.mark.parametrize('data_fixture', ['regression_dataset'])
+def test_sequential_tuner_regression_correct(data_fixture, request):
+    """ Test SequentialTuner for chain based on hyperopt library """
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    # Chains for regression task
+    chain_simple = get_simple_regr_chain()
+    chain_complex = get_complex_regr_chain()
+
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        sequential_tuner = SequentialTuner(chain=chain,
+                                           task=train_data.task,
+                                           iterations=1)
+        # Optimization will be performed on RMSE metric, so loss params are defined
+        tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
+                                                  loss_function=mse,
+                                                  loss_params={'squared': False})
+
+    assert True
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -107,91 +154,74 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chain composition
-    chain = get_class_chain()
+    # Chains for classification task
+    chain_simple = get_simple_class_chain()
+    chain_complex = get_complex_class_chain()
 
-    # Before tuning prediction
-    chain.fit(train_data, use_cache=False)
-    before_tuning_predicted = chain.predict(test_data)
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        sequential_tuner = SequentialTuner(chain=chain,
+                                           task=train_data.task,
+                                           iterations=2)
+        tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
+                                                  loss_function=roc)
 
-    # Chain tuning
-    sequential_tuner = SequentialTuner(chain=chain,
-                                       task=train_data.task,
-                                       iterations=30)
-    tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
-                                              loss_function=roc)
-
-    # After tuning prediction
-    tuned_chain.fit_from_scratch(train_data)
-    after_tuning_predicted = tuned_chain.predict(test_data)
-
-    # Metrics
-    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
-    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tuning_predicted.predict), 1)
-
-    print(f'Before tune test {bfr_tun_roc_auc:.2f}')
-    print(f'After tune test {aft_tun_roc_auc:.2f}')
-
-    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+    assert True
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_certain_node_tuning_correct(data_fixture, request):
+@pytest.mark.parametrize('data_fixture', ['regression_dataset'])
+def test_certain_node_tuning_regression_correct(data_fixture, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chain composition
-    chain = get_class_chain()
+    # Chains for regression task
+    chain_simple = get_simple_regr_chain()
+    chain_complex = get_complex_regr_chain()
 
-    # Before tuning prediction
-    chain.fit(train_data, use_cache=False)
-    before_tuning_predicted = chain.predict(test_data)
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        sequential_tuner = SequentialTuner(chain=chain,
+                                           task=train_data.task,
+                                           iterations=1)
+        tuned_chain = sequential_tuner.tune_node(input_data=train_data,
+                                                 node_id=0,
+                                                 loss_function=mse)
 
-    # Chain tuning
-    sequential_tuner = SequentialTuner(chain=chain,
-                                       task=train_data.task,
-                                       iterations=20)
-    # For classification chain node_id 1 for node with xgboost
-    tuned_chain = sequential_tuner.tune_node(input_data=train_data,
-                                             node_id=1,
-                                             loss_function=roc)
-
-    # After tuning prediction
-    tuned_chain.fit_from_scratch(train_data)
-    after_tuning_predicted = tuned_chain.predict(test_data)
-
-    # Metrics
-    bfr_tun_roc_auc = round(roc(y_true=test_data.target, y_score=before_tuning_predicted.predict), 1)
-    aft_tun_roc_auc = round(roc(y_true=test_data.target, y_score=after_tuning_predicted.predict), 1)
-
-    print(f'Before tune test {bfr_tun_roc_auc:.2f}')
-    print(f'After tune test {aft_tun_roc_auc:.2f}')
-
-    assert aft_tun_roc_auc >= bfr_tun_roc_auc
+    assert True
 
 
-# TODO: can be removed later
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_certain_node_tune_for_classification_correct(data_fixture, request):
+def test_certain_node_tuning_classification_correct(data_fixture, request):
+    """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chain with normalization
-    node_normalize = PrimaryNode('normalization')
-    node_knn = SecondaryNode('knn', nodes_from=[node_normalize])
-    chain = Chain(node_knn)
+    # Chains for classification task
+    chain_simple = get_simple_class_chain()
+    chain_complex = get_complex_class_chain()
 
-    chain.fit(train_data)
+    for chain in [chain_simple, chain_complex]:
+        # Chain tuning
+        sequential_tuner = SequentialTuner(chain=chain,
+                                           task=train_data.task,
+                                           iterations=1)
+        tuned_chain = sequential_tuner.tune_node(input_data=train_data,
+                                                 node_id=0,
+                                                 loss_function=roc)
 
-    iterations_total = 5
-    tuner = SequentialTuner(chain=chain,
-                            task=train_data.task,
-                            iterations=iterations_total)
-    tuner.tune_node(input_data=train_data, loss_function=roc_auc, node_id=1)
-    is_finished_correctly = True
+    assert True
 
-    assert is_finished_correctly
 
-# TODO: ChainTuner (classification + regression) + (single_chain(1 model)/multiple_nodes in chain)
-# TODO: Sequential (classification + regression) + (tune_model, tune_preprocessing) + ar_model
+def test_ts_chain_with_stats_model():
+    """ Tests ChainTuner for time series forecasting task with AR model """
+    train_data, test_data = get_synthetic_ts_data_period()
+
+    ar_chain = Chain(PrimaryNode('ar'))
+
+    # Tune AR model
+    tuner_ar = ChainTuner(chain=ar_chain, task=train_data.task, iterations=5)
+    tuned_ar_chain = tuner_ar.tune_chain(input_data=train_data,
+                                         loss_function=mse)
+
+    assert True

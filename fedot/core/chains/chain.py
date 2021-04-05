@@ -107,10 +107,9 @@ class Chain:
     def fine_tune_all_nodes(self, loss_function: Callable,
                             input_data: Optional[InputData] = None,
                             iterations=50, max_lead_time: int = 5) -> 'Chain':
-        '''
-
-        :return:
-        '''
+        """ This method does the same as
+        :meth:`~fedot.core.chains.tuning.unified.ChainTuner.tune_chain`
+        """
         max_lead_time = timedelta(minutes=max_lead_time)
         chain_tuner = ChainTuner(chain=self,
                                  task=input_data.task,

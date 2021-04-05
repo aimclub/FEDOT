@@ -18,7 +18,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.chains.test_chain_tuning import get_class_chain
+from test.unit.chains.test_chain_tuning import get_complex_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -82,7 +82,7 @@ def test_fixed_structure_composer(data_fixture, request):
                                  crossover_prob=0.4, mutation_prob=0.5,
                                  allow_single_operations=False)
 
-    reference_chain = get_class_chain()
+    reference_chain = get_complex_class_chain()
     builder = FixedStructureComposerBuilder(task=Task(TaskTypesEnum.classification)).with_initial_chain(
         reference_chain).with_metrics(metric_function).with_requirements(req)
     composer = builder.build()

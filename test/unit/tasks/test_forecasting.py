@@ -17,7 +17,7 @@ seed(42)
 
 
 def _max_rmse_threshold_by_std(values, is_strict=True):
-    tolerance_coeff = 2.0 if is_strict else 3.0
+    tolerance_coeff = 3.0 if is_strict else 5.0
     return np.std(values) * tolerance_coeff
 
 

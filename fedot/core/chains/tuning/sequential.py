@@ -42,6 +42,8 @@ class SequentialTuner(HyperoptTuner):
         nodes_amount = len(self.chain.nodes)
         iterations_per_node = round(self.iterations/nodes_amount)
         iterations_per_node = int(iterations_per_node)
+        if iterations_per_node == 0:
+            iterations_per_node = 1
 
         # Calculate amount of seconds we can apply per node
         seconds_per_node = round(self.max_seconds / nodes_amount)
