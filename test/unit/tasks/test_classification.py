@@ -143,5 +143,6 @@ def test_image_classification():
                                                                               training_path_labels),
                                                                test_dataset=(test_path_features,
                                                                              test_path_labels))
+    deviation = roc_auc_on_valid_simple - 0.5
 
-    assert 0.4 < roc_auc_on_valid_simple < 0.6
+    assert abs(deviation) < 0.25
