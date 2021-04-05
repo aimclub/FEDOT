@@ -4,7 +4,6 @@ from random import seed
 import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
-from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -100,8 +99,9 @@ def test_chain_tuner_regression_correct(data_fixture, request):
         tuned_chain = chain_tuner.tune_chain(input_data=train_data,
                                              loss_function=mse,
                                              loss_params={'squared': False})
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -121,8 +121,9 @@ def test_chain_tuner_classification_correct(data_fixture, request):
                                  iterations=1)
         tuned_chain = chain_tuner.tune_chain(input_data=train_data,
                                              loss_function=roc)
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
@@ -144,8 +145,9 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
         tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
                                                   loss_function=mse,
                                                   loss_params={'squared': False})
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -165,8 +167,9 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
                                            iterations=2)
         tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
                                                   loss_function=roc)
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
@@ -185,10 +188,11 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
                                            task=train_data.task,
                                            iterations=1)
         tuned_chain = sequential_tuner.tune_node(input_data=train_data,
-                                                 node_id=0,
+                                                 node_index=0,
                                                  loss_function=mse)
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -207,10 +211,11 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
                                            task=train_data.task,
                                            iterations=1)
         tuned_chain = sequential_tuner.tune_node(input_data=train_data,
-                                                 node_id=0,
+                                                 node_index=0,
                                                  loss_function=roc)
+    is_tuning_finished = True
 
-    assert True
+    assert is_tuning_finished
 
 
 def test_ts_chain_with_stats_model():
@@ -224,4 +229,6 @@ def test_ts_chain_with_stats_model():
     tuned_ar_chain = tuner_ar.tune_chain(input_data=train_data,
                                          loss_function=mse)
 
-    assert True
+    is_tuning_finished = True
+
+    assert is_tuning_finished

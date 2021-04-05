@@ -83,7 +83,7 @@ class SequentialTuner(HyperoptTuner):
 
         return final_chain
 
-    def tune_node(self, input_data, loss_function, node_id, loss_params=None):
+    def tune_node(self, input_data, loss_function, node_index, loss_params=None):
         """ Method for hyperparameters tuning for particular node"""
         # Train test split
         train_input, predict_input = train_test_data_setup(input_data)
@@ -98,18 +98,18 @@ class SequentialTuner(HyperoptTuner):
         self.init_check(train_input, predict_input, test_target,
                         loss_function, loss_params)
 
-        node = self.chain.nodes[node_id]
+        node = self.chain.nodes[node_index]
         operation_name = str(node.operation.operation_type)
 
         # Get node's parameters to optimize
-        node_params = get_node_params(node_id=node_id,
+        node_params = get_node_params(node_id=node_index,
                                       operation_name=operation_name)
 
         if node_params is None:
             print(f'"{operation_name}" operation has no parameters to optimize')
         else:
             # Apply tuning for current node
-            self._optimize_node(node_id=node_id,
+            self._optimize_node(node_id=node_index,
                                 train_input=train_input,
                                 predict_input=predict_input,
                                 test_target=test_target,

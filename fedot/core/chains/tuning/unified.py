@@ -1,14 +1,15 @@
-import numpy as np
-
 from datetime import timedelta
 from functools import partial
 
-from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
-from fedot.core.data.data import train_test_data_setup
-from fedot.core.log import Log
+import numpy as np
 from hyperopt import fmin, tpe, space_eval
 
+from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
 from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.data.data import train_test_data_setup
+from fedot.core.log import Log
+
+MAX_METRIC_VALUE = 10e6
 
 
 class ChainTuner(HyperoptTuner):
@@ -138,9 +139,9 @@ class ChainTuner(HyperoptTuner):
                                                        loss_params=loss_params)
         except Exception:
             if self.is_need_to_maximize is True:
-                metric_value = -999999.0
+                metric_value = -MAX_METRIC_VALUE
             else:
-                metric_value = 999999.0
+                metric_value = MAX_METRIC_VALUE
 
         if self.is_need_to_maximize is True:
             return -metric_value

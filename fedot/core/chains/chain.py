@@ -107,7 +107,8 @@ class Chain:
     def fine_tune_all_nodes(self, loss_function: Callable,
                             input_data: Optional[InputData] = None,
                             iterations=50, max_lead_time: int = 5) -> 'Chain':
-        """ This method does the same as
+        """ Tune all hyperparameters of nodes simultaneously via black-box
+            optimization using ChainTuner. For details, see
         :meth:`~fedot.core.chains.tuning.unified.ChainTuner.tune_chain`
         """
         max_lead_time = timedelta(minutes=max_lead_time)
