@@ -140,7 +140,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     # Simple chain
     chain_simple = get_simple_chain()
 
-    chain_simple.fit_from_scratch(input_data=dataset_to_train, verbose=False)
+    chain_simple.fit_from_scratch(input_data=dataset_to_train)
     rmse_on_valid_simple = calculate_validation_metric(
         chain_simple.predict(dataset_to_validate), dataset_to_validate,
         f'full-simple_{forecast_length}',
@@ -149,7 +149,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
 
     if with_composite_chain:
         chain_composite = get_composite_chain()
-        chain_composite.fit(input_data=dataset_to_train, verbose=False)
+        chain_composite.fit(input_data=dataset_to_train)
         rmse_on_valid_lstm_only = calculate_validation_metric(
             chain_composite.predict(dataset_to_validate), dataset_to_validate,
             f'full-composite_{forecast_length}',

@@ -13,7 +13,7 @@ from test.unit.tasks.test_forecasting import get_multiscale_chain, get_synthetic
 
 
 @pytest.fixture(scope='session', autouse=True)
-def performance_with_files_before_after_tests(request):
+def preprocessing_files_before_and_after_tests(request):
     paths = ['test_fitted_chain_convert_to_json', 'test_import_json_to_chain_correctly_1',
              'test_empty_chain_convert_to_json', 'test_chain_convert_to_json',
              'test_export_chain_to_json_correctly', 'test_import_json_to_chain_correctly_2',
@@ -64,13 +64,13 @@ def create_json_models_files():
     Creating JSON's files for test before tests.
     """
     chain = create_chain()
-    chain.save_chain('test_chain_convert_to_json')
+    chain.save('test_chain_convert_to_json')
 
     chain_fitted = create_fitted_chain()
-    chain_fitted.save_chain('test_fitted_chain_convert_to_json')
+    chain_fitted.save('test_fitted_chain_convert_to_json')
 
     chain_empty = Chain()
-    chain_empty.save_chain('test_empty_chain_convert_to_json')
+    chain_empty.save('test_empty_chain_convert_to_json')
 
 
 def create_chain() -> Chain:
@@ -152,7 +152,7 @@ def create_four_depth_chain():
 
 def test_export_chain_to_json_correctly():
     chain = create_chain()
-    json_actual = chain.save_chain('test_export_chain_to_json_correctly')
+    json_actual = chain.save('test_export_chain_to_json_correctly')
 
     json_path_load = create_correct_path('test_chain_convert_to_json')
     with open(json_path_load, 'r') as json_file:
@@ -181,11 +181,11 @@ def test_fitted_chain_cache_correctness_after_export_and_import():
     chain = Chain(PrimaryNode('logit'))
     chain.fit(train_data)
 
-    chain.save_chain('test_fitted_chain_cache_correctness_after_export_and_import')
+    chain.save('test_fitted_chain_cache_correctness_after_export_and_import')
 
     json_path_load = create_correct_path('test_fitted_chain_cache_correctness_after_export_and_import')
     new_chain = Chain()
-    new_chain.load_chain(json_path_load)
+    new_chain.load(json_path_load)
 
     results = new_chain.fit(train_data)
 
@@ -196,11 +196,11 @@ def test_import_json_to_chain_correctly():
     json_path_load = create_correct_path('test_chain_convert_to_json')
 
     chain = Chain()
-    chain.load_chain(json_path_load)
-    json_actual = chain.save_chain('test_import_json_to_chain_correctly_1')
+    chain.load(json_path_load)
+    json_actual = chain.save('test_import_json_to_chain_correctly_1')
 
     chain_expected = create_chain()
-    json_expected = chain_expected.save_chain('test_import_json_to_chain_correctly_2')
+    json_expected = chain_expected.save('test_import_json_to_chain_correctly_2')
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
@@ -224,8 +224,8 @@ def test_import_json_to_fitted_chain_correctly():
     json_path_load = create_correct_path('test_fitted_chain_convert_to_json')
 
     chain = Chain()
-    chain.load_chain(json_path_load)
-    json_actual = chain.save_chain('test_import_json_to_fitted_chain_correctly')
+    chain.load(json_path_load)
+    json_actual = chain.save('test_import_json_to_fitted_chain_correctly')
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -270,28 +270,28 @@ def test_export_import_for_one_chain_object_correctly():
     and the last command will rewrite the chain object correctly.
     """
     chain_fitted = create_fitted_chain()
-    json_first = chain_fitted.save_chain('test_export_import_for_one_chain_object_correctly_2')
+    json_first = chain_fitted.save('test_export_import_for_one_chain_object_correctly_2')
 
     chain_fitted_after = create_chain()
-    chain_fitted_after.save_chain('test_export_import_for_one_chain_object_correctly_1')
+    chain_fitted_after.save('test_export_import_for_one_chain_object_correctly_1')
 
     json_path_load_2 = create_correct_path('test_export_import_for_one_chain_object_correctly_2')
-    chain_fitted_after.load_chain(json_path_load_2)
+    chain_fitted_after.load(json_path_load_2)
 
-    json_second = chain_fitted_after.save_chain('test_export_import_for_one_chain_object_correctly_3')
+    json_second = chain_fitted_after.save('test_export_import_for_one_chain_object_correctly_3')
 
     assert json_first == json_second
 
 
 def test_absolute_relative_paths_correctly_no_exception():
     chain = create_chain()
-    chain.save_chain('test_absolute_relative_paths_correctly_no_exception')
-    chain.save_chain(os.path.abspath('test_absolute_relative_paths_correctly_no_exception'))
+    chain.save('test_absolute_relative_paths_correctly_no_exception')
+    chain.save(os.path.abspath('test_absolute_relative_paths_correctly_no_exception'))
 
     json_path_load = create_correct_path('test_absolute_relative_paths_correctly_no_exception')
     json_path_load_abs = os.path.abspath(json_path_load)
-    chain.load_chain(json_path_load)
-    chain.load_chain(json_path_load_abs)
+    chain.load(json_path_load)
+    chain.load(json_path_load_abs)
 
 
 def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
@@ -303,10 +303,10 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
     train_data = InputData.from_csv(train_file_path)
 
     chain = Chain()
-    chain.load_chain(json_path_load)
+    chain.load(json_path_load)
     chain.fit(train_data)
 
-    chain.save_chain('test_import_custom_json_object_to_chain_and_fit_correctly_no_exception')
+    chain.save('test_import_custom_json_object_to_chain_and_fit_correctly_no_exception')
 
 
 def test_data_model_types_forecasting_chain_fit():
@@ -314,7 +314,7 @@ def test_data_model_types_forecasting_chain_fit():
 
     chain = get_multiscale_chain()
     chain.fit(train_data)
-    chain.save_chain('data_model_forecasting')
+    chain.save('data_model_forecasting')
 
     expected_len_nodes = len(chain.nodes)
     actual_len_nodes = len(ChainTemplate(chain).operation_templates)
@@ -328,7 +328,7 @@ def test_data_model_type_classification_chain_fit():
 
     chain = create_classification_chain_with_preprocessing()
     chain.fit(train_data)
-    chain.save_chain('data_model_classification')
+    chain.save('data_model_classification')
 
     expected_len_nodes = len(chain.nodes)
     actual_len_nodes = len(ChainTemplate(chain).operation_templates)

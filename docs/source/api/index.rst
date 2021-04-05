@@ -5,6 +5,7 @@ API
    :glob:
    :maxdepth: 1
 
+   api
    composer
    chain
    node
@@ -14,3 +15,4 @@ API
    repository
    data
    logging
+   sensitivity

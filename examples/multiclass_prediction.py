@@ -15,7 +15,7 @@ from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
-    ClassificationMetricsEnum, MetricsRepository
+    ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import probs_to_labels
 from fedot.core.utils import ensure_directory_exists, get_split_data_paths, \
@@ -58,8 +58,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     models_repo = OperationTypesRepository()
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
-    metric_function = MetricsRepository(). \
-        metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
+    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,

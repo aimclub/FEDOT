@@ -1,5 +1,4 @@
 from abc import ABC
-from collections import namedtuple
 from copy import copy
 from datetime import timedelta
 from typing import List, Optional
@@ -7,8 +6,6 @@ from typing import List, Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
-
-CachedState = namedtuple('CachedState', 'operation')
 
 
 class Node(ABC):
@@ -20,10 +17,13 @@ class Node(ABC):
     :param log: Log object to record messages
     """
 
-    def __init__(self, nodes_from: Optional[List['Node']], operation_type: str,
+    def __init__(self, nodes_from: Optional[List['Node']],
+                 operation_type: str,
                  log=None):
         self.nodes_from = nodes_from
-        self.cache = FittedOperationCache(self)
+        self.log = log
+        self.fitted_preprocessor = None
+        self.fitted_operation = None
 
         if not log:
             self.log = default_log(__name__)
@@ -31,6 +31,7 @@ class Node(ABC):
             self.log = log
 
         # Define appropriate model or data operation
+        # TODO figure out is need to use "isinstance"
         self.strategy_operator = OperationFactory(operation_name=operation_type)
         self.operation = self.strategy_operator.get_operation()
 
@@ -60,64 +61,50 @@ class Node(ABC):
         full_path += f'/{node_label}'
         return full_path
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Run training process in the node
 
-        :param input_data: data used for operation training
-        :param verbose: flag used for status printing to console, default False
-        """
-        copied_input_data = copy(input_data)
+        :param input_data: data used for operation training        """
 
-        if not self.cache.actual_cached_state:
-            if verbose:
-                print('Cache is not actual')
-
-            cached_operation, operation_predict = self.operation.fit(data=copied_input_data,
-                                                                     is_fit_chain_stage=True)
-            self.cache.append(CachedState(operation=cached_operation))
+        if self.fitted_operation is None:
+            self.fitted_operation, model_predict = self.operation.fit(data=input_data)
         else:
-            if verbose:
-                print('Operation were obtained from cache')
-
-            fitted = self.cache.actual_cached_state.operation
-            operation_predict = self.operation.predict(fitted_operation=fitted,
-                                                       data=copied_input_data,
-                                                       is_fit_chain_stage=True)
+            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                       data=input_data)
 
         return operation_predict
 
-    def predict(self, input_data: InputData, output_mode, verbose=False) -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
         Run prediction process in the node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
+        :param output_mode: desired output for models (e.g. labels, probs, full_probs)
         """
-        copied_input_data = copy(input_data)
 
-        if not self.cache:
-            raise ValueError('Operation must be fitted before predict')
-
-        fitted = self.cache.actual_cached_state.operation
-        operation_predict = self.operation.predict(fitted_operation=fitted,
-                                                   data=copied_input_data,
-                                                   is_fit_chain_stage=False,
-                                                   output_mode=output_mode)
-
+        operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                           data=input_data,
+                                           output_mode=output_mode,
+                                           is_fit_chain_stage=False)
         return operation_predict
 
     def __str__(self):
         operation = f'{self.operation}'
         return operation
 
-    @property
-    def ordered_subnodes_hierarchy(self) -> List['Node']:
+    def __repr__(self):
+        return self.__str__()
+
+    def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
+        if visited is None:
+            visited = []
         nodes = [self]
         if self.nodes_from:
             for parent in self.nodes_from:
-                nodes += parent.ordered_subnodes_hierarchy
+                if parent not in visited:
+                    nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+
         return nodes
 
     @property
@@ -128,46 +115,6 @@ class Node(ABC):
     def custom_params(self, params):
         if params:
             self.operation.params = params
-
-
-class FittedOperationCache:
-    def __init__(self, related_node: Node):
-        self._local_cached_operations = {}
-        self._related_node_ref = related_node
-
-    def append(self, fitted_operation):
-        self._local_cached_operations[self._related_node_ref.descriptive_id] = fitted_operation
-
-    def import_from_other_cache(self, other_cache: 'FittedOperationCache'):
-        for entry_key in other_cache._local_cached_operations.keys():
-            self._local_cached_operations[entry_key] = other_cache._local_cached_operations[entry_key]
-
-    def clear(self):
-        self._local_cached_operations = {}
-
-    @property
-    def actual_cached_state(self):
-        found_operation = self._local_cached_operations.get(self._related_node_ref.descriptive_id, None)
-        return found_operation
-
-
-class SharedCache(FittedOperationCache):
-    def __init__(self, related_node: Node, global_cached_operations: dict):
-        super().__init__(related_node)
-        self._global_cached_operations = global_cached_operations
-
-    def append(self, fitted_operation):
-        super().append(fitted_operation)
-        if self._global_cached_operations is not None:
-            self._global_cached_operations[self._related_node_ref.descriptive_id] = fitted_operation
-
-    @property
-    def actual_cached_state(self):
-        found_operation = super().actual_cached_state
-
-        if not found_operation and self._global_cached_operations:
-            found_operation = self._global_cached_operations.get(self._related_node_ref.descriptive_id, None)
-        return found_operation
 
 
 class PrimaryNode(Node):
@@ -191,39 +138,35 @@ class PrimaryNode(Node):
             # Was the data passed directly to the node or not
             self.direct_set = True
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Fit the operation located in the primary node
 
-        :param input_data: data used for operation training
-        :param verbose: flag used for status printing to console, default False
+        :param input_data: data used for model training
         """
-        if verbose:
-            self.log.info(f'Trying to fit primary node with operation: {self.operation}')
+        self.log.ext_debug(f'Trying to fit primary node with model: {self.model}')
 
         if self.direct_set is True:
             input_data = self.node_data.get('fit')
         else:
             self.node_data.update({'fit': input_data})
-        return super().fit(input_data, verbose)
+        return super().fit(input_data)
 
     def predict(self, input_data: InputData,
-                output_mode: str = 'default', verbose=False) -> OutputData:
+                output_mode: str = 'default') -> OutputData:
         """
         Predict using the operation located in the primary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Predict in primary node by operation: {self.operation}')
+        self.log.ext_debug(f'Predict in primary node by model: {self.model}')
 
         if self.direct_set is True:
             input_data = self.node_data.get('predict')
         else:
             self.node_data.update({'predict': input_data})
-        return super().predict(input_data, output_mode, verbose)
+        return super().predict(input_data, output_mode)
 
     def get_data_from_node(self):
         """ Method returns data if the data was set to the nodes directly """
@@ -236,6 +179,7 @@ class SecondaryNode(Node):
 
     :param operation_type: str type of the operation defined in operation repository
     :param nodes_from: parent nodes where data comes from
+    :param model: optional custom atomized_model
     :param kwargs: optional arguments (i.e. logger)
     """
 
@@ -245,50 +189,42 @@ class SecondaryNode(Node):
         super().__init__(nodes_from=nodes_from, operation_type=operation_type,
                          **kwargs)
 
-    def fit(self, input_data: InputData, verbose=False) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Fit the operation located in the secondary node
 
         :param input_data: data used for operation training
-        :param verbose: flag used for status printing to console, default False
         """
-        if verbose:
-            self.log.info(f'Trying to fit secondary node with operation: {self.operation}')
+        self.log.ext_debug(f'Trying to fit secondary node with model: {self.model}')
 
-        secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='fit',
-                                                   verbose=verbose)
+        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
+
         return super().fit(input_data=secondary_input)
 
-    def predict(self, input_data: InputData, output_mode: str = 'default', verbose=False) -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
         Predict using the operation located in the secondary node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
-        :param verbose: flag used for status printing to console, default False
+        :param output_mode: desired output for models (e.g. labels, probs, full_probs)
         """
-        if verbose:
-            self.log.info(f'Obtain prediction in secondary node with operation: {self.operation}')
+        self.log.ext_debug(f'Obtain prediction in secondary node with model: {self.model}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
-                                                   parent_operation='predict',
-                                                   verbose=verbose)
+                                                   parent_operation='predict')
 
-        return super().predict(input_data=secondary_input, output_mode=output_mode, verbose=verbose)
+        return super().predict(input_data=secondary_input, output_mode=output_mode)
 
     def _nodes_from_with_fixed_order(self):
         if self.nodes_from is not None:
             return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
     def _input_from_parents(self, input_data: InputData,
-                            parent_operation: str,
-                            verbose=False) -> InputData:
+                            parent_operation: str) -> InputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
 
-        if verbose:
-            self.log.info(f'Fit all parent nodes in secondary node with operation: {self.operation}')
+        self.log.ext_debug(f'Fit all parent nodes in secondary node with model: {self.model}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 

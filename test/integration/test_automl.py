@@ -1,6 +1,5 @@
 import os
 import pytest
-
 from datetime import timedelta
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository

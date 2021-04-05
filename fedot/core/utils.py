@@ -65,6 +65,15 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
+def make_chain_generator(chain):
+    visited_nodes = []
+
+    for node in chain.nodes:
+        if node not in visited_nodes:
+            visited_nodes.append(node)
+            yield node
+
+
 class ComparableEnum(Enum):
     """
     The Enum implementation that allows to avoid the multi-module enum comparison problem

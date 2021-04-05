@@ -1,7 +1,8 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import F1Metric, MaeMetric, RmseMetric, RocAucMetric, SilhouetteMetric, \
-    StructuralComplexityMetric
+from fedot.core.composer.metrics import (Metric, Accuracy, F1, Logloss, MAE, MSE, MSLE,
+                                         NodeNum, Precision, R2, RMSE, ROCAUC,
+                                         Silhouette, StructuralComplexity, ComputationTime)
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -16,6 +17,7 @@ class QualityMetricsEnum(MetricsEnum):
 class ComplexityMetricsEnum(MetricsEnum):
     node_num = 'node_number'
     structural = 'structural'
+    computation_time = 'computation_time'
 
 
 class ClusteringMetricsEnum(QualityMetricsEnum):
@@ -24,28 +26,49 @@ class ClusteringMetricsEnum(QualityMetricsEnum):
 
 class ClassificationMetricsEnum(QualityMetricsEnum):
     ROCAUC = 'roc_auc'
-    ROCAUC_penalty = 'roc_auc_pen'
     precision = 'precision'
     f1 = 'f1'
+    logloss = 'neg_log_loss'
+    ROCAUC_penalty = 'roc_auc_pen'
+    accuracy = 'accuracy'
 
 
 class RegressionMetricsEnum(QualityMetricsEnum):
     RMSE = 'rmse'
-    RMSE_penalty = 'roc_auc_pen'
+    MSE = 'mse'
+    MSLE = 'neg_mean_squared_log_error'
     MAE = 'mae'
+    R2 = 'r2'
+    RMSE_penalty = 'roc_auc_pen'
 
 
 class MetricsRepository:
-    __metrics_implementations = {
-        ClassificationMetricsEnum.ROCAUC: RocAucMetric.get_value,
-        ClassificationMetricsEnum.ROCAUC_penalty: RocAucMetric.get_value_with_penalty,
-        RegressionMetricsEnum.MAE: MaeMetric.get_value,
-        RegressionMetricsEnum.RMSE: RmseMetric.get_value,
-        RegressionMetricsEnum.RMSE_penalty: RmseMetric.get_value_with_penalty,
-        ClassificationMetricsEnum.f1: F1Metric.get_value,
-        ComplexityMetricsEnum.structural: StructuralComplexityMetric.get_value,
-        ClusteringMetricsEnum.silhouette: SilhouetteMetric.get_value
+    _metrics_implementations = {
+        # classification
+        ClassificationMetricsEnum.ROCAUC: ROCAUC.get_value,
+        ClassificationMetricsEnum.ROCAUC_penalty: ROCAUC.get_value_with_penalty,
+        ClassificationMetricsEnum.f1: F1.get_value,
+        ClassificationMetricsEnum.precision: Precision.get_value,
+        ClassificationMetricsEnum.accuracy: Accuracy.get_value,
+        ClassificationMetricsEnum.logloss: Logloss.get_value,
+        # regressin
+        RegressionMetricsEnum.MAE: MAE.get_value,
+        RegressionMetricsEnum.MSE: MSE.get_value,
+        RegressionMetricsEnum.MSLE: MSLE.get_value,
+        RegressionMetricsEnum.RMSE: RMSE.get_value,
+        RegressionMetricsEnum.RMSE_penalty: RMSE.get_value_with_penalty,
+        RegressionMetricsEnum.R2: R2.get_value,
+
+        # clustering
+        ClusteringMetricsEnum.silhouette: Silhouette.get_value,
+        # structural
+        ComplexityMetricsEnum.structural: StructuralComplexity.get_value,
+        ComplexityMetricsEnum.node_num: NodeNum.get_value,
+        ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
     def metric_by_id(self, metric_id: MetricsEnum) -> Callable:
-        return self.__metrics_implementations[metric_id]
+        return self._metrics_implementations[metric_id]
+
+    def metric_class_by_id(self, metric_id: MetricsEnum) -> Metric:
+        return self._metrics_implementations[metric_id].__self__()

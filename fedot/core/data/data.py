@@ -143,7 +143,7 @@ class InputData(Data):
 @dataclass
 class OutputData(Data):
     """
-    Data type for data predicted in the node
+    Data type for data prediction in the node
     """
     predict: np.array = None
     target: Optional[np.array] = None

@@ -4,7 +4,8 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from fedot.core.chains.chain import Chain, chain_as_nx_graph
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
 from fedot.core.repository.tasks import Task, TaskTypesEnum

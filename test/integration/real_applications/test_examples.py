@@ -2,9 +2,9 @@ import os
 from datetime import timedelta
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import mean_squared_error
 
+from examples.fedot_api_example import run_classification_example, run_ts_forecasting_example
 from examples.chain_and_history_visualisation import run_chain_ang_history_visualisation
 from examples.chain_log import run_log_example
 from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
@@ -72,3 +72,11 @@ def test_chain_tuning_example():
                                          test_data=test_data,
                                          local_iter=1,
                                          tuner_iter_num=2)
+
+
+def test_api_example():
+    prediction = run_classification_example()
+    assert prediction is not None
+
+    forecast = run_ts_forecasting_example()
+    assert forecast is not None

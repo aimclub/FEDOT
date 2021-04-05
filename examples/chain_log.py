@@ -34,7 +34,7 @@ def run_log_example(log_file_name):
     chain = get_simple_chain(log=log)
 
     log.info('start fitting chain')
-    chain.fit(train_data, use_cache=False, verbose=True)
+    chain.fit(train_data, use_cache=False)
 
 
 if __name__ == '__main__':

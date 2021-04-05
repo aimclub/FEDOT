@@ -1,6 +1,5 @@
 import itertools
 import uuid
-from copy import copy
 from dataclasses import dataclass
 from typing import List
 
@@ -8,7 +7,7 @@ import numpy as np
 
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import CachedState, FittedOperationCache, Node, PrimaryNode, SecondaryNode
+from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -207,9 +206,7 @@ def real_chain(chain_template, with_cache=True):
                                      operation_type=template.operation_type)
             node.operation = template.operation_instance
             if with_cache:
-                cache = FittedOperationCache(related_node=node)
-                cache.append(CachedState(operation=template.fitted_operation))
-                node.cache = cache
+                node.fitted_model = template.fitted_operation
             nodes_by_templates.append((node, template))
 
     chain = Chain()

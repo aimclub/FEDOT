@@ -1,0 +1,35 @@
+name: telegram notify
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+
+  merge_job:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: send custom message with args
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          args: "The ${{github.event_name}} '${{github.event.pull_request.title}}' (#${{github.event.number}}) was merged.
+          \nLink: ${{github.event.pull_request.html_url}}
+          \nDescription: ${{github.event.pull_request.body}}
+          \n
+          \nCheck it out to keep your local repository updated."
+
+
+  close_job:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: send custom message with args
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          args: The ${{github.event_name}} ${{github.event.pull_request.title}} (${{github.event.number}}) was closed.
