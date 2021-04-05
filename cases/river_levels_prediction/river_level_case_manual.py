@@ -48,7 +48,8 @@ def prepare_input_data(features, target):
     return train_input, predict_input, task
 
 
-def run_experiment(file_path, chain, iterations=20, tuner=None):
+def run_river_experiment(file_path, chain, iterations=20, tuner=None,
+                         tuner_iterations=100):
     """ Function launch experiment for river level prediction. Tuner processes
     are available for such experiment.
 
@@ -57,6 +58,7 @@ def run_experiment(file_path, chain, iterations=20, tuner=None):
     :param iterations: amount of iterations to process
     :param tuner: if tuning after composing process is required or not. tuner -
     NodesTuner or ChainTuner.
+    :param tuner_iterations: amount of iterations for tuning
     """
 
     # Read dataframe and prepare train and test data
@@ -92,7 +94,7 @@ def run_experiment(file_path, chain, iterations=20, tuner=None):
         if tuner is not None:
             print(f'Start tuning process ...')
             chain_tuner = tuner(chain=current_chain, task=task,
-                                iterations=100, max_lead_time=timedelta(seconds=30))
+                                iterations=tuner_iterations, max_lead_time=timedelta(seconds=30))
             tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                                  loss_function=mean_absolute_error)
 
@@ -120,7 +122,7 @@ if __name__ == '__main__':
     init_chain = Chain(node_final)
 
     # Available tuners for application: ChainTuner, NodesTuner
-    run_experiment(file_path='../cases/data/river_levels/station_levels.csv',
-                   chain=init_chain,
-                   iterations=20,
-                   tuner=ChainTuner)
+    run_river_experiment(file_path='../data/river_levels/station_levels.csv',
+                         chain=init_chain,
+                         iterations=20,
+                         tuner=ChainTuner)

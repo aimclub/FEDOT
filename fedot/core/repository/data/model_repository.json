@@ -40,14 +40,6 @@
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
 	},
-	"keras_forecasting": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.operations.evaluation.old_strategies", "KerasForecastingStrategy"],
-	  "tags": ["nn"],
-	  "description": "Implementations of the keras-based neural models for the time series forecasting"
-	},
 	"text_classification": {
 	  "tasks": "[TaskTypesEnum.classification]",
 	  "input_type": "[DataTypesEnum.text]",

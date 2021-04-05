@@ -88,8 +88,8 @@ def prepare_input_data(features, target):
     return train_input, predict_input, task
 
 
-def run_experiment(file_path, init_chain, file_to_save,
-                   iterations=20, tuner=None):
+def run_river_composer_experiment(file_path, init_chain, file_to_save,
+                                  iterations=20, tuner=None):
     """ Function launch experiment for river level prediction. Composing and
     tuner processes are available for such experiment.
 
@@ -193,8 +193,8 @@ if __name__ == '__main__':
     init_chain = Chain(node_final)
 
     # Available tuners for application: ChainTuner, NodesTuner
-    run_experiment(file_path='../cases/data/river_levels/station_levels.csv',
-                   init_chain=init_chain,
-                   file_to_save='data/river_levels/old_composer_new_preprocessing_report.csv',
-                   iterations=20,
-                   tuner=ChainTuner)
+    run_river_composer_experiment(file_path='../data/river_levels/station_levels.csv',
+                                  init_chain=init_chain,
+                                  file_to_save='data/river_levels/old_composer_new_preprocessing_report.csv',
+                                  iterations=20,
+                                  tuner=ChainTuner)
