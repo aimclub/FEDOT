@@ -7,18 +7,18 @@ numpy==1.19.2
 pytest==5.2.0
 anytree==2.8.0
 typing==3.7.4.1
+scikit_learn==0.24.1
 matplotlib==3.0.2; python_version < '3.8'
 matplotlib==3.3.1; python_version == '3.8'
 networkx==2.4
 xgboost==1.0.1
 Pillow==8.1.1
 imageio==2.8.0
-seaborn==0.9.0; python_version < '3.7'
+seaborn==0.9.0
 hyperopt==0.2.4
 joblib==0.17.0
 tensorflow==2.2.0; python_version <= '3.7'
 tensorflow==2.4.0; python_version == '3.8'
 nltk==3.5
 SALib==1.3.11
-scikit-learn~=0.22.1
-scipy==1.4.1
+deap==1.3.1

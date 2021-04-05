@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import CachedState, FittedModelCache, Node, PrimaryNode, SecondaryNode
+from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.data.preprocessing import Normalization
 from fedot.core.models.model import InputData, Model
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -205,9 +205,8 @@ def real_chain(chain_template, with_cache=True):
                                      model_type=template.model_type)
             node.model = template.model_instance
             if with_cache:
-                cache = FittedModelCache(related_node=node)
-                cache.append(CachedState(preprocessor=template.preprocessor, model=template.fitted_model))
-                node.cache = cache
+                node.fitted_preprocessor = template.preprocessor
+                node.fitted_model = template.fitted_model
             nodes_by_templates.append((node, template))
 
     chain = Chain()

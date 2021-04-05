@@ -1,6 +1,6 @@
-from datetime import timedelta
-
 import numpy as np
+
+from datetime import timedelta
 
 from fedot.core.algorithms.time_series.prediction import post_process_forecasted_ts
 from fedot.core.data.data import InputData
@@ -77,7 +77,6 @@ class Model:
         """
         This method is used for defining and running of the evaluation strategy
         to train the model with the data provided
-
         :param data: data used for model training
         :return: tuple of trained model and prediction on train data
         """
@@ -114,7 +113,6 @@ class Model:
                   max_lead_time: timedelta = timedelta(minutes=5)):
         """
         This method is used for hyperparameter searching
-
         :param data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
         :param max_lead_time: max time(seconds) for tuning evaluation
