@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.image_classification_problem import run_image_classification_problem
+from examples.image_classification_problem import run_image_classification_problem
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
@@ -139,8 +139,9 @@ def test_output_mode_full_probs():
 
 def test_image_classification():
     training_path_features, training_path_labels, test_path_features, test_path_labels = get_image_classification_data()
-    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_features, training_path_labels),
-                                                               test_dataset=(test_path_features, test_path_labels),
-                                                               composite_model_flag=True)
+    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_features,
+                                                                              training_path_labels),
+                                                               test_dataset=(test_path_features,
+                                                                             test_path_labels))
 
-    assert roc_auc_on_valid_simple > 0.1
+    assert 0.4 < roc_auc_on_valid_simple > 0.6

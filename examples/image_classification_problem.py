@@ -17,6 +17,8 @@ np.random.seed(1)
 
 def get_composite_chain() -> Chain:
     node_first = PrimaryNode('cnn')
+    node_first.custom_params = {'architecture': 'shallow',
+                                'epochs': 10}
     node_second = PrimaryNode('cnn')
     node_second.custom_params = {'architecture': 'deep',
                                  'epochs': 10}
@@ -35,14 +37,12 @@ def calculate_validation_metric(predicted: OutputData, dataset_to_validate: Inpu
     return roc_auc_value
 
 
-def run_image_classification_problem(train_dataset: Union[str, tuple],
-                                     test_dataset: Union[str, tuple],
-                                     composite_model_flag: bool = False):
+def run_image_classification_problem(train_dataset: tuple,
+                                     test_dataset: tuple):
     task = Task(TaskTypesEnum.classification)
 
-    if type(train_dataset) is tuple:
-        X_train, y_train = train_dataset[0], train_dataset[1]
-        X_test, y_test = test_dataset[0], test_dataset[1]
+    X_train, y_train = train_dataset[0], train_dataset[1]
+    X_test, y_test = test_dataset[0], test_dataset[1]
 
     dataset_to_train = InputData.from_image(images=X_train,
                                             labels=y_train,
@@ -51,10 +51,7 @@ def run_image_classification_problem(train_dataset: Union[str, tuple],
                                                labels=y_test,
                                                task=task)
 
-    chain = PrimaryNode(model_type='cnn')
-    chain.manual_preprocessing_func = EmptyStrategy
-    if composite_model_flag:
-        chain = get_composite_chain()
+    chain = get_composite_chain()
     chain.fit(input_data=dataset_to_train)
     predictions = chain.predict(dataset_to_validate)
     roc_auc_on_valid_simple = calculate_validation_metric(predictions,
@@ -67,5 +64,4 @@ def run_image_classification_problem(train_dataset: Union[str, tuple],
 if __name__ == '__main__':
     training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
     run_image_classification_problem(train_dataset=training_set,
-                                     test_dataset=testing_set,
-                                     composite_model_flag=True)
+                                     test_dataset=testing_set)

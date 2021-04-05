@@ -74,15 +74,11 @@ class Data:
     @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
-                   task: Task = Task(TaskTypesEnum.classification),
-                   data_type: DataTypesEnum = DataTypesEnum.image):
+                   task: Task = Task(TaskTypesEnum.classification)):
         """
         :param images: the path to the directory with image data or np.ndarray with data
-        :param labels: name of target column (last column if empty and no target if None)
+        :param labels: the path to the directory with image labels or np.ndarray with labels
         :param task: the task that should be solved with data
-        :param data_type: the type of data interpretation
-        :param aug_flag: function that provides opportunity to create augmented data
-
         :return:
         """
         features = images
@@ -94,7 +90,7 @@ class Data:
 
         idx = np.arange(0, len(features))
 
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+        return InputData(idx=idx, features=features, target=target, task=task, data_type=DataTypesEnum.image)
 
     @staticmethod
     def from_text_meta_file(meta_file_path: str = None,

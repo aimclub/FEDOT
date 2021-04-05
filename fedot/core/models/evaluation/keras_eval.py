@@ -17,6 +17,7 @@ class KerasClassificationStrategy(EvaluationStrategy):
         self.architecture_type = 'deep'
         self.epochs = 10
         self.batch_size = 128
+        self.output_mode = 'labels'
 
         if params:
             try:
@@ -42,7 +43,7 @@ class KerasClassificationStrategy(EvaluationStrategy):
         return model
 
     def predict(self, trained_model, predict_data: InputData):
-        return predict_cnn(trained_model, predict_data)
+        return predict_cnn(trained_model, predict_data, output_mode=self.output_mode)
 
     def fit_tuned(self, train_data: InputData, iterations: int = 30,
                   max_lead_time: timedelta = timedelta(minutes=5)):
@@ -51,7 +52,8 @@ class KerasClassificationStrategy(EvaluationStrategy):
 
 def _create_cnn(input_shape: tuple,
                 num_classes: int,
-                architecture_type: str = 'deep'):
+                architecture_type: str = 'deep',
+                logger: Log = None):
     if architecture_type == 'deep':
         model = tf.keras.Sequential(
             [
@@ -79,7 +81,7 @@ def _create_cnn(input_shape: tuple,
             ]
         )
     else:
-        print(f'{architecture_type} is incorrect type of NN architecture')
+        logger.error(f'{architecture_type} is incorrect type of NN architecture')
 
     return model
 
@@ -98,13 +100,14 @@ def fit_cnn(train_data: InputData,
 
     model = _create_cnn(input_shape=image_shape,
                         num_classes=num_classes,
-                        architecture_type=architecture_type)
+                        architecture_type=architecture_type,
+                        logger=logger)
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
     if logger.verbosity_level < 4:
         verbose = 0
     else:
-        verbose = 0
+        verbose = 2
 
     if epochs is None:
         epochs = 10
@@ -114,12 +117,21 @@ def fit_cnn(train_data: InputData,
     return model
 
 
-def predict_cnn(trained_model, predict_data: InputData) -> OutputData:
+def predict_cnn(trained_model, predict_data: InputData, output_mode:str = 'labels') -> OutputData:
     x_test, y_test = predict_data.features, predict_data.target
     x_test = x_test.astype("float32") / 255
     x_test = np.expand_dims(x_test, -1)
-    pred = trained_model.predict(x_test)
-    return pred
+    if output_mode == 'labels':
+        prediction = trained_model.predict(x_test)
+    elif output_mode in ['probs', 'full_probs', 'default']:
+        prediction = trained_model.predict_proba(x_test)
+        if predict_data.num_classes < 2:
+            raise NotImplementedError()
+        elif predict_data.num_classes == 2 and output_mode != 'full_probs':
+            prediction = prediction[:, 1]
+    else:
+        raise ValueError(f'Output model {output_mode} is not supported')
+    return prediction
 
 
 # TODO inherit this and similar from custom strategy
