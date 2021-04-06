@@ -1,7 +1,8 @@
 import math
-from deap import tools
 from random import choice, randint
 from typing import (Any, List)
+
+from deap import tools
 
 from fedot.core.utils import ComparableEnum as Enum
 

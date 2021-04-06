@@ -296,6 +296,7 @@ class Fedot:
         self.problem = self.train_data.task
 
         self.train_data = _define_data(ml_task=self.problem,
+                                       target=self.target_name,
                                        features=pre_history)
 
         self.current_model = TsForecastingChain(self.current_model.root_node)
@@ -396,7 +397,7 @@ def _define_data(ml_task: Task,
         if target is None:
             target = np.array([])
 
-        if isinstance(target, str):
+        if isinstance(target, str) and target in features.columns:
             target_array = features[target]
             del features[target]
         else:

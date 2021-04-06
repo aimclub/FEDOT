@@ -1,9 +1,8 @@
 from typing import Callable
 
-from fedot.core.composer.metrics import (Accuracy, ComputationTime, F1, Logloss,
-                                         MAE, MAPE, MSE, MSLE, Metric, NodeNum,
-                                         Precision, R2, RMSE, ROCAUC,
-                                         Silhouette, StructuralComplexity)
+from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
+                                         MAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
+                                         RMSE, ROCAUC, Silhouette, StructuralComplexity)
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -53,7 +52,7 @@ class MetricsRepository:
         ClassificationMetricsEnum.precision: Precision.get_value,
         ClassificationMetricsEnum.accuracy: Accuracy.get_value,
         ClassificationMetricsEnum.logloss: Logloss.get_value,
-        # regressin
+        # regression
         RegressionMetricsEnum.MAE: MAE.get_value,
         RegressionMetricsEnum.MSE: MSE.get_value,
         RegressionMetricsEnum.MSLE: MSLE.get_value,

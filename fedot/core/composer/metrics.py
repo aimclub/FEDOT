@@ -3,10 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
-                             mean_absolute_percentage_error,
-                             mean_squared_error, mean_squared_log_error,
-                             precision_score, r2_score, roc_auc_score,
+from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
+                             mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
 
 from fedot.core.chains.chain import Chain
