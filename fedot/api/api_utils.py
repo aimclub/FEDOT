@@ -28,7 +28,8 @@ metrics_mapping = {
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
     'silhouette': ClusteringMetricsEnum.silhouette,
-    'node_num': ComplexityMetricsEnum.node_num
+    'node_num': ComplexityMetricsEnum.node_num,
+    'computation_time': ComplexityMetricsEnum.computation_time
 }
 
 
@@ -114,7 +115,7 @@ def compose_fedot_model(train_data: InputData,
         primary=available_model_types,
         secondary=available_model_types, max_arity=max_arity,
         max_depth=max_depth, pop_size=pop_size, num_of_generations=num_of_generations,
-        max_lead_time=learning_time)
+        max_lead_time=learning_time, add_single_model_chains=False)
 
     # Create GP-based composer
     builder = GPComposerBuilder(task).with_requirements(composer_requirements). \

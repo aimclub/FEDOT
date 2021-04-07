@@ -1,6 +1,6 @@
 import sys
 from abc import abstractmethod
-from copy import copy
+from copy import deepcopy
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
@@ -46,7 +46,7 @@ class QualityMetric:
             results = chain.predict(reference_data, output_mode=cls.output_mode)
 
             if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
-                new_reference_data = copy(reference_data)
+                new_reference_data = deepcopy(reference_data)
                 new_reference_data.target = new_reference_data.target[~np.isnan(results.predict)]
                 results.predict = results.predict[~np.isnan(results.predict)]
                 metric = cls.metric(new_reference_data, results)
@@ -203,10 +203,37 @@ class StructuralComplexity(Metric):
 
 
 class NodeNum(Metric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return mean_squared_error(y_true=reference.target,
+                                  y_pred=predicted.predict, squared=True)
+
     @classmethod
-    def get_value(cls, chain: Chain, **args) -> float:
-        norm_constant = 10
-        return chain.length / norm_constant
+    def get_value(cls, chain: Chain, reference_data: InputData) -> float:
+        metric = cls.default_value
+        metrics = []
+        try:
+            for i in range(100):
+                new_reference_data = deepcopy(reference_data)
+                new_reference_data.target = new_reference_data.target + np.random.normal(0,
+                                                                                         np.var(reference_data.target),
+                                                                                         len(reference_data.target))
+                results = chain.predict(new_reference_data, output_mode=cls.output_mode)
+
+                if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
+                    new_reference_data = deepcopy(reference_data)
+                    new_reference_data.target = new_reference_data.target[~np.isnan(results.predict)]
+                    results.predict = results.predict[~np.isnan(results.predict)]
+                    metric = cls.metric(new_reference_data, results)
+                else:
+                    metric = cls.metric(reference_data, results)
+                metrics.append(metric)
+            metric = np.mean(metrics) * np.std(metrics) * 100
+        except Exception as ex:
+            print(f'Metric evaluation error: {ex}')
+        return metric
 
 
 class ComputationTime(Metric):

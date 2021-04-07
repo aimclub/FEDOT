@@ -27,14 +27,14 @@ def default_evo_params(problem):
     if problem == 'ts_forecasting':
         return {'max_depth': 1,
                 'max_arity': 2,
-                'pop_size': 20,
+                'pop_size': 30,
                 'num_of_generations': 200,
                 'learning_time': 2,
                 'preset': 'light'}
     else:
         return {'max_depth': 2,
                 'max_arity': 3,
-                'pop_size': 20,
+                'pop_size': 30,
                 'num_of_generations': 200,
                 'learning_time': 2,
                 'preset': 'light_tun'
