@@ -289,13 +289,13 @@ class GPChainOptimiser:
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
-        model_chains = []
+        operation_chains = []
         iter_number = 0
-        while len(model_chains) < pop_size:
+        while len(operation_chains) < pop_size:
             iter_number += 1
             chain = self.chain_generation_function()
             if constraint_function(chain):
-                model_chains.append(chain)
+                operation_chains.append(chain)
 
             if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(
@@ -303,31 +303,32 @@ class GPChainOptimiser:
                     f'Process is stopped')
                 break
 
-        return model_chains
+        return operation_chains
 
     def _best_single_operations(self, objective_function: Callable, num_best: int = 7, timer=None):
         is_process_skipped = False
-        single_models_inds = []
-        for model in self.requirements.primary:
-            single_models_ind = self.chain_class([self.primary_node_func(model)])
-            single_models_ind.fitness = calculate_objective(single_models_ind, objective_function,
-                                                            self.parameters.multi_objective)
-            if single_models_ind.fitness is not None:
-                single_models_inds.append(single_models_ind)
+        single_operations_inds = []
+        for operation in self.requirements.primary:
+            single_operations_ind = self.chain_class([self.primary_node_func(operation)])
+            single_operations_ind.fitness = calculate_objective(single_operations_ind,
+                                                                objective_function,
+                                                                self.parameters.multi_objective)
+            if single_operations_ind.fitness is not None:
+                single_operations_inds.append(single_operations_ind)
 
-            if single_models_inds:
+            if single_operations_inds:
                 if timer is not None:
                     if timer.is_time_limit_reached():
                         break
 
-        best_inds = sorted(single_models_inds, key=lambda ind: ind.fitness)
+        best_inds = sorted(single_operations_inds, key=lambda ind: ind.fitness)
         if is_process_skipped:
             self.population = [best_inds[0]]
         if timer is not None:
-            single_models_eval_time = timer.minutes_from_start
-            self.log.info(f'Single models evaluation time: {single_models_eval_time}')
-            timer.set_init_time(single_models_eval_time)
-        return best_inds[0], [i.nodes[0].model.model_type for i in best_inds][:num_best]
+            single_operations_eval_time = timer.minutes_from_start
+            self.log.info(f'Single operations evaluation time: {single_operations_eval_time}')
+            timer.set_init_time(single_operations_eval_time)
+        return best_inds[0], [i.nodes[0].operation.operation_type for i in best_inds][:num_best]
 
     def offspring_size(self, offspring_rate: float = None):
         default_offspring_rate = 0.5 if not offspring_rate else offspring_rate
@@ -350,7 +351,7 @@ class GPChainOptimiser:
         if not self.parameters.multi_objective:
             best = self.best_individual
 
-            if self.requirements.add_single_model_chains and \
+            if self.requirements.allow_single_operations and \
                     (self.best_single_operation.fitness <= best.fitness):
                 best = self.best_single_operation
         else:

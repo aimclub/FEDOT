@@ -66,12 +66,12 @@ def run_import_export_example(chain_path):
     print(f'Before export {prediction_before_export[:4]}')
 
     # Export it
-    chain.save_chain(path=chain_path)
+    chain.save(path=chain_path)
 
     # Import chain
     json_path_load = create_correct_path(chain_path)
     new_chain = Chain()
-    new_chain.load_chain(json_path_load)
+    new_chain.load(json_path_load)
 
     predicted_output_after_export = new_chain.predict(predict_input)
     prediction_after_export = np.array(predicted_output_after_export.predict)

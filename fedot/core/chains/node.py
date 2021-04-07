@@ -1,6 +1,5 @@
 from abc import ABC
 from copy import copy
-from datetime import timedelta
 from typing import List, Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -22,7 +21,6 @@ class Node(ABC):
                  log=None):
         self.nodes_from = nodes_from
         self.log = log
-        self.fitted_preprocessor = None
         self.fitted_operation = None
 
         if not log:
@@ -30,7 +28,7 @@ class Node(ABC):
         else:
             self.log = log
 
-        # Define appropriate model or data operation
+        # Define appropriate operation or data operation
         # TODO figure out is need to use "isinstance"
         self.strategy_operator = OperationFactory(operation_name=operation_type)
         self.operation = self.strategy_operator.get_operation()
@@ -65,13 +63,18 @@ class Node(ABC):
         """
         Run training process in the node
 
-        :param input_data: data used for operation training        """
+        :param input_data: data used for operation training
+        """
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
 
         if self.fitted_operation is None:
-            self.fitted_operation, model_predict = self.operation.fit(data=input_data)
+            self.fitted_operation, operation_predict = self.operation.fit(data=copied_input_data,
+                                                                          is_fit_chain_stage=True)
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       data=input_data)
+                                                       data=copied_input_data,
+                                                       is_fit_chain_stage=True)
 
         return operation_predict
 
@@ -80,13 +83,15 @@ class Node(ABC):
         Run prediction process in the node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for models (e.g. labels, probs, full_probs)
+        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
 
         operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                           data=input_data,
-                                           output_mode=output_mode,
-                                           is_fit_chain_stage=False)
+                                                   data=copied_input_data,
+                                                   output_mode=output_mode,
+                                                   is_fit_chain_stage=False)
         return operation_predict
 
     def __str__(self):
@@ -126,8 +131,7 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: str, node_data: dict = None,
-                 **kwargs):
+    def __init__(self, operation_type: str, node_data: dict = None, **kwargs):
         super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
 
         if node_data is None:
@@ -142,9 +146,9 @@ class PrimaryNode(Node):
         """
         Fit the operation located in the primary node
 
-        :param input_data: data used for model training
+        :param input_data: data used for operation training
         """
-        self.log.ext_debug(f'Trying to fit primary node with model: {self.model}')
+        self.log.ext_debug(f'Trying to fit primary node with operation: {self.operation}')
 
         if self.direct_set is True:
             input_data = self.node_data.get('fit')
@@ -160,7 +164,7 @@ class PrimaryNode(Node):
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        self.log.ext_debug(f'Predict in primary node by model: {self.model}')
+        self.log.ext_debug(f'Predict in primary node by operation: {self.operation}')
 
         if self.direct_set is True:
             input_data = self.node_data.get('predict')
@@ -179,7 +183,7 @@ class SecondaryNode(Node):
 
     :param operation_type: str type of the operation defined in operation repository
     :param nodes_from: parent nodes where data comes from
-    :param model: optional custom atomized_model
+    :param operation: optional custom atomized_operation
     :param kwargs: optional arguments (i.e. logger)
     """
 
@@ -195,7 +199,7 @@ class SecondaryNode(Node):
 
         :param input_data: data used for operation training
         """
-        self.log.ext_debug(f'Trying to fit secondary node with model: {self.model}')
+        self.log.ext_debug(f'Trying to fit secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
 
@@ -206,9 +210,9 @@ class SecondaryNode(Node):
         Predict using the operation located in the secondary node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for models (e.g. labels, probs, full_probs)
+        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        self.log.ext_debug(f'Obtain prediction in secondary node with model: {self.model}')
+        self.log.ext_debug(f'Obtain prediction in secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict')
@@ -224,7 +228,7 @@ class SecondaryNode(Node):
         if len(self.nodes_from) == 0:
             raise ValueError()
 
-        self.log.ext_debug(f'Fit all parent nodes in secondary node with model: {self.model}')
+        self.log.ext_debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 

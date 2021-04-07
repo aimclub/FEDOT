@@ -31,13 +31,14 @@ class ChainStructureAnalyze:
     :param chain: chain object to analyze
     :param train_data: data used for Chain training
     :param test_data: data used for Chain validation
-    :param approaches: methods applied to nodes to modify the chain or analyze certain models.\
-    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
+    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param metric: metric used for validation. Default: see MetricByTask
     :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes
     :param all_nodes: flag, used to choose all nodes to analyze.Default: False.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
+    :param interactive_mode: flag for interactive visualization or saving plots to file.
+    Default: False
     :param log: log: Log object to record messages
     """
 
@@ -80,18 +81,18 @@ class ChainStructureAnalyze:
         """
 
         nodes_results = dict()
-        model_types = []
+        operation_types = []
         for index in self.nodes_ids_to_analyze:
             node_result = NodeAnalysis(approaches=self.approaches, path_to_save=self.path_to_save). \
                 analyze(chain=self.chain, node_id=index,
                         train_data=self.train_data,
                         test_data=self.test_data,
                         is_save=False)
-            model_types.append(self.chain.nodes[index].model.model_type)
+            operation_types.append(self.chain.nodes[index].operation.operation_type)
 
-            nodes_results[f'id = {index}, model = {self.chain.nodes[index].model.model_type}'] = node_result
+            nodes_results[f'id = {index}, operation = {self.chain.nodes[index].operation.operation_type}'] = node_result
 
-        self._visualize_result_per_approach(nodes_results, model_types)
+        self._visualize_result_per_approach(nodes_results, operation_types)
         if len(self.nodes_ids_to_analyze) == len(self.chain.nodes):
             self._visualize_degree_correlation(nodes_results)
         self._save_results_to_json(nodes_results)

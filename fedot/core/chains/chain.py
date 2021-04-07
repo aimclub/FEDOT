@@ -52,9 +52,9 @@ class Chain:
         """
         Method used for training the chain without using cached information
 
-        :param input_data: data used for model training
+        :param input_data: data used for operation training
         """
-        # Clean all cache and fit all models
+        # Clean all cache and fit all operations
         self.log.info('Fit chain from scratch')
         self.unfit()
         self.fit(input_data, use_cache=False)
@@ -73,7 +73,7 @@ class Chain:
                 [new_data_param != self.fitted_on_data[param_name] for new_data_param, param_name in
                  zip(new_data_params, params_names)])
             if are_data_params_different:
-                info = 'Trained model cache is not actual because you are using new dataset for training. ' \
+                info = 'Trained operation cache is not actual because you are using new dataset for training. ' \
                        'Parameter use_cache value changed to False'
                 self.log.info(info)
                 cache_status = False
@@ -84,17 +84,16 @@ class Chain:
         """
             Run training process with time limit. Create
 
-            :param input_data: data used for model training
+            :param input_data: data used for operation training
             :param use_cache: flag defining whether use cache information about previous executions or not, default True
-            :param time: time constraint for model fitting process (seconds)
+            :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
         manager = Manager()
         process_state_dict = manager.dict()
-        fitted_models = manager.list()
-        fitted_preprocessors = manager.list()
+        fitted_operations = manager.list()
         p = Process(target=self._fit,
-                    args=(input_data, use_cache, process_state_dict, fitted_models, fitted_preprocessors),
+                    args=(input_data, use_cache, process_state_dict, fitted_operations),
                     kwargs={})
         p.start()
         p.join(time)
@@ -105,38 +104,31 @@ class Chain:
         self.fitted_on_data = process_state_dict['fitted_on_data']
         self.computation_time = process_state_dict['computation_time']
         for node_num, node in enumerate(self.nodes):
-            self.nodes[node_num].fitted_model = fitted_models[node_num]
-            self.nodes[node_num].fitted_preprocessor = fitted_preprocessors[node_num]
+            self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
     def _fit(self, input_data: InputData, use_cache=False, process_state_dict: Manager = None,
-             fitted_models: Manager = None, fitted_preprocessors: Manager = None):
+             fitted_operations: Manager = None):
         """
         Run training process in all nodes in chain starting with root.
 
-        :param input_data: data used for model training
+        :param input_data: data used for operation training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param process_state_dict: this dictionary is used for saving required chain parameters (which were changed
-        inside the process) in a case of model fit time control (when process created)
-        :param fitted_models: this list is used for saving fitted models of chain nodes
-        :param fitted_preprocessors: this list is used for saving fitted preprocessors
+        inside the process) in a case of operation fit time control (when process created)
+        :param fitted_operations: this list is used for saving fitted operations of chain nodes
         """
+
         use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
         if not use_cache:
             self.unfit()
 
-        if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
-            if input_data.task.task_params.make_future_prediction:
-                input_data.task.task_params.return_all_steps = True
-            # the make_future_prediction is useless for the fit stage
-            input_data.task.task_params.make_future_prediction = False
-
         if not use_cache or not self.fitted_on_data:
             self.update_fitted_on_data(input_data)
 
         with Timer(log=self.log) as t:
-            computation_time_update = not use_cache or not self.root_node.fitted_model or \
+            computation_time_update = not use_cache or not self.root_node.fitted_operation or \
                                       self.computation_time is None
 
             train_predicted = self.root_node.fit(input_data=input_data)
@@ -150,16 +142,15 @@ class Chain:
             process_state_dict['computation_time'] = self.computation_time
             process_state_dict['fitted_on_data'] = self.fitted_on_data
             for node in self.nodes:
-                fitted_models.append(node.fitted_model)
-                fitted_preprocessors.append(node.fitted_preprocessor)
+                fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Optional[InputData]=None, use_cache=True, time_constraint: Optional[timedelta] = None):
         """
         Run training process in all nodes in chain starting with root.
 
-        :param input_data: data used for model training
+        :param input_data: data used for operation training
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
-        :param time_constraint: time constraint for model fitting (seconds)
+        :param time_constraint: time constraint for operation fitting (seconds)
         """
         if not use_cache:
             self.unfit()
@@ -176,7 +167,7 @@ class Chain:
         Run the predict process in all nodes in chain starting with root.
 
         :param input_data: data for prediction
-        :param output_mode: desired form of output for models. Available options are:
+        :param output_mode: desired form of output for operations. Available options are:
                 'default' (as is),
                 'labels' (numbers of classes - for classification) ,
                 'probs' (probabilities - for classification =='default'),
@@ -185,7 +176,7 @@ class Chain:
         """
 
         if not self.is_fitted():
-            ex = 'Trained model cache is not actual or empty'
+            ex = 'Trained operation cache is not actual or empty'
             self.log.error(ex)
             raise ValueError(ex)
 
@@ -193,6 +184,7 @@ class Chain:
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
+                            loss_params: Callable,
                             input_data: Optional[InputData] = None,
                             iterations=50, max_lead_time: int = 5) -> 'Chain':
         """ Tune all hyperparameters of nodes simultaneously via black-box
@@ -206,7 +198,8 @@ class Chain:
                                  max_lead_time=max_lead_time)
         self.log.info('Start tuning of primary nodes')
         tuned_chain = chain_tuner.tune_chain(input_data=input_data,
-                                             loss_function=loss_function)
+                                             loss_function=loss_function,
+                                             loss_params=loss_params)
         self.log.info('Tuning was finished')
 
         return tuned_chain
@@ -266,7 +259,7 @@ class Chain:
         """
 
         def make_secondary_node_as_primary(node_child):
-            extracted_type = node_child.model.model_type
+            extracted_type = node_child.operation.operation_type
             new_primary_node = PrimaryNode(extracted_type)
             this_node_children = self.node_childs(node_child)
             for node in this_node_children:
@@ -299,13 +292,11 @@ class Chain:
         self.add_node(self_root_node_cached)
 
     def is_fitted(self):
-        return all([(node.fitted_model is not None and
-                     node.fitted_preprocessor is not None) for node in self.nodes])
+        return all([(node.fitted_operation is not None) for node in self.nodes])
 
     def unfit(self):
         for node in self.nodes:
-            node.fitted_model = None
-            node.fitted_preprocessor = None
+            node.fitted_operation = None
 
     def node_childs(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) and
@@ -318,11 +309,9 @@ class Chain:
         for node in self.nodes:
             cached_state = cache.get(node)
             if cached_state:
-                node.fitted_model = cached_state.model
-                node.fitted_preprocessor = cached_state.preprocessor
+                node.fitted_operation = cached_state.operation
             else:
-                node.fitted_model = None
-                node.fitted_preprocessor = None
+                node.fitted_operation = None
 
     def _sort_nodes(self):
         """layer by layer sorting"""
@@ -331,8 +320,8 @@ class Chain:
 
     def save(self, path: str):
         """
-        :param path to json file with model
-        :return: json containing a composite model description
+        :param path to json file with operation
+        :return: json containing a composite operation description
         """
         if not self.template:
             self.template = ChainTemplate(self, self.log)
@@ -341,7 +330,7 @@ class Chain:
 
     def load(self, path: str):
         """
-        :param path to json file with model
+        :param path to json file with operation
         """
         self.nodes = []
         self.template = ChainTemplate(self, self.log)

@@ -11,8 +11,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
@@ -52,7 +52,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_synthetic_ts_data_linear(forecast_length=1, max_window_size=10)
+        train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
         threshold = np.str(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')

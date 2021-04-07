@@ -7,22 +7,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from SALib.analyze.sobol import analyze as sobol_analyze
 from SALib.sample import saltelli
-from SALib.sample.latin import sample as lhc_sample
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
-from fedot.core.models.model_template import extract_model_params
+from fedot.core.operations.operation_template import extract_operation_params
 from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach
 
 
-class ModelAnalyze(NodeAnalyzeApproach):
+class OperationAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super(ModelAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
-        self.model_params = None
-        self.model_type = None
+        super(OperationAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
+        self.operation_params = None
+        self.operation_type = None
         self.problem = None
         self.analyze_method = None
         self.sample_method = None
@@ -43,16 +42,16 @@ class ModelAnalyze(NodeAnalyzeApproach):
         self.sample_method = sample_method_by_name.get(sample_method)
 
         # create problem
-        self.model_type: str = self._chain.nodes[node_id].model.model_type
-        self.model_params = model_params_with_bounds_by_model_name.get(self.model_type)
-        self.problem = _create_problem(self.model_params)
+        self.operation_type: str = self._chain.nodes[node_id].operation.operation_type
+        self.operation_params = operation_params_with_bounds_by_operation_name.get(self.operation_type)
+        self.problem = _create_problem(self.operation_params)
 
         # sample
         samples = self.sample(sample_size)
         converted_samples = _convert_sample_to_dict(self.problem, samples)
         clean_sample_variables(converted_samples)
 
-        response_matrix = self.get_model_response_matrix(converted_samples, node_id)
+        response_matrix = self.get_operation_response_matrix(converted_samples, node_id)
         indices = self.analyze_method(self.problem, samples, response_matrix)
         converted_to_json_indices = convert_results_to_json(problem=self.problem,
                                                             si=indices)
@@ -69,32 +68,33 @@ class ModelAnalyze(NodeAnalyzeApproach):
 
         return samples
 
-    def get_model_response_matrix(self, samples: List[dict], node_id: int):
-        model_response_matrix = []
+    def get_operation_response_matrix(self, samples: List[dict], node_id: int):
+        operation_response_matrix = []
         for sample in samples:
             chain = deepcopy(self._chain)
             chain.nodes[node_id].custom_params = sample
 
             chain.fit(self._train_data)
             prediction = chain.predict(self._test_data)
-            model_response_matrix.append(mean_squared_error(y_true=self._test_data.target,
-                                                            y_pred=prediction.predict))
+            mse_metric = mean_squared_error(y_true=self._test_data.target,
+                                            y_pred=prediction.predict)
+            operation_response_matrix.append(mse_metric)
 
-        return np.array(model_response_matrix)
+        return np.array(operation_response_matrix)
 
     def worker(self, params: List[dict], samples, node_id):
         # default values of param & loss
         param_name = list(params[0].keys())[0]
-        default_param_value = extract_model_params(self._chain.nodes[node_id]).get(param_name)
+        default_param_value = extract_operation_params(self._chain.nodes[node_id]).get(param_name)
 
         # percentage ratio
         samples = (samples - default_param_value) / default_param_value
-        response_matrix = self.get_model_response_matrix(params, node_id)
+        response_matrix = self.get_operation_response_matrix(params, node_id)
         response_matrix = (response_matrix - np.mean(response_matrix)) / (max(response_matrix) - min(response_matrix))
 
-        ModelAnalyze.lock.acquire()
+        OperationAnalyze.lock.acquire()
         self.manager_dict[f'{param_name}'] = [samples.reshape(1, -1)[0], response_matrix]
-        ModelAnalyze.lock.release()
+        OperationAnalyze.lock.release()
 
     def _visualize(self, data: dict):
         x_ticks_param = list()
@@ -118,7 +118,7 @@ class ModelAnalyze(NodeAnalyzeApproach):
         ax2.set_xticks(range(1, len(x_ticks_loss) + 1))
         ax2.set_xticklabels(x_ticks_loss)
 
-        plt.savefig(join(self._path_to_save, f'{self.model_type}_hp_sa.jpg'))
+        plt.savefig(join(self._path_to_save, f'{self.operation_type}_hp_sa.jpg'))
 
     def _one_at_a_time_analyze(self, node_id, samples: np.array):
         transposed_samples = samples.T
@@ -142,8 +142,8 @@ class ModelAnalyze(NodeAnalyzeApproach):
         self._visualize(data=self.manager_dict)
 
 
-def sobol_method(problem, samples, model_response) -> dict:
-    indices = sobol_analyze(problem, model_response, print_to_console=False)
+def sobol_method(problem, samples, operation_response) -> dict:
+    indices = sobol_analyze(problem, operation_response, print_to_console=False)
 
     return indices
 
@@ -225,7 +225,7 @@ sample_method_by_name = {
 
 }
 
-model_params_with_bounds_by_model_name = {
+operation_params_with_bounds_by_operation_name = {
     'xgboost': {
         'n_estimators': [10, 100],
         'max_depth': [1, 7],

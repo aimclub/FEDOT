@@ -32,7 +32,7 @@ def make_forecast(chain, train_input, predict_input, task):
 
     # Fit it
     start_time = timeit.default_timer()
-    chain.fit_from_scratch(train_input, verbose=True)
+    chain.fit_from_scratch(train_input)
     amount_of_seconds = timeit.default_timer()-start_time
 
     print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
@@ -184,7 +184,7 @@ def run_experiment_with_tuning(time_series, with_ar_chain=False, len_forecast=25
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../notebooks/time_series_forecasting/Sea_level.csv')
+    df = pd.read_csv('../notebooks/jupyter_media/time_series_forecasting/sea_level.csv')
     time_series = np.array(df['Level'])
 
     run_experiment_with_tuning(time_series,

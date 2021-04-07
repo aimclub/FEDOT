@@ -4,11 +4,10 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, composer_metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
@@ -109,9 +108,7 @@ class Fedot:
 
         if self.problem == 'ts_forecasting' and task_params is None:
             # TODO auto-estimate
-            self.task_params = TsForecastingParams(forecast_length=30,
-                                                   max_window_size=30,
-                                                   make_future_prediction=True)
+            self.task_params = TsForecastingParams(forecast_length=30)
 
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=self.task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=self.task_params),
@@ -279,7 +276,7 @@ class Fedot:
         self.train_data = _define_data(ml_task=self.problem,
                                        features=pre_history, is_predict=True)
 
-        self.current_model = TsForecastingChain(self.current_model.root_node)
+        self.current_model = Chain(self.current_model.root_node)
 
         last_ind = int(round(self.train_data.idx[-1]))
 
@@ -345,11 +342,11 @@ class Fedot:
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if metrics_mapping[metric_name] is NotImplemented:
+            if composer_metrics_mapping[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
                 prediction = self.prediction
-                metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
+                metric_cls = MetricsRepository().metric_class_by_id(composer_metrics_mapping[metric_name])
                 if metric_cls.output_mode == 'labels':
                     prediction = self.prediction_labels
                 metric_value = abs(metric_cls.metric(reference=self.test_data,

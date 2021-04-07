@@ -18,7 +18,7 @@ class ComposerRequirements:
     :attribute secondary: List of operation types (str) for Secondary Nodes
     :attribute max_lead_time: max time in minutes available for composition process
     :attribute max_depth: max depth of the result chain
-    :attribute max_chain_fit_time: time constraint for model fitting (minutes)
+    :attribute max_chain_fit_time: time constraint for operation fitting (minutes)
     :attribute max_arity: maximal number of parent for node
     :attribute min_arity: minimal number of parent for node
     :attribute allow_single_operations: allow to have chain with only one node

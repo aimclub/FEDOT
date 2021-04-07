@@ -21,7 +21,7 @@ def make_forecast(chain):
     """
     Function for predicting values in a time series
 
-    :param chain: TsForecastingChain object
+    :param chain: Chain object
 
     :return predicted_values: numpy array, forecast of model
     """
@@ -152,6 +152,6 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 
 if __name__ == '__main__':
-    run_exogenous_experiment(path_to_file='../notebooks/time_series_forecasting/Sea_level.csv',
+    run_exogenous_experiment(path_to_file='../notebooks/jupyter_media/time_series_forecasting/sea_level.csv',
                              len_forecast=250,
                              with_exog=True)

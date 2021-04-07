@@ -5,10 +5,10 @@ from collections import namedtuple
 
 from fedot.core.utils import default_fedot_data_dir
 
-CachedState = namedtuple('CachedState', 'preprocessor model')
+CachedState = namedtuple('CachedState', 'operation')
 
 
-class ModelsCache:
+class OperationsCache:
     def __init__(self, db_path=None, clear_exiting=True):
         if not db_path:
             self.db_path = f'{str(default_fedot_data_dir())}/{str(uuid.uuid4())}'
@@ -19,16 +19,14 @@ class ModelsCache:
             self.clear()
 
     def save_node(self, node):
-        if node.fitted_model is not None:
+        if node.fitted_operation is not None:
             _save_cache_for_node(self.db_path, node.descriptive_id,
-                                 CachedState(node.fitted_preprocessor,
-                                             node.fitted_model))
+                                 CachedState(node.fitted_operation))
 
     def save_chain(self, chain):
         for node in chain.nodes:
             _save_cache_for_node(self.db_path, node.descriptive_id,
-                                 CachedState(node.fitted_preprocessor,
-                                             node.fitted_model))
+                                 CachedState(node.fitted_operation))
 
     def clear(self):
         for ext in ['bak', 'dir', 'dat']:
@@ -36,14 +34,14 @@ class ModelsCache:
                 os.remove(f'{self.db_path}.{ext}')
 
     def get(self, node):
-        found_model = _load_cache_for_node(self.db_path, node.descriptive_id)
+        found_operation = _load_cache_for_node(self.db_path, node.descriptive_id)
         # TODO: Add node and node from cache "fitted on data" field comparison
-        return found_model
+        return found_operation
 
 
 def _save_cache_for_node(db_path: str, structural_id: str,
                          cache_from_node: CachedState):
-    if cache_from_node.model is not None:
+    if cache_from_node.operation is not None:
         # if node successfully fitted
         with shelve.open(db_path) as cache:
             cache[structural_id] = cache_from_node

@@ -13,9 +13,9 @@ from fedot.core.repository.operation_types_repository import (
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.define_metric_by_task import MetricByTask
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
-metrics_mapping = {
+composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
     'roc_auc': ClassificationMetricsEnum.ROCAUC,
     'f1': ClassificationMetricsEnum.f1,
@@ -58,7 +58,7 @@ def filter_models_by_preset(task, preset: str):
     excluded_models_dict = {'light': ['mlp', 'svc'],
                             'light_tun': ['mlp', 'svc']}
 
-    available_model_types, _ = OperationTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     if preset in excluded_models_dict.keys():
         excluded_models = excluded_models_dict[preset]
@@ -80,22 +80,40 @@ def compose_fedot_model(train_data: InputData,
                         num_of_generations: int,
                         learning_time: int = 5,
                         available_model_types: list = None,
+                        composer_metric=None,
                         with_tuning=False,
-                        metric=None
+                        tuner_metric=None
                         ):
+    """ Function for composing FEDOT chain model
+
+    :param train_data:
+    :param task:
+    :param logger:
+    :param max_depth:
+    :param max_arity:
+    :param pop_size:
+    :param num_of_generations:
+    :param learning_time:
+    :param available_model_types:
+    :param composer_metric:
+    :param with_tuning:
+    :param tuner_metric:
+
+    :return chain_gp_composed:
+    """
     # the choice of the metric for the chain quality assessment during composition
-    if metric is None:
+    if composer_metric is None:
         metric_function = MetricByTask(task.task_type).metric_cls.get_value
     else:
-        metric_id = metrics_mapping.get(metric, None)
+        metric_id = composer_metrics_mapping.get(composer_metric, None)
         if metric_id is None:
-            raise ValueError(f'Incorrect metric {metric}')
+            raise ValueError(f'Incorrect composer metric {composer_metric}')
         metric_function = MetricsRepository().metric_by_id(metric_id)
 
     learning_time = datetime.timedelta(minutes=learning_time)
 
     if available_model_types is None:
-        available_model_types, _ = OperationTypesRepository().suitable_model(task_type=task.task_type)
+        available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
                    f'Set of candidate models: {available_model_types}. Composing time limit: {learning_time}')
@@ -118,7 +136,20 @@ def compose_fedot_model(train_data: InputData,
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
-        chain_gp_composed.fine_tune_primary_nodes(input_data=train_data)
+
+        if tuner_metric is None:
+            tune_metrics = TunerMetricByTask(task.task_type)
+            tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+        else:
+            # TODO add ability to use metrics
+            metric_id = None
+            if metric_id is None:
+                raise ValueError(f'Incorrect composer metric {composer_metric}')
+
+        # Tune all nodes in the chain
+        chain_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
+                                              loss_params=loss_params,
+                                              input_data=train_data)
 
     logger.message('Model composition finished')
 

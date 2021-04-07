@@ -77,7 +77,7 @@ class Data:
         messages = df_text['text'].astype('U').tolist()
 
         features = np.array(messages)
-        target = df_text[label]
+        target = np.array(df_text[label])
         idx = [index for index in range(len(target))]
 
         return InputData(idx=idx, features=features,
@@ -94,8 +94,8 @@ class Data:
 
         df_text = TextBatchLoader(path=files_path).extract()
 
-        features = df_text['text']
-        target = df_text[label]
+        features = np.array(df_text['text'])
+        target = np.array(df_text[label])
         idx = [index for index in range(len(target))]
 
         return InputData(idx=idx, features=features,
@@ -174,7 +174,7 @@ def split_time_series(data, task):
     end_forecast = start_forecast + forecast_length
     idx_for_predict = np.arange(start_forecast, end_forecast)
 
-    # Prepare data to train the model
+    # Prepare data to train the operation
     train_data = InputData(idx=idx_for_train,
                            features=x_train,
                            target=y_train,
@@ -216,7 +216,7 @@ def split_table(data, task, split_ratio, with_shuffle=False):
     idx_for_train = np.arange(0, len(x_train))
     idx_for_predict = np.arange(0, len(x_test))
 
-    # Prepare data to train the model
+    # Prepare data to train the operation
     train_data = InputData(idx=idx_for_train,
                            features=x_train,
                            target=y_train,

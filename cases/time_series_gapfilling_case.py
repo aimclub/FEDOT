@@ -69,7 +69,7 @@ def get_composite_chain():
     """
     The function returns prepared chain of 5 models
 
-    :return: TsForecastingChain object
+    :return: Chain object
     """
 
     node_1 = PrimaryNode('lagged')

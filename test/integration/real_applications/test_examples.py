@@ -57,11 +57,7 @@ def test_log_example():
 
 
 def test_chain_tuning_example():
-    project_root_path = str(project_root())
-    train_file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
-    test_file_path = train_file_path
-
-    train_data, test_data = get_case_train_test_data(train_file_path, test_file_path)
+    train_data, test_data = get_case_train_test_data()
 
     # Chain composition
     chain = get_simple_chain()

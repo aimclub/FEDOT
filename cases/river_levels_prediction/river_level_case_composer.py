@@ -130,7 +130,7 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
             max_depth=8, pop_size=10, num_of_generations=5,
             crossover_prob=0.8, mutation_prob=0.8,
             max_lead_time=datetime.timedelta(minutes=5),
-            allow_single_operations=True)
+            allow_single_operations=False)
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)

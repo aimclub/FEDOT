@@ -26,7 +26,6 @@ class OperationTemplate:
         self.operation_instance = None
         self.fitted_operation = None
         self.data_fit = None
-        self.preprocessor = None
 
     def __eq__(self, other):
         return self.id == other.id

@@ -7,7 +7,7 @@ from sklearn.datasets import load_breast_cancer
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.cache import ModelsCache
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -159,7 +159,7 @@ def chain_fifth():
 def test_cache_actuality_after_model_change(data_setup):
     """The non-affected nodes has actual cache after changing the model"""
 
-    cache = ModelsCache()
+    cache = OperationsCache()
 
     chain = chain_first()
     train, _ = data_setup
@@ -182,7 +182,7 @@ def test_cache_actuality_after_model_change(data_setup):
 
 def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     """The non-affected nodes has actual cache after changing the subtree to other pre-fitted subtree"""
-    cache = ModelsCache()
+    cache = OperationsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -204,7 +204,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
 
 def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     """ The non-affected nodes has actual cache after changing the primary node to pre-fitted subtree"""
-    cache = ModelsCache()
+    cache = OperationsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -226,7 +226,7 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
 
 
 def test_cache_historical_state_using(data_setup):
-    cache = ModelsCache()
+    cache = OperationsCache()
     train, _ = data_setup
     chain = chain_first()
 
@@ -257,7 +257,7 @@ def test_cache_historical_state_using(data_setup):
 
 def test_multi_chain_caching_with_cache(data_setup):
     train, _ = data_setup
-    cache = ModelsCache()
+    cache = OperationsCache()
 
     main_chain = chain_second()
     other_chain = chain_first()
@@ -277,7 +277,7 @@ def test_multi_chain_caching_with_cache(data_setup):
     assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
 
     # check the same case with another chains
-    cache = ModelsCache()
+    cache = OperationsCache()
 
     main_chain = chain_fourth()
 

@@ -8,7 +8,7 @@ from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from fedot.core.models.atomized_model import AtomizedModel
+from fedot.core.operations.atomized_operation import AtomizedOperation
 from test.unit.utilities.test_chain_import_export import create_func_delete_files, create_correct_path
 
 
@@ -39,55 +39,56 @@ def create_chain() -> Chain:
     return chain
 
 
-def create_atomized_model() -> AtomizedModel:
+def create_atomized_operation() -> AtomizedOperation:
     """
-    Example, how to create Atomized model.
+    Example, how to create Atomized operation.
     """
     chain = create_chain()
-    atomized_model = AtomizedModel(chain)
+    atomized_operation = AtomizedOperation(chain)
 
-    return atomized_model
+    return atomized_operation
 
 
-def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
+def create_atomized_operation_with_several_atomized_operations() -> AtomizedOperation:
     chain = Chain()
-    node_atomized_model_primary = PrimaryNode(model_type=create_atomized_model())
-    node_atomized_model_secondary = SecondaryNode(model_type=create_atomized_model())
-    node_atomized_model_secondary_second = SecondaryNode(model_type=create_atomized_model())
-    node_atomized_model_secondary_third = SecondaryNode(model_type=create_atomized_model())
+    node_atomized_operation_primary = PrimaryNode(operation_type=create_atomized_operation())
+    node_atomized_operation_secondary = SecondaryNode(operation_type=create_atomized_operation())
+    node_atomized_operation_secondary_second = SecondaryNode(operation_type=create_atomized_operation())
+    node_atomized_operation_secondary_third = SecondaryNode(operation_type=create_atomized_operation())
 
-    node_atomized_model_secondary.nodes_from = [node_atomized_model_primary]
-    node_atomized_model_secondary_second.nodes_from = [node_atomized_model_primary]
-    node_atomized_model_secondary_third.nodes_from = [node_atomized_model_secondary,
-                                                      node_atomized_model_secondary_second]
+    node_atomized_operation_secondary.nodes_from = [node_atomized_operation_primary]
+    node_atomized_operation_secondary_second.nodes_from = [node_atomized_operation_primary]
+    node_atomized_operation_secondary_third.nodes_from = [node_atomized_operation_secondary,
+                                                      node_atomized_operation_secondary_second]
 
-    chain.add_node(node_atomized_model_secondary_third)
-    atomized_model = AtomizedModel(chain)
+    chain.add_node(node_atomized_operation_secondary_third)
+    atomized_operation = AtomizedOperation(chain)
 
-    return atomized_model
+    return atomized_operation
 
 
-def create_chain_with_several_nested_atomized_model() -> Chain:
+def create_chain_with_several_nested_atomized_operation() -> Chain:
     chain = Chain()
-    node_atomized_model = PrimaryNode(model_type=create_atomized_model_with_several_atomized_models())
+    atomized_op = create_atomized_operation_with_several_atomized_operations()
+    node_atomized_operation = PrimaryNode(operation_type=atomized_op)
 
-    node_atomized_model_secondary = SecondaryNode(model_type=create_atomized_model())
-    node_atomized_model_secondary.nodes_from = [node_atomized_model]
+    node_atomized_operation_secondary = SecondaryNode(operation_type=create_atomized_operation())
+    node_atomized_operation_secondary.nodes_from = [node_atomized_operation]
 
     node_knn = SecondaryNode('knn')
     node_knn.custom_params = {'n_neighbors': 9}
-    node_knn.nodes_from = [node_atomized_model]
+    node_knn.nodes_from = [node_atomized_operation]
 
     node_knn_second = SecondaryNode('knn')
     node_knn_second.custom_params = {'n_neighbors': 5}
-    node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
+    node_knn_second.nodes_from = [node_atomized_operation, node_atomized_operation_secondary, node_knn]
 
-    node_atomized_model_secondary_second = \
-        SecondaryNode(model_type=create_atomized_model_with_several_atomized_models())
+    node_atomized_operation_secondary_second = \
+        SecondaryNode(operation_type=create_atomized_operation_with_several_atomized_operations())
 
-    node_atomized_model_secondary_second.nodes_from = [node_knn_second]
+    node_atomized_operation_secondary_second.nodes_from = [node_knn_second]
 
-    chain.add_node(node_atomized_model_secondary_second)
+    chain.add_node(node_atomized_operation_secondary_second)
 
     return chain
 
@@ -101,7 +102,7 @@ def create_data_for_train():
 
 
 def test_save_load_atomized_chain_correctly():
-    chain = create_chain_with_several_nested_atomized_model()
+    chain = create_chain_with_several_nested_atomized_operation()
 
     json_actual = chain.save('test_save_load_atomized_chain_correctly')
 
@@ -118,7 +119,7 @@ def test_save_load_atomized_chain_correctly():
 
 
 def test_save_load_fitted_atomized_chain_correctly():
-    chain = create_chain_with_several_nested_atomized_model()
+    chain = create_chain_with_several_nested_atomized_operation()
 
     train_data, test_data = create_data_for_train()
     chain.fit(train_data)
@@ -145,17 +146,17 @@ def test_save_load_fitted_atomized_chain_correctly():
     assert aft_tun_mse <= bfr_tun_mse
 
 
-def test_fit_predict_atomized_model_correctly():
+def test_fit_predict_atomized_operation_correctly():
     train_data, test_data = create_data_for_train()
 
-    chain = create_chain_with_several_nested_atomized_model()
-    atomized_model = AtomizedModel(chain)
+    chain = create_chain_with_several_nested_atomized_operation()
+    atomized_operation = AtomizedOperation(chain)
 
     chain.fit(train_data)
     predicted_values = chain.predict(test_data)
 
-    atomized_model.fit(train_data)
-    predicted_atomized_values = atomized_model.predict(None, test_data)
+    atomized_operation.fit(train_data)
+    predicted_atomized_values = atomized_operation.predict(None, test_data)
 
     bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
     aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
@@ -163,23 +164,23 @@ def test_fit_predict_atomized_model_correctly():
     assert aft_tun_mse == bfr_tun_mse
 
 
-def test_create_empty_atomized_model_raised_exception():
+def test_create_empty_atomized_operation_raised_exception():
     with pytest.raises(Exception):
         empty_chain = Chain()
-        AtomizedModel(empty_chain)
+        AtomizedOperation(empty_chain)
 
 
-def test_fine_tune_atomized_model_correct():
+def test_fine_tune_atomized_operation_correct():
     train_data, test_data = create_data_for_train()
 
-    fine_tuned_atomized_model = create_atomized_model()
-    dummy_atomized_model = create_atomized_model()
+    fine_tuned_atomized_operation = create_atomized_operation()
+    dummy_atomized_operation = create_atomized_operation()
 
-    fine_tuned_atomized_model.fine_tune(train_data, iterations=5, max_lead_time=timedelta(minutes=0.01))
-    dummy_atomized_model.fit(train_data)
+    fine_tuned_atomized_operation.fine_tune(train_data, iterations=5, max_lead_time=timedelta(minutes=0.01))
+    dummy_atomized_operation.fit(train_data)
 
-    after_tuning_predicted = fine_tuned_atomized_model.predict(None, test_data)
-    before_tuning_predicted = dummy_atomized_model.predict(None, test_data)
+    after_tuning_predicted = fine_tuned_atomized_operation.predict(None, test_data)
+    before_tuning_predicted = dummy_atomized_operation.predict(None, test_data)
 
     aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_tuning_predicted)
     bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=before_tuning_predicted)
