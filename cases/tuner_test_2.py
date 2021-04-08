@@ -5,7 +5,7 @@ warnings.filterwarnings('ignore')
 import datetime
 
 from cases.tuner_test_supplementary import *
-from fedot.core.models.tuning.hyperopt_tune.tuners import SequentialTuner, ChainTuner
+from fedot.core.models.tuning.hyperopt_tune.tuners import ChainTuner
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.metrics import make_scorer
@@ -96,9 +96,9 @@ def run_experiment(tuner_iterations, folder_to_save):
     second_class_chain = class_chain_2()
     third_class_chain = class_chain_3()
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
-        result_df = run_pnn_classification(chain=chain_struct,
-                                           iterations=all_iterations,
-                                           tuner_function=tuner_iterations_function_class)
+        result_df = run_pnn_1_classification(chain=chain_struct,
+                                             iterations=all_iterations,
+                                             tuner_function=tuner_iterations_function_class)
 
         if j == 0:
             case_class_report = result_df
@@ -112,6 +112,9 @@ def run_experiment(tuner_iterations, folder_to_save):
 
 
 if __name__ == '__main__':
+    ####################################################
+    #              New tuning - ChainTuner             #
+    ####################################################
     run_experiment(tuner_iterations=20,
                    folder_to_save='D:/ITMO/tuning_exp_2/chain_tuner/20')
 

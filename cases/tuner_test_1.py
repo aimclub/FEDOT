@@ -39,46 +39,28 @@ def tuner_function_100(chain, train_input):
     return chain
 
 
-def run_experiment(tuner_iterations_function, folder_to_save):
+def run_classification_experiment(tuner_iterations_function,
+                                  folder_to_save,
+                                  dataset_number):
+    name_class_by_number = {1: 'Pnn_1_classification.csv',
+                            2: 'Pnn_2_classification.csv',
+                            3: 'Pnn_3_classification.csv'}
+    # Amount of launches
     all_iterations = 100
-
-    #####################
-    #  Regression case  #
-    #####################
-    # case_name = 'Pnn_regression.csv'
-    # print(f'Processing case for file {case_name}...')
-    #
-    # first_reg_chain = reg_chain_1()
-    # second_reg_chain = reg_chain_2()
-    # third_reg_chain = reg_chain_3()
-    # for j, chain_struct in enumerate([first_reg_chain, second_reg_chain, third_reg_chain]):
-    #     result_df = run_pnn_regression(chain=chain_struct,
-    #                                    iterations=all_iterations,
-    #                                    tuner_function=tuner_iterations_function)
-    #
-    #     if j == 0:
-    #         case_reg_report = result_df
-    #     else:
-    #         frames = [case_reg_report, result_df]
-    #         case_reg_report = pd.concat(frames)
-    #
-    # # Save to file
-    # case_reg_file = os.path.join(folder_to_save, case_name)
-    # case_reg_report.to_csv(case_reg_file, index=False)
 
     #########################
     #  Classification case  #
     #########################
-    case_name = 'Pnn_classification.csv'
+    case_name = name_class_by_number.get(dataset_number)
     print(f'Processing case for file {case_name}...')
 
     first_class_chain = class_chain_1()
     second_class_chain = class_chain_2()
     third_class_chain = class_chain_3()
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
-        result_df = run_pnn_classification(chain=chain_struct,
-                                           iterations=all_iterations,
-                                           tuner_function=tuner_iterations_function)
+        result_df = run_pnn_1_classification(chain=chain_struct,
+                                             iterations=all_iterations,
+                                             tuner_function=tuner_iterations_function)
 
         if j == 0:
             case_class_report = result_df
@@ -91,9 +73,62 @@ def run_experiment(tuner_iterations_function, folder_to_save):
     case_class_report.to_csv(case_class_file, index=False)
 
 
-if __name__ == '__main__':
-    run_experiment(tuner_iterations_function=tuner_function_20,
-                   folder_to_save='D:/ITMO/tuning_exp_2/old_tuner/20')
+def run_regression_experiment(tuner_iterations_function, folder_to_save,
+                              dataset_number):
+    name_reg_by_number = {1: 'Pnn_1_regression.csv',
+                          2: 'Pnn_2_regression.csv',
+                          3: 'Pnn_3_regression.csv'}
+    # Amount of launches
+    all_iterations = 100
 
-    run_experiment(tuner_iterations_function=tuner_function_100,
-                   folder_to_save='D:/ITMO/tuning_exp_2/old_tuner/100')
+    #####################
+    #  Regression case  #
+    #####################
+    case_name = name_reg_by_number.get(dataset_number)
+    print(f'Processing case for file {case_name}...')
+
+    first_reg_chain = reg_chain_1()
+    second_reg_chain = reg_chain_2()
+    third_reg_chain = reg_chain_3()
+    for j, chain_struct in enumerate([first_reg_chain, second_reg_chain, third_reg_chain]):
+        result_df = run_pnn_1_regression(chain=chain_struct,
+                                         iterations=all_iterations,
+                                         tuner_function=tuner_iterations_function)
+
+        if j == 0:
+            case_reg_report = result_df
+        else:
+            frames = [case_reg_report, result_df]
+            case_reg_report = pd.concat(frames)
+
+    # Save to file
+    case_reg_file = os.path.join(folder_to_save, case_name)
+    case_reg_report.to_csv(case_reg_file, index=False)
+
+
+if __name__ == '__main__':
+    ####################################################
+    #       Old tuning - Serial isolated tuning        #
+    ####################################################
+
+    # 3 case for every task
+    for dataset_number in [1, 2, 3]:
+        # Run old tuner with 20 iterations for regression task
+        run_regression_experiment(tuner_iterations_function=tuner_function_20,
+                       folder_to_save='old_tuner/20',
+                       dataset_number=dataset_number)
+
+        # Run old tuner with 100 iterations for regression task
+        run_regression_experiment(tuner_iterations_function=tuner_function_100,
+                                  folder_to_save='old_tuner/100',
+                                  dataset_number=dataset_number)
+
+        # Run old tuner with 20 iterations for classification task
+        run_classification_experiment(tuner_iterations_function=tuner_function_20,
+                                      folder_to_save='old_tuner/20',
+                                      dataset_number=dataset_number)
+
+        # Run old tuner with 100 iterations for classification task
+        run_classification_experiment(tuner_iterations_function=tuner_function_100,
+                                      folder_to_save='old_tuner/100',
+                                      dataset_number=dataset_number)

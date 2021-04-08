@@ -33,86 +33,6 @@ from fedot.utilities.synthetic.data import regression_dataset, classification_da
 np.random.seed(1)
 
 
-def get_regression_dataset(features_options, samples_amount=250,
-                           features_amount=5):
-    """
-    Prepares four numpy arrays with different scale features and target
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param features_options: The dictionary containing features options in key-value
-    format:
-        - informative: the amount of informative features;
-        - bias: bias term in the underlying linear model;
-    :return x_data_train: features to train
-    :return y_data_train: target to train
-    :return x_data_test: features to test
-    :return y_data_test: target to test
-    """
-
-    x_data, y_data = regression_dataset(samples_amount=samples_amount,
-                                        features_amount=features_amount,
-                                        features_options=features_options,
-                                        n_targets=1,
-                                        noise=0.0, shuffle=True)
-
-    # Changing the scale of the data
-    for i, coeff in zip(range(0, features_amount),
-                        np.random.randint(1, 100, features_amount)):
-        # Get column
-        feature = np.array(x_data[:, i])
-
-        # Change scale for this feature
-        rescaled = feature * coeff
-        x_data[:, i] = rescaled
-
-    # Train and test split
-    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data,
-                                                        test_size=0.3)
-
-    return x_train, y_train, x_test, y_test
-
-
-def get_classification_dataset(features_options, samples_amount=250,
-                               features_amount=5, classes_amount=2):
-    """
-    Prepares four numpy arrays with different scale features and target
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param classes_amount: The amount of classes in the dataset.
-    :param features_options: The dictionary containing features options in key-value
-    format:
-        - informative: the amount of informative features;
-        - redundant: the amount of redundant features;
-        - repeated: the amount of features that repeat the informative features;
-        - clusters_per_class: the amount of clusters for each class;
-    :return x_data_train: features to train
-    :return y_data_train: target to train
-    :return x_data_test: features to test
-    :return y_data_test: target to test
-    """
-
-    x_data, y_data = classification_dataset(samples_amount=samples_amount,
-                                            features_amount=features_amount,
-                                            classes_amount=classes_amount,
-                                            features_options=features_options)
-
-    # Changing the scale of the data
-    for i, coeff in zip(range(0, features_amount),
-                        np.random.randint(1, 100, features_amount)):
-        # Get column
-        feature = np.array(x_data[:, i])
-
-        # Change scale for this feature
-        rescaled = feature * coeff
-        x_data[:, i] = rescaled
-
-    # Train and test split
-    x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(x_data, y_data,
-                                                                            test_size=0.3)
-
-    return x_data_train, y_data_train, x_data_test, y_data_test
-
-
 def reg_chain_1():
     """ Return chain with the following structure:
     knnreg \
@@ -235,91 +155,7 @@ def class_chain_3():
     return chain
 
 
-def get_real_case_regression_dataset():
-    """ Function returns InputData for algorithm launch """
-    file_path = '../cases/data/river_levels/encoded_data_levels.csv'
-    df = pd.read_csv(file_path)
-    features = np.array(df[['month_enc_1', 'month_enc_2', 'month_enc_3', 'month_enc_4', 'month_enc_5',
-                            'month_enc_6', 'month_enc_7', 'month_enc_8', 'month_enc_9', 'month_enc_10',
-                            'month_enc_11', 'month_enc_12', 'level_station_1', 'mean_temp', 'precip']])
-    target = np.array(df['level_station_2'])
-    x_train, x_test, y_train, y_test = train_test_split(features, target,
-                                                        test_size=0.2,
-                                                        shuffle=True,
-                                                        random_state=10)
-
-    # Define regression task
-    task = Task(TaskTypesEnum.regression)
-
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train,
-                            target=y_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
-
-    return train_input, predict_input, y_test
-
-
-def get_synthetic_case_regression_dataset():
-    features_options = {'informative': 1, 'bias': 0.0}
-    x_train, y_train, x_test, y_test = get_regression_dataset(features_options=features_options,
-                                                              samples_amount=250,
-                                                              features_amount=2)
-
-    # Define regression task
-    task = Task(TaskTypesEnum.regression)
-
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train,
-                            target=y_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
-
-    return train_input, predict_input, y_test
-
-
-def get_synthetic_case_classification_dataset():
-    features_options = {'informative': 1, 'redundant': 0,
-                        'repeated': 0, 'clusters_per_class': 1}
-    x_train, y_train, x_test, y_test = get_classification_dataset(features_options=features_options,
-                                                                  samples_amount=250,
-                                                                  features_amount=2,
-                                                                  classes_amount=2)
-
-    # Define regression task
-    task = Task(TaskTypesEnum.classification)
-
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train,
-                            target=y_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
-
-    return train_input, predict_input, y_test
-
-
-def get_pnn_regression_dataset():
+def get_pnn_1_regression_dataset():
     """ Function returns InputData for algorithm launch """
     file_path = '../cases/data/pnn_ml/529_pollen.csv'
     df = pd.read_csv(file_path)
@@ -349,7 +185,17 @@ def get_pnn_regression_dataset():
     return train_input, predict_input, y_test
 
 
-def get_pnn_classification_dataset():
+def get_pnn_2_regression_dataset():
+    # TODO to implement
+    pass
+
+
+def get_pnn_3_regression_dataset():
+    # TODO to implement
+    pass
+
+
+def get_pnn_1_classification_dataset():
     """ Function returns InputData for algorithm launch """
     file_path = '../cases/data/pnn_ml/wine_quality_red.csv'
     df = pd.read_csv(file_path)
@@ -381,169 +227,17 @@ def get_pnn_classification_dataset():
     return train_input, predict_input, y_test
 
 
-def run_rivers_case_regression(chain, iterations, tuner_function):
-    """ Function start real case regression example
-
-    :param chain: chain to process
-    :param iterations: amount of iterations to repeat
-    :param tuner_function: function which use chain and give tuned chain after
-    """
-
-    # Get structure of the chain
-    obtained_operations = []
-    for node in chain.nodes:
-        obtained_operations.append(str(node))
-
-    train_input, predict_input, y_test = get_real_case_regression_dataset()
-    y_test = np.ravel(y_test)
-
-    maes_before_tuning = []
-    maes_after_tuning = []
-    ids = []
-    chain_structures = []
-    for i in range(0, iterations):
-        print(f'Iteration {i}')
-
-        chain.fit_from_scratch(train_input)
-        # Predict
-        predicted_values = chain.predict(predict_input)
-        predictions_before_tuning = predicted_values.predict
-
-        mae_before_tuning = mean_absolute_error(y_test, predictions_before_tuning)
-        print(f'MAE before tuning - {mae_before_tuning:.3f}')
-
-        # Tuning the chain
-        tuned_chain = tuner_function(deepcopy(chain), train_input)
-
-        # Predictions after tuning
-        predicted_values = tuned_chain.predict(predict_input)
-        predictions_after_tuning = predicted_values.predict
-
-        mae_after_tuning = mean_absolute_error(y_test, predictions_after_tuning)
-        print(f'MAE after tuning - {mae_after_tuning:.3f}\n')
-
-        maes_before_tuning.append(mae_before_tuning)
-        maes_after_tuning.append(mae_after_tuning)
-        ids.append(i)
-        chain_structures.append(obtained_operations)
-
-    result = pd.DataFrame({'Chain': chain_structures,
-                           'Iteration': ids,
-                           'MAE before tuning': maes_before_tuning,
-                           'MAE after tuning': maes_after_tuning})
-
-    return result
+def get_pnn_2_classification_dataset():
+    # TODO to implement
+    pass
 
 
-def run_synthetic_case_regression(chain, iterations, tuner_function):
-    """ Function start synthetic case regression example
-
-    :param chain: chain to process
-    :param iterations: amount of iterations to repeat
-    :param tuner_function: function which use chain and give tuned chain after
-    """
-
-    # Get structure of the chain
-    obtained_operations = []
-    for node in chain.nodes:
-        obtained_operations.append(str(node))
-
-    train_input, predict_input, y_test = get_synthetic_case_regression_dataset()
-    y_test = np.ravel(y_test)
-
-    maes_before_tuning = []
-    maes_after_tuning = []
-    ids = []
-    chain_structures = []
-    for i in range(0, iterations):
-        print(f'Iteration {i}')
-
-        chain.fit_from_scratch(train_input)
-        # Predict
-        predicted_values = chain.predict(predict_input)
-        predictions_before_tuning = predicted_values.predict
-
-        mae_before_tuning = mean_absolute_error(y_test, predictions_before_tuning)
-        print(f'MAE before tuning - {mae_before_tuning:.3f}')
-
-        # Tuning the chain
-        tuned_chain = tuner_function(deepcopy(chain), train_input)
-
-        # Predictions after tuning
-        predicted_values = tuned_chain.predict(predict_input)
-        predictions_after_tuning = predicted_values.predict
-
-        mae_after_tuning = mean_absolute_error(y_test, predictions_after_tuning)
-        print(f'MAE after tuning - {mae_after_tuning:.3f}\n')
-
-        maes_before_tuning.append(mae_before_tuning)
-        maes_after_tuning.append(mae_after_tuning)
-        ids.append(i)
-        chain_structures.append(obtained_operations)
-
-    result = pd.DataFrame({'Chain': chain_structures,
-                           'Iteration': ids,
-                           'MAE before tuning': maes_before_tuning,
-                           'MAE after tuning': maes_after_tuning})
-
-    return result
+def get_pnn_3_classification_dataset():
+    # TODO to implement
+    pass
 
 
-def run_synthetic_case_classification(chain, iterations, tuner_function):
-    """ Function start synthetic case classification example
-
-    :param chain: chain to process
-    :param iterations: amount of iterations to repeat
-    :param tuner_function: function which use chain and give tuned chain after
-    """
-
-    # Get structure of the chain
-    obtained_operations = []
-    for node in chain.nodes:
-        obtained_operations.append(str(node))
-
-    train_input, predict_input, y_test = get_synthetic_case_classification_dataset()
-    y_test = np.ravel(y_test)
-
-    rocs_before_tuning = []
-    rocs_after_tuning = []
-    ids = []
-    chain_structures = []
-    for i in range(0, iterations):
-        print(f'Iteration {i}')
-
-        chain.fit_from_scratch(train_input)
-        # Predict
-        predicted_values = chain.predict(predict_input)
-        predictions_before_tuning = predicted_values.predict
-
-        roc_before_tuning = roc_auc(y_test, predictions_before_tuning)
-        print(f'ROC AUC before tuning - {roc_before_tuning:.3f}')
-
-        # Tuning the chain
-        tuned_chain = tuner_function(deepcopy(chain), train_input)
-
-        # Predictions after tuning
-        predicted_values = tuned_chain.predict(predict_input)
-        predictions_after_tuning = predicted_values.predict
-
-        roc_after_tuning = roc_auc(y_test, predictions_after_tuning)
-        print(f'ROC AUC after tuning - {roc_after_tuning:.3f}\n')
-
-        rocs_before_tuning.append(roc_before_tuning)
-        rocs_after_tuning.append(roc_after_tuning)
-        ids.append(i)
-        chain_structures.append(obtained_operations)
-
-    result = pd.DataFrame({'Chain': chain_structures,
-                           'Iteration': ids,
-                           'ROC AUC before tuning': rocs_before_tuning,
-                           'ROC AUC after tuning': rocs_after_tuning})
-
-    return result
-
-
-def run_pnn_regression(chain, iterations, tuner_function):
+def run_pnn_1_regression(chain, iterations, tuner_function):
     """ Function start pnn regression case
 
     :param chain: chain to process
@@ -556,7 +250,7 @@ def run_pnn_regression(chain, iterations, tuner_function):
     for node in chain.nodes:
         obtained_operations.append(str(node))
 
-    train_input, predict_input, y_test = get_pnn_regression_dataset()
+    train_input, predict_input, y_test = get_pnn_1_regression_dataset()
     y_test = np.ravel(y_test)
 
     maes_before_tuning = []
@@ -603,7 +297,17 @@ def run_pnn_regression(chain, iterations, tuner_function):
     return result
 
 
-def run_pnn_classification(chain, iterations, tuner_function):
+def run_pnn_2_regression(chain, iterations, tuner_function):
+    # TODO to implement
+    pass
+
+
+def run_pnn_3_regression(chain, iterations, tuner_function):
+    # TODO to implement
+    pass
+
+
+def run_pnn_1_classification(chain, iterations, tuner_function):
     """ Function start pnn classification case
 
     :param chain: chain to process
@@ -616,7 +320,7 @@ def run_pnn_classification(chain, iterations, tuner_function):
     for node in chain.nodes:
         obtained_operations.append(str(node))
 
-    train_input, predict_input, y_test = get_pnn_classification_dataset()
+    train_input, predict_input, y_test = get_pnn_1_classification_dataset()
     y_test = np.ravel(y_test)
 
     rocs_before_tuning = []
@@ -662,3 +366,13 @@ def run_pnn_classification(chain, iterations, tuner_function):
                            'Time': times})
 
     return result
+
+
+def run_pnn_2_classification(chain, iterations, tuner_function):
+    # TODO to implement
+    pass
+
+
+def run_pnn_3_classification(chain, iterations, tuner_function):
+    # TODO to implement
+    pass

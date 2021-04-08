@@ -42,12 +42,13 @@ class HyperoptAdapter(TunerAdapter):
                                                             random_state=1)
         try:
             self.model_to_adapt.fit(x_train, y_train)
-            predicted = self.model_to_adapt.predict(x_test)
 
             if self.data.task.task_type == TaskTypesEnum.regression:
-                metric = mean_absolute_error(predicted, y_test)
+                predicted = self.model_to_adapt.predict(x_test)
+                metric = mean_absolute_error(y_test, predicted)
             elif self.data.task.task_type == TaskTypesEnum.classification:
-                metric = roc_auc(predicted, y_test, multi_class='ovr')
+                predicted = self.model_to_adapt.predict_proba(x_test)
+                metric = roc_auc(y_test, predicted, multi_class='ovr')
         except ValueError:
             if self.greater_is_better():
                 metric = -999999.0

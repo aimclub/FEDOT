@@ -92,9 +92,9 @@ def run_experiment(tuner_iterations, folder_to_save):
     # case_reg_file = os.path.join(folder_to_save, case_name)
     # case_reg_report.to_csv(case_reg_file, index=False)
 
-    #########################
-    #  Classification case  #
-    #########################
+    ####################################################
+    #            New tuning - SequentialTuner          #
+    ####################################################
     case_name = 'Pnn_classification.csv'
     print(f'Processing case for file {case_name}...')
 
@@ -102,9 +102,9 @@ def run_experiment(tuner_iterations, folder_to_save):
     second_class_chain = class_chain_2()
     third_class_chain = class_chain_3()
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
-        result_df = run_pnn_classification(chain=chain_struct,
-                                           iterations=all_iterations,
-                                           tuner_function=tuner_iterations_function_class)
+        result_df = run_pnn_1_classification(chain=chain_struct,
+                                             iterations=all_iterations,
+                                             tuner_function=tuner_iterations_function_class)
 
         if j == 0:
             case_class_report = result_df
