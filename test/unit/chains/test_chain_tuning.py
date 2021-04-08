@@ -57,14 +57,14 @@ def test_fine_tune_primary_nodes(data_fixture, request):
     # Chain composition
     chain = get_regr_chain()
 
-    # Before tuning prediction
+    # Before hp_tuning prediction
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    # Chain tuning
+    # Chain hp_tuning
     chain.fine_tune_primary_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=10)
 
-    # After tuning prediction
+    # After hp_tuning prediction
     chain.fit_from_scratch(train_data)
     after_tuning_predicted = chain.predict(test_data)
 
@@ -86,11 +86,11 @@ def test_fine_tune_all_nodes(data_fixture, request):
     # Chain composition
     chain = get_class_chain()
 
-    # Before tuning prediction
+    # Before hp_tuning prediction
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
 
-    # root node tuning
+    # root node hp_tuning
     chain.fine_tune_all_nodes(train_data, max_lead_time=timedelta(minutes=1), iterations=30)
     chain.fit_from_scratch(train_data)
     after_tun_root_node_predicted = chain.predict(test_data)

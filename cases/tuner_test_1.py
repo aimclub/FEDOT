@@ -45,6 +45,9 @@ def run_classification_experiment(tuner_iterations_function,
     name_class_by_number = {1: 'Pnn_1_classification.csv',
                             2: 'Pnn_2_classification.csv',
                             3: 'Pnn_3_classification.csv'}
+    run_class_by_number = {1: run_pnn_1_classification,
+                           2: run_pnn_2_classification,
+                           3: run_pnn_3_classification}
     # Amount of launches
     all_iterations = 100
 
@@ -58,9 +61,10 @@ def run_classification_experiment(tuner_iterations_function,
     second_class_chain = class_chain_2()
     third_class_chain = class_chain_3()
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
-        result_df = run_pnn_1_classification(chain=chain_struct,
-                                             iterations=all_iterations,
-                                             tuner_function=tuner_iterations_function)
+        launch = run_class_by_number.get(dataset_number)
+        result_df = launch(chain=chain_struct,
+                           iterations=all_iterations,
+                           tuner_function=tuner_iterations_function)
 
         if j == 0:
             case_class_report = result_df
@@ -78,6 +82,9 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
     name_reg_by_number = {1: 'Pnn_1_regression.csv',
                           2: 'Pnn_2_regression.csv',
                           3: 'Pnn_3_regression.csv'}
+    run_reg_by_number = {1: run_pnn_1_regression,
+                         2: run_pnn_2_regression,
+                         3: run_pnn_3_regression}
     # Amount of launches
     all_iterations = 100
 
@@ -91,9 +98,10 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
     second_reg_chain = reg_chain_2()
     third_reg_chain = reg_chain_3()
     for j, chain_struct in enumerate([first_reg_chain, second_reg_chain, third_reg_chain]):
-        result_df = run_pnn_1_regression(chain=chain_struct,
-                                         iterations=all_iterations,
-                                         tuner_function=tuner_iterations_function)
+        launch = run_reg_by_number.get(dataset_number)
+        result_df = launch(chain=chain_struct,
+                           iterations=all_iterations,
+                           tuner_function=tuner_iterations_function)
 
         if j == 0:
             case_reg_report = result_df
@@ -108,15 +116,15 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
 
 if __name__ == '__main__':
     ####################################################
-    #       Old tuning - Serial isolated tuning        #
+    #       Old hp_tuning - Serial isolated tuning     #
     ####################################################
 
     # 3 case for every task
     for dataset_number in [1, 2, 3]:
         # Run old tuner with 20 iterations for regression task
         run_regression_experiment(tuner_iterations_function=tuner_function_20,
-                       folder_to_save='old_tuner/20',
-                       dataset_number=dataset_number)
+                                  folder_to_save='old_tuner/20',
+                                  dataset_number=dataset_number)
 
         # Run old tuner with 100 iterations for regression task
         run_regression_experiment(tuner_iterations_function=tuner_function_100,

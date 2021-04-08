@@ -116,22 +116,22 @@ class Chain:
         """
         Optimize hyperparameters in primary nodes models
 
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         :param verbose: flag used for status printing to console, default False
         """
         # Select all primary nodes
-        # Perform fine-tuning for each model in node
+        # Perform fine-hp_tuning for each model in node
         if verbose:
-            self.log.info('Start tuning of primary nodes')
+            self.log.info('Start hp_tuning of primary nodes')
 
         all_primary_nodes = [node for node in self.nodes if isinstance(node, PrimaryNode)]
         for node in all_primary_nodes:
             node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
         if verbose:
-            self.log.info('End tuning')
+            self.log.info('End hp_tuning')
 
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5),
@@ -145,13 +145,13 @@ class Chain:
         :param verbose: flag used for status printing to console, default False
         """
         if verbose:
-            self.log.info('Start tuning of chain')
+            self.log.info('Start hp_tuning of chain')
 
         node = self.root_node
         node.fine_tune(input_data, max_lead_time=max_lead_time, iterations=iterations)
 
         if verbose:
-            self.log.info('End tuning')
+            self.log.info('End hp_tuning')
 
     def add_node(self, new_node: Node):
         """

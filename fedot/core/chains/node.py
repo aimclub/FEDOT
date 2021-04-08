@@ -143,9 +143,9 @@ class Node(ABC):
         """
         Run the process of hyperparameter optimization for the node
 
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         """
 
         transformed = self._transform(input_data)
@@ -320,9 +320,9 @@ class SecondaryNode(Node):
         """
         Run the process of hyperparameter optimization for the node
 
-        :param recursive: flag to initiate the tuning in the parent nodes or not, default: True
-        :param input_data: data used for tuning
-        :param max_lead_time: max time available for tuning process
+        :param recursive: flag to initiate the hp_tuning in the parent nodes or not, default: True
+        :param input_data: data used for hp_tuning
+        :param max_lead_time: max time available for hp_tuning process
         :param iterations: max number of iterations
         :param verbose: flag used for status printing to console, default True
         """

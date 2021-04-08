@@ -103,7 +103,7 @@ def run_experiment(file_path, chain, file_to_save):
         preds = predicted_values.predict
         y_data_test = np.ravel(y_data_test)
         first_mae = mean_absolute_error(y_data_test, preds)
-        print(f'MAE before tuning - {first_mae:.2f}')
+        print(f'MAE before hp_tuning - {first_mae:.2f}')
 
         obtained_chain.fine_tune_all_nodes(train_input,
                                            max_lead_time=datetime.timedelta(minutes=2),
@@ -129,8 +129,8 @@ def run_experiment(file_path, chain, file_to_save):
 
     report = pd.DataFrame({'Chain': obt_chains,
                            'Depth': depths,
-                           'MAE before tuning': maes_first,
-                           'MAE after tuning': maes})
+                           'MAE before hp_tuning': maes_first,
+                           'MAE after hp_tuning': maes})
     report.to_csv(file_to_save, index=False)
 
 

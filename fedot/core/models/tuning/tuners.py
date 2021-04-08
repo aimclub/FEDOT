@@ -18,13 +18,13 @@ TUNER_ERROR_PREFIX = 'Unsuccessful fit because of'
 
 class Tuner:
     """
-    Base class for tuning strategy
+    Base class for hp_tuning strategy
 
     :param trained_model: trained model object
     :param tune_data: data used for hyperparameter searching
     :param dict params_range: search space for hyperparameters
     :param int cross_val_fold_num: number of folds used in cross validation
-    :param time_limit: max time available for tuning process
+    :param time_limit: max time available for hp_tuning process
     :param int iterations: max number of iterations
     :param Log log: Log object to record messages
     """
@@ -92,7 +92,7 @@ class Tuner:
 
 class SklearnTuner(Tuner):
     """
-    Base tuning strategy used for sklearn models
+    Base hp_tuning strategy used for sklearn models
 
     :param search_strategy: strategy used for hyperparameter searching (i.e. random, Bayes, etc.)
     """
@@ -127,7 +127,7 @@ class SklearnTuner(Tuner):
 
 class SklearnRandomTuner(SklearnTuner):
     """
-    Sklearn tuning strategy using RandomSearchCV
+    Sklearn hp_tuning strategy using RandomSearchCV
     """
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
@@ -141,7 +141,7 @@ class SklearnRandomTuner(SklearnTuner):
 
 class SklearnGridSearchTuner(SklearnTuner):
     """
-    Sklearn tuning strategy using GridSearchCV
+    Sklearn hp_tuning strategy using GridSearchCV
     """
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
@@ -154,7 +154,7 @@ class SklearnGridSearchTuner(SklearnTuner):
 
 class SklearnBayesSearchCV(SklearnTuner):
     """
-    Sklearn tuning strategy using BayesSearchCV
+    Sklearn hp_tuning strategy using BayesSearchCV
     """
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
@@ -168,7 +168,7 @@ class SklearnBayesSearchCV(SklearnTuner):
 
 class SklearnCustomRandomTuner(Tuner):
     """
-    Sklearn tuning strategy using customized version of RandomSearch with cross validation
+    Sklearn hp_tuning strategy using customized version of RandomSearch with cross validation
     """
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
@@ -218,7 +218,7 @@ class ForecastingCustomRandomTuner:
         :param dict params_range: search space for hyperparameters
         :param sict default_params: default values of model hyperparameters
         :param int iterations: max number of iterations
-        :return: best parameters found via tuning
+        :return: best parameters found via hp_tuning
         :rtype: dict
         """
         tune_train_data, tune_test_data = train_test_data_setup(tune_data, 0.5)

@@ -15,16 +15,16 @@ class Tune:
         self.log = log
         self.verbose = verbose
 
-    @start_end_log_decorator(start_msg='Starting tuning primary nodes',
-                             end_msg='Primary nodes tuning is finished')
+    @start_end_log_decorator(start_msg='Starting hp_tuning primary nodes',
+                             end_msg='Primary nodes hp_tuning is finished')
     def fine_tune_primary_nodes(self, input_data: InputData, iterations: int = 30,
                                 max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters of models in primary nodes
 
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
@@ -35,16 +35,16 @@ class Tune:
 
         return self.chain
 
-    @start_end_log_decorator(start_msg='Starting tuning root node',
-                             end_msg='Root node tuning is finished')
+    @start_end_log_decorator(start_msg='Starting hp_tuning root node',
+                             end_msg='Root node hp_tuning is finished')
     def fine_tune_root_node(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters in the root node
 
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
@@ -55,16 +55,16 @@ class Tune:
 
         return self.chain
 
-    @start_end_log_decorator(start_msg='Starting tuning all nodes',
-                             end_msg='All nodes tuning is finished')
+    @start_end_log_decorator(start_msg='Starting hp_tuning all nodes',
+                             end_msg='All nodes hp_tuning is finished')
     def fine_tune_all_nodes(self, input_data: InputData, iterations: int = 30,
                             max_lead_time: timedelta = timedelta(minutes=5)):
         """
         Optimize hyperparameters of models in all nodes
 
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """
@@ -74,8 +74,8 @@ class Tune:
 
         return self.chain
 
-    @start_end_log_decorator(start_msg='Starting tuning chosen node',
-                             end_msg='Chosen node tuning is finished')
+    @start_end_log_decorator(start_msg='Starting hp_tuning chosen node',
+                             end_msg='Chosen node hp_tuning is finished')
     def fine_tune_certain_node(self, model_id, input_data: InputData, iterations: int = 30,
                                max_lead_time: timedelta = timedelta(minutes=5)):
         """
@@ -84,9 +84,9 @@ class Tune:
 
         :param int model_id: number of the certain model in the chain.
         Look for it in exported json file of your model.
-        :param input_data: data used for tuning
+        :param input_data: data used for hp_tuning
         :param iterations: max number of iterations
-        :param max_lead_time: max time available for tuning process
+        :param max_lead_time: max time available for hp_tuning process
         :param verbose: flag used for status printing to console, default False
         :return: updated chain object
         """

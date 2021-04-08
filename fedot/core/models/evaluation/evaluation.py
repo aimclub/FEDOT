@@ -86,7 +86,7 @@ class EvaluationStrategy:
 
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
+        :param max_lead_time: max time(seconds) for hp_tuning evaluation
         :return:
         """
         raise NotImplementedError()
@@ -178,7 +178,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
+        :param max_lead_time: max time(seconds) for hp_tuning evaluation
         :return tuple(object, dict): model with found hyperparameters and dictionary with found hyperparameters
         """
         trained_model = self.fit(train_data=train_data)
@@ -281,7 +281,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
         :param train_data: data used for hyperparameter searching
         :param iterations: max number of iterations evaluable for hyperparameter optimization
-        :param max_lead_time: max time(seconds) for tuning evaluation
+        :param max_lead_time: max time(seconds) for hp_tuning evaluation
         :return:
         """
         raise NotImplementedError()

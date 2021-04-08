@@ -43,10 +43,10 @@ def chain_tuning(nodes_to_tune: str, chain: Chain, train_data: InputData,
     for iteration in range(local_iter):
         print(f'current local iteration {iteration}')
 
-        # Chain tuning
+        # Chain hp_tuning
         chain_tune_strategy(train_data, iterations=tuner_iter_num)
 
-        # After tuning prediction
+        # After hp_tuning prediction
         chain.fit(train_data)
         after_tuning_predicted = chain.predict(test_data)
 
@@ -66,14 +66,14 @@ if __name__ == '__main__':
     # Chain composition
     chain = get_simple_chain()
 
-    # Before tuning prediction
+    # Before hp_tuning prediction
     chain.fit(train_data, use_cache=False)
     before_tuning_predicted = chain.predict(test_data)
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target,
                               y_score=before_tuning_predicted.predict)
 
     local_iter = 5
-    # Chain tuning
+    # Chain hp_tuning
     after_tune_roc_auc, several_iter_scores_test = chain_tuning(nodes_to_tune='primary',
                                                                 chain=chain,
                                                                 train_data=train_data,
