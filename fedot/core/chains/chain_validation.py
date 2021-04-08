@@ -8,8 +8,8 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -118,9 +118,9 @@ def has_no_conflicts_with_data_flow(chain: Chain):
                 if operation_names[0] in forbidden_parents_combination:
                     raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations')
             else:
-                # Common operations from parent nodes and forbidden repository
+                # Common data operations from parent nodes and forbidden repository
                 common = set(operation_names) & forbidden_parents_combination
-                if len(common) > 0:
+                if len(common) > 1:
                     raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
     return True
 

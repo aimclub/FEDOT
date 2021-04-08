@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
 
-from fedot.core.log import Log, default_log
-
 import numpy as np
+
+from fedot.core.log import Log, default_log
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class HyperoptTuner(ABC):
@@ -65,8 +66,12 @@ class HyperoptTuner(ABC):
         chain.fit_from_scratch(train_input)
 
         # Make prediction
-        predicted_values = chain.predict(predict_input)
-        preds = np.ravel(np.array(predicted_values.predict))
+        if train_input.task.task_type == TaskTypesEnum.classification:
+            predicted_labels = chain.predict(predict_input)
+            preds = np.array(predicted_labels.predict)
+        else:
+            predicted_values = chain.predict(predict_input)
+            preds = np.ravel(np.array(predicted_values.predict))
 
         # Calculate metric
         if loss_params is None:
@@ -163,7 +168,11 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     if loss_params is None:
         metric = loss_function(target, target)
     else:
-        metric = loss_function(target, target, **loss_params)
+        try:
+            metric = loss_function(target, target, **loss_params)
+        except Exception:
+            # Multiclass classification task
+            metric = 1
     if int(round(metric)) == 0:
         return False
     else:

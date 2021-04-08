@@ -60,9 +60,9 @@ def test_eval_strategy_logreg(data_setup):
 
 def test_node_str():
     # given
-    model_type = 'logit'
-    test_model_node = PrimaryNode(model_type=model_type)
-    expected_node_description = model_type
+    operation_type = 'logit'
+    test_model_node = PrimaryNode(operation_type=operation_type)
+    expected_node_description = operation_type
 
     # when
     actual_node_description = str(test_model_node)
@@ -73,9 +73,9 @@ def test_node_str():
 
 def test_node_repr():
     # given
-    model_type = 'logit'
-    test_model_node = PrimaryNode(model_type=model_type)
-    expected_node_description = model_type
+    operation_type = 'logit'
+    test_model_node = PrimaryNode(operation_type=operation_type)
+    expected_node_description = operation_type
 
     # when
     actual_node_description = repr(test_model_node)

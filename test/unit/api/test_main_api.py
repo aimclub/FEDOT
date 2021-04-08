@@ -11,8 +11,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_regression import get_synthetic_regression_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
@@ -76,9 +76,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 10
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', composer_params=composer_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length,
-                                                  max_window_size=forecast_length,
-                                                  make_future_prediction=True))
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
     ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)

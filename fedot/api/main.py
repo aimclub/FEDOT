@@ -4,7 +4,8 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, composer_metrics_mapping,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset,
+                                 composer_metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
@@ -285,7 +286,7 @@ class Fedot:
                               data_type=DataTypesEnum.ts,
                               task=self.problem)
 
-        self.prediction = self.current_model.forecast(initial_data=self.train_data, supplementary_data=supp_data)
+        self.prediction = self.current_model.predict(input_data=self.train_data)
 
         if save_predictions:
             save_predict(self.prediction)

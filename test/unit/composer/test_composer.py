@@ -23,7 +23,6 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.chains.test_chain_comparison import chain_first
-from test.unit.chains.test_chain_tuning import get_complex_class_chain
 
 
 def _to_numerical(categorical_ids: np.ndarray):
@@ -78,16 +77,21 @@ def test_fixed_structure_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types = ['logit', 'lda', 'knn']
+    available_operation_types = ['logit', 'lda', 'knn']
 
     metric_function = ClassificationMetricsEnum.ROCAUC
 
-    req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
+    req = GPComposerRequirements(primary=available_operation_types, secondary=available_operation_types,
                                  pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5,
                                  allow_single_operations=False)
 
-    reference_chain = get_complex_class_chain()
+    # Prepare init chain
+    first = PrimaryNode(operation_type='xgboost')
+    second = PrimaryNode(operation_type='scaling')
+    final = SecondaryNode(operation_type='logit', nodes_from=[first, second])
+    reference_chain = Chain(final)
+
     builder = FixedStructureComposerBuilder(task=Task(TaskTypesEnum.classification)).with_initial_chain(
         reference_chain).with_metrics(metric_function).with_requirements(req)
     composer = builder.build()
@@ -288,15 +292,14 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
                                  max_chain_fit_time=datetime.timedelta(minutes=5),
-                                 add_single_model_chains=False)
+                                 allow_single_operations=False)
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser_parameters(optimiser_parameters).with_cache()
     composer = builder.build()
     train_data, test_data = train_test_data_setup(data,
-                                                  sample_split_ration_for_tasks[data.task.task_type],
-                                                  task=data.task)
+                                                  sample_split_ration_for_tasks[data.task.task_type])
     composer.compose_chain(data=dataset_to_compose, is_visualise=True)
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)

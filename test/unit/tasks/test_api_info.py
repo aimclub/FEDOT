@@ -1,3 +1,4 @@
+from fedot.api.help import operations_for_task, print_models_info, print_data_operations_info
 
 
 def test_api_help_correct():

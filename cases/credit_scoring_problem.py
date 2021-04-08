@@ -108,4 +108,12 @@ def get_scoring_data():
     file_path_test = 'cases/data/scoring/scoring_test.csv'
     full_path_test = os.path.join(str(project_root()), file_path_test)
 
-    run_credit_scoring_problem(full_path_train, full_path_test, is_visualise=True)
+    return full_path_train, full_path_test
+
+
+if __name__ == '__main__':
+    full_path_train, full_path_test = get_scoring_data()
+    run_credit_scoring_problem(full_path_train,
+                               full_path_test,
+                               is_visualise=True,
+                               cache_path='credit_scoring_problem_cache')

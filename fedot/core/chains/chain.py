@@ -1,18 +1,17 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable
 from multiprocessing import Manager, Process
+from typing import Callable
 from typing import List, Optional, Union
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (Node, PrimaryNode, SecondaryNode)
+from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.composer.timer import Timer
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
-from fedot.core.chains.tuning.unified import ChainTuner
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -119,13 +118,16 @@ class Chain:
         :param fitted_operations: this list is used for saving fitted operations of chain nodes
         """
 
-        use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
+        # InputData was set directly to the primary nodes
+        if input_data is None:
+            use_cache = False
+        else:
+            use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
 
-        if not use_cache:
-            self.unfit()
-
-        if not use_cache or not self.fitted_on_data:
-            self.update_fitted_on_data(input_data)
+            if not use_cache or not self.fitted_on_data:
+                # Don't use previous information
+                self.unfit()
+                self.update_fitted_on_data(input_data)
 
         with Timer(log=self.log) as t:
             computation_time_update = not use_cache or not self.root_node.fitted_operation or \
@@ -184,7 +186,7 @@ class Chain:
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
-                            loss_params: Callable,
+                            loss_params: Callable = None,
                             input_data: Optional[InputData] = None,
                             iterations=50, max_lead_time: int = 5) -> 'Chain':
         """ Tune all hyperparameters of nodes simultaneously via black-box

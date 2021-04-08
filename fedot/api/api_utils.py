@@ -149,7 +149,8 @@ def compose_fedot_model(train_data: InputData,
         # Tune all nodes in the chain
         chain_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
                                               loss_params=loss_params,
-                                              input_data=train_data)
+                                              input_data=train_data,
+                                              iterations=20)
 
     logger.message('Model composition finished')
 

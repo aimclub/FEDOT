@@ -1,16 +1,14 @@
 import datetime
 import os
 import platform
-import pytest
 import time
-
-import numpy as np
-import pandas as pd
-
 from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
+import numpy as np
+import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc
 
@@ -20,7 +18,6 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
-
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
 
@@ -330,7 +327,7 @@ def test_delete_primary_node_with_redirection():
     # when
     chain.delete_node(first)
 
-    new_primary_node = [node for node in chain.nodes if node.model.operation_type == 'knn'][0]
+    new_primary_node = [node for node in chain.nodes if node.operation.operation_type == 'knn'][0]
 
     # then
     assert len(chain.nodes) == 3

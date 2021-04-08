@@ -59,6 +59,9 @@ class Node(ABC):
         full_path += f'/{node_label}'
         return full_path
 
+    def unfit(self):
+        self.fitted_operation = None
+
     def fit(self, input_data: InputData) -> OutputData:
         """
         Run training process in the node

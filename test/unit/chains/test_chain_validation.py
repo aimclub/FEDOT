@@ -118,7 +118,7 @@ def chain_with_isolated_components():
 def chain_with_incorrect_root_operation():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='direct_data_model',
+    final = SecondaryNode(operation_type='scaling',
                           nodes_from=[first, second])
 
     chain = Chain(final)
