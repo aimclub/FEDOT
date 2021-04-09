@@ -25,8 +25,8 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 def default_evo_params(problem):
     if problem == 'ts_forecasting':
-        return {'max_depth': 1,
-                'max_arity': 2,
+        return {'max_depth': 2,
+                'max_arity': 3,
                 'pop_size': 30,
                 'num_of_generations': 200,
                 'learning_time': 2,
@@ -138,7 +138,8 @@ class Fedot:
         self.metric_name = default_test_metric_dict[self.problem]
         self.problem = task_dict[self.problem]
 
-        if preset is None and 'preset' in self.composer_params:
+        if (preset is None and 'preset' in self.composer_params
+                and 'available_model_types' not in self.composer_params):
             preset = self.composer_params['preset']
 
         if 'preset' in self.composer_params:

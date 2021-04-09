@@ -220,6 +220,7 @@ class NodeNum(Metric):
                 new_reference_data.target = new_reference_data.target + np.random.normal(0,
                                                                                          np.var(reference_data.target),
                                                                                          len(reference_data.target))
+                new_reference_data.features = new_reference_data.target
                 results = chain.predict(new_reference_data, output_mode=cls.output_mode)
 
                 if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:

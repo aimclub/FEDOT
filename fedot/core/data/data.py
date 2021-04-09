@@ -68,6 +68,8 @@ class Data:
 
         if features is not None:
             features = ImputationStrategy().fit(features).apply(features)
+        else:
+            features = copy(target)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 

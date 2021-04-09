@@ -86,6 +86,11 @@ class ChainTemplate:
             os.makedirs(absolute_path)
 
         chain_template_dict = self.convert_to_dict()
+
+        for model_template in chain_template_dict['nodes']:
+            if 'estimator' in model_template['params']:
+                del model_template['params']['estimator']
+
         json_data = json.dumps(chain_template_dict)
 
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
