@@ -100,7 +100,7 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 
-def filter_models_by_preset(task, preset: str):
+def filter_operations_by_preset(task, preset: str):
     """ Function filter operations by preset, remove "heavy" operations and save
     appropriate ones
     """

@@ -4,7 +4,7 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_operations_by_preset,
                                  composer_metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
@@ -128,7 +128,7 @@ class Fedot:
             del self.composer_params['preset']
 
         if preset is not None:
-            available_operations = filter_models_by_preset(self.problem, preset)
+            available_operations = filter_operations_by_preset(self.problem, preset)
             self.composer_params['available_operations'] = available_operations
             self.composer_params['with_tuning'] = '_tun' in preset or preset is None
 

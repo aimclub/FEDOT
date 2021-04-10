@@ -14,7 +14,8 @@ from test.unit.utilities.test_chain_import_export import create_func_delete_file
 
 @pytest.fixture(scope='session', autouse=True)
 def preprocessing_files_before_and_after_tests(request):
-    paths = ['test_save_load_atomized_chain_correctly', 'test_save_load_fitted_atomized_chain_correctly_loaded',
+    paths = ['test_save_load_atomized_chain_correctly',
+             'test_save_load_fitted_atomized_chain_correctly_loaded',
              'test_save_load_fitted_atomized_chain_correctly']
 
     delete_files = create_func_delete_files(paths)
