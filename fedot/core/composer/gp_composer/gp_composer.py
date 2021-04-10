@@ -18,7 +18,7 @@ from fedot.core.composer.optimisers.gp_comp.operators.regularization import Regu
 from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -184,7 +184,6 @@ class GPComposerBuilder:
         self.set_default_composer_params()
 
     def can_be_secondary_requirement(self, operation):
-        # TODO figure out is it still needed or not
         models_repo = OperationTypesRepository()
         data_operations_repo = OperationTypesRepository('data_operation_repository.json')
 
@@ -194,7 +193,7 @@ class GPComposerBuilder:
         operation_tags = operation_name.tags
 
         secondary_model = True
-        # Model with
+        # TODO remove 'data_model'
         if 'data_model' in operation_tags:
             secondary_model = False
         return secondary_model
@@ -231,14 +230,8 @@ class GPComposerBuilder:
     def set_default_composer_params(self):
         """ Method set metrics and composer requirements """
         if not self._composer.composer_requirements:
-            models_repo = OperationTypesRepository()
-            models, _ = models_repo.suitable_operation(task_type=self.task.task_type)
-
-            data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
-            data_operations, _ = data_operations_repo.suitable_operation(task_type=self.task.task_type)
-
-            # Unit two lists
-            operations = models + data_operations
+            # Get all available operations for task
+            operations = get_operations_for_task(task=self.task, mode='all')
 
             # Set protected attributes to composer
             self._composer.composer_requirements = GPComposerRequirements(primary=operations, secondary=operations)

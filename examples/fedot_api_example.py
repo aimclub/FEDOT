@@ -29,39 +29,23 @@ def run_classification_example():
     return prediction
 
 
-def prepare_input_for_forecasting(time_series, forecast_length):
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
-
-    input = InputData(idx=np.arange(0, len(time_series)),
-                      features=time_series,
-                      target=time_series,
-                      task=task,
-                      data_type=DataTypesEnum.ts)
-    train_input, predict_input = train_test_data_setup(input)
-
-    return train_input, predict_input
-
-
-def run_ts_forecasting_example(with_plot=True):
+def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     train_data_path = f'{project_root()}/notebooks/jupyter_media/intro/salaries.csv'
+
+    # Define forecast length and define parameters - forecast length
     forecast_length = 30
+    task_parameters = TsForecastingParams(forecast_length=forecast_length)
 
-    df = pd.read_csv(train_data_path)
-    time_series = np.array(df['target'])
-
-    train_data, target_data = prepare_input_for_forecasting(time_series, forecast_length)
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting')
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters)
 
     # run AutoML model design in the same way
-    actual_series = np.array(target_data.target)
-    chain = model.fit(features=train_data, target=actual_series)
-    chain.show()
+    chain = model.fit(features=train_data_path, target='target')
+    if with_chain_vis:
+        chain.show()
 
     # use model to obtain forecast
-    forecast = model.forecast(pre_history=train_data,
-                              forecast_length=forecast_length)
+    forecast = model.predict(features=train_data_path, target='target')
 
     # plot forecasting result
     if with_plot:

@@ -81,11 +81,11 @@ class Chain:
     def _fit_with_time_limit(self, input_data: Optional[InputData]=None, use_cache=False,
                              time: timedelta = timedelta(minutes=3)) -> Manager:
         """
-            Run training process with time limit. Create
+        Run training process with time limit. Create
 
-            :param input_data: data used for operation training
-            :param use_cache: flag defining whether use cache information about previous executions or not, default True
-            :param time: time constraint for operation fitting process (seconds)
+        :param input_data: data used for operation training
+        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
         manager = Manager()

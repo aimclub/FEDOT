@@ -57,7 +57,7 @@ def display_chain_info(chain):
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing', 'gaussian_filter']
+    primary_operations = ['lagged', 'smoothing', 'gaussian_filter', 'ar']
     secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
                             'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
     return primary_operations, secondary_operations

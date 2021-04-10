@@ -131,7 +131,7 @@
 		},
 		"exog": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple"]
+			"tags": ["simple", "ts_specific"]
 		},
 		"text_clean": {
 			"meta": "text_preprocessing",

@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 
 from fedot.api.main import Fedot, _define_data
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
@@ -73,13 +74,14 @@ def test_api_predict_correct(task_type: str = 'classification'):
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
-    forecast_length = 10
+    # The forecast length must be equal to 12
+    forecast_length = 12
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', composer_params=composer_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
-    ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
+    ts_forecast = model.predict(features=train_data, target=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -89,11 +91,17 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 10
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem='ts_forecasting')
+    model = Fedot(problem='ts_forecasting',
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
 
-    model.fit(features=train_data.features, target=train_data.target, predefined_model='linear')
-    ts_forecast = model.forecast(pre_history=(train_data.features, train_data.target),
-                                 forecast_length=forecast_length)
+    # Define chain for prediction
+    node_lagged = PrimaryNode('lagged')
+    chain = Chain(SecondaryNode('linear', nodes_from=[node_lagged]))
+
+    model.fit(features=train_data.features,
+              target=train_data.target,
+              predefined_model=chain)
+    ts_forecast = model.predict(features=train_data, target=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -163,7 +171,7 @@ def test_pandas_input_for_api():
 
 def test_custom_metric_for_api():
     train_data, test_data, _ = get_dataset('classification')
-    composer_params['metric'] = 'f1'
+    composer_params['composer_metric'] = 'f1'
     model = Fedot(problem='classification',
                   composer_params=composer_params)
     model.fit(features=train_data)

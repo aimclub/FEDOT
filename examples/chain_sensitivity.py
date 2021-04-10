@@ -8,7 +8,7 @@ from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -48,7 +48,7 @@ def get_three_depth_manual_regr_chain():
 
 def get_composed_chain(dataset_to_compose, task, metric_function):
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    available_model_types = get_operations_for_task(task=task, mode='models')
 
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(

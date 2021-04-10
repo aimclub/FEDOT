@@ -74,5 +74,5 @@ def test_api_example():
     prediction = run_classification_example()
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example()
+    forecast = run_ts_forecasting_example(with_plot=False, with_chain_vis=False)
     assert forecast is not None

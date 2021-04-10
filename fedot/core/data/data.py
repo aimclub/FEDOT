@@ -23,7 +23,6 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
-    features_idx: Optional[np.array] = None
 
     @staticmethod
     def from_csv(file_path=None,
@@ -62,6 +61,35 @@ class Data:
             target = None
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+
+    @staticmethod
+    def from_csv_time_series(task: Task,
+                             file_path=None,
+                             delimiter=',',
+                             is_predict=False,
+                             target_column: Optional[str] = ''):
+        data_frame = pd.read_csv(file_path, sep=delimiter)
+        time_series = np.array(data_frame[target_column])
+        if is_predict:
+            # Prepare data for prediction
+            len_forecast = task.task_params.forecast_length
+
+            start_forecast = len(time_series)
+            end_forecast = start_forecast + len_forecast
+            input_data = InputData(idx=np.arange(start_forecast, end_forecast),
+                                   features=time_series,
+                                   target=None,
+                                   task=task,
+                                   data_type=DataTypesEnum.ts)
+        else:
+            # Prepare InputData for train the chain
+            input_data = InputData(idx=np.arange(0, len(time_series)),
+                                   features=time_series,
+                                   target=time_series,
+                                   task=task,
+                                   data_type=DataTypesEnum.ts)
+
+        return input_data
 
     @staticmethod
     def from_text_meta_file(meta_file_path: str = None,

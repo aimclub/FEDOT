@@ -8,8 +8,9 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.operation_types_repository import \
+    OperationTypesRepository, get_ts_operations
+from fedot.core.repository.tasks import Task
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -27,6 +28,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
 
     # TSForecasting specific task validations
     if is_chain_contains_ts_operations(chain) is True:
+        only_ts_specific_operations_are_primary(chain)
         has_no_data_flow_conflicts_in_ts_chain(chain)
 
     return True
@@ -125,38 +127,11 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     return True
 
 
-def _get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
-    """ Function returns operations names for time series forecasting task
-
-    :param tags: tags for grabbing when filtering
-    :param forbidden_tags: tags for skipping when filtering
-    :param mode: available modes 'models', 'data_operations' and 'all'
-    """
-    models_repo = OperationTypesRepository()
-    models, _ = models_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                               tags=tags, forbidden_tags=forbidden_tags)
-
-    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
-    data_operations, _ = data_operations_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                                 tags=tags, forbidden_tags=forbidden_tags)
-
-    if mode == 'models':
-        return models
-    elif mode == 'data_operations':
-        return data_operations
-    elif mode == 'all':
-        # Unit two lists
-        ts_operations = models + data_operations
-        return ts_operations
-    else:
-        raise ValueError(f'Such mode "{mode}" is not supported')
-
-
 def is_chain_contains_ts_operations(chain: Chain):
     """ Function checks is the model contains operations for time series
     forecasting """
     # Get time series specific operations with tag "ts_specific"
-    ts_operations = _get_ts_operations(tags=["ts_specific"], mode='all')
+    ts_operations = get_ts_operations(tags=["ts_specific"], mode='all')
 
     # List with operations in considering chain
     operations_in_chain = []
@@ -171,14 +146,15 @@ def is_chain_contains_ts_operations(chain: Chain):
 
 def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
     """ Function checks the correctness of connection between nodes """
-    models = _get_ts_operations(mode='models')
+    models = get_ts_operations(mode='models')
     # Preprocessing not only for time series
-    non_ts_data_operations = _get_ts_operations(mode='data_operations',
-                                                forbidden_tags=["ts_specific"])
-    ts_data_operations = _get_ts_operations(mode='data_operations',
-                                            tags=["ts_specific"])
+    non_ts_data_operations = get_ts_operations(mode='data_operations',
+                                               forbidden_tags=["ts_specific"])
+    ts_data_operations = get_ts_operations(mode='data_operations',
+                                           tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')
+    ts_data_operations.remove('exog')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],
@@ -187,7 +163,14 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
                          'ridge': ts_data_operations, 'linear': ts_data_operations,
                          'lasso': ts_data_operations, 'dtreg': ts_data_operations,
                          'knnreg': ts_data_operations, 'scaling': ts_data_operations,
-                         'ransac_lin_reg': ts_data_operations, 'rfe_lin_reg': ts_data_operations}
+                         'xgbreg': ts_data_operations, 'adareg': ts_data_operations,
+                         'gbr': ts_data_operations, 'treg': ts_data_operations,
+                         'rfr': ts_data_operations, 'svr': ts_data_operations,
+                         'sgdr': ts_data_operations, 'normalization': ts_data_operations,
+                         'simple_imputation': ts_data_operations, 'pca': ts_data_operations,
+                         'kernel_pca': ts_data_operations, 'poly_features': ts_data_operations,
+                         'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
+                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations}
 
     for node in chain.nodes:
         # Operation name in the current node
@@ -202,6 +185,20 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
+
+    return True
+
+
+def only_ts_specific_operations_are_primary(chain: Chain):
+    """ Only time series specific operations could be placed in primary nodes """
+    ts_data_operations = get_ts_operations(mode='data_operations',
+                                           tags=["ts_specific"])
+
+    # Check only primary nodes
+    for node in chain.nodes:
+        if type(node) == PrimaryNode:
+            if node.operation.operation_type not in ts_data_operations:
+                raise ValueError(f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
 
     return True
 

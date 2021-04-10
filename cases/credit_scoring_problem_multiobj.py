@@ -11,7 +11,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, 
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -45,7 +45,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    available_model_types = get_operations_for_task(task=task, mode='models')
 
     # the choice of the metric for the chain quality assessment during composition
     quality_metric = ClassificationMetricsEnum.ROCAUC
