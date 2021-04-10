@@ -51,9 +51,6 @@ def make_forecast(chain, train_input, predict_input, task):
     for node in chain.nodes:
         print(f' Operation {node.operation}, - {node.custom_params}')
 
-    # Fit it
-    chain.fit_from_scratch(train_input)
-
     # Predict
     predicted_values = chain.predict(predict_input)
     new_predicted_values = predicted_values.predict

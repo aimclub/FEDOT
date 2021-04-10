@@ -5,6 +5,8 @@ from typing import List, Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
+from fedot.core.operations.operation import Operation
+from fedot.core.operations.model import Model
 
 
 class Node(ABC):
@@ -17,7 +19,7 @@ class Node(ABC):
     """
 
     def __init__(self, nodes_from: Optional[List['Node']],
-                 operation_type: str,
+                 operation_type: [str, 'Operation'],
                  log=None):
         self.nodes_from = nodes_from
         self.log = log
@@ -28,10 +30,13 @@ class Node(ABC):
         else:
             self.log = log
 
-        # Define appropriate operation or data operation
-        # TODO figure out is need to use "isinstance"
-        self.strategy_operator = OperationFactory(operation_name=operation_type)
-        self.operation = self.strategy_operator.get_operation()
+        if not isinstance(operation_type, str):
+            # AtomizedModel
+            self.operation = operation_type
+        else:
+            # Define appropriate operation or data operation
+            self.operation_factory = OperationFactory(operation_name=operation_type)
+            self.operation = self.operation_factory.get_operation()
 
     @property
     def descriptive_id(self):
@@ -134,7 +139,7 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: str, node_data: dict = None, **kwargs):
+    def __init__(self, operation_type: [str, 'Operation'], node_data: dict = None, **kwargs):
         super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
 
         if node_data is None:
@@ -190,7 +195,7 @@ class SecondaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: str, nodes_from: Optional[List['Node']] = None,
+    def __init__(self, operation_type: [str, 'Operation'], nodes_from: Optional[List['Node']] = None,
                  **kwargs):
         nodes_from = [] if nodes_from is None else nodes_from
         super().__init__(nodes_from=nodes_from, operation_type=operation_type,

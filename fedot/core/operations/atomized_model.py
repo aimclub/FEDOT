@@ -1,20 +1,21 @@
-from datetime import timedelta
 from uuid import uuid4
+from typing import Callable
 
+from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
-    atomized_operation_meta_tags, atomized_operation_type
+    atomized_model_meta_tags, atomized_model_type
 from fedot.core.utils import make_chain_generator
 
 
-class AtomizedOperation(Operation):
-    """ Class which replace Operation class for AtomizedOperation object """
+class AtomizedModel(Operation):
+    """ Class which replace Operation class for AtomizedModel object """
     def __init__(self, chain: 'Chain'):
         if not chain.root_node:
-            raise ValueError(f'AtomizedOperation could not create instance of empty Chain.')
+            raise ValueError(f'AtomizedModel could not create instance of empty Chain.')
 
-        super().__init__(operation_type=atomized_operation_type())
+        super().__init__(operation_type=atomized_model_type())
         self.chain = chain
         self.unique_id = uuid4()
 
@@ -24,18 +25,26 @@ class AtomizedOperation(Operation):
         predicted_train = self.chain.fit(input_data=data)
         fitted_atomized_operation_head = self.chain.root_node
 
-        return fitted_atomized_operation_head, predicted_train.predict
+        return fitted_atomized_operation_head, predicted_train
 
     def predict(self, fitted_operation, data: InputData,
-                is_fit_chain_stage: bool, output_mode: str = 'default'):
+                is_fit_chain_stage: bool = False, output_mode: str = 'default'):
         prediction = self.chain.predict(input_data=data, output_mode=output_mode)
 
-        return prediction.predict
+        return prediction
 
-    def fine_tune(self, data: InputData, iterations: int,
-                  max_lead_time: timedelta = timedelta(minutes=5)):
-        # Method is not supported for now
-        raise NotImplementedError()
+    def fine_tune(self, loss_function: Callable,
+                  loss_params: Callable = None,
+                  input_data: InputData = None, iterations: int = 50,
+                  max_lead_time: int = 5):
+        """ Method for tuning hyperparameters """
+        tuned_chain = self.chain.fine_tune_all_nodes(loss_function=loss_function,
+                                                     loss_params=loss_params,
+                                                     input_data=input_data,
+                                                     iterations=iterations,
+                                                     max_lead_time=max_lead_time)
+        tuned_atomized_model = AtomizedModel(tuned_chain)
+        return tuned_atomized_model
 
     @property
     def metadata(self) -> OperationMetaInfo:

@@ -204,11 +204,11 @@ def _is_tags_contains_in_operation(candidate_tags: List[str],
         return any(matches)
 
 
-def atomized_operation_type():
+def atomized_model_type():
     return 'atomized_operation'
 
 
-def atomized_operation_meta_tags():
+def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 

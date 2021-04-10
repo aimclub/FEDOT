@@ -9,9 +9,9 @@ import joblib
 
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.log import Log, default_log
-from fedot.core.operations.atomized_template import AtomizedOperationTemplate
+from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
-from fedot.core.repository.operation_types_repository import atomized_operation_type
+from fedot.core.repository.operation_types_repository import atomized_model_type
 
 
 class ChainTemplate:
@@ -61,8 +61,8 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        if node.operation.operation_type == atomized_operation_type():
-            operation_template = AtomizedOperationTemplate(node, operation_id, nodes_from)
+        if node.operation.operation_type == atomized_model_type():
+            operation_template = AtomizedModelTemplate(node, operation_id, nodes_from)
         else:
             operation_template = OperationTemplate(node, operation_id, nodes_from)
 
@@ -156,10 +156,10 @@ class ChainTemplate:
         operation_objects = chain_json['nodes']
 
         for operation_object in operation_objects:
-            if operation_object['operation_type'] == atomized_operation_type():
-                filename = operation_object['atomized_operation_json_path'] + '.json'
-                curr_path = os.path.join(os.path.dirname(path), operation_object['atomized_operation_json_path'], filename)
-                operation_template = AtomizedOperationTemplate(path=curr_path)
+            if operation_object['operation_type'] == atomized_model_type():
+                filename = operation_object['atomized_model_json_path'] + '.json'
+                curr_path = os.path.join(os.path.dirname(path), operation_object['atomized_model_json_path'], filename)
+                operation_template = AtomizedModelTemplate(path=curr_path)
             else:
                 operation_template = OperationTemplate()
 
@@ -176,7 +176,8 @@ class ChainTemplate:
         chain.nodes.clear()
         chain.add_node(root_node)
 
-    def roll_chain_structure(self, operation_object: ['OperationTemplate', 'AtomizedOperationTemplate'],
+    def roll_chain_structure(self, operation_object: ['OperationTemplate',
+                                                      'AtomizedModelTemplate'],
                              visited_nodes: dict, path: str = None):
         """
         The function recursively traverses all disjoint operations
@@ -190,12 +191,12 @@ class ChainTemplate:
         if operation_object.operation_id in visited_nodes:
             return visited_nodes[operation_object.operation_id]
 
-        if operation_object.operation_type == atomized_operation_type():
-            atomized_operation = operation_object.next_chain_template
+        if operation_object.operation_type == atomized_model_type():
+            atomized_model = operation_object.next_chain_template
             if operation_object.nodes_from:
-                node = SecondaryNode(operation_type=atomized_operation)
+                node = SecondaryNode(operation_type=atomized_model)
             else:
-                node = PrimaryNode(operation_type=atomized_operation)
+                node = PrimaryNode(operation_type=atomized_model)
         else:
             if operation_object.nodes_from:
                 node = SecondaryNode(operation_object.operation_type)
