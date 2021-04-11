@@ -1,11 +1,5 @@
-import numpy as np
-import pandas as pd
-
 from fedot.api.main import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data import train_test_data_setup
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import project_root
 
 

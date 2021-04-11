@@ -14,8 +14,7 @@ from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
-from fedot.core.repository.tasks import (Task, TaskParams,
-                                         TaskTypesEnum, TsForecastingParams)
+from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum
 
 
 def default_evo_params(problem):
@@ -326,7 +325,10 @@ class Fedot:
 
         return calculated_metrics
 
-    def fit_with_multiple_sources(self):
+    def fit_with_multiple_sources(self,
+                                  features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                                  target: Union[str, np.ndarray, pd.Series] = 'target',
+                                  predefined_model: Chain = None):
         # TODO implement Check if amount of sources <= amount of primary nodes
         raise NotImplementedError()
 

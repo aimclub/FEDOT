@@ -7,7 +7,8 @@ from fedot.core.chains.chain_validation import (has_correct_operation_positions,
                                                 validate, has_final_operation_as_model,
                                                 has_no_conflicts_with_data_flow,
                                                 is_chain_contains_ts_operations,
-                                                has_no_data_flow_conflicts_in_ts_chain)
+                                                has_no_data_flow_conflicts_in_ts_chain,
+                                                only_ts_specific_operations_are_primary)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -163,9 +164,7 @@ def ts_chain_with_incorrect_data_flow():
     Connection lagged -> lagged is incorrect
     Connection ridge -> ar is incorrect also
        lagged - lagged - ridge \
-                                \
-                                 ar -> final forecast
-                                /
+                                ar -> final forecast
                 lagged - ridge /
     """
 
@@ -281,3 +280,20 @@ def test_ts_chain_with_incorrect_data_flow():
         assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
     else:
         assert False
+
+
+def test_only_ts_specific_operations_are_primary():
+    """ Incorrect chain
+    lagged \
+             linear -> final forecast
+     ridge /
+    """
+    node_lagged = PrimaryNode('lagged')
+    node_ridge = PrimaryNode('ridge')
+    node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_ridge])
+    incorrect_chain = Chain(node_final)
+
+    with pytest.raises(Exception) as exc:
+        assert only_ts_specific_operations_are_primary(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
