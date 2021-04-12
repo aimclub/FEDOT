@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
@@ -324,17 +324,6 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
-
-    def fit_with_multiple_sources(self,
-                                  features: Union[str, np.ndarray, pd.DataFrame, InputData],
-                                  target: Union[str, np.ndarray, pd.Series] = 'target',
-                                  predefined_model: Chain = None):
-        # TODO implement Check if amount of sources <= amount of primary nodes
-        raise NotImplementedError()
-
-    def predict_with_multiple_sources(self):
-        # TODO implement Check if amount of sources <= amount of primary nodes
-        raise NotImplementedError()
 
 
 def _define_data(ml_task: Task,
