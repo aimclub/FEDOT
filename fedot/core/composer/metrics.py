@@ -45,10 +45,10 @@ class QualityMetric:
             results = chain.predict(reference_data, output_mode=cls.output_mode)
 
             if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
-                new_reference_data = copy(reference_data)
-                new_reference_data.target = new_reference_data.target[~np.isnan(results.predict)]
-                results.predict = results.predict[~np.isnan(results.predict)]
-                metric = cls.metric(new_reference_data, results)
+                # Convert prediction into one-dimensional array
+                forecast_values = np.ravel(np.array(results.predict))
+                results.predict = forecast_values
+                metric = cls.metric(reference_data, results)
             else:
                 metric = cls.metric(reference_data, results)
         except Exception as ex:

@@ -10,9 +10,10 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def generate_chain() -> Chain:
-    node_first = PrimaryNode('lasso')
-    node_second = PrimaryNode('ridge')
-    node_root = SecondaryNode('linear', nodes_from=[node_first, node_second])
+    node_scaling = PrimaryNode('scaling')
+    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
+    node_root = SecondaryNode('linear', nodes_from=[node_lasso, node_ridge])
     chain = Chain(node_root)
     return chain
 
@@ -49,16 +50,23 @@ def test_regression_chain_fit_correct():
     assert rmse_on_test < rmse_threshold
 
 
-def test_regression_chain_with_datamodel_fit_correct():
+def test_regression_chain_with_data_operation_fit_correct():
     data = get_synthetic_regression_data()
     train_data, test_data = train_test_data_setup(data)
 
-    node_data = PrimaryNode('direct_data_model')
-    node_first = PrimaryNode('ridge')
-    node_second = SecondaryNode('lasso')
-    node_second.nodes_from = [node_first, node_data]
-
-    chain = Chain(node_second)
+    #           linear
+    #       /           \
+    #     ridge          |
+    #       |            |
+    # ransac_lin_reg   lasso
+    #        \         /
+    #          scaling
+    node_scaling = PrimaryNode('scaling')
+    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
+    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_ransac])
+    node_root = SecondaryNode('linear', nodes_from=[node_lasso, node_ridge])
+    chain = Chain(node_root)
 
     chain.fit(train_data)
     results = chain.predict(test_data)

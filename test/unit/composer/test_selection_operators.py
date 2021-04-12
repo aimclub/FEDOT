@@ -28,11 +28,11 @@ def rand_population_gener_and_eval(pop_size=4):
     population = [random_chain_function() for _ in range(pop_size)]
     # evaluation
     for ind in population:
-        ind.fitness = obj_function(ind)
+        ind.fitness = obj_function()
     return population
 
 
-def obj_function(chain: Chain) -> float:
+def obj_function() -> float:
     metric_function = RandomMetric.get_value
     return metric_function()
 

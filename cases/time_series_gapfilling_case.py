@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
 
+from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.utils import project_root
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
@@ -16,7 +16,7 @@ def print_metrics(dataframe):
     The function displays 3 metrics: Mean absolute error,
     Root mean squared error and Median absolute error
 
-    :param: dataframe with columns 'date','temperature','ridge','composite',
+    :param dataframe: dataframe with columns 'date','temperature','ridge','composite',
     'with_gap'
     """
 
@@ -46,7 +46,7 @@ def plot_result(dataframe):
     """
     The function draws a graph based on the dataframe
 
-    :param: dataframe with columns 'date','temperature','ridge','composite',
+    :param dataframe: dataframe with columns 'date','temperature','ridge','composite',
     'with_gap'
     """
 
@@ -56,9 +56,9 @@ def plot_result(dataframe):
     plt.plot(dataframe['date'], dataframe['temperature'], c='blue',
              alpha=0.5, label='Actual values', linewidth=1)
     plt.plot(dataframe['date'], dataframe['ridge'], c='orange',
-             alpha=0.8, label='Inverse ridge gapfilling', linewidth=1)
+             alpha=0.8, label='Bi-directional ridge gap-filling', linewidth=1)
     plt.plot(dataframe['date'], dataframe['composite'], c='red',
-             alpha=0.8, label='Composite gapfilling', linewidth=1)
+             alpha=0.8, label='Composite gap-filling', linewidth=1)
     plt.plot(dataframe['date'], masked_array, c='blue')
     plt.grid()
     plt.legend()
@@ -67,42 +67,52 @@ def plot_result(dataframe):
 
 def get_composite_chain():
     """
-    The method returns prepared chain of 5 models
+    The function returns prepared chain of 5 models
 
-    :return: TsForecastingChain object
+    :return: Chain object
     """
 
-    node_first = PrimaryNode('trend_data_model')
-    node_second = PrimaryNode('residual_data_model')
-    node_trend_model = SecondaryNode('linear', nodes_from=[node_first])
-    node_residual_model = SecondaryNode('linear', nodes_from=[node_second])
+    node_1 = PrimaryNode('lagged')
+    node_1.custom_params = {'window_size': 150}
+    node_2 = PrimaryNode('lagged')
+    node_2.custom_params = {'window_size': 100}
+    node_linear_1 = SecondaryNode('linear', nodes_from=[node_1])
+    node_linear_2 = SecondaryNode('linear', nodes_from=[node_2])
 
-    node_final = SecondaryNode('linear', nodes_from=[node_trend_model,
-                                                     node_residual_model])
-    chain = TsForecastingChain(node_final)
+    node_final = SecondaryNode('ridge', nodes_from=[node_linear_1,
+                                                    node_linear_2])
+    chain = Chain(node_final)
     return chain
 
 
-def run_gapfilling_case():
+def get_simple_chain():
+    """ Function returns simple chain """
+    node_lagged = PrimaryNode('lagged')
+    node_lagged.custom_params = {'window_size': 150}
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    ridge_chain = Chain(node_ridge)
+    return ridge_chain
+
+
+def run_gapfilling_case(file_path):
     """
     The function runs an example of filling in gaps in a time series with
     air temperature. Real data case.
 
+    :param file_path: path to the file
     :return: pandas dataframe with columns 'date','with_gap','ridge',
     'composite','temperature'
     """
 
     # Load dataframe
-    file_path = 'cases/data/gapfilling/TS_temperature_gapfilling.csv'
     full_path = os.path.join(str(project_root()), file_path)
     dataframe = pd.read_csv(full_path)
     dataframe['date'] = pd.to_datetime(dataframe['date'])
 
     # Filling in gaps based on inverted ridge regression model
-    ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
+    ridge_chain = get_simple_chain()
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain,
-                                     max_window_size=250)
+                                     chain=ridge_chain)
     with_gap_array = np.array(dataframe['with_gap'])
     without_gap_arr_ridge = ridge_gapfiller.forward_inverse_filling(with_gap_array)
     dataframe['ridge'] = without_gap_arr_ridge
@@ -110,8 +120,7 @@ def run_gapfilling_case():
     # Filling in gaps based on a chain of 5 models
     composite_chain = get_composite_chain()
     composite_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                         chain=composite_chain,
-                                         max_window_size=1000)
+                                         chain=composite_chain)
     without_gap_composite = composite_gapfiller.forward_filling(with_gap_array)
     dataframe['composite'] = without_gap_composite
     return dataframe
@@ -120,7 +129,7 @@ def run_gapfilling_case():
 # Example of using the algorithm to fill in gaps in a time series
 # The data is daily air temperature values from the weather station
 if __name__ == '__main__':
-    dataframe = run_gapfilling_case()
+    dataframe = run_gapfilling_case('cases/data/gapfilling/ts_temperature_gapfilling.csv')
 
     # Display metrics
     print_metrics(dataframe)

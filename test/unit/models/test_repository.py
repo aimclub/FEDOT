@@ -1,10 +1,10 @@
 import json
 import os
 
-from fedot.core.models.evaluation.evaluation import SkLearnClassificationStrategy
+from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -15,32 +15,32 @@ def mocked_path():
 
 
 def test_lazy_load():
-    with ModelTypesRepository(mocked_path()) as repo:
-        repo_second = ModelTypesRepository()
+    with OperationTypesRepository() as repo:
+        repo_second = OperationTypesRepository()
 
         assert repo._repo == repo_second._repo
 
 
 def test_search_in_repository_by_tag_and_metainfo_correct():
-    with ModelTypesRepository(mocked_path()) as repo:
-        model_names, _ = repo.suitable_model(task_type=TaskTypesEnum.regression,
-                                             tags=['ml'])
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+                                                 tags=['ml'])
 
         assert 'linear' in model_names
-        assert len(model_names) == 3
+        assert len(model_names) == 12
 
 
 def test_search_in_repository_by_tag_correct():
-    with ModelTypesRepository(mocked_path()) as repo:
-        model_names, _ = repo.models_with_tag(tags=['simple', 'linear'], is_full_match=True)
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
         assert len(model_names) == 4
 
-        model_names, _ = repo.models_with_tag(tags=['simple', 'linear'])
+        model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'])
         assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge'}.issubset(model_names)
-        assert len(model_names) == 6
+        assert len(model_names) == 9
 
-        model_names, _ = repo.models_with_tag(tags=['non_real_tag'])
+        model_names, _ = repo.operations_with_tag(tags=['non_real_tag'])
         assert len(model_names) == 0
 
 
@@ -73,7 +73,7 @@ def _model_metadata_example(path):
         repository_json = json.load(repository_json_file)
 
     metadata_json = repository_json['metadata']
-    models_json = repository_json['models']
+    models_json = repository_json['operations']
 
     current_model_key = list(models_json.keys())[0]
     model_properties = [model_properties for model_key, model_properties in list(models_json.items())

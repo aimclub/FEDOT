@@ -12,9 +12,6 @@ class TaskParams:
 @dataclass
 class TsForecastingParams(TaskParams):
     forecast_length: int
-    max_window_size: int
-    return_all_steps: bool = False
-    make_future_prediction: bool = False
 
     def __post_init__(self):
         if self.forecast_length < 1:
@@ -50,9 +47,8 @@ def extract_task_param(task: Task) -> Any:
     try:
         task_params = task.task_params
         if isinstance(task_params, TsForecastingParams):
-            window_len = task_params.max_window_size
             prediction_len = task_params.forecast_length
-            return window_len, prediction_len
+            return prediction_len
         else:
             raise ValueError('Incorrect parameters type for data')
     except AttributeError as ex:

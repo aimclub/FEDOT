@@ -1,4 +1,5 @@
 from fedot.api.main import Fedot
+from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import project_root
 
 
@@ -22,18 +23,23 @@ def run_classification_example():
     return prediction
 
 
-def run_ts_forecasting_example(with_plot=True):
+def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     train_data_path = f'{project_root()}/notebooks/jupyter_media/intro/salaries.csv'
 
+    # Define forecast length and define parameters - forecast length
+    forecast_length = 30
+    task_parameters = TsForecastingParams(forecast_length=forecast_length)
+
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting')
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters)
 
     # run AutoML model design in the same way
     chain = model.fit(features=train_data_path, target='target')
-    chain.show()
+    if with_chain_vis:
+        chain.show()
 
     # use model to obtain forecast
-    forecast = model.forecast(pre_history=train_data_path, forecast_length=30)
+    forecast = model.predict(features=train_data_path, target='target')
 
     # plot forecasting result
     if with_plot:
