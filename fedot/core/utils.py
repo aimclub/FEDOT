@@ -23,14 +23,14 @@ def default_fedot_data_dir() -> str:
 
 
 def labels_to_dummy_probs(prediction: np.array):
-    """Returns converted predictions
-    using one-hot probability encoding"""
+    """ Returns converted predictions using one-hot probability encoding """
     df = pd.Series(prediction)
     pred_probas = pd.get_dummies(df).values
     return pred_probas
 
 
 def probs_to_labels(prediction: np.array):
+    """ Converts predicted probabilities into labels """
     list_with_labels = []
     for list_with_probs in prediction:
         list_with_labels.append(list_with_probs.argmax() + 1.0)
@@ -38,16 +38,8 @@ def probs_to_labels(prediction: np.array):
     return list_with_labels
 
 
-def ensure_features_2d(features: np.array):
-    if len(features.shape) >= 3:
-        num_of_samples = features.shape[1]
-        features_2d = features.reshape(num_of_samples, -1)
-        return features_2d
-    else:
-        return features
-
-
 def split_data(df: pd.DataFrame, t_size: float = 0.2):
+    """ Split pandas DataFrame into train and test parts """
     train, test = train_test_split(df.iloc[:, :], test_size=t_size, random_state=42)
     return train, test
 

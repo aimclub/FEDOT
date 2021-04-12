@@ -59,9 +59,9 @@ def synthetic_benchmark_composing_example():
 
 
 def two_level_chain():
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='knn')
-    third = SecondaryNode(model_type='xgboost',
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='knn')
+    third = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second])
 
     chain = Chain()
@@ -79,6 +79,7 @@ def roc_value(chain: Chain, dataset_to_validate) -> float:
 
 
 if __name__ == '__main__':
+    # TODO fix it cause sometimes it fails
     seed(15)
     np.random.seed(15)
     data_generator_example()

@@ -11,19 +11,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_tune import Tune
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.log import Log, default_log
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.utilities.define_metric_by_task import MetricByTask
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class NodeAnalysis:
     """
-    :param approaches: methods applied to nodes to modify the chain or analyze certain models.\
-    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
+    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
     :param log: log: Log object to record messages
@@ -32,9 +33,8 @@ class NodeAnalysis:
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
                  path_to_save=None, log: Log = None):
 
-
         if not approaches:
-            self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceModelAnalyze]
+            self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
         else:
             self.approaches = approaches
 
@@ -196,10 +196,22 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
                          path_to_save)
 
     def analyze(self, node_id: int) -> Union[List[dict], float]:
-        tuned_chain = Tune(self._chain).fine_tune_certain_node(model_id=node_id,
-                                                               input_data=self._train_data,
-                                                               max_lead_time=timedelta(minutes=1),
-                                                               iterations=30)
+        task = self._train_data.task
+
+        # Get appropriate metric for task
+        tune_metrics = TunerMetricByTask(task.task_type)
+        loss_function, loss_params = tune_metrics.get_metric_and_params(self._train_data)
+
+        # SequentialTuner
+        sequential_tuner = SequentialTuner(chain=self._chain,
+                                           task=task,
+                                           iterations=20,
+                                           max_lead_time=timedelta(minutes=1))
+        tuned_chain = sequential_tuner.tune_node(input_data=self._train_data,
+                                                 node_index=node_id,
+                                                 loss_function=loss_function,
+                                                 loss_params=loss_params)
+
         loss = self._compare_with_origin_by_metric(tuned_chain)
 
         return loss
@@ -211,9 +223,9 @@ class NodeTuneAnalyze(NodeAnalyzeApproach):
         return 'NodeTuneAnalyze'
 
 
-class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
+class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
     """
-    Replace node with models available for the current task
+    Replace node with operations available for the current task
     and evaluate the score difference
     """
 
@@ -224,19 +236,19 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node_id: int,
                 nodes_to_replace_to: Optional[List[Node]] = None,
-                number_of_random_models: Optional[int] = None) -> Union[List[dict], float]:
+                number_of_random_operations: Optional[int] = None) -> Union[List[dict], float]:
         """
 
         :param node_id:the sequence number of the node as in DFS result
         :param nodes_to_replace_to: nodes provided for old_node replacement
-        :param number_of_random_models: number of replacement operations, \
+        :param number_of_random_operations: number of replacement operations, \
         if nodes_to_replace_to not provided
         :return: the ratio of modified chain score to origin score
         """
 
         samples = self.sample(node_id=node_id,
                               nodes_to_replace_to=nodes_to_replace_to,
-                              number_of_random_models=number_of_random_models)
+                              number_of_random_operations=number_of_random_operations)
 
         loss_values = []
         new_nodes_types = []
@@ -245,7 +257,7 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
             loss_values.append(loss_per_sample)
 
             new_node = sample_chain.nodes[node_id]
-            new_nodes_types.append(new_node.model.model_type)
+            new_nodes_types.append(new_node.operation.operation_type)
 
         avg_loss = np.mean(loss_values)
         self._visualize(x_values=new_nodes_types,
@@ -256,20 +268,20 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
 
     def sample(self, node_id: int,
                nodes_to_replace_to: Optional[List[Node]],
-               number_of_random_models: Optional[int] = None) -> Union[List[Chain], Chain]:
+               number_of_random_operations: Optional[int] = None) -> Union[List[Chain], Chain]:
         """
 
         :param node_id:the sequence number of the node as in DFS result
         :param nodes_to_replace_to: nodes provided for old_node replacement
-        :param number_of_random_models: number of replacement operations, \
+        :param number_of_random_operations: number of replacement operations, \
         if nodes_to_replace_to not provided
-        :return: Sequence of Chain objects with new models instead of old one.
+        :return: Sequence of Chain objects with new operations instead of old one.
         """
 
         if not nodes_to_replace_to:
             node_type = type(self._chain.nodes[node_id])
             nodes_to_replace_to = self._node_generation(node_type=node_type,
-                                                        number_of_models=number_of_random_models)
+                                                        number_of_operations=number_of_random_operations)
 
         samples = list()
         for replacing_node in nodes_to_replace_to:
@@ -282,22 +294,29 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         return samples
 
     def _node_generation(self, node_type: Union[Type[PrimaryNode], Type[SecondaryNode]],
-                         number_of_models=None) -> List[Node]:
-        available_models, _ = ModelTypesRepository().suitable_model(task_type=self._train_data.task.task_type)
-        if number_of_models:
-            random_models = random.sample(available_models, number_of_models)
+                         number_of_operations=None) -> List[Node]:
+        task = self._train_data.task.task_type
+        # Get models
+        app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
+        # Get data operations for such task
+        app_data_operations, _ = OperationTypesRepository('data_operation_repository.json').suitable_operation(task_type=task)
+
+        # Unit two lists
+        app_operations = app_models
+        if number_of_operations:
+            random_operations = random.sample(app_operations, number_of_operations)
         else:
-            random_models = available_models
+            random_operations = app_operations
 
         nodes = []
-        for model in random_models:
-            nodes.append(node_type(model_type=model))
+        for operation in random_operations:
+            nodes.append(node_type(operation_type=operation))
 
         return nodes
 
     def _visualize(self, x_values, y_values: list, node_id: int):
         data = zip(x_values, [(y - 1) for y in y_values])  # 3
-        original_model_type = self._chain.nodes[node_id].model.model_type
+        original_operation_type = self._chain.nodes[node_id].operation.operation_type
 
         sorted_data = sorted(data, key=lambda tup: tup[1])
         x_values = [x[0] for x in sorted_data]
@@ -311,15 +330,15 @@ class NodeReplaceModelAnalyze(NodeAnalyzeApproach):
         plt.xlabel('iteration')
         plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
 
-        if original_model_type in x_values:
-            original_model_index = x_values.index(original_model_type)
-            plt.gca().get_xticklabels()[original_model_index].set_color('red')
+        if original_operation_type in x_values:
+            original_operation_index = x_values.index(original_operation_type)
+            plt.gca().get_xticklabels()[original_operation_index].set_color('red')
 
-        file_name = f'{self._chain.nodes[node_id].model.model_type}_id_{node_id}_replacement.jpg'
+        file_name = f'{self._chain.nodes[node_id].operation.operation_type}_id_{node_id}_replacement.jpg'
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
         self.log.message(f'NodeReplacementAnalysis for '
-                         f'{original_model_type}(index:{node_id}) was saved to {result_file}')
+                         f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):
-        return 'NodeReplaceModelAnalyze'
+        return 'NodeReplaceOperationAnalyze'

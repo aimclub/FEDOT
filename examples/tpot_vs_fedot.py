@@ -33,24 +33,19 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     roc_auc_value = roc_auc(y_true=testing_target,
                             y_score=results)
 
-    print(roc_auc_value)
+    print(f'ROC AUC for TPOT: {roc_auc_value}')
 
-    chain = Chain()
-    node_first = PrimaryNode('direct_data_model')
-    node_second = PrimaryNode('bernb')
-    node_third = SecondaryNode('rf')
-
-    node_third.nodes_from.append(node_first)
-    node_third.nodes_from.append(node_second)
-
-    chain.add_node(node_third)
+    node_scaling = PrimaryNode('scaling')
+    node_bernb = SecondaryNode('bernb', nodes_from=[node_scaling])
+    node_rf = SecondaryNode('rf', nodes_from=[node_bernb, node_scaling])
+    chain = Chain(node_rf)
 
     chain.fit(train_data)
     results = chain.predict(test_data)
 
     roc_auc_value = roc_auc(y_true=testing_target,
                             y_score=results.predict)
-    print(roc_auc_value)
+    print(f'ROC AUC for FEDOT: {roc_auc_value}')
 
     return roc_auc_value
 

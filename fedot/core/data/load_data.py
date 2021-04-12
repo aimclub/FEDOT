@@ -5,6 +5,7 @@ import pandas as pd
 
 
 class BatchLoader(ABC):
+    """ Class for loading data with batches """
     def __init__(self, path: str):
         self.path = path
         self.meta_df = None
@@ -50,6 +51,8 @@ class BatchLoader(ABC):
 
 
 class TextBatchLoader(BatchLoader):
+    """ Class for loading text data with batches """
+
     def __init__(self, path: str):
         if os.path.isfile(path):
             raise ValueError('Expected directory path but got file')

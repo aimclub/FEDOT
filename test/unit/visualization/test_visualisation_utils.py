@@ -57,8 +57,7 @@ def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse)
                                               key=lambda x: x[0], reverse=reverse)
     sorted_real_hierarchy_levels = sorted(real_hierarchy_levels.items(),
                                           key=lambda x: x[0])
-    return extract_levels(sorted_computed_hierarchy_levels), \
-           extract_levels(sorted_real_hierarchy_levels)
+    return extract_levels(sorted_computed_hierarchy_levels), extract_levels(sorted_real_hierarchy_levels)
 
 
 def test_hierarchy_pos():

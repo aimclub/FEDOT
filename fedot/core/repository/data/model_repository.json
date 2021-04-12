@@ -6,106 +6,69 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClassificationStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.classification", "SkLearnClassificationStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the classification models from scikit-learn framework"
 	},
+	"custom_class": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
+	  "tags": ["ml", "custom"],
+	  "description": "Implementations of the custom classification models"
+	},
 	"sklearn_regr": {
-      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
-      "input_type": "[DataTypesEnum.table, DataTypesEnum.ts_lagged_table]",
-      "output_type": "[DataTypesEnum.table, DataTypesEnum.forecasted_ts]",
-      "accepted_node_types": [
-        "any"
-      ],
-      "forbidden_node_types": "[]",
-      "strategies": [
-        "fedot.core.models.evaluation.evaluation",
-        "SkLearnRegressionStrategy"
-      ],
-      "tags": [
-        "ml",
-        "sklearn",
-        "composition"
-      ],
-      "description": "Implementations of the regression models from scikit-learn framework"
-    },
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.regression", "SkLearnRegressionStrategy"],
+	  "tags": ["ml", "sklearn", "composition"],
+	  "description": "Implementations of the regression models from scikit-learn framework"
+	},
 	"sklearn_clust": {
 	  "tasks": "[TaskTypesEnum.clustering]",
 	  "input_type": "[DataTypesEnum.table]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.models.evaluation.evaluation", "SkLearnClusteringStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.clustering", "SkLearnClusteringStrategy"],
 	  "tags": ["ml", "sklearn"],
 	  "description": "Implementations of the clustering models from scikit-learn framework"
-	},
-	"stats_ar": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.forecasted_ts]",
-	  "strategies": ["fedot.core.models.evaluation.stats_models_eval", "StatsModelsForecastingStrategy"],
-	  "tags": ["statistical", "autoreg"],
-	  "description": "Implementations of the statistical models for time series forecasting from stats framework"
-	},
-	"data_model": {
-      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.classification]",
-      "input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-      "output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
-      "strategies": [
-        "fedot.core.models.evaluation.data_evaluation",
-        "DataModellingStrategy"
-      ],
-      "tags": [
-        "without_preprocessing",
-        "data_model"
-      ],
-      "description": "Implementations of the models for the data injection into features of secondary nodes"
-    },
-	"ts_data_model": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
-	  "output_type": "[DataTypesEnum.ts]",
-	  "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing"],
-	  "description": "Implementations of the models for the data modification during time series forecasting"
-	},
-	"dim_red_data_model": {
-	  "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["fedot.core.models.evaluation.data_evaluation", "DataModellingStrategy"],
-	  "tags": ["without_preprocessing", "data_model"],
-	  "description": "Implementations of the models for the feature preprocessing (dimensionality reduction, etc)"
-	},
-	"keras_forecasting": {
-	  "tasks": "[TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts_lagged_table]",
-	  "output_type": "[DataTypesEnum.forecasted_ts]",
-	  "strategies": ["fedot.core.models.evaluation.keras_eval", "KerasForecastingStrategy"],
-	  "tags": ["nn"],
-	  "description": "Implementations of the keras-based neural models for the time series forecasting"
 	},
 	"text_classification": {
 	  "tasks": "[TaskTypesEnum.classification]",
 	  "input_type": "[DataTypesEnum.text]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "forbidden_node_types": ["secondary"],
-	  "strategies": ["fedot.core.models.evaluation.vectorize", "VectorizeStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.text", "SkLearnTextVectorizeStrategy"],
 	  "tags": ["nlp", "non-default"],
 	  "description": "Text classification"
+	},
+	"ts_model": {
+	  "tasks": "[TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
+	  "tags": ["time_series"],
+	  "description": "Implementations of the time series models"
 	}
   },
-  "models": {
+  "operations": {
 	"logit": {
 	  "meta": "sklearn_class",
 	  "tags": ["simple", "linear", "interpretable"]
 	},
 	"lda": {
-	  "meta": "sklearn_class",
+	  "meta": "custom_class",
 	  "tags": ["discriminant", "linear"]
 	},
 	"qda": {
-	  "meta": "sklearn_class",
+	  "meta": "custom_class",
 	  "tags": ["discriminant", "quadratic"]
 	},
 	"dt": {
@@ -124,7 +87,7 @@
 	  "tags": ["simple"]
 	},
 	"svc": {
-	  "meta": "sklearn_class",
+	  "meta": "custom_class",
 	  "tags": ["no_prob", "expensive"]
 	},
 	"xgboost": {
@@ -149,15 +112,15 @@
 	},
 	"xgbreg": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"adareg": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"gbr": {
 	  "meta": "sklearn_regr",
-	  "tags": ["boosting"]
+	  "tags": ["boosting", "non_multi"]
 	},
 	"knnreg": {
 	  "meta": "sklearn_regr",
@@ -175,52 +138,24 @@
 	  "meta": "sklearn_regr"
 	},
 	"svr": {
-	  "meta": "sklearn_regr"
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
 	},
 	"sgdr": {
-	  "meta": "sklearn_regr"
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
 	},
 	"arima": {
-      "meta": "stats_ar",
-      "tags": [
-        "simple",
-        "interpretable",
-        "non-default"
-      ]
-    },
+	  "meta": "ts_model",
+	  "tags": ["simple", "interpretable", "ts_specific"]
+	},
 	"ar": {
-      "meta": "stats_ar",
-      "tags": [
-        "simple",
-        "interpretable",
-        "non-default"
-      ]
-    },
+	  "meta": "ts_model",
+	  "tags": ["simple", "interpretable", "ts_specific"]
+	},
 	"kmeans": {
 	  "meta": "sklearn_clust"
 	},
-	"direct_data_model": {
-	  "meta": "data_model"
-	},
-	"trend_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["affects_target", "decomposition"]
-	},
-	"residual_data_model": {
-	  "meta": "ts_data_model",
-	  "tags": ["affects_target", "decomposition"]
-	},
-	"pca_data_model": {
-	  "meta": "dim_red_data_model",
-	  "tags": ["linear"]
-	},
-	"lstm": {
-      "meta": "keras_forecasting",
-      "tags": [
-        "deep",
-        "non-default"
-      ]
-    },
 	"multinb": {
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian", "non-default"]

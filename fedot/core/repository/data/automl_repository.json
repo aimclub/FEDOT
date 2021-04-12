@@ -1,0 +1,181 @@
+{
+  "metadata": {
+	"sklearn_class": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.classification", "SkLearnClassificationStrategy"],
+	  "tags": ["ml", "sklearn"],
+	  "description": "Implementations of the classification models from scikit-learn framework"
+	},
+	"custom_class": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
+	  "tags": ["ml", "custom"],
+	  "description": "Implementations of the custom classification models"
+	},
+	"sklearn_regr": {
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.regression", "SkLearnRegressionStrategy"],
+	  "tags": ["ml", "sklearn", "composition"],
+	  "description": "Implementations of the regression models from scikit-learn framework"
+	},
+	"sklearn_clust": {
+	  "tasks": "[TaskTypesEnum.clustering]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.clustering", "SkLearnClusteringStrategy"],
+	  "tags": ["ml", "sklearn"],
+	  "description": "Implementations of the clustering models from scikit-learn framework"
+	},
+	"text_classification": {
+	  "tasks": "[TaskTypesEnum.classification]",
+	  "input_type": "[DataTypesEnum.text]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "forbidden_node_types": ["secondary"],
+	  "strategies": ["fedot.core.operations.evaluation.text", "SkLearnTextVectorizeStrategy"],
+	  "tags": ["nlp", "non-default"],
+	  "description": "Text classification"
+	},
+	"ts_model": {
+	  "tasks": "[TaskTypesEnum.ts_forecasting]",
+	  "input_type": "[DataTypesEnum.ts]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
+	  "tags": ["time_series"],
+	  "description": "Implementations of the time series models"
+	},
+	"automl": {
+      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "forbidden_node_types": "[]",
+      "strategies": ["fedot.core.operations.evaluation.utils", "AutoMlStrategy"],
+      "tags": ["automl", "expensive", "non-default"],
+      "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks"
+    }
+  },
+  "operations": {
+	"logit": {
+	  "meta": "sklearn_class",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"lda": {
+	  "meta": "custom_class",
+	  "tags": ["discriminant", "linear"]
+	},
+	"qda": {
+	  "meta": "custom_class",
+	  "tags": ["discriminant", "quadratic"]
+	},
+	"dt": {
+	  "meta": "sklearn_class",
+	  "tags": ["tree", "interpretable"]
+	},
+	"rf": {
+	  "meta": "sklearn_class"
+	},
+	"mlp": {
+	  "meta": "sklearn_class",
+	  "tags": ["neural"]
+	},
+	"knn": {
+	  "meta": "sklearn_class",
+	  "tags": ["simple"]
+	},
+	"svc": {
+	  "meta": "custom_class",
+	  "tags": ["no_prob", "expensive"]
+	},
+	"xgboost": {
+	  "meta": "sklearn_class",
+	  "tags": ["boosting"]
+	},
+	"bernb": {
+	  "meta": "sklearn_class",
+	  "tags": ["bayesian"]
+	},
+	"linear": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"lasso": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"ridge": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple", "linear", "interpretable"]
+	},
+	"xgbreg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["boosting", "non_multi"]
+	},
+	"adareg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["boosting", "non_multi"]
+	},
+	"gbr": {
+	  "meta": "sklearn_regr",
+	  "tags": ["boosting", "non_multi"]
+	},
+	"knnreg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["simple"]
+	},
+	"dtreg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["tree", "interpretable"]
+	},
+	"treg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["tree"]
+	},
+	"rfr": {
+	  "meta": "sklearn_regr"
+	},
+	"svr": {
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
+	},
+	"sgdr": {
+	  "meta": "sklearn_regr",
+	  "tags": ["non_multi"]
+	},
+	"arima": {
+	  "meta": "ts_model",
+	  "tags": ["simple", "interpretable", "ts_specific"]
+	},
+	"ar": {
+	  "meta": "ts_model",
+	  "tags": ["simple", "interpretable", "ts_specific"]
+	},
+	"kmeans": {
+	  "meta": "sklearn_clust"
+	},
+	"multinb": {
+	  "meta": "sklearn_class",
+	  "tags": ["bayesian", "non-default"]
+	},
+    "tfidf": {
+      "meta": "text_classification",
+	  "tags": ["text", "non-default"]
+    },
+	"tpot": {
+      "meta": "automl",
+	  "tags": ["automl", "non-default"]
+    }
+  }
+}

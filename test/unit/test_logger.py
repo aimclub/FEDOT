@@ -4,7 +4,7 @@ import pytest
 
 from fedot.core.data.data import train_test_data_setup, InputData
 from fedot.core.log import Log, LogManager, default_log
-from fedot.core.models.model import Model
+from fedot.core.operations.model import Model
 from test.unit.utilities.test_chain_import_export import create_four_depth_chain
 
 
@@ -58,8 +58,8 @@ def test_logger_write_logs_correctly():
     train_data, test_data = train_test_data_setup(data=data)
 
     try:
-        knn = Model(model_type='knnreg', log=test_log)
-        model, _ = knn.fit(data=train_data)
+        knn = Model(operation_type='knnreg', log=test_log)
+        model, _ = knn.fit(train_data, is_fit_chain_stage=True)
     except Exception:
         print('Captured error')
 

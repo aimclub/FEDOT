@@ -54,11 +54,11 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
             is_max_depth_exceeded = height >= max_depth - 1
             is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
             if is_max_depth_exceeded or is_primary_node_selected:
-                primary_node = primary_node_func(model_type=choice(requirements.primary))
+                primary_node = primary_node_func(operation_type=choice(requirements.primary))
                 node_parent.nodes_from.append(primary_node)
                 chain.add_node(primary_node)
             else:
-                secondary_node = secondary_node_func(model_type=choice(requirements.secondary))
+                secondary_node = secondary_node_func(operation_type=choice(requirements.secondary))
                 chain.add_node(secondary_node)
                 node_parent.nodes_from.append(secondary_node)
                 chain_growth(chain, secondary_node)
@@ -66,7 +66,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     is_correct_chain = False
     while not is_correct_chain:
         chain = chain_class()
-        chain_root = secondary_node_func(model_type=choice(requirements.secondary))
+        chain_root = secondary_node_func(operation_type=choice(requirements.secondary))
         chain.add_node(chain_root)
         chain_growth(chain, chain_root)
         is_correct_chain = constraint_function(chain)

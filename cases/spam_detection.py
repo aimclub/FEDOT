@@ -6,7 +6,6 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.data.preprocessing import TextPreprocessingStrategy, EmptyStrategy
 
 
 def unpack_archived_data():
@@ -18,11 +17,10 @@ def unpack_archived_data():
 
 
 def execute_chain_for_text_problem(train_data, test_data):
-    preproc_node = PrimaryNode('tfidf',
-                               manual_preprocessing_func=TextPreprocessingStrategy)
-    model_node = SecondaryNode('multinb', nodes_from=[preproc_node],
-                               manual_preprocessing_func=EmptyStrategy)
-    chain = Chain(nodes=[model_node, preproc_node])
+    node_text_clean = PrimaryNode('text_clean')
+    node_tfidf = SecondaryNode('tfidf', nodes_from=[node_text_clean])
+    model_node = SecondaryNode('multinb', nodes_from=[node_tfidf])
+    chain = Chain(model_node)
     chain.fit(train_data)
 
     predicted = chain.predict(test_data)
