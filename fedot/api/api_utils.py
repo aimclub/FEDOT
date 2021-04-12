@@ -1,4 +1,5 @@
 import datetime
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -138,24 +139,23 @@ def compose_fedot_model(train_data: InputData,
                         tuner_metric=None
                         ):
     """ Function for composing FEDOT chain model """
+
     # the choice of the metric for the chain quality assessment during composition
     if composer_metric is None:
-        metric_function = MetricByTask(task.task_type).metric_cls.get_value
-    else:
-        metric_id = composer_metrics_mapping.get(composer_metric, None)
-        if metric_id is None:
-            raise ValueError(f'Incorrect composer metric {composer_metric}')
-        metric_function = MetricsRepository().metric_by_id(metric_id)
+        composer_metric = MetricByTask(task.task_type).metric_cls.get_value
 
-    if isinstance(composer_metric, str):
+    if isinstance(composer_metric, str) or isinstance(composer_metric, Callable):
         composer_metric = [composer_metric]
 
     metric_function = []
     for specific_metric in composer_metric:
-        metric_id = composer_metrics_mapping.get(specific_metric, None)
-        if metric_id is None:
-            raise ValueError(f'Incorrect metric {specific_metric}')
-        specific_metric_function = MetricsRepository().metric_by_id(metric_id)
+        if isinstance(specific_metric, Callable):
+            specific_metric_function = specific_metric
+        else:
+            metric_id = composer_metrics_mapping.get(specific_metric, None)
+            if metric_id is None:
+                raise ValueError(f'Incorrect metric {specific_metric}')
+            specific_metric_function = MetricsRepository().metric_by_id(metric_id)
         metric_function.append(specific_metric_function)
 
     learning_time = datetime.timedelta(minutes=learning_time)
@@ -188,56 +188,66 @@ def compose_fedot_model(train_data: InputData,
     logger.message('Model composition started')
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
 
-    chain_for_tune = chain_gp_composed
     chain_for_return = chain_gp_composed
 
     if isinstance(chain_gp_composed, list):
         for chain in chain_gp_composed:
             chain.log = logger
-        chain_for_tune = chain_gp_composed[0]
-        chain_for_return = gp_composer.optimiser.archive
+        chain_for_return = chain_gp_composed[0]
+        best_candidates = gp_composer.optimiser.archive
+    else:
+        best_candidates = [chain_gp_composed]
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
 
-    if tuner_metric is None:
-        logger.message('Default loss function was set')
-        # Default metric for tuner
-        tune_metrics = TunerMetricByTask(task.task_type)
-        tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
-    else:
-        # Get metric and parameters by name
-        tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
-                                                       train_data=train_data,
-                                                       task=task)
-
-    # Tune all nodes in the chain
-    chain_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
-                                          loss_params=loss_params,
-                                          input_data=train_data,
-                                          iterations=20)
+        if tuner_metric is None:
+            logger.message('Default loss function was set')
+            # Default metric for tuner
+            tune_metrics = TunerMetricByTask(task.task_type)
+            tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+        else:
+            # Get metric and parameters by name
+            tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
+                                                           train_data=train_data,
+                                                           task=task)
+        # Tune all nodes in the chain
+        chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+                                             loss_params=loss_params,
+                                             input_data=train_data,
+                                             iterations=20)
 
     logger.message('Model composition finished')
 
-    return chain_gp_composed
+    return chain_for_return, best_candidates
 
 
 def get_gp_composer_builder(task: Task, metric_function, composer_requirements,
                             logger):
     """ Return GPComposerBuilder with parameters and if it is necessary
     init_chain in it """
+
+    builder = GPComposerBuilder(task=task). \
+        with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_logger(logger)
+
+    init_chain = None
     if task.task_type == TaskTypesEnum.ts_forecasting:
         # Create init chain
         node_lagged = PrimaryNode('lagged')
         node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
         init_chain = Chain(node_final)
+    elif task.task_type == TaskTypesEnum.classification:
+        node_lagged = PrimaryNode('scaling')
+        node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
+        init_chain = Chain(node_final)
+    elif task.task_type == TaskTypesEnum.regression:
+        node_lagged = PrimaryNode('scaling')
+        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+        init_chain = Chain(node_final)
 
-        builder = GPComposerBuilder(task=task). \
-            with_requirements(composer_requirements). \
-            with_metrics(metric_function).with_initial_chain(init_chain)
-    else:
-        builder = GPComposerBuilder(task).with_requirements(composer_requirements). \
-            with_metrics(metric_function).with_logger(logger)
+    if init_chain is not None:
+        builder = builder.with_initial_chain(init_chain)
 
     return builder
 

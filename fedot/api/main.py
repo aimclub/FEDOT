@@ -17,6 +17,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum
+from fedot.core.repository.tasks import TsForecastingParams
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -24,8 +25,8 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 def default_evo_params(problem):
     """ Dictionary with default parameters for composer """
     if problem == 'ts_forecasting':
-        return {'max_depth': 1,
-                'max_arity': 2,
+        return {'max_depth': 2,
+                'max_arity': 3,
                 'pop_size': 20,
                 'num_of_generations': 200,
                 'learning_time': 2,
@@ -114,13 +115,15 @@ class Fedot:
 
         self.metric_to_compose = None
         if 'metric' in self.composer_params:
-            self.metric_to_compose = self.composer_params['metric']
+            self.composer_params['composer_metric'] = self.composer_params['metric']
+            del self.composer_params['metric']
+            self.metric_to_compose = self.composer_params['composer_metric']
 
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
 
         if self.problem == 'ts_forecasting' and task_params is None:
-            raise ValueError(f'In task parameters forecast_length must be defined')
+            self.task_params = TsForecastingParams(forecast_length=30)
 
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=self.task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=self.task_params),
@@ -155,15 +158,11 @@ class Fedot:
     def _obtain_model(self, is_composing_required: bool = True):
         execution_params = self._get_params()
         if is_composing_required:
-            self.current_model = compose_fedot_model(**execution_params)
+            self.current_model, self.best_models = compose_fedot_model(**execution_params)
 
-        if isinstance(self.current_model, tools.ParetoFront):
-            self.best_models = self.current_model
+        if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
             self.best_models.objective_names = self.metric_to_compose
-            self.current_model = self.current_model[0]
-        else:
-            self.best_models = [self.current_model]
 
         self.current_model.fit_from_scratch(self.train_data)
 

@@ -81,7 +81,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -101,7 +101,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     model.fit(features=train_data.features,
               target=train_data.target,
               predefined_model=chain)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length

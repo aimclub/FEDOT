@@ -1,8 +1,8 @@
 import pandas as pd
 
 from fedot.api.main import Fedot
-from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import project_root
 
 
@@ -24,7 +24,6 @@ def run_classification_example():
     print(auto_model.get_metrics())
 
     return prediction
-
 
 
 def run_regression_example():
@@ -52,6 +51,8 @@ def run_regression_example():
 def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     train_data_path = f'{project_root()}/notebooks/jupyter_media/intro/salaries.csv'
 
+    target = pd.read_csv(train_data_path)['target']
+
     # Define forecast length and define parameters - forecast length
     forecast_length = 30
     task_parameters = TsForecastingParams(forecast_length=forecast_length)
@@ -63,15 +64,11 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     chain = model.fit(features=train_data_path, target='target')
     if with_chain_vis:
         chain.show()
-    chain = model.fit(features=train_data_path, target='target', )
-    chain.show()
-
-    model.predict(features=train_data_path)
-
-    print(model.get_metrics())
 
     # use model to obtain forecast
-    forecast = model.predict(features=train_data_path, target='target')
+    forecast = model.predict(features=train_data_path)
+
+    print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
     # plot forecasting result
     if with_plot:
@@ -87,7 +84,7 @@ def run_classification_multiobj_example(with_plot=True):
     del test_data['class']
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, learning_time=5, preset='light',
+    auto_model = Fedot(problem=problem, learning_time=2, preset='light',
                        composer_params={'metric': ['f1', 'node_num']}, seed=42)
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)
@@ -101,6 +98,6 @@ def run_classification_multiobj_example(with_plot=True):
 
 if __name__ == '__main__':
     run_classification_example()
-    run_classification_multiobj_example()
     run_regression_example()
     run_ts_forecasting_example()
+    run_classification_multiobj_example()
