@@ -6,7 +6,7 @@ from fedot.core.operations.operation import Operation
 
 class Model(Operation):
     """
-    Class with fit/predict methods defining the evaluation strategy for the task
+    Class with fit/predict gapfilling defining the evaluation strategy for the task
 
     :param operation_type: name of the model
     :param log: Log object to record messages

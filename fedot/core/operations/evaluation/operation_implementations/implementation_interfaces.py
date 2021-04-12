@@ -7,8 +7,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class DataOperationImplementation(ABC):
-    """ Interface for data operations realisations methods
-    Contains abstract methods, which should be implemented for applying EA
+    """ Interface for data operations realisations gapfilling
+    Contains abstract gapfilling, which should be implemented for applying EA
     optimizer on it
     """
 
@@ -159,8 +159,8 @@ class EncodedInvariantOperation(DataOperationImplementation):
 
 
 class ModelImplementation(ABC):
-    """ Interface for models realisations methods
-    Contains abstract methods, which should be implemented for applying EA
+    """ Interface for models realisations gapfilling
+    Contains abstract gapfilling, which should be implemented for applying EA
     optimizer on it
     """
 

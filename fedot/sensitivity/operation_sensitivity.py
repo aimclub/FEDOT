@@ -37,7 +37,7 @@ class OperationAnalyze(NodeAnalyzeApproach):
         if not self._chain.fitted_on_data:
             self._chain.fit(self._train_data)
 
-        # define methods
+        # define gapfilling
         self.analyze_method = analyze_method_by_name.get(sa_method)
         self.sample_method = sample_method_by_name.get(sample_method)
 

@@ -39,7 +39,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class EvaluationStrategy:
     """
     Base class to define the evaluation strategy of Operation object:
-    the certain sklearn or any other operation with fit/predict methods.
+    the certain sklearn or any other operation with fit/predict gapfilling.
     :param operation_type: str type of the operation defined in operation repository
     :param dict params: hyperparameters to fit the operation with
     :param Log log: Log object to record messages

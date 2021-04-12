@@ -23,7 +23,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 class NodeAnalysis:
     """
-    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    :param approaches: gapfilling applied to nodes to modify the chain or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False

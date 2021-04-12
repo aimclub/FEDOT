@@ -31,7 +31,7 @@ class ChainStructureAnalyze:
     :param chain: chain object to analyze
     :param train_data: data used for Chain training
     :param test_data: data used for Chain validation
-    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    :param approaches: gapfilling applied to nodes to modify the chain or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param metric: metric used for validation. Default: see MetricByTask
     :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes

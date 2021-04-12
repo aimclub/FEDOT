@@ -16,7 +16,7 @@ from fedot.core.repository.operation_types_repository import atomized_model_type
 
 class ChainTemplate:
     """
-    Chain wrapper with 'export_chain'/'import_chain' methods
+    Chain wrapper with 'export_chain'/'import_chain' gapfilling
     allowing user to upload a chain to JSON format and import it from JSON.
 
     :params chain: Chain object to export or empty Chain to import

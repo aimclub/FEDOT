@@ -8,7 +8,7 @@ class OperationFactory:
     """
     Base class for determining what type of operations should be defined
     in the node. Possible operations are models (ML models with fit and predict
-    methods) and data operations (e.g. scaling) with fit and transform methods
+    gapfilling) and data operations (e.g. scaling) with fit and transform gapfilling
 
     """
 

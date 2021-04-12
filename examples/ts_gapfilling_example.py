@@ -86,7 +86,7 @@ def run_gapfilling_example():
     without_gap_arr_ridge = \
         ridge_gapfiller.forward_inverse_filling(gap_data)
 
-    # Filling in gaps using simple methods such as polynomial approximation
+    # Filling in gaps using simple gapfilling such as polynomial approximation
     simple_gapfill = SimpleGapFiller(gap_value=-100.0)
     without_gap_local_poly = \
         simple_gapfill.local_poly_approximation(gap_data, 4, 150)

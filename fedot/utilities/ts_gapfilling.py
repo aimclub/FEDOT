@@ -8,7 +8,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 class SimpleGapFiller:
     """
-    Base class used for filling in the gaps in time series with simple methods.
+    Base class used for filling in the gaps in time series with simple gapfilling.
     Methods from the SimpleGapFiller class can be used for comparison with more
     complex models in class ModelGapFiller
 
