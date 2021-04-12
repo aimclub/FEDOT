@@ -237,7 +237,8 @@ class GPChainOptimiser:
 
     def log_info_about_best(self):
         if self.parameters.multi_objective:
-            self.log.info(f'Pareto Frontier: {[item.fitness.values for item in self.archive.items]}')
+            self.log.info(f'Pareto Frontier: '
+                          f'{[item.fitness.values for item in self.archive.items if item.fitness is not None]}')
         else:
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 

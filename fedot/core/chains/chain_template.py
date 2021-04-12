@@ -88,6 +88,11 @@ class ChainTemplate:
         chain_template_dict = self.convert_to_dict()
         json_data = json.dumps(chain_template_dict)
 
+        # to remove un-serializable estimator from model_template
+        for model_template in chain_template_dict['nodes']:
+            if 'params' in model_template and 'estimator' in model_template['params']:
+                del model_template['params']['estimator']
+
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
@@ -205,7 +210,8 @@ class ChainTemplate:
                 node = PrimaryNode(operation_object.operation_type)
             node.operation.params = operation_object.params
 
-        if hasattr(operation_object, 'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
+        if hasattr(operation_object,
+                   'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
             path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
             if not os.path.isfile(path_to_operation):
                 message = f"Fitted operation on the path: {path_to_operation} does not exist."
