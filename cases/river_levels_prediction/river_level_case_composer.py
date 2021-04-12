@@ -1,22 +1,21 @@
 import datetime
 import warnings
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.chains.tuning.unified import ChainTuner
 
 warnings.filterwarnings('ignore')
 
@@ -114,7 +113,7 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
                                   'xgbreg', 'adareg', 'knnreg',
                                   'linear', 'svr', 'poly_features',
                                   'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
-                                  'pca',  'ransac_non_lin_reg',
+                                  'pca', 'ransac_non_lin_reg',
                                   'rfe_non_lin_reg', 'normalization']
 
     # Report arrays

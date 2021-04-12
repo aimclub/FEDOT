@@ -4,11 +4,11 @@ from random import choice, randint, random
 from typing import Any
 
 from fedot.core.chains.chain import Chain, List
+from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
-from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 
 MAX_NUM_OF_ATTEMPTS = 10
 
@@ -110,8 +110,7 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
         is_primary_node_selected = (not node_from_chain.nodes_from) or (
                 node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
     else:
-        is_primary_node_selected = randint(0, 1) and not node_height(chain, node_from_chain) \
-                                                         < max_depth
+        is_primary_node_selected = randint(0, 1) and not node_height(chain, node_from_chain) < max_depth
     if is_primary_node_selected:
         new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
     else:

@@ -1,18 +1,17 @@
-import warnings
 import timeit
+import warnings
 
 import numpy as np
 import pandas as pd
-
+from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.chains.tuning.unified import ChainTuner
-from matplotlib import pyplot as plt
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
@@ -33,7 +32,7 @@ def make_forecast(chain, train_input, predict_input, task):
     # Fit it
     start_time = timeit.default_timer()
     chain.fit_from_scratch(train_input)
-    amount_of_seconds = timeit.default_timer()-start_time
+    amount_of_seconds = timeit.default_timer() - start_time
 
     print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
 

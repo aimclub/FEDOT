@@ -396,8 +396,8 @@ def test_chain_fit_time_constraint(data_fixture, request):
     assert predicted_first is None
     assert computation_time_second is not None
     assert predicted_second is not None
-    
-    
+
+
 def test_chain_fine_tune_all_nodes_correct(classification_dataset):
     data = classification_dataset
 

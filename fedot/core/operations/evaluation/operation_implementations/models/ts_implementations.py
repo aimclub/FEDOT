@@ -1,15 +1,14 @@
 from typing import Optional
 
 import numpy as np
-
-from statsmodels.tsa.arima_model import ARIMA
-from statsmodels.tsa.ar_model import AutoReg
 from scipy import stats
+from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.tsa.arima_model import ARIMA
 
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.operations.evaluation.\
-    operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
+from fedot.core.operations.evaluation. \
+    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -84,7 +83,7 @@ class ARIMAImplementation(ModelImplementation):
             if diff != 0:
                 # Fill nans with first values
                 first_element = fitted_values[0]
-                first_elements = [first_element]*diff
+                first_elements = [first_element] * diff
                 first_elements.extend(list(fitted_values))
 
                 fitted_values = np.array(first_elements)
@@ -134,7 +133,7 @@ class ARIMAImplementation(ModelImplementation):
         if lmbda == 0:
             return np.exp(predicted)
         else:
-            return np.exp(np.log(lmbda*predicted + 1)/lmbda)
+            return np.exp(np.log(lmbda * predicted + 1) / lmbda)
 
     def _inverse_shift(self, values):
         """ Method apply inverse shift operation """

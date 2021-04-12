@@ -81,7 +81,7 @@ def display_validation_metric(predicted, real, actual_values,
     if is_visualise:
         plot_results(actual_time_series=actual_values,
                      predicted_values=predicted,
-                     len_train_data=len(actual_values)-len(predicted))
+                     len_train_data=len(actual_values) - len(predicted))
 
 
 def plot_results(actual_time_series, predicted_values, len_train_data,

@@ -45,7 +45,7 @@ def chain_full_random(depth: int, max_level_size,
     :return: Chain with random operations_per_level and links.
     """
     operations_per_lvl = _random_operations_per_lvl(depth=depth,
-                                            max_level_size=max_level_size)
+                                                    max_level_size=max_level_size)
     resulted_chain = chain_with_random_links(depth=depth,
                                              operations_per_level=operations_per_lvl,
                                              used_operations=used_operations)

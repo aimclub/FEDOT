@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
-from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.utilities.synthetic.data import generate_synthetic_data
+from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 
 
 def generate_gaps_in_ts(array_without_gaps, gap_dict, gap_value):
@@ -31,7 +31,7 @@ def generate_gaps_in_ts(array_without_gaps, gap_dict, gap_value):
             # Generating a gap to the end of an array
             array_with_gaps[key:] = gap_value
         else:
-            array_with_gaps[key:(key+gap_size)] = gap_value
+            array_with_gaps[key:(key + gap_size)] = gap_value
 
     return array_with_gaps
 

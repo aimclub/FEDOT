@@ -16,7 +16,7 @@ class Operation:
     :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str,  log: Log = None):
+    def __init__(self, operation_type: str, log: Log = None):
         self.operation_type = operation_type
         self.log = log
 
