@@ -6,8 +6,7 @@ problem = 'ts_forecasting'
 
 auto_model = Fedot(problem=problem, learning_time=2,
                    composer_params={'available_model_types': ['linear', 'lasso', 'ridge', 'xgbreg',
-                                                              'knnreg', 'dtreg', 'treg', 'rfr',
-                                                              'trend_data_model'],
+                                                              'knnreg'],
                                     'metric': ['rmse', 'node_num']}, seed=42, verbose_level=3)
 auto_model.fit(features='./data/ssh.csv')
 

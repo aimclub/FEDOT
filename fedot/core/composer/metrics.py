@@ -208,7 +208,7 @@ class NodeNum(Metric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=True)
+                                  y_pred=predicted.predict, squared=False)
 
     @classmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:

@@ -270,15 +270,15 @@ class ChainVisualiser:
             ax.set_title(f'Pareto frontier, Generation: {generation_num}', fontsize=15)
         else:
             ax.set_title('Pareto frontier', fontsize=15)
-        plt.xlabel(objectives_names[0], fontsize=15)
-        plt.ylabel(objectives_names[1], fontsize=15)
+        plt.xlabel(objectives_names[0], fontsize=18)
+        plt.ylabel(objectives_names[1], fontsize=18)
 
         if minmax_x is not None:
             plt.xlim(minmax_x[0], minmax_x[1])
         if minmax_y is not None:
             plt.ylim(minmax_y[0], minmax_y[1])
         fig.set_figwidth(8)
-        fig.set_figheight(8)
+        fig.set_figheight(5)
         if save:
             if not os.path.isdir('../../tmp'):
                 os.mkdir('../../tmp')

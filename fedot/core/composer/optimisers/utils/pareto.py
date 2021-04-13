@@ -13,4 +13,4 @@ class ParetoFront(DeapParetoFront):
     def show(self):
         ChainVisualiser().visualise_pareto(archive=self.items, show=True,
                                            objectives_numbers=(1, 0),
-                                           objectives_names=self.objective_names[::-1])
+                                           objectives_names=['Mean-variance for RMSE', 'RMSE, m.'])
