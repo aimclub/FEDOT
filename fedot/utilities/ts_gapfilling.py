@@ -177,13 +177,11 @@ class ModelGapFiller(SimpleGapFiller):
 
     :param gap_value: value, which mask gap elements in array
     :param chain: TsForecastingChain object for filling in the gaps
-    :param max_window_size: window length
     """
 
-    def __init__(self, gap_value, chain, max_window_size: int = 50):
+    def __init__(self, gap_value, chain):
         super().__init__(gap_value)
         self.chain = chain
-        self.max_window_size = max_window_size
 
     def forward_inverse_filling(self, input_data):
         """
@@ -326,13 +324,10 @@ class ModelGapFiller(SimpleGapFiller):
         """
 
         task = Task(TaskTypesEnum.ts_forecasting,
-                    TsForecastingParams(forecast_length=len_gap,
-                                        max_window_size=self.max_window_size,
-                                        return_all_steps=False,
-                                        make_future_prediction=True))
+                    TsForecastingParams(forecast_length=len_gap))
 
         input_data = InputData(idx=np.arange(0, len(timeseries_train)),
-                               features=None,
+                               features=timeseries_train,
                                target=timeseries_train,
                                task=task,
                                data_type=DataTypesEnum.ts)
@@ -341,12 +336,15 @@ class ModelGapFiller(SimpleGapFiller):
         self.chain.fit_from_scratch(input_data)
 
         # "Test data" for making prediction for a specific length
-        test_data = InputData(idx=np.arange(0, len_gap),
-                              features=None,
+        start_forecast = len(timeseries_train)
+        end_forecast = start_forecast + len_gap
+        idx_test = np.arange(start_forecast, end_forecast)
+        test_data = InputData(idx=idx_test,
+                              features=timeseries_train,
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)
 
-        predicted_values = self.chain.forecast(initial_data=input_data,
-                                               supplementary_data=test_data).predict
+        predicted_values = self.chain.predict(test_data)
+        predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values

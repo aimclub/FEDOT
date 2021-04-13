@@ -4,7 +4,7 @@ from sklearn.datasets import load_breast_cancer
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, split_train_test
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     (ClassificationMetricsEnum,
@@ -22,22 +22,23 @@ def data_setup():
     np.random.shuffle(response)
     response = response[:100]
     predictors = predictors[:100]
-    train_data_x, test_data_x = split_train_test(predictors)
-    train_data_y, test_data_y = split_train_test(response)
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)),
-                           task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
-    test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)),
-                          task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+
+    # Wrap data into TnputData
+    input_data = InputData(features=predictors,
+                           target=response,
+                           idx=np.arange(0, len(predictors)),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    # Train test split
+    train_data, test_data = train_test_data_setup(input_data)
     return train_data, test_data
 
 
 def default_valid_chain():
-    first = PrimaryNode(model_type='logit')
-    second = SecondaryNode(model_type='logit', nodes_from=[first])
-    third = SecondaryNode(model_type='logit', nodes_from=[first])
-    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
+    first = PrimaryNode(operation_type='logit')
+    second = SecondaryNode(operation_type='logit', nodes_from=[first])
+    third = SecondaryNode(operation_type='logit', nodes_from=[first])
+    final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
 
     chain = Chain(final)
 

@@ -1,24 +1,52 @@
+import os
 import datetime
 import random
+
+import pandas as pd
+import numpy as np
+
 from datetime import timedelta
 
-import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
-
-from examples.utils import create_multi_clf_examples_from_excel
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
     ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import probs_to_labels
+from fedot.core.utils import ensure_directory_exists, get_split_data_paths, \
+    project_root, save_file_to_csv, split_data
 
 random.seed(1)
 np.random.seed(1)
+
+
+def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False):
+    """ Return dataframe from excel file or path to the csv file """
+    df = pd.read_excel(file_path, engine='openpyxl')
+    train, test = split_data(df)
+    file_dir_name = file_path.replace('.', '/').split('/')[-2]
+    file_csv_name = f'{file_dir_name}.csv'
+    directory_names = ['examples', 'data', file_dir_name]
+
+    # Check does obtained directory exist or not
+    ensure_directory_exists(directory_names)
+    if return_df:
+        # Need to return dataframe and path to the file in csv format
+        path = os.path.join(directory_names[0], directory_names[1], directory_names[2], file_csv_name)
+        full_file_path = os.path.join(str(project_root()), path)
+        save_file_to_csv(df, full_file_path)
+        return df, full_file_path
+    else:
+        # Need to return only paths to the files with train and test data
+        full_train_file_path, full_test_file_path = get_split_data_paths(directory_names)
+        save_file_to_csv(train, full_train_file_path)
+        save_file_to_csv(train, full_test_file_path)
+        return full_train_file_path, full_test_file_path
 
 
 def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelta(seconds=60)):
@@ -27,8 +55,8 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     # the search of the models provided by the framework
     # that can be used as nodes in a chain for the selected task
-    models_repo = ModelTypesRepository()
-    available_model_types, _ = models_repo.suitable_model(task_type=task.task_type, tags=['simple'])
+    models_repo = OperationTypesRepository()
+    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 

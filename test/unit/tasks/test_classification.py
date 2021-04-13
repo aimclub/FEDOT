@@ -13,9 +13,10 @@ from test.unit.models.test_model import classification_dataset_with_redunant_fea
 
 
 def chain_simple() -> Chain:
-    node_first = PrimaryNode('svc')
-    node_second = PrimaryNode('lda')
-    node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
+    node_scaling = PrimaryNode('scaling')
+    node_svc = SecondaryNode('svc', nodes_from=[node_scaling])
+    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
+    node_final = SecondaryNode('rf', nodes_from=[node_svc, node_lda])
 
     chain = Chain(node_final)
 
@@ -23,9 +24,10 @@ def chain_simple() -> Chain:
 
 
 def chain_with_pca() -> Chain:
-    node_first = PrimaryNode('pca_data_model')
-    node_second = PrimaryNode('lda')
-    node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
+    node_scaling = PrimaryNode('scaling')
+    node_pca = SecondaryNode('pca', nodes_from=[node_scaling])
+    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
+    node_final = SecondaryNode('rf', nodes_from=[node_pca, node_lda])
 
     chain = Chain(node_final)
 

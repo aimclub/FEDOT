@@ -8,13 +8,13 @@ from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root, default_fedot_data_dir
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
-from fedot.sensitivity.node_sensitivity import NodeDeletionAnalyze, NodeReplaceModelAnalyze
+from fedot.sensitivity.node_sensitivity import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
 
 def get_three_depth_manual_class_chain():
@@ -48,14 +48,14 @@ def get_three_depth_manual_regr_chain():
 
 def get_composed_chain(dataset_to_compose, task, metric_function):
     # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types = get_operations_for_task(task=task, mode='models')
 
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, add_single_model_chains=False)
+        crossover_prob=0.8, mutation_prob=0.8, allow_single_operations=False)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.steady_state
@@ -140,7 +140,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
     chain_analysis_result = ChainStructureAnalyze(chain=chain, train_data=train_data,
                                                   test_data=test_data, all_nodes=True, path_to_save=result_path,
                                                   approaches=[NodeDeletionAnalyze,
-                                                              NodeReplaceModelAnalyze]).analyze()
+                                                              NodeReplaceOperationAnalyze]).analyze()
 
     print(f'chain analysis result {chain_analysis_result}')
 

@@ -1,24 +1,24 @@
 import random
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_models_by_preset, metrics_mapping,
+from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, filter_operations_by_preset,
+                                 composer_metrics_mapping,
                                  save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
-from fedot.core.repository.tasks import (Task, TaskParams,
-                                         TaskTypesEnum, TsForecastingParams)
+from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum
 
 
 def default_evo_params(problem):
+    """ Dictionary with default parameters for composer """
     if problem == 'ts_forecasting':
         return {'max_depth': 1,
                 'max_arity': 2,
@@ -63,7 +63,7 @@ class Fedot:
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
             'learning_time':- composing time (minutes)
-            'available_model_types' - list of model names to use
+            'available_operations' - list of model names to use
             'with_tuning' - allow huperparameters tuning for the model
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
@@ -108,10 +108,7 @@ class Fedot:
             self.composer_params['learning_time'] = learning_time
 
         if self.problem == 'ts_forecasting' and task_params is None:
-            # TODO auto-estimate
-            self.task_params = TsForecastingParams(forecast_length=30,
-                                                   max_window_size=30,
-                                                   make_future_prediction=True)
+            raise ValueError(f'In task parameters forecast_length must be defined')
 
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=self.task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=self.task_params),
@@ -130,8 +127,8 @@ class Fedot:
             del self.composer_params['preset']
 
         if preset is not None:
-            available_model_types = filter_models_by_preset(self.problem, preset)
-            self.composer_params['available_model_types'] = available_model_types
+            available_operations = filter_operations_by_preset(self.problem, preset)
+            self.composer_params['available_operations'] = available_operations
             self.composer_params['with_tuning'] = '_tun' in preset or preset is None
 
     def _get_params(self):
@@ -198,6 +195,7 @@ class Fedot:
 
     def predict(self,
                 features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                target: Union[str, np.ndarray, pd.Series] = None,
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
@@ -210,11 +208,18 @@ class Fedot:
             raise ValueError('The model was not fitted yet')
 
         self.test_data = _define_data(ml_task=self.problem,
-                                      features=features, is_predict=True)
+                                      features=features,
+                                      target=target,
+                                      is_predict=True)
 
         if self.problem.task_type == TaskTypesEnum.classification:
             self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
             self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
+        elif self.problem.task_type == TaskTypesEnum.ts_forecasting:
+            # Convert forecast into one-dimensional array
+            self.prediction = self.current_model.predict(self.test_data)
+            forecast = np.ravel(np.array(self.prediction.predict))
+            self.prediction.predict = forecast
         else:
             self.prediction = self.current_model.predict(self.test_data)
 
@@ -241,7 +246,8 @@ class Fedot:
         if self.problem.task_type == TaskTypesEnum.classification:
 
             self.test_data = _define_data(ml_task=self.problem,
-                                          features=features, is_predict=True)
+                                          features=features,
+                                          target=None)
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
@@ -253,45 +259,6 @@ class Fedot:
         else:
             raise ValueError('Probabilities of predictions are available only for classification')
 
-        return self.prediction.predict
-
-    def forecast(self,
-                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData],
-                 forecast_length: int = 1,
-                 save_predictions: bool = False):
-        """
-        Forecast the new values of time series
-
-        :param pre_history: the array with features for pre-history of the forecast
-        :param forecast_length: num of steps to forecast
-        :param save_predictions: if True-save predictions as csv-file in working directory.
-        :return: the array with prediction values
-        """
-
-        if self.current_model is None:
-            raise ValueError('The model was not fitted yet')
-
-        if self.problem.task_type != TaskTypesEnum.ts_forecasting:
-            raise ValueError('Forecasting can be used only for the time series')
-
-        self.problem = self.train_data.task
-
-        self.train_data = _define_data(ml_task=self.problem,
-                                       features=pre_history, is_predict=True)
-
-        self.current_model = TsForecastingChain(self.current_model.root_node)
-
-        last_ind = int(round(self.train_data.idx[-1]))
-
-        supp_data = InputData(idx=list(range(last_ind, last_ind + forecast_length)),
-                              features=None, target=None,
-                              data_type=DataTypesEnum.ts,
-                              task=self.problem)
-
-        self.prediction = self.current_model.forecast(initial_data=self.train_data, supplementary_data=supp_data)
-
-        if save_predictions:
-            save_predict(self.prediction)
         return self.prediction.predict
 
     def load(self, path):
@@ -345,11 +312,11 @@ class Fedot:
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if metrics_mapping[metric_name] is NotImplemented:
+            if composer_metrics_mapping[metric_name] is NotImplemented:
                 self.log.warn(f'{metric_name} is not available as metric')
             else:
                 prediction = self.prediction
-                metric_cls = MetricsRepository().metric_class_by_id(metrics_mapping[metric_name])
+                metric_cls = MetricsRepository().metric_class_by_id(composer_metrics_mapping[metric_name])
                 if metric_cls.output_mode == 'labels':
                     prediction = self.prediction_labels
                 metric_value = abs(metric_cls.metric(reference=self.test_data,
@@ -387,15 +354,24 @@ def _define_data(ml_task: Task,
                                    target_array=features[1],
                                    task=ml_task)
     elif type(features) == str:
-        # CSV files as input data
-        if target is None:
-            target = 'target'
-        elif is_predict:
-            target = None
+        # CSV files as input data, by default - table data
         data_type = DataTypesEnum.table
         if ml_task.task_type == TaskTypesEnum.ts_forecasting:
-            data_type = DataTypesEnum.ts
-        data = InputData.from_csv(features, task=ml_task, target_column=target, data_type=data_type)
+            # For time series forecasting format - time series
+            data = InputData.from_csv_time_series(task=ml_task,
+                                                  file_path=features,
+                                                  target_column=target,
+                                                  is_predict=is_predict)
+        else:
+            # Make default features table
+            # CSV files as input data
+            if target is None:
+                target = 'target'
+            elif is_predict:
+                target = None
+            data = InputData.from_csv(features, task=ml_task,
+                                      target_column=target,
+                                      data_type=data_type)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
 

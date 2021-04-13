@@ -6,9 +6,9 @@ from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiOb
 
 
 def create_chain():
-    first = PrimaryNode(model_type='logit')
-    second = PrimaryNode(model_type='lda')
-    final = SecondaryNode(model_type='knn', nodes_from=[first, second])
+    first = PrimaryNode(operation_type='logit')
+    second = PrimaryNode(operation_type='lda')
+    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
 
     chain = Chain(final)
     chain.fitness = 1

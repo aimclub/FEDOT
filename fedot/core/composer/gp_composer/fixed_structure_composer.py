@@ -28,8 +28,9 @@ class FixedStructureComposer(GPComposer):
         super().__init__(optimiser=optimiser, metrics=metrics, composer_requirements=composer_requirements,
                          initial_chain=initial_chain)
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False) -> Chain:
-        return super().compose_chain(data, is_visualise)
+    def compose_chain(self, data: InputData, is_visualise: bool = False,
+                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
+        return super().compose_chain(data, is_visualise, is_tune, on_next_iteration_callback)
 
 
 class FixedStructureComposerBuilder(GPComposerBuilder):

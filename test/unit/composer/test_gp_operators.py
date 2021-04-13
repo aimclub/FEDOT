@@ -18,7 +18,7 @@ from fedot.core.composer.optimisers.gp_comp.operators.mutation import mutation, 
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import default_log
-from fedot.core.repository.model_types_repository import ModelTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root
@@ -66,7 +66,7 @@ def test_evaluate_individuals():
 
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
     composer_requirements = GPComposerRequirements(primary=available_model_types,
@@ -78,8 +78,7 @@ def test_evaluate_individuals():
     composer = builder.build()
 
     train_data, test_data = train_test_data_setup(dataset_to_compose,
-                                                  sample_split_ration_for_tasks[dataset_to_compose.task.task_type],
-                                                  task=dataset_to_compose.task)
+                                                  sample_split_ration_for_tasks[dataset_to_compose.task.task_type])
     metric_function_for_nodes = partial(composer.composer_metric, composer.metrics, train_data, test_data)
     population = [chain_first(), chain_second(), chain_third(), chain_fourth()]
     max_lead_time = datetime.timedelta(minutes=0.001)
@@ -138,7 +137,7 @@ def test_mutation():
     log = default_log(__name__)
     chain_gener_params = ChainGenerationParams()
     task = Task(TaskTypesEnum.classification)
-    primary_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    primary_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
     composer_requirements = GPComposerRequirements(primary=primary_model_types,
                                                    secondary=secondary_model_types, mutation_prob=1)

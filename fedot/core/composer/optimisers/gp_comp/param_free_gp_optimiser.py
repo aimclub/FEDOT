@@ -67,9 +67,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
         with CompositionTimer(max_lead_time=self.requirements.max_lead_time, log=self.log) as t:
 
-            if self.requirements.add_single_model_chains:
-                self.best_single_model, self.requirements.primary = \
-                    self._best_single_models(objective_function, timer=t)
+            if self.requirements.allow_single_operations:
+                self.best_single_operation, self.requirements.primary = \
+                    self._best_single_operations(objective_function, timer=t)
 
             self._evaluate_individuals(self.population, objective_function, timer=t)
 
