@@ -297,16 +297,14 @@ class Fedot:
 
         self.problem = self.train_data.task
 
-        self.train_data = _define_data(ml_task=self.problem,
-                                       target=self.target_name,
-                                       features=pre_history,
-                                       is_predict=True)
+        self.test_data = _define_data(ml_task=self.problem,
+                                      target=self.target_name,
+                                      features=pre_history,
+                                      is_predict=True)
 
         self.current_model = Chain(self.current_model.root_node)
 
-        last_ind = int(round(self.train_data.idx[-1]))
-
-        self.prediction = self.current_model.predict()
+        self.prediction = self.current_model.predict(self.test_data)
 
         if save_predictions:
             save_predict(self.prediction)
