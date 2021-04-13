@@ -82,7 +82,7 @@ def run_poly(folder_to_save, files_list,
 
 # Run the poly approximation example
 folder_to_save = '../data/poly'
-files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
+files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = '../data/reports/poly_report.csv'
 

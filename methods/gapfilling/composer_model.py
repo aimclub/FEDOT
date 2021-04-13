@@ -316,7 +316,7 @@ def run_fedot_composer(folder_to_save, files_list,
 
 # Run the comopser example
 folder_to_save = '../data/fedot_composer'
-files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
+files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = '../data/reports/fedot_composer_report.csv'
 

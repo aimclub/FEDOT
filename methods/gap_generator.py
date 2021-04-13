@@ -53,7 +53,7 @@ def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis = False):
     dataframe.to_csv(csv_file, index=False)
 
 
-csv_file = 'data/Sea_10_240.csv'
+csv_file = 'data/Traffic.csv'
 # 30%
 generate_gaps(csv_file=csv_file,
               gap_dict={550: 150,
