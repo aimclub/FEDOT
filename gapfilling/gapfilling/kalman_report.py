@@ -10,11 +10,10 @@ rcParams['figure.figsize'] = 18, 7
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 
-def run_poly(folder_to_save, files_list,
-             columns_with_gap, file_with_results,
-             vis = False):
+def run_kalman(folder_with_filled, files_list,
+               columns_with_gap, file_with_results,  vis = False):
     """
-    The function starts the algorithm of local polynomial approximation
+    The function starts the report creation for Kalman filter gap-filling results
 
     :param folder_to_save: where to save csv files with filled gaps
     :param files_list: list with file name, which will be processed
@@ -23,33 +22,28 @@ def run_poly(folder_to_save, files_list,
     :param vis: is there a need to make visualisations
     """
 
-    # Create folder if it doesnt exists
-    if os.path.isdir(folder_to_save) == False:
-        os.makedirs(folder_to_save)
-
     mapes = []
     for file_id, file in enumerate(files_list):
+        # Source dataframe with gaps in it
         data = pd.read_csv(os.path.join('..', 'data', file))
         data['Date'] = pd.to_datetime(data['Date'])
-        dataframe = data.copy()
+
+        # Already filled dataframe
+        data_filled = pd.read_csv(os.path.join(folder_with_filled, file))
+        data_filled['Date'] = pd.to_datetime(data_filled['Date'])
 
         # Creating the dataframe
-        mini_dataframe = pd.DataFrame({'File': [file]*6,
+        mini_dataframe = pd.DataFrame({'File': [file] * 6,
                                        'Metric': ['MAE', 'RMSE', 'MedAE',
                                                   'MAPE', 'Min gap value',
                                                   'Max gap value']})
-
         # For every gap series
         for column_with_gap in columns_with_gap:
             print(f'File - {file}, column with gaps - {column_with_gap}')
+
             array_with_gaps = np.array(data[column_with_gap])
+            withoutgap_arr = np.array(data_filled[column_with_gap])
 
-            # Gap-filling algorithm
-            simple_gapfill = SimpleGapFiller(gap_value=-100.0)
-            withoutgap_arr = simple_gapfill.local_poly_approximation(array_with_gaps, 4, 700)
-
-            # Impute time series with new one
-            dataframe[column_with_gap] = withoutgap_arr
             min_val, max_val, mae, rmse, medianae, mape = validate(parameter='Height',
                                                                    mask=column_with_gap,
                                                                    data=data,
@@ -58,10 +52,6 @@ def run_poly(folder_to_save, files_list,
 
             mini_dataframe[column_with_gap] = [mae, rmse, medianae, mape, min_val, max_val]
             mapes.append(mape)
-
-            # Save resulting file
-            save_path = os.path.join(folder_to_save, file)
-            dataframe.to_csv(save_path)
 
         print(mini_dataframe)
         print('\n')
@@ -80,12 +70,13 @@ def run_poly(folder_to_save, files_list,
         os.makedirs(path_to_save)
     main_dataframe.to_csv(file_with_results, index=False)
 
-# Run the poly approximation example
-folder_to_save = '../data/poly'
+
+# Run the kalman report creation
+folder_with_filled = '../data/kalman'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv']
 columns_with_gap = ['gap', 'gap_center']
-file_with_results = '../data/reports/poly_report.csv'
+file_with_results = '../data/reports/kalman_report.csv'
 
 if __name__ == '__main__':
-    run_poly(folder_to_save, files_list,
-             columns_with_gap, file_with_results, vis=False)
+    run_kalman(folder_with_filled, files_list,
+               columns_with_gap, file_with_results, vis=True)

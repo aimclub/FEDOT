@@ -18,34 +18,34 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def make_forecast(chain, train_data, len_forecast: int, max_window_size: int):
+def make_forecast(chain, train_data, len_forecast: int):
     """
     Function for predicting values in a time series
 
     :param chain: TsForecastingChain object
     :param train_data: one-dimensional numpy array to train chain
     :param len_forecast: amount of values for predictions
-    :param max_window_size: moving window size
 
     :return predicted_values: numpy array, forecast of model
     """
 
     # Here we define which task should we use, here we also define two main
-    # hyperparameters: forecast_length and max_window_size
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 
     # Prepare data to train the model
     train_input = InputData(idx=np.arange(0, len(train_data)),
-                            features=None,
+                            features=train_data,
                             target=train_data,
                             task=task,
                             data_type=DataTypesEnum.ts)
 
     # Make a "blank", here we need just help FEDOT understand that the
     # forecast should be made exactly the "len_forecast" length
-    predict_input = InputData(idx=np.arange(0, len_forecast),
-                              features=None,
+    start_forecast = len(train_data)
+    end_forecast = start_forecast + len_forecast
+    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
+                              features=train_data,
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)
@@ -54,9 +54,8 @@ def make_forecast(chain, train_data, len_forecast: int, max_window_size: int):
     chain.fit_from_scratch(train_input)
 
     # Predict
-    predicted_values = chain.forecast(initial_data=train_input,
-                                      supplementary_data=predict_input).predict
-
+    predicted_output = chain.predict(predict_input)
+    predicted_values = np.ravel(np.array(predicted_output.predict))
     return predicted_values
 
 
@@ -118,22 +117,20 @@ def plot_double_results(original_time_series, actual_time_series,
 
 
 def get_chain():
+    node_lagged_1 = PrimaryNode('lagged')
+    node_lagged_1.custom_params = {'window_size': 50}
+    node_lagged_2 = PrimaryNode('lagged')
+    node_lagged_2.custom_params = {'window_size': 15}
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    chain = Chain(node_final)
 
-    # Initialization of the chain
-    forecasting_chain = TsForecastingChain()
-    node_1_first = PrimaryNode('ridge')
-    node_1_second = PrimaryNode('ridge')
+    return chain
 
-    node_2_first = SecondaryNode('linear', nodes_from=[node_1_first])
-    node_2_second = SecondaryNode('linear', nodes_from=[node_1_second])
-    node_final = SecondaryNode('svr', nodes_from=[node_2_first,
-                                                  node_2_second])
-    forecasting_chain.add_node(node_final)
-
-    return forecasting_chain
 
 def run_forecasting_task(files_list, folders_list, columns_with_gap,
-                         len_forecast, max_window_size, vis = True):
+                         len_forecast, vis=True):
     """
     The function starts the algorithm of gap-filling
 
@@ -141,7 +138,6 @@ def run_forecasting_task(files_list, folders_list, columns_with_gap,
     :param folders_list: list with paths with filled time series
     :param columns_with_gap: list with names of columns with gaps
     :param len_forecast: forecast length in time series elements
-    :param max_window_size: moving window size
     :param vis: is there a need to make visualisations
     """
 
@@ -163,13 +159,13 @@ def run_forecasting_task(files_list, folders_list, columns_with_gap,
 
         # Make forecast
         predicted_vals = make_forecast(forecasting_chain, train_part,
-                                       len_forecast, max_window_size)
+                                       len_forecast)
 
         # Check forecast errors
         mape_orig = mean_absolute_percentage_error(test_part, predicted_vals)
         print(f'\nOriginal time series MAPE - {mape_orig:.2f}')
 
-        if vis == True:
+        if vis is True:
             name = ''.join(('Original time series from file ', file))
             plot_results(original_time_series, predicted_vals, len(train_part),
                          y_name=name)
@@ -195,7 +191,7 @@ def run_forecasting_task(files_list, folders_list, columns_with_gap,
                 # Make forecast
                 forecasting_chain = get_chain()
                 predicted_vals = make_forecast(forecasting_chain, train_rec_part,
-                                               len_forecast, max_window_size)
+                                               len_forecast)
 
                 mape_rec = mean_absolute_percentage_error(test_part,
                                                           predicted_vals)
@@ -214,9 +210,7 @@ files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv']
 folders_list = ['../data/linear', '../data/poly', '../data/fedot_ridge']
 columns_with_gap = ['gap', 'gap_center']
 len_forecast = 400
-max_window_size = 150
 
 if __name__ == '__main__':
     run_forecasting_task(files_list, folders_list, columns_with_gap,
-                         len_forecast, max_window_size,
-                         vis=True)
+                         len_forecast, vis=True)
