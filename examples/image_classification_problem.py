@@ -8,7 +8,6 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.preprocessing import EmptyStrategy
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)
@@ -17,11 +16,15 @@ np.random.seed(1)
 
 def get_composite_chain() -> Chain:
     node_first = PrimaryNode('cnn')
-    node_first.custom_params = {'architecture': 'shallow',
-                                'epochs': 10}
+    node_first.custom_params = {'architecture': 'deep',
+                                'num_classes': 10,
+                                'epochs': 15}
     node_second = PrimaryNode('cnn')
-    node_second.custom_params = {'architecture': 'deep',
-                                 'epochs': 10}
+    node_second.custom_params = {'image_shape': (28, 28, 1),
+                                 'num_classes': 10,
+                                 'epochs': 10,
+                                 'batch_size': 128,
+                                 'architecture_type': 'shallow'}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
 
     chain = Chain(node_final)
