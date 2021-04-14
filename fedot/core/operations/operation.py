@@ -1,7 +1,7 @@
+from sklearn.impute import SimpleImputer
+
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -153,8 +153,5 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 def _fill_remaining_gaps(data: InputData):
     if (data.task.task_type != TaskTypesEnum and
             data.data_type == DataTypesEnum.table):
-        # fill gaps in features if necessary
-        gap_filler = ImputationImplementation()
-        gap_filler.fit(data)
-        data.features = gap_filler.transform(data).features
+        data.features = SimpleImputer().fit_transform(data.features)
     return data
