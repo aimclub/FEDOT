@@ -59,12 +59,24 @@ class GPChainOptimiserParameters:
         self.set_default_params()
 
     def set_default_params(self):
+        """
+        Choose default configuration of the evolutionary operators
+        """
         if not self.selection_types:
-            self.selection_types = [SelectionTypesEnum.tournament]
+            if self.multi_objective:
+                self.selection_types = [SelectionTypesEnum.spea2]
+            else:
+                self.selection_types = [SelectionTypesEnum.tournament]
+
         if not self.crossover_types:
-            self.crossover_types = [CrossoverTypesEnum.subtree]
+            self.crossover_types = [CrossoverTypesEnum.subtree, CrossoverTypesEnum.one_point]
+
         if not self.mutation_types:
-            self.mutation_types = [MutationTypesEnum.simple]
+            self.mutation_types = [MutationTypesEnum.parameter_change,
+                                   MutationTypesEnum.simple,
+                                   MutationTypesEnum.reduce,
+                                   MutationTypesEnum.growth,
+                                   MutationTypesEnum.local_growth]
 
 
 class GPChainOptimiser:

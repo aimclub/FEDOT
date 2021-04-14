@@ -22,23 +22,15 @@ from fedot.core.repository.tasks import TsForecastingParams
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
-def default_evo_params(problem):
+def default_evo_params():
     """ Dictionary with default parameters for composer """
-    if problem == 'ts_forecasting':
-        return {'max_depth': 2,
-                'max_arity': 3,
-                'pop_size': 20,
-                'num_of_generations': 200,
-                'learning_time': 2,
-                'preset': 'light'}
-    else:
-        return {'max_depth': 2,
-                'max_arity': 3,
-                'pop_size': 20,
-                'num_of_generations': 200,
-                'learning_time': 2,
-                'preset': 'light_tun'
-                }
+    params = {'max_depth': 2,
+              'max_arity': 3,
+              'pop_size': 20,
+              'num_of_generations': 20,
+              'learning_time': 2,
+              'preset': 'light_tun'}
+    return params
 
 
 default_test_metric_dict = {
@@ -109,9 +101,9 @@ class Fedot:
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
         if self.composer_params is None:
-            self.composer_params = default_evo_params(self.problem)
+            self.composer_params = default_evo_params()
         else:
-            self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
+            self.composer_params = {**default_evo_params(), **self.composer_params}
 
         self.metric_to_compose = None
         if 'metric' in self.composer_params:
@@ -121,6 +113,7 @@ class Fedot:
 
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
+            self.composer_params['num_of_generations'] = 1000  # num of generation is limited by time now
 
         if self.problem == 'ts_forecasting' and task_params is None:
             self.task_params = TsForecastingParams(forecast_length=30)

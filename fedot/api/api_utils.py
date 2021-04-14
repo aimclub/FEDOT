@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,12 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_er
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
+                                                         GPComposerRequirements,
+                                                         GPChainOptimiserParameters)
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -140,6 +145,144 @@ def compose_fedot_model(train_data: InputData,
                         ):
     """ Function for composing FEDOT chain model """
 
+    metric_function = _obtain_metric(task, composer_metric)
+
+    if available_operations is None:
+        available_operations = get_operations_for_task(task, mode='models')
+
+    logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
+                   f'Set of candidate models: {available_operations}. Composing time limit: {learning_time} min')
+
+    primary_operations, secondary_operations = _divide_operations(available_operations,
+                                                                  task)
+
+    learning_time_for_composing = learning_time / 2 if with_tuning else learning_time
+    # the choice and initialisation of the GP composer
+    composer_requirements = \
+        GPComposerRequirements(primary=primary_operations,
+                               secondary=secondary_operations,
+                               max_arity=max_arity,
+                               max_depth=max_depth,
+                               pop_size=pop_size,
+                               num_of_generations=num_of_generations,
+                               max_lead_time=datetime.timedelta(minutes=learning_time_for_composing),
+                               allow_single_operations=False)
+
+    optimizer_parameters = GPChainOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+                                                      mutation_types=[MutationTypesEnum.parameter_change,
+                                                                      MutationTypesEnum.simple,
+                                                                      MutationTypesEnum.reduce,
+                                                                      MutationTypesEnum.growth,
+                                                                      MutationTypesEnum.local_growth],
+                                                      crossover_types=[CrossoverTypesEnum.one_point,
+                                                                       CrossoverTypesEnum.subtree])
+
+    # Create GP-based composer
+    builder = _get_gp_composer_builder(task=task,
+                                       metric_function=metric_function,
+                                       composer_requirements=composer_requirements,
+                                       optimizer_parameters=optimizer_parameters,
+                                       logger=logger)
+    gp_composer = builder.build()
+
+    logger.message('Model composition started')
+    chain_gp_composed = gp_composer.compose_chain(data=train_data)
+
+    chain_for_return = chain_gp_composed
+
+    if isinstance(chain_gp_composed, list):
+        for chain in chain_gp_composed:
+            chain.log = logger
+        chain_for_return = chain_gp_composed[0]
+        best_candidates = gp_composer.optimiser.archive
+    else:
+        best_candidates = [chain_gp_composed]
+        chain_gp_composed.log = logger
+
+    if with_tuning:
+        logger.message('Hyperparameters tuning started')
+
+        if tuner_metric is None:
+            logger.message('Default loss function was set')
+            # Default metric for tuner
+            tune_metrics = TunerMetricByTask(task.task_type)
+            tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+        else:
+            # Get metric and parameters by name
+            tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
+                                                           train_data=train_data,
+                                                           task=task)
+
+        iterations = 20 if learning_time is None else 1000
+        learning_time_for_tuning = learning_time / 2
+
+        # Tune all nodes in the chain
+        chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+                                             loss_params=loss_params,
+                                             input_data=train_data,
+                                             iterations=iterations, max_lead_time=learning_time_for_tuning)
+
+    logger.message('Model composition finished')
+
+    return chain_for_return, best_candidates
+
+
+def _obtain_initial_assumption(task: Task) -> Chain:
+    init_chain = None
+    if task.task_type == TaskTypesEnum.ts_forecasting:
+        # Create init chain
+        node_lagged = PrimaryNode('lagged')
+        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+        init_chain = Chain(node_final)
+    elif task.task_type == TaskTypesEnum.classification:
+        node_lagged = PrimaryNode('scaling')
+        node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
+        init_chain = Chain(node_final)
+    elif task.task_type == TaskTypesEnum.regression:
+        node_lagged = PrimaryNode('scaling')
+        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+        init_chain = Chain(node_final)
+    return init_chain
+
+
+def _get_gp_composer_builder(task: Task, metric_function,
+                             composer_requirements: GPComposerRequirements,
+                             optimizer_parameters: GPChainOptimiserParameters,
+                             logger: Log):
+    """ Return GPComposerBuilder with parameters and if it is necessary
+    init_chain in it """
+
+    builder = GPComposerBuilder(task=task). \
+        with_requirements(composer_requirements). \
+        with_optimiser_parameters(optimizer_parameters). \
+        with_metrics(metric_function).with_logger(logger)
+
+    init_chain = _obtain_initial_assumption(task)
+
+    if init_chain is not None:
+        builder = builder.with_initial_chain(init_chain)
+
+    return builder
+
+
+def _divide_operations(available_operations, task):
+    """ Function divide operations for primary and secondary """
+
+    if task.task_type == TaskTypesEnum.ts_forecasting:
+        ts_data_operations = get_ts_operations(mode='data_operations',
+                                               tags=["ts_specific"])
+        # Remove exog data operation from the list
+        ts_data_operations.remove('exog')
+
+        primary_operations = ts_data_operations
+        secondary_operations = available_operations
+    else:
+        primary_operations = available_operations
+        secondary_operations = available_operations
+    return primary_operations, secondary_operations
+
+
+def _obtain_metric(task: Task, composer_metric: Union[str, Callable]):
     # the choice of the metric for the chain quality assessment during composition
     if composer_metric is None:
         composer_metric = MetricByTask(task.task_type).metric_cls.get_value
@@ -157,113 +300,4 @@ def compose_fedot_model(train_data: InputData,
                 raise ValueError(f'Incorrect metric {specific_metric}')
             specific_metric_function = MetricsRepository().metric_by_id(metric_id)
         metric_function.append(specific_metric_function)
-
-    learning_time = datetime.timedelta(minutes=learning_time)
-
-    if available_operations is None:
-        available_operations = get_operations_for_task(task, mode='models')
-
-    logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
-                   f'Set of candidate models: {available_operations}. Composing time limit: {learning_time}')
-
-    primary_operations, secondary_operations = divide_operations(available_operations,
-                                                                 task)
-    # the choice and initialisation of the GP composer
-    composer_requirements = GPComposerRequirements(primary=primary_operations,
-                                                   secondary=secondary_operations,
-                                                   max_arity=max_arity,
-                                                   max_depth=max_depth,
-                                                   pop_size=pop_size,
-                                                   num_of_generations=num_of_generations,
-                                                   max_lead_time=learning_time,
-                                                   allow_single_operations=False)
-
-    # Create GP-based composer
-    builder = get_gp_composer_builder(task=task,
-                                      metric_function=metric_function,
-                                      composer_requirements=composer_requirements,
-                                      logger=logger)
-    gp_composer = builder.build()
-
-    logger.message('Model composition started')
-    chain_gp_composed = gp_composer.compose_chain(data=train_data)
-
-    chain_for_return = chain_gp_composed
-
-    if isinstance(chain_gp_composed, list):
-        for chain in chain_gp_composed:
-            chain.log = logger
-        chain_for_return = chain_gp_composed[0]
-        best_candidates = gp_composer.optimiser.archive
-    else:
-        best_candidates = [chain_gp_composed]
-
-    if with_tuning:
-        logger.message('Hyperparameters tuning started')
-
-        if tuner_metric is None:
-            logger.message('Default loss function was set')
-            # Default metric for tuner
-            tune_metrics = TunerMetricByTask(task.task_type)
-            tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
-        else:
-            # Get metric and parameters by name
-            tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
-                                                           train_data=train_data,
-                                                           task=task)
-        # Tune all nodes in the chain
-        chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                             loss_params=loss_params,
-                                             input_data=train_data,
-                                             iterations=20)
-
-    logger.message('Model composition finished')
-
-    return chain_for_return, best_candidates
-
-
-def get_gp_composer_builder(task: Task, metric_function, composer_requirements,
-                            logger):
-    """ Return GPComposerBuilder with parameters and if it is necessary
-    init_chain in it """
-
-    builder = GPComposerBuilder(task=task). \
-        with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_logger(logger)
-
-    init_chain = None
-    if task.task_type == TaskTypesEnum.ts_forecasting:
-        # Create init chain
-        node_lagged = PrimaryNode('lagged')
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
-    elif task.task_type == TaskTypesEnum.classification:
-        node_lagged = PrimaryNode('scaling')
-        node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
-    elif task.task_type == TaskTypesEnum.regression:
-        node_lagged = PrimaryNode('scaling')
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
-
-    if init_chain is not None:
-        builder = builder.with_initial_chain(init_chain)
-
-    return builder
-
-
-def divide_operations(available_operations, task):
-    """ Function divide operations for primary and secondary """
-
-    if task.task_type == TaskTypesEnum.ts_forecasting:
-        ts_data_operations = get_ts_operations(mode='data_operations',
-                                               tags=["ts_specific"])
-        # Remove exog data operation from the list
-        ts_data_operations.remove('exog')
-
-        primary_operations = ts_data_operations
-        secondary_operations = available_operations
-    else:
-        primary_operations = available_operations
-        secondary_operations = available_operations
-    return primary_operations, secondary_operations
+    return metric_function

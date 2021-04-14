@@ -239,7 +239,7 @@ class ChainVisualiser:
         plt.clf()
         plt.close('all')
 
-    def visualise_pareto(self, archive: Any, objectives_numbers: Tuple[int] = (0, 1),
+    def visualise_pareto(self, archive: Any, objectives_numbers: Tuple[int, int] = (0, 1),
                          objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'),
                          file_name: str = 'result_pareto.png', show: bool = False, save: bool = True,
                          folder: str = f'../../tmp/pareto',

@@ -92,7 +92,11 @@
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
-			"tags": ["non_linear", "dimensionality_transforming"]
+			"tags": [
+				"non_linear",
+				"dimensionality_transforming",
+				"non-default"
+			]
 		},
 		"poly_features": {
 			"meta": "dimension_transformation",
