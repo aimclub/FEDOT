@@ -78,8 +78,8 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
 
 
 def run_classification_multiobj_example(with_plot=True):
-    train_data = pd.read_csv(f'./data/Hill_Valley_with_noise_Training.data')
-    test_data = pd.read_csv(f'./data/Hill_Valley_with_noise_Testing.data')
+    train_data = pd.read_csv(f'{project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
+    test_data = pd.read_csv(f'{project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
     target = test_data['class']
     del test_data['class']
     problem = 'classification'
