@@ -7,7 +7,7 @@ from fedot.core.composer.visualisation import ChainVisualiser
 
 class ParetoFront(DeapParetoFront):
     def __init__(self, objective_names: Optional[Tuple[str]] = None, *args, **kwargs):
-        self.objective_names = None
+        self.objective_names = objective_names
         super(ParetoFront, self).__init__(*args, **kwargs)
 
     def show(self):

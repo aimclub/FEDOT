@@ -197,7 +197,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         return fitness_improved, complexity_decreased
 
     def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        suppl_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.computation_time)
+        suppl_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)
         best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
         fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
         complexity_decreased = suppl_metric(best_in_offspring) < suppl_metric(

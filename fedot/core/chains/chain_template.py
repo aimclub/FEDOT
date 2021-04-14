@@ -88,11 +88,6 @@ class ChainTemplate:
         chain_template_dict = self.convert_to_dict()
         json_data = json.dumps(chain_template_dict)
 
-        # to remove un-serializable estimator from model_template
-        for model_template in chain_template_dict['nodes']:
-            if 'params' in model_template and 'estimator' in model_template['params']:
-                del model_template['params']['estimator']
-
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
