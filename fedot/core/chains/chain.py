@@ -189,59 +189,6 @@ class Chain:
         result = self.root_node.predict(input_data=input_data, output_mode=output_mode)
         return result
 
-    def forecast(self, input_data: InputData = None, horizon: int = None,
-                 output_mode: str = 'default'):
-        """
-        Method allow make forecast with appropriate forecast length. Available only for
-        time series forecasting task.
-
-        :param input_data: data for prediction
-        :param horizon: forecasting horizon
-        :param output_mode: always "default"
-        :return: OutputData with forecast
-        """
-        # Prepare data for time series forecasting
-        task = input_data.task
-        pre_history_ts = np.array(input_data.features)
-        source_len = len(pre_history_ts)
-
-        if task.task_type != TaskTypesEnum.ts_forecasting:
-            raise ValueError(f'Method forecast is available only for time series forecasting task')
-        if not self.is_fitted():
-            ex = 'Trained operation cache is not actual or empty'
-            self.log.error(ex)
-            raise ValueError(ex)
-
-        # How many elements to the future chain can produce
-        scope_len = task.task_params.forecast_length
-        amount_of_iterations = self._calculate_amount_of_steps(scope_len, horizon)
-
-        # Make forecast iteratively moving throw the horizon
-        final_forecast = []
-        for _ in range(0, amount_of_iterations):
-            iter_predict = self.root_node.predict(input_data=input_data,
-                                                  output_mode=output_mode)
-            iter_predict = np.ravel(np.array(iter_predict.predict))
-            final_forecast.append(iter_predict)
-
-            # Add prediction to the historical data - update it
-            pre_history_ts = np.hstack((pre_history_ts, iter_predict))
-
-            # Prepare InputData for next iteration
-            input_data = self._update_input(pre_history_ts, scope_len, task)
-
-        # Create output data
-        final_forecast = np.ravel(np.array(final_forecast))
-        # Clip the forecast if it is necessary
-        final_forecast = final_forecast[:horizon]
-
-        # Wrap the forecast into OutputData
-        final_idx = np.arange(source_len, source_len + len(final_forecast))
-        forecasted_data = OutputData(idx=final_idx, features=pre_history_ts,
-                                     target=None, predict=final_forecast,
-                                     task=task, data_type=DataTypesEnum.ts)
-        return forecasted_data
-
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: Callable = None,
                             input_data: Optional[InputData] = None,
@@ -397,45 +344,6 @@ class Chain:
 
     def show(self, path: str = None):
         ChainVisualiser().visualise(self, path)
-
-    @staticmethod
-    def _calculate_amount_of_steps(scope_len, horizon):
-        """ Method return amount of iterations which must be done for multistep
-        time series forecasting
-
-        :param scope_len: time series forecasting length
-        :param horizon: forecast horizon
-        :return amount_of_steps: amount of steps to produce
-        """
-        amount_of_iterations = int(horizon // scope_len)
-
-        # Remainder of the division
-        resid = int(horizon % scope_len)
-        if resid == 0:
-            amount_of_steps = amount_of_iterations
-        else:
-            amount_of_steps = amount_of_iterations + 1
-
-        return amount_of_steps
-
-    @staticmethod
-    def _update_input(pre_history_ts, scope_len, task):
-        """ Method make new InpuData object based on the previous part of time
-        series
-
-        :param pre_history_ts: time series
-        :param scope_len: how many elements to the future can algorithm forecast
-        :param task: time series forecasting task
-
-        :return input_data: updated InputData
-        """
-        start_forecast = len(pre_history_ts)
-        end_forecast = start_forecast + scope_len
-        input_data = InputData(idx=np.arange(start_forecast, end_forecast),
-                               features=pre_history_ts, target=None,
-                               task=task, data_type=DataTypesEnum.ts)
-
-        return input_data
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id

@@ -6,6 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_wrappers import out_of_sample_forecast
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from examples.ts_forecasting_tuning import prepare_input_data
 
@@ -57,7 +58,9 @@ def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
     print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
 
     # Make forecast
-    predicted_output = chain.forecast(predict_input, horizon=future_steps)
+    predicted_output = out_of_sample_forecast(chain=chain,
+                                              input_data=predict_input,
+                                              horizon=future_steps)
     predicted = predicted_output.predict
 
     # Convert into one-dimensional array
