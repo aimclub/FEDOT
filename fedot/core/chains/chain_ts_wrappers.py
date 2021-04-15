@@ -8,8 +8,8 @@ from fedot.core.chains.chain import Chain
 
 def out_of_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None):
     """
-    Method allow make forecast with appropriate forecast length. Available only for
-    time series forecasting task. Steps ahead provided iteratively.
+    Method allow make forecast with appropriate forecast length. Available only
+    for time series forecasting task. Steps ahead provided iteratively.
     time series ----------------|
     forecast                    |---|---|---|
 
@@ -55,26 +55,60 @@ def out_of_sample_forecast(chain: Chain, input_data: InputData, horizon: int = N
     return forecasted_data
 
 
-def in_sample_forecast(chain: Chain, supplementary_data: InputData,
-                       input_data: InputData, horizon: int = None):
+def in_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None):
     """
     Method allows to make in-sample forecasting.
     time series ----------------|---|---|---|
     forecast                    |---|---|---|
 
     :param chain: Chain for making time series forecasting
-    :param supplementary_data: Input data for forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
-    :return: OutputData with forecast
+    :return: OutputData with forecast and actual values
     """
-    # Prepare data for time series forecasting
+    # Divide data on samples into pre-history and validation part
     task = input_data.task
-    pre_history_ts = np.array(input_data.features)
+    time_series = np.array(input_data.features)
+    pre_history_ts = time_series[:-horizon]
+    validation_part = time_series[-horizon:]
     source_len = len(pre_history_ts)
 
-    # TODO implement
-    raise NotImplementedError()
+    # How many elements to the future chain can produce
+    scope_len = task.task_params.forecast_length
+    amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
+
+    # Calculate intervals
+    intervals = []
+    current_border = source_len
+    for i in range(0, amount_of_iterations):
+        intervals.append(current_border)
+        current_border = current_border + scope_len
+
+    data = _update_input(pre_history_ts, scope_len, task)
+    # Make forecast iteratively moving throw the horizon
+    final_forecast = []
+    for _, border in zip(range(0, amount_of_iterations), intervals):
+        iter_predict = chain.root_node.predict(input_data=data)
+        iter_predict = np.ravel(np.array(iter_predict.predict))
+        final_forecast.append(iter_predict)
+
+        # Add prediction to the historical data - update it
+        pre_history_ts = time_series[:border]
+
+        # Prepare InputData for next iteration
+        data = _update_input(pre_history_ts, scope_len, task)
+
+    # Create output data
+    final_forecast = np.ravel(np.array(final_forecast))
+    # Clip the forecast if it is necessary
+    final_forecast = final_forecast[:horizon]
+
+    # Wrap the forecast into OutputData
+    forecasted_data = OutputData(idx=range(0, len(time_series)),
+                                 features=time_series,
+                                 target=validation_part, predict=final_forecast,
+                                 task=task, data_type=DataTypesEnum.ts)
+    return forecasted_data
 
 
 def _calculate_amount_of_steps(scope_len, horizon):

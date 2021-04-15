@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_wrappers import out_of_sample_forecast
+from fedot.core.chains.chain_ts_wrappers import out_of_sample_forecast
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from examples.ts_forecasting_tuning import prepare_input_data
 

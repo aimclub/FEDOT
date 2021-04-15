@@ -1,7 +1,8 @@
 import numpy as np
 
-from fedot.core.chains.chain_wrappers import out_of_sample_forecast, in_sample_forecast
+from sklearn.metrics import mean_absolute_error
 
+from fedot.core.chains.chain_ts_wrappers import out_of_sample_forecast, in_sample_forecast
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
@@ -65,3 +66,21 @@ def test_out_of_sample_forecast_correct():
 
     assert len(simple_predicted) == simple_length
     assert len(multi_predicted) == multi_length
+
+
+def test_in_sample_forecast_correct():
+    simple_length = 2
+    multi_length = 10
+    train_input, predict_input = prepare_input_data(simple_length)
+
+    chain = get_simple_short_lagged_chain()
+    chain.fit(train_input)
+
+    forecasted_data = in_sample_forecast(chain=chain,
+                                         input_data=predict_input,
+                                         horizon=multi_length)
+
+    metric = mean_absolute_error(forecasted_data.target, forecasted_data.predict)
+    is_forecast_correct = True
+
+    assert is_forecast_correct
