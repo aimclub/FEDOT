@@ -152,7 +152,7 @@ def chain_with_incorrect_data_flow():
     """ When combining the features in the presented chain, a table with 5
     columns will turn into a table with 10 columns """
     first = PrimaryNode(operation_type='scaling')
-    second = PrimaryNode(operation_type='ransac_lin_reg')
+    second = PrimaryNode(operation_type='scaling')
 
     final = SecondaryNode(operation_type='ridge', nodes_from=[first, second])
     chain = Chain(final)
@@ -267,7 +267,7 @@ def test_chain_with_incorrect_data_flow():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_with_data_flow(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
+    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations'
 
 
 def test_ts_chain_with_incorrect_data_flow():
