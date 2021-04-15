@@ -107,7 +107,9 @@ class GPComposer(Composer):
         :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
 
-        :return best_chain: obtained chain after composing
+        :return best_chain: obtained result after composing: one chain for single-objective optimization;
+            For the multi-objective case, the list of the chain is returned.
+            In the list, the chains are ordered by the descending of primary metric (the first is the best)
         """
 
         if self.composer_requirements.max_chain_fit_time:

@@ -113,7 +113,7 @@ class Fedot:
 
         if learning_time is not None:
             self.composer_params['learning_time'] = learning_time
-            self.composer_params['num_of_generations'] = 1000  # num of generation is limited by time now
+            self.composer_params['num_of_generations'] = 10000  # num of generation is limited by time now
 
         if self.problem == 'ts_forecasting' and task_params is None:
             self.task_params = TsForecastingParams(forecast_length=30)
