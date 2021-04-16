@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.metrics import mean_absolute_error
 
-from fedot.core.chains.chain_ts_wrappers import out_of_sample_forecast, in_sample_forecast
+from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, in_sample_ts_forecast
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
@@ -11,8 +11,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def prepare_input_data(forecast_length):
-    ts = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1,
-                   2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 14])
+    ts = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 101])
 
     # Forecast for 2 elements ahead
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -46,7 +46,7 @@ def get_simple_short_lagged_chain():
     return chain
 
 
-def test_out_of_sample_forecast_correct():
+def test_out_of_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
     train_input, predict_input = prepare_input_data(simple_length)
@@ -59,16 +59,15 @@ def test_out_of_sample_forecast_correct():
     simple_predicted = np.ravel(np.array(simple_predict.predict))
 
     # Make multi-step forecast for 10 elements (2 * 5 steps)
-    predicted_output = out_of_sample_forecast(chain=chain,
-                                              input_data=predict_input,
-                                              horizon=multi_length)
-    multi_predicted = np.ravel(np.array(predicted_output.predict))
+    multi_predicted = out_of_sample_ts_forecast(chain=chain,
+                                                input_data=predict_input,
+                                                horizon=multi_length)
 
     assert len(simple_predicted) == simple_length
     assert len(multi_predicted) == multi_length
 
 
-def test_in_sample_forecast_correct():
+def test_in_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
     train_input, predict_input = prepare_input_data(simple_length)
@@ -76,11 +75,15 @@ def test_in_sample_forecast_correct():
     chain = get_simple_short_lagged_chain()
     chain.fit(train_input)
 
-    forecasted_data = in_sample_forecast(chain=chain,
-                                         input_data=predict_input,
-                                         horizon=multi_length)
+    multi_predicted = in_sample_ts_forecast(chain=chain,
+                                            input_data=predict_input,
+                                            horizon=multi_length)
 
-    metric = mean_absolute_error(forecasted_data.target, forecasted_data.predict)
+    # Take validation part of time series
+    time_series = np.array(train_input.features)
+    validation_part = time_series[-multi_length:]
+
+    metric = mean_absolute_error(validation_part, multi_predicted)
     is_forecast_correct = True
 
     assert is_forecast_correct

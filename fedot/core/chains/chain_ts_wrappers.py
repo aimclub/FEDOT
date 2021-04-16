@@ -6,17 +6,19 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.chains.chain import Chain
 
 
-def out_of_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None):
+def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
+                              horizon: int = None) -> np.array:
     """
-    Method allow make forecast with appropriate forecast length. Available only
-    for time series forecasting task. Steps ahead provided iteratively.
+    Method allow make forecast with appropriate forecast length. The previously
+    predicted parts of the time series are used for forecasting next parts. Available
+    only for time series forecasting task. Steps ahead provided iteratively.
     time series ----------------|
     forecast                    |---|---|---|
 
     :param chain: Chain for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
-    :return: OutputData with forecast
+    :return final_forecast: array with forecast
     """
     # Prepare data for time series forecasting
     task = input_data.task
@@ -46,43 +48,40 @@ def out_of_sample_forecast(chain: Chain, input_data: InputData, horizon: int = N
     final_forecast = np.ravel(np.array(final_forecast))
     # Clip the forecast if it is necessary
     final_forecast = final_forecast[:horizon]
-
-    # Wrap the forecast into OutputData
-    final_idx = np.arange(source_len, source_len + len(final_forecast))
-    forecasted_data = OutputData(idx=final_idx, features=pre_history_ts,
-                                 target=None, predict=final_forecast,
-                                 task=task, data_type=DataTypesEnum.ts)
-    return forecasted_data
+    return final_forecast
 
 
-def in_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None):
+def in_sample_ts_forecast(chain: Chain, input_data: InputData,
+                          horizon: int = None) -> np.array:
     """
-    Method allows to make in-sample forecasting.
+    Method allows to make in-sample forecasting. The actual values of the time
+    series, rather than the previously predicted parts of the time series,
+    are used for forecasting next parts.
     time series ----------------|---|---|---|
     forecast                    |---|---|---|
 
     :param chain: Chain for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
-    :return: OutputData with forecast and actual values
+    :return final_forecast: array with forecast
     """
     # Divide data on samples into pre-history and validation part
     task = input_data.task
     time_series = np.array(input_data.features)
     pre_history_ts = time_series[:-horizon]
-    validation_part = time_series[-horizon:]
     source_len = len(pre_history_ts)
+    last_index_pre_history = source_len - 1
+
+    exception_if_not_ts_task(task)
 
     # How many elements to the future chain can produce
     scope_len = task.task_params.forecast_length
     amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
 
     # Calculate intervals
-    intervals = []
-    current_border = source_len
-    for i in range(0, amount_of_iterations):
-        intervals.append(current_border)
-        current_border = current_border + scope_len
+    intervals = _calculate_intervals(last_index_pre_history,
+                                     amount_of_iterations,
+                                     scope_len)
 
     data = _update_input(pre_history_ts, scope_len, task)
     # Make forecast iteratively moving throw the horizon
@@ -93,7 +92,7 @@ def in_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None)
         final_forecast.append(iter_predict)
 
         # Add prediction to the historical data - update it
-        pre_history_ts = time_series[:border]
+        pre_history_ts = time_series[:border+1]
 
         # Prepare InputData for next iteration
         data = _update_input(pre_history_ts, scope_len, task)
@@ -102,13 +101,7 @@ def in_sample_forecast(chain: Chain, input_data: InputData, horizon: int = None)
     final_forecast = np.ravel(np.array(final_forecast))
     # Clip the forecast if it is necessary
     final_forecast = final_forecast[:horizon]
-
-    # Wrap the forecast into OutputData
-    forecasted_data = OutputData(idx=range(0, len(time_series)),
-                                 features=time_series,
-                                 target=validation_part, predict=final_forecast,
-                                 task=task, data_type=DataTypesEnum.ts)
-    return forecasted_data
+    return final_forecast
 
 
 def _calculate_amount_of_steps(scope_len, horizon):
@@ -148,6 +141,23 @@ def _update_input(pre_history_ts, scope_len, task):
                            task=task, data_type=DataTypesEnum.ts)
 
     return input_data
+
+
+def _calculate_intervals(last_index_pre_history, amount_of_iterations, scope_len):
+    """ Function calculate
+
+    :param last_index_pre_history: last id of the known part of time series
+    :param amount_of_iterations: amount of steps for time series forecasting
+    :param scope_len: amount of elements in every time series forecasting step
+    :return intervals: ids of finish of every step in time series
+    """
+    intervals = []
+    current_border = last_index_pre_history
+    for i in range(0, amount_of_iterations):
+        current_border = current_border + scope_len
+        intervals.append(current_border)
+
+    return intervals
 
 
 def exception_if_not_ts_task(task):
