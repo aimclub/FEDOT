@@ -58,11 +58,20 @@
 			"tasks": "[TaskTypesEnum.classification]",
 			"input_type": "[DataTypesEnum.text]",
 			"output_type": "[DataTypesEnum.text, DataTypesEnum.table]",
-			"accepted_node_types": ["any"],
+			"accepted_node_types": [
+				"any"
+			],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.text", "CustomTextPreprocessingStrategy"],
-			"tags": ["text"],
-			"description": "Preprocessing operations for text classification"}
+			"strategies": [
+				"fedot.core.operations.evaluation.text",
+				"CustomTextPreprocessingStrategy"
+			],
+			"tags": [
+				"text",
+				"non-default"
+			],
+			"description": "Preprocessing operations for text classification"
+		}
 	},
 	"operations":{
 		"scaling": {
@@ -83,7 +92,11 @@
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
-			"tags": ["non_linear", "dimensionality_transforming"]
+			"tags": [
+				"non_linear",
+				"dimensionality_transforming",
+				"non-default"
+			]
 		},
 		"poly_features": {
 			"meta": "dimension_transformation",

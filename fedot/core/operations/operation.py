@@ -1,8 +1,11 @@
+from sklearn.impute import SimpleImputer
+
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
-from fedot.core.repository.tasks import Task
-from fedot.core.repository.tasks import TaskTypesEnum, compatible_task_types
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -77,6 +80,8 @@ class Operation:
         """
         self._init(data.task)
 
+        data = _fill_remaining_gaps(data)
+
         fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(fitted_operation, data, is_fit_chain_stage)
@@ -96,6 +101,8 @@ class Operation:
         for example, is the operation predict probabilities or class labels
         """
         self._init(data.task, output_mode=output_mode)
+
+        data = _fill_remaining_gaps(data)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
@@ -141,3 +148,10 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy
+
+
+def _fill_remaining_gaps(data: InputData):
+    if (data.task.task_type != TaskTypesEnum and
+            data.data_type == DataTypesEnum.table):
+        data.features = SimpleImputer().fit_transform(data.features)
+    return data

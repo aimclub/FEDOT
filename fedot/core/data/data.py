@@ -1,6 +1,5 @@
 import os
 import warnings
-
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
 
@@ -9,9 +8,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.load_data import TextBatchLoader
+from fedot.core.data.merge import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.merge import DataMerger
 
 
 @dataclass
@@ -51,7 +50,7 @@ class Data:
         if target_column == '':
             target_column = data_frame.columns[-1]
 
-        if target_column:
+        if target_column and target_column in data_frame.columns:
             target = np.array(data_frame[target_column]).astype(np.float)
             pos = list(data_frame.keys()).index(target_column)
             features = np.delete(data_array.T, [0, pos], axis=1)
@@ -198,7 +197,7 @@ class OutputData(Data):
     target: Optional[np.array] = None
 
 
-def split_time_series(data, task):
+def _split_time_series(data, task):
     """ Split time series data into train and test parts
 
     :param data: array with data to split (not InputData)
@@ -239,7 +238,7 @@ def split_time_series(data, task):
     return train_data, test_data
 
 
-def split_table(data, task, split_ratio, with_shuffle=False):
+def _split_table(data, task, split_ratio, with_shuffle=False):
     """ Split table data into train and test parts
 
     :param data: array with data to split (not InputData)
@@ -296,13 +295,13 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     if data.features is not None:
         task = data.task
         if data.data_type == DataTypesEnum.ts:
-            train_data, test_data = split_time_series(data, task)
+            train_data, test_data = _split_time_series(data, task)
         elif data.data_type == DataTypesEnum.table:
-            train_data, test_data = split_table(data, task, split_ratio,
-                                                with_shuffle=shuffle_flag)
+            train_data, test_data = _split_table(data, task, split_ratio,
+                                                 with_shuffle=shuffle_flag)
         else:
-            train_data, test_data = split_table(data, task, split_ratio,
-                                                with_shuffle=shuffle_flag)
+            train_data, test_data = _split_table(data, task, split_ratio,
+                                                 with_shuffle=shuffle_flag)
     else:
         raise ValueError('InputData must be not empty')
 

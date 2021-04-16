@@ -1,21 +1,21 @@
 import math
-import numpy as np
 from copy import deepcopy
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
+import numpy as np
+
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, duplicates_filtration, \
+    evaluate_individuals, num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain, num_of_parents_in_crossover, \
-    calculate_objective, evaluate_individuals
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
     regularized_population
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log, default_log
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -59,12 +59,24 @@ class GPChainOptimiserParameters:
         self.set_default_params()
 
     def set_default_params(self):
+        """
+        Choose default configuration of the evolutionary operators
+        """
         if not self.selection_types:
-            self.selection_types = [SelectionTypesEnum.tournament]
+            if self.multi_objective:
+                self.selection_types = [SelectionTypesEnum.spea2]
+            else:
+                self.selection_types = [SelectionTypesEnum.tournament]
+
         if not self.crossover_types:
-            self.crossover_types = [CrossoverTypesEnum.subtree]
+            self.crossover_types = [CrossoverTypesEnum.subtree, CrossoverTypesEnum.one_point]
+
         if not self.mutation_types:
-            self.mutation_types = [MutationTypesEnum.simple]
+            self.mutation_types = [MutationTypesEnum.parameter_change,
+                                   MutationTypesEnum.simple,
+                                   MutationTypesEnum.reduce,
+                                   MutationTypesEnum.growth,
+                                   MutationTypesEnum.local_growth]
 
 
 class GPChainOptimiser:
@@ -237,7 +249,8 @@ class GPChainOptimiser:
 
     def log_info_about_best(self):
         if self.parameters.multi_objective:
-            self.log.info(f'Pareto Frontier: {[item.fitness.values for item in self.archive.items]}')
+            self.log.info(f'Pareto Frontier: '
+                          f'{[item.fitness.values for item in self.archive.items if item.fitness is not None]}')
         else:
             self.log.info(f'Best metric is {self.best_individual.fitness}')
 
@@ -324,6 +337,7 @@ class GPChainOptimiser:
         best_inds = sorted(single_operations_inds, key=lambda ind: ind.fitness)
         if is_process_skipped:
             self.population = [best_inds[0]]
+
         if timer is not None:
             single_operations_eval_time = timer.minutes_from_start
             self.log.info(f'Single operations evaluation time: {single_operations_eval_time}')
