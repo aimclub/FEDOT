@@ -22,10 +22,10 @@ def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
     """
     # Prepare data for time series forecasting
     task = input_data.task
+    exception_if_not_ts_task(task)
+
     pre_history_ts = np.array(input_data.features)
     source_len = len(pre_history_ts)
-
-    exception_if_not_ts_task(task)
 
     # How many elements to the future chain can produce
     scope_len = task.task_params.forecast_length
@@ -67,12 +67,12 @@ def in_sample_ts_forecast(chain: Chain, input_data: InputData,
     """
     # Divide data on samples into pre-history and validation part
     task = input_data.task
+    exception_if_not_ts_task(task)
+
     time_series = np.array(input_data.features)
     pre_history_ts = time_series[:-horizon]
     source_len = len(pre_history_ts)
     last_index_pre_history = source_len - 1
-
-    exception_if_not_ts_task(task)
 
     # How many elements to the future chain can produce
     scope_len = task.task_params.forecast_length
