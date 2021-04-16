@@ -5,7 +5,7 @@ import pytest
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from statsmodels.tsa.arima_process import ArmaProcess
 
-from fedot.utilities.synthetic.data import generate_synthetic_data
+from fedot.utilities.data import generate_synthetic_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
