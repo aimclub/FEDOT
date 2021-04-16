@@ -1,3 +1,5 @@
+import numpy as np
+
 from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
@@ -10,8 +12,10 @@ from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.composer.timer import Timer
 from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
@@ -174,7 +178,7 @@ class Chain:
                 'labels' (numbers of classes - for classification) ,
                 'probs' (probabilities - for classification =='default'),
                 'full_probs' (return all probabilities - for binary classification).
-        :return: array of prediction target values
+        :return: OutputData with prediction
         """
 
         if not self.is_fitted():
