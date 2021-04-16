@@ -58,7 +58,6 @@ def fit_cnn(train_data: InputData,
     x_train, y_train = train_data.features, train_data.target
     x_train = x_train.astype("float32") / 255
     x_train = np.expand_dims(x_train, -1)
-    # y_train = tf.keras.utils.to_categorical(y_train)
     le = preprocessing.OneHotEncoder()
     y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
