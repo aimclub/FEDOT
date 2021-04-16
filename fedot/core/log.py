@@ -50,10 +50,10 @@ class LogManager(metaclass=SingletonMeta):
     def _setup_default_logger(self, log_file, logger_name):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler = RotatingFileHandler(log_file)
-        file_handler.setLevel(logging.INFO)
+        file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         console_handler = logging.StreamHandler(sys.stdout)
-        self.__logger_dict[logger_name].setLevel(logging.INFO)
+        self.__logger_dict[logger_name].setLevel(logging.DEBUG)
         self.__logger_dict[logger_name].addHandler(file_handler)
         self.__logger_dict[logger_name].addHandler(console_handler)
 
@@ -82,7 +82,7 @@ class LogManager(metaclass=SingletonMeta):
 
 def default_log(logger_name: str,
                 log_file: Optional[str] = None,
-                verbose_level: int = 4) -> 'Log':
+                verbose_level: int = 2) -> 'Log':
     """
     :param logger_name: string name for logger
     :param log_file: path to the file where log messages will be recorded to
