@@ -7,6 +7,7 @@ from scipy.ndimage import gaussian_filter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
+import warnings
 
 
 class LaggedTransformationImplementation(DataOperationImplementation):
@@ -39,6 +40,9 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         old_idx = input_data.idx
         forecast_length = parameters.forecast_length
 
+        # Correct window size parameter
+        self.check_and_correct_window_size(input_data, forecast_length)
+
         if is_fit_chain_stage:
             # Transformation for fit stage of the chain
             target = input_data.target
@@ -66,6 +70,21 @@ class LaggedTransformationImplementation(DataOperationImplementation):
                                               features_columns,
                                               data_type=DataTypesEnum.table)
         return output_data
+
+    def check_and_correct_window_size(self, input_data, forecast_length) -> None:
+        """ Method check if the length of the time series is not enough for
+        lagged transformation - clip it
+
+        :param input_data: InputData for transformation
+        :param forecast_length: forecast length
+        """
+        removing_len = self.window_size + forecast_length
+        if removing_len > len(input_data.features):
+            previous_size = self.window_size
+            self.window_size = len(input_data.features) - forecast_length
+
+            prefix = "Warning: window size of lagged transformation was changed"
+            warnings.warn(f"{prefix} from {previous_size} to {self.window_size}")
 
     def get_params(self):
         return {'window_size': self.window_size}
