@@ -1,6 +1,6 @@
 import csv
-import os
 import itertools
+import os
 from typing import (Any, List)
 
 from fedot.core.chains.chain_template import ChainTemplate

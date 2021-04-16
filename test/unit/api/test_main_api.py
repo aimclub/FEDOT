@@ -81,7 +81,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -101,7 +101,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     model.fit(features=train_data.features,
               target=train_data.target,
               predefined_model=chain)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -169,9 +169,10 @@ def test_pandas_input_for_api():
     assert baseline_metrics['f1'] > 0
 
 
-def test_custom_metric_for_api():
+def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
-    composer_params['composer_metric'] = 'f1'
+    composer_params['composer_metric'] = ['f1', 'node_num']
+
     model = Fedot(problem='classification',
                   composer_params=composer_params)
     model.fit(features=train_data)
@@ -180,3 +181,4 @@ def test_custom_metric_for_api():
 
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
+    assert model.best_models is not None

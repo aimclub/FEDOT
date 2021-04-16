@@ -10,6 +10,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPCom
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
+from fedot.core.log import default_log
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -54,8 +55,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
+    logger = default_log('FEDOT logger', verbose_level=4)
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters)
+        with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters).with_logger(logger=logger)
 
     if cache_path:
         builder = builder.with_cache(cache_path)
