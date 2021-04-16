@@ -4,7 +4,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import datetime
 
-from cases.tuner_test_supplementary import *
+from FEDOT.cases.tuner_test_supplementary import *
 
 
 def tuner_function_20(chain, train_input):
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     ####################################################
 
     # 3 case for every task
-    for dataset_number in [1, 2, 3]:
+    for dataset_number in [2, 3]:
         # Run old tuner with 20 iterations for regression task
         run_regression_experiment(tuner_iterations_function=tuner_function_20,
                                   folder_to_save='old_tuner/20',
