@@ -240,5 +240,6 @@ def run_ts_forecasting_problem(forecast_length=50,
 
 
 if __name__ == '__main__':
+    # TODO remove file with this example
     run_ts_forecasting_problem(forecast_length=150,
                                with_visualisation=True)

@@ -1,22 +1,12 @@
-import datetime
-import warnings
-
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+import matplotlib.pyplot as plt
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
@@ -143,10 +133,9 @@ def run_experiment_with_tuning(time_series, len_forecast=250):
 
 
 if __name__ == '__main__':
+    # TODO remove file with this example
     df = pd.read_csv('../cases/data/metocean/metocean_data_small.csv')
     time_series = np.array(df['sea_height'])
 
     run_experiment_with_tuning(time_series,
                                len_forecast=50)
-
-
