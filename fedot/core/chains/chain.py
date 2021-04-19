@@ -1,10 +1,9 @@
 from datetime import timedelta
 from multiprocessing import Manager, Process
-from typing import Callable
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
-from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.node import (Node, PrimaryNode)
 from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
@@ -35,6 +34,7 @@ class Chain:
         self.template = None
         self.computation_time = None
         self.operator = GraphOperator(self)
+
         if not log:
             self.log = default_log(__name__)
         else:

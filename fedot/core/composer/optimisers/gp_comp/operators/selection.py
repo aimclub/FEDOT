@@ -4,6 +4,8 @@ from typing import (Any, List)
 
 from deap import tools
 
+from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -26,11 +28,16 @@ def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: 
         SelectionTypesEnum.spea2: spea2_selection
     }
 
-    type = choice(types)
-    if type in selection_by_type.keys():
-        return selection_by_type[type](population, pop_size)
+    selection_type = choice(types)
+    if selection_type in selection_by_type.keys():
+        selected = selection_by_type[selection_type](population, pop_size)
+        for selected_chain in selected:
+            selected_chain.parent_operator = ParentOperator(operator_type='selection',
+                                                            operator_name=str(selection_type),
+                                                            parent_chains=ChainTemplate(selected_chain))
+        return selected
     else:
-        raise ValueError(f'Required selection not found: {type}')
+        raise ValueError(f'Required selection not found: {selection_type}')
 
 
 def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any], pop_size: int) -> List[Any]:

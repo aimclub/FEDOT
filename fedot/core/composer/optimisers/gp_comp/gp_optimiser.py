@@ -7,8 +7,8 @@ import numpy as np
 
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, duplicates_filtration, \
-    evaluate_individuals, num_of_parents_in_crossover, random_chain
+from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, clean_operators_history, \
+    duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_chain
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -139,6 +139,9 @@ class GPChainOptimiser:
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
+        else:
+            for chain in self.population:
+                chain.parent_operator = []
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
@@ -210,6 +213,7 @@ class GPChainOptimiser:
 
                 self.generation_num += 1
 
+                clean_operators_history(self.population)
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
@@ -310,9 +314,11 @@ class GPChainOptimiser:
             if constraint_function(chain):
                 operation_chains.append(chain)
 
+            chain.parent_operator = []
+
             if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(
-                    f'More than {MAX_NUM_OF_GENERATED_INDS} generated In population making function. '
+                    f'More than {MAX_NUM_OF_GENERATED_INDS} generated in population making function. '
                     f'Process is stopped')
                 break
 
@@ -330,9 +336,8 @@ class GPChainOptimiser:
                 single_operations_inds.append(single_operations_ind)
 
             if single_operations_inds:
-                if timer is not None:
-                    if timer.is_time_limit_reached():
-                        break
+                if timer is not None and timer.is_time_limit_reached():
+                    break
 
         best_inds = sorted(single_operations_inds, key=lambda ind: ind.fitness)
         if is_process_skipped:

@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, List, Tuple, Callable)
+from typing import (Any, Callable, List, Tuple)
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -88,7 +88,7 @@ def evaluate_individuals(individuals_set, objective_function, is_multi_objective
             num_of_successful_evals += 1
         if timer is not None and num_of_successful_evals:
             if timer.is_time_limit_reached():
-                for del_ind_num in range(0, len(individuals_set) - num_of_successful_evals):
+                for _ in range(0, len(individuals_set) - num_of_successful_evals):
                     individuals_set.remove(individuals_set[0])
                 break
     if len(individuals_set) == 0:
@@ -124,3 +124,8 @@ def filter_duplicates(archive, population) -> List[Any]:
 
 def duplicates_filtration(archive, population):
     return list(filter(lambda x: not any([x.fitness == pop_ind.fitness for pop_ind in population]), archive.items))
+
+
+def clean_operators_history(population):
+    for chain in population:
+        chain.parent_operator = []

@@ -2,13 +2,15 @@ from copy import deepcopy
 from random import choice, random
 from typing import Any, List
 
+from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import \
     (equivalent_subtree, replace_subtrees)
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
-MAX_NUM_OF_ATTEMPTS = 10
+MAX_NUM_OF_ATTEMPTS = 100
 
 
 class CrossoverTypesEnum(Enum):
@@ -34,6 +36,12 @@ def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: A
                                                                    deepcopy(chain_second), max_depth)
                     are_correct = all([constraint_function(new_chain) for new_chain in new_chains])
                     if are_correct:
+                        for chain in new_chains:
+                            chain.parent_operators.append(
+                                ParentOperator(operator_type='crossover',
+                                               operator_name=str(crossover_type),
+                                               parent_chains=[ChainTemplate(chain_first),
+                                                              ChainTemplate(chain_second)]))
                         return new_chains
             else:
                 raise ValueError(f'Required crossover type not found: {crossover_type}')

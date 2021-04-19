@@ -1,6 +1,7 @@
 import csv
 import itertools
 import os
+from dataclasses import dataclass
 from typing import (Any, List)
 
 from fedot.core.chains.chain_template import ChainTemplate
@@ -8,6 +9,13 @@ from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiOb
 from fedot.core.composer.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
+
+
+@dataclass
+class ParentOperator:
+    operator_name: str
+    operator_type: str
+    parent_chains: List[ChainTemplate]
 
 
 class ComposingHistory:
@@ -21,6 +29,7 @@ class ComposingHistory:
         self.archive_history = []
         self.chains_comp_time_history = []
         self.archive_comp_time_history = []
+        self.parent_operators = []
 
     def _convert_chain_to_template(self, chain):
         chain_template = ChainTemplate(chain)
@@ -30,11 +39,14 @@ class ComposingHistory:
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
         chains_comp_time = []
+        parent_operators = []
         for chain in individuals:
             new_individuals.append(self._convert_chain_to_template(chain))
             chains_comp_time.append(chain.computation_time)
+            parent_operators.append(chain.parent_operator)
         self.chains.append(new_individuals)
         self.chains_comp_time_history.append(chains_comp_time)
+        self.parent_operators.append(parent_operators)
 
     def add_to_archive_history(self, individuals: List[Any]):
         new_individuals = []

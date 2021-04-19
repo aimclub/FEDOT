@@ -5,7 +5,8 @@ import numpy as np
 from deap import tools
 
 from fedot.core.composer.iterator import SequenceIterator, fibonacci_sequence
-from fedot.core.composer.optimisers.gp_comp.gp_operators import duplicates_filtration, num_of_parents_in_crossover
+from fedot.core.composer.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
+    num_of_parents_in_crossover
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import regularized_population
@@ -62,6 +63,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
+        else:
+            for chain in self.population:
+                chain.parent_operators = []
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
@@ -143,6 +147,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
                 self.log_info_about_best()
 
                 self.generation_num += 1
+                clean_operators_history(self.population)
 
             best = self.result_individual()
             self.log.info('Result:')

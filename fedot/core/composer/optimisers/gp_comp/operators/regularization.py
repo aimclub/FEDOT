@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import (Any, Callable, List, Optional)
 
+from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -35,6 +37,10 @@ def decremental_regularization(population: List[Any], objective_function: Callab
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
         prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
+        for add_ind in additional_inds:
+            add_ind.parent_operators.append(ParentOperator(operator_type='regularization',
+                                                           operator_name='decremental_regularization',
+                                                           parent_chains=[ChainTemplate(ind)]))
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
 
