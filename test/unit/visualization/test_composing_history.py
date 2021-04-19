@@ -1,6 +1,6 @@
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
@@ -12,6 +12,7 @@ def create_chain():
 
     chain = Chain(final)
     chain.fitness = 1
+    chain.parent_operators = []
     return chain
 
 

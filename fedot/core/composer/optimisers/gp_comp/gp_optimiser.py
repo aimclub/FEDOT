@@ -141,7 +141,7 @@ class GPChainOptimiser:
             self.population = self._make_population(self.requirements.pop_size)
         else:
             for chain in self.population:
-                chain.parent_operator = []
+                chain.parent_operators = []
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
@@ -314,7 +314,7 @@ class GPChainOptimiser:
             if constraint_function(chain):
                 operation_chains.append(chain)
 
-            chain.parent_operator = []
+            chain.parent_operators = []
 
             if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(

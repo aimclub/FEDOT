@@ -43,7 +43,7 @@ class ComposingHistory:
         for chain in individuals:
             new_individuals.append(self._convert_chain_to_template(chain))
             chains_comp_time.append(chain.computation_time)
-            parent_operators.append(chain.parent_operator)
+            parent_operators.append(chain.parent_operators)
         self.chains.append(new_individuals)
         self.chains_comp_time_history.append(chains_comp_time)
         self.parent_operators.append(parent_operators)
