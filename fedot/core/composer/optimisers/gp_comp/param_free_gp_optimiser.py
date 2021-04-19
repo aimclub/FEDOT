@@ -54,6 +54,9 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         self.requirements.pop_size = self.iterator.next()
         self.metrics = metrics
 
+        self.qual_position = 0
+        self.compl_position = 1
+
     def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
@@ -242,11 +245,7 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         return num_of_new_individuals
 
     def get_main_metric(self, ind: Any) -> float:
-        main_metric_type = QualityMetricsEnum
-        self.qual_position = get_metric_position(self.metrics, main_metric_type)
         return ind.fitness.values[self.qual_position]
 
     def get_suppl_metric(self, ind: Any) -> float:
-        suppl_metric_type = ComplexityMetricsEnum
-        self.compl_position = get_metric_position(self.metrics, suppl_metric_type)
         return ind.fitness.values[self.compl_position]

@@ -126,7 +126,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        categorical_ids, non_categorical_ids = self._str_columns_check(features)
+        categorical_ids, non_categorical_ids = self.str_columns_check(features)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -189,7 +189,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         return self.encoder.get_params()
 
     @staticmethod
-    def _str_columns_check(features):
+    def str_columns_check(features):
         """
         Method for checking which columns contain categorical (text) data
 

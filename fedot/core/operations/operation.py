@@ -6,6 +6,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.tasks import compatible_task_types
+from fedot.core.operations.evaluation.operation_implementations.data_operations.\
+    sklearn_transformations import OneHotEncodingImplementation
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -151,7 +153,17 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
 
 def _fill_remaining_gaps(data: InputData):
-    if (data.task.task_type != TaskTypesEnum and
-            data.data_type == DataTypesEnum.table):
-        data.features = SimpleImputer().fit_transform(data.features)
+    """ Function for filling in the nans in the table with features """
+    # TODO I would like to move this "filling" to the chain method - we use such method too much here (for all tables)
+    #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays, but we can have such
+    features = data.features
+    if data.data_type == DataTypesEnum.table:
+        # Got indices of columns with string objects
+        categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
+
+        # Apply most_frequent or mean filling strategy
+        if len(categorical_ids) == 0:
+            data.features = SimpleImputer().fit_transform(features)
+        else:
+            data.features = SimpleImputer(strategy='most_frequent').fit_transform(features)
     return data
