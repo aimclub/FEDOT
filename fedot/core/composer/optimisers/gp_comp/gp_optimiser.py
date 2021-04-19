@@ -316,7 +316,6 @@ class GPChainOptimiser:
 
             chain.parent_operators = []
 
-
             if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(
                     f'More than {MAX_NUM_OF_GENERATED_INDS} generated in population making function. '
