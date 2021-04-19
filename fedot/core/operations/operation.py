@@ -82,7 +82,7 @@ class Operation:
         """
         self._init(data.task)
 
-        data = _fill_remaining_gaps(data)
+        data = _fill_remaining_gaps(data, self.operation_type)
 
         fitted_operation = self._eval_strategy.fit(train_data=data)
 
@@ -104,7 +104,7 @@ class Operation:
         """
         self._init(data.task, output_mode=output_mode)
 
-        data = _fill_remaining_gaps(data)
+        data = _fill_remaining_gaps(data, self.operation_type)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
@@ -152,12 +152,13 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
     return strategy
 
 
-def _fill_remaining_gaps(data: InputData):
+def _fill_remaining_gaps(data: InputData, operation_type: str):
     """ Function for filling in the nans in the table with features """
-    # TODO I would like to move this "filling" to the chain method - we use such method too much here (for all tables)
-    #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays, but we can have such
+    # TODO discuss: move this "filling" to the chain method - we use such method too much here (for all tables)
+    #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays
     features = data.features
-    if data.data_type == DataTypesEnum.table:
+    is_operation_not_for_text = operation_type != 'text_clean'
+    if data.data_type == DataTypesEnum.table and is_operation_not_for_text:
         # Got indices of columns with string objects
         categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
 
