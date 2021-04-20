@@ -16,7 +16,7 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
     :param features_amount: Total amount of features per sample.
     :param classes_amount: The amount of classes in the dataset.
     :param features_options: The dictionary containing features options in key-value \
-    format:
+        format:
         - informative: the amount of informative features;
         - redundant: the amount of redundant features;
         - repeated: the amount of features that repeat the informative features;
