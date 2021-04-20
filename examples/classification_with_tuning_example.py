@@ -7,7 +7,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import classification_dataset
+from fedot.utilities.synth_dataset_generator import classification_dataset
 from fedot.core.chains.tuning.unified import ChainTuner
 
 np.random.seed(2020)
