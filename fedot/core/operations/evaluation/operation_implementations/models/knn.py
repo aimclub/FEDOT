@@ -4,15 +4,21 @@ from typing import Optional, Callable
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import ModelImplementation
-import warnings
+from fedot.core.log import Log, default_log
 
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__()
         self.params = params
         self.model = None
+
+        # Define logger object
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -47,8 +53,8 @@ class KNeighborsImplementation(ModelImplementation):
             current_params.update({'n_neighbors': new_k_value})
             self.model = model_impl(**current_params)
 
-            prefix = "Warning: n_neighbors of K-nn model was changed"
-            warnings.warn(f"{prefix} from {n_neighbors} to {len(input_data.features)}")
+            prefix = "n_neighbors of K-nn model was changed"
+            self.log.info(f"{prefix} from {n_neighbors} to {new_k_value}")
 
     def get_params(self):
         """ Method return parameters, which can be optimized for particular
@@ -58,8 +64,8 @@ class KNeighborsImplementation(ModelImplementation):
 
 
 class CustomKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         if not params:
             self.model = KNeighborsClassifier()
         else:
@@ -94,8 +100,8 @@ class CustomKnnClassImplementation(KNeighborsImplementation):
 
 
 class CustomKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         if not params:
             self.model = KNeighborsRegressor()
         else:

@@ -7,13 +7,13 @@ from scipy.ndimage import gaussian_filter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
-import warnings
+from fedot.core.log import Log, default_log
 
 
 class LaggedTransformationImplementation(DataOperationImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__()
 
         if not params:
@@ -21,6 +21,12 @@ class LaggedTransformationImplementation(DataOperationImplementation):
             self.window_size = 10
         else:
             self.window_size = int(round(params.get('window_size')))
+
+        # Define logger object
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -85,7 +91,7 @@ class LaggedTransformationImplementation(DataOperationImplementation):
             self.window_size = len(input_data.features) - forecast_length - 10
 
             prefix = "Warning: window size of lagged transformation was changed"
-            warnings.warn(f"{prefix} from {previous_size} to {self.window_size}")
+            self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
 
     def get_params(self):
         return {'window_size': self.window_size}
