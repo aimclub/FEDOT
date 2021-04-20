@@ -5,7 +5,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import regression_dataset, classification_dataset
+from fedot.utilities.synth_dataset_generator import regression_dataset, classification_dataset
 
 
 def get_knn_reg_chain(k_neighbors):
@@ -26,8 +26,10 @@ def get_knn_class_chain(k_neighbors):
     return chain
 
 
-def test_knn_regression_parameters_improving():
-    """ Function check if the knn model can improve amount neighbors or not """
+def test_knn_reg_with_invalid_params_fit_correctly():
+    """ The function define a chain with incorrect parameters in the K-nn regression
+    model. During the training of the chain, the parameter 'n_neighbors' is corrected
+    """
     samples_amount = 100
     k_neighbors = 150
 
@@ -56,10 +58,11 @@ def test_knn_regression_parameters_improving():
     assert is_chain_was_fitted
 
 
-def test_knn_classification_parameters_improving():
-    """ Function check if the knn classification model can improve amount neighbors
-    or not
+def test_knn_class_with_invalid_params_fit_correctly():
+    """ The function define a chain with incorrect parameters in the K-nn classification
+    model. During the training of the chain, the parameter 'n_neighbors' is corrected
     """
+
     samples_amount = 100
     k_neighbors = 150
 

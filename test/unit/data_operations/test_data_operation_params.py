@@ -20,8 +20,11 @@ def get_ts_chain(window_size):
     return chain
 
 
-def test_lagged_transformation_parameters_improving():
-    """ Function checks if the lagged parameters correct works well """
+def test_lagged_with_invalid_params_fit_correctly():
+    """ The function define a chain with incorrect parameters in the lagged
+    transformation. During the training of the chain, the parameter 'window_size'
+    is corrected
+    """
     window_size = 600
     len_forecast = 50
 
