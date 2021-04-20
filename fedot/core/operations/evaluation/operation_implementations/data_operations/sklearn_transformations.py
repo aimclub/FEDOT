@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
 
 from fedot.core.operations.evaluation.operation_implementations. \
-    implementation_interfaces import DataOperationImplementation, EncodedInvariantOperation
+    implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
@@ -213,7 +213,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         return categorical_ids, non_categorical_ids
 
 
-class PolyFeaturesImplementation(EncodedInvariantOperation):
+class PolyFeaturesImplementation(EncodedInvariantImplementation):
     """ Class for application of PolynomialFeatures operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
@@ -238,7 +238,7 @@ class PolyFeaturesImplementation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class ScalingImplementation(EncodedInvariantOperation):
+class ScalingImplementation(EncodedInvariantImplementation):
     """ Class for application of Scaling operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used
@@ -259,7 +259,7 @@ class ScalingImplementation(EncodedInvariantOperation):
         return self.operation.get_params()
 
 
-class NormalizationImplementation(EncodedInvariantOperation):
+class NormalizationImplementation(EncodedInvariantImplementation):
     """ Class for application of MinMax normalization operation on data,
     where only not encoded features (were not converted from categorical using
     OneHot encoding) are used

@@ -17,7 +17,6 @@ def make_forecast(chain, train_input, predict_input):
     :param chain: TsForecastingChain object
     :param train_input: InputData for fit
     :param predict_input: InputData for predict
-    :param task: Ts_forecasting task
 
     :return predicted_values: numpy array, forecast of model
     """

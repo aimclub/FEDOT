@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knnreg import CustomKnnRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
 warnings.filterwarnings("ignore", category=UserWarning)
 
 

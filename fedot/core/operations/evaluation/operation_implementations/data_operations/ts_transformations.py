@@ -71,7 +71,7 @@ class LaggedTransformationImplementation(DataOperationImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def check_and_correct_window_size(self, input_data, forecast_length) -> None:
+    def check_and_correct_window_size(self, input_data, forecast_length):
         """ Method check if the length of the time series is not enough for
         lagged transformation - clip it
 
@@ -81,7 +81,8 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         removing_len = self.window_size + forecast_length
         if removing_len > len(input_data.features):
             previous_size = self.window_size
-            self.window_size = len(input_data.features) - forecast_length
+            # At least 10 objects we need for training, so minus 10
+            self.window_size = len(input_data.features) - forecast_length - 10
 
             prefix = "Warning: window size of lagged transformation was changed"
             warnings.warn(f"{prefix} from {previous_size} to {self.window_size}")
