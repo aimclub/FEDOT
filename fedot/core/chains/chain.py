@@ -1,6 +1,7 @@
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
+from uuid import uuid4
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.graph_operator import GraphOperator
@@ -29,6 +30,7 @@ class Chain:
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = None):
+        self.uid = str(uuid4())
         self.nodes = []
         self.log = log
         self.template = None
