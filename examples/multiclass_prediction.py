@@ -3,6 +3,12 @@ import datetime
 import random
 
 import pandas as pd
+
+try:
+    import openpyxl
+except ImportError:
+    raise (ImportError, "<openpyxl> is not installed on your system. It is required to run this example.")
+
 import numpy as np
 
 from datetime import timedelta
