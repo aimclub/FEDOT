@@ -22,13 +22,15 @@ def get_composite_chain(composite_flag: bool = True) -> Chain:
                                 'batch_size': 128}
     node_second = PrimaryNode('cnn')
     node_second.custom_params = {'image_shape': (28, 28, 1),
-                                 'architecture_type': 'shallow',
+                                 'architecture_type': 'simplified',
                                  'num_classes': 10,
                                  'epochs': 10,
                                  'batch_size': 128}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
+
     if not composite_flag:
         node_final = SecondaryNode('rf', nodes_from=[node_first])
+
     chain = Chain(node_final)
 
     return chain

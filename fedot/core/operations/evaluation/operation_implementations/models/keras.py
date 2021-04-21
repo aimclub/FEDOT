@@ -17,6 +17,9 @@ def create_cnn(input_shape: tuple,
                num_classes: int,
                architecture_type: str = 'deep',
                logger: Log = None):
+    if logger is None:
+        logger = default_log(__name__)
+
     if architecture_type == 'deep':
         model = tf.keras.Sequential(
             [
@@ -32,7 +35,7 @@ def create_cnn(input_shape: tuple,
                 tf.keras.layers.Dense(num_classes, activation="softmax"),
             ]
         )
-    elif architecture_type == 'shallow':
+    elif architecture_type == 'simplified':
         model = tf.keras.Sequential(
             [
                 tf.keras.Input(shape=input_shape),
@@ -54,6 +57,7 @@ def fit_cnn(train_data: InputData,
             model,
             epochs: int = 1,
             batch_size: int = 128,
+            optimizer_params: dict = None,
             logger: Log = None):
     x_train, y_train = train_data.features, train_data.target
     transformed_x_train = x_train.astype("float32") / 255
@@ -63,7 +67,13 @@ def fit_cnn(train_data: InputData,
     x_train = np.expand_dims(x_train, -1)
     le = preprocessing.OneHotEncoder()
     y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
-    model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+    if optimizer_params is None:
+        optimizer_params = {'loss': "categorical_crossentropy",
+                            'optimizer': "adam",
+                            'metrics': ["accuracy"]}
+
+    model.compile(**optimizer_params)
 
     if logger is None:
         logger = default_log(__name__)
@@ -115,7 +125,10 @@ class CustomCNNImplementation(ModelImplementation):
                        'epochs': 10,
                        'batch_size': 128,
                        'output_mode': 'labels',
-                       'architecture_type': 'shallow'}
+                       'architecture_type': 'simplified',
+                       'optimizer_parameters': {'loss': "categorical_crossentropy",
+                                                'optimizer': "adam",
+                                                'metrics': ["accuracy"]}}
         if not params:
             self.model = create_cnn(input_shape=self.params['image_shape'],
                                     num_classes=self.params['num_classes'],
@@ -138,7 +151,8 @@ class CustomCNNImplementation(ModelImplementation):
                                     architecture_type=self.params['architecture_type'])
 
         self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params['epochs'],
-                             batch_size=self.params['batch_size'], logger=self.log)
+                             batch_size=self.params['batch_size'],
+                             optimizer_params=self.params['optimizer_parameters'], logger=self.log)
         return self.model
 
     def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
