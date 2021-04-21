@@ -95,8 +95,8 @@ class Data:
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification)):
         """
-        :param images: the path to the directory with image data or np.ndarray with data
-        :param labels: the path to the directory with image labels or np.ndarray with labels
+        :param images: the path to the directory with image data in np.ndarray format or massive in np.ndarray format
+        :param labels: the path to the directory with image labels in np.ndarray format or massive in np.ndarray format
         :param task: the task that should be solved with data
         :return:
         """

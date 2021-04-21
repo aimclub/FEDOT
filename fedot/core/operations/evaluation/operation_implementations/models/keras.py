@@ -13,10 +13,10 @@ from fedot.core.data.data import InputData, OutputData
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def _create_cnn(input_shape: tuple,
-                num_classes: int,
-                architecture_type: str = 'deep',
-                logger: Log = None):
+def create_cnn(input_shape: tuple,
+               num_classes: int,
+               architecture_type: str = 'deep',
+               logger: Log = None):
     if architecture_type == 'deep':
         model = tf.keras.Sequential(
             [
@@ -56,11 +56,17 @@ def fit_cnn(train_data: InputData,
             batch_size: int = 128,
             logger: Log = None):
     x_train, y_train = train_data.features, train_data.target
-    x_train = x_train.astype("float32") / 255
+    transformed_x_train = x_train.astype("float32") / 255
+    if np.max(transformed_x_train) > 1:
+        logger.warn('Dataset was not scaled. The data was divided by 255.')
+        x_train = transformed_x_train
     x_train = np.expand_dims(x_train, -1)
     le = preprocessing.OneHotEncoder()
     y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
     model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+    if logger is None:
+        logger = default_log(__name__)
 
     if logger.verbosity_level < 4:
         verbose = 0
@@ -68,6 +74,7 @@ def fit_cnn(train_data: InputData,
         verbose = 2
 
     if epochs is None:
+        logger.warn('The number of training epochs was not set. The selected number of epochs is 10.')
         epochs = 10
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
@@ -75,15 +82,21 @@ def fit_cnn(train_data: InputData,
     return model
 
 
-def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labels') -> OutputData:
+def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labels', logger=None) -> OutputData:
     x_test, y_test = predict_data.features, predict_data.target
-    x_test = x_test.astype("float32") / 255
+    transformed_x_test = x_test.astype("float32") / 255
+    if logger is None:
+        logger = default_log(__name__)
+    if np.max(transformed_x_test) > 1:
+        logger.warn('Dataset was not scaled. The data was divided by 255.')
+        x_test = transformed_x_test
     x_test = np.expand_dims(x_test, -1)
     if output_mode == 'labels':
         prediction = trained_model.predict(x_test)
     elif output_mode in ['probs', 'full_probs', 'default']:
         prediction = trained_model.predict_proba(x_test)
         if predict_data.num_classes < 2:
+            logger.error('Data set contain only 1 target class. Please reformat your data.')
             raise NotImplementedError()
         elif predict_data.num_classes == 2 and output_mode != 'full_probs':
             prediction = prediction[:, 1]
@@ -104,9 +117,9 @@ class CustomCNNImplementation(ModelImplementation):
                        'output_mode': 'labels',
                        'architecture_type': 'shallow'}
         if not params:
-            self.model = _create_cnn(input_shape=self.params['image_shape'],
-                                     num_classes=self.params['num_classes'],
-                                     architecture_type=self.params['architecture_type'])
+            self.model = create_cnn(input_shape=self.params['image_shape'],
+                                    num_classes=self.params['num_classes'],
+                                    architecture_type=self.params['architecture_type'])
         else:
             self.params = {**params, **self.params}
             self.model = None
@@ -120,9 +133,9 @@ class CustomCNNImplementation(ModelImplementation):
         self.classes = np.unique(train_data.target)
 
         if self.model is None:
-            self.model = _create_cnn(input_shape=self.params['image_shape'],
-                                     num_classes=len(self.classes),
-                                     architecture_type=self.params['architecture_type'])
+            self.model = create_cnn(input_shape=self.params['image_shape'],
+                                    num_classes=len(self.classes),
+                                    architecture_type=self.params['architecture_type'])
 
         self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params['epochs'],
                              batch_size=self.params['batch_size'], logger=self.log)
@@ -135,7 +148,7 @@ class CustomCNNImplementation(ModelImplementation):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         """
 
-        return predict_cnn(trained_model=self.model, predict_data=input_data, output_mode='labels')
+        return predict_cnn(trained_model=self.model, predict_data=input_data, output_mode='labels', logger=self.log)
 
     def predict_proba(self, input_data):
         """ Method make prediction with probabilities of classes

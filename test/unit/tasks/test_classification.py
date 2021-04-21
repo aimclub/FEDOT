@@ -7,6 +7,8 @@ from examples.image_classification_problem import run_image_classification_probl
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.operations.evaluation.operation_implementations.models.keras import create_cnn, fit_cnn, predict_cnn, \
+    CustomCNNImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features
@@ -141,10 +143,44 @@ def test_output_mode_full_probs():
 
 def test_image_classification():
     training_path_features, training_path_labels, test_path_features, test_path_labels = get_image_classification_data()
-    roc_auc_on_valid_simple = run_image_classification_problem(train_dataset=(training_path_features,
-                                                                              training_path_labels),
-                                                               test_dataset=(test_path_features,
-                                                                             test_path_labels))
-    deviation = roc_auc_on_valid_simple - 0.5
+    image_shape = (28, 28, 1)
+    num_classes = 7
+    epochs = 10
+    batch_size = 128
 
-    assert abs(deviation) < 0.25
+    roc_auc_on_valid_composite, _, _ = run_image_classification_problem(train_dataset=(training_path_features,
+                                                                                       training_path_labels),
+                                                                        test_dataset=(test_path_features,
+                                                                                      test_path_labels))
+
+    roc_auc_on_valid_simple, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+        train_dataset=(training_path_features,
+                       training_path_labels),
+        test_dataset=(test_path_features,
+                      test_path_labels),
+        composite_flag=False)
+
+    cnn_model = create_cnn(input_shape=image_shape,
+                           num_classes=num_classes)
+
+    model = fit_cnn(train_data=dataset_to_train,
+                    model=cnn_model,
+                    epochs=epochs,
+                    batch_size=batch_size)
+
+    prediction = predict_cnn(trained_model=model,
+                             predict_data=dataset_to_validate)
+    cnn_class = CustomCNNImplementation()
+
+    deviation_composite = roc_auc_on_valid_composite - 0.5
+    deviation_simple = roc_auc_on_valid_simple - 0.5
+
+    assert cnn_model.name or cnn_class.model == 'sequential'
+    assert cnn_class.params
+    assert cnn_model.input_shape[1:] == image_shape
+    assert cnn_model.output_shape[1] == num_classes
+    assert model.history.params['epochs'] or cnn_class.params['epochs'] == epochs
+    assert model.history.params['batch_size'] or cnn_class.params['batch_size'] == batch_size
+    assert type(prediction) == np.ndarray
+    assert abs(deviation_composite) < 0.25
+    assert abs(deviation_simple) < 0.35

@@ -9,6 +9,7 @@ from sklearn.datasets import load_iris
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.tasks.test_classification import get_image_classification_data
 
 
 @pytest.fixture()
@@ -127,3 +128,14 @@ def test_string_features_from_csv():
 
     assert expected_features.dtype == float
     assert np.isfinite(expected_features).all()
+
+
+def test_data_from_image():
+    training_path_features, training_path_labels, _, _ = get_image_classification_data()
+    dataset_to_train = InputData.from_image(images=training_path_features,
+                                            labels=training_path_labels,
+                                            task=Task(TaskTypesEnum.classification))
+
+    assert dataset_to_train.data_type == DataTypesEnum.image
+    assert type(dataset_to_train.features) == np.ndarray
+    assert type(dataset_to_train.target) == np.ndarray
