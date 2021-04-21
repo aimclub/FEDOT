@@ -336,3 +336,19 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result.uid = uuid4()
+        return result
+
+    def __deepcopy__(self, memo=None):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        result.uid = uuid4()
+        return result
