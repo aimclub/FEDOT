@@ -126,16 +126,18 @@ automodule:: <module_name> section which describes all the code in the module.
 
    3. Add automodule description for each of your scripts. ::
 
-       .. automodule:: core.your.first.script.path
+       .. automodule:: fedot.core.your.first.script.path
           :members:
           :undoc-members:
           :show-inheritance:
 
-       .. automodule:: core.your.second.script.path
+       .. automodule:: fedot.core.your.second.script.path
           :members:
           :undoc-members:
           :show-inheritance:
        ...
+
+   4. Add your_name_for_file to the toctree at docs/source/api/index.rst
 
 -  If a new module to the existed package:
 

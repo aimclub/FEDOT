@@ -15,14 +15,12 @@ from sklearn.linear_model import (Lasso as SklearnLassoReg,
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
-from sklearn.neighbors import KNeighborsClassifier as SklearnKNN
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 
-from sklearn.neighbors import KNeighborsRegressor as SklearnKNNReg
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
@@ -124,7 +122,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,
-        'knnreg': SklearnKNNReg,
         'dtreg': DecisionTreeRegressor,
         'treg': ExtraTreesRegressor,
         'rfr': RandomForestRegressor,
@@ -138,7 +135,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'logit': SklearnLogReg,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,
-        'knn': SklearnKNN,
         'dt': DecisionTreeClassifier,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,

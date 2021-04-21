@@ -6,10 +6,10 @@ from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.feature_selection import RFE
 
 from fedot.core.operations.evaluation.\
-    operation_implementations.implementation_interfaces import EncodedInvariantOperation
+    operation_implementations.implementation_interfaces import EncodedInvariantImplementation
 
 
-class FeatureSelectionImplementation(EncodedInvariantOperation):
+class FeatureSelectionImplementation(EncodedInvariantImplementation):
     """ Class for applying feature selection operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):

@@ -10,7 +10,7 @@ from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import regression_dataset
+from fedot.utilities.synth_dataset_generator import regression_dataset
 
 np.random.seed(2020)
 

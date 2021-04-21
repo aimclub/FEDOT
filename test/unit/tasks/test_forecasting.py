@@ -5,11 +5,13 @@ import pytest
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from statsmodels.tsa.arima_process import ArmaProcess
 
-from fedot.utilities.synthetic.data import generate_synthetic_data
+from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, \
+    in_sample_ts_forecast
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 np.random.seed(42)
@@ -180,3 +182,37 @@ def test_exception_if_incorrect_forecast_length():
     with pytest.raises(ValueError) as exc:
         _, _ = get_synthetic_ts_data_period(forecast_length=0)
     assert str(exc.value) == f'Forecast length should be more then 0'
+
+
+def test_multistep_out_of_sample_forecasting():
+    horizon = 12
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+
+    chain = get_multiscale_chain()
+
+    # Fit chain to make forecasts 5 elements above
+    chain.fit(input_data=train_data)
+
+    # Make prediction for 12 elements
+    predicted = out_of_sample_ts_forecast(chain=chain,
+                                          input_data=test_data,
+                                          horizon=horizon)
+
+    assert len(predicted) == horizon
+
+
+def test_multistep_in_sample_forecasting():
+    horizon = 12
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+
+    chain = get_multiscale_chain()
+
+    # Fit chain to make forecasts 5 elements above
+    chain.fit(input_data=train_data)
+
+    # Make prediction for 12 elements
+    predicted = in_sample_ts_forecast(chain=chain,
+                                      input_data=test_data,
+                                      horizon=horizon)
+
+    assert len(predicted) == horizon

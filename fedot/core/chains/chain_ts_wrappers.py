@@ -125,7 +125,7 @@ def _calculate_amount_of_steps(scope_len, horizon):
 
 
 def _update_input(pre_history_ts, scope_len, task):
-    """ Method make new InpuData object based on the previous part of time
+    """ Method make new InputData object based on the previous part of time
     series
 
     :param pre_history_ts: time series

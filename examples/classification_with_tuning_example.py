@@ -7,7 +7,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import classification_dataset
+from fedot.utilities.synth_dataset_generator import classification_dataset
 from fedot.core.chains.tuning.unified import ChainTuner
 
 np.random.seed(2020)
@@ -137,7 +137,7 @@ def run_classification_tuning_experiment(chain, tuner=None):
 if __name__ == '__main__':
 
     # Prepare chain
-    node_scaling = PrimaryNode('scaling',)
+    node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])
     chain_for_experiment = Chain(node_final)
 

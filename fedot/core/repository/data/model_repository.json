@@ -20,6 +20,16 @@
 	  "tags": ["ml", "custom"],
 	  "description": "Implementations of the custom classification models"
 	},
+	"custom_regr": {
+	  "tasks": "[TaskTypesEnum.regression]",
+	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "accepted_node_types": ["any"],
+	  "forbidden_node_types": "[]",
+	  "strategies": ["fedot.core.operations.evaluation.regression", "CustomRegressionStrategy"],
+	  "tags": ["ml", "custom"],
+	  "description": "Implementations of the custom regression models"
+	},
 	"sklearn_regr": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.table]",
@@ -83,7 +93,7 @@
 	  "tags": ["neural"]
 	},
 	"knn": {
-	  "meta": "sklearn_class",
+	  "meta": "custom_class",
 	  "tags": ["simple"]
 	},
 	"svc": {
@@ -123,7 +133,7 @@
 	  "tags": ["boosting", "non_multi"]
 	},
 	"knnreg": {
-	  "meta": "sklearn_regr",
+	  "meta": "custom_regr",
 	  "tags": ["simple"]
 	},
 	"dtreg": {

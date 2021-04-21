@@ -11,11 +11,12 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
     """
     Generates a random dataset for n-class classification problem
     using scikit-learn API.
+
     :param samples_amount: Total amount of samples in the resulted dataset.
     :param features_amount: Total amount of features per sample.
     :param classes_amount: The amount of classes in the dataset.
-    :param features_options: The dictionary containing features options in key-value
-    format:
+    :param features_options: The dictionary containing features options in key-value \
+        format:
         - informative: the amount of informative features;
         - redundant: the amount of redundant features;
         - repeated: the amount of features that repeat the informative features;
@@ -40,9 +41,10 @@ def regression_dataset(samples_amount: int, features_amount: int, features_optio
                        n_targets: int, noise: float = 0.0, shuffle: bool = True):
     """
     Generates a random dataset for regression problem using scikit-learn API.
+
     :param samples_amount: Total amount of samples in the resulted dataset.
     :param features_amount: Total amount of features per sample.
-    :param features_options: The dictionary containing features options in key-value
+    :param features_options: The dictionary containing features options in key-value \
     format:
         - informative: the amount of informative features;
         - bias: bias term in the underlying linear model;
@@ -68,11 +70,12 @@ def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
     Generates a random dataset for n-class classification problem
     based on multi-dimensional gaussian distribution quantiles
     using scikit-learn API.
+
     :param samples_amount: Total amount of samples in the resulted dataset.
     :param features_amount: Total amount of features per sample.
     :param classes_amount: The amount of classes in the dataset.
     :param full_shuffle: if true then all features and samples will be shuffled.
-    :param kwargs: Optional params:
+    :param kwargs: Optional params: \
         - 'gauss_params': mean and covariance values of the distribution.
     :return: features and target as numpy-arrays.
     """
