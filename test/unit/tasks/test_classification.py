@@ -180,7 +180,6 @@ def test_image_classification():
     assert cnn_model.input_shape[1:] == image_shape
     assert cnn_model.output_shape[1] == num_classes
     assert model.history.params['epochs'] or cnn_class.params['epochs'] == epochs
-    assert model.history.params['batch_size'] or cnn_class.params['batch_size'] == batch_size
     assert type(prediction) == np.ndarray
     assert abs(deviation_composite) < 0.25
     assert abs(deviation_simple) < 0.35
