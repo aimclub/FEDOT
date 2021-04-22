@@ -9,7 +9,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_template import ChainTemplate, extract_subtree_root
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from test.unit.tasks.test_forecasting import get_multiscale_chain, get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_multilinear_chain, get_synthetic_ts_data_period
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -117,14 +117,16 @@ def create_fitted_chain() -> Chain:
     return chain
 
 
-def create_classification_chain_with_preprocessing():
-    node_scaling = PrimaryNode('scaling')
-    node_rfe = PrimaryNode('rfe_lin_class')
+def create_data_model_types_classification_chain():
+    pca_node = PrimaryNode('pca_data_model')
+    direct_node = PrimaryNode('direct_data_model')
 
-    xgb_node = SecondaryNode('xgboost', nodes_from=[node_scaling])
-    logit_node = SecondaryNode('logit', nodes_from=[node_rfe])
+    xgb_node = SecondaryNode('xgboost', nodes_from=[pca_node, direct_node])
+    logit_node = SecondaryNode('logit', nodes_from=[pca_node, direct_node])
+    pca_node_second = SecondaryNode('pca_data_model', nodes_from=[pca_node, direct_node])
+    direct_node_second = SecondaryNode('direct_data_model', nodes_from=[pca_node, direct_node])
 
-    knn_root = SecondaryNode('knn', nodes_from=[xgb_node, logit_node])
+    knn_root = SecondaryNode('knn', nodes_from=[xgb_node, logit_node, pca_node_second, direct_node_second])
 
     chain = Chain(knn_root)
 
@@ -310,14 +312,14 @@ def test_import_custom_json_object_to_chain_and_fit_correctly_no_exception():
 
 
 def test_data_model_types_forecasting_chain_fit():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10)
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10, max_window_size=10)
 
-    chain = get_multiscale_chain()
+    chain = get_multilinear_chain()
     chain.fit(train_data)
     chain.save('data_model_forecasting')
 
     expected_len_nodes = len(chain.nodes)
-    actual_len_nodes = len(ChainTemplate(chain).operation_templates)
+    actual_len_nodes = len(ChainTemplate(chain).model_templates)
 
     assert actual_len_nodes == expected_len_nodes
 
@@ -326,12 +328,12 @@ def test_data_model_type_classification_chain_fit():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
-    chain = create_classification_chain_with_preprocessing()
+    chain = create_data_model_types_classification_chain()
     chain.fit(train_data)
     chain.save('data_model_classification')
 
     expected_len_nodes = len(chain.nodes)
-    actual_len_nodes = len(ChainTemplate(chain).operation_templates)
+    actual_len_nodes = len(ChainTemplate(chain).model_templates)
 
     assert actual_len_nodes == expected_len_nodes
 
@@ -343,11 +345,11 @@ def test_extract_subtree_root():
     expected_types = ['knn', 'logit', 'knn', 'lda', 'xgboost']
     new_root_node_id = 4
 
-    root_node = extract_subtree_root(root_operation_id=new_root_node_id,
+    root_node = extract_subtree_root(root_model_id=new_root_node_id,
                                      chain_template=chain_template)
 
     sub_chain = Chain(root_node)
-    actual_types = [node.operation.operation_type for node in sub_chain.nodes]
+    actual_types = [node.model.model_type for node in sub_chain.nodes]
 
     assertion_list = [True if expected_types[index] == actual_types[index] else False
                       for index in range(len(expected_types))]

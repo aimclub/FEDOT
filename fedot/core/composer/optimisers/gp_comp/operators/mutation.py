@@ -4,7 +4,6 @@ from random import choice, randint, random
 from typing import Any
 
 from fedot.core.chains.chain import Chain, List
-from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.log import Log
@@ -18,7 +17,6 @@ class MutationTypesEnum(Enum):
     growth = 'growth'
     local_growth = 'local_growth'
     reduce = 'reduce'
-    parameter_change = 'parameter_change'
     none = 'none'
 
 
@@ -29,13 +27,6 @@ class MutationStrengthEnum(Enum):
 
 
 def get_mutation_prob(mut_id, root_node):
-    """ Function returns mutation probability for certain node in the chain
-
-    :param mut_id: MutationStrengthEnum mean weak or strong mutation
-    :param root_node: root node of the chain
-    :return mutation_prob: mutation probability
-    """
-
     default_mutation_prob = 0.7
     if mut_id in list(MutationStrengthEnum):
         mutation_strength = mut_id.value
@@ -51,7 +42,6 @@ def will_mutation_be_applied(mutation_prob, type) -> bool:
 
 def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements, log: Log,
              max_depth: int = None) -> Any:
-    """ Function apply mutation operator to chain """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
     type = choice(types)
@@ -72,7 +62,7 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
 def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:
     """
     This type of mutation is passed over all nodes of the tree started from the root node and changes
-    nodes’ operations with probability - 'node mutation probability' which is inicialised inside the function
+    nodes’ models with probability - 'node mutation probability' which is inicialised inside the function
     """
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
@@ -81,14 +71,14 @@ def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                secondary_node = chain_generation_params.secondary_node_func(choice(requirements.secondary),
+                secondary_node = chain_generation_params.secondary_node_func(model_type=choice(requirements.secondary),
                                                                              nodes_from=node.nodes_from)
                 chain.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
         else:
             if random() < node_mutation_probability:
-                primary_node = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
+                primary_node = chain_generation_params.primary_node_func(model_type=choice(requirements.primary))
                 chain.update_node(node, primary_node)
 
     replace_node_to_random_recursive(chain.root_node)
@@ -110,9 +100,10 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
         is_primary_node_selected = (not node_from_chain.nodes_from) or (
                 node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
     else:
-        is_primary_node_selected = randint(0, 1) and not node_height(chain, node_from_chain) < max_depth
+        is_primary_node_selected = randint(0, 1) and not node_height(chain, node_from_chain) \
+                                                         < max_depth
     if is_primary_node_selected:
-        new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
+        new_subtree = chain_generation_params.primary_node_func(model_type=choice(requirements.primary))
     else:
         if local_growth:
             max_depth = node_depth(node_from_chain)
@@ -138,24 +129,8 @@ def reduce_mutation(chain: Any, requirements, chain_generation_params, max_depth
     if is_possible_to_delete:
         chain.delete_subtree(node_to_del)
     else:
-        primary_node = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
+        primary_node = chain_generation_params.primary_node_func(model_type=choice(requirements.primary))
         chain.replace_node_with_parents(node_to_del, primary_node)
-    return chain
-
-
-def parameter_change_mutation(chain: Any, requirements, **kwargs) -> Any:
-    """
-    This type of mutation is passed over all nodes and changes
-    hyperpearameters of the operations with probability - 'node mutation probability'
-    which is initialised inside the function
-    """
-    node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
-                                                  root_node=chain.root_node)
-    for node in chain.nodes:
-        if random() < node_mutation_probability:
-            operation_name = node.operation.operation_type
-            node.custom_params = get_new_operation_params(operation_name)
-
     return chain
 
 
@@ -163,6 +138,5 @@ mutation_by_type = {
     MutationTypesEnum.simple: simple_mutation,
     MutationTypesEnum.growth: partial(growth_mutation, local_growth=False),
     MutationTypesEnum.local_growth: partial(growth_mutation, local_growth=True),
-    MutationTypesEnum.reduce: reduce_mutation,
-    MutationTypesEnum.parameter_change: parameter_change_mutation
+    MutationTypesEnum.reduce: reduce_mutation
 }

@@ -6,7 +6,6 @@ from fedot.core.chains.chain_template import ChainTemplate
 
 
 def chain_as_nx_graph(chain: 'Chain'):
-    """ Convert FEDOT chain into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}
     new_node_idx = {}
@@ -27,19 +26,18 @@ def chain_as_nx_graph(chain: 'Chain'):
 
 
 def chain_template_as_nx_graph(chain: ChainTemplate):
-    """ Convert FEDOT chain template into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}
-    for operation in chain.operation_templates:
-        unique_id, label = operation.operation_id, operation.operation_type
+    for model in chain.model_templates:
+        unique_id, label = model.model_id, model.model_type
         node_labels[unique_id] = label
         graph.add_node(unique_id)
 
     def add_edges(graph, chain):
-        for operation in chain.operation_templates:
-            if operation.nodes_from is not None:
-                for child in operation.nodes_from:
-                    graph.add_edge(child, operation.operation_id)
+        for model in chain.model_templates:
+            if model.nodes_from is not None:
+                for child in model.nodes_from:
+                    graph.add_edge(child, model.model_id)
 
     add_edges(graph, chain)
     return graph, node_labels

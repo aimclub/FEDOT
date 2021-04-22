@@ -1,16 +1,17 @@
 import datetime
 import os
 import platform
+import pytest
 import time
+
+import numpy as np
+import pandas as pd
+
 from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
-import numpy as np
-import pandas as pd
-import pytest
 from sklearn.datasets import load_iris
-from sklearn.metrics import roc_auc_score as roc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -18,6 +19,7 @@ from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
+
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
 
@@ -41,13 +43,6 @@ def data_setup():
 
 
 @pytest.fixture()
-def classification_dataset():
-    test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_classification.csv')
-    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
-
-
-@pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
     file = '../../data/simple_classification.csv'
@@ -67,10 +62,10 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='lda', nodes_from=[first])
-    third = SecondaryNode(operation_type='qda', nodes_from=[first])
-    final = SecondaryNode(operation_type='knn', nodes_from=[second, third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='lda', nodes_from=[first])
+    third = SecondaryNode(model_type='qda', nodes_from=[first])
+    final = SecondaryNode(model_type='knn', nodes_from=[second, third])
 
     train_predicted = final.fit(input_data=train)
 
@@ -82,17 +77,17 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
         'n_knn_default_params')
 
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.fitted_operation is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit', nodes_from=[first])
-    third = SecondaryNode(operation_type='logit', nodes_from=[first])
-    final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[first])
+    final = SecondaryNode(model_type='logit', nodes_from=[second, third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -111,17 +106,17 @@ def test_chain_hierarchy_fit_correct(data_setup):
     assert chain.length == 4
     assert chain.depth == 3
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.fitted_operation is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = SecondaryNode(operation_type='logit', nodes_from=[first])
-    third = SecondaryNode(operation_type='logit', nodes_from=[second])
-    final = SecondaryNode(operation_type='logit', nodes_from=[third])
+    first = PrimaryNode(model_type='logit')
+    second = SecondaryNode(model_type='logit', nodes_from=[first])
+    third = SecondaryNode(model_type='logit', nodes_from=[second])
+    final = SecondaryNode(model_type='logit', nodes_from=[third])
 
     chain = Chain()
     for node in [first, second, third, final]:
@@ -138,7 +133,7 @@ def test_chain_sequential_fit_correct(data_setup):
     assert chain.length == 4
     assert chain.depth == 4
     assert train_predicted.predict.shape[0] == train.target.shape[0]
-    assert final.fitted_operation is not None
+    assert final.fitted_model is not None
 
 
 def test_chain_with_datamodel_fit_correct(data_setup):
@@ -147,7 +142,7 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 
     chain = Chain()
 
-    node_data = PrimaryNode('logit')
+    node_data = PrimaryNode('direct_data_model')
     node_first = PrimaryNode('bernb')
     node_second = SecondaryNode('rf')
 
@@ -167,10 +162,10 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
     train, test = train_test_data_setup(data)
 
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[first, second, third])
 
     chain = Chain()
@@ -181,7 +176,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(operation_type='xgboost',
+    final_shuffled = SecondaryNode(model_type='xgboost',
                                    nodes_from=[third, first, second])
 
     chain_shuffled = Chain()
@@ -220,9 +215,9 @@ def test_chain_with_custom_params_for_model(data_setup):
                          weights='uniform',
                          p=1)
 
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    final = SecondaryNode(model_type='knn', nodes_from=[first, second])
 
     chain = Chain()
     chain.add_node(final)
@@ -243,7 +238,9 @@ def test_chain_with_wrong_data():
     chain = Chain(PrimaryNode('linear'))
     data_seq = np.arange(0, 10)
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=10))
+                TsForecastingParams(forecast_length=10,
+                                    max_window_size=len(data_seq) + 1,
+                                    return_all_steps=False))
 
     data = InputData(idx=data_seq, features=data_seq, target=data_seq,
                      data_type=DataTypesEnum.ts, task=task)
@@ -254,10 +251,10 @@ def test_chain_with_wrong_data():
 
 def test_chain_str():
     # given
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[first, second, third])
     chain = Chain()
     chain.add_node(final)
@@ -272,10 +269,10 @@ def test_chain_str():
 
 
 def test_chain_repr():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = PrimaryNode(model_type='knn')
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[first, second, third])
     chain = Chain()
     chain.add_node(final)
@@ -286,8 +283,8 @@ def test_chain_repr():
 
 
 def test_update_node_in_chain_raise_exception():
-    first = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
+    first = PrimaryNode(model_type='logit')
+    final = SecondaryNode(model_type='xgboost', nodes_from=[first])
 
     chain = Chain()
     chain.add_node(final)
@@ -300,10 +297,10 @@ def test_update_node_in_chain_raise_exception():
 
 
 def test_delete_node_with_redirection():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = SecondaryNode(operation_type='knn', nodes_from=[first, second])
-    final = SecondaryNode(operation_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = SecondaryNode(model_type='knn', nodes_from=[first, second])
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[third])
     chain = Chain()
     chain.add_node(final)
@@ -316,10 +313,10 @@ def test_delete_node_with_redirection():
 
 def test_delete_primary_node_with_redirection():
     # given
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    third = SecondaryNode(operation_type='knn', nodes_from=[first])
-    final = SecondaryNode(operation_type='xgboost',
+    first = PrimaryNode(model_type='logit')
+    second = PrimaryNode(model_type='lda')
+    third = SecondaryNode(model_type='knn', nodes_from=[first])
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[second, third])
     chain = Chain()
     chain.add_node(final)
@@ -327,7 +324,7 @@ def test_delete_primary_node_with_redirection():
     # when
     chain.delete_node(first)
 
-    new_primary_node = [node for node in chain.nodes if node.operation.operation_type == 'knn'][0]
+    new_primary_node = [node for node in chain.nodes if node.model.model_type == 'knn'][0]
 
     # then
     assert len(chain.nodes) == 3
@@ -336,12 +333,12 @@ def test_delete_primary_node_with_redirection():
 
 def test_delete_secondary_node_with_multiple_children_and_redirection():
     # given
-    logit_first = PrimaryNode(operation_type='logit')
-    lda_first = PrimaryNode(operation_type='lda')
-    knn_center = SecondaryNode(operation_type='knn', nodes_from=[logit_first, lda_first])
-    logit_second = SecondaryNode(operation_type='logit', nodes_from=[knn_center])
-    lda_second = SecondaryNode(operation_type='lda', nodes_from=[knn_center])
-    final = SecondaryNode(operation_type='xgboost',
+    logit_first = PrimaryNode(model_type='logit')
+    lda_first = PrimaryNode(model_type='lda')
+    knn_center = SecondaryNode(model_type='knn', nodes_from=[logit_first, lda_first])
+    logit_second = SecondaryNode(model_type='logit', nodes_from=[knn_center])
+    lda_second = SecondaryNode(model_type='lda', nodes_from=[knn_center])
+    final = SecondaryNode(model_type='xgboost',
                           nodes_from=[logit_second, lda_second])
 
     chain = Chain()
@@ -396,23 +393,3 @@ def test_chain_fit_time_constraint(data_fixture, request):
     assert predicted_first is None
     assert computation_time_second is not None
     assert predicted_second is not None
-
-
-def test_chain_fine_tune_all_nodes_correct(classification_dataset):
-    data = classification_dataset
-
-    first = PrimaryNode(operation_type='scaling')
-    second = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='dt', nodes_from=[first, second])
-
-    chain = Chain(final)
-
-    iterations_total, time_limit_minutes = 5, 1
-    tuned_chain = chain.fine_tune_all_nodes(loss_function=roc, input_data=data,
-                                            iterations=iterations_total,
-                                            max_lead_time=time_limit_minutes)
-    tuned_chain.predict(input_data=data)
-
-    is_tuning_finished = True
-
-    assert is_tuning_finished

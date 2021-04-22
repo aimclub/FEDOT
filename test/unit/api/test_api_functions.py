@@ -1,28 +1,28 @@
-from fedot.api.api_utils import filter_operations_by_preset
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.api.api_utils import filter_models_by_preset
+from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 
 def test_presets_classification():
     task = Task(TaskTypesEnum.classification)
+    repo = ModelTypesRepository()
 
-    class_operations = get_operations_for_task(task, mode='all')
+    class_models, _ = repo.suitable_model(task.task_type)
 
-    operations_for_light_preset = filter_operations_by_preset(task, 'light')
-    operations_for_ultra_light_preset = filter_operations_by_preset(task, 'ultra_light')
+    models_for_light_preset = filter_models_by_preset(task, 'light')
+    models_for_ultra_light_preset = filter_models_by_preset(task, 'ultra_light')
 
-    assert len(operations_for_ultra_light_preset) < len(operations_for_light_preset) < len(class_operations)
-    assert {'dt', 'logit', 'knn'} <= set(operations_for_ultra_light_preset)
+    assert len(models_for_ultra_light_preset) < len(models_for_light_preset) < len(class_models)
+    assert set(models_for_ultra_light_preset) == {'dt', 'logit', 'knn'}
 
 
 def test_presets_regression():
     task = Task(TaskTypesEnum.regression)
+    repo = ModelTypesRepository()
+    regr_models, _ = repo.suitable_model(task.task_type)
 
-    regr_operations = get_operations_for_task(task, mode='all')
+    models_for_light_preset = filter_models_by_preset(task, 'light')
+    models_for_ultra_light_preset = filter_models_by_preset(task, 'ultra_light')
 
-    operations_for_light_preset = filter_operations_by_preset(task, 'light')
-    operations_for_ultra_light_preset = filter_operations_by_preset(task, 'ultra_light')
-
-    assert len(operations_for_ultra_light_preset) < len(operations_for_light_preset) == len(regr_operations)
-    assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_ultra_light_preset)
+    assert len(models_for_ultra_light_preset) < len(models_for_light_preset) == len(regr_models)
+    assert set(models_for_ultra_light_preset) == {'dtreg', 'lasso', 'ridge', 'linear'}

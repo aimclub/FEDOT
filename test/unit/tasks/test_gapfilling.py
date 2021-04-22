@@ -1,10 +1,9 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from examples.ts_gapfilling_example import get_array_with_gaps
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
-from test.unit.tasks.test_forecasting import get_simple_ts_chain
+from examples.time_series_gapfilling_example import get_array_with_gaps
+from fedot.core.chains.node import PrimaryNode
+from fedot.core.chains.ts_chain import TsForecastingChain
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
 
@@ -26,8 +25,9 @@ def test_gapfilling_inverse_ridge_correct():
     # Find all gap indices in the array
     id_gaps = np.ravel(np.argwhere(arr_with_gaps == -100.0))
 
-    ridge_chain = get_simple_ts_chain(model_root='ridge')
-    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain)
+    ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
+    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain,
+                               max_window_size=150)
     without_gap = gapfiller.forward_inverse_filling(arr_with_gaps)
 
     # Get only values in the gaps
@@ -36,7 +36,8 @@ def test_gapfilling_inverse_ridge_correct():
 
     rmse_test = mean_squared_error(true_values, predicted_values, squared=False)
 
-    assert rmse_test < 0.5
+    # The RMSE must be less than the standard deviation of random noise * 1.5
+    assert rmse_test < 0.15
 
 
 def test_gapfilling_forward_ridge_correct():
@@ -45,8 +46,9 @@ def test_gapfilling_forward_ridge_correct():
     # Find all gap indices in the array
     id_gaps = np.ravel(np.argwhere(arr_with_gaps == -100.0))
 
-    ridge_chain = get_simple_ts_chain(model_root='ridge')
-    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain)
+    ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
+    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain,
+                               max_window_size=150)
     without_gap = gapfiller.forward_filling(arr_with_gaps)
 
     # Get only values in the gaps
@@ -55,4 +57,5 @@ def test_gapfilling_forward_ridge_correct():
 
     rmse_test = mean_squared_error(true_values, predicted_values, squared=False)
 
-    assert rmse_test < 1.0
+    # The RMSE must be less than the standard deviation of random noise * 2.0
+    assert rmse_test < 0.2

@@ -58,7 +58,7 @@ class ComposingHistory:
                     fitness = chain.fitness.values
                 else:
                     fitness = chain.fitness
-                row = [idx, gen_num, fitness, len(chain.operation_templates), chain.depth,
+                row = [idx, gen_num, fitness, len(chain.model_templates), chain.depth,
                        self.chains_comp_time_history[gen_num][chain_num]]
                 self._add_history_to_csv(file, row)
                 idx += 1
@@ -69,7 +69,7 @@ class ComposingHistory:
             metric_str = 'metric'
             if self.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'computation_time']
+            row = ['index', 'generation', metric_str, 'quantity_of_models', 'depth', 'computation_time']
             writer.writerow(row)
 
     def _add_history_to_csv(self, f: str, row: List[Any]):

@@ -44,7 +44,6 @@ class ChainVisualiser:
                 plt.show()
             else:
                 plt.savefig(save_path)
-                plt.close()
         except Exception as ex:
             self.log.error(f'Visualisation failed with {ex}')
 

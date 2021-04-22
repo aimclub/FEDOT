@@ -1,6 +1,6 @@
 import os
 import warnings
-
+from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -8,10 +8,11 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+from fedot.core.algorithms.time_series.lagged_features import prepare_lagged_ts_for_prediction
 from fedot.core.data.load_data import TextBatchLoader
+from fedot.core.data.preprocessing import ImputationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.merge import DataMerger
 
 
 @dataclass
@@ -60,36 +61,15 @@ class Data:
             features = data_array[1:].T
             target = None
 
+        if features.shape[1] == 0 and task.task_type == TaskTypesEnum.ts_forecasting:
+            features = None
+
+        features = _process_empty_features_for_task(features, task)
+
+        if features is not None:
+            features = ImputationStrategy().fit(features).apply(features)
+
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
-
-    @staticmethod
-    def from_csv_time_series(task: Task,
-                             file_path=None,
-                             delimiter=',',
-                             is_predict=False,
-                             target_column: Optional[str] = ''):
-        data_frame = pd.read_csv(file_path, sep=delimiter)
-        time_series = np.array(data_frame[target_column])
-        if is_predict:
-            # Prepare data for prediction
-            len_forecast = task.task_params.forecast_length
-
-            start_forecast = len(time_series)
-            end_forecast = start_forecast + len_forecast
-            input_data = InputData(idx=np.arange(start_forecast, end_forecast),
-                                   features=time_series,
-                                   target=None,
-                                   task=task,
-                                   data_type=DataTypesEnum.ts)
-        else:
-            # Prepare InputData for train the chain
-            input_data = InputData(idx=np.arange(0, len(time_series)),
-                                   features=time_series,
-                                   target=time_series,
-                                   task=task,
-                                   data_type=DataTypesEnum.ts)
-
-        return input_data
 
     @staticmethod
     def from_text_meta_file(meta_file_path: str = None,
@@ -105,7 +85,7 @@ class Data:
         messages = df_text['text'].astype('U').tolist()
 
         features = np.array(messages)
-        target = np.array(df_text[label])
+        target = df_text[label]
         idx = [index for index in range(len(target))]
 
         return InputData(idx=idx, features=features,
@@ -122,8 +102,8 @@ class Data:
 
         df_text = TextBatchLoader(path=files_path).extract()
 
-        features = np.array(df_text['text'])
-        target = np.array(df_text[label])
+        features = df_text['text']
+        target = df_text[label]
         idx = [index for index in range(len(target))]
 
         return InputData(idx=idx, features=features,
@@ -145,15 +125,22 @@ class InputData(Data):
             return None
 
     @staticmethod
-    def from_predictions(outputs: List['OutputData']):
+    def from_predictions(outputs: List['OutputData'], target: np.array):
         if len(set([output.task.task_type for output in outputs])) > 1:
             raise ValueError('Inconsistent task types')
 
         task = outputs[0].task
         data_type = outputs[0].data_type
+        idx = outputs[0].idx
 
-        # Update not only features but idx and target also
-        idx, features, target = DataMerger(outputs).merge()
+        dataset_merging_funcs = {
+            DataTypesEnum.forecasted_ts: _combine_datasets_ts,
+            DataTypesEnum.ts: _combine_datasets_ts,
+            DataTypesEnum.table: _combine_datasets_table
+        }
+        dataset_merging_funcs.setdefault(data_type, _combine_datasets_common)
+
+        features = dataset_merging_funcs[data_type](outputs)
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=data_type)
@@ -167,6 +154,17 @@ class InputData(Data):
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
 
+    def prepare_for_modelling(self, is_for_fit: bool = False):
+        prepared_data = self
+        if (self.data_type == DataTypesEnum.ts_lagged_table or
+                self.data_type == DataTypesEnum.forecasted_ts):
+            prepared_data = prepare_lagged_ts_for_prediction(self, is_for_fit)
+        elif self.data_type in [DataTypesEnum.table, DataTypesEnum.forecasted_ts]:
+            # TODO implement NaN filling here
+            pass
+
+        return prepared_data
+
 
 @dataclass
 class OutputData(Data):
@@ -174,122 +172,25 @@ class OutputData(Data):
     Data type for data prediction in the node
     """
     predict: np.array = None
-    target: Optional[np.array] = None
 
 
-def split_time_series(data, task):
-    """ Split time series data into train and test parts
-
-    :param data: array with data to split (not InputData)
-    :param task: task to solve
-    """
-
-    input_features = data.features
-    input_target = data.target
-    forecast_length = task.task_params.forecast_length
-
-    # Source time series divide into two parts
-    x_train = input_features[:-forecast_length]
-    x_test = input_features[:-forecast_length]
-
-    y_train = x_train
-    y_test = input_target[-forecast_length:]
-
-    idx_for_train = np.arange(0, len(x_train))
-
-    # Define indices for test
-    start_forecast = len(x_train)
-    end_forecast = start_forecast + forecast_length
-    idx_for_predict = np.arange(start_forecast, end_forecast)
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
-
-    test_data = InputData(idx=idx_for_predict,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=DataTypesEnum.ts)
-
-    return train_data, test_data
-
-
-def split_table(data, task, split_ratio, with_shuffle=False):
-    """ Split table data into train and test parts
-
-    :param data: array with data to split (not InputData)
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param with_shuffle: is data needed to be shuffled or not
-    """
-
-    if not 0. < split_ratio < 1.:
-        raise ValueError('Split ratio must belong to the interval (0; 1)')
-    random_state = 42
-
-    # Predictors and target
-    input_features = data.features
-    input_target = data.target
-
-    x_train, x_test, y_train, y_test = train_test_split(input_features,
-                                                        input_target,
-                                                        test_size=1. - split_ratio,
-                                                        shuffle=with_shuffle,
-                                                        random_state=random_state)
-
-    idx_for_train = np.arange(0, len(x_train))
-    idx_for_predict = np.arange(0, len(x_test))
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=DataTypesEnum.table)
-
-    test_data = InputData(idx=idx_for_predict,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=DataTypesEnum.table)
-
-    return train_data, test_data
-
-
-def train_test_data_setup(data: InputData, split_ratio=0.8,
-                          shuffle_flag=False) -> Tuple[InputData, InputData]:
-    """ Function for train and test split
-
-    :param data: InputData for train and test splitting
-    :param split_ratio: threshold for partitioning
-    :param shuffle_flag: is data needed to be shuffled or not
-
-    :return train_data: InputData for train
-    :return test_data: InputData for validation
-    """
-    # Split into train and test
-    if data.features is not None:
-        task = data.task
-        if data.data_type == DataTypesEnum.ts:
-            train_data, test_data = split_time_series(data, task)
-        elif data.data_type == DataTypesEnum.table:
-            train_data, test_data = split_table(data, task, split_ratio,
-                                                with_shuffle=shuffle_flag)
-        else:
-            train_data, test_data = split_table(data, task, split_ratio,
-                                                with_shuffle=shuffle_flag)
+def split_train_test(data, split_ratio=0.8, with_shuffle=False, task: Task = None):
+    assert 0. <= split_ratio <= 1.
+    if task is not None and task.task_type == TaskTypesEnum.ts_forecasting:
+        split_point = int(len(data) * split_ratio)
+        # move pre-history of time series from train to test sample
+        data_train, data_test = (data[:split_point],
+                                 copy(data[split_point - task.task_params.max_window_size:]))
     else:
-        raise ValueError('InputData must be not empty')
-
-    return train_data, test_data
+        if with_shuffle:
+            data_train, data_test = train_test_split(data, test_size=1. - split_ratio, random_state=42)
+        else:
+            split_point = int(len(data) * split_ratio)
+            data_train, data_test = data[:split_point], data[split_point:]
+    return data_train, data_test
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):
-    """ Function converts columns with objects into numerical form and fill na """
     objects: pd.DataFrame = data_frame.select_dtypes('object')
     for column_name in objects:
         warnings.warn(f'Automatic factorization for the column {column_name} with type "object" is applied.')
@@ -297,3 +198,83 @@ def _convert_dtypes(data_frame: pd.DataFrame):
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)
     return data_frame
+
+
+def train_test_data_setup(data: InputData, split_ratio=0.8,
+                          shuffle_flag=False, task: Task = None) -> Tuple[InputData, InputData]:
+    if data.features is not None:
+        train_data_x, test_data_x = split_train_test(data.features, split_ratio, with_shuffle=shuffle_flag, task=task)
+    else:
+        train_data_x, test_data_x = None, None
+
+    train_data_y, test_data_y = split_train_test(data.target, split_ratio, with_shuffle=shuffle_flag, task=task)
+    train_idx, test_idx = split_train_test(data.idx, split_ratio, with_shuffle=shuffle_flag, task=task)
+    train_data = InputData(features=train_data_x, target=train_data_y,
+                           idx=train_idx, task=data.task, data_type=data.data_type)
+    test_data = InputData(features=test_data_x, target=test_data_y, idx=test_idx, task=data.task,
+                          data_type=data.data_type)
+    return train_data, test_data
+
+
+def _combine_datasets_ts(outputs: List[OutputData]):
+    features_list = list()
+
+    expected_len = max([len(output.predict) for output in outputs])
+
+    for elem in outputs:
+        predict = elem.predict
+        if len(elem.predict) != expected_len:
+            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
+        features_list.append(predict)
+
+    if len(features_list) > 1:
+        features = np.column_stack(features_list)
+    else:
+        features = features_list[0]
+
+    return features
+
+
+def _combine_datasets_table(outputs: List[OutputData]):
+    features = list()
+    expected_len = len(outputs[0].predict)
+
+    for elem in outputs:
+        if len(elem.predict) != expected_len:
+            raise ValueError(f'Non-equal prediction length: {len(elem.predict)} and {expected_len}')
+        if len(elem.predict.shape) == 1:
+            features.append(elem.predict)
+        else:
+            # if the model prediction is multivariate
+            number_of_variables_in_prediction = elem.predict.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                features.append(elem.predict[:, i])
+
+    features = np.array(features).T
+
+    return features
+
+
+def _combine_datasets_common(outputs: List[OutputData]):
+    features = list()
+
+    for elem in outputs:
+        if len(elem.predict) != len(outputs[0].predict):
+            raise NotImplementedError(f'Non-equal prediction length: '
+                                      f'{len(elem.predict)} and {len(outputs[0].predict)}')
+        if len(elem.predict.shape) == 1:
+            features.append(elem.predict)
+        else:
+            # if the model prediction is multivariate
+            number_of_variables_in_prediction = elem.predict.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                features.append(elem.predict[:, i])
+    return features
+
+
+def _process_empty_features_for_task(features, task: Task):
+    if (features is not None and
+            features.shape[1] == 0 and
+            task.task_type == TaskTypesEnum.ts_forecasting):
+        return None
+    return features

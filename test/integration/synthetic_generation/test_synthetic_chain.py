@@ -31,9 +31,8 @@ def test_chain_with_random_links_correct(classification_dataset):
     depth = 3
     models_per_level = [3, 2, 1]
     used_models = ['logit']
-    chain = chain_with_random_links(depth=depth,
-                                    operations_per_level=models_per_level,
-                                    used_operations=used_models)
+    chain = chain_with_random_links(depth=depth, models_per_level=models_per_level,
+                                    used_models=used_models)
 
     assert chain.depth == depth
     assert chain.length == sum(models_per_level)
@@ -46,7 +45,7 @@ def test_chain_full_random_correct(classification_dataset):
     max_lvl_size = 4
     used_models = ['logit']
     chain = chain_full_random(depth=depth, max_level_size=max_lvl_size,
-                              used_operations=used_models)
+                              used_models=used_models)
 
     assert chain.depth == depth
 

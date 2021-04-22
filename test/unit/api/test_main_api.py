@@ -6,13 +6,12 @@ from sklearn.model_selection import train_test_split
 
 from fedot.api.main import Fedot, _define_data
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_linear
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
@@ -53,7 +52,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
+        train_data, test_data = get_synthetic_ts_data_linear(forecast_length=1, max_window_size=10)
         threshold = np.str(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -74,14 +73,15 @@ def test_api_predict_correct(task_type: str = 'classification'):
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
-    # The forecast length must be equal to 12
-    forecast_length = 12
+    forecast_length = 10
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', composer_params=composer_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
+                  task_params=TsForecastingParams(forecast_length=forecast_length,
+                                                  max_window_size=forecast_length,
+                                                  make_future_prediction=True))
 
     model.fit(features=train_data)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    ts_forecast = model.forecast(pre_history=train_data, forecast_length=forecast_length)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -91,17 +91,11 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 10
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem='ts_forecasting',
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model = Fedot(problem='ts_forecasting')
 
-    # Define chain for prediction
-    node_lagged = PrimaryNode('lagged')
-    chain = Chain(SecondaryNode('linear', nodes_from=[node_lagged]))
-
-    model.fit(features=train_data.features,
-              target=train_data.target,
-              predefined_model=chain)
-    ts_forecast = model.predict(features=train_data, target=test_data)
+    model.fit(features=train_data.features, target=train_data.target, predefined_model='linear')
+    ts_forecast = model.forecast(pre_history=(train_data.features, train_data.target),
+                                 forecast_length=forecast_length)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
@@ -171,7 +165,7 @@ def test_pandas_input_for_api():
 
 def test_custom_metric_for_api():
     train_data, test_data, _ = get_dataset('classification')
-    composer_params['composer_metric'] = 'f1'
+    composer_params['metric'] = 'f1'
     model = Fedot(problem='classification',
                   composer_params=composer_params)
     model.fit(features=train_data)

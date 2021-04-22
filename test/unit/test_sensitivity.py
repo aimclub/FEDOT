@@ -8,8 +8,8 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
-from fedot.sensitivity.operation_sensitivity import OperationAnalyze
-from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze, \
+from fedot.sensitivity.model_sensitivity import ModelAnalyze
+from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceModelAnalyze, \
     NodeTuneAnalyze
 from test.unit.utilities.test_chain_import_export import create_func_delete_files
 
@@ -139,7 +139,7 @@ def test_node_analysis_init_default():
 
 def test_node_analysis_init_defined_approaches_and_log():
     # given
-    approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
+    approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
     test_log_object = default_log('test_log_node_sa')
 
     node_analyzer = NodeAnalysis(approaches=approaches,
@@ -152,7 +152,6 @@ def test_node_analysis_init_defined_approaches_and_log():
 
 
 # @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
-# @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_analysis_analyze():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
@@ -220,27 +219,26 @@ def test_node_replacement_analyze_defined_nodes():
 
     # when
     node_analysis_result = \
-        NodeReplaceOperationAnalyze(chain=chain,
-                                    train_data=train_data,
-                                    test_data=test_data,
-                                    path_to_save=result_dir).analyze(node_id=node_index,
-                                                                     nodes_to_replace_to=[replacing_node])
+        NodeReplaceModelAnalyze(chain=chain,
+                                train_data=train_data,
+                                test_data=test_data,
+                                path_to_save=result_dir).analyze(node_id=node_index,
+                                                                 nodes_to_replace_to=[replacing_node])
 
     # then
     assert isinstance(node_analysis_result, float)
 
 
-# @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_replacement_analyze_random_nodes_default_number():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
     node_analysis_result = \
-        (NodeReplaceOperationAnalyze(chain=chain,
-                                     train_data=train_data,
-                                     test_data=test_data,
-                                     path_to_save=result_dir).
+        (NodeReplaceModelAnalyze(chain=chain,
+                                 train_data=train_data,
+                                 test_data=test_data,
+                                 path_to_save=result_dir).
          analyze(node_id=node_index))
 
     # then
@@ -256,8 +254,8 @@ def test_model_analyze_analyze():
     chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
-    result = OperationAnalyze(chain=chain, train_data=train_data,
-                              test_data=test_data, path_to_save=result_dir). \
+    result = ModelAnalyze(chain=chain, train_data=train_data,
+                          test_data=test_data, path_to_save=result_dir). \
         analyze(node_id=node_index, sample_size=1)
 
     assert type(result) is list

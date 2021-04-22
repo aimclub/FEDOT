@@ -7,8 +7,8 @@ from sklearn.datasets import load_breast_cancer
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.cache import OperationsCache
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.composer.cache import ModelsCache
+from fedot.core.data.data import InputData, split_train_test
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -22,18 +22,8 @@ def data_setup():
     np.random.shuffle(response)
     response = response[:100]
     predictors = predictors[:100]
-
-    input_data = InputData(idx=np.arange(0, len(predictors)),
-                           features=predictors,
-                           target=response,
-                           task=task,
-                           data_type=DataTypesEnum.table)
-    train_data, test_data = train_test_data_setup(data=input_data)
-    train_data_x = train_data.features
-    test_data_x = test_data.features
-    train_data_y = train_data.target
-    test_data_y = test_data.target
-
+    train_data_x, test_data_x = split_train_test(predictors)
+    train_data_y, test_data_y = split_train_test(response)
     train_data = InputData(features=train_data_x, target=train_data_y,
                            idx=np.arange(0, len(train_data_y)),
                            task=task, data_type=DataTypesEnum.table)
@@ -159,13 +149,13 @@ def chain_fifth():
 def test_cache_actuality_after_model_change(data_setup):
     """The non-affected nodes has actual cache after changing the model"""
 
-    cache = OperationsCache()
+    cache = ModelsCache()
 
     chain = chain_first()
     train, _ = data_setup
     chain.fit(input_data=train)
     cache.save_chain(chain)
-    new_node = SecondaryNode(operation_type='logit')
+    new_node = SecondaryNode(model_type='logit')
     chain.update_node(old_node=chain.root_node.nodes_from[0],
                       new_node=new_node)
 
@@ -182,7 +172,7 @@ def test_cache_actuality_after_model_change(data_setup):
 
 def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     """The non-affected nodes has actual cache after changing the subtree to other pre-fitted subtree"""
-    cache = OperationsCache()
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -204,7 +194,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
 
 def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     """ The non-affected nodes has actual cache after changing the primary node to pre-fitted subtree"""
-    cache = OperationsCache()
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
     other_chain = chain_second()
@@ -226,14 +216,14 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
 
 
 def test_cache_historical_state_using(data_setup):
-    cache = OperationsCache()
+    cache = ModelsCache()
     train, _ = data_setup
     chain = chain_first()
 
     # chain fitted, model goes to cache
     chain.fit(input_data=train)
     cache.save_chain(chain)
-    new_node = SecondaryNode(operation_type='logit')
+    new_node = SecondaryNode(model_type='logit')
     old_node = chain.root_node.nodes_from[0]
 
     # change child node to new one
@@ -257,7 +247,7 @@ def test_cache_historical_state_using(data_setup):
 
 def test_multi_chain_caching_with_cache(data_setup):
     train, _ = data_setup
-    cache = OperationsCache()
+    cache = ModelsCache()
 
     main_chain = chain_second()
     other_chain = chain_first()
@@ -277,7 +267,7 @@ def test_multi_chain_caching_with_cache(data_setup):
     assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
 
     # check the same case with another chains
-    cache = OperationsCache()
+    cache = ModelsCache()
 
     main_chain = chain_fourth()
 

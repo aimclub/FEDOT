@@ -15,23 +15,12 @@ def test_classification_quality_improvement():
 
     baseline_model = Fedot(problem=problem)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
-    expected_baseline_quality = 0.823
+    expected_baseline_quality = 0.827
 
     baseline_model.predict_proba(features=test_data_path)
     baseline_metrics = baseline_model.get_metrics()
 
-    # Define parameters for composing
-    available_operations = ['logit', 'lda', 'qda', 'dt', 'rf', 'knn', 'xgboost', 'pca', 'bernb', 'scaling']
-    composer_params = {'max_depth': 3,
-                       'max_arity': 3,
-                       'pop_size': 20,
-                       'num_of_generations': 20,
-                       'learning_time': 2,
-                       'preset': None,
-                       'available_operations': available_operations,
-                       'with_tuning': True}
-
-    auto_model = Fedot(problem=problem, composer_params=composer_params, seed=42)
+    auto_model = Fedot(problem=problem, seed=42)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

@@ -9,9 +9,9 @@ import joblib
 
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.log import Log, default_log
-from fedot.core.operations.atomized_template import AtomizedModelTemplate
-from fedot.core.operations.operation_template import OperationTemplate
-from fedot.core.repository.operation_types_repository import atomized_model_type
+from fedot.core.models.atomized_template import AtomizedModelTemplate
+from fedot.core.models.model_template import ModelTemplate
+from fedot.core.repository.model_types_repository import atomized_model_type
 
 
 class ChainTemplate:
@@ -24,9 +24,9 @@ class ChainTemplate:
     """
 
     def __init__(self, chain=None, log: Log = None):
-        self.total_chain_operations = Counter()
+        self.total_chain_models = Counter()
         self.depth = chain.depth
-        self.operation_templates = []
+        self.model_templates = []
         self.unique_chain_id = str(uuid4())
 
         if not log:
@@ -42,10 +42,10 @@ class ChainTemplate:
         else:
             self.link_to_empty_chain = chain
 
-    def _extract_chain_structure(self, node: Node, operation_id: int, visited_nodes: List[Node]):
+    def _extract_chain_structure(self, node: Node, model_id: int, visited_nodes: List[Node]):
         """
         Recursively go through the Chain from 'root_node' to PrimaryNode's,
-        creating a OperationTemplate with unique id for each Node. In addition,
+        creating a ModelTemplate with unique id for each Node. In addition,
         checking whether this Node has been visited yet.
         """
 
@@ -61,15 +61,15 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        if node.operation.operation_type == atomized_model_type():
-            operation_template = AtomizedModelTemplate(node, operation_id, nodes_from)
+        if node.model.model_type == atomized_model_type():
+            model_template = AtomizedModelTemplate(node, model_id, nodes_from)
         else:
-            operation_template = OperationTemplate(node, operation_id, nodes_from)
+            model_template = ModelTemplate(node, model_id, nodes_from)
 
-        self.operation_templates.append(operation_template)
-        self.total_chain_operations[operation_template.operation_type] += 1
+        self.model_templates.append(model_template)
+        self.total_chain_models[model_template.model_type] += 1
 
-        return operation_template
+        return model_template
 
     def export_chain(self, path: str):
         """
@@ -92,24 +92,24 @@ class ChainTemplate:
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
             self.log.message(f"The chain saved in the path: {resulted_path}.")
 
-        self._create_fitted_operations(absolute_path)
+        self._create_fitted_models(absolute_path)
 
         return json_data
 
     def convert_to_dict(self) -> dict:
-        json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
+        json_nodes = list(map(lambda model_template: model_template.convert_to_dict(), self.model_templates))
 
         json_object = {
-            "total_chain_operations": self.total_chain_operations,
+            "total_chain_models": self.total_chain_models,
             "depth": self.depth,
             "nodes": json_nodes,
         }
 
         return json_object
 
-    def _create_fitted_operations(self, path):
-        for operation in self.operation_templates:
-            operation.export_operation(path)
+    def _create_fitted_models(self, path):
+        for model in self.model_templates:
+            model.export_model(path)
 
     def _prepare_paths(self, path: str):
         absolute_path = os.path.abspath(path)
@@ -137,7 +137,7 @@ class ChainTemplate:
             json_object_chain = json.load(json_file)
             self.log.message(f"The chain was imported from the path: {path}.")
 
-        self._extract_operations(json_object_chain, path)
+        self._extract_models(json_object_chain, path)
         self.convert_to_chain(self.link_to_empty_chain, path)
         self.depth = self.link_to_empty_chain.depth
 
@@ -152,75 +152,75 @@ class ChainTemplate:
             self.log.error(message)
             raise FileNotFoundError(message)
 
-    def _extract_operations(self, chain_json, path):
-        operation_objects = chain_json['nodes']
+    def _extract_models(self, chain_json, path):
+        model_objects = chain_json['nodes']
 
-        for operation_object in operation_objects:
-            if operation_object['operation_type'] == atomized_model_type():
-                filename = operation_object['atomized_model_json_path'] + '.json'
-                curr_path = os.path.join(os.path.dirname(path), operation_object['atomized_model_json_path'], filename)
-                operation_template = AtomizedModelTemplate(path=curr_path)
+        for model_object in model_objects:
+            if model_object['model_type'] == atomized_model_type():
+                filename = model_object['atomized_model_json_path'] + '.json'
+                curr_path = os.path.join(os.path.dirname(path), model_object['atomized_model_json_path'], filename)
+                model_template = AtomizedModelTemplate(path=curr_path)
             else:
-                operation_template = OperationTemplate()
+                model_template = ModelTemplate()
 
-            operation_template.import_json(operation_object)
-            self.operation_templates.append(operation_template)
-            self.total_chain_operations[operation_template.operation_type] += 1
+            model_template.import_json(model_object)
+            self.model_templates.append(model_template)
+            self.total_chain_models[model_template.model_type] += 1
 
     def convert_to_chain(self, chain, path: str = None):
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
-        root_template = [op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
+        root_template = [model_template for model_template in self.model_templates if model_template.model_id == 0][0]
         root_node = self.roll_chain_structure(root_template, visited_nodes, path)
         chain.nodes.clear()
         chain.add_node(root_node)
 
-    def roll_chain_structure(self, operation_object: ['OperationTemplate',
-                                                      'AtomizedModelTemplate'],
+    def roll_chain_structure(self, model_object: ['ModelTemplate', 'AtomizedModelTemplate'],
                              visited_nodes: dict, path: str = None):
         """
-        The function recursively traverses all disjoint operations
-        and connects the operations in a chain.
+        The function recursively traverses all disjoint models
+        and connects the models in a chain.
 
-        :params operation_object: operationTemplate or AtomizedOperationTemplate
+        :params model_object: ModelTemplate or AtomizedModelTemplate
         :params visited_nodes: array to remember which node was visited
         :params path: path to save
         :return: root_node
         """
-        if operation_object.operation_id in visited_nodes:
-            return visited_nodes[operation_object.operation_id]
+        if model_object.model_id in visited_nodes:
+            return visited_nodes[model_object.model_id]
 
-        if operation_object.operation_type == atomized_model_type():
-            atomized_model = operation_object.next_chain_template
-            if operation_object.nodes_from:
-                node = SecondaryNode(operation_type=atomized_model)
+        if model_object.model_type == atomized_model_type():
+            atomized_model = model_object.next_chain_template
+            if model_object.nodes_from:
+                node = SecondaryNode(model_type=atomized_model)
             else:
-                node = PrimaryNode(operation_type=atomized_model)
+                node = PrimaryNode(model_type=atomized_model)
         else:
-            if operation_object.nodes_from:
-                node = SecondaryNode(operation_object.operation_type)
+            if model_object.nodes_from:
+                node = SecondaryNode(model_object.model_type)
             else:
-                node = PrimaryNode(operation_object.operation_type)
-            node.operation.params = operation_object.params
+                node = PrimaryNode(model_object.model_type)
+            node.model.params = model_object.params
 
-        if hasattr(operation_object, 'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
-            path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
-            if not os.path.isfile(path_to_operation):
-                message = f"Fitted operation on the path: {path_to_operation} does not exist."
+        if hasattr(model_object, 'fitted_model_path') and model_object.fitted_model_path and path is not None:
+            path_to_model = os.path.join(path, model_object.fitted_model_path)
+            if not os.path.isfile(path_to_model):
+                message = f"Fitted model on the path: {path_to_model} does not exist."
                 self.log.error(message)
                 raise FileNotFoundError(message)
 
-            fitted_operation = joblib.load(path_to_operation)
-            operation_object.fitted_operation = fitted_operation
-            node.fitted_operation = fitted_operation
+            fitted_model = joblib.load(path_to_model)
+            model_object.fitted_model = fitted_model
+            node.fitted_model = fitted_model
+            node.fitted_preprocessor = model_object.preprocessor
 
-        nodes_from = [operation_template for operation_template in self.operation_templates
-                      if operation_template.operation_id in operation_object.nodes_from]
+        nodes_from = [model_template for model_template in self.model_templates
+                      if model_template.model_id in model_object.nodes_from]
         node.nodes_from = [self.roll_chain_structure(node_from, visited_nodes, path) for node_from
                            in nodes_from]
 
-        visited_nodes[operation_object.operation_id] = node
+        visited_nodes[model_object.model_id] = node
         return node
 
 
@@ -228,9 +228,9 @@ def _is_nested_path(path):
     return path.find('nested') == -1
 
 
-def extract_subtree_root(root_operation_id: int, chain_template: ChainTemplate):
-    root_node = [operation_template for operation_template in chain_template.operation_templates
-                 if operation_template.operation_id == root_operation_id][0]
+def extract_subtree_root(root_model_id: int, chain_template: ChainTemplate):
+    root_node = [model_template for model_template in chain_template.model_templates
+                 if model_template.model_id == root_model_id][0]
     root_node = chain_template.roll_chain_structure(root_node, {})
 
     return root_node
