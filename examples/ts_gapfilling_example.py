@@ -3,7 +3,7 @@ import numpy as np
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.utilities.synth_dataset_generator import generate_synthetic_data
+from fedot.utilities.synthetic.data import generate_synthetic_data
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 
 
