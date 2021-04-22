@@ -2,13 +2,14 @@ import os
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
+import tensorflow as tf
 
 from examples.image_classification_problem import run_image_classification_problem
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.keras import create_cnn, fit_cnn, predict_cnn, \
-    CustomCNNImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.keras import create_deep_cnn, create_simple_cnn, \
+    fit_cnn, predict_cnn, CustomCNNImplementation, check_input_array
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features
@@ -54,7 +55,13 @@ def get_binary_classification_data():
     return input_data
 
 
-def get_image_classification_data():
+def get_image_classification_data(composite_flag: bool = True):
+    """ Method for loading data with images in .npy format (training_data.npy, training_labels.npy,
+    test_data.npy, test_labels.npy) that are used in tests.This npy files are a truncated version
+    of the MNIST dataset, that contains only 10 first images.
+
+    :param composite_flag: Flag that allows to run tests for complex composite models
+    """
     test_data_path = '../../data/test_data.npy'
     test_labels_path = '../../data/test_labels.npy'
     train_data_path = '../../data/training_data.npy'
@@ -65,7 +72,22 @@ def get_image_classification_data():
     training_path_labels = os.path.join(test_file_path, train_labels_path)
     test_path_features = os.path.join(test_file_path, test_data_path)
     test_path_labels = os.path.join(test_file_path, test_labels_path)
-    return training_path_features, training_path_labels, test_path_features, test_path_labels
+
+    if composite_flag:
+        roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+            train_dataset=(training_path_features,
+                           training_path_labels),
+            test_dataset=(test_path_features,
+                          test_path_labels))
+    else:
+        roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+            train_dataset=(training_path_features,
+                           training_path_labels),
+            test_dataset=(test_path_features,
+                          test_path_labels),
+            composite_flag=composite_flag)
+
+    return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 
 def test_multiclassification_chain_fit_correct():
@@ -141,27 +163,35 @@ def test_output_mode_full_probs():
     assert results_probs.predict.shape == (len(test_data.target),)
 
 
-def test_image_classification():
-    training_path_features, training_path_labels, test_path_features, test_path_labels = get_image_classification_data()
+def test_image_classification_quality():
+    roc_auc_on_valid, _, _ = get_image_classification_data()
+    deviation_composite = roc_auc_on_valid - 0.5
+
+    roc_auc_on_valid, _, _ = get_image_classification_data(composite_flag=False)
+    deviation_simple = roc_auc_on_valid - 0.5
+
+    assert abs(deviation_composite) < 0.25
+    assert abs(deviation_simple) < 0.35
+
+
+def test_cnn_custom_class():
+    cnn_class = CustomCNNImplementation()
+
+    assert type(cnn_class.model) == tf.keras.Sequential
+    assert type(cnn_class) == CustomCNNImplementation
+
+
+def test_cnn_methods():
+    _, dataset_to_train, dataset_to_validate = get_image_classification_data()
     image_shape = (28, 28, 1)
     num_classes = 7
     epochs = 10
     batch_size = 128
 
-    roc_auc_on_valid_composite, _, _ = run_image_classification_problem(train_dataset=(training_path_features,
-                                                                                       training_path_labels),
-                                                                        test_dataset=(test_path_features,
-                                                                                      test_path_labels))
+    cnn_model = create_deep_cnn(input_shape=image_shape,
+                                num_classes=num_classes)
 
-    roc_auc_on_valid_simple, dataset_to_train, dataset_to_validate = run_image_classification_problem(
-        train_dataset=(training_path_features,
-                       training_path_labels),
-        test_dataset=(test_path_features,
-                      test_path_labels),
-        composite_flag=False)
-
-    cnn_model = create_cnn(input_shape=image_shape,
-                           num_classes=num_classes)
+    transformed_x_train, transform_flag = check_input_array(x_train=dataset_to_train.features)
 
     model = fit_cnn(train_data=dataset_to_train,
                     model=cnn_model,
@@ -170,16 +200,10 @@ def test_image_classification():
 
     prediction = predict_cnn(trained_model=model,
                              predict_data=dataset_to_validate)
-    cnn_class = CustomCNNImplementation()
 
-    deviation_composite = roc_auc_on_valid_composite - 0.5
-    deviation_simple = roc_auc_on_valid_simple - 0.5
-
-    assert cnn_model.name or cnn_class.model == 'sequential'
-    assert cnn_class.params
+    assert type(cnn_model) == tf.keras.Sequential
+    assert transform_flag == True
     assert cnn_model.input_shape[1:] == image_shape
     assert cnn_model.output_shape[1] == num_classes
-    assert model.history.params['epochs'] or cnn_class.params['epochs'] == epochs
+    assert model.history.params['epochs'] == epochs
     assert type(prediction) == np.ndarray
-    assert abs(deviation_composite) < 0.25
-    assert abs(deviation_simple) < 0.35

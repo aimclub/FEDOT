@@ -131,11 +131,8 @@ def test_string_features_from_csv():
 
 
 def test_data_from_image():
-    training_path_features, training_path_labels, _, _ = get_image_classification_data()
-    dataset_to_train = InputData.from_image(images=training_path_features,
-                                            labels=training_path_labels,
-                                            task=Task(TaskTypesEnum.classification))
+    _, _, dataset_to_validate = get_image_classification_data()
 
-    assert dataset_to_train.data_type == DataTypesEnum.image
-    assert type(dataset_to_train.features) == np.ndarray
-    assert type(dataset_to_train.target) == np.ndarray
+    assert dataset_to_validate.data_type == DataTypesEnum.image
+    assert type(dataset_to_validate.features) == np.ndarray
+    assert type(dataset_to_validate.target) == np.ndarray
