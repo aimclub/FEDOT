@@ -28,7 +28,6 @@ class ChainTemplate:
         self.depth = chain.depth
         self.operation_templates = []
         self.unique_chain_id = str(uuid4())
-        self.computation_time = chain.computation_time
 
         if not log:
             self.log = default_log(__name__)
@@ -205,8 +204,7 @@ class ChainTemplate:
                 node = PrimaryNode(operation_object.operation_type)
             node.operation.params = operation_object.params
 
-        if hasattr(operation_object,
-                   'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
+        if hasattr(operation_object, 'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
             path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
             if not os.path.isfile(path_to_operation):
                 message = f"Fitted operation on the path: {path_to_operation} does not exist."

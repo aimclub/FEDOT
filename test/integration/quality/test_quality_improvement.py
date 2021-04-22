@@ -21,16 +21,19 @@ def test_classification_quality_improvement():
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
+    available_operations = ['logit', 'lda', 'qda', 'dt', 'rf', 'knn', 'xgboost', 'pca', 'bernb', 'scaling']
     composer_params = {'max_depth': 3,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'learning_time': 10,
+                       'learning_time': 2,
+                       'preset': None,
+                       'available_operations': available_operations,
                        'with_tuning': True}
 
-    auto_model = Fedot(problem=problem, composer_params=composer_params, seed=42, verbose_level=4)
+    auto_model = Fedot(problem=problem, composer_params=composer_params, seed=42)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
-    print(auto_metrics['roc_auc'])
+
     assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= expected_baseline_quality

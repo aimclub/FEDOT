@@ -1,19 +1,20 @@
 import datetime
+import numpy as np
 import os
-from functools import partial
+import random
 
 from deap import tools
+from functools import partial
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import sample_split_ration_for_tasks, ChainGenerationParams
+from fedot.core.composer.optimisers.gp_comp.gp_operators import nodes_from_height, evaluate_individuals, \
+    filter_duplicates
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.gp_composer.gp_composer import ChainGenerationParams, GPComposerBuilder, \
-    GPComposerRequirements, sample_split_ration_for_tasks
-from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates, \
-    nodes_from_height
-from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.composer.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
+from fedot.core.composer.optimisers.gp_comp.operators.mutation import mutation, MutationTypesEnum
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import default_log
@@ -21,7 +22,9 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root
-from test.unit.chains.test_node_cache import chain_fifth, chain_first, chain_fourth, chain_second, chain_third
+from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+
+from test.unit.chains.test_node_cache import chain_first, chain_second, chain_third, chain_fourth, chain_fifth
 
 
 def chain_example():

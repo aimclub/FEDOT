@@ -30,7 +30,7 @@ class ComposerRequirements:
     max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
-    allow_single_operations: bool = False
+    allow_single_operations: bool = True
 
     def __post_init__(self):
         if self.max_depth < 0:

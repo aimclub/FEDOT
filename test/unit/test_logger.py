@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import train_test_data_setup, InputData
 from fedot.core.log import Log, LogManager, default_log
 from fedot.core.operations.model import Model
 from test.unit.utilities.test_chain_import_export import create_four_depth_chain
@@ -31,7 +31,7 @@ def release_log(logger, log_file):
 
 
 def test_default_logger_setup_correctly():
-    expected_logger_info_level = 10
+    expected_logger_info_level = 20
     test_default_log = default_log('default_test_logger')
 
     assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level

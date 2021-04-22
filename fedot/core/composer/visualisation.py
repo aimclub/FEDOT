@@ -1,22 +1,23 @@
 import itertools
 import os
-from copy import deepcopy
-from glob import glob
-from math import ceil, log2
-from os import remove
-from time import time
-from typing import (Any, List, Optional, Tuple)
-
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from PIL import Image
+import seaborn as sns
+
+from copy import deepcopy
 from deap import tools
 from imageio import get_writer, imread
+from glob import glob
+from math import ceil, log2
+from os import remove
+from time import time
+from typing import (Any, Optional, Tuple, List)
 
-from fedot.core.chains.chain_convert import chain_as_nx_graph, chain_template_as_nx_graph
+from fedot.core.chains.chain_convert import chain_as_nx_graph
+from fedot.core.chains.chain_convert import chain_template_as_nx_graph
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 
@@ -117,10 +118,12 @@ class ChainVisualiser:
         df = pd.DataFrame(
             {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
 
+        ind = 0
         fig = plt.figure(figsize=(10, 10))
         plt.rcParams['axes.titlesize'] = 20
         plt.rcParams['axes.labelsize'] = 20
         for ts in ts_set:
+            ind += 1
             plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
             plt.ylabel('Best ROC AUC', fontsize=18)
@@ -239,7 +242,7 @@ class ChainVisualiser:
         plt.clf()
         plt.close('all')
 
-    def visualise_pareto(self, archive: Any, objectives_numbers: Tuple[int, int] = (0, 1),
+    def visualise_pareto(self, archive: Any, objectives_numbers: Tuple[int] = (0, 1),
                          objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'),
                          file_name: str = 'result_pareto.png', show: bool = False, save: bool = True,
                          folder: str = f'../../tmp/pareto',
@@ -273,11 +276,9 @@ class ChainVisualiser:
             ax.set_title('Pareto frontier', fontsize=15)
         plt.xlabel(objectives_names[0], fontsize=15)
         plt.ylabel(objectives_names[1], fontsize=15)
+        plt.xlim(minmax_x[0], minmax_x[1])
+        plt.ylim(minmax_y[0], minmax_y[1])
 
-        if minmax_x is not None:
-            plt.xlim(minmax_x[0], minmax_x[1])
-        if minmax_y is not None:
-            plt.ylim(minmax_y[0], minmax_y[1])
         fig.set_figwidth(8)
         fig.set_figheight(8)
         if save:

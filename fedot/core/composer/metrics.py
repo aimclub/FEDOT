@@ -3,9 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
-                             mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
-                             silhouette_score)
+from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error, mean_squared_log_error,
+                             precision_score, r2_score, roc_auc_score, silhouette_score, mean_absolute_error)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -97,15 +96,6 @@ class MSLE(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_log_error(y_true=reference.target,
                                       y_pred=predicted.predict)
-
-
-class MAPE(QualityMetric):
-    default_value = sys.maxsize
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_absolute_percentage_error(y_true=reference.target,
-                                              y_pred=predicted.predict)
 
 
 class F1(QualityMetric):

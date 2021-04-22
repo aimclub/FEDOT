@@ -2,18 +2,15 @@ import os
 from datetime import timedelta
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import mean_squared_error
 
+from examples.fedot_api_example import run_classification_example, run_ts_forecasting_example
 from examples.chain_and_history_visualisation import run_chain_ang_history_visualisation
 from examples.chain_log import run_log_example
 from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
-from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
-                                        run_ts_forecasting_example)
 from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
-from examples.ts_multistep_example import run_multistep_example
 from fedot.core.utils import project_root
 
 
@@ -73,25 +70,9 @@ def test_chain_tuning_example():
                                          tuner_iter_num=2)
 
 
-def test_multistep_example():
-    project_root_path = str(project_root())
-    path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
-
-    df = pd.read_csv(path)
-    time_series = np.array(df['Level'])
-
-    run_multistep_example(time_series,
-                          len_forecast=20,
-                          future_steps=40,
-                          vis=False)
-
-
 def test_api_example():
     prediction = run_classification_example()
     assert prediction is not None
 
     forecast = run_ts_forecasting_example(with_plot=False, with_chain_vis=False)
     assert forecast is not None
-
-    pareto = run_classification_multiobj_example()
-    assert pareto is not None

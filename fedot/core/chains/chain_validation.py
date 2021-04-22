@@ -119,6 +119,11 @@ def has_no_conflicts_with_data_flow(chain: Chain):
                 # And if it is forbidden to combine them
                 if operation_names[0] in forbidden_parents_combination:
                     raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations')
+            else:
+                # Common data operations from parent nodes and forbidden repository
+                common = set(operation_names) & forbidden_parents_combination
+                if len(common) > 1:
+                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
     return True
 
 

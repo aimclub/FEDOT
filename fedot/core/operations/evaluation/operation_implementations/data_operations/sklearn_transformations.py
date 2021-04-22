@@ -1,12 +1,11 @@
 from typing import Optional
 
 import numpy as np
-from sklearn.decomposition import PCA, KernelPCA
 from sklearn.impute import SimpleImputer
+from sklearn.decomposition import PCA, KernelPCA
 from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
     StandardScaler, MinMaxScaler
-
-from fedot.core.operations.evaluation.operation_implementations. \
+from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation, EncodedInvariantOperation
 
 
@@ -306,7 +305,7 @@ class ImputationImplementation(DataOperationImplementation):
         self.imputer.fit(input_data.features)
         return self.imputer
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """
         Method for transformation tabular data using SimpleImputer
 
