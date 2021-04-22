@@ -145,7 +145,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         learning_time: float = 5,
                         with_tuning=False,
                         tuner_metric=None,
-                        cv_folds: Optional[int] = None
+                        cv_folds: Optional[int] = None,
+                        initial_chain=None
                         ):
     """ Function for composing FEDOT pipeline """
 
@@ -187,6 +188,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                        composer_requirements=composer_requirements,
                                        optimizer_parameters=optimizer_parameters,
                                        data=train_data,
+                                       initial_chain=initial_chain,
                                        logger=logger)
     gp_composer = builder.build()
 
@@ -261,6 +263,7 @@ def _get_gp_composer_builder(task: Task, metric_function,
                              composer_requirements: GPComposerRequirements,
                              optimizer_parameters: GPGraphOptimiserParameters,
                              data: Union[InputData, MultiModalData],
+                             initial_chain: Pipeline,
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary
     init_pipeline in it """
@@ -270,7 +273,7 @@ def _get_gp_composer_builder(task: Task, metric_function,
         with_optimiser_parameters(optimizer_parameters). \
         with_metrics(metric_function).with_logger(logger)
 
-    init_pipeline = _obtain_initial_assumption(task, data)
+    init_pipeline = _obtain_initial_assumption(task, data) if not initial_chain else initial_chain
 
     if init_pipeline is not None:
         builder = builder.with_initial_pipeline(init_pipeline)

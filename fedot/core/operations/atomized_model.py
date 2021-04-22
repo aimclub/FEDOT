@@ -24,13 +24,13 @@ class AtomizedModel(Operation):
             use_cache: bool = True):
 
         predicted_train = self.pipeline.fit(input_data=data)
-        fitted_atomized_operation_head = self.pipeline.root_node
+        fitted_atomized_operation = self.pipeline
 
-        return fitted_atomized_operation_head, predicted_train
+        return fitted_atomized_operation, predicted_train
 
     def predict(self, fitted_operation, data: InputData,
                 is_fit_pipeline_stage: bool = False, output_mode: str = 'default'):
-        prediction = self.pipeline.predict(input_data=data, output_mode=output_mode)
+        prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
 
         return prediction
 

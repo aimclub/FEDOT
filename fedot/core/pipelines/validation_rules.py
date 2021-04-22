@@ -6,6 +6,7 @@ from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task
+from fedot.core.operations.atomized_model import AtomizedModel
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -31,7 +32,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
     """ Check if the operation in root node is model or not """
     root_node = pipeline.root_node
 
-    if type(root_node.operation) is not Model:
+    if type(root_node.operation) is not Model and type(root_node.operation) is not AtomizedModel:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
     return True
