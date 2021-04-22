@@ -10,3 +10,5 @@ class DataTypesEnum(Enum):
 
     # Table, where cells contains text
     text = 'text'
+
+    image = 'image'

@@ -5,8 +5,9 @@ from typing import Optional
 from fedot.core.operations.evaluation.operation_implementations.models.\
     discriminant_analysis import LDAImplementation, QDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVCImplementation
-
-from fedot.core.operations.evaluation.operation_implementations.\
+from fedot.core.operations.evaluation.operation_implementations.models. \
+    keras import CustomCNNImplementation
+from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearClassFSImplementation, NonLinearClassFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnClassImplementation
 
@@ -52,6 +53,7 @@ class CustomClassificationStrategy(EvaluationStrategy):
         'lda': LDAImplementation,
         'qda': QDAImplementation,
         'svc': CustomSVCImplementation,
+        'cnn': CustomCNNImplementation,
         'knn': CustomKnnClassImplementation
     }
 
