@@ -207,3 +207,4 @@ def test_cnn_methods():
     assert cnn_model.output_shape[1] == num_classes
     assert model.history.params['epochs'] == epochs
     assert type(prediction) == np.ndarray
+test_cnn_methods()

@@ -61,7 +61,7 @@ def create_simple_cnn(input_shape: tuple,
 
 def fit_cnn(train_data: InputData,
             model,
-            epochs: int = 1,
+            epochs: int = 10,
             batch_size: int = 128,
             optimizer_params: dict = None,
             logger: Log = None):
@@ -95,7 +95,6 @@ def fit_cnn(train_data: InputData,
 
     if epochs is None:
         logger.warn('The number of training epochs was not set. The selected number of epochs is 10.')
-        epochs = 10
 
     model.fit(transformed_x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
 
