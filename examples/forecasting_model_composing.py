@@ -96,7 +96,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
     dataset_to_validate = InputData.from_csv(
         full_path_test, task=task_to_solve, data_type=DataTypesEnum.ts)
 
-    metric_function = RegressionMetricsEnum.RMSE
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
     time_limit_min = 10
     available_model_types = ['linear', 'ridge', 'lasso', 'rfr', 'dtreg', 'knnreg', 'svr']
@@ -173,7 +173,6 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path, forecast_l
 
     builder = GPComposerBuilder(task=task_to_solve).with_requirements(composer_requirements).with_metrics(
         metric_function).with_initial_chain(multiscale_chain)
-
     composer = builder.build()
 
     chain = composer.compose_chain(data=dataset_to_train,

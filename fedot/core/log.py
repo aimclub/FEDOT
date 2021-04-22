@@ -82,7 +82,7 @@ class LogManager(metaclass=SingletonMeta):
 
 def default_log(logger_name: str,
                 log_file: Optional[str] = None,
-                verbose_level: int = 4) -> 'Log':
+                verbose_level: int = 1) -> 'Log':
     """
     :param logger_name: string name for logger
     :param log_file: path to the file where log messages will be recorded to

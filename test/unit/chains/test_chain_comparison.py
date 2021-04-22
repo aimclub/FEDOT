@@ -5,7 +5,7 @@ import pytest
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.optimisers.gp_comp.gp_operators import equivalent_subtree
+from fedot.core.composer.optimisers.gp_operators import equivalent_subtree
 
 
 def chain_first():

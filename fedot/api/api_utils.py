@@ -10,8 +10,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.model_types_repository import (
     ModelTypesRepository
 )
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
-    ClusteringMetricsEnum, RegressionMetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum, \
+    MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 

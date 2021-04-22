@@ -3,13 +3,10 @@ from random import choice, random
 from typing import Any, List
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import \
+from fedot.core.composer.optimisers.gp_operators import \
     (equivalent_subtree, node_depth,
      nodes_from_height, replace_subtrees)
-from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
-
-MAX_NUM_OF_ATTEMPTS = 10
 
 
 class CrossoverTypesEnum(Enum):
@@ -18,32 +15,28 @@ class CrossoverTypesEnum(Enum):
     none = 'none'
 
 
-def will_crossover_be_applied(chain_first, chain_second, crossover_prob, type) -> bool:
-    return not (chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none)
-
-
-def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int, log: Log,
+def crossover(types: List[CrossoverTypesEnum], chain_first: Any, chain_second: Any, max_depth: int,
               crossover_prob: float = 0.8) -> Any:
     type = choice(types)
-    try:
-        if will_crossover_be_applied(chain_first, chain_second, crossover_prob, type):
-            if type in crossover_by_type.keys():
-                for i in range(MAX_NUM_OF_ATTEMPTS):
-                    new_chains = crossover_by_type[type](deepcopy(chain_first), deepcopy(chain_second), max_depth)
-                    are_correct = all([constraint_function(new_chain) for new_chain in new_chains])
-                    if are_correct:
-                        return new_chains
-            else:
-                raise ValueError(f'Required crossover type not found: {type}')
-
-            log.debug('Number of crossover attempts exceeded. '
-                      'Please check composer requirements for correctness.')
-    except Exception as ex:
-        log.error(f'Crossover ex: {ex}')
-
     chain_first_copy = deepcopy(chain_first)
     chain_second_copy = deepcopy(chain_second)
-    return chain_first_copy, chain_second_copy
+    try:
+        if chain_first is chain_second or random() > crossover_prob or type == CrossoverTypesEnum.none:
+            return [chain_first_copy, chain_second_copy]
+        if type in crossover_by_type.keys():
+            is_correct = False
+            while not is_correct:
+                is_correct_chains = []
+                new_chains = crossover_by_type[type](chain_first_copy, chain_second_copy, max_depth)
+                for new_chain in new_chains:
+                    is_correct_chains.append(constraint_function(new_chain))
+                is_correct = all(is_correct_chains)
+            return new_chains
+        else:
+            raise ValueError(f'Required crossover not found: {type}')
+    except Exception as ex:
+        print(f'Crossover ex: {ex}')
+        return chain_first_copy, chain_second_copy
 
 
 def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> Any:

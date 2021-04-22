@@ -5,11 +5,8 @@ from typing import Any
 
 from fedot.core.chains.chain import Chain, List
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import node_depth, node_height, nodes_from_height, random_chain
-from fedot.core.log import Log
+from fedot.core.composer.optimisers.gp_operators import node_depth, node_height, nodes_from_height, random_chain
 from fedot.core.utils import ComparableEnum as Enum
-
-MAX_NUM_OF_ATTEMPTS = 10
 
 
 class MutationTypesEnum(Enum):
@@ -36,30 +33,33 @@ def get_mutation_prob(mut_id, root_node):
     return mutation_prob
 
 
-def will_mutation_be_applied(mutation_prob, type) -> bool:
-    return not (random() > mutation_prob or type == MutationTypesEnum.none)
-
-
-def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements, log: Log,
+def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements,
              max_depth: int = None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
+    if mutation_prob and random() > mutation_prob:
+        return deepcopy(chain)
+
     type = choice(types)
-    if will_mutation_be_applied(mutation_prob, type):
-        if type in mutation_by_type:
-            for i in range(MAX_NUM_OF_ATTEMPTS):
+    if type == MutationTypesEnum.none:
+        new_chain = deepcopy(chain)
+    elif type in mutation_by_type:
+        is_correct_chain = False
+        while not is_correct_chain:
+            if type in (MutationTypesEnum.growth, MutationTypesEnum.local_growth):
                 new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
                                                    chain_generation_params=chain_generation_params, max_depth=max_depth)
-                is_correct_chain = constraint_function(new_chain)
-                if is_correct_chain:
-                    return new_chain
-        elif type != MutationTypesEnum.none:
-            raise ValueError(f'Required mutation type is not found: {type}')
-        log.debug('Number of mutation attempts exceeded. Please check composer requirements for correctness.')
-    return deepcopy(chain)
+            else:
+                new_chain = mutation_by_type[type](chain=deepcopy(chain), requirements=requirements,
+                                                   chain_generation_params=chain_generation_params)
+            is_correct_chain = constraint_function(new_chain)
+    else:
+        raise ValueError(f'Required mutation type is not found: {type}')
+
+    return new_chain
 
 
-def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:
+def simple_mutation(chain: Any, requirements, chain_generation_params) -> Any:
     """
     This type of mutation is passed over all nodes of the tree started from the root node and changes
     nodes’ models with probability - 'node mutation probability' which is inicialised inside the function
@@ -115,7 +115,7 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
     return chain
 
 
-def reduce_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:
+def reduce_mutation(chain: Any, requirements, chain_generation_params) -> Any:
     """
     Selects a random node in a tree, then removes its subtree. If the current arity of the node's
     parent is more than the specified minimal arity, then the selected node is also removed.

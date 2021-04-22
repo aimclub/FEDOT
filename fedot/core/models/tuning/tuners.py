@@ -173,7 +173,7 @@ class SklearnCustomRandomTuner(Tuner):
 
     def tune(self) -> Union[Tuple[dict, object], Tuple[None, None]]:
         try:
-            with TunerTimer(log=self.log, max_lead_time=self.time_limit) as timer:
+            with TunerTimer() as timer:
                 self.log.info('Model tuning started')
                 best_model = self.trained_model
                 best_score, best_params = self.default_score, self.default_params
@@ -187,7 +187,7 @@ class SklearnCustomRandomTuner(Tuner):
                         best_model = self.trained_model
                         best_score = score
 
-                    if timer.is_time_limit_reached():
+                    if timer.is_time_limit_reached(self.time_limit):
                         break
                 self.log.info('Model tuning finished')
                 return best_params, best_model
