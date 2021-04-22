@@ -73,19 +73,12 @@ def get_image_classification_data(composite_flag: bool = True):
     test_path_features = os.path.join(test_file_path, test_data_path)
     test_path_labels = os.path.join(test_file_path, test_labels_path)
 
-    if composite_flag:
-        roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
-            train_dataset=(training_path_features,
-                           training_path_labels),
-            test_dataset=(test_path_features,
-                          test_path_labels))
-    else:
-        roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
-            train_dataset=(training_path_features,
-                           training_path_labels),
-            test_dataset=(test_path_features,
-                          test_path_labels),
-            composite_flag=composite_flag)
+    roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+        train_dataset=(training_path_features,
+                       training_path_labels),
+        test_dataset=(test_path_features,
+                      test_path_labels),
+        composite_flag=composite_flag)
 
     return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
