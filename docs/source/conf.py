@@ -12,17 +12,18 @@
 #
 import os
 import sys
-
 sys.path.insert(0, os.path.abspath('../..'))
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'FEDOT'
-copyright = '2020-2021, NSS Lab'
-author = 'NSS Lab'
+copyright = '2020, NSS-Team'
+author = 'NSS-Team'
 
 # The full version, including alpha/beta/rc tags
-release = '0.2.1'
+release = '0.0.1'
+
 
 # -- General configuration ---------------------------------------------------
 
