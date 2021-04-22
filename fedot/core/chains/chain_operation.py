@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 
@@ -112,3 +112,17 @@ class GraphOperations:
     def node_children(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self._chain.nodes if isinstance(other_node, SecondaryNode) and
                 node in other_node.nodes_from]
+
+    def nodes_from_height(self, selected_height: int) -> List[Any]:
+        def get_nodes(node: Any, current_height):
+            nodes = []
+            if current_height == selected_height:
+                nodes.append(node)
+            else:
+                if node.nodes_from:
+                    for child in node.nodes_from:
+                        nodes += get_nodes(child, current_height + 1)
+            return nodes
+
+        nodes = get_nodes(self._chain.root_node, current_height=0)
+        return nodes

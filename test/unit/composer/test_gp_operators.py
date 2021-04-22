@@ -9,8 +9,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import ChainGenerationParams, GPComposerBuilder, \
     GPComposerRequirements, sample_split_ration_for_tasks
-from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates, \
-    nodes_from_height
+from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -50,7 +49,7 @@ def chain_example():
 
 def test_nodes_from_height():
     chain = chain_example()
-    found_nodes = nodes_from_height(chain, 1)
+    found_nodes = chain.operations.nodes_from_height(1)
     true_nodes = [node for node in chain.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])

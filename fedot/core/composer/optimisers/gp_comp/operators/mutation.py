@@ -7,7 +7,7 @@ from fedot.core.chains.chain import Chain, List
 from fedot.core.chains.chain_operation import GraphOperations
 from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.optimisers.gp_comp.gp_operators import nodes_from_height, random_chain
+from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -108,7 +108,7 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
     """
 
     random_layer_in_chain = randint(0, chain.depth - 1)
-    node_from_chain = choice(nodes_from_height(chain, random_layer_in_chain))
+    node_from_chain = choice(chain.operations.nodes_from_height(random_layer_in_chain))
     if local_growth:
         is_primary_node_selected = (not node_from_chain.nodes_from) or (
                 node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))

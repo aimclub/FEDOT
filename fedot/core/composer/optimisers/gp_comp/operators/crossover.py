@@ -4,7 +4,7 @@ from typing import Any, List
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import \
-    (equivalent_subtree, nodes_from_height, replace_subtrees)
+    (equivalent_subtree, replace_subtrees)
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -55,8 +55,8 @@ def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> An
     min_second_layer = 1 if random_layer_in_chain_first == 0 else 0
     random_layer_in_chain_second = choice(range(min_second_layer, chain_second.depth))
 
-    node_from_chain_first = choice(nodes_from_height(chain_first, random_layer_in_chain_first))
-    node_from_chain_second = choice(nodes_from_height(chain_second, random_layer_in_chain_second))
+    node_from_chain_first = choice(chain_first.operations.nodes_from_height(random_layer_in_chain_first))
+    node_from_chain_second = choice(chain_second.operations.nodes_from_height(random_layer_in_chain_second))
 
     replace_subtrees(chain_first, chain_second, node_from_chain_first, node_from_chain_second,
                      random_layer_in_chain_first, random_layer_in_chain_second, max_depth)

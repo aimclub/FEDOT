@@ -215,19 +215,6 @@ class Chain:
         """
         self.operations.add_node(new_node)
 
-    # def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
-    #     old_node_offspring = self.node_children(old_node)
-    #     for old_node_child in old_node_offspring:
-    #         old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
-
-    # def replace_node_with_parents(self, old_node: Node, new_node: Node):
-    #     """Exchange subtrees with old and new nodes as roots of subtrees"""
-    #     new_node = deepcopy(new_node)
-    #     self._actualise_old_node_childs(old_node, new_node)
-    #     self.operations.delete_subtree(old_node)
-    #     self.add_node(new_node)
-    #     self._sort_nodes()
-
     def update_node(self, old_node: Node, new_node: Node, include_parents=False):
         """
         Replace old_node with new one.
@@ -242,13 +229,6 @@ class Chain:
             self.operations.update_subtree(old_node, new_node)
         else:
             self.operations.update_node(old_node, new_node)
-
-    # def delete_subtree(self, subtree_root_node: Node):
-    #     """Delete node with all the parents it has"""
-    #     for node_child in self.node_children(subtree_root_node):
-    #         node_child.nodes_from.remove(subtree_root_node)
-    #     for subtree_node in subtree_root_node.ordered_subnodes_hierarchy():
-    #         self.nodes.remove(subtree_node)
 
     def delete_node(self, node: Node, include_parents=False):
         """
@@ -274,9 +254,6 @@ class Chain:
         for node in self.nodes:
             node.fitted_operation = None
 
-    # def _is_node_has_child(self, node) -> bool:
-    #     return any(self.node_childs(node))
-
     def fit_from_cache(self, cache):
         for node in self.nodes:
             cached_state = cache.get(node)
@@ -284,11 +261,6 @@ class Chain:
                 node.fitted_operation = cached_state.operation
             else:
                 node.fitted_operation = None
-
-    # def _sort_nodes(self):
-    #     """layer by layer sorting"""
-    #     nodes = self.root_node.ordered_subnodes_hierarchy()
-    #     self.nodes = nodes
 
     def save(self, path: str):
         """
