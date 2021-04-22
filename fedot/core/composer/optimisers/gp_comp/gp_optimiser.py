@@ -116,7 +116,7 @@ class GPChainOptimiser:
         self.chain_generation_function = partial(random_chain, chain_generation_params=self.chain_generation_params,
                                                  requirements=self.requirements, max_depth=generation_depth)
 
-        necessary_attrs = ['add_node', 'root_node', 'replace_node_with_parents', 'update_node', 'node_childs']
+        necessary_attrs = ['add_node', 'root_node', 'update_node']
         if not all([hasattr(self.chain_class, attr) for attr in necessary_attrs]):
             ex = f'Object chain_class has no required attributes for gp_optimizer'
             self.log.error(ex)

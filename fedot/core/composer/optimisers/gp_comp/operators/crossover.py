@@ -4,8 +4,7 @@ from typing import Any, List
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import \
-    (equivalent_subtree, node_depth,
-     nodes_from_height, replace_subtrees)
+    (equivalent_subtree, nodes_from_height, replace_subtrees)
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -72,8 +71,12 @@ def one_point_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> 
     if pairs_of_nodes:
         node_from_chain_first, node_from_chain_second = choice(pairs_of_nodes)
 
-        layer_in_chain_first = node_depth(chain_first.root_node) - node_depth(node_from_chain_first)
-        layer_in_chain_second = node_depth(chain_second.root_node) - node_depth(node_from_chain_second)
+        # layer_in_chain_first = node_depth(chain_first.root_node) - node_depth(node_from_chain_first)
+        layer_in_chain_first = chain_first.operations.distance_to_leaf_level(chain_first.root_node) - \
+                               chain_first.operations.distance_to_leaf_level(node_from_chain_first)
+        # layer_in_chain_second = node_depth(chain_second.root_node) - node_depth(node_from_chain_second)
+        layer_in_chain_second = chain_second.operations.distance_to_leaf_level(chain_second.root_node) - \
+                                chain_second.operations.distance_to_leaf_level(node_from_chain_second)
 
         replace_subtrees(chain_first, chain_second, node_from_chain_first, node_from_chain_second,
                          layer_in_chain_first, layer_in_chain_second, max_depth)

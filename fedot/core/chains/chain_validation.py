@@ -21,6 +21,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_no_cycle(chain)
     has_no_self_cycled_nodes(chain)
     has_no_isolated_nodes(chain)
+    has_no_multiple_children(chain)
     has_primary_nodes(chain)
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
@@ -184,6 +185,17 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
     return True
 
 
+def has_no_multiple_children(chain: Chain):
+    for node in chain.nodes:
+        node_children = [child_node for child_node in chain.nodes
+                         if isinstance(child_node, SecondaryNode) and
+                         node in child_node.nodes_from]
+        if len(node_children) > 1:
+            raise ValueError(f'{ERROR_PREFIX} Chain has nodes with multiple children')
+
+    return True
+
+
 def only_ts_specific_operations_are_primary(chain: Chain):
     """ Only time series specific operations could be placed in primary nodes """
     ts_data_operations = get_ts_operations(mode='data_operations',
@@ -193,7 +205,8 @@ def only_ts_specific_operations_are_primary(chain: Chain):
     for node in chain.nodes:
         if type(node) == PrimaryNode:
             if node.operation.operation_type not in ts_data_operations:
-                raise ValueError(f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+                raise ValueError(
+                    f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
 
     return True
 
