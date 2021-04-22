@@ -43,14 +43,6 @@ class ComposingHistory:
         for chain in individuals:
             new_individuals.append(self._convert_chain_to_template(chain))
             chains_comp_time.append(chain.computation_time)
-
-            # processed_operators = chain.parent_operators
-
-            # for operator in processed_operators:
-            #    for chain_num, chain in enumerate(operator.parent_chains):
-            #        existing_chain_id = [c.uid if c.export_chain() == chain.export_chain() for c in self.chains[-1]][0]
-            #        operator.parent_chains[chain_num] = existing_chain_id
-
             parent_operators.append(chain.parent_operators)
         self.chains.append(new_individuals)
         self.chains_comp_time_history.append(chains_comp_time)
