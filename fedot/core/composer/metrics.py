@@ -3,8 +3,8 @@ from abc import abstractmethod
 from copy import copy
 
 import numpy as np
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error, mean_squared_log_error,
-                             precision_score, r2_score, roc_auc_score, silhouette_score)
+from sklearn.metrics import f1_score, mean_squared_error, roc_auc_score, \
+    silhouette_score
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -19,30 +19,23 @@ def from_maximised_metric(metric_func):
 
 
 class Metric:
-    output_mode = 'default'
-    default_value = 0
-
     @classmethod
     @abstractmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
-        raise NotImplementedError()
-
-    @staticmethod
-    @abstractmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
         raise NotImplementedError()
 
 
 class QualityMetric:
     max_penalty_part = 0.01
-    output_mode = 'default'
-    default_value = 0
+    default_value = None
 
     @classmethod
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         metric = cls.default_value
+        if not metric:
+            raise ValueError('Default value for metric not found')
         try:
-            results = chain.predict(reference_data, output_mode=cls.output_mode)
+            results = chain.predict(reference_data)
 
             if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
                 new_reference_data = copy(reference_data)
@@ -58,7 +51,7 @@ class QualityMetric:
     @classmethod
     def get_value_with_penalty(cls, chain: Chain, reference_data: InputData) -> float:
         quality_metric = cls.get_value(chain, reference_data)
-        structural_metric = StructuralComplexity.get_value(chain)
+        structural_metric = StructuralComplexityMetric.get_value(chain)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
         metric_with_penalty = (quality_metric +
@@ -71,7 +64,7 @@ class QualityMetric:
         raise NotImplementedError()
 
 
-class RMSE(QualityMetric):
+class RmseMetric(QualityMetric):
     default_value = sys.maxsize
 
     @staticmethod
@@ -80,41 +73,28 @@ class RMSE(QualityMetric):
                                   y_pred=predicted.predict, squared=False)
 
 
-class MSE(QualityMetric):
-    default_value = sys.maxsize
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=True)
-
-
-class MSLE(QualityMetric):
-    default_value = sys.maxsize
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_log_error(y_true=reference.target,
-                                      y_pred=predicted.predict)
-
-
-class F1(QualityMetric):
+class F1Metric(QualityMetric):
     default_value = 0
-    output_mode = 'labels'
 
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
+        if len(predicted.predict.shape) > 1 and predicted.predict.shape[1] > 1:
+            # for multicalss probabilities
+            predicted_labels = [list(x).index(max(x)) for x in predicted.predict]
+        else:
+            # for single-class probabilities
+            bound = np.mean(predicted.predict)
+            predicted_labels = [1 if x >= bound else 0 for x in predicted.predict]
         n_classes = reference.num_classes
         if n_classes > 2:
             additional_params = {'average': 'macro'}
         else:
             additional_params = {}
-        return f1_score(y_true=reference.target, y_pred=predicted.predict,
-                        **additional_params)
+        return f1_score(y_true=reference.target, y_pred=predicted_labels, **additional_params)
 
 
-class MAE(QualityMetric):
+class MaeMetric(QualityMetric):
     default_value = sys.maxsize
 
     @staticmethod
@@ -122,15 +102,7 @@ class MAE(QualityMetric):
         return mean_squared_error(y_true=reference.target, y_pred=predicted.predict)
 
 
-class R2(QualityMetric):
-    default_value = 0
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return r2_score(y_true=reference.target, y_pred=predicted.predict)
-
-
-class ROCAUC(QualityMetric):
+class RocAucMetric(QualityMetric):
     default_value = 0.5
 
     @staticmethod
@@ -149,34 +121,7 @@ class ROCAUC(QualityMetric):
         return score
 
 
-class Precision(QualityMetric):
-    output_mode = 'labels'
-
-    @staticmethod
-    @from_maximised_metric
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return precision_score(y_true=reference.target, y_pred=predicted.predict)
-
-
-class Logloss(QualityMetric):
-    default_value = sys.maxsize
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return log_loss(y_true=reference.target, y_pred=predicted)
-
-
-class Accuracy(QualityMetric):
-    default_value = 0
-    output_mode = 'labels'
-
-    @staticmethod
-    @from_maximised_metric
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return accuracy_score(y_true=reference.target, y_pred=predicted.predict)
-
-
-class Silhouette(QualityMetric):
+class SilhouetteMetric(QualityMetric):
     default_value = 1
 
     @staticmethod
@@ -185,7 +130,7 @@ class Silhouette(QualityMetric):
         return silhouette_score(reference.features, labels=predicted.predict)
 
 
-class StructuralComplexity(Metric):
+class StructuralComplexityMetric(Metric):
     @classmethod
     def get_value(cls, chain: Chain, **args) -> float:
         norm_constant = 30
