@@ -48,7 +48,7 @@ class DataOperationImplementation(ABC):
         return converted
 
 
-class EncodedInvariantImplementation(DataOperationImplementation):
+class EncodedInvariantOperation(DataOperationImplementation):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean

@@ -137,7 +137,7 @@ def run_classification_tuning_experiment(chain, tuner=None):
 if __name__ == '__main__':
 
     # Prepare chain
-    node_scaling = PrimaryNode('scaling')
+    node_scaling = PrimaryNode('scaling',)
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])
     chain_for_experiment = Chain(node_final)
 

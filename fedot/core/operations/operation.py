@@ -6,8 +6,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.tasks import compatible_task_types
-from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    sklearn_transformations import OneHotEncodingImplementation
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -82,7 +80,7 @@ class Operation:
         """
         self._init(data.task)
 
-        data = _fill_remaining_gaps(data, self.operation_type)
+        data = _fill_remaining_gaps(data)
 
         fitted_operation = self._eval_strategy.fit(train_data=data)
 
@@ -104,7 +102,7 @@ class Operation:
         """
         self._init(data.task, output_mode=output_mode)
 
-        data = _fill_remaining_gaps(data, self.operation_type)
+        data = _fill_remaining_gaps(data)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
@@ -152,19 +150,8 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
     return strategy
 
 
-def _fill_remaining_gaps(data: InputData, operation_type: str):
-    """ Function for filling in the nans in the table with features """
-    # TODO discuss: move this "filling" to the chain method - we use such method too much here (for all tables)
-    #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays
-    features = data.features
-    is_operation_not_for_text = operation_type != 'text_clean'
-    if data.data_type == DataTypesEnum.table and is_operation_not_for_text:
-        # Got indices of columns with string objects
-        categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
-
-        # Apply most_frequent or mean filling strategy
-        if len(categorical_ids) == 0:
-            data.features = SimpleImputer().fit_transform(features)
-        else:
-            data.features = SimpleImputer(strategy='most_frequent').fit_transform(features)
+def _fill_remaining_gaps(data: InputData):
+    if (data.task.task_type != TaskTypesEnum and
+            data.data_type == DataTypesEnum.table):
+        data.features = SimpleImputer().fit_transform(data.features)
     return data

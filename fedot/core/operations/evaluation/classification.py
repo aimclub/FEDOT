@@ -8,7 +8,6 @@ from fedot.core.operations.evaluation.operation_implementations.models.svc impor
 
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_selectors import LinearClassFSImplementation, NonLinearClassFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnClassImplementation
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
@@ -51,8 +50,7 @@ class CustomClassificationStrategy(EvaluationStrategy):
     __operations_by_types = {
         'lda': LDAImplementation,
         'qda': QDAImplementation,
-        'svc': CustomSVCImplementation,
-        'knn': CustomKnnClassImplementation
+        'svc': CustomSVCImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

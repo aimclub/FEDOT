@@ -36,7 +36,6 @@ composer_metrics_mapping = {
     'mape': RegressionMetricsEnum.MAPE,
     'r2': RegressionMetricsEnum.R2,
     'rmse': RegressionMetricsEnum.RMSE,
-    'rmse_pen': RegressionMetricsEnum.RMSE_penalty,
     'silhouette': ClusteringMetricsEnum.silhouette,
     'node_num': ComplexityMetricsEnum.node_num
 }

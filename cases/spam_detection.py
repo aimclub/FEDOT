@@ -58,9 +58,10 @@ def run_text_problem_from_files():
     print(f'origin files metric: {metric}')
 
 
-def run_text_problem_from_saved_meta_file(path):
+def run_text_problem_from_saved_meta_file():
+    data_file_abspath = os.path.abspath(os.path.join('data', 'spamham', 'meta_train.csv'))
 
-    data = InputData.from_text_meta_file(meta_file_path=path)
+    data = InputData.from_text_meta_file(meta_file_path=data_file_abspath)
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
 
@@ -72,7 +73,4 @@ def run_text_problem_from_saved_meta_file(path):
 if __name__ == '__main__':
     run_text_problem_from_meta_file()
     run_text_problem_from_files()
-
-    # Example with csv file
-    data_file_path = os.path.abspath(os.path.join('data', 'spamham', 'spam_detection_train.csv'))
-    run_text_problem_from_saved_meta_file(data_file_path)
+    run_text_problem_from_saved_meta_file()

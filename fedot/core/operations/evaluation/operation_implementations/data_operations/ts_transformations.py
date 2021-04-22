@@ -7,13 +7,12 @@ from scipy.ndimage import gaussian_filter
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
-from fedot.core.log import Log, default_log
 
 
 class LaggedTransformationImplementation(DataOperationImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
 
         if not params:
@@ -21,12 +20,6 @@ class LaggedTransformationImplementation(DataOperationImplementation):
             self.window_size = 10
         else:
             self.window_size = int(round(params.get('window_size')))
-
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -45,9 +38,6 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         parameters = input_data.task.task_params
         old_idx = input_data.idx
         forecast_length = parameters.forecast_length
-
-        # Correct window size parameter
-        self.check_and_correct_window_size(input_data, forecast_length)
 
         if is_fit_chain_stage:
             # Transformation for fit stage of the chain
@@ -76,22 +66,6 @@ class LaggedTransformationImplementation(DataOperationImplementation):
                                               features_columns,
                                               data_type=DataTypesEnum.table)
         return output_data
-
-    def check_and_correct_window_size(self, input_data, forecast_length):
-        """ Method check if the length of the time series is not enough for
-        lagged transformation - clip it
-
-        :param input_data: InputData for transformation
-        :param forecast_length: forecast length
-        """
-        removing_len = self.window_size + forecast_length
-        if removing_len > len(input_data.features):
-            previous_size = self.window_size
-            # At least 10 objects we need for training, so minus 10
-            self.window_size = len(input_data.features) - forecast_length - 10
-
-            prefix = "Warning: window size of lagged transformation was changed"
-            self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
 
     def get_params(self):
         return {'window_size': self.window_size}

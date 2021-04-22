@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations.\
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -83,44 +83,3 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain Custom Regression Preprocessing Strategy for {operation_type}')
-
-
-class CustomRegressionStrategy(EvaluationStrategy):
-    """
-    Strategy for applying custom regression models from FEDOT make predictions
-    """
-
-    __operations_by_types = {
-        'knnreg': CustomKnnRegImplementation
-    }
-
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.operation_impl = self._convert_to_operation(operation_type)
-        super().__init__(operation_type, params)
-
-    def fit(self, train_data: InputData):
-        """ This method is used for operation training """
-
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl()
-
-        operation_implementation.fit(train_data)
-        return operation_implementation
-
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
-        """ Predict method for regression models """
-        prediction = trained_operation.predict(predict_data, is_fit_chain_stage)
-
-        # Convert prediction to output (if it is required)
-        converted = self._convert_to_output(prediction, predict_data)
-        return converted
-
-    def _convert_to_operation(self, operation_type: str):
-        if operation_type in self.__operations_by_types.keys():
-            return self.__operations_by_types[operation_type]
-        else:
-            raise ValueError(f'Impossible to obtain Custom Regression Strategy for {operation_type}')

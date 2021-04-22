@@ -10,10 +10,11 @@ from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.composer.optimisers.gp_comp.operators.selection import selection
-from fedot.core.composer.optimisers.utils.population_utils import is_equal_archive
+from fedot.core.composer.optimisers.utils.population_utils import get_metric_position, is_equal_archive
 from fedot.core.composer.timer import CompositionTimer
 from fedot.core.log import Log
-from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository, \
+    QualityMetricsEnum
 
 DEFAULT_MAX_POP_SIZE = 55
 
@@ -52,9 +53,6 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
         self.requirements.pop_size = self.iterator.next()
         self.metrics = metrics
-
-        self.qual_position = 0
-        self.compl_position = 1
 
     def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
@@ -244,7 +242,11 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         return num_of_new_individuals
 
     def get_main_metric(self, ind: Any) -> float:
+        main_metric_type = QualityMetricsEnum
+        self.qual_position = get_metric_position(self.metrics, main_metric_type)
         return ind.fitness.values[self.qual_position]
 
     def get_suppl_metric(self, ind: Any) -> float:
+        suppl_metric_type = ComplexityMetricsEnum
+        self.compl_position = get_metric_position(self.metrics, suppl_metric_type)
         return ind.fitness.values[self.compl_position]

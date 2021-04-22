@@ -58,9 +58,13 @@ def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
     print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
 
     # Make forecast
-    predicted = out_of_sample_ts_forecast(chain=chain,
-                                          input_data=predict_input,
-                                          horizon=future_steps)
+    predicted_output = out_of_sample_ts_forecast(chain=chain,
+                                                 input_data=predict_input,
+                                                 horizon=future_steps)
+    predicted = predicted_output.predict
+
+    # Convert into one-dimensional array
+    predicted = np.ravel(np.array(predicted))
 
     if vis:
         plt.plot(range(0, len(time_series)), time_series, label='Actual time series')

@@ -13,7 +13,6 @@ from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from cases.time_series_gapfilling_case import run_gapfilling_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
-from cases.spam_detection import run_text_problem_from_saved_meta_file
 from sklearn.metrics import mean_squared_error
 
 random.seed(1)
@@ -84,12 +83,3 @@ def test_river_levels_problem():
     is_experiment_finished = True
 
     assert is_experiment_finished
-
-
-def test_spam_detection_problem():
-    """ Simple launch of spam detection case """
-    project_root_path = str(project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/spam_detection.csv')
-
-    # Classification task based on text data
-    run_text_problem_from_saved_meta_file(file_path_train)
