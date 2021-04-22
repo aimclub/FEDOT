@@ -1,7 +1,7 @@
 import os
 import warnings
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -89,27 +89,6 @@ class Data:
                                    data_type=DataTypesEnum.ts)
 
         return input_data
-
-    @staticmethod
-    def from_image(images: Union[str, np.ndarray] = None,
-                   labels: Union[str, np.ndarray] = None,
-                   task: Task = Task(TaskTypesEnum.classification)):
-        """
-        :param images: the path to the directory with image data in np.ndarray format or array in np.ndarray format
-        :param labels: the path to the directory with image labels in np.ndarray format or array in np.ndarray format
-        :param task: the task that should be solved with data
-        :return:
-        """
-        features = images
-        target = labels
-
-        if type(images) is str:
-            features = np.load(images)
-            target = np.load(labels)
-
-        idx = np.arange(0, len(features))
-
-        return InputData(idx=idx, features=features, target=target, task=task, data_type=DataTypesEnum.image)
 
     @staticmethod
     def from_text_meta_file(meta_file_path: str = None,

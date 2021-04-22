@@ -160,36 +160,19 @@
 	  "tags": ["simple", "interpretable", "ts_specific"]
 	},
 	"ar": {
-		"meta": "ts_model",
-		"tags": [
-			"simple",
-			"interpretable",
-			"ts_specific"
-		]
+	  "meta": "ts_model",
+	  "tags": ["simple", "interpretable", "ts_specific"]
 	},
-	  "kmeans": {
-		  "meta": "sklearn_clust"
-	  },
-	  "multinb": {
-		  "meta": "sklearn_class",
-		  "tags": [
-			  "bayesian",
-			  "non-default"
-		  ]
-	  },
-	  "cnn": {
-		  "meta": "custom_class",
-		  "tags": [
-			  "deep",
-			  "non-default"
-		  ]
-	  },
-	  "tfidf": {
-		  "meta": "text_classification",
-		  "tags": [
-			  "text",
-			  "non-default"
-		  ]
-	  }
+	"kmeans": {
+	  "meta": "sklearn_clust"
+	},
+	"multinb": {
+	  "meta": "sklearn_class",
+	  "tags": ["bayesian", "non-default"]
+	},
+    "tfidf": {
+      "meta": "text_classification",
+	  "tags": ["text", "non-default"]
+    }
   }
 }
