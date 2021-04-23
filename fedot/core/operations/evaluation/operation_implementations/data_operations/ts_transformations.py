@@ -237,6 +237,42 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
+class TimeSeriesDecomposeImplementation(DataOperationImplementation):
+    """ Operation decompose
+
+    :param params: optional, dictionary with the arguments
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.pca = None
+        self.params = None
+
+    def fit(self, input_data):
+        """
+        The method trains the PCA model
+
+        :param input_data: data with features, target and ids for PCA training
+        :return pca: trained PCA model (optional output)
+        """
+
+        raise NotImplementedError()
+
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """
+        Method for transformation tabular data using PCA
+
+        :param input_data: data with features, target and ids for PCA applying
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :return input_data: data with transformed features attribute
+        """
+
+        raise NotImplementedError()
+
+    def get_params(self):
+        return None
+
+
 def _ts_to_table(idx, time_series, window_size):
     """ Method convert time series to lagged form.
 
