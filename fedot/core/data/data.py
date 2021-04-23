@@ -22,6 +22,9 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    prev_features: Optional[np.array] = None
+    # Is we need to combine different target, available "sum"
+    combine_target: str = None
 
     @staticmethod
     def from_csv(file_path=None,
@@ -156,6 +159,10 @@ class InputData(Data):
     Data class for input data for the nodes
     """
     target: Optional[np.array] = None
+    # Features from the previous node
+    prev_features = None
+    # Is we need to combine different target, available "sum"
+    combine_target: str = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -175,8 +182,17 @@ class InputData(Data):
         # Update not only features but idx and target also
         idx, features, target = DataMerger(outputs).merge()
 
+        if len(outputs) == 1:
+            current_output = outputs[0]
+            prev_node_features = current_output.features
+            combine_target = current_output.combine_target
+        else:
+            prev_node_features = None
+            combine_target = None
+
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=data_type)
+                         data_type=data_type, prev_features=prev_node_features,
+                         combine_target=combine_target)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
@@ -195,6 +211,8 @@ class OutputData(Data):
     """
     predict: np.array = None
     target: Optional[np.array] = None
+    # Is we need to combine different target, available "sum"
+    combine_target: str = None
 
 
 def _split_time_series(data, task):

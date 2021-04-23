@@ -6,7 +6,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     sklearn_transformations import PCAImplementation, PolyFeaturesImplementation, OneHotEncodingImplementation, \
     ScalingImplementation, NormalizationImplementation, KernelPCAImplementation, ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    decomposers import SimpleDecomposeImplementation
+    decomposers import SimpleDecomposeImplementation, TimeSeriesDecomposeImplementation
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 
@@ -23,6 +23,7 @@ class CustomPreprocessingStrategy(EvaluationStrategy):
         'poly_features': PolyFeaturesImplementation,
         'one_hot_encoding': OneHotEncodingImplementation,
         'decompose': SimpleDecomposeImplementation,
+        'ts_decompose': TimeSeriesDecomposeImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

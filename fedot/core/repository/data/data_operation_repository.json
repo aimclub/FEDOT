@@ -155,7 +155,7 @@
 			"tags": ["non-default"]
 		},
 		"ts_decompose": {
-			"meta": "custom_time_series_transformation",
+			"meta": "custom_preprocessing",
 			"tags": ["non-default", "ts_specific"]
 		}
 	}

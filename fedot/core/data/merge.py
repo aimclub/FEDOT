@@ -30,17 +30,19 @@ class DataMerger:
         if len(set(output_data_types)) > 1:
             raise ValueError("There is no ability to merge different data types")
 
+        combine_target_action = self.process_target()
+
         # Define appropriate strategy
         merge_func = merge_function_by_type.get(first_data_type)
         if merge_func is None:
             message = f"For data type '{first_data_type}' doesn't exist merge function"
             raise NotImplementedError(message)
         else:
-            idx, features, target = merge_func()
+            idx, features, target = merge_func(combine_target_action)
 
         return idx, features, target
 
-    def combine_datasets_table(self):
+    def combine_datasets_table(self, combine_target_action):
         """ Function for combining datasets from parents to make features to
         another node. Features are tabular data.
 
@@ -51,14 +53,15 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target = self._merge_equal_outputs(self.outputs)
+            idx, features, target = self._merge_equal_outputs(self.outputs,
+                                                              combine_target_action)
         else:
             idx, features, target = self._merge_non_equal_outputs(self.outputs,
                                                                   idx_list)
 
         return idx, features, target
 
-    def combine_datasets_ts(self):
+    def combine_datasets_ts(self, combine_target_action):
         """ Function for combining datasets from parents to make features to
         another node. Features are time series data.
 
@@ -79,7 +82,7 @@ class DataMerger:
         return idx, features, target
 
     @staticmethod
-    def _merge_equal_outputs(outputs: list):
+    def _merge_equal_outputs(outputs: list, combine_target_action):
         """ Method merge datasets with equal amount of rows """
 
         features = []
@@ -94,7 +97,17 @@ class DataMerger:
 
         features = np.array(features).T
         idx = outputs[0].idx
-        target = outputs[0].target
+        if combine_target_action is None:
+            target = outputs[0].target
+        elif combine_target_action == 'sum':
+            targets = []
+            for output in outputs:
+                targets.append(output.target)
+            if targets[0] is None:
+                target = None
+            else:
+                targets = np.array(targets)
+                target = targets.sum(axis=0)
         return idx, features, target
 
     @staticmethod
@@ -153,3 +166,17 @@ class DataMerger:
             are_lengths_equal = False
 
         return are_lengths_equal, idx_list
+
+    def process_target(self):
+        list_combine_target = []
+        for output in self.outputs:
+            list_combine_target.append(output.combine_target)
+
+        if any(flag == 'sum' for flag in list_combine_target):
+            is_combine = True
+            combine_target_action = 'sum'
+        else:
+            combine_target_action = None
+        if len(self.outputs) == 1:
+            combine_target_action = None
+        return combine_target_action

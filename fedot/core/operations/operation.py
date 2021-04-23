@@ -102,6 +102,7 @@ class Operation:
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
+        combine_target = data.combine_target
         self._init(data.task, output_mode=output_mode)
 
         data = _fill_remaining_gaps(data, self.operation_type)
@@ -110,7 +111,8 @@ class Operation:
             trained_operation=fitted_operation,
             predict_data=data,
             is_fit_chain_stage=is_fit_chain_stage)
-
+        if combine_target is not None:
+            prediction.combine_target = combine_target
         return prediction
 
     def __str__(self):

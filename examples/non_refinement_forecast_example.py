@@ -18,33 +18,16 @@ warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def get_refinement_chain():
-    """ Create a chain like this
-                (Side branch)
-    lagged -> linear -> ts_decompose -> knnreg
-                \                        |
-                 \                       v
-                  ------------------> ridge -> final forecast
-                  (Main branch)
-    """
+def get_chain():
+    """ Create a chain """
     # First transformation
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': 150}
 
     # Make prediction in this node
-    node_linear = SecondaryNode('linear', nodes_from=[node_lagged])
+    node_linear = SecondaryNode('ridge', nodes_from=[node_lagged])
 
-    # Find difference between predicted values and target
-    node_decompose = SecondaryNode('ts_decompose', nodes_from=[node_linear])
-
-    # Model, which will predict residuals
-    node_knnreg = SecondaryNode('knnreg', nodes_from=[node_decompose])
-    node_knnreg.custom_params = {'n_neighbors': 5}
-
-    # Final model, which will combine forecasts
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_linear, node_knnreg])
-
-    chain = Chain(node_ridge)
+    chain = Chain(node_linear)
     return chain
 
 
@@ -57,7 +40,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100):
     test_part = time_series[-len_forecast:]
 
     # Get chain
-    refinement_chain = get_refinement_chain()
+    refinement_chain = get_chain()
 
     # Prepare InputData
     train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
