@@ -86,6 +86,6 @@ How to setup the development environments for the Fedot
 
    -  In order to use the
 
-.. |Step 1| image:: img/img-tutorial/1_step.png
-.. |Step 2| image:: img/img-tutorial/2_step.png
-.. |Step 3| image:: img/img-tutorial/3_step.png
+.. |Step 1| image:: img/img_tutorial/1_step.png
+.. |Step 2| image:: img/img_tutorial/2_step.png
+.. |Step 3| image:: img/img_tutorial/3_step.png

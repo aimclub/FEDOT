@@ -6,10 +6,10 @@ Repository
    :undoc-members:
    :show-inheritance:
 
-Models
-------
+Operation Types
+---------------
 
-.. automodule:: fedot.core.repository.model_types_repository
+.. automodule:: fedot.core.repository.operation_types_repository
    :members:
    :undoc-members:
    :show-inheritance:

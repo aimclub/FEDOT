@@ -36,12 +36,13 @@ extensions = [
 ]
 autodoc_typehints = 'description'
 
-autodoc_mock_imports = ['numpy', 'numpy.random',
-                        'sklearn', 'matplotlib',
-                        'h2o', 'tpot', 'scipy',
-                        'statsmodels', 'tensorflow',
-                        'pandas', 'skopt', 'networkx',
-                        'hyperopt', 'scikit-optimize']
+
+# autodoc_mock_imports = ['numpy', 'numpy.random',
+#                         'sklearn', 'matplotlib',
+#                         'h2o', 'tpot', 'scipy',
+#                         'statsmodels', 'tensorflow',
+#                         'pandas', 'skopt', 'networkx',
+#                         'hyperopt', 'scikit-optimize']
 
 autodoc_member_order = 'bysource'
 

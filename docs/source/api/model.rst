@@ -1,21 +1,28 @@
 Model
 =====
 
-.. automodule:: fedot.core.models.model
+.. automodule:: fedot.core.operations.model
    :members:
    :undoc-members:
    :show-inheritance:
 
 Preprocessing
 -------------
-.. automodule:: fedot.core.data.preprocessing
+.. automodule:: fedot.core.operations.evaluation.common_preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
 
-Transformation
+Sklearn Transformation
 --------------
-.. automodule:: fedot.core.data.transformation
+.. automodule:: fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Time Series Transformation
+--------------
+.. automodule:: fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations
    :members:
    :undoc-members:
    :show-inheritance:

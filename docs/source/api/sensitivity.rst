@@ -17,10 +17,10 @@ Node Structure Analysis
    :undoc-members:
    :show-inheritance:
 
-Model Structure Analysis
+Operation Structure Analysis
 -------------------------
 
-.. automodule:: fedot.sensitivity.model_sensitivity
+.. automodule:: fedot.sensitivity.operation_sensitivity
    :members:
    :undoc-members:
    :show-inheritance:
