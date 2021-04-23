@@ -1,7 +1,7 @@
 Data
 ====
 
-.. automodule:: fedot.core.data
+.. automodule:: fedot.core.data.data
    :members:
    :undoc-members:
    :show-inheritance:

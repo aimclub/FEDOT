@@ -1,22 +1,27 @@
 Evaluation Strategy
 ===================
-
-.. automodule:: fedot.core.models.evaluation.evaluation
+.. automodule:: fedot.core.operations.evaluation.evaluation_interfaces
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: fedot.core.models.evaluation.keras_eval
+Preprocessing
+-------------
+.. automodule:: fedot.core.operations.evaluation.common_preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: fedot.core.models.evaluation.stats_models_eval
+Sklearn Transformation
+--------------
+.. automodule:: fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: fedot.core.models.evaluation.data_evaluation
+Time Series Transformation
+--------------
+.. automodule:: fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations
    :members:
    :undoc-members:
    :show-inheritance:

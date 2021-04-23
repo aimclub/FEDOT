@@ -1,21 +1,20 @@
+Operation
+=========
+.. automodule:: fedot.core.operations.operation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Model
-=====
-
-.. automodule:: fedot.core.models.model
+-----
+.. automodule:: fedot.core.operations.model
    :members:
    :undoc-members:
    :show-inheritance:
 
-Preprocessing
--------------
-.. automodule:: fedot.core.data.preprocessing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Transformation
+Data operation
 --------------
-.. automodule:: fedot.core.data.transformation
+.. automodule:: fedot.core.operations.data_operation
    :members:
    :undoc-members:
    :show-inheritance:

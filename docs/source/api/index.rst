@@ -9,7 +9,7 @@ API
    composer
    chain
    node
-   model
+   operation
    eval_strategy
    tuning
    repository
