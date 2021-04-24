@@ -8,11 +8,12 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
+from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.data.data import InputData
-from fedot.core.repository.model_types_repository import ModelTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.utilities.profiler.profiler import MemoryProfiler, TimeProfiler
 
 random.seed(1)
@@ -33,7 +34,7 @@ def run_credit_scoring_problem(max_lead_time: datetime.timedelta = datetime.time
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
-    available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
+    available_model_types = get_operations_for_task(task=task, mode='models')
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
@@ -61,16 +62,14 @@ def run_credit_scoring_problem(max_lead_time: datetime.timedelta = datetime.time
 
 if __name__ == '__main__':
     # JUST UNCOMMENT WHAT TYPE OF PROFILER DO YOU NEED
-
     # EXAMPLE of MemoryProfiler.
-    # Call graph and memory plot created in the path directory.
 
-    path = os.path.join(os.path.expanduser("~"), 'memory_profiler')
-    profiler = MemoryProfiler(run_credit_scoring_problem, path=path, roots=run_credit_scoring_problem, max_depth=8)
+    # path = os.path.join(os.path.expanduser("~"), 'memory_profiler')
+    # profiler = MemoryProfiler(run_credit_scoring_problem, path=path, roots=run_credit_scoring_problem, max_depth=8)
 
     # EXAMPLE of TimeProfiler.
 
-    # profiler = TimeProfiler()
-    # run_credit_scoring_problem()
-    # path = os.path.join(os.path.expanduser("~"), 'time_profiler')
-    # profiler.profile(path=path, node_percent=0.5, edge_percent=0.1)
+    profiler = TimeProfiler()
+    run_credit_scoring_problem()
+    path = os.path.join(os.path.expanduser("~"), 'time_profiler')
+    profiler.profile(path=path, node_percent=0.5, edge_percent=0.1)

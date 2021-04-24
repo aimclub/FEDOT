@@ -15,7 +15,6 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import project_root
-from fedot.utilities.profiler.profiler import MemoryProfiler
 
 random.seed(1)
 np.random.seed(1)
@@ -47,8 +46,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
-        secondary=available_model_types, max_arity=2,
-        max_depth=2, pop_size=2, num_of_generations=1,
+        secondary=available_model_types, max_arity=3,
+        max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
 
     # GP optimiser parameters choice
@@ -103,12 +102,12 @@ def get_scoring_data():
 
     # a dataset that will be used as a train and test set during composition
 
-    file_path_train = '/home/magleb/prog/FEDOT/cases/data/scoring/scoring_train.csv'
-    # full_path_train = os.path.join(str(project_root()), file_path_train)
+    file_path_train = 'cases/data/scoring/scoring_train.csv'
+    full_path_train = os.path.join(str(project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
-    file_path_test = '/home/magleb/prog/FEDOT/cases/data/scoring/scoring_test.csv'
-    # full_path_test = os.path.join(str(project_root()), file_path_test)
+    file_path_test = 'cases/data/scoring/scoring_test.csv'
+    full_path_test = os.path.join(str(project_root()), file_path_test)
 
     return full_path_train, full_path_test
 
