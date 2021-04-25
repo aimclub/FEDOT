@@ -155,8 +155,8 @@ def test_fit_predict_atomized_model_correctly():
     pipeline.fit(train_data)
     predicted_values = pipeline.predict(test_data)
 
-    atomized_model.fit(train_data)
-    predicted_atomized_output = atomized_model.predict(None, test_data)
+    fitted_atomized_model, _ = atomized_model.fit(train_data)
+    predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
     bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
@@ -183,9 +183,12 @@ def test_fine_tune_atomized_model_correct():
                                                     timeout=1)
     dummy_atomized_model.fit(train_data)
 
-    after_tuning_output = fine_tuned_atomized_model.predict(None, data=test_data)
+    fitted_dummy_model, _ = dummy_atomized_model.fit(train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(train_data)
+
+    after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict
-    before_tuning_output = dummy_atomized_model.predict(None, data=test_data)
+    before_tuning_output = dummy_atomized_model.predict(fitted_dummy_model, data=test_data)
     before_tuning_predicted = before_tuning_output.predict
 
     aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_tuning_predicted)
