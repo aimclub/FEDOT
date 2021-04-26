@@ -1,6 +1,6 @@
 import numpy as np
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.chains.chain import Chain

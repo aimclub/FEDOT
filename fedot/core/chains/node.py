@@ -6,6 +6,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
+from fedot.core.chains.node_operation import NodeActionInterface
 
 
 class Node(ABC):
@@ -109,15 +110,10 @@ class Node(ABC):
         return self.__str__()
 
     def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
-        if visited is None:
-            visited = []
-        nodes = [self]
-        if self.nodes_from:
-            for parent in self.nodes_from:
-                if parent not in visited:
-                    nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+        return NodeActionInterface(self).ordered_subnodes_hierarchy(visited)
 
-        return nodes
+    def distance_to_primary_level(self):
+        return NodeActionInterface(self).distance_to_primary_level()
 
     @property
     def custom_params(self) -> dict:

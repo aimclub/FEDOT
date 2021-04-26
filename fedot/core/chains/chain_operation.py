@@ -4,7 +4,7 @@ from typing import List, Optional, Any
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 
 
-class GraphOperations:
+class ChainActionInterface:
     def __init__(self, chain=None):
         self._chain = chain
 
@@ -92,11 +92,19 @@ class GraphOperations:
         height = recursive_child_height(node)
         return height
 
-    def distance_to_leaf_level(self, node: Node):
-        if not node.nodes_from:
-            return 0
-        else:
-            return 1 + max([self.distance_to_leaf_level(next_node) for next_node in node.nodes_from])
+    def nodes_from_height(self, selected_height: int) -> List[Any]:
+        def get_nodes(node: Any, current_height):
+            nodes = []
+            if current_height == selected_height:
+                nodes.append(node)
+            else:
+                if node.nodes_from:
+                    for child in node.nodes_from:
+                        nodes += get_nodes(child, current_height + 1)
+            return nodes
+
+        nodes = get_nodes(self._chain.root_node, current_height=0)
+        return nodes
 
     def actualise_old_node_children(self, old_node: Node, new_node: Node):
         old_node_offspring = self.node_children(old_node)
@@ -112,17 +120,3 @@ class GraphOperations:
     def node_children(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self._chain.nodes if isinstance(other_node, SecondaryNode) and
                 node in other_node.nodes_from]
-
-    def nodes_from_height(self, selected_height: int) -> List[Any]:
-        def get_nodes(node: Any, current_height):
-            nodes = []
-            if current_height == selected_height:
-                nodes.append(node)
-            else:
-                if node.nodes_from:
-                    for child in node.nodes_from:
-                        nodes += get_nodes(child, current_height + 1)
-            return nodes
-
-        nodes = get_nodes(self._chain.root_node, current_height=0)
-        return nodes

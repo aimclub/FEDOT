@@ -20,6 +20,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
+from test.unit.chains.test_chain_operations import get_chain
 
 seed(1)
 np.random.seed(1)
@@ -359,6 +360,21 @@ def test_delete_secondary_node_with_multiple_children_and_redirection():
     assert updated_logit_second_parents[1] is lda_first
     assert updated_lda_second_parents[0] is logit_first
     assert updated_lda_second_parents[1] is lda_first
+
+
+def test_update_subtree():
+    # given
+    chain = get_chain()
+    subroot_parent = PrimaryNode('xgboost')
+    subroot = SecondaryNode('xgboost', nodes_from=[subroot_parent])
+    node_to_replace = chain.nodes[2]
+
+    # when
+    chain.update_subtree(node_to_replace, subroot)
+
+    # then
+    assert chain.nodes[2].operation.operation_type == 'xgboost'
+    assert chain.nodes[3].operation.operation_type == 'xgboost'
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

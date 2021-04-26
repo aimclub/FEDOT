@@ -3,7 +3,7 @@ from multiprocessing import Manager, Process
 from typing import Callable
 from typing import List, Optional, Union
 
-from fedot.core.chains.chain_operation import GraphOperations
+from fedot.core.chains.chain_operation import ChainActionInterface
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (Node, PrimaryNode)
 from fedot.core.chains.tuning.unified import ChainTuner
@@ -34,7 +34,7 @@ class Chain:
         self.log = log
         self.template = None
         self.computation_time = None
-        self.operations = GraphOperations(self)
+        self.actions = ChainActionInterface(self)
         if not log:
             self.log = default_log(__name__)
         else:
@@ -213,35 +213,43 @@ class Chain:
 
         :param node: new Node object
         """
-        self.operations.add_node(new_node)
+        self.actions.add_node(new_node)
 
-    def update_node(self, old_node: Node, new_node: Node, include_parents=False):
+    def update_node(self, old_node: Node, new_node: Node):
         """
         Replace old_node with new one.
-        Replaces the subtrees with old and new nodes as subroots
-        if include_parents is True.
 
         :param old_node: Node object to replace
         :param new_node: Node object to replace
-        :param include_parents: flag for subtree replacement. Default: False.
         """
-        if include_parents:
-            self.operations.update_subtree(old_node, new_node)
-        else:
-            self.operations.update_node(old_node, new_node)
 
-    def delete_node(self, node: Node, include_parents=False):
+        self.actions.update_node(old_node, new_node)
+
+    def update_subtree(self, old_subroot: Node, new_subroot: Node):
+        """
+        Replace the subtrees with old and new nodes as subroots
+
+        :param old_subroot: Node object to replace
+        :param new_subroot: Node object to replace
+        """
+        self.actions.update_subtree(old_subroot, new_subroot)
+
+    def delete_node(self, node: Node):
         """
         Delete chosen node redirecting all its parents to the child.
-        Delete the subtree with node as subroot if include_parents is True.
 
         :param node: Node object to delete
-        :param include_parents: flag for subtree deletion. Default: False.
         """
-        if include_parents:
-            self.operations.delete_subtree(node)
-        else:
-            self.operations.delete_node(node)
+
+        self.actions.delete_node(node)
+
+    def delete_subtree(self, subroot: Node):
+        """
+        Delete the subtree with node as subroot.
+
+        :param subroot:
+        """
+        self.actions.delete_subtree(subroot)
 
     @property
     def is_fitted(self):
@@ -252,7 +260,7 @@ class Chain:
         Remove fitted operations for all nodes.
         """
         for node in self.nodes:
-            node.fitted_operation = None
+            node.unfit()
 
     def fit_from_cache(self, cache):
         for node in self.nodes:
@@ -306,7 +314,7 @@ class Chain:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not any(self.operations.node_children(node))]
+                if not any(self.actions.node_children(node))]
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
         return root[0]

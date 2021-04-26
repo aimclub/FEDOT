@@ -49,7 +49,7 @@ def chain_example():
 
 def test_nodes_from_height():
     chain = chain_example()
-    found_nodes = chain.operations.nodes_from_height(1)
+    found_nodes = chain.actions.nodes_from_height(1)
     true_nodes = [node for node in chain.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])

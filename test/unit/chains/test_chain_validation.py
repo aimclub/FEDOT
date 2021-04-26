@@ -8,8 +8,7 @@ from fedot.core.chains.chain_validation import (has_correct_operation_positions,
                                                 has_no_conflicts_with_data_flow,
                                                 is_chain_contains_ts_operations,
                                                 has_no_data_flow_conflicts_in_ts_chain,
-                                                only_ts_specific_operations_are_primary,
-                                                has_no_multiple_children)
+                                                only_ts_specific_operations_are_primary)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -298,16 +297,3 @@ def test_only_ts_specific_operations_are_primary():
         assert only_ts_specific_operations_are_primary(incorrect_chain)
 
     assert str(exc.value) == f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
-
-
-def test_has_no_multiple_children():
-    primary_layer_node = PrimaryNode('knn')
-    secondary_layer_first_node = SecondaryNode('knn', nodes_from=[primary_layer_node])
-    secondary_layer_second_node = SecondaryNode('knn', nodes_from=[primary_layer_node])
-    root_node = SecondaryNode('knn', nodes_from=[secondary_layer_first_node,
-                                                 secondary_layer_second_node])
-    incorrect_chain = Chain(root_node)
-    with pytest.raises(Exception) as exc:
-        assert has_no_multiple_children(incorrect_chain)
-
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has nodes with multiple children'

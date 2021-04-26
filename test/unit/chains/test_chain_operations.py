@@ -24,23 +24,7 @@ def test_distance_to_root_level():
     chain = get_chain()
 
     # when
-    new_height = chain.operations.distance_to_root_level(node=chain.nodes[2])
+    new_height = chain.actions.distance_to_root_level(node=chain.nodes[2])
 
     # then
     assert new_height == 2
-
-
-def test_update_node_include_parents():
-    # given
-    chain = get_chain()
-    subroot_parent = PrimaryNode('xgboost')
-    subroot = SecondaryNode('xgboost', nodes_from=[subroot_parent])
-    node_to_replace = chain.nodes[2]
-
-    # when
-    chain.update_node(node_to_replace, subroot,
-                      include_parents=True)
-
-    # then
-    assert chain.nodes[2].operation.operation_type == 'xgboost'
-    assert chain.nodes[3].operation.operation_type == 'xgboost'

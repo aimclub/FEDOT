@@ -21,7 +21,6 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_no_cycle(chain)
     has_no_self_cycled_nodes(chain)
     has_no_isolated_nodes(chain)
-    has_no_multiple_children(chain)
     has_primary_nodes(chain)
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
@@ -181,17 +180,6 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
-
-    return True
-
-
-def has_no_multiple_children(chain: Chain):
-    for node in chain.nodes:
-        node_children = [child_node for child_node in chain.nodes
-                         if isinstance(child_node, SecondaryNode) and
-                         node in child_node.nodes_from]
-        if len(node_children) > 1:
-            raise ValueError(f'{ERROR_PREFIX} Chain has nodes with multiple children')
 
     return True
 

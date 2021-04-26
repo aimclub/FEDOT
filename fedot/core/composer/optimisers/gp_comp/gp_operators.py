@@ -15,8 +15,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     def chain_growth(chain: Any, node_parent: Any):
         offspring_size = randint(requirements.min_arity, requirements.max_arity)
         for offspring_node in range(offspring_size):
-            # height = node_height(chain, node_parent)
-            height = chain.operations.distance_to_root_level(node_parent)
+            height = chain.actions.distance_to_root_level(node_parent)
             is_max_depth_exceeded = height >= max_depth - 1
             is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
             if is_max_depth_exceeded or is_primary_node_selected:
@@ -66,16 +65,14 @@ def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, 
     node_from_chain_first_copy = deepcopy(node_from_first)
 
     # summary_depth = layer_in_first + node_depth(node_from_second)
-    summary_depth = layer_in_first + chain_second.operations.distance_to_leaf_level(node_from_second)
+    summary_depth = layer_in_first + node_from_second.distance_to_primary_level()
     if summary_depth <= max_depth and summary_depth != 0:
-        chain_first.update_node(node_from_first, node_from_second,
-                                include_parents=True)
+        chain_first.update_subtree(node_from_first, node_from_second)
 
     # summary_depth = layer_in_second + node_depth(node_from_first)
-    summary_depth = layer_in_second + chain_first.operations.distance_to_leaf_level(node_from_first)
+    summary_depth = layer_in_second + node_from_first.distance_to_primary_level()
     if summary_depth <= max_depth and summary_depth != 0:
-        chain_second.update_node(node_from_second, node_from_chain_first_copy,
-                                 include_parents=True)
+        chain_second.update_subtree(node_from_second, node_from_chain_first_copy)
 
 
 def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
