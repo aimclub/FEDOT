@@ -377,6 +377,18 @@ def test_update_subtree():
     assert chain.nodes[3].operation.operation_type == 'xgboost'
 
 
+def test_delete_subtree():
+    # given
+    chain = get_chain()
+    subroot = chain.nodes[1]
+
+    # when
+    chain.delete_subtree(subroot)
+
+    # then
+    assert chain.length == 4
+
+
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_chain_fit_time_constraint(data_fixture, request):
     system = platform.system()
