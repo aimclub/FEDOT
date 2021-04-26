@@ -17,3 +17,4 @@ API
    logging
    sensitivity
    synthetic_dataset_generator
+   profiler

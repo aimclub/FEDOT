@@ -1,0 +1,2 @@
+snakeviz==2.1.0
+gprof2dot==2021.2.21
