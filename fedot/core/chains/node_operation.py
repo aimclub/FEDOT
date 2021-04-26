@@ -9,7 +9,7 @@ class NodeActionInterface:
         if not self._node.nodes_from:
             return 0
         else:
-            return 1 + max([next_node.distance_to_primary_level() for next_node in self._node.nodes_from])
+            return 1 + max([next_node.distance_to_primary_level for next_node in self._node.nodes_from])
 
     def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
         if visited is None:

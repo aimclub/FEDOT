@@ -39,7 +39,7 @@ def get_mutation_prob(mut_id, node):
     default_mutation_prob = 0.7
     if mut_id in list(MutationStrengthEnum):
         mutation_strength = mut_id.value
-        mutation_prob = mutation_strength / (node.distance_to_primary_level() + 1)
+        mutation_prob = mutation_strength / (node.distance_to_primary_level + 1)
     else:
         mutation_prob = default_mutation_prob
     return mutation_prob
@@ -111,12 +111,13 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
         is_primary_node_selected = (not node_from_chain.nodes_from) or (
                 node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
     else:
-        is_primary_node_selected = randint(0, 1) and not chain.actions.distance_to_root_level(node_from_chain) < max_depth
+        is_primary_node_selected = randint(0, 1) and \
+                                   not chain.actions.distance_to_root_level(node_from_chain) < max_depth
     if is_primary_node_selected:
         new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
     else:
         if local_growth:
-            max_depth = node_from_chain.distance_to_primary_level()
+            max_depth = node_from_chain.distance_to_primary_level
         else:
             # max_depth = max_depth - node_height(chain, node_from_chain)
             max_depth = max_depth - chain.actions.distance_to_root_level(node_from_chain)

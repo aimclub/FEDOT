@@ -192,7 +192,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     cache.save_chain(Chain(other_chain.root_node.nodes_from[0]))
 
     chain.update_subtree(chain.root_node.nodes_from[0],
-                      other_chain.root_node.nodes_from[0])
+                         other_chain.root_node.nodes_from[0])
 
     nodes_with_actual_cache = [node for node in chain.nodes if node not in [chain.root_node]]
 

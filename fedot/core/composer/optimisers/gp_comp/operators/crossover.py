@@ -71,12 +71,10 @@ def one_point_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> 
     if pairs_of_nodes:
         node_from_chain_first, node_from_chain_second = choice(pairs_of_nodes)
 
-        # layer_in_chain_first = node_depth(chain_first.node) - node_depth(node_from_chain_first)
-        layer_in_chain_first = chain_first.root_node.distance_to_primary_level() - \
-                               node_from_chain_first.distance_to_primary_level()
-        # layer_in_chain_second = node_depth(chain_second.node) - node_depth(node_from_chain_second)
-        layer_in_chain_second = chain_second.root_node.distance_to_primary_level() - \
-                                node_from_chain_second.distance_to_primary_level()
+        layer_in_chain_first = \
+            chain_first.root_node.distance_to_primary_level - node_from_chain_first.distance_to_primary_level
+        layer_in_chain_second = \
+            chain_second.root_node.distance_to_primary_level - node_from_chain_second.distance_to_primary_level
 
         replace_subtrees(chain_first, chain_second, node_from_chain_first, node_from_chain_second,
                          layer_in_chain_first, layer_in_chain_second, max_depth)

@@ -112,6 +112,7 @@ class Node(ABC):
     def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
         return NodeActionInterface(self).ordered_subnodes_hierarchy(visited)
 
+    @property
     def distance_to_primary_level(self):
         return NodeActionInterface(self).distance_to_primary_level()
 
