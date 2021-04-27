@@ -353,13 +353,13 @@ def test_update_subtree():
 def test_delete_subtree():
     # given
     chain = get_chain()
-    subroot = chain.nodes[1]
+    subroot = chain.nodes[2]
 
     # when
     chain.delete_subtree(subroot)
 
     # then
-    assert chain.length == 4
+    assert chain.length == 3
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
