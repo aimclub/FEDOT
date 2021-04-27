@@ -1,6 +1,6 @@
 {
 	"metadata":{
-		"sklearn_preprocessing": {
+		"custom_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
@@ -75,15 +75,15 @@
 	},
 	"operations":{
 		"scaling": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple"]
 		},
 		"normalization": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple", "imputation"]
 		},
 		"pca": {
@@ -149,6 +149,10 @@
 		"text_clean": {
 			"meta": "text_preprocessing",
 			"tags": []
+		},
+		"decompose": {
+			"meta": "custom_preprocessing",
+			"tags": ["non-default"]
 		}
 	}
 }

@@ -74,6 +74,6 @@ def test_data_merge_function():
                                  data_type=DataTypesEnum.table)
         list_with_outputs.append(output_data)
 
-    idx, features, target = DataMerger(list_with_outputs).merge()
+    idx, features, target, masked_features = DataMerger(list_with_outputs).merge()
 
     assert tuple(idx) == tuple(idx_2)

@@ -21,6 +21,9 @@ class DataMerger:
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
 
+        # Prepare mask with predict from different parent nodes
+        masked_features = self.prepare_parent_mask(self.outputs)
+
         first_data_type = self.outputs[0].data_type
         output_data_types = []
         for output in self.outputs:
@@ -38,7 +41,7 @@ class DataMerger:
         else:
             idx, features, target = merge_func()
 
-        return idx, features, target
+        return idx, features, target, masked_features
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -77,6 +80,33 @@ class DataMerger:
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
         return idx, features, target
+
+    @staticmethod
+    def prepare_parent_mask(outputs):
+        """ The method for outputs from multiple parent nodes prepares a field
+        with encoded values
+
+        :param outputs: list with OutputData
+        :return masked_features: list with masked features
+        """
+
+        # For each parent output prepare mask
+        current_flag = 0
+        masked_features = []
+        for output in outputs:
+            predicted_values = np.array(output.predict)
+            table_shape = predicted_values.shape
+
+            # Calculate columns
+            features_amount = table_shape[1]
+
+            mask = [current_flag]*features_amount
+            masked_features.extend(mask)
+
+            # Update flag
+            current_flag += 1
+
+        return masked_features
 
     @staticmethod
     def _merge_equal_outputs(outputs: list):

@@ -157,6 +157,7 @@ class InputData(Data):
     Data class for input data for the nodes
     """
     target: Optional[np.array] = None
+    masked_features: Optional[list] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -174,10 +175,10 @@ class InputData(Data):
         data_type = outputs[0].data_type
 
         # Update not only features but idx and target also
-        idx, features, target = DataMerger(outputs).merge()
+        idx, features, target, masked_features = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=data_type)
+                         data_type=data_type, masked_features=masked_features)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
