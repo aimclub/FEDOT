@@ -4,7 +4,7 @@ from typing import List, Optional, Any
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 
 
-class ChainActionInterface:
+class GraphOperator:
     def __init__(self, chain=None):
         self._chain = chain
 
@@ -24,21 +24,13 @@ class ChainActionInterface:
         for node_child in self.node_children(node):
             node_child.nodes_from.remove(node)
 
-        if isinstance(node, SecondaryNode) and len(node.nodes_from) > 1 \
-                and len(node_children_cached) > 1:
-
-            for child in node_children_cached:
-                for node_from in node.nodes_from:
-                    child.nodes_from.append(node_from)
-
-        else:
-            if isinstance(node, SecondaryNode):
-                for node_from in node.nodes_from:
-                    node_children_cached[0].nodes_from.append(node_from)
-            elif isinstance(node, PrimaryNode):
-                for node_child in node_children_cached:
-                    if not node_child.nodes_from:
-                        make_secondary_node_as_primary(node_child)
+        if type(node) is SecondaryNode and len(node_children_cached) == 1:
+            for node_from in node.nodes_from:
+                node_children_cached[0].nodes_from.append(node_from)
+        elif type(node) is PrimaryNode:
+            for node_child in node_children_cached:
+                if not node_child.nodes_from:
+                    make_secondary_node_as_primary(node_child)
         self._chain.nodes.clear()
         self.add_node(self_root_node_cached)
 
@@ -92,15 +84,15 @@ class ChainActionInterface:
         height = recursive_child_height(node)
         return height
 
-    def nodes_from_height(self, selected_height: int) -> List[Any]:
+    def nodes_from_layer(self, layer_number: int) -> List[Any]:
         def get_nodes(node: Any, current_height):
             nodes = []
-            if current_height == selected_height:
+            if current_height == layer_number:
                 nodes.append(node)
             else:
                 if node.nodes_from:
                     for child in node.nodes_from:
-                        nodes += get_nodes(child, current_height + 1)
+                        nodes.extend(get_nodes(child, current_height + 1))
             return nodes
 
         nodes = get_nodes(self._chain.root_node, current_height=0)

@@ -55,8 +55,8 @@ def subtree_crossover(chain_first: Any, chain_second: Any, max_depth: int) -> An
     min_second_layer = 1 if random_layer_in_chain_first == 0 else 0
     random_layer_in_chain_second = choice(range(min_second_layer, chain_second.depth))
 
-    node_from_chain_first = choice(chain_first.actions.nodes_from_height(random_layer_in_chain_first))
-    node_from_chain_second = choice(chain_second.actions.nodes_from_height(random_layer_in_chain_second))
+    node_from_chain_first = choice(chain_first.operator.nodes_from_layer(random_layer_in_chain_first))
+    node_from_chain_second = choice(chain_second.operator.nodes_from_layer(random_layer_in_chain_second))
 
     replace_subtrees(chain_first, chain_second, node_from_chain_first, node_from_chain_second,
                      random_layer_in_chain_first, random_layer_in_chain_second, max_depth)

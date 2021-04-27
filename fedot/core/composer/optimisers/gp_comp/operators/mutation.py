@@ -106,21 +106,20 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
     """
 
     random_layer_in_chain = randint(0, chain.depth - 1)
-    node_from_chain = choice(chain.actions.nodes_from_height(random_layer_in_chain))
+    node_from_chain = choice(chain.operator.nodes_from_layer(random_layer_in_chain))
     if local_growth:
         is_primary_node_selected = (not node_from_chain.nodes_from) or (
                 node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
     else:
         is_primary_node_selected = randint(0, 1) and \
-                                   not chain.actions.distance_to_root_level(node_from_chain) < max_depth
+                                   not chain.operator.distance_to_root_level(node_from_chain) < max_depth
     if is_primary_node_selected:
         new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
     else:
         if local_growth:
             max_depth = node_from_chain.distance_to_primary_level
         else:
-            # max_depth = max_depth - node_height(chain, node_from_chain)
-            max_depth = max_depth - chain.actions.distance_to_root_level(node_from_chain)
+            max_depth = max_depth - chain.operator.distance_to_root_level(node_from_chain)
         new_subtree = random_chain(chain_generation_params=chain_generation_params, requirements=requirements,
                                    max_depth=max_depth).root_node
     chain.update_subtree(node_from_chain, new_subtree)
@@ -136,7 +135,7 @@ def reduce_mutation(chain: Any, requirements, chain_generation_params, max_depth
 
     nodes = [node for node in chain.nodes if node is not chain.root_node]
     node_to_del = choice(nodes)
-    children = chain.actions.node_children(node_to_del)
+    children = chain.operator.node_children(node_to_del)
     is_possible_to_delete = all([len(child.nodes_from) - 1 >= requirements.min_arity for child in children])
     if is_possible_to_delete:
         chain.delete_subtree(node_to_del)

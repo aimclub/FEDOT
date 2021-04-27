@@ -3,7 +3,7 @@ from multiprocessing import Manager, Process
 from typing import Callable
 from typing import List, Optional, Union
 
-from fedot.core.chains.chain_operation import ChainActionInterface
+from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import (Node, PrimaryNode)
 from fedot.core.chains.tuning.unified import ChainTuner
@@ -34,7 +34,7 @@ class Chain:
         self.log = log
         self.template = None
         self.computation_time = None
-        self.actions = ChainActionInterface(self)
+        self.operator = GraphOperator(self)
         if not log:
             self.log = default_log(__name__)
         else:
@@ -213,7 +213,7 @@ class Chain:
 
         :param node: new Node object
         """
-        self.actions.add_node(new_node)
+        self.operator.add_node(new_node)
 
     def update_node(self, old_node: Node, new_node: Node):
         """
@@ -223,7 +223,7 @@ class Chain:
         :param new_node: Node object to replace
         """
 
-        self.actions.update_node(old_node, new_node)
+        self.operator.update_node(old_node, new_node)
 
     def update_subtree(self, old_subroot: Node, new_subroot: Node):
         """
@@ -232,7 +232,7 @@ class Chain:
         :param old_subroot: Node object to replace
         :param new_subroot: Node object to replace
         """
-        self.actions.update_subtree(old_subroot, new_subroot)
+        self.operator.update_subtree(old_subroot, new_subroot)
 
     def delete_node(self, node: Node):
         """
@@ -241,7 +241,7 @@ class Chain:
         :param node: Node object to delete
         """
 
-        self.actions.delete_node(node)
+        self.operator.delete_node(node)
 
     def delete_subtree(self, subroot: Node):
         """
@@ -249,7 +249,7 @@ class Chain:
 
         :param subroot:
         """
-        self.actions.delete_subtree(subroot)
+        self.operator.delete_subtree(subroot)
 
     @property
     def is_fitted(self):
@@ -314,7 +314,7 @@ class Chain:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not any(self.actions.node_children(node))]
+                if not any(self.operator.node_children(node))]
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
         return root[0]

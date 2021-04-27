@@ -1,7 +1,7 @@
 from typing import List
 
 
-class NodeActionInterface:
+class NodeOperator:
     def __init__(self, node):
         self._node = node
 
