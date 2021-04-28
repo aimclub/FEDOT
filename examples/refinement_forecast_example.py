@@ -164,7 +164,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
 
 if __name__ == '__main__':
     # Good example: economic_data_6.csv
-    path = '../cases/data/time_series/economic_data_6.csv'
+    path = '../cases/data/time_series/economic_data_2.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
-                            lagged=2,
+                            lagged=50,
                             with_decompose=False)

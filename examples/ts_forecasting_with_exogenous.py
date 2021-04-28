@@ -8,9 +8,6 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from examples.ts_forecasting_tuning import prepare_input_data
 
 warnings.filterwarnings('ignore')
