@@ -23,6 +23,7 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    target_action: str
 
     @staticmethod
     def from_csv(file_path=None,
@@ -158,6 +159,8 @@ class InputData(Data):
     """
     target: Optional[np.array] = None
     masked_features: Optional[list] = None
+    # Action with target if there will a need to combine actions
+    target_action: Optional[str] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -175,10 +178,11 @@ class InputData(Data):
         data_type = outputs[0].data_type
 
         # Update not only features but idx and target also
-        idx, features, target, masked_features = DataMerger(outputs).merge()
+        idx, features, target, masked_fs, target_action = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=data_type, masked_features=masked_features)
+                         data_type=data_type, masked_features=masked_fs,
+                         target_action=target_action)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
@@ -197,6 +201,8 @@ class OutputData(Data):
     """
     predict: np.array = None
     target: Optional[np.array] = None
+    # Action with target if there will a need to combine actions
+    target_action: Optional[str] = None
 
 
 def _split_time_series(data, task):
