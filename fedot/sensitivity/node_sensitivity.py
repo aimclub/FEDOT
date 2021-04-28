@@ -12,13 +12,13 @@ import numpy as np
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
 from fedot.core.chains.tuning.sequential import SequentialTuner
+from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.chains.chain_validation import validate
 
 
 class NodeAnalysis:
@@ -164,8 +164,11 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
             return 1.0
         else:
             shortend_chain = self.sample(node_id)
-            loss = self._compare_with_origin_by_metric(shortend_chain)
-            del shortend_chain
+            if shortend_chain:
+                loss = self._compare_with_origin_by_metric(shortend_chain)
+                del shortend_chain
+            else:
+                loss = 1
 
             return loss
 
@@ -178,6 +181,11 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         chain_sample = deepcopy(self._chain)
         node_to_delete = chain_sample.nodes[node_id]
         chain_sample.delete_node(node_to_delete)
+        try:
+            validate(chain_sample)
+        except ValueError as ex:
+            self.log.message(f'Can not delete node. Deletion of this node leads to {ex}')
+            return None
 
         return chain_sample
 
@@ -299,7 +307,8 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         # Get models
         app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
         # Get data operations for such task
-        app_data_operations, _ = OperationTypesRepository('data_operation_repository.json').suitable_operation(task_type=task)
+        app_data_operations, _ = OperationTypesRepository('data_operation_repository.json').suitable_operation(
+            task_type=task)
 
         # Unit two lists
         app_operations = app_models

@@ -184,6 +184,27 @@ def test_node_deletion_analyze():
     assert isinstance(node_analysis_result, float)
 
 
+def test_node_deletion_sample_method():
+    # given
+    _, train_data, test_data, node_index, result_dir = given_data()
+    primary_first = PrimaryNode('knn')
+    primary_second = PrimaryNode('knn')
+    central = SecondaryNode('xgboost', nodes_from=[primary_first, primary_second])
+    secondary_first = SecondaryNode('lda', nodes_from=[central])
+    secondary_second = SecondaryNode('lda', nodes_from=[central])
+    root = SecondaryNode('logit', nodes_from=[secondary_first, secondary_second])
+    chain_with_multiple_children = Chain(nodes=root)
+
+    # when
+    result = NodeDeletionAnalyze(chain=chain_with_multiple_children,
+                                 train_data=train_data,
+                                 test_data=test_data,
+                                 path_to_save=result_dir).sample(node_index)
+
+    # then
+    assert result is None
+
+
 def test_node_deletion_analyze_zero_node_id():
     # given
     chain, train_data, test_data, _, result_dir = given_data()
