@@ -6,41 +6,6 @@ from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
 
-def node_height(chain: Any, node: Any) -> int:
-    def recursive_child_height(parent_node: Any) -> int:
-        node_child = chain.node_childs(parent_node)
-        if node_child:
-            height = recursive_child_height(node_child[0]) + 1
-            return height
-        else:
-            return 0
-
-    height = recursive_child_height(node)
-    return height
-
-
-def node_depth(node: Any) -> int:
-    if not node.nodes_from:
-        return 0
-    else:
-        return 1 + max([node_depth(next_node) for next_node in node.nodes_from])
-
-
-def nodes_from_height(chain: Any, selected_height: int) -> List[Any]:
-    def get_nodes(node: Any, current_height):
-        nodes = []
-        if current_height == selected_height:
-            nodes.append(node)
-        else:
-            if node.nodes_from:
-                for child in node.nodes_from:
-                    nodes += get_nodes(child, current_height + 1)
-        return nodes
-
-    nodes = get_nodes(chain.root_node, current_height=0)
-    return nodes
-
-
 def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     secondary_node_func = chain_generation_params.secondary_node_func
     primary_node_func = chain_generation_params.primary_node_func
@@ -50,7 +15,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
     def chain_growth(chain: Any, node_parent: Any):
         offspring_size = randint(requirements.min_arity, requirements.max_arity)
         for offspring_node in range(offspring_size):
-            height = node_height(chain, node_parent)
+            height = chain.operator.distance_to_root_level(node_parent)
             is_max_depth_exceeded = height >= max_depth - 1
             is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
             if is_max_depth_exceeded or is_primary_node_selected:
@@ -99,13 +64,13 @@ def replace_subtrees(chain_first: Any, chain_second: Any, node_from_first: Any, 
                      layer_in_first: int, layer_in_second: int, max_depth: int):
     node_from_chain_first_copy = deepcopy(node_from_first)
 
-    summary_depth = layer_in_first + node_depth(node_from_second)
+    summary_depth = layer_in_first + node_from_second.distance_to_primary_level
     if summary_depth <= max_depth and summary_depth != 0:
-        chain_first.replace_node_with_parents(node_from_first, node_from_second)
+        chain_first.update_subtree(node_from_first, node_from_second)
 
-    summary_depth = layer_in_second + node_depth(node_from_first)
+    summary_depth = layer_in_second + node_from_first.distance_to_primary_level
     if summary_depth <= max_depth and summary_depth != 0:
-        chain_second.replace_node_with_parents(node_from_second, node_from_chain_first_copy)
+        chain_second.update_subtree(node_from_second, node_from_chain_first_copy)
 
 
 def num_of_parents_in_crossover(num_of_final_inds: int) -> int:

@@ -1,13 +1,11 @@
-import numpy as np
-
-from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable
 from typing import List, Optional, Union
 
+from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import (Node, PrimaryNode, SecondaryNode)
+from fedot.core.chains.node import (Node, PrimaryNode)
 from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.composer.timer import Timer
@@ -36,6 +34,7 @@ class Chain:
         self.log = log
         self.template = None
         self.computation_time = None
+        self.operator = GraphOperator(self)
         if not log:
             self.log = default_log(__name__)
         else:
@@ -179,7 +178,7 @@ class Chain:
         :return: OutputData with prediction
         """
 
-        if not self.is_fitted():
+        if not self.is_fitted:
             ex = 'Trained operation cache is not actual or empty'
             self.log.error(ex)
             raise ValueError(ex)
@@ -212,102 +211,56 @@ class Chain:
         """
         Add new node to the Chain
 
-        :param new_node: new Node object
+        :param node: new Node object
         """
-        if new_node not in self.nodes:
-            self.nodes.append(new_node)
-            if new_node.nodes_from:
-                for new_parent_node in new_node.nodes_from:
-                    if new_parent_node not in self.nodes:
-                        self.add_node(new_parent_node)
-
-    def _actualise_old_node_childs(self, old_node: Node, new_node: Node):
-        old_node_offspring = self.node_childs(old_node)
-        for old_node_child in old_node_offspring:
-            old_node_child.nodes_from[old_node_child.nodes_from.index(old_node)] = new_node
-
-    def replace_node_with_parents(self, old_node: Node, new_node: Node):
-        """Exchange subtrees with old and new nodes as roots of subtrees"""
-        new_node = deepcopy(new_node)
-        self._actualise_old_node_childs(old_node, new_node)
-        self.delete_subtree(old_node)
-        self.add_node(new_node)
-        self._sort_nodes()
+        self.operator.add_node(new_node)
 
     def update_node(self, old_node: Node, new_node: Node):
-        if type(new_node) is not type(old_node):
-            raise ValueError(f"Can't update {old_node.__class__.__name__} "
-                             f"with {new_node.__class__.__name__}")
+        """
+        Replace old_node with new one.
 
-        self._actualise_old_node_childs(old_node, new_node)
-        new_node.nodes_from = old_node.nodes_from
-        self.nodes.remove(old_node)
-        self.nodes.append(new_node)
-        self._sort_nodes()
-
-    def delete_subtree(self, subtree_root_node: Node):
-        """Delete node with all the parents it has"""
-        for node_child in self.node_childs(subtree_root_node):
-            node_child.nodes_from.remove(subtree_root_node)
-        for subtree_node in subtree_root_node.ordered_subnodes_hierarchy():
-            self.nodes.remove(subtree_node)
-
-    def delete_node(self, node: Node):
-        """ This method redirects edges of parents to
-        all the childs old node had.
-        PNode    PNode              PNode    PNode
-            \  /                      |  \   / |
-            SNode <- delete this      |   \/   |
-            / \                       |   /\   |
-        SNode   SNode               SNode   SNode
+        :param old_node: Node object to replace
+        :param new_node: Node object to replace
         """
 
-        def make_secondary_node_as_primary(node_child):
-            extracted_type = node_child.operation.operation_type
-            new_primary_node = PrimaryNode(extracted_type)
-            this_node_children = self.node_childs(node_child)
-            for node in this_node_children:
-                index = node.nodes_from.index(node_child)
-                node.nodes_from.remove(node_child)
-                node.nodes_from.insert(index, new_primary_node)
+        self.operator.update_node(old_node, new_node)
 
-        node_children_cached = self.node_childs(node)
-        self_root_node_cached = self.root_node
+    def update_subtree(self, old_subroot: Node, new_subroot: Node):
+        """
+        Replace the subtrees with old and new nodes as subroots
 
-        for node_child in self.node_childs(node):
-            node_child.nodes_from.remove(node)
+        :param old_subroot: Node object to replace
+        :param new_subroot: Node object to replace
+        """
+        self.operator.update_subtree(old_subroot, new_subroot)
 
-        if isinstance(node, SecondaryNode) and len(node.nodes_from) > 1 \
-                and len(node_children_cached) > 1:
+    def delete_node(self, node: Node):
+        """
+        Delete chosen node redirecting all its parents to the child.
 
-            for child in node_children_cached:
-                for node_from in node.nodes_from:
-                    child.nodes_from.append(node_from)
+        :param node: Node object to delete
+        """
 
-        else:
-            if isinstance(node, SecondaryNode):
-                for node_from in node.nodes_from:
-                    node_children_cached[0].nodes_from.append(node_from)
-            elif isinstance(node, PrimaryNode):
-                for node_child in node_children_cached:
-                    if not node_child.nodes_from:
-                        make_secondary_node_as_primary(node_child)
-        self.nodes.clear()
-        self.add_node(self_root_node_cached)
+        self.operator.delete_node(node)
 
+    def delete_subtree(self, subroot: Node):
+        """
+        Delete the subtree with node as subroot.
+
+        :param subroot:
+        """
+        self.operator.delete_subtree(subroot)
+
+    @property
     def is_fitted(self):
         return all([(node.fitted_operation is not None) for node in self.nodes])
 
     def unfit(self):
+        """
+        Remove fitted operations for all nodes.
+        """
         for node in self.nodes:
-            node.fitted_operation = None
-
-    def node_childs(self, node) -> List[Optional[Node]]:
-        return [other_node for other_node in self.nodes if isinstance(other_node, SecondaryNode) and
-                node in other_node.nodes_from]
-
-    def _is_node_has_child(self, node) -> bool:
-        return any(self.node_childs(node))
+            node.unfit()
 
     def fit_from_cache(self, cache):
         for node in self.nodes:
@@ -317,13 +270,10 @@ class Chain:
             else:
                 node.fitted_operation = None
 
-    def _sort_nodes(self):
-        """layer by layer sorting"""
-        nodes = self.root_node.ordered_subnodes_hierarchy()
-        self.nodes = nodes
-
     def save(self, path: str):
         """
+        Save the chain to the json representation with pickled fitted operations.
+
         :param path to json file with operation
         :return: json containing a composite operation description
         """
@@ -334,6 +284,8 @@ class Chain:
 
     def load(self, path: str):
         """
+        Load the chain the json representation with pickled fitted operations.
+
         :param path to json file with operation
         """
         self.nodes = []
@@ -362,7 +314,7 @@ class Chain:
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not self._is_node_has_child(node)]
+                if not any(self.operator.node_children(node))]
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
         return root[0]

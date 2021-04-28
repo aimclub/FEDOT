@@ -103,7 +103,7 @@ def chain_second():
     new_node = SecondaryNode('dt')
     for model_type in ('knn', 'knn'):
         new_node.nodes_from.append(PrimaryNode(model_type))
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0], new_node)
+    chain.update_subtree(chain.root_node.nodes_from[0], new_node)
     return chain
 
 
@@ -132,11 +132,11 @@ def chain_fourth():
     new_node = SecondaryNode('qda')
     for model_type in ('rf', 'rf'):
         new_node.nodes_from.append(PrimaryNode(model_type))
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[1], new_node)
+    chain.update_subtree(chain.root_node.nodes_from[0].nodes_from[1], new_node)
     new_node = SecondaryNode('knn')
     for model_type in ('knn', 'knn'):
         new_node.nodes_from.append(PrimaryNode(model_type))
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0], new_node)
+    chain.update_subtree(chain.root_node.nodes_from[0].nodes_from[0], new_node)
     return chain
 
 
@@ -191,8 +191,8 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     other_chain.fit(input_data=train)
     cache.save_chain(Chain(other_chain.root_node.nodes_from[0]))
 
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0],
-                                    other_chain.root_node.nodes_from[0])
+    chain.update_subtree(chain.root_node.nodes_from[0],
+                         other_chain.root_node.nodes_from[0])
 
     nodes_with_actual_cache = [node for node in chain.nodes if node not in [chain.root_node]]
 
@@ -211,8 +211,8 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     chain.fit(input_data=train)
     cache.save_chain(chain)
     other_chain.fit(input_data=train)
-    chain.replace_node_with_parents(chain.root_node.nodes_from[0].nodes_from[0],
-                                    other_chain.root_node.nodes_from[0])
+    chain.update_subtree(chain.root_node.nodes_from[0].nodes_from[0],
+                         other_chain.root_node.nodes_from[0])
     cache.save_chain(Chain(other_chain.root_node.nodes_from[0]))
     root_parent_first = chain.root_node.nodes_from[0]
 

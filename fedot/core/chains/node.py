@@ -6,6 +6,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
+from fedot.core.chains.node_operator import NodeOperator
 
 
 class Node(ABC):
@@ -23,6 +24,7 @@ class Node(ABC):
         self.nodes_from = nodes_from
         self.log = log
         self.fitted_operation = None
+        self._operator = NodeOperator(self)
 
         if not log:
             self.log = default_log(__name__)
@@ -109,15 +111,11 @@ class Node(ABC):
         return self.__str__()
 
     def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
-        if visited is None:
-            visited = []
-        nodes = [self]
-        if self.nodes_from:
-            for parent in self.nodes_from:
-                if parent not in visited:
-                    nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+        return self._operator.ordered_subnodes_hierarchy(visited)
 
-        return nodes
+    @property
+    def distance_to_primary_level(self):
+        return self._operator.distance_to_primary_level()
 
     @property
     def custom_params(self) -> dict:

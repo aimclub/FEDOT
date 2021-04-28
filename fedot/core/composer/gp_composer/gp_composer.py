@@ -149,7 +149,7 @@ class GPComposer(Composer):
                 # TODO improve cache
                 chain.fit_from_cache(self.cache)
 
-            if not chain.is_fitted():
+            if not chain.is_fitted:
                 self.log.debug(f'Chain {chain.root_node.descriptive_id} fit started')
                 chain.fit(input_data=train_data, time_constraint=self.composer_requirements.max_chain_fit_time)
                 self.cache.save_chain(chain)

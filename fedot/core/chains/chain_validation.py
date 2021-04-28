@@ -193,7 +193,8 @@ def only_ts_specific_operations_are_primary(chain: Chain):
     for node in chain.nodes:
         if type(node) == PrimaryNode:
             if node.operation.operation_type not in ts_data_operations:
-                raise ValueError(f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+                raise ValueError(
+                    f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
 
     return True
 
