@@ -18,7 +18,7 @@ def test_parent_operator():
                                           parent_chains=[ChainTemplate(chain)])
 
     assert operator_for_history.parent_chains[0].unique_chain_id == chain.uid
-    assert operator_for_history.operator_type == 'MutationTypesEnum.simple'
+    assert operator_for_history.operator_type == 'mutation'
 
 
 def test_operators_in_history():
