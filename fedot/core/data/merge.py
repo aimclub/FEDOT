@@ -27,7 +27,7 @@ class DataMerger:
             output_data_types.append(output.data_type)
 
         # Prepare mask with predict from different parent nodes
-        if first_data_type == DataTypesEnum.table:
+        if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
             masked_features = self.prepare_parent_mask(self.outputs)
         else:
             masked_features = None
@@ -98,10 +98,14 @@ class DataMerger:
         masked_features = []
         for output in outputs:
             predicted_values = np.array(output.predict)
+            # Calculate columns
             table_shape = predicted_values.shape
 
             # Calculate columns
-            features_amount = table_shape[1]
+            if len(table_shape) == 1:
+                features_amount = 1
+            else:
+                features_amount = table_shape[1]
 
             mask = [current_flag]*features_amount
             masked_features.extend(mask)
@@ -206,7 +210,6 @@ class TargetMerger:
         # Is there is chain predict stage without target at all
         if self.outputs[0].target is None:
             return None, None
-
         # Get actions for target
         actions = [output.target_action for output in self.outputs]
         targets = [output.target for output in self.outputs]

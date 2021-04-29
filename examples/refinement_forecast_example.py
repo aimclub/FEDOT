@@ -81,8 +81,17 @@ def get_non_refinement_chain(lagged):
 
 
 def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
-                            validation_blocks=3, with_decompose=True):
-    """ Function launch example with experimental features of the FEDOT framework """
+                            validation_blocks=3, with_tuning=False,
+                            vis_with_decompose=True):
+    """ Function launch example with experimental features of the FEDOT framework
+
+    :param path_to_file: path to the csv file
+    :param len_forecast: forecast length
+    :param lagged: window size for lagged transformation
+    :param validation_blocks: amount of parts for time series validation
+    :param with_tuning: is it need to tune chains or not
+    :param vis_with_decompose: visualise part of main forecast
+    """
 
     # Read dataframe
     df = pd.read_csv(path_to_file)
@@ -105,6 +114,12 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Fit chain
     chain.fit(train_input)
 
+    if with_tuning:
+        chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                  loss_params=None,
+                                  input_data=train_input,
+                                  iterations=20)
+
     # Create data for validation
     predict_input = InputData(idx=range(0, len(time_series)),
                               features=time_series,
@@ -125,7 +140,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
     plt.plot(range(len(train_part), len(time_series)), predicted_values, label='With decomposition')
 
-    if with_decompose:
+    if vis_with_decompose:
         chain_with_main_finish.fit(train_input)
         chain_with_decompose_finish.fit(train_input)
 
@@ -141,6 +156,12 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
         plt.plot(range(len(train_part), len(time_series)), predicted_decompose, label='Residual branch forecast')
     else:
         simple_chain.fit(train_input)
+        if with_tuning:
+            simple_chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                             loss_params=None,
+                                             input_data=train_input,
+                                             iterations=20)
+
         predicted_simple = in_sample_ts_forecast(chain=simple_chain,
                                                  input_data=predict_input,
                                                  horizon=horizon)
@@ -167,4 +188,5 @@ if __name__ == '__main__':
     path = '../cases/data/time_series/economic_data_2.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
                             lagged=50,
-                            with_decompose=False)
+                            with_tuning=False,
+                            vis_with_decompose=False)
