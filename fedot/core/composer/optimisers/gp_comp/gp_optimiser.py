@@ -282,7 +282,7 @@ class GPChainOptimiser:
         simpler_equivalents = {}
         for i in sort_inds:
             is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
-            has_less_num_of_operations_than_best = len(individuals[i].nodes) < len(best_ind.nodes)
+            has_less_num_of_operations_than_best = individuals[i].length < best_ind.length
             if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
                 simpler_equivalents[i] = len(individuals[i].nodes)
         return simpler_equivalents

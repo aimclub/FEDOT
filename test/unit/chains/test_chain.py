@@ -2,7 +2,7 @@ import datetime
 import os
 import platform
 import time
-from copy import deepcopy
+from copy import copy, deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
@@ -417,3 +417,15 @@ def test_chain_fine_tune_all_nodes_correct(classification_dataset):
     is_tuning_finished = True
 
     assert is_tuning_finished
+
+
+def test_chain_copy(data_setup):
+    chain = Chain(PrimaryNode(operation_type='logit'))
+    chain_copy = copy(chain)
+    assert chain.uid != chain_copy.uid
+
+
+def test_chain_deepcopy(data_setup):
+    chain = Chain(PrimaryNode(operation_type='logit'))
+    chain_copy = deepcopy(chain)
+    assert chain.uid != chain_copy.uid
