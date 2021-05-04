@@ -1,0 +1,131 @@
+{
+    "total_chain_operations": {
+        "lagged": 3,
+        "linear": 2,
+        "dtreg": 2
+    },
+    "depth": 4,
+    "nodes": [
+        {
+            "operation_id": 2,
+            "operation_type": "lagged",
+            "operation_name": "LaggedTransformationImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "window_size": 10
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_2.pkl"
+        },
+        {
+            "operation_id": 4,
+            "operation_type": "lagged",
+            "operation_name": "LaggedTransformationImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "window_size": 10
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_4.pkl"
+        },
+        {
+            "operation_id": 3,
+            "operation_type": "linear",
+            "operation_name": "LinearRegression",
+            "custom_params": "default_params",
+            "params": {
+                "copy_X": true,
+                "fit_intercept": true,
+                "n_jobs": null,
+                "normalize": false,
+                "positive": false
+            },
+            "nodes_from": [
+                4
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_3.pkl"
+        },
+        {
+            "operation_id": 1,
+            "operation_type": "dtreg",
+            "operation_name": "DecisionTreeRegressor",
+            "custom_params": "default_params",
+            "params": {
+                "ccp_alpha": 0.0,
+                "criterion": "mse",
+                "max_depth": null,
+                "max_features": null,
+                "max_leaf_nodes": null,
+                "min_impurity_decrease": 0.0,
+                "min_impurity_split": null,
+                "min_samples_leaf": 1,
+                "min_samples_split": 2,
+                "min_weight_fraction_leaf": 0.0,
+                "random_state": null,
+                "splitter": "best"
+            },
+            "nodes_from": [
+                2,
+                3
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_1.pkl"
+        },
+        {
+            "operation_id": 6,
+            "operation_type": "lagged",
+            "operation_name": "LaggedTransformationImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "window_size": 10
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_6.pkl"
+        },
+        {
+            "operation_id": 5,
+            "operation_type": "linear",
+            "operation_name": "LinearRegression",
+            "custom_params": "default_params",
+            "params": {
+                "copy_X": true,
+                "fit_intercept": true,
+                "n_jobs": null,
+                "normalize": false,
+                "positive": false
+            },
+            "nodes_from": [
+                6
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_5.pkl"
+        },
+        {
+            "operation_id": 0,
+            "operation_type": "dtreg",
+            "operation_name": "DecisionTreeRegressor",
+            "custom_params": {
+                "max_depth": 8,
+                "min_samples_split": 7,
+                "min_samples_leaf": 6
+            },
+            "params": {
+                "ccp_alpha": 0.0,
+                "criterion": "mse",
+                "max_depth": 8,
+                "max_features": null,
+                "max_leaf_nodes": null,
+                "min_impurity_decrease": 0.0,
+                "min_impurity_split": null,
+                "min_samples_leaf": 6,
+                "min_samples_split": 7,
+                "min_weight_fraction_leaf": 0.0,
+                "random_state": null,
+                "splitter": "best"
+            },
+            "nodes_from": [
+                1,
+                5
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_0.pkl"
+        }
+    ]
+}
