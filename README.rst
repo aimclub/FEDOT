@@ -110,18 +110,18 @@ Numpy arrays, pandas data frames, and file paths can be used as sources of input
 
  metrics = auto_model.get_metrics()
 
-For more advanced approaches, please use Examples & Tutorials section
+For more advanced approaches, please use Examples & Tutorials section.
 
 Examples & Tutorials
 ====================
 
 Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
 
-* `Intro to AutoMl <./notebooks/version_03/1_intro_to_automl.ipynb>`__;
-* `Intro to FEDOT functionality <./notebooks/version_03/2_intro_to_fedot.ipynb>`__;
-* `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__;
-* `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__;
-* `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__.
+* `Intro to AutoMl <./notebooks/version_03/1_intro_to_automl.ipynb>`__
+* `Intro to FEDOT functionality <./notebooks/version_03/2_intro_to_fedot.ipynb>`__
+* `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__
+* `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__
+* `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__
 
 Notebooks are issued with the corresponding release versions. In the "notebooks" folder, you can also find examples for previous releases functionality.
 
