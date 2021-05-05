@@ -77,7 +77,7 @@ In order to work with FEDOT source code:
    $ pytest -s test
 
 
-How to use (simple approach)
+How to use
 ============================
 
 FEDOT provides a high-level API that allows you to use its capabilities in a simple way.
@@ -110,71 +110,20 @@ Numpy arrays, pandas data frames, and file paths can be used as sources of input
 
  metrics = auto_model.get_metrics()
 
-How to use (advanced approach)
-==============================
-
-The main purpose of FEDOT is to identify a suitable composite model for a given dataset.
-The model is obtained via an optimization process (we also call it 'composing') that can be configured in a more detailed way if necessary.
-Firstly, you need to prepare datasets for composing and validation and specify a task that you are going to solve:
-
-.. code-block:: python
-
- task = Task(TaskTypesEnum.classification)
- dataset_to_compose = InputData.from_csv(train_file_path, task=task)
- dataset_to_validate = InputData.from_csv(test_file_path, task=task)
-
-Then, choose a set of models that can be included in the composite model and the optimized metric function:
-
-.. code-block:: python
-
- available_model_types, _ = ModelTypesRepository().suitable_model(task_type=task.task_type)
- metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
-
-Next, you need to specify the requirements for the composer.
-In this case, a GPComposer that is based on an evolutionary algorithm is chosen.
-
-.. code-block:: python
-
- composer_requirements = GPComposerRequirements(
-   primary=available_model_types,
-   secondary=available_model_types, max_arity=3,
-   max_depth=3, pop_size=20, num_of_generations=20,
-   crossover_prob=0.8, mutation_prob=0.8, max_lead_time=20)
-
-After that you need to initialize the composer with the builder using the specified parameters:
-
-.. code-block:: python
-
- builder = GPComposerBuilder(task=task).with_requirements(composer_requirements) \
-       .with_metrics(metric_function) \
-       .with_optimiser_parameters(optimiser_parameters)
- composer = builder.build()
-
-Now you can run the optimization and obtain a composite model:
-
-.. code-block:: python
-
- chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
-                                             initial_chain=None,
-                                             composer_requirements=composer_requirements,
-                                             metrics=metric_function,
-                                             is_visualise=False)
-
-Finally, you can test the resulting model on the validation dataset:
-
-.. code-block:: python
-
- roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
-                                                         dataset_to_validate)
- print(f'Composed ROC AUC is {roc_on_valid_evo_composed}')
-
+For more advanced approaches, please use Examples & Tutorials section.
 
 Examples & Tutorials
 ====================
 
 Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
 
-* `Time series forecasting tutorial <https://github.com/nccr-itmo/FEDOT/tree/master/notebooks/time_series_forecasting/Time%20series%20forecasting%20with%20FEDOT.ipynb>`__
+* `Intro to AutoML <./notebooks/version_03/1_intro_to_automl.ipynb>`__
+* `Intro to FEDOT functionality <./notebooks/version_03/2_intro_to_fedot.ipynb>`__
+* `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__
+* `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__
+* `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__
+
+Notebooks are issued with the corresponding release versions. In the "notebooks" folder, you can also find examples for previous releases functionality.
 
 Extended examples:
 
