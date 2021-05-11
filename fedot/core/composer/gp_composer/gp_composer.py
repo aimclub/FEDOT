@@ -1,7 +1,6 @@
 import platform
 from dataclasses import dataclass
 from functools import partial
-import numpy as np
 from multiprocessing import set_start_method
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
@@ -100,14 +99,12 @@ class GPComposer(Composer):
             self.log = logger
 
     def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False,
-                      on_next_iteration_callback: Optional[Callable] = None, cv: int = None) -> Union[Chain, List[Chain]]:
+                      on_next_iteration_callback: Optional[Callable] = None) -> Union[Chain, List[Chain]]:
         """ Function for optimal chain structure searching
-
         :param data: InputData for chain composing
         :param is_visualise: is it needed to visualise
         :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
-
         :return best_chain: obtained result after composing: one chain for single-objective optimization;
             For the multi-objective case, the list of the chain is returned.
             In the list, the chains are ordered by the descending of primary metric (the first is the best)
@@ -119,19 +116,14 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        if cv is not None:
-            for i in range(cv):
-                train_data, test_data = train_test_data_setup(data,
-                                                              sample_split_ration_for_tasks[data.task.task_type])
+        train_data, test_data = train_test_data_setup(data,
+                                                      sample_split_ration_for_tasks[data.task.task_type])
+        if self.cache_path is None:
+            self.cache.clear()
         else:
-            train_data, test_data = train_test_data_setup(data,
-                                                          sample_split_ration_for_tasks[data.task.task_type])
-            if self.cache_path is None:
-                self.cache.clear()
-            else:
-                self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
+            self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
-            metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
+        metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
                                              on_next_iteration_callback=on_next_iteration_callback)
@@ -141,14 +133,6 @@ class GPComposer(Composer):
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
-
-    def cross_validation_metric(self, cv: int = 3) -> int:
-        metric = []
-
-        for i in range(cv):
-            metric.append(self.composer_metric())
-
-        return np.mean(metric)
 
     def composer_metric(self, metrics, train_data: InputData,
                         test_data: InputData, chain: Chain) -> Optional[Tuple[Any]]:
