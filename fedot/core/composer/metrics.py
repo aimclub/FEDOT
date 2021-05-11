@@ -213,3 +213,28 @@ class ComputationTime(Metric):
     @classmethod
     def get_value(cls, chain: Chain, **args) -> float:
         return chain.computation_time
+
+
+class KFoldCV(Metric):
+    def __init__(self, inner_metric: Metric, folds: int = 10):
+        self.inner_metric = inner_metric
+        self.folds = folds
+
+    def get_value(self, chain: Chain, reference_data: InputData, **args) -> float:
+        for i in range(self.folds):
+            train_data, test_data =
+
+
+    def metric(self, reference: InputData, predicted: OutputData) -> float:
+        return self.inner_metric.metric(reference, predicted)
+
+
+
+
+
+
+
+
+
+
+

@@ -238,7 +238,7 @@ def _split_time_series(data, task):
     return train_data, test_data
 
 
-def _split_table(data, task, split_ratio, with_shuffle=False):
+def _split_table(data, task, split_ratio, with_shuffle=False, random_state: int = 42):
     """ Split table data into train and test parts
 
     :param data: array with data to split (not InputData)
@@ -249,7 +249,6 @@ def _split_table(data, task, split_ratio, with_shuffle=False):
 
     if not 0. < split_ratio < 1.:
         raise ValueError('Split ratio must belong to the interval (0; 1)')
-    random_state = 42
 
     # Predictors and target
     input_features = data.features
@@ -281,12 +280,13 @@ def _split_table(data, task, split_ratio, with_shuffle=False):
 
 
 def train_test_data_setup(data: InputData, split_ratio=0.8,
-                          shuffle_flag=False) -> Tuple[InputData, InputData]:
+                          shuffle_flag=False, random_state: int = 42) -> Tuple[InputData, InputData]:
     """ Function for train and test split
 
     :param data: InputData for train and test splitting
     :param split_ratio: threshold for partitioning
     :param shuffle_flag: is data needed to be shuffled or not
+    :param random_state: controls the shuffling applied to the data before applying the split
 
     :return train_data: InputData for train
     :return test_data: InputData for validation
@@ -298,10 +298,10 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
             train_data, test_data = _split_time_series(data, task)
         elif data.data_type == DataTypesEnum.table:
             train_data, test_data = _split_table(data, task, split_ratio,
-                                                 with_shuffle=shuffle_flag)
+                                                 with_shuffle=shuffle_flag, random_state=random_state)
         else:
             train_data, test_data = _split_table(data, task, split_ratio,
-                                                 with_shuffle=shuffle_flag)
+                                                 with_shuffle=shuffle_flag, random_state=random_state)
     else:
         raise ValueError('InputData must be not empty')
 
