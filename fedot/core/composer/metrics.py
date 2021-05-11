@@ -1,11 +1,11 @@
 import sys
 from abc import abstractmethod
-from copy import copy
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
+from sklearn.model_selection import KFold
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
@@ -216,25 +216,41 @@ class ComputationTime(Metric):
 
 
 class KFoldCV(Metric):
-    def __init__(self, inner_metric: Metric, folds: int = 10):
+    def __init__(self, inner_metric: QualityMetric, folds: int = 10):
         self.inner_metric = inner_metric
         self.folds = folds
 
     def get_value(self, chain: Chain, reference_data: InputData, **args) -> float:
-        for i in range(self.folds):
-            train_data, test_data =
+        kf = KFold(n_splits=self.folds)
+        for train_idxs, test_idxs in kf.split(reference_data.features):
+            train_features, train_target = \
+                features_and_target_by_index(train_idxs, reference_data)
+            test_features, test_target = \
+                features_and_target_by_index(train_idxs, reference_data)
+            idx_for_train = np.arange(0, len(train_features))
+            train_data = InputData(idx=idx_for_train,
+                                   features=train_features,
+                                   target=train_target,
+                                   task=reference_data.task,
+                                   data_type=reference_data.data_type)
+            chain.fit(input_data=train_data)
 
+            return 0.0
+            # idx_for_predict = np.arange(0, len(test_features))
+
+            #
+            # test_data = InputData(idx=idx_for_predict,
+            #                       features=x_test,
+            #                       target=y_test,
+            #                       task=task,
+            #                       data_type=DataTypesEnum.table)
 
     def metric(self, reference: InputData, predicted: OutputData) -> float:
         return self.inner_metric.metric(reference, predicted)
 
 
+def features_and_target_by_index(index, values: InputData):
+    features = [values.features[idx] for idx in index]
+    target = [values.target[idx] for idx in index]
 
-
-
-
-
-
-
-
-
+    return np.array(features), np.array(target)
