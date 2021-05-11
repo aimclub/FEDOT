@@ -29,6 +29,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
                 chain_growth(chain, secondary_node)
 
     is_correct_chain = False
+    chain = None
     while not is_correct_chain:
         chain = chain_class()
         chain_root = secondary_node_func(operation_type=choice(requirements.secondary))
@@ -81,7 +82,7 @@ def evaluate_individuals(individuals_set, objective_function, is_multi_objective
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
     for ind_num, ind in enumerate(reversed_set):
-        ind.fitness = calculate_objective(ind, objective_function, is_multi_objective)
+        ind.fitness = calculate_objective(ind.chain, objective_function, is_multi_objective)
         if ind.fitness is None:
             individuals_set.remove(ind)
         else:
@@ -92,8 +93,9 @@ def evaluate_individuals(individuals_set, objective_function, is_multi_objective
                     individuals_set.remove(individuals_set[0])
                 break
     if len(individuals_set) == 0:
-        raise AttributeError('List became empty after incorrect individuals removing.'
-                             'It can occur because of too short model fitting time constraint')
+        raise AttributeError('List became empty after incorrect individuals removing. '
+                             'It can occur because of too short model fitting time constraint'
+                             'or chain generation errors')
 
 
 def calculate_objective(ind: Any, objective_function: Callable, is_multi_objective: bool) -> Any:

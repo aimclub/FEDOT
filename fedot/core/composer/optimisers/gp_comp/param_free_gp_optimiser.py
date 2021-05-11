@@ -63,15 +63,11 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
-        else:
-            for chain in self.population:
-                chain.parent_operators = []
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with CompositionTimer(max_lead_time=self.requirements.max_lead_time, log=self.log) as t:
-
             if self.requirements.allow_single_operations:
                 self.best_single_operation, self.requirements.primary = \
                     self._best_single_operations(objective_function, timer=t)
@@ -153,7 +149,8 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
 
-        return best
+        output = [ind.chain for ind in best] if isinstance(best, list) else best.chain
+        return output
 
     @property
     def with_elitism(self) -> bool:
@@ -207,8 +204,8 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
         suppl_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)
         best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
         fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
-        complexity_decreased = suppl_metric(best_in_offspring) < suppl_metric(
-            self.best_individual) and best_in_offspring.fitness <= self.best_individual.fitness
+        complexity_decreased = suppl_metric(best_in_offspring.chain) < suppl_metric(
+            self.best_individual.chain) and best_in_offspring.fitness <= self.best_individual.fitness
         return fitness_improved, complexity_decreased
 
     def next_population_size(self, offspring: List[Any]) -> int:

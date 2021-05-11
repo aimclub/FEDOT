@@ -186,8 +186,8 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_chain(data=data)
 
-    assert len(gp_composer_terminated_evolution.history.chains) == 1
-    assert len(gp_composer_completed_evolution.history.chains) == 2
+    assert len(gp_composer_terminated_evolution.history.individuals) == 1
+    assert len(gp_composer_completed_evolution.history.individuals) == 2
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -216,9 +216,9 @@ def test_parameter_free_composer_build_chain_correct(data_fixture, request):
 
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                        y_score=predicted_gp_composed.predict)
-    population_len = sum([len(history) for history in gp_composer.history.chains]) / len(
-        gp_composer.history.chains)
-    assert population_len != len(gp_composer.history.chains[0])
+    population_len = sum([len(history) for history in gp_composer.history.individuals]) / len(
+        gp_composer.history.individuals)
+    assert population_len != len(gp_composer.history.individuals[0])
     assert roc_on_valid_gp_composed > 0.6
 
 
@@ -278,7 +278,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     composer = builder.build()
     composer.compose_chain(data=dataset_to_compose,
                            is_visualise=True)
-    assert all([ind.depth <= 3 for ind in composer.history.chains[0]])
+    assert all([ind.chain.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimiser.max_depth == 5
 
 

@@ -31,7 +31,7 @@ def test_operators_in_history():
     assert auto_model.history is not None
     assert len(auto_model.history.parent_operators) == 3
 
-    chains_uids_from_first_gen = [c.unique_chain_id for c in auto_model.history.chains[0]]
+    chains_uids_from_first_gen = [ind.chain.unique_chain_id for ind in auto_model.history.individuals[0]]
 
     next_gen_id = 1
     ind_id = 1

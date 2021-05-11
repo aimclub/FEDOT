@@ -3,14 +3,14 @@ import random
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
-from cases.credit_scoring_problem import get_scoring_data
 
+from cases.credit_scoring_problem import get_scoring_data
 from fedot.core.chains.chain import Chain
-from fedot.core.data.data import InputData
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
+from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -22,8 +22,8 @@ np.random.seed(12)
 def results_visualization(history, composed_chains):
     visualiser = ChainVisualiser()
     visualiser.visualise_history(history)
-    visualiser.pareto_gif_create(history.archive_history, history.chains)
-    visualiser.boxplots_gif_create(history.chains)
+    visualiser.pareto_gif_create(history.archive_history, history.individuals)
+    visualiser.boxplots_gif_create(history.individuals)
     for chain_evo_composed in composed_chains:
         visualiser.visualise(chain_evo_composed)
 

@@ -5,6 +5,7 @@ from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -26,13 +27,13 @@ def regularized_population(reg_type: RegularizationTypesEnum, population: List[A
         raise ValueError(f'Required regularization type not found: {type}')
 
 
-def decremental_regularization(population: List[Any], objective_function: Callable,
+def decremental_regularization(population: List[Individual], objective_function: Callable,
                                chain_class: Any, size: Optional[int] = None, timer=None) -> List[Any]:
     size = size if size else len(population)
     additional_inds = []
     prev_nodes_ids = []
     for ind in population:
-        ind_subtrees = [node for node in ind.nodes if node != ind.root_node]
+        ind_subtrees = [node for node in ind.chain.nodes if node != ind.chain.root_node]
         subtrees = [chain_class(deepcopy(node.ordered_subnodes_hierarchy())) for node in ind_subtrees if
                     is_fitted_subtree(node, prev_nodes_ids)]
         additional_inds += subtrees
@@ -40,7 +41,7 @@ def decremental_regularization(population: List[Any], objective_function: Callab
         for add_ind in additional_inds:
             add_ind.parent_operators.append(ParentOperator(operator_type='regularization',
                                                            operator_name='decremental_regularization',
-                                                           parent_chains=[ChainTemplate(ind)]))
+                                                           parent_chains=[ChainTemplate(ind.chain)]))
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind)]
 

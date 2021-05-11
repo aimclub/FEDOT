@@ -3,12 +3,13 @@ from functools import partial
 from random import choice, randint, random
 from typing import Any
 
-from fedot.core.chains.chain import Chain, List
+from fedot.core.chains.chain import List
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.tuning.hyperparams import get_new_operation_params
 from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.log import Log
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -51,7 +52,8 @@ def will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
     return not (random() > mutation_prob or mutation_type == MutationTypesEnum.none)
 
 
-def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Chain, requirements, log: Log,
+def mutation(types: List[MutationTypesEnum], chain_generation_params,
+             ind: Individual, requirements, log: Log,
              max_depth: int = None) -> Any:
     """ Function apply mutation operator to chain """
     max_depth = max_depth if max_depth else requirements.max_depth
@@ -60,19 +62,20 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params, chain: Cha
     if will_mutation_be_applied(mutation_prob, mutation_type):
         if mutation_type in mutation_by_type:
             for _ in range(MAX_NUM_OF_ATTEMPTS):
-                new_chain = mutation_by_type[mutation_type](chain=deepcopy(chain), requirements=requirements,
+                new_chain = mutation_by_type[mutation_type](chain=deepcopy(ind.chain), requirements=requirements,
                                                             chain_generation_params=chain_generation_params,
                                                             max_depth=max_depth)
                 is_correct_chain = constraint_function(new_chain)
                 if is_correct_chain:
-                    new_chain.parent_operators.append(ParentOperator(operator_type='mutation',
-                                                                     operator_name=str(mutation_type),
-                                                                     parent_chains=[ChainTemplate(chain)]))
-                    return new_chain
+                    new_individual = Individual(new_chain)
+                    new_individual.parent_operators.append(ParentOperator(operator_type='mutation',
+                                                                          operator_name=str(mutation_type),
+                                                                          parent_chains=[ChainTemplate(ind.chain)]))
+                    return new_individual
         elif mutation_type != MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
         log.debug('Number of mutation attempts exceeded. Please check composer requirements for correctness.')
-    return deepcopy(chain)
+    return deepcopy(ind)
 
 
 def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:

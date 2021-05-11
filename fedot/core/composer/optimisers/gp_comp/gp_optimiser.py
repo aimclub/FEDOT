@@ -9,6 +9,7 @@ from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.gp_comp.gp_operators import calculate_objective, clean_operators_history, \
     duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_chain
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -125,10 +126,13 @@ class GPChainOptimiser:
         if not self.requirements.pop_size:
             self.requirements.pop_size = 10
 
-        if initial_chain and type(initial_chain) != list:
-            self.population = [deepcopy(initial_chain) for _ in range(self.requirements.pop_size)]
-        else:
-            self.population = initial_chain
+        self.population = None
+        if initial_chain:
+            if type(initial_chain) != list:
+                self.population = \
+                    [Individual(chain=deepcopy(initial_chain)) for _ in range(self.requirements.pop_size)]
+            else:
+                self.population = [Individual(chain=c) for c in initial_chain]
 
         self.history = ComposingHistory(metrics)
 
@@ -139,14 +143,10 @@ class GPChainOptimiser:
 
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
-        else:
-            for chain in self.population:
-                chain.parent_operators = []
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with CompositionTimer(log=self.log, max_lead_time=self.requirements.max_lead_time) as t:
-
             if self.requirements.allow_single_operations:
                 self.best_single_operation, self.requirements.primary = \
                     self._best_single_operations(objective_function, timer=t)
@@ -218,7 +218,8 @@ class GPChainOptimiser:
             self.log.info('Result:')
             self.log_info_about_best()
 
-        return best
+        output = [ind.chain for ind in best] if isinstance(best, list) else best.chain
+        return output
 
     @property
     def best_individual(self) -> Any:
@@ -282,9 +283,9 @@ class GPChainOptimiser:
         simpler_equivalents = {}
         for i in sort_inds:
             is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
-            has_less_num_of_operations_than_best = individuals[i].length < best_ind.length
+            has_less_num_of_operations_than_best = individuals[i].chain.length < best_ind.chain.length
             if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
-                simpler_equivalents[i] = len(individuals[i].nodes)
+                simpler_equivalents[i] = len(individuals[i].chain.nodes)
         return simpler_equivalents
 
     def reproduce(self, selected_individual_first, selected_individual_second=None) -> Tuple[Any]:
@@ -299,22 +300,20 @@ class GPChainOptimiser:
 
         new_inds = tuple([mutation(types=self.parameters.mutation_types,
                                    chain_generation_params=self.chain_generation_params,
-                                   chain=new_ind, requirements=self.requirements,
+                                   ind=new_ind, requirements=self.requirements,
                                    max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
         for ind in new_inds:
             ind.fitness = None
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
-        operation_chains = []
+        pop = []
         iter_number = 0
-        while len(operation_chains) < pop_size:
+        while len(pop) < pop_size:
             iter_number += 1
             chain = self.chain_generation_function()
             if constraint_function(chain):
-                operation_chains.append(chain)
-
-            chain.parent_operators = []
+                pop.append(Individual(chain))
 
             if iter_number > MAX_NUM_OF_GENERATED_INDS:
                 self.log.debug(
@@ -322,7 +321,7 @@ class GPChainOptimiser:
                     f'Process is stopped')
                 break
 
-        return operation_chains
+        return pop
 
     def _best_single_operations(self, objective_function: Callable, num_best: int = 7, timer=None):
         is_process_skipped = False
