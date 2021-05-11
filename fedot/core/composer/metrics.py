@@ -247,13 +247,9 @@ class KFoldCV(Metric):
             prediction = chain.predict(input_data=test_data, output_mode='labels')
             metric_folds.append(self.metric(test_data, prediction))
 
-            print(self.metric)
-
-            # print(prediction.predict[:20])
-            # print(test_data.target[:20])
-
         return np.mean(metric_folds)
 
+    @from_maximised_metric
     def metric(self, reference: InputData, predicted: OutputData) -> float:
         return self.inner_metric.metric(reference, predicted)
 
