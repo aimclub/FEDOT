@@ -3,7 +3,7 @@ from sklearn.model_selection import KFold
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.metrics import Accuracy, KFoldCV
+from fedot.core.composer.metrics import ROCAUC, KFoldCV
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -47,9 +47,10 @@ def test_sklearn_kfold_correct():
 def test_kfold_cv_metric_correct():
     source = classification_dataset()
     chain = sample_chain()
-    k_fold = KFoldCV(inner_metric=Accuracy(), folds=5)
+    k_fold = KFoldCV(inner_metric=ROCAUC(), folds=5)
 
     expected_value = 0.0
     actual_value = k_fold.get_value(chain=chain, reference_data=source)
+    print(actual_value)
 
-    assert abs(expected_value - actual_value) < 10e-9
+    assert actual_value > 0

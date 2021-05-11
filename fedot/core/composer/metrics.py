@@ -221,29 +221,38 @@ class KFoldCV(Metric):
         self.folds = folds
 
     def get_value(self, chain: Chain, reference_data: InputData, **args) -> float:
+        metric_folds = []
         kf = KFold(n_splits=self.folds)
         for train_idxs, test_idxs in kf.split(reference_data.features):
             train_features, train_target = \
                 features_and_target_by_index(train_idxs, reference_data)
             test_features, test_target = \
                 features_and_target_by_index(train_idxs, reference_data)
+
             idx_for_train = np.arange(0, len(train_features))
+            idx_for_test = np.arange(0, len(test_features))
+
             train_data = InputData(idx=idx_for_train,
                                    features=train_features,
                                    target=train_target,
                                    task=reference_data.task,
                                    data_type=reference_data.data_type)
+            test_data = InputData(idx=idx_for_test,
+                                  features=test_features,
+                                  target=test_target,
+                                  task=reference_data.task,
+                                  data_type=reference_data.data_type)
+
             chain.fit(input_data=train_data)
+            prediction = chain.predict(input_data=test_data, output_mode='labels')
+            metric_folds.append(self.metric(test_data, prediction))
 
-            return 0.0
-            # idx_for_predict = np.arange(0, len(test_features))
+            print(self.metric)
 
-            #
-            # test_data = InputData(idx=idx_for_predict,
-            #                       features=x_test,
-            #                       target=y_test,
-            #                       task=task,
-            #                       data_type=DataTypesEnum.table)
+            # print(prediction.predict[:20])
+            # print(test_data.target[:20])
+
+        return np.mean(metric_folds)
 
     def metric(self, reference: InputData, predicted: OutputData) -> float:
         return self.inner_metric.metric(reference, predicted)
