@@ -31,14 +31,15 @@ class DecomposerImplementation(DataOperationImplementation):
         # Array with masks
         masked_features = np.array(input_data.masked_features)
 
-        # TODO Implement: first parent must be "Data parent"
         # Get prediction from "Model parent"
         model_parent = 0
         prev_prediction_id = np.ravel(np.argwhere(masked_features == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
-        # Get prediction from "Data parent"
-        prev_features_id = np.ravel(np.argwhere(masked_features != model_parent))
+        # Get prediction from "Data parent" - it must be the last parent in parent list
+        masked_values = np.unique(masked_features)
+        data_parent = np.max(masked_values)
+        prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
         prev_features = features[:, prev_features_id]
 
         if is_fit_chain_stage:
