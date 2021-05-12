@@ -216,13 +216,14 @@ class ComputationTime(Metric):
 
 
 class KFoldCV(Metric):
-    def __init__(self, inner_metric: QualityMetric, folds: int = 10):
+    def __init__(self, inner_metric: [QualityMetric, Metric], folds: int = 10):
         self.inner_metric = inner_metric
         self.folds = folds
 
-    def get_value(self, chain: Chain, reference_data: InputData, **args) -> float:
+    def get_value(self, chain: Chain, reference_data: InputData) -> float:
         metric_folds = []
         kf = KFold(n_splits=self.folds)
+
         for train_idxs, test_idxs in kf.split(reference_data.features):
             train_features, train_target = \
                 features_and_target_by_index(train_idxs, reference_data)
@@ -255,7 +256,11 @@ class KFoldCV(Metric):
 
 
 def features_and_target_by_index(index, values: InputData):
-    features = [values.features[idx] for idx in index]
-    target = [values.target[idx] for idx in index]
+    features = np.array([])
+    target = np.array([])
 
-    return np.array(features), np.array(target)
+    for idx in index:
+        np.append(features, values.features[idx])
+        np.append(target, values.features[idx])
+
+    return features, target

@@ -10,6 +10,10 @@ class MetricsEnum(Enum):
     pass
 
 
+class KFoldCrossValidation(MetricsEnum):
+    pass
+
+
 class QualityMetricsEnum(MetricsEnum):
     pass
 
