@@ -37,8 +37,7 @@ class DecomposerImplementation(DataOperationImplementation):
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        masked_values = np.unique(masked_features)
-        data_parent = np.max(masked_values)
+        data_parent = np.max(masked_features)
         prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
         prev_features = features[:, prev_features_id]
 
