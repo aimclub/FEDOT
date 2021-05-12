@@ -153,6 +153,10 @@
 		"decompose": {
 			"meta": "custom_preprocessing",
 			"tags": ["non-default"]
+		},
+		"class_decompose": {
+			"meta": "custom_preprocessing",
+			"tags": ["non-default"]
 		}
 	}
 }

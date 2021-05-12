@@ -9,7 +9,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.utils import fedot_project_root
 
-from cases.credit_scoring_problem import run_credit_scoring_problem
+from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
 from cases.time_series_gapfilling_case import run_gapfilling_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment

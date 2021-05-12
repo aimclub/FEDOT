@@ -61,6 +61,9 @@ class Data:
             features = data_array[1:].T
             target = None
 
+        target = np.array(target)
+        if len(target.shape) < 2:
+            target = target.reshape((-1, 1))
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
     @staticmethod
@@ -171,17 +174,12 @@ class InputData(Data):
 
     @staticmethod
     def from_predictions(outputs: List['OutputData']):
-        if len(set([output.task.task_type for output in outputs])) > 1:
-            raise ValueError('Inconsistent task types')
-
-        task = outputs[0].task
-        data_type = outputs[0].data_type
-
-        # Update not only features but idx and target also
-        idx, features, target, masked_fs, target_action = DataMerger(outputs).merge()
+        """ Method obtain predictions from previous nodes """
+        # Update not only features but idx, target and task also
+        idx, features, target, masked_fs, target_action, task, d_type = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=data_type, masked_features=masked_fs,
+                         data_type=d_type, masked_features=masked_fs,
                          target_action=target_action)
 
     def subset(self, start: int, end: int):

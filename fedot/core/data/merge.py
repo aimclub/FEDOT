@@ -26,15 +26,15 @@ class DataMerger:
         for output in self.outputs:
             output_data_types.append(output.data_type)
 
+        # Check is all data types can be merged or not
+        if len(set(output_data_types)) > 1:
+            raise ValueError("There is no ability to merge different data types")
+
         # Prepare mask with predict from different parent nodes
         if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
             masked_features = self.prepare_parent_mask(self.outputs)
         else:
             masked_features = None
-
-        # Check is all data types can be merged or not
-        if len(set(output_data_types)) > 1:
-            raise ValueError("There is no ability to merge different data types")
 
         # Define appropriate strategy
         merge_func = merge_function_by_type.get(first_data_type)
@@ -42,9 +42,9 @@ class DataMerger:
             message = f"For data type '{first_data_type}' doesn't exist merge function"
             raise NotImplementedError(message)
         else:
-            idx, features, target, target_action = merge_func()
+            idx, features, target, target_action, task = merge_func()
 
-        return idx, features, target, masked_features, target_action
+        return idx, features, target, masked_features, target_action, task, first_data_type
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -57,12 +57,12 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target, target_action = self._merge_equal_outputs(self.outputs)
+            idx, features, target, target_action, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target, target_action = self._merge_non_equal_outputs(self.outputs,
-                                                                                 idx_list)
+            idx, features, target, target_action, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                       idx_list)
 
-        return idx, features, target, target_action
+        return idx, features, target, target_action, task
 
     def combine_datasets_ts(self):
         """ Function for combining datasets from parents to make features to
@@ -75,14 +75,14 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target, target_action = self._merge_equal_outputs(self.outputs)
+            idx, features, target, target_action, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target, target_action = self._merge_non_equal_outputs(self.outputs,
-                                                                                 idx_list)
+            idx, features, target, target_action, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                       idx_list)
 
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
-        return idx, features, target, target_action
+        return idx, features, target, target_action, task
 
     @staticmethod
     def prepare_parent_mask(outputs):
@@ -135,11 +135,12 @@ class DataMerger:
         if len(outputs) == 1:
             target = outputs[0].target
             target_action = outputs[0].target_action
+            task = outputs[0].task
         else:
             # Update target from multiple parents
-            target, target_action = TargetMerger(outputs).obtain_target()
+            target, target_action, task = TaskTargetMerger(outputs).obtain_target()
 
-        return idx, features, target, target_action
+        return idx, features, target, target_action, task
 
     @staticmethod
     def _merge_non_equal_outputs(outputs: list, idx_list: List):
@@ -180,7 +181,8 @@ class DataMerger:
         filtered_target = old_target[mask]
         features = np.array(features).T
         target_action = None
-        return common_idx, features, filtered_target, target_action
+        task = outputs[0].task
+        return common_idx, features, filtered_target, target_action, task
 
     @staticmethod
     def _check_size_equality(outputs: list):
@@ -200,38 +202,45 @@ class DataMerger:
         return are_lengths_equal, idx_list
 
 
-class TargetMerger:
+class TaskTargetMerger:
 
     def __init__(self, outputs):
         self.outputs = outputs
 
     def obtain_target(self):
         """ Method can merge different targets """
-        # Is there is chain predict stage without target at all
-        if self.outputs[0].target is None:
-            return None, None
         # Get actions for target
         actions = [output.target_action for output in self.outputs]
         targets = [output.target for output in self.outputs]
+        tasks = [output.task for output in self.outputs]
+
+        # Is there is chain predict stage without target at all
+        if self.outputs[0].target is None:
+            return None, None, tasks[0]
 
         # If all actions is empty - there is no need to merge targets
         if all(action is None for action in actions):
             target = self.outputs[0].target
+            task = self.outputs[0].task
             target_action = None
-            return target, target_action
+            return target, target_action, task
         # If there is an "ignore" action
         elif any(action == 'ignore' for action in actions):
-            target, target_action = self.ignored_merge(targets, actions)
-            return target, target_action
+            target, target_action, task = self.ignored_merge(targets, actions, tasks)
+            return target, target_action, task
 
     @staticmethod
-    def ignored_merge(targets, actions):
+    def ignored_merge(targets, actions, tasks):
         """ Method merge targets with 'ignore' labels """
         main_ids = np.ravel(np.argwhere(np.array(actions) != 'ignore'))
         targets = np.array(targets)
+        tasks = np.array(tasks)
 
-        # Get non-ignored target
+        # Get non-ignored target and task
         target = targets[main_ids]
         target = target[0, :, :]
         target_action = None
-        return target, target_action
+
+        task = tasks[main_ids]
+        task = task[0]
+        return target, target_action, task

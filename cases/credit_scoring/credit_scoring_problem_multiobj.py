@@ -3,8 +3,8 @@ import random
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
+from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 
-from cases.credit_scoring_problem import get_scoring_data
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
