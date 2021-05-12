@@ -1,0 +1,1207 @@
+{
+  "rating": 7.6,
+  "sound crew": [
+    {
+      "canonical name": "Baranowski, Bartek",
+      "name": "Bartek Baranowski",
+      "long imdb name": "Bartek Baranowski",
+      "long imdb canonical name": "Baranowski, Bartek"
+    },
+    {
+      "canonical name": "Dreamsound",
+      "name": "Dreamsound",
+      "long imdb name": "Dreamsound",
+      "long imdb canonical name": "Dreamsound"
+    },
+    {
+      "canonical name": "Fridbertsson, Agnar",
+      "name": "Agnar Fridbertsson",
+      "long imdb name": "Agnar Fridbertsson",
+      "long imdb canonical name": "Fridbertsson, Agnar"
+    },
+    {
+      "canonical name": "Gustafsson, Arni",
+      "name": "Arni Gustafsson",
+      "long imdb name": "Arni Gustafsson",
+      "long imdb canonical name": "Gustafsson, Arni"
+    },
+    {
+      "canonical name": "Jaroszewicz, Michal",
+      "name": "Michal Jaroszewicz",
+      "long imdb name": "Michal Jaroszewicz",
+      "long imdb canonical name": "Jaroszewicz, Michal"
+    },
+    {
+      "canonical name": "Juice",
+      "name": "Juice",
+      "long imdb name": "Juice",
+      "long imdb canonical name": "Juice"
+    },
+    {
+      "canonical name": "Pietrzak, Kuba",
+      "name": "Kuba Pietrzak",
+      "long imdb name": "Kuba Pietrzak",
+      "long imdb canonical name": "Pietrzak, Kuba"
+    }
+  ],
+  "camera and electrical department": [
+    {
+      "canonical name": "Agustsson, Thorir G.",
+      "name": "Thorir G. Agustsson",
+      "long imdb name": "Thorir G. Agustsson",
+      "long imdb canonical name": "Agustsson, Thorir G."
+    },
+    {
+      "canonical name": "Einarsson, \u00de\u00f3r\u00f0ur Karl",
+      "name": "\u00de\u00f3r\u00f0ur Karl Einarsson",
+      "long imdb name": "\u00de\u00f3r\u00f0ur Karl Einarsson",
+      "long imdb canonical name": "Einarsson, \u00de\u00f3r\u00f0ur Karl"
+    },
+    {
+      "canonical name": "Georgsson, Magnus Unnar",
+      "name": "Magnus Unnar Georgsson",
+      "long imdb name": "Magnus Unnar Georgsson",
+      "long imdb canonical name": "Georgsson, Magnus Unnar"
+    },
+    {
+      "canonical name": "Gudjonsson, Solvi Mar",
+      "name": "Solvi Mar Gudjonsson",
+      "long imdb name": "Solvi Mar Gudjonsson",
+      "long imdb canonical name": "Gudjonsson, Solvi Mar"
+    },
+    {
+      "canonical name": "Gudmundsdottir, Anna Gudny",
+      "name": "Anna Gudny Gudmundsdottir",
+      "long imdb name": "Anna Gudny Gudmundsdottir",
+      "long imdb canonical name": "Gudmundsdottir, Anna Gudny"
+    },
+    {
+      "canonical name": "Gu\u00f0bjartsson, \u00c1sgr\u00edmur",
+      "name": "\u00c1sgr\u00edmur Gu\u00f0bjartsson",
+      "long imdb name": "\u00c1sgr\u00edmur Gu\u00f0bjartsson",
+      "long imdb canonical name": "Gu\u00f0bjartsson, \u00c1sgr\u00edmur"
+    },
+    {
+      "canonical name": "Gu\u00f0mundsson, Gu\u00f0j\u00f3n Hrafn",
+      "name": "Gu\u00f0j\u00f3n Hrafn Gu\u00f0mundsson",
+      "long imdb name": "Gu\u00f0j\u00f3n Hrafn Gu\u00f0mundsson",
+      "long imdb canonical name": "Gu\u00f0mundsson, Gu\u00f0j\u00f3n Hrafn"
+    },
+    {
+      "canonical name": "Hinriksson, Bergur",
+      "name": "Bergur Hinriksson",
+      "long imdb name": "Bergur Hinriksson",
+      "long imdb canonical name": "Hinriksson, Bergur"
+    },
+    {
+      "canonical name": "J\u00f3hannesson, Benedikt",
+      "name": "Benedikt J\u00f3hannesson",
+      "long imdb name": "Benedikt J\u00f3hannesson",
+      "long imdb canonical name": "J\u00f3hannesson, Benedikt"
+    },
+    {
+      "canonical name": "J\u00fal\u00edusson, Eir\u00edkur",
+      "name": "Eir\u00edkur J\u00fal\u00edusson",
+      "long imdb name": "Eir\u00edkur J\u00fal\u00edusson",
+      "long imdb canonical name": "J\u00fal\u00edusson, Eir\u00edkur"
+    },
+    {
+      "canonical name": "Magnusson, Sigurdur Bahamas",
+      "name": "Sigurdur Bahamas Magnusson",
+      "long imdb name": "Sigurdur Bahamas Magnusson",
+      "long imdb canonical name": "Magnusson, Sigurdur Bahamas"
+    },
+    {
+      "canonical name": "Mendry, Adam",
+      "name": "Adam Mendry",
+      "long imdb name": "Adam Mendry",
+      "long imdb canonical name": "Mendry, Adam"
+    },
+    {
+      "canonical name": "Palmarsson, Arnar",
+      "name": "Arnar Palmarsson",
+      "long imdb name": "Arnar Palmarsson",
+      "long imdb canonical name": "Palmarsson, Arnar"
+    },
+    {
+      "canonical name": "Sob\u00f3tka, Michal",
+      "name": "Michal Sob\u00f3tka",
+      "long imdb name": "Michal Sob\u00f3tka",
+      "long imdb canonical name": "Sob\u00f3tka, Michal"
+    }
+  ],
+  "distributors": [
+    {
+      "name": "Platige Image",
+      "long imdb name": "Platige Image"
+    }
+  ],
+  "runtimes": [
+    "7"
+  ],
+  "costume designer": [
+    {
+      "canonical name": "Wedzikowska, Malwina",
+      "name": "Malwina Wedzikowska",
+      "long imdb name": "Malwina Wedzikowska",
+      "long imdb canonical name": "Wedzikowska, Malwina"
+    }
+  ],
+  "thanks": [
+    {
+      "canonical name": "Agency, European Space",
+      "name": "European Space Agency",
+      "long imdb name": "European Space Agency",
+      "long imdb canonical name": "Agency, European Space"
+    },
+    {
+      "canonical name": "Ayres, Shelley",
+      "name": "Shelley Ayres",
+      "long imdb name": "Shelley Ayres",
+      "long imdb canonical name": "Ayres, Shelley"
+    },
+    {
+      "canonical name": "Baldwin, Emily",
+      "name": "Emily Baldwin",
+      "long imdb name": "Emily Baldwin",
+      "long imdb canonical name": "Baldwin, Emily"
+    },
+    {
+      "canonical name": "Barrosa, Mariana",
+      "name": "Mariana Barrosa",
+      "long imdb name": "Mariana Barrosa",
+      "long imdb canonical name": "Barrosa, Mariana"
+    },
+    {
+      "canonical name": "Calcada, Luis",
+      "name": "Luis Calcada",
+      "long imdb name": "Luis Calcada",
+      "long imdb canonical name": "Calcada, Luis"
+    },
+    {
+      "canonical name": "Clarke, Lacyn",
+      "name": "Lacyn Clarke",
+      "long imdb name": "Lacyn Clarke",
+      "long imdb canonical name": "Clarke, Lacyn"
+    },
+    {
+      "canonical name": "Fels, Raymond",
+      "name": "Raymond Fels",
+      "long imdb name": "Raymond Fels",
+      "long imdb canonical name": "Fels, Raymond"
+    },
+    {
+      "canonical name": "Kotarba, Andrzej",
+      "name": "Andrzej Kotarba",
+      "long imdb name": "Andrzej Kotarba",
+      "long imdb canonical name": "Kotarba, Andrzej"
+    },
+    {
+      "canonical name": "Landeau-Constantin, Jocelyne",
+      "name": "Jocelyne Landeau-Constantin",
+      "long imdb name": "Jocelyne Landeau-Constantin",
+      "long imdb canonical name": "Landeau-Constantin, Jocelyne"
+    },
+    {
+      "canonical name": "Levene, Andrew",
+      "name": "Andrew Levene",
+      "long imdb name": "Andrew Levene",
+      "long imdb canonical name": "Levene, Andrew"
+    },
+    {
+      "canonical name": "McIlvride, Sorcha",
+      "name": "Sorcha McIlvride",
+      "long imdb name": "Sorcha McIlvride",
+      "long imdb canonical name": "McIlvride, Sorcha"
+    },
+    {
+      "canonical name": "Mignone, Claudia",
+      "name": "Claudia Mignone",
+      "long imdb name": "Claudia Mignone",
+      "long imdb canonical name": "Mignone, Claudia"
+    },
+    {
+      "canonical name": "O'Flaherty, Karen",
+      "name": "Karen O'Flaherty",
+      "long imdb name": "Karen O'Flaherty",
+      "long imdb canonical name": "O'Flaherty, Karen"
+    },
+    {
+      "canonical name": "Oltarzewska, Justyna",
+      "name": "Justyna Oltarzewska",
+      "long imdb name": "Justyna Oltarzewska",
+      "long imdb canonical name": "Oltarzewska, Justyna"
+    },
+    {
+      "canonical name": "Parkinson, Rose",
+      "name": "Rose Parkinson",
+      "long imdb name": "Rose Parkinson",
+      "long imdb canonical name": "Parkinson, Rose"
+    },
+    {
+      "canonical name": "Perez, Guiomar",
+      "name": "Guiomar Perez",
+      "long imdb name": "Guiomar Perez",
+      "long imdb canonical name": "Perez, Guiomar"
+    },
+    {
+      "canonical name": "Ratajczak, Milena",
+      "name": "Milena Ratajczak",
+      "long imdb name": "Milena Ratajczak",
+      "long imdb canonical name": "Ratajczak, Milena"
+    },
+    {
+      "canonical name": "Russo, Pedro",
+      "name": "Pedro Russo",
+      "long imdb name": "Pedro Russo",
+      "long imdb canonical name": "Russo, Pedro"
+    },
+    {
+      "canonical name": "Ryniecki, Milosz",
+      "name": "Milosz Ryniecki",
+      "long imdb name": "Milosz Ryniecki",
+      "long imdb canonical name": "Ryniecki, Milosz"
+    },
+    {
+      "canonical name": "Sciencenow",
+      "name": "Sciencenow",
+      "long imdb name": "Sciencenow",
+      "long imdb canonical name": "Sciencenow"
+    },
+    {
+      "canonical name": "Scienceoffice",
+      "name": "Scienceoffice",
+      "long imdb name": "Scienceoffice",
+      "long imdb canonical name": "Scienceoffice"
+    },
+    {
+      "canonical name": "Suenson, Rosita",
+      "name": "Rosita Suenson",
+      "long imdb name": "Rosita Suenson",
+      "long imdb canonical name": "Suenson, Rosita"
+    },
+    {
+      "canonical name": "Wilks, Jeremy",
+      "name": "Jeremy Wilks",
+      "long imdb name": "Jeremy Wilks",
+      "long imdb canonical name": "Wilks, Jeremy"
+    },
+    {
+      "canonical name": "Wolski, Mateusz",
+      "name": "Mateusz Wolski",
+      "long imdb name": "Mateusz Wolski",
+      "long imdb canonical name": "Wolski, Mateusz"
+    },
+    {
+      "canonical name": "Zloczewski, Kamil",
+      "name": "Kamil Zloczewski",
+      "long imdb name": "Kamil Zloczewski",
+      "long imdb canonical name": "Zloczewski, Kamil"
+    }
+  ],
+  "make up": [
+    {
+      "canonical name": "Huldis, Gudbjorg",
+      "name": "Gudbjorg Huldis",
+      "long imdb name": "Gudbjorg Huldis",
+      "long imdb canonical name": "Huldis, Gudbjorg"
+    },
+    {
+      "canonical name": "Magnusson, Aron Bergmann",
+      "name": "Aron Bergmann Magnusson",
+      "long imdb name": "Aron Bergmann Magnusson",
+      "long imdb canonical name": "Magnusson, Aron Bergmann"
+    }
+  ],
+  "year": 2014,
+  "miscellaneous crew": [
+    {
+      "canonical name": "Asmundsdottir, Erla",
+      "name": "Erla Asmundsdottir",
+      "long imdb name": "Erla Asmundsdottir",
+      "long imdb canonical name": "Asmundsdottir, Erla"
+    },
+    {
+      "canonical name": "Atlason, Axel Oli",
+      "name": "Axel Oli Atlason",
+      "long imdb name": "Axel Oli Atlason",
+      "long imdb canonical name": "Atlason, Axel Oli"
+    },
+    {
+      "canonical name": "Azarewicz, Michal",
+      "name": "Michal Azarewicz",
+      "long imdb name": "Michal Azarewicz",
+      "long imdb canonical name": "Azarewicz, Michal"
+    },
+    {
+      "canonical name": "Bill, Stanley",
+      "name": "Stanley Bill",
+      "long imdb name": "Stanley Bill",
+      "long imdb canonical name": "Bill, Stanley"
+    },
+    {
+      "canonical name": "Bjornsdottir, Ellen",
+      "name": "Ellen Bjornsdottir",
+      "long imdb name": "Ellen Bjornsdottir",
+      "long imdb canonical name": "Bjornsdottir, Ellen"
+    },
+    {
+      "canonical name": "Bujno, Sylwia",
+      "name": "Sylwia Bujno",
+      "long imdb name": "Sylwia Bujno",
+      "long imdb canonical name": "Bujno, Sylwia"
+    },
+    {
+      "canonical name": "Cyganiak, Olga",
+      "name": "Olga Cyganiak",
+      "long imdb name": "Olga Cyganiak",
+      "long imdb canonical name": "Cyganiak, Olga"
+    },
+    {
+      "canonical name": "Cyganiak, Olga",
+      "name": "Olga Cyganiak",
+      "long imdb name": "Olga Cyganiak",
+      "long imdb canonical name": "Cyganiak, Olga"
+    },
+    {
+      "canonical name": "Dabrowski, Jakub",
+      "name": "Jakub Dabrowski",
+      "long imdb name": "Jakub Dabrowski",
+      "long imdb canonical name": "Dabrowski, Jakub"
+    },
+    {
+      "canonical name": "Debski, Krzysztof",
+      "name": "Krzysztof Debski",
+      "long imdb name": "Krzysztof Debski",
+      "long imdb canonical name": "Debski, Krzysztof"
+    },
+    {
+      "canonical name": "Domaradzki, Grzegorz",
+      "name": "Grzegorz Domaradzki",
+      "long imdb name": "Grzegorz Domaradzki",
+      "long imdb canonical name": "Domaradzki, Grzegorz"
+    },
+    {
+      "canonical name": "Getka, Piotr",
+      "name": "Piotr Getka",
+      "long imdb name": "Piotr Getka",
+      "long imdb canonical name": "Getka, Piotr"
+    },
+    {
+      "canonical name": "Golba, Marta",
+      "name": "Marta Golba",
+      "long imdb name": "Marta Golba",
+      "long imdb canonical name": "Golba, Marta"
+    },
+    {
+      "canonical name": "Gronostajska, Izabela",
+      "name": "Izabela Gronostajska",
+      "long imdb name": "Izabela Gronostajska",
+      "long imdb canonical name": "Gronostajska, Izabela"
+    },
+    {
+      "canonical name": "Jagiello, Wojciech",
+      "name": "Wojciech Jagiello",
+      "long imdb name": "Wojciech Jagiello",
+      "long imdb canonical name": "Jagiello, Wojciech"
+    },
+    {
+      "canonical name": "Janisewicz, Piotr",
+      "name": "Piotr Janisewicz",
+      "long imdb name": "Piotr Janisewicz",
+      "long imdb canonical name": "Janisewicz, Piotr"
+    },
+    {
+      "canonical name": "Jonsdottir, Jona Bjorg",
+      "name": "Jona Bjorg Jonsdottir",
+      "long imdb name": "Jona Bjorg Jonsdottir",
+      "long imdb canonical name": "Jonsdottir, Jona Bjorg"
+    },
+    {
+      "canonical name": "Kruszona, Tomasz",
+      "name": "Tomasz Kruszona",
+      "long imdb name": "Tomasz Kruszona",
+      "long imdb canonical name": "Kruszona, Tomasz"
+    },
+    {
+      "canonical name": "Lempkowska, Karina",
+      "name": "Karina Lempkowska",
+      "long imdb name": "Karina Lempkowska",
+      "long imdb canonical name": "Lempkowska, Karina"
+    },
+    {
+      "canonical name": "Niemirski, Maciej",
+      "name": "Maciej Niemirski",
+      "long imdb name": "Maciej Niemirski",
+      "long imdb canonical name": "Niemirski, Maciej"
+    },
+    {
+      "canonical name": "Noworyta, Krzysztof",
+      "name": "Krzysztof Noworyta",
+      "long imdb name": "Krzysztof Noworyta",
+      "long imdb canonical name": "Noworyta, Krzysztof"
+    },
+    {
+      "canonical name": "Olewniczak, Lukasz",
+      "name": "Lukasz Olewniczak",
+      "long imdb name": "Lukasz Olewniczak",
+      "long imdb canonical name": "Olewniczak, Lukasz"
+    },
+    {
+      "canonical name": "Pohl, Kamil",
+      "name": "Kamil Pohl",
+      "long imdb name": "Kamil Pohl",
+      "long imdb canonical name": "Pohl, Kamil"
+    },
+    {
+      "canonical name": "Poloczek, Andrzej",
+      "name": "Andrzej Poloczek",
+      "long imdb name": "Andrzej Poloczek",
+      "long imdb canonical name": "Poloczek, Andrzej"
+    },
+    {
+      "canonical name": "Przywara, Aleksander",
+      "name": "Aleksander Przywara",
+      "long imdb name": "Aleksander Przywara",
+      "long imdb canonical name": "Przywara, Aleksander"
+    },
+    {
+      "canonical name": "Ragnarsson, Gudmundur",
+      "name": "Gudmundur Ragnarsson",
+      "long imdb name": "Gudmundur Ragnarsson",
+      "long imdb canonical name": "Ragnarsson, Gudmundur"
+    },
+    {
+      "canonical name": "Serbenska-Malarowska, Anna",
+      "name": "Anna Serbenska-Malarowska",
+      "long imdb name": "Anna Serbenska-Malarowska",
+      "long imdb canonical name": "Serbenska-Malarowska, Anna"
+    },
+    {
+      "canonical name": "Sigurbjornsson, Sigurbjorn",
+      "name": "Sigurbjorn Sigurbjornsson",
+      "long imdb name": "Sigurbjorn Sigurbjornsson",
+      "long imdb canonical name": "Sigurbjornsson, Sigurbjorn"
+    },
+    {
+      "canonical name": "Szulc, Lukasz",
+      "name": "Lukasz Szulc",
+      "long imdb name": "Lukasz Szulc",
+      "long imdb canonical name": "Szulc, Lukasz"
+    },
+    {
+      "canonical name": "Valkov, Atanas",
+      "name": "Atanas Valkov",
+      "long imdb name": "Atanas Valkov",
+      "long imdb canonical name": "Valkov, Atanas"
+    },
+    {
+      "canonical name": "Wancerz, Dariusz",
+      "name": "Dariusz Wancerz",
+      "long imdb name": "Dariusz Wancerz",
+      "long imdb canonical name": "Wancerz, Dariusz"
+    },
+    {
+      "canonical name": "Wlasiuk, Michal",
+      "name": "Michal Wlasiuk",
+      "long imdb name": "Michal Wlasiuk",
+      "long imdb canonical name": "Wlasiuk, Michal"
+    },
+    {
+      "canonical name": "Zajac, Tomasz",
+      "name": "Tomasz Zajac",
+      "long imdb name": "Tomasz Zajac",
+      "long imdb canonical name": "Zajac, Tomasz"
+    },
+    {
+      "canonical name": "Zak, Maciej",
+      "name": "Maciej Zak",
+      "long imdb name": "Maciej Zak",
+      "long imdb canonical name": "Zak, Maciej"
+    },
+    {
+      "canonical name": "Zuchowicz, Anna",
+      "name": "Anna Zuchowicz",
+      "long imdb name": "Anna Zuchowicz",
+      "long imdb canonical name": "Zuchowicz, Anna"
+    }
+  ],
+  "color info": [],
+  "special effects department": [
+    {
+      "canonical name": "Arnarson, Boas",
+      "name": "Boas Arnarson",
+      "long imdb name": "Boas Arnarson",
+      "long imdb canonical name": "Arnarson, Boas"
+    },
+    {
+      "canonical name": "Arnarson, Boas",
+      "name": "Boas Arnarson",
+      "long imdb name": "Boas Arnarson",
+      "long imdb canonical name": "Arnarson, Boas"
+    },
+    {
+      "canonical name": "Arnarson, Dav\u00ed\u00f0 \u00d6rn",
+      "name": "Dav\u00ed\u00f0 \u00d6rn Arnarson",
+      "long imdb name": "Dav\u00ed\u00f0 \u00d6rn Arnarson",
+      "long imdb canonical name": "Arnarson, Dav\u00ed\u00f0 \u00d6rn"
+    }
+  ],
+  "visual effects": [
+    {
+      "canonical name": "Alkmade, Karolina",
+      "name": "Karolina Alkmade",
+      "long imdb name": "Karolina Alkmade",
+      "long imdb canonical name": "Alkmade, Karolina"
+    },
+    {
+      "canonical name": "Alvarado, Stephanie",
+      "name": "Stephanie Alvarado",
+      "long imdb name": "Stephanie Alvarado",
+      "long imdb canonical name": "Alvarado, Stephanie"
+    },
+    {
+      "canonical name": "Bowen, Rigel",
+      "name": "Rigel Bowen",
+      "long imdb name": "Rigel Bowen",
+      "long imdb canonical name": "Bowen, Rigel"
+    },
+    {
+      "canonical name": "Bowen, Rigel",
+      "name": "Rigel Bowen",
+      "long imdb name": "Rigel Bowen",
+      "long imdb canonical name": "Bowen, Rigel"
+    },
+    {
+      "canonical name": "Charlicki, Marcin",
+      "name": "Marcin Charlicki",
+      "long imdb name": "Marcin Charlicki",
+      "long imdb canonical name": "Charlicki, Marcin"
+    },
+    {
+      "canonical name": "Czarnecki, Seweryn",
+      "name": "Seweryn Czarnecki",
+      "long imdb name": "Seweryn Czarnecki",
+      "long imdb canonical name": "Czarnecki, Seweryn"
+    },
+    {
+      "canonical name": "Debski, Krzysztof",
+      "name": "Krzysztof Debski",
+      "long imdb name": "Krzysztof Debski",
+      "long imdb canonical name": "Debski, Krzysztof"
+    },
+    {
+      "canonical name": "Dutkiewicz, Piotr",
+      "name": "Piotr Dutkiewicz",
+      "long imdb name": "Piotr Dutkiewicz",
+      "long imdb canonical name": "Dutkiewicz, Piotr"
+    },
+    {
+      "canonical name": "Golik, Mateusz",
+      "name": "Mateusz Golik",
+      "long imdb name": "Mateusz Golik",
+      "long imdb canonical name": "Golik, Mateusz"
+    },
+    {
+      "canonical name": "Hjorth, Peter",
+      "name": "Peter Hjorth",
+      "long imdb name": "Peter Hjorth",
+      "long imdb canonical name": "Hjorth, Peter"
+    },
+    {
+      "canonical name": "Jurgielewicz, Maciej",
+      "name": "Maciej Jurgielewicz",
+      "long imdb name": "Maciej Jurgielewicz",
+      "long imdb canonical name": "Jurgielewicz, Maciej"
+    },
+    {
+      "canonical name": "Kik, Bartlomiej",
+      "name": "Bartlomiej Kik",
+      "long imdb name": "Bartlomiej Kik",
+      "long imdb canonical name": "Kik, Bartlomiej"
+    },
+    {
+      "canonical name": "Knapik, Jakub",
+      "name": "Jakub Knapik",
+      "long imdb name": "Jakub Knapik",
+      "long imdb canonical name": "Knapik, Jakub"
+    },
+    {
+      "canonical name": "Knapik, Jakub",
+      "name": "Jakub Knapik",
+      "long imdb name": "Jakub Knapik",
+      "long imdb canonical name": "Knapik, Jakub"
+    },
+    {
+      "canonical name": "Krupa, Michal",
+      "name": "Michal Krupa",
+      "long imdb name": "Michal Krupa",
+      "long imdb canonical name": "Krupa, Michal"
+    },
+    {
+      "canonical name": "Lipiecki, Marcin",
+      "name": "Marcin Lipiecki",
+      "long imdb name": "Marcin Lipiecki",
+      "long imdb canonical name": "Lipiecki, Marcin"
+    },
+    {
+      "canonical name": "Lipinski, Sylwester",
+      "name": "Sylwester Lipinski",
+      "long imdb name": "Sylwester Lipinski",
+      "long imdb canonical name": "Lipinski, Sylwester"
+    },
+    {
+      "canonical name": "Lipstock, Jordan",
+      "name": "Jordan Lipstock",
+      "long imdb name": "Jordan Lipstock",
+      "long imdb canonical name": "Lipstock, Jordan"
+    },
+    {
+      "canonical name": "Lorenc, Pawel",
+      "name": "Pawel Lorenc",
+      "long imdb name": "Pawel Lorenc",
+      "long imdb canonical name": "Lorenc, Pawel"
+    },
+    {
+      "canonical name": "Mandes, Slawomir",
+      "name": "Slawomir Mandes",
+      "long imdb name": "Slawomir Mandes",
+      "long imdb canonical name": "Mandes, Slawomir"
+    },
+    {
+      "canonical name": "Mathia, Jakub",
+      "name": "Jakub Mathia",
+      "long imdb name": "Jakub Mathia",
+      "long imdb canonical name": "Mathia, Jakub"
+    },
+    {
+      "canonical name": "Murawski, Michal",
+      "name": "Michal Murawski",
+      "long imdb name": "Michal Murawski",
+      "long imdb canonical name": "Murawski, Michal"
+    },
+    {
+      "canonical name": "Nenow, Damian",
+      "name": "Damian Nenow",
+      "long imdb name": "Damian Nenow",
+      "long imdb canonical name": "Nenow, Damian"
+    },
+    {
+      "canonical name": "Ozger, Timucin",
+      "name": "Timucin Ozger",
+      "long imdb name": "Timucin Ozger",
+      "long imdb canonical name": "Ozger, Timucin"
+    },
+    {
+      "canonical name": "Ozger, Timucin",
+      "name": "Timucin Ozger",
+      "long imdb name": "Timucin Ozger",
+      "long imdb canonical name": "Ozger, Timucin"
+    },
+    {
+      "canonical name": "Pawlowska, Ada",
+      "name": "Ada Pawlowska",
+      "long imdb name": "Ada Pawlowska",
+      "long imdb canonical name": "Pawlowska, Ada"
+    },
+    {
+      "canonical name": "Piechnik, Pawel",
+      "name": "Pawel Piechnik",
+      "long imdb name": "Pawel Piechnik",
+      "long imdb canonical name": "Piechnik, Pawel"
+    },
+    {
+      "canonical name": "Pohl, Kamil",
+      "name": "Kamil Pohl",
+      "long imdb name": "Kamil Pohl",
+      "long imdb canonical name": "Pohl, Kamil"
+    },
+    {
+      "canonical name": "Przydatek, Andrzej",
+      "name": "Andrzej Przydatek",
+      "long imdb name": "Andrzej Przydatek",
+      "long imdb canonical name": "Przydatek, Andrzej"
+    },
+    {
+      "canonical name": "Przydatek, Tomasz",
+      "name": "Tomasz Przydatek",
+      "long imdb name": "Tomasz Przydatek",
+      "long imdb canonical name": "Przydatek, Tomasz"
+    },
+    {
+      "canonical name": "Rebisz, Maciej",
+      "name": "Maciej Rebisz",
+      "long imdb name": "Maciej Rebisz",
+      "long imdb canonical name": "Rebisz, Maciej"
+    },
+    {
+      "canonical name": "Rose, Agnieszka",
+      "name": "Agnieszka Rose",
+      "long imdb name": "Agnieszka Rose",
+      "long imdb canonical name": "Rose, Agnieszka"
+    },
+    {
+      "canonical name": "Sasim, Piotr",
+      "name": "Piotr Sasim",
+      "long imdb name": "Piotr Sasim",
+      "long imdb canonical name": "Sasim, Piotr"
+    },
+    {
+      "canonical name": "Skrzypiec, Michal",
+      "name": "Michal Skrzypiec",
+      "long imdb name": "Michal Skrzypiec",
+      "long imdb canonical name": "Skrzypiec, Michal"
+    },
+    {
+      "canonical name": "Skrzypiec, Michal",
+      "name": "Michal Skrzypiec",
+      "long imdb name": "Michal Skrzypiec",
+      "long imdb canonical name": "Skrzypiec, Michal"
+    },
+    {
+      "canonical name": "Skrzypiec, Michal",
+      "name": "Michal Skrzypiec",
+      "long imdb name": "Michal Skrzypiec",
+      "long imdb canonical name": "Skrzypiec, Michal"
+    },
+    {
+      "canonical name": "Sobisz, Lukasz",
+      "name": "Lukasz Sobisz",
+      "long imdb name": "Lukasz Sobisz",
+      "long imdb canonical name": "Sobisz, Lukasz"
+    },
+    {
+      "canonical name": "Sroka, Mateusz",
+      "name": "Mateusz Sroka",
+      "long imdb name": "Mateusz Sroka",
+      "long imdb canonical name": "Sroka, Mateusz"
+    },
+    {
+      "canonical name": "Suchodolski, Piotr",
+      "name": "Piotr Suchodolski",
+      "long imdb name": "Piotr Suchodolski",
+      "long imdb canonical name": "Suchodolski, Piotr"
+    },
+    {
+      "canonical name": "Suwalski, Tomek",
+      "name": "Tomek Suwalski",
+      "long imdb name": "Tomek Suwalski",
+      "long imdb canonical name": "Suwalski, Tomek"
+    },
+    {
+      "canonical name": "Suwalski, Tomek",
+      "name": "Tomek Suwalski",
+      "long imdb name": "Tomek Suwalski",
+      "long imdb canonical name": "Suwalski, Tomek"
+    },
+    {
+      "canonical name": "Sykut, Selim",
+      "name": "Selim Sykut",
+      "long imdb name": "Selim Sykut",
+      "long imdb canonical name": "Sykut, Selim"
+    },
+    {
+      "canonical name": "Szulc, Krzysztof",
+      "name": "Krzysztof Szulc",
+      "long imdb name": "Krzysztof Szulc",
+      "long imdb canonical name": "Szulc, Krzysztof"
+    },
+    {
+      "canonical name": "Szulc, Krzysztof",
+      "name": "Krzysztof Szulc",
+      "long imdb name": "Krzysztof Szulc",
+      "long imdb canonical name": "Szulc, Krzysztof"
+    },
+    {
+      "canonical name": "Tarpley, Gordon",
+      "name": "Gordon Tarpley",
+      "long imdb name": "Gordon Tarpley",
+      "long imdb canonical name": "Tarpley, Gordon"
+    },
+    {
+      "canonical name": "Trosinska, Elzbieta",
+      "name": "Elzbieta Trosinska",
+      "long imdb name": "Elzbieta Trosinska",
+      "long imdb canonical name": "Trosinska, Elzbieta"
+    },
+    {
+      "canonical name": "Wachnik, Tomasz",
+      "name": "Tomasz Wachnik",
+      "long imdb name": "Tomasz Wachnik",
+      "long imdb canonical name": "Wachnik, Tomasz"
+    },
+    {
+      "canonical name": "Wawrzyniak, Dominik",
+      "name": "Dominik Wawrzyniak",
+      "long imdb name": "Dominik Wawrzyniak",
+      "long imdb canonical name": "Wawrzyniak, Dominik"
+    },
+    {
+      "canonical name": "Weglarz, Mateusz",
+      "name": "Mateusz Weglarz",
+      "long imdb name": "Mateusz Weglarz",
+      "long imdb canonical name": "Weglarz, Mateusz"
+    },
+    {
+      "canonical name": "Wierzchowski, Adam",
+      "name": "Adam Wierzchowski",
+      "long imdb name": "Adam Wierzchowski",
+      "long imdb canonical name": "Wierzchowski, Adam"
+    },
+    {
+      "canonical name": "Wozniak, Marek",
+      "name": "Marek Wozniak",
+      "long imdb name": "Marek Wozniak",
+      "long imdb canonical name": "Wozniak, Marek"
+    },
+    {
+      "canonical name": "Wozniak, Waldek",
+      "name": "Waldek Wozniak",
+      "long imdb name": "Waldek Wozniak",
+      "long imdb canonical name": "Wozniak, Waldek"
+    },
+    {
+      "canonical name": "Zenkner, Juliusz",
+      "name": "Juliusz Zenkner",
+      "long imdb name": "Juliusz Zenkner",
+      "long imdb canonical name": "Zenkner, Juliusz"
+    }
+  ],
+  "votes": 484,
+  "producer": [
+    {
+      "canonical name": "Bauer, Markus",
+      "name": "Markus Bauer",
+      "long imdb name": "Markus Bauer",
+      "long imdb canonical name": "Bauer, Markus"
+    },
+    {
+      "canonical name": "Kobylecki, Marcin",
+      "name": "Marcin Kobylecki",
+      "long imdb name": "Marcin Kobylecki",
+      "long imdb canonical name": "Kobylecki, Marcin"
+    },
+    {
+      "canonical name": "McCaughrean, Mark",
+      "name": "Mark McCaughrean",
+      "long imdb name": "Mark McCaughrean",
+      "long imdb canonical name": "McCaughrean, Mark"
+    },
+    {
+      "canonical name": "Pomierny, Jan",
+      "name": "Jan Pomierny",
+      "long imdb name": "Jan Pomierny",
+      "long imdb canonical name": "Pomierny, Jan"
+    },
+    {
+      "canonical name": "Rozalska, Anna",
+      "name": "Anna Rozalska",
+      "long imdb name": "Anna Rozalska",
+      "long imdb canonical name": "Rozalska, Anna"
+    },
+    {
+      "canonical name": "Sawko, Jarek",
+      "name": "Jarek Sawko",
+      "long imdb name": "Jarek Sawko",
+      "long imdb canonical name": "Sawko, Jarek"
+    },
+    {
+      "canonical name": "Sawko, Jaroslaw",
+      "name": "Jaroslaw Sawko",
+      "long imdb name": "Jaroslaw Sawko",
+      "long imdb canonical name": "Sawko, Jaroslaw"
+    },
+    {
+      "canonical name": "Sikora, Piotr",
+      "name": "Piotr Sikora",
+      "long imdb name": "Piotr Sikora",
+      "long imdb canonical name": "Sikora, Piotr"
+    },
+    {
+      "canonical name": "Szulc, Krzysztof",
+      "name": "Krzysztof Szulc",
+      "long imdb name": "Krzysztof Szulc",
+      "long imdb canonical name": "Szulc, Krzysztof"
+    }
+  ],
+  "title": "Ambition",
+  "smart canonical title": "Ambition",
+  "writer": [
+    {
+      "canonical name": "Baginski, Tomek",
+      "name": "Tomek Baginski",
+      "long imdb name": "Tomek Baginski",
+      "long imdb canonical name": "Baginski, Tomek"
+    },
+    {
+      "canonical name": "Baginski, Tomek",
+      "name": "Tomek Baginski",
+      "long imdb name": "Tomek Baginski",
+      "long imdb canonical name": "Baginski, Tomek"
+    },
+    {
+      "canonical name": "Dukaj, Jacek",
+      "name": "Jacek Dukaj",
+      "long imdb name": "Jacek Dukaj",
+      "long imdb canonical name": "Dukaj, Jacek"
+    },
+    {
+      "canonical name": "Kuti, Afolabi",
+      "name": "Afolabi Kuti",
+      "long imdb name": "Afolabi Kuti",
+      "long imdb canonical name": "Kuti, Afolabi"
+    },
+    {
+      "canonical name": "Piatkowski, Tobiasz",
+      "name": "Tobiasz Piatkowski",
+      "long imdb name": "Tobiasz Piatkowski",
+      "long imdb canonical name": "Piatkowski, Tobiasz"
+    },
+    {
+      "canonical name": "Pomierny, Jan",
+      "name": "Jan Pomierny",
+      "long imdb name": "Jan Pomierny",
+      "long imdb canonical name": "Pomierny, Jan"
+    },
+    {
+      "canonical name": "Pomierny, Jan",
+      "name": "Jan Pomierny",
+      "long imdb name": "Jan Pomierny",
+      "long imdb canonical name": "Pomierny, Jan"
+    }
+  ],
+  "long imdb canonical title": "Ambition (III) (2014)",
+  "languages": [
+    "English"
+  ],
+  "production manager": [
+    {
+      "canonical name": "Arnarson, Larus",
+      "name": "Larus Arnarson",
+      "long imdb name": "Larus Arnarson",
+      "long imdb canonical name": "Arnarson, Larus"
+    },
+    {
+      "canonical name": "Benjaminsdottir, Ada",
+      "name": "Ada Benjaminsdottir",
+      "long imdb name": "Ada Benjaminsdottir",
+      "long imdb canonical name": "Benjaminsdottir, Ada"
+    },
+    {
+      "canonical name": "Cydorowicz, Marek",
+      "name": "Marek Cydorowicz",
+      "long imdb name": "Marek Cydorowicz",
+      "long imdb canonical name": "Cydorowicz, Marek"
+    },
+    {
+      "canonical name": "Hachoud, Tarik",
+      "name": "Tarik Hachoud",
+      "long imdb name": "Tarik Hachoud",
+      "long imdb canonical name": "Hachoud, Tarik"
+    },
+    {
+      "canonical name": "Kazimierczak, Andrzej",
+      "name": "Andrzej Kazimierczak",
+      "long imdb name": "Andrzej Kazimierczak",
+      "long imdb canonical name": "Kazimierczak, Andrzej"
+    },
+    {
+      "canonical name": "Lempkowska, Karina",
+      "name": "Karina Lempkowska",
+      "long imdb name": "Karina Lempkowska",
+      "long imdb canonical name": "Lempkowska, Karina"
+    },
+    {
+      "canonical name": "Lindsay, Jon",
+      "name": "Jon Lindsay",
+      "long imdb name": "Jon Lindsay",
+      "long imdb canonical name": "Lindsay, Jon"
+    },
+    {
+      "canonical name": "Nordfjord, Saemundur",
+      "name": "Saemundur Nordfjord",
+      "long imdb name": "Saemundur Nordfjord",
+      "long imdb canonical name": "Nordfjord, Saemundur"
+    }
+  ],
+  "editor": [
+    {
+      "canonical name": "Jagiello, Wojciech",
+      "name": "Wojciech Jagiello",
+      "long imdb name": "Wojciech Jagiello",
+      "long imdb canonical name": "Jagiello, Wojciech"
+    }
+  ],
+  "costume department": [
+    {
+      "canonical name": "Blondal, Elsa Maria",
+      "name": "Elsa Maria Blondal",
+      "long imdb name": "Elsa Maria Blondal",
+      "long imdb canonical name": "Blondal, Elsa Maria"
+    },
+    {
+      "canonical name": "Eir\u00edksd\u00f3ttir, Arnd\u00eds Ey",
+      "name": "Arnd\u00eds Ey Eir\u00edksd\u00f3ttir",
+      "long imdb name": "Arnd\u00eds Ey Eir\u00edksd\u00f3ttir",
+      "long imdb canonical name": "Eir\u00edksd\u00f3ttir, Arnd\u00eds Ey"
+    },
+    {
+      "canonical name": "Gigja, Eva Lind",
+      "name": "Eva Lind Gigja",
+      "long imdb name": "Eva Lind Gigja",
+      "long imdb canonical name": "Gigja, Eva Lind"
+    },
+    {
+      "canonical name": "Smaga, Krzysztof",
+      "name": "Krzysztof Smaga",
+      "long imdb name": "Krzysztof Smaga",
+      "long imdb canonical name": "Smaga, Krzysztof"
+    }
+  ],
+  "long imdb title": "Ambition (III) (2014)",
+  "country codes": [
+    "pl",
+    "ie",
+    "is"
+  ],
+  "language codes": [
+    "en"
+  ],
+  "cover url": "http://ia.media-imdb.com/images/M/MV5BZTBiNmY3ZWUtZTJjMS00N2NmLThlYTEtODQwNTUzYWRmZTQ2XkEyXkFqcGdeQXVyNDAyMDQzMjE@._V1._SX93_SY140_.jpg",
+  "casting department": [
+    {
+      "canonical name": "Chester, Lucy",
+      "name": "Lucy Chester",
+      "long imdb name": "Lucy Chester",
+      "long imdb canonical name": "Chester, Lucy"
+    },
+    {
+      "canonical name": "Curry, Claire",
+      "name": "Claire Curry",
+      "long imdb name": "Claire Curry",
+      "long imdb canonical name": "Curry, Claire"
+    },
+    {
+      "canonical name": "Farhall, Rebecca",
+      "name": "Rebecca Farhall",
+      "long imdb name": "Rebecca Farhall",
+      "long imdb canonical name": "Farhall, Rebecca"
+    },
+    {
+      "canonical name": "Stevens, Gail",
+      "name": "Gail Stevens",
+      "long imdb name": "Gail Stevens",
+      "long imdb canonical name": "Stevens, Gail"
+    }
+  ],
+  "plot": [
+    "The story of one of the most important space exploration endeavours of this decade. Just as Gillen's enigmatic Master encourages Franciosi's Apprentice to seek out the key to life amidst a rugged alien landscape, ESA has been on a decade-long ambitious journey of its own, to unlock the mysteries of a comet and the origins of our Solar System with its Rosetta spacecraft, hundreds of millions of kilometres from Earth. Ambition complements the ongoing communication about Rosetta and adds a \"human dimension\" to the scientific and technological achievements of the mission, which include curiosity, drive and ambition.",
+    "On a remote planet a Master watches his Apprentice carryout tests with nanotechnology as she tries to prove herself worthy of advancement."
+  ],
+  "genres": [
+    "Short",
+    "History",
+    "Mystery",
+    "Sci-Fi"
+  ],
+  "director": [
+    {
+      "canonical name": "Baginski, Tomek",
+      "name": "Tomek Baginski",
+      "long imdb name": "Tomek Baginski",
+      "long imdb canonical name": "Baginski, Tomek"
+    }
+  ],
+  "cinematographer": [
+    {
+      "canonical name": "Zielinski, Wojtek",
+      "name": "Wojtek Zielinski",
+      "long imdb name": "Wojtek Zielinski",
+      "long imdb canonical name": "Zielinski, Wojtek"
+    }
+  ],
+  "art direction": [
+    {
+      "canonical name": "Knapik, Jakub",
+      "name": "Jakub Knapik",
+      "long imdb name": "Jakub Knapik",
+      "long imdb canonical name": "Knapik, Jakub"
+    }
+  ],
+  "akas": [
+    "Ambicja::Poland (imdb display title)"
+  ],
+  "imdbIndex": "III",
+  "production companies": [
+    {
+      "name": "Platige Image",
+      "long imdb name": "Platige Image"
+    }
+  ],
+  "kind": "movie",
+  "art department": [
+    {
+      "canonical name": "Kuczmierczyk, Szymon",
+      "name": "Szymon Kuczmierczyk",
+      "long imdb name": "Szymon Kuczmierczyk",
+      "long imdb canonical name": "Kuczmierczyk, Szymon"
+    }
+  ],
+  "countries": [
+    "Poland",
+    "Ireland",
+    "Iceland"
+  ],
+  "transportation department": [
+    {
+      "canonical name": "Birgisson, Olafur",
+      "name": "Olafur Birgisson",
+      "long imdb name": "Olafur Birgisson",
+      "long imdb canonical name": "Birgisson, Olafur"
+    },
+    {
+      "canonical name": "Gretars, Halli",
+      "name": "Halli Gretars",
+      "long imdb name": "Halli Gretars",
+      "long imdb canonical name": "Gretars, Halli"
+    },
+    {
+      "canonical name": "Gudmundsson, Gudmundur",
+      "name": "Gudmundur Gudmundsson",
+      "long imdb name": "Gudmundur Gudmundsson",
+      "long imdb canonical name": "Gudmundsson, Gudmundur"
+    },
+    {
+      "canonical name": "P\u00e9tursson, Ragnar P.",
+      "name": "Ragnar P. P\u00e9tursson",
+      "long imdb name": "Ragnar P. P\u00e9tursson",
+      "long imdb canonical name": "P\u00e9tursson, Ragnar P."
+    }
+  ],
+  "plot outline": "On a remote planet a Master watches his Apprentice carryout tests with nanotechnology as she tries to prove herself worthy of advancement.",
+  "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BZTBiNmY3ZWUtZTJjMS00N2NmLThlYTEtODQwNTUzYWRmZTQ2XkEyXkFqcGdeQXVyNDAyMDQzMjE@.jpg",
+  "canonical title": "Ambition",
+  "cast": [
+    {
+      "canonical name": "Gillen, Aidan",
+      "name": "Aidan Gillen",
+      "long imdb name": "Aidan Gillen",
+      "long imdb canonical name": "Gillen, Aidan"
+    },
+    {
+      "canonical name": "Franciosi, Aisling",
+      "name": "Aisling Franciosi",
+      "long imdb name": "Aisling Franciosi",
+      "long imdb canonical name": "Franciosi, Aisling"
+    }
+  ],
+  "smart long imdb canonical title": "Ambition (III) (2014)",
+  "original music": [
+    {
+      "canonical name": "Valkov, Atanas",
+      "name": "Atanas Valkov",
+      "long imdb name": "Atanas Valkov",
+      "long imdb canonical name": "Valkov, Atanas"
+    }
+  ]
+}

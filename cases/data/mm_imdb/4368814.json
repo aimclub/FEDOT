@@ -1,0 +1,465 @@
+{
+  "rating": 7.9,
+  "camera and electrical department": [
+    {
+      "canonical name": "Acero, Ivan",
+      "name": "Ivan Acero",
+      "long imdb name": "Ivan Acero",
+      "long imdb canonical name": "Acero, Ivan"
+    },
+    {
+      "canonical name": "Baptista, Nadia",
+      "name": "Nadia Baptista",
+      "long imdb name": "Nadia Baptista",
+      "long imdb canonical name": "Baptista, Nadia"
+    },
+    {
+      "canonical name": "Connelly, Mark",
+      "name": "Mark Connelly",
+      "long imdb name": "Mark Connelly",
+      "long imdb canonical name": "Connelly, Mark"
+    },
+    {
+      "canonical name": "Griffith, Ric",
+      "name": "Ric Griffith",
+      "long imdb name": "Ric Griffith",
+      "long imdb canonical name": "Griffith, Ric"
+    },
+    {
+      "canonical name": "Jones, Ryland",
+      "name": "Ryland Jones",
+      "long imdb name": "Ryland Jones",
+      "long imdb canonical name": "Jones, Ryland"
+    },
+    {
+      "canonical name": "Maloney, Denis",
+      "name": "Denis Maloney",
+      "long imdb name": "Denis Maloney",
+      "long imdb canonical name": "Maloney, Denis"
+    },
+    {
+      "canonical name": "McManus, Alaina",
+      "name": "Alaina McManus",
+      "long imdb name": "Alaina McManus",
+      "long imdb canonical name": "McManus, Alaina"
+    },
+    {
+      "canonical name": "Meadows, Brittany",
+      "name": "Brittany Meadows",
+      "long imdb name": "Brittany Meadows",
+      "long imdb canonical name": "Meadows, Brittany"
+    },
+    {
+      "canonical name": "Montemayor, Lawrence",
+      "name": "Lawrence Montemayor",
+      "long imdb name": "Lawrence Montemayor",
+      "long imdb canonical name": "Montemayor, Lawrence"
+    },
+    {
+      "canonical name": "Neeley, Rose",
+      "name": "Rose Neeley",
+      "long imdb name": "Rose Neeley",
+      "long imdb canonical name": "Neeley, Rose"
+    },
+    {
+      "canonical name": "Oliver, Colby",
+      "name": "Colby Oliver",
+      "long imdb name": "Colby Oliver",
+      "long imdb canonical name": "Oliver, Colby"
+    },
+    {
+      "canonical name": "Parke, Andrew",
+      "name": "Andrew Parke",
+      "long imdb name": "Andrew Parke",
+      "long imdb canonical name": "Parke, Andrew"
+    },
+    {
+      "canonical name": "Rocheleau, Luke",
+      "name": "Luke Rocheleau",
+      "long imdb name": "Luke Rocheleau",
+      "long imdb canonical name": "Rocheleau, Luke"
+    },
+    {
+      "canonical name": "Schreiber, Nancy",
+      "name": "Nancy Schreiber",
+      "long imdb name": "Nancy Schreiber",
+      "long imdb canonical name": "Schreiber, Nancy"
+    },
+    {
+      "canonical name": "Smith, Aaron M.",
+      "name": "Aaron M. Smith",
+      "long imdb name": "Aaron M. Smith",
+      "long imdb canonical name": "Smith, Aaron M."
+    },
+    {
+      "canonical name": "Jr., David E. Thomas",
+      "name": "David E. Thomas Jr.",
+      "long imdb name": "David E. Thomas Jr.",
+      "long imdb canonical name": "Jr., David E. Thomas"
+    },
+    {
+      "canonical name": "Udoff, Brian",
+      "name": "Brian Udoff",
+      "long imdb name": "Brian Udoff",
+      "long imdb canonical name": "Udoff, Brian"
+    }
+  ],
+  "producer": [
+    {
+      "canonical name": "Becky, Dave",
+      "name": "Dave Becky",
+      "long imdb name": "Dave Becky",
+      "long imdb canonical name": "Becky, Dave"
+    },
+    {
+      "canonical name": "Berkowitz, Mike",
+      "name": "Mike Berkowitz",
+      "long imdb name": "Mike Berkowitz",
+      "long imdb canonical name": "Berkowitz, Mike"
+    },
+    {
+      "canonical name": "Breard, Blair",
+      "name": "Blair Breard",
+      "long imdb name": "Blair Breard",
+      "long imdb canonical name": "Breard, Blair"
+    },
+    {
+      "canonical name": "C.K., Louis",
+      "name": "Louis C.K.",
+      "long imdb name": "Louis C.K.",
+      "long imdb canonical name": "C.K., Louis"
+    },
+    {
+      "canonical name": "Cunningham, Ryan",
+      "name": "Ryan Cunningham",
+      "long imdb name": "Ryan Cunningham",
+      "long imdb canonical name": "Cunningham, Ryan"
+    },
+    {
+      "canonical name": "Skidmore, John",
+      "name": "John Skidmore",
+      "long imdb name": "John Skidmore",
+      "long imdb canonical name": "Skidmore, John"
+    }
+  ],
+  "runtimes": [
+    "66"
+  ],
+  "thanks": [
+    {
+      "canonical name": "Adlon, Pamela",
+      "name": "Pamela Adlon",
+      "long imdb name": "Pamela Adlon",
+      "long imdb canonical name": "Adlon, Pamela"
+    },
+    {
+      "canonical name": "Ali, Muhammad",
+      "name": "Muhammad Ali",
+      "long imdb name": "Muhammad Ali",
+      "long imdb canonical name": "Ali, Muhammad"
+    },
+    {
+      "canonical name": "Chatman, Vernon",
+      "name": "Vernon Chatman",
+      "long imdb name": "Vernon Chatman",
+      "long imdb canonical name": "Chatman, Vernon"
+    },
+    {
+      "canonical name": "Crawford, Terence",
+      "name": "Terence Crawford",
+      "long imdb name": "Terence Crawford",
+      "long imdb canonical name": "Crawford, Terence"
+    },
+    {
+      "canonical name": "Eget, Adam",
+      "name": "Adam Eget",
+      "long imdb name": "Adam Eget",
+      "long imdb canonical name": "Eget, Adam"
+    },
+    {
+      "canonical name": "Nichols, Mike",
+      "name": "Mike Nichols",
+      "long imdb name": "Mike Nichols",
+      "long imdb canonical name": "Nichols, Mike"
+    },
+    {
+      "canonical name": "Nichols, Mike",
+      "name": "Mike Nichols",
+      "long imdb name": "Mike Nichols",
+      "long imdb canonical name": "Nichols, Mike"
+    },
+    {
+      "canonical name": "Petersen, Otto",
+      "name": "Otto Petersen",
+      "long imdb name": "Otto Petersen",
+      "long imdb canonical name": "Petersen, Otto"
+    },
+    {
+      "canonical name": "Pinette, John",
+      "name": "John Pinette",
+      "long imdb name": "John Pinette",
+      "long imdb canonical name": "Pinette, John"
+    },
+    {
+      "canonical name": "Rivers, Joan",
+      "name": "Joan Rivers",
+      "long imdb name": "Joan Rivers",
+      "long imdb canonical name": "Rivers, Joan"
+    },
+    {
+      "canonical name": "Rock, Chris",
+      "name": "Chris Rock",
+      "long imdb name": "Chris Rock",
+      "long imdb canonical name": "Rock, Chris"
+    },
+    {
+      "canonical name": "Shandling, Garry",
+      "name": "Garry Shandling",
+      "long imdb name": "Garry Shandling",
+      "long imdb canonical name": "Shandling, Garry"
+    },
+    {
+      "canonical name": "Shore, Mitzi",
+      "name": "Mitzi Shore",
+      "long imdb name": "Mitzi Shore",
+      "long imdb canonical name": "Shore, Mitzi"
+    },
+    {
+      "canonical name": "Shore, Pauly",
+      "name": "Pauly Shore",
+      "long imdb name": "Pauly Shore",
+      "long imdb canonical name": "Shore, Pauly"
+    },
+    {
+      "canonical name": "Stern, Howard",
+      "name": "Howard Stern",
+      "long imdb name": "Howard Stern",
+      "long imdb canonical name": "Stern, Howard"
+    },
+    {
+      "canonical name": "Williams, Robin",
+      "name": "Robin Williams",
+      "long imdb name": "Robin Williams",
+      "long imdb canonical name": "Williams, Robin"
+    },
+    {
+      "canonical name": "Wills, Geoff",
+      "name": "Geoff Wills",
+      "long imdb name": "Geoff Wills",
+      "long imdb canonical name": "Wills, Geoff"
+    },
+    {
+      "canonical name": "Zachary, Brandon",
+      "name": "Brandon Zachary",
+      "long imdb name": "Brandon Zachary",
+      "long imdb canonical name": "Zachary, Brandon"
+    }
+  ],
+  "year": 2015,
+  "miscellaneous crew": [
+    {
+      "canonical name": "Bruskoff, Gabriel",
+      "name": "Gabriel Bruskoff",
+      "long imdb name": "Gabriel Bruskoff",
+      "long imdb canonical name": "Bruskoff, Gabriel"
+    },
+    {
+      "canonical name": "Cohen, Lea",
+      "name": "Lea Cohen",
+      "long imdb name": "Lea Cohen",
+      "long imdb canonical name": "Cohen, Lea"
+    },
+    {
+      "canonical name": "Crough, Thom",
+      "name": "Thom Crough",
+      "long imdb name": "Thom Crough",
+      "long imdb canonical name": "Crough, Thom"
+    },
+    {
+      "canonical name": "Jakubczyk, Colin",
+      "name": "Colin Jakubczyk",
+      "long imdb name": "Colin Jakubczyk",
+      "long imdb canonical name": "Jakubczyk, Colin"
+    },
+    {
+      "canonical name": "Maloney, Will",
+      "name": "Will Maloney",
+      "long imdb name": "Will Maloney",
+      "long imdb canonical name": "Maloney, Will"
+    },
+    {
+      "canonical name": "Miller, Ross",
+      "name": "Ross Miller",
+      "long imdb name": "Ross Miller",
+      "long imdb canonical name": "Miller, Ross"
+    },
+    {
+      "canonical name": "Newman, Andrew",
+      "name": "Andrew Newman",
+      "long imdb name": "Andrew Newman",
+      "long imdb canonical name": "Newman, Andrew"
+    },
+    {
+      "canonical name": "Wilman, Skylar A.",
+      "name": "Skylar A. Wilman",
+      "long imdb name": "Skylar A. Wilman",
+      "long imdb canonical name": "Wilman, Skylar A."
+    }
+  ],
+  "color info": [],
+  "plot": [
+    "Comedian Louis C.K. performs live at the Comedy store in LA."
+  ],
+  "genres": [
+    "Comedy"
+  ],
+  "distributors": [
+    {
+      "name": "FX Network",
+      "long imdb name": "FX Network"
+    },
+    {
+      "name": "LouisCK.net",
+      "long imdb name": "LouisCK.net"
+    }
+  ],
+  "title": "Louis C.K.: Live at the Comedy Store",
+  "smart canonical title": "Louis C.K.: Live at the Comedy Store",
+  "writer": [
+    {
+      "canonical name": "C.K, Louis",
+      "name": "Louis C.K",
+      "long imdb name": "Louis C.K",
+      "long imdb canonical name": "C.K, Louis"
+    },
+    {
+      "canonical name": "London, Jay",
+      "name": "Jay London",
+      "long imdb name": "Jay London",
+      "long imdb canonical name": "London, Jay"
+    }
+  ],
+  "long imdb canonical title": "Louis C.K.: Live at the Comedy Store (2015) (V)",
+  "languages": [
+    "English"
+  ],
+  "editor": [
+    {
+      "canonical name": "C.K., Louis",
+      "name": "Louis C.K.",
+      "long imdb name": "Louis C.K.",
+      "long imdb canonical name": "C.K., Louis"
+    }
+  ],
+  "sound crew": [
+    {
+      "canonical name": "D'Uva, Jon",
+      "name": "Jon D'Uva",
+      "long imdb name": "Jon D'Uva",
+      "long imdb canonical name": "D'Uva, Jon"
+    },
+    {
+      "canonical name": "Easterwood, Damond",
+      "name": "Damond Easterwood",
+      "long imdb name": "Damond Easterwood",
+      "long imdb canonical name": "Easterwood, Damond"
+    },
+    {
+      "canonical name": "Goldstein, Lewis",
+      "name": "Lewis Goldstein",
+      "long imdb name": "Lewis Goldstein",
+      "long imdb canonical name": "Goldstein, Lewis"
+    },
+    {
+      "canonical name": "Maas, Benjamin A.",
+      "name": "Benjamin A. Maas",
+      "long imdb name": "Benjamin A. Maas",
+      "long imdb canonical name": "Maas, Benjamin A."
+    },
+    {
+      "canonical name": "Tipp, Nick",
+      "name": "Nick Tipp",
+      "long imdb name": "Nick Tipp",
+      "long imdb canonical name": "Tipp, Nick"
+    }
+  ],
+  "long imdb title": "Louis C.K.: Live at the Comedy Store (2015) (V)",
+  "country codes": [
+    "us"
+  ],
+  "language codes": [
+    "en"
+  ],
+  "cover url": "http://ia.media-imdb.com/images/M/MV5BODJlMmIyNjEtZDQ0ZS00MGIyLWEyZmYtOTQyYTQyMWJkODhmXkEyXkFqcGdeQXVyMjQ0ODQ0MzQ@._V1._SX93_SY140_.jpg",
+  "editorial department": [
+    {
+      "canonical name": "Sansom, Gina",
+      "name": "Gina Sansom",
+      "long imdb name": "Gina Sansom",
+      "long imdb canonical name": "Sansom, Gina"
+    },
+    {
+      "canonical name": "Thompson, Troy",
+      "name": "Troy Thompson",
+      "long imdb name": "Troy Thompson",
+      "long imdb canonical name": "Thompson, Troy"
+    }
+  ],
+  "votes": 1887,
+  "director": [
+    {
+      "canonical name": "C.K., Louis",
+      "name": "Louis C.K.",
+      "long imdb name": "Louis C.K.",
+      "long imdb canonical name": "C.K., Louis"
+    }
+  ],
+  "miscellaneous companies": [
+    {
+      "name": "Comedy Cellar Staff",
+      "long imdb name": "Comedy Cellar Staff"
+    },
+    {
+      "name": "Gotham Comedy Club",
+      "long imdb name": "Gotham Comedy Club"
+    },
+    {
+      "name": "Wild Card West Boxing Club",
+      "long imdb name": "Wild Card West Boxing Club"
+    }
+  ],
+  "cinematographer": [
+    {
+      "canonical name": "Koestner, Paul",
+      "name": "Paul Koestner",
+      "long imdb name": "Paul Koestner",
+      "long imdb canonical name": "Koestner, Paul"
+    }
+  ],
+  "akas": [
+    "\u041b\u0443\u0438 \u0421.\u041a.: \u0412\u0436\u0438\u0432\u0443\u044e \u0432 Comedy Store::Russia"
+  ],
+  "aspect ratio": "1.85 : 1",
+  "kind": "video movie",
+  "countries": [
+    "USA"
+  ],
+  "plot outline": "Comedian Louis C.K. performs live at the Comedy store in LA.",
+  "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BODJlMmIyNjEtZDQ0ZS00MGIyLWEyZmYtOTQyYTQyMWJkODhmXkEyXkFqcGdeQXVyMjQ0ODQ0MzQ@.jpg",
+  "canonical title": "Louis C.K.: Live at the Comedy Store",
+  "cast": [
+    {
+      "canonical name": "C.K., Louis",
+      "name": "Louis C.K.",
+      "long imdb name": "Louis C.K.",
+      "long imdb canonical name": "C.K., Louis"
+    },
+    {
+      "canonical name": "London, Jay",
+      "name": "Jay London",
+      "long imdb name": "Jay London",
+      "long imdb canonical name": "London, Jay"
+    }
+  ],
+  "smart long imdb canonical title": "Louis C.K.: Live at the Comedy Store (2015) (V)"
+}

@@ -1,0 +1,584 @@
+{
+  "music department": [
+    {
+      "canonical name": "Huillet, Olivier",
+      "name": "Olivier Huillet",
+      "long imdb name": "Olivier Huillet",
+      "long imdb canonical name": "Huillet, Olivier"
+    }
+  ],
+  "camera and electrical department": [
+    {
+      "canonical name": "Boucart, Nicolas",
+      "name": "Nicolas Boucart",
+      "long imdb name": "Nicolas Boucart",
+      "long imdb canonical name": "Boucart, Nicolas"
+    },
+    {
+      "canonical name": "Chausson, Fanny",
+      "name": "Fanny Chausson",
+      "long imdb name": "Fanny Chausson",
+      "long imdb canonical name": "Chausson, Fanny"
+    }
+  ],
+  "distributors": [
+    {
+      "name": "CineHub",
+      "long imdb name": "CineHub"
+    },
+    {
+      "name": "Eurozoom",
+      "long imdb name": "Eurozoom"
+    },
+    {
+      "name": "Maison Motion",
+      "long imdb name": "Maison Motion"
+    },
+    {
+      "name": "O'Brother Distribution",
+      "long imdb name": "O'Brother Distribution"
+    }
+  ],
+  "rating": 6.4,
+  "runtimes": [
+    "100"
+  ],
+  "costume designer": [
+    {
+      "canonical name": "Dubien, Claire",
+      "name": "Claire Dubien",
+      "long imdb name": "Claire Dubien",
+      "long imdb canonical name": "Dubien, Claire"
+    }
+  ],
+  "make up": [
+    {
+      "canonical name": "Li\u00e9nard, Elodie",
+      "name": "Elodie Li\u00e9nard",
+      "long imdb name": "Elodie Li\u00e9nard",
+      "long imdb canonical name": "Li\u00e9nard, Elodie"
+    }
+  ],
+  "year": 2014,
+  "production design": [
+    {
+      "canonical name": "Colson, Laurie",
+      "name": "Laurie Colson",
+      "long imdb name": "Laurie Colson",
+      "long imdb canonical name": "Colson, Laurie"
+    }
+  ],
+  "miscellaneous crew": [
+    {
+      "canonical name": "Jooris, Eric",
+      "name": "Eric Jooris",
+      "long imdb name": "Eric Jooris",
+      "long imdb canonical name": "Jooris, Eric"
+    },
+    {
+      "canonical name": "Moyne, Maxence",
+      "name": "Maxence Moyne",
+      "long imdb name": "Maxence Moyne",
+      "long imdb canonical name": "Moyne, Maxence"
+    },
+    {
+      "canonical name": "Rousseaux, Rachel",
+      "name": "Rachel Rousseaux",
+      "long imdb name": "Rachel Rousseaux",
+      "long imdb canonical name": "Rousseaux, Rachel"
+    }
+  ],
+  "production companies": [
+    {
+      "name": "Versus Production",
+      "long imdb name": "Versus Production"
+    },
+    {
+      "name": "Les Films du Worso",
+      "long imdb name": "Les Films du Worso"
+    },
+    {
+      "name": "Forum Films",
+      "long imdb name": "Forum Films"
+    },
+    {
+      "name": "Radio T\u00e9l\u00e9vision Belge Francophone (RTBF)",
+      "long imdb name": "Radio T\u00e9l\u00e9vision Belge Francophone (RTBF)"
+    },
+    {
+      "name": "Belgacom",
+      "long imdb name": "Belgacom"
+    },
+    {
+      "name": "Centre du Cin\u00e9ma et de l'Audiovisuel de la Communaut\u00e9 Fran\u00e7aise de Belgique",
+      "long imdb name": "Centre du Cin\u00e9ma et de l'Audiovisuel de la Communaut\u00e9 Fran\u00e7aise de Belgique"
+    },
+    {
+      "name": "F\u00e9d\u00e9ration Wallonie-Bruxelles",
+      "long imdb name": "F\u00e9d\u00e9ration Wallonie-Bruxelles"
+    },
+    {
+      "name": "VOO",
+      "long imdb name": "VOO"
+    },
+    {
+      "name": "La Wallonie",
+      "long imdb name": "La Wallonie"
+    },
+    {
+      "name": "Inver Invest",
+      "long imdb name": "Inver Invest"
+    },
+    {
+      "name": "Le Tax Shelter du Gouvernement F\u00e9d\u00e9ral de Belgique",
+      "long imdb name": "Le Tax Shelter du Gouvernement F\u00e9d\u00e9ral de Belgique"
+    },
+    {
+      "name": "Soci\u00e9t\u00e9 de D\u00e9veloppement des Entreprises Culturelles (SODEC)",
+      "long imdb name": "Soci\u00e9t\u00e9 de D\u00e9veloppement des Entreprises Culturelles (SODEC)"
+    },
+    {
+      "name": "T\u00e9l\u00e9film Canada",
+      "long imdb name": "T\u00e9l\u00e9film Canada"
+    },
+    {
+      "name": "Technicolor Creative Services Montreal",
+      "long imdb name": "Technicolor Creative Services Montreal"
+    },
+    {
+      "name": "Canal+",
+      "long imdb name": "Canal+"
+    },
+    {
+      "name": "Cin\u00e9+",
+      "long imdb name": "Cin\u00e9+"
+    },
+    {
+      "name": "O'Brother Distribution",
+      "long imdb name": "O'Brother Distribution"
+    },
+    {
+      "name": "Axia Films",
+      "long imdb name": "Axia Films"
+    },
+    {
+      "name": "Kyoudai Box",
+      "long imdb name": "Kyoudai Box"
+    },
+    {
+      "name": "MEDIA Programme of the European Union",
+      "long imdb name": "MEDIA Programme of the European Union"
+    },
+    {
+      "name": "Versus Production",
+      "long imdb name": "Versus Production"
+    }
+  ],
+  "color info": [],
+  "visual effects": [
+    {
+      "canonical name": "Abolins, Maris",
+      "name": "Maris Abolins",
+      "long imdb name": "Maris Abolins",
+      "long imdb canonical name": "Abolins, Maris"
+    },
+    {
+      "canonical name": "Brayer, Jonathan",
+      "name": "Jonathan Brayer",
+      "long imdb name": "Jonathan Brayer",
+      "long imdb canonical name": "Brayer, Jonathan"
+    },
+    {
+      "canonical name": "Ferland, Jean-Fran\u00e7ois",
+      "name": "Jean-Fran\u00e7ois Ferland",
+      "long imdb name": "Jean-Fran\u00e7ois Ferland",
+      "long imdb canonical name": "Ferland, Jean-Fran\u00e7ois"
+    },
+    {
+      "canonical name": "Nadeau, Catherine",
+      "name": "Catherine Nadeau",
+      "long imdb name": "Catherine Nadeau",
+      "long imdb canonical name": "Nadeau, Catherine"
+    },
+    {
+      "canonical name": "Pakalns, Andris",
+      "name": "Andris Pakalns",
+      "long imdb name": "Andris Pakalns",
+      "long imdb canonical name": "Pakalns, Andris"
+    },
+    {
+      "canonical name": "P\u00e9loquin, Olivier",
+      "name": "Olivier P\u00e9loquin",
+      "long imdb name": "Olivier P\u00e9loquin",
+      "long imdb canonical name": "P\u00e9loquin, Olivier"
+    },
+    {
+      "canonical name": "Simoneau, Perceval",
+      "name": "Perceval Simoneau",
+      "long imdb name": "Perceval Simoneau",
+      "long imdb canonical name": "Simoneau, Perceval"
+    },
+    {
+      "canonical name": "Therrien, Julie",
+      "name": "Julie Therrien",
+      "long imdb name": "Julie Therrien",
+      "long imdb canonical name": "Therrien, Julie"
+    },
+    {
+      "canonical name": "Tu, Jay",
+      "name": "Jay Tu",
+      "long imdb name": "Jay Tu",
+      "long imdb canonical name": "Tu, Jay"
+    },
+    {
+      "canonical name": "Wang, Yuanyuan",
+      "name": "Yuanyuan Wang",
+      "long imdb name": "Yuanyuan Wang",
+      "long imdb canonical name": "Wang, Yuanyuan"
+    },
+    {
+      "canonical name": "Zhang, Yi",
+      "name": "Yi Zhang",
+      "long imdb name": "Yi Zhang",
+      "long imdb canonical name": "Zhang, Yi"
+    },
+    {
+      "canonical name": "Zhou, Qi",
+      "name": "Qi Zhou",
+      "long imdb name": "Qi Zhou",
+      "long imdb canonical name": "Zhou, Qi"
+    }
+  ],
+  "votes": 1000,
+  "producer": [
+    {
+      "canonical name": "Bronckart, Jacques-Henri",
+      "name": "Jacques-Henri Bronckart",
+      "long imdb name": "Jacques-Henri Bronckart",
+      "long imdb canonical name": "Bronckart, Jacques-Henri"
+    },
+    {
+      "canonical name": "Bronckart, Olivier",
+      "name": "Olivier Bronckart",
+      "long imdb name": "Olivier Bronckart",
+      "long imdb canonical name": "Bronckart, Olivier"
+    },
+    {
+      "canonical name": "Lalonde, Richard",
+      "name": "Richard Lalonde",
+      "long imdb name": "Richard Lalonde",
+      "long imdb canonical name": "Lalonde, Richard"
+    },
+    {
+      "canonical name": "Pialat, Sylvie",
+      "name": "Sylvie Pialat",
+      "long imdb name": "Sylvie Pialat",
+      "long imdb canonical name": "Pialat, Sylvie"
+    }
+  ],
+  "title": "Tokyo Fianc\u00e9e",
+  "assistant director": [
+    {
+      "canonical name": "Furukata, Asako",
+      "name": "Asako Furukata",
+      "long imdb name": "Asako Furukata",
+      "long imdb canonical name": "Furukata, Asako"
+    },
+    {
+      "canonical name": "Wery, Val\u00e9rie",
+      "name": "Val\u00e9rie Wery",
+      "long imdb name": "Val\u00e9rie Wery",
+      "long imdb canonical name": "Wery, Val\u00e9rie"
+    }
+  ],
+  "writer": [
+    {
+      "canonical name": "Nothomb, Am\u00e9lie",
+      "name": "Am\u00e9lie Nothomb",
+      "long imdb name": "Am\u00e9lie Nothomb",
+      "long imdb canonical name": "Nothomb, Am\u00e9lie"
+    },
+    {
+      "canonical name": "Liberski, Stefan",
+      "name": "Stefan Liberski",
+      "long imdb name": "Stefan Liberski",
+      "long imdb canonical name": "Liberski, Stefan"
+    }
+  ],
+  "long imdb canonical title": "Tokyo Fianc\u00e9e (2014)",
+  "languages": [
+    "French",
+    "Japanese",
+    "English"
+  ],
+  "production manager": [
+    {
+      "canonical name": "Casse, Sophie",
+      "name": "Sophie Casse",
+      "long imdb name": "Sophie Casse",
+      "long imdb canonical name": "Casse, Sophie"
+    },
+    {
+      "canonical name": "Jardon, George",
+      "name": "George Jardon",
+      "long imdb name": "George Jardon",
+      "long imdb canonical name": "Jardon, George"
+    }
+  ],
+  "editor": [
+    {
+      "canonical name": "Broos, Fr\u00e9d\u00e9rique",
+      "name": "Fr\u00e9d\u00e9rique Broos",
+      "long imdb name": "Fr\u00e9d\u00e9rique Broos",
+      "long imdb canonical name": "Broos, Fr\u00e9d\u00e9rique"
+    }
+  ],
+  "certificates": [
+    "Hong Kong:III"
+  ],
+  "sound crew": [
+    {
+      "canonical name": "Bergeron, St\u00e9phane",
+      "name": "St\u00e9phane Bergeron",
+      "long imdb name": "St\u00e9phane Bergeron",
+      "long imdb canonical name": "Bergeron, St\u00e9phane"
+    },
+    {
+      "canonical name": "Caron, Jo",
+      "name": "Jo Caron",
+      "long imdb name": "Jo Caron",
+      "long imdb canonical name": "Caron, Jo"
+    },
+    {
+      "canonical name": "Chabbert, Julien",
+      "name": "Julien Chabbert",
+      "long imdb name": "Julien Chabbert",
+      "long imdb canonical name": "Chabbert, Julien"
+    },
+    {
+      "canonical name": "Col, Paul Lucien",
+      "name": "Paul Lucien Col",
+      "long imdb name": "Paul Lucien Col",
+      "long imdb canonical name": "Col, Paul Lucien"
+    },
+    {
+      "canonical name": "Francoeur, Guy",
+      "name": "Guy Francoeur",
+      "long imdb name": "Guy Francoeur",
+      "long imdb canonical name": "Francoeur, Guy"
+    },
+    {
+      "canonical name": "Ouellette, Laurent",
+      "name": "Laurent Ouellette",
+      "long imdb name": "Laurent Ouellette",
+      "long imdb canonical name": "Ouellette, Laurent"
+    },
+    {
+      "canonical name": "Rivest, Christian",
+      "name": "Christian Rivest",
+      "long imdb name": "Christian Rivest",
+      "long imdb canonical name": "Rivest, Christian"
+    },
+    {
+      "canonical name": "Rivest, Christian",
+      "name": "Christian Rivest",
+      "long imdb name": "Christian Rivest",
+      "long imdb canonical name": "Rivest, Christian"
+    }
+  ],
+  "long imdb title": "Tokyo Fianc\u00e9e (2014)",
+  "country codes": [
+    "fr",
+    "ca",
+    "be"
+  ],
+  "language codes": [
+    "fr",
+    "ja",
+    "en"
+  ],
+  "cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ4ODNmMjctZDA0Yy00ZjIwLWIzOTQtOGUyYjg3OTdlZjAwXkEyXkFqcGdeQXVyNDc2MTA2NDg@._V1._SX99_SY140_.jpg",
+  "special effects companies": [
+    {
+      "name": "Alchemy 24",
+      "long imdb name": "Alchemy 24"
+    }
+  ],
+  "genres": [
+    "Comedy",
+    "Drama",
+    "Romance"
+  ],
+  "director": [
+    {
+      "canonical name": "Liberski, Stefan",
+      "name": "Stefan Liberski",
+      "long imdb name": "Stefan Liberski",
+      "long imdb canonical name": "Liberski, Stefan"
+    }
+  ],
+  "miscellaneous companies": [
+    {
+      "name": "Dada Studios",
+      "long imdb name": "Dada Studios"
+    },
+    {
+      "name": "Key Grip Systems",
+      "long imdb name": "Key Grip Systems"
+    }
+  ],
+  "cinematographer": [
+    {
+      "canonical name": "Alaouie, Hichame",
+      "name": "Hichame Alaouie",
+      "long imdb name": "Hichame Alaouie",
+      "long imdb canonical name": "Alaouie, Hichame"
+    }
+  ],
+  "akas": [
+    "Il fascino indiscreto dell'amore::Italy (imdb display title)",
+    "Romance en Tokio::Spain (imdb display title)"
+  ],
+  "location management": [
+    {
+      "canonical name": "Goffin, Catherine",
+      "name": "Catherine Goffin",
+      "long imdb name": "Catherine Goffin",
+      "long imdb canonical name": "Goffin, Catherine"
+    }
+  ],
+  "kind": "movie",
+  "countries": [
+    "France",
+    "Canada",
+    "Belgium"
+  ],
+  "plot outline": "A young Japanophile Belgian woman in Tokyo falls into a whirlwind romance with a Francophile Japanese student.",
+  "plot": [
+    "A young Japanophile Belgian woman in Tokyo falls into a whirlwind romance with a Francophile Japanese student."
+  ],
+  "full-size cover url": "http://ia.media-imdb.com/images/M/MV5BMTQ4ODNmMjctZDA0Yy00ZjIwLWIzOTQtOGUyYjg3OTdlZjAwXkEyXkFqcGdeQXVyNDc2MTA2NDg@.jpg",
+  "canonical title": "Tokyo Fianc\u00e9e",
+  "cast": [
+    {
+      "canonical name": "Etienne, Pauline",
+      "name": "Pauline Etienne",
+      "long imdb name": "Pauline Etienne",
+      "long imdb canonical name": "Etienne, Pauline"
+    },
+    {
+      "canonical name": "Inoue, Taichi",
+      "name": "Taichi Inoue",
+      "long imdb name": "Taichi Inoue",
+      "long imdb canonical name": "Inoue, Taichi"
+    },
+    {
+      "canonical name": "LeBreton, Julie",
+      "name": "Julie LeBreton",
+      "long imdb name": "Julie LeBreton",
+      "long imdb canonical name": "LeBreton, Julie"
+    },
+    {
+      "canonical name": "de Lencquesaing, Alice",
+      "name": "Alice de Lencquesaing",
+      "long imdb name": "Alice de Lencquesaing",
+      "long imdb canonical name": "de Lencquesaing, Alice"
+    },
+    {
+      "canonical name": "Ota, Akimi",
+      "name": "Akimi Ota",
+      "long imdb name": "Akimi Ota",
+      "long imdb canonical name": "Ota, Akimi"
+    },
+    {
+      "canonical name": "Kageyama, Hiroki",
+      "name": "Hiroki Kageyama",
+      "long imdb name": "Hiroki Kageyama",
+      "long imdb canonical name": "Kageyama, Hiroki"
+    },
+    {
+      "canonical name": "Yokoi, Tokio",
+      "name": "Tokio Yokoi",
+      "long imdb name": "Tokio Yokoi",
+      "long imdb canonical name": "Yokoi, Tokio"
+    },
+    {
+      "canonical name": "Asai, Hiromi",
+      "name": "Hiromi Asai",
+      "long imdb name": "Hiromi Asai",
+      "long imdb canonical name": "Asai, Hiromi"
+    },
+    {
+      "canonical name": "Kasahara, Shinnosuke",
+      "name": "Shinnosuke Kasahara",
+      "long imdb name": "Shinnosuke Kasahara",
+      "long imdb canonical name": "Kasahara, Shinnosuke"
+    },
+    {
+      "canonical name": "Watanabe, Masaki",
+      "name": "Masaki Watanabe",
+      "long imdb name": "Masaki Watanabe",
+      "long imdb canonical name": "Watanabe, Masaki"
+    },
+    {
+      "canonical name": "Suzuki, Miho",
+      "name": "Miho Suzuki",
+      "long imdb name": "Miho Suzuki",
+      "long imdb canonical name": "Suzuki, Miho"
+    },
+    {
+      "canonical name": "Win, Tan",
+      "name": "Tan Win",
+      "long imdb name": "Tan Win",
+      "long imdb canonical name": "Win, Tan"
+    }
+  ],
+  "smart long imdb canonical title": "Tokyo Fianc\u00e9e (2014)",
+  "original music": [
+    {
+      "canonical name": "Liberski, Casimir",
+      "name": "Casimir Liberski",
+      "long imdb name": "Casimir Liberski",
+      "long imdb canonical name": "Liberski, Casimir"
+    }
+  ],
+  "editorial department": [
+    {
+      "canonical name": "Cadieux, Pierre",
+      "name": "Pierre Cadieux",
+      "long imdb name": "Pierre Cadieux",
+      "long imdb canonical name": "Cadieux, Pierre"
+    },
+    {
+      "canonical name": "Combette, Jean-Baptiste",
+      "name": "Jean-Baptiste Combette",
+      "long imdb name": "Jean-Baptiste Combette",
+      "long imdb canonical name": "Combette, Jean-Baptiste"
+    },
+    {
+      "canonical name": "Gamache, Milaine",
+      "name": "Milaine Gamache",
+      "long imdb name": "Milaine Gamache",
+      "long imdb canonical name": "Gamache, Milaine"
+    },
+    {
+      "canonical name": "Gaudry, Eric",
+      "name": "Eric Gaudry",
+      "long imdb name": "Eric Gaudry",
+      "long imdb canonical name": "Gaudry, Eric"
+    },
+    {
+      "canonical name": "Guadagnino, St\u00e9fanie",
+      "name": "St\u00e9fanie Guadagnino",
+      "long imdb name": "St\u00e9fanie Guadagnino",
+      "long imdb canonical name": "Guadagnino, St\u00e9fanie"
+    },
+    {
+      "canonical name": "Mass\u00e9, Fran\u00e7ois",
+      "name": "Fran\u00e7ois Mass\u00e9",
+      "long imdb name": "Fran\u00e7ois Mass\u00e9",
+      "long imdb canonical name": "Mass\u00e9, Fran\u00e7ois"
+    }
+  ],
+  "smart canonical title": "Tokyo Fianc\u00e9e"
+}
