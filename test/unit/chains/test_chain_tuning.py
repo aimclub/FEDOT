@@ -9,7 +9,8 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.chains.tuning.unified import ChainTuner
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 

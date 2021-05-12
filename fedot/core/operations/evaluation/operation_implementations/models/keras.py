@@ -1,14 +1,14 @@
-import numpy as np
 import os
-import tensorflow as tf
 from typing import Optional
 
+import numpy as np
+import tensorflow as tf
 from sklearn import preprocessing
 
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log, default_log
-from fedot.core.data.data import InputData, OutputData
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -74,7 +74,9 @@ def fit_cnn(train_data: InputData,
     if transform_flag:
         logger.warn('Train data set was not scaled. The data was divided by 255.')
 
-    transformed_x_train = np.expand_dims(x_train, -1)
+    if len(x_train.shape) < 4:
+        transformed_x_train = np.expand_dims(x_train, -1)
+
     le = preprocessing.OneHotEncoder()
     y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
 
@@ -119,7 +121,7 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
         if predict_data.num_classes < 2:
             logger.error('Data set contain only 1 target class. Please reformat your data.')
             raise NotImplementedError()
-        elif predict_data.num_classes == 2 and output_mode != 'full_probs':
+        elif predict_data.num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
             prediction = prediction[:, 1]
     else:
         raise ValueError(f'Output model {output_mode} is not supported')
@@ -147,7 +149,7 @@ class CustomCNNImplementation(ModelImplementation):
             self.model = cnn_model_dict[self.params['architecture_type']](input_shape=self.params['image_shape'],
                                                                           num_classes=self.params['num_classes'])
         else:
-            self.params = {**params, **self.params}
+            self.params = {**self.params, **params}
             self.model = None
 
     def fit(self, train_data):

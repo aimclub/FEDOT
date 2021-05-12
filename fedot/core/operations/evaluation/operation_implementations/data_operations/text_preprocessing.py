@@ -1,15 +1,14 @@
 import re
+from typing import Optional
 
 import nltk
 import numpy as np
-
-from typing import Optional
-
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationImplementation
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
+
+from fedot.core.operations.evaluation.operation_implementations. \
+    implementation_interfaces import DataOperationImplementation
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class TextCleanImplementation(DataOperationImplementation):
@@ -67,6 +66,9 @@ class TextCleanImplementation(DataOperationImplementation):
 
     @staticmethod
     def _word_vectorize(text):
+        if isinstance(text, np.ndarray):
+            # occurrs when node with text preprocessing is not primary
+            text = text[0]
         words = nltk.word_tokenize(text)
 
         return words

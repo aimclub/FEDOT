@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 
+import numpy as np
 import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
@@ -177,19 +178,20 @@ def test_chain_template_to_json_correctly():
 def test_fitted_chain_cache_correctness_after_export_and_import():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
+    test_data = InputData.from_csv(test_file_path)
 
-    chain = Chain(PrimaryNode('logit'))
+    chain = create_classification_chain_with_preprocessing()
     chain.fit(train_data)
-
     chain.save('test_fitted_chain_cache_correctness_after_export_and_import')
+    prediction = chain.predict(test_data)
 
-    json_path_load = create_correct_path('test_fitted_chain_cache_correctness_after_export_and_import')
     new_chain = Chain()
-    new_chain.load(json_path_load)
+    new_chain.load(create_correct_path('test_fitted_chain_cache_correctness_after_export_and_import'))
 
-    results = new_chain.fit(train_data)
+    new_prediction = new_chain.predict(test_data)
 
-    assert results is not None
+    assert np.array_equal(prediction.predict, new_prediction.predict)
+    assert new_chain.is_fitted
 
 
 def test_import_json_to_chain_correctly():

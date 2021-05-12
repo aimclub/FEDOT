@@ -2,13 +2,14 @@ import os
 
 import numpy as np
 import pandas as pd
-
 import pytest
 from sklearn.datasets import load_iris
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_classification import get_image_classification_data
 
 
@@ -136,3 +137,44 @@ def test_data_from_image():
     assert dataset_to_validate.data_type == DataTypesEnum.image
     assert type(dataset_to_validate.features) == np.ndarray
     assert type(dataset_to_validate.target) == np.ndarray
+
+
+def test_data_from_json():
+    # several features
+    files_path = os.path.join('test', 'data', 'multi_modal')
+    path = os.path.join(str(fedot_project_root()), files_path)
+    data = InputData.from_json_files(path, fields_to_use=['votes', 'year'],
+                                     label='rating', task=Task(TaskTypesEnum.regression))
+    assert data.features.shape[1] == 2  # check there is two features
+    assert len(data.target) == data.features.shape[0] == len(data.idx)
+
+    # single feature
+    data = InputData.from_json_files(path, fields_to_use=['votes'],
+                                     label='rating', task=Task(TaskTypesEnum.regression))
+    assert len(data.features.shape) == 1  # check there is one feature
+    assert len(data.target) == len(data.features) == len(data.idx)
+
+
+def test_multi_modal_data():
+    num_samples = 5
+    target = np.asarray([0, 0, 1, 0, 1])
+    img_data = InputData(idx=range(num_samples),
+                         features=None,  # in test the real data is not passed
+                         target=target,
+                         data_type=DataTypesEnum.text,
+                         task=Task(TaskTypesEnum.classification))
+    tbl_data = InputData(idx=range(num_samples),
+                         features=None,  # in test the real data is not passed
+                         target=target,
+                         data_type=DataTypesEnum.table,
+                         task=Task(TaskTypesEnum.classification))
+
+    multi_modal = MultiModalData({
+        'data_source_img': img_data,
+        'data_source_table': tbl_data,
+    })
+
+    assert multi_modal.task.task_type == TaskTypesEnum.classification
+    assert len(multi_modal.idx) == 5
+    assert multi_modal.num_classes == 2
+    assert np.array_equal(multi_modal.target, target)

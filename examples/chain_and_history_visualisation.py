@@ -1,6 +1,7 @@
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
 from fedot.core.composer.composing_history import ComposingHistory
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.visualisation import ChainVisualiser
 
 
@@ -34,7 +35,7 @@ def generate_history(generations, pop_size):
         for idx in range(pop_size):
             chain = chain_first()
             chain.fitness = 1 / (gen * idx + 1)
-            new_pop.append(chain)
+            new_pop.append(Individual(chain))
         history.add_to_history(new_pop)
     return history
 

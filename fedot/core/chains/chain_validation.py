@@ -26,6 +26,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_final_operation_as_model(chain)
     has_no_conflicts_with_data_flow(chain)
     has_no_conflicts_in_decompose(chain)
+    has_correct_data_connections(chain)
 
     # TSForecasting specific task validations
     if is_chain_contains_ts_operations(chain) is True:
@@ -123,6 +124,36 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     return True
 
 
+def has_correct_data_connections(chain: Chain):
+    """ Check if the chain contains incorrect connections between operation for different data types """
+    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    models_repo = OperationTypesRepository(repository_name='model_repository.json')
+
+    for node in chain.nodes:
+        parent_nodes = node.nodes_from
+
+        if parent_nodes is not None and len(parent_nodes) > 0:
+            for parent_node in parent_nodes:
+                current_nodes_supported_data_types = \
+                    get_supported_data_types(node, operation_repo, models_repo)
+                parent_node_supported_data_types = \
+                    get_supported_data_types(parent_node, operation_repo, models_repo)
+
+                node_dtypes = set(current_nodes_supported_data_types.input_types)
+                parent_dtypes = set(parent_node_supported_data_types.output_types)
+                if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
+                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect data connections')
+
+    return True
+
+
+def get_supported_data_types(node, operation_repo, models_repo):
+    supported_data_types = operation_repo.operation_info_by_id(node.operation.operation_type)
+    if supported_data_types is None:
+        supported_data_types = models_repo.operation_info_by_id(node.operation.operation_type)
+    return supported_data_types
+
+
 def is_chain_contains_ts_operations(chain: Chain):
     """ Function checks is the model contains operations for time series
     forecasting """
@@ -150,7 +181,7 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
                                            tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')
-    ts_data_operations.remove('exog')
+    ts_data_operations.remove('exog_ts_data_source')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],

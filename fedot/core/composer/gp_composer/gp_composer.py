@@ -17,7 +17,9 @@ from fedot.core.composer.optimisers.gp_comp.operators.inheritance import Genetic
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup, train_test_multi_modal_data_setup
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
@@ -25,7 +27,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-sample_split_ration_for_tasks = {
+sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
     TaskTypesEnum.regression: 0.8,
     TaskTypesEnum.ts_forecasting: 0.5
@@ -100,7 +102,7 @@ class GPComposer(Composer):
         else:
             self.log = logger
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False,
+    def compose_chain(self, data: Union[InputData, MultiModalData], is_visualise: bool = False, is_tune: bool = False,
                       on_next_iteration_callback: Optional[Callable] = None) -> Union[Chain, List[Chain]]:
         """ Function for optimal chain structure searching
         :param data: InputData for chain composing
@@ -119,13 +121,15 @@ class GPComposer(Composer):
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
         if self.composer_requirements.cv_folds is not None:
+            if isinstance(data, MultiModalData):
+                raise NotImplementedError('Cross-validation is not supported for multi-modal data')
             self.log.info("KFolds cross validation for chain composing was applied.")
             metric_function_for_nodes = partial(cross_validation, data,
                                                 self.composer_requirements.cv_folds, self.metrics)
         else:
             self.log.info("Hold out validation for chain composing was applied.")
-            train_data, test_data = train_test_data_setup(data,
-                                                          sample_split_ration_for_tasks[data.task.task_type])
+            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
+            train_data, test_data = train_test_setup_for_dataset(data, split_ratio)
             metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:
@@ -142,8 +146,10 @@ class GPComposer(Composer):
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
 
-    def composer_metric(self, metrics, train_data: InputData,
-                        test_data: InputData, chain: Chain) -> Optional[Tuple[Any]]:
+    def composer_metric(self, metrics,
+                        train_data: Union[InputData, MultiModalData],
+                        test_data: Union[InputData, MultiModalData],
+                        chain: Chain) -> Optional[Tuple[Any]]:
         try:
             validate(chain)
             chain.log = self.log
@@ -157,8 +163,12 @@ class GPComposer(Composer):
 
             if not chain.is_fitted:
                 self.log.debug(f'Chain {chain.root_node.descriptive_id} fit started')
-                chain.fit(input_data=train_data, time_constraint=self.composer_requirements.max_chain_fit_time)
-                self.cache.save_chain(chain)
+                chain.fit(input_data=train_data,
+                          time_constraint=self.composer_requirements.max_chain_fit_time)
+                try:
+                    self.cache.save_chain(chain)
+                except Exception as ex:
+                    self.log.info(f'Cache can not be saved: {ex}. Continue.')
 
             evaluated_metrics = ()
             for metric in metrics:
@@ -278,3 +288,25 @@ class GPComposerBuilder:
         self._composer.optimiser = optimiser
 
         return self._composer
+
+
+def train_test_setup_for_dataset(dataset: Union[InputData, MultiModalData], split_ratio=0.8,
+                                 shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
+                                                              Union[InputData, MultiModalData]]:
+    """ Function for train and test split
+
+    :param dataset: dataset for train and test splitting
+    :param split_ratio: threshold for partitioning
+    :param shuffle_flag: is data needed to be shuffled or not
+
+    :return train_data: data for train
+    :return test_data: data for validation
+    """
+    if isinstance(dataset, InputData):
+        train_data, test_data = train_test_data_setup(dataset, split_ratio, shuffle_flag)
+    elif isinstance(dataset, MultiModalData):
+        train_data, test_data = train_test_multi_modal_data_setup(dataset, split_ratio, shuffle_flag)
+    else:
+        raise ValueError(f'Dataset {type(dataset)} is not supported')
+
+    return train_data, test_data

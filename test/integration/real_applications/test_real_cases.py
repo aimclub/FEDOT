@@ -1,20 +1,20 @@
 import os
 import random
-import numpy as np
-
 from datetime import timedelta
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.tuning.unified import ChainTuner
-from fedot.core.utils import fedot_project_root
+import numpy as np
+from sklearn.metrics import mean_squared_error
 
 from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
-from cases.time_series_gapfilling_case import run_gapfilling_case
+from cases.multi_modal_rating_prediction import run_multi_modal_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from cases.spam_detection import run_text_problem_from_saved_meta_file
-from sklearn.metrics import mean_squared_error
+from cases.time_series_gapfilling_case import run_gapfilling_case
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.utils import fedot_project_root
 
 random.seed(1)
 np.random.seed(1)
@@ -93,3 +93,9 @@ def test_spam_detection_problem():
 
     # Classification task based on text data
     run_text_problem_from_saved_meta_file(file_path_train)
+
+
+def test_multi_modal_case():
+    """ Simple launch of  multi modal case """
+    # Classification task based on text data
+    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True)

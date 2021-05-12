@@ -1,14 +1,37 @@
 {
 	"metadata":{
+		"data_sources": {
+			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+			"accepted_node_types": [
+				"PrimaryNode"
+			],
+			"forbidden_node_types": "[]",
+			"strategies": [
+				"fedot.core.operations.evaluation.data_source",
+				"DataSourceStrategy"
+			],
+			"tags": [
+				"non-default"
+			],
+			"description": "Implementations of data sources in multi-modal pipelines"
+		},
 		"custom_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
-			"accepted_node_types": ["any"],
+			"accepted_node_types": [
+				"any"
+			],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
-			"tags": ["sklearn"],
-			"description": "Implementations of the preprocessing from scikit-learn framework"},
+			"strategies": [
+				"fedot.core.operations.evaluation.common_preprocessing",
+				"CustomPreprocessingStrategy"
+			],
+			"tags": [
+				"sklearn"
+			],
+			"description": "Implementations of the preprocessing from scikit-learn framework"
+		},
 		"sklearn_categorical": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
 			"input_type": "[DataTypesEnum.table]",
@@ -73,7 +96,27 @@
 			"description": "Preprocessing operations for text classification"
 		}
 	},
-	"operations":{
+	"operations": {
+		"data_source_img": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.image]",
+			"output_type": "[DataTypesEnum.image]"
+		},
+		"data_source_text": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.text]",
+			"output_type": "[DataTypesEnum.text]"
+		},
+		"data_source_table": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]"
+		},
+		"data_source_ts": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.ts]",
+			"output_type": "[DataTypesEnum.ts]"
+		},
 		"scaling": {
 			"meta": "custom_preprocessing",
 			"tags": ["simple"]
@@ -132,19 +175,34 @@
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["affects_target", "dimensionality_transforming", "ts_specific"]
+			"tags": [
+				"affects_target",
+				"dimensionality_transforming",
+				"ts_specific"
+			]
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "smoothing", "ts_specific"]
+			"tags": [
+				"simple",
+				"smoothing",
+				"ts_specific"
+			]
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "smoothing", "ts_specific"]
+			"tags": [
+				"simple",
+				"smoothing",
+				"ts_specific"
+			]
 		},
-		"exog": {
+		"exog_ts_data_source": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "ts_specific"]
+			"tags": [
+				"simple",
+				"ts_specific"
+			]
 		},
 		"text_clean": {
 			"meta": "text_preprocessing",

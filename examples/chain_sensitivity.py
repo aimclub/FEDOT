@@ -7,7 +7,8 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPCom
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.composer.visualisation import ChainVisualiser
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
     RegressionMetricsEnum

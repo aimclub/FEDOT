@@ -11,7 +11,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 @dataclass
 class OperationMetaInfo:
-
     id: str
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
@@ -77,8 +76,12 @@ class OperationTypesRepository:
             metadata = metadata_json[properties['meta']]
 
             task_types = eval_field_str(metadata['tasks'])
-            input_type = eval_field_str(metadata['input_type'])
-            output_type = eval_field_str(metadata['output_type'])
+            input_type = eval_field_str(properties['input_type']) \
+                if ('input_type' in properties) \
+                else eval_field_str(metadata['input_type'])
+            output_type = eval_field_str(properties['output_type']) \
+                if ('output_type' in properties) \
+                else eval_field_str(metadata['output_type'])
 
             # Get available strategies for obtained metadata
             supported_strategies = self.get_strategies_by_metadata(metadata)
@@ -135,6 +138,8 @@ class OperationTypesRepository:
     def operation_info_by_id(self, operation_id: str) -> Optional[OperationMetaInfo]:
         """ Get operation by it's name (id) """
 
+        operation_id = get_operation_type_from_id(operation_id)
+
         operations_with_id = [m for m in self._repo if m.id == operation_id]
         if len(operations_with_id) > 1:
             raise ValueError('Several operations with same id in repository')
@@ -169,12 +174,15 @@ class OperationTypesRepository:
                 forbidden_tags.append(excluded_default_tag)
 
         if task_type is None:
-            operations_info = [m for m in self._repo if (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
-                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
+            operations_info = [m for m in self._repo if
+                               (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
+                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
+                                                                                         False))]
         else:
             operations_info = [m for m in self._repo if task_type in m.task_type and
                                (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
-                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags, False))]
+                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
+                                                                                         False))]
         return [m.id for m in operations_info], operations_info
 
     @property
@@ -226,10 +234,10 @@ def get_operations_for_task(task: Task, mode='all'):
     """
 
     # Get models from repository
-    model_types, _ = OperationTypesRepository('model_repository.json')\
+    model_types, _ = OperationTypesRepository('model_repository.json') \
         .suitable_operation(task.task_type)
     # Get data operations
-    data_operation_types, _ = OperationTypesRepository('data_operation_repository.json')\
+    data_operation_types, _ = OperationTypesRepository('data_operation_repository.json') \
         .suitable_operation(task.task_type)
 
     # Unit two lists
@@ -270,3 +278,23 @@ def get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
         return ts_operations
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
+
+
+def get_operation_type_from_id(operation_id):
+    operation_type = _operation_name_without_postfix(operation_id)
+    return operation_type
+
+
+def _operation_name_without_postfix(operation_id):
+    """
+    :param operation_id: operation name with optional postfix - text after / sign
+    :return: operation type - all characters before postfix (all characters if no postfix found)
+    """
+    postfix_sign = '/'
+    # if the operation id has custom postfix
+    if postfix_sign in operation_id:
+        if operation_id.count(postfix_sign) > 1:
+            raise ValueError(f'Incorrect number of postfixes in {operation_id}')
+        return operation_id.split('/')[0]
+    else:
+        return operation_id

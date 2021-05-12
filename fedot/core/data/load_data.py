@@ -1,3 +1,5 @@
+import glob
+import json
 import os
 from abc import ABC, abstractmethod
 
@@ -6,10 +8,11 @@ import pandas as pd
 
 class BatchLoader(ABC):
     """ Class for loading data with batches """
-    def __init__(self, path: str):
+
+    def __init__(self, path: str, label='label'):
         self.path = path
         self.meta_df = None
-        self.target_name = 'label'
+        self.target_name = label
 
     @abstractmethod
     def extract(self) -> pd.DataFrame:
@@ -78,3 +81,60 @@ class TextBatchLoader(BatchLoader):
             self.export_to_csv()
 
         return self.meta_df
+
+
+class JSONBatchLoader(BatchLoader):
+    """ Class for loading json data with batches """
+
+    def __init__(self, path: str, label: str, fields_to_use: list):
+        self.fields_to_use = fields_to_use
+        if os.path.isfile(path):
+            raise ValueError('Expected directory path but got file')
+        super().__init__(path, label)
+
+    def extract(self, export: bool = False):
+        self._extract_files_paths(extension='json')
+
+        dict_list = []
+        labels = []
+        for file_path in self.meta_df['file_path'].tolist():
+            with open(file_path, 'r') as text_file:
+                content = text_file.read()
+                content_dict = json.loads(content)
+                dict_list.append(content_dict)
+                try:
+                    label = content_dict[self.target_name]
+                except KeyError:
+                    print(file_path)
+                    label = None
+                labels.append(label)
+
+        self.meta_df[self.target_name] = pd.Series(data=labels, index=self.meta_df.index)
+
+        for field in self.fields_to_use:
+            # generate feature column for each extracted field
+            new_feature = pd.Series(data=[d[field] for d in dict_list], index=self.meta_df.index)
+            # add column with name 'field' and value 'new_feature'
+            # to the features data frame after 'file_path' column
+            self.meta_df.insert(loc=self.meta_df.columns.get_loc('file_path'),
+                                column=field, value=new_feature)
+        # remove redunant column with file path
+        self.meta_df = self.meta_df.drop(['file_path'], axis=1)
+
+        if export:
+            self.export_to_csv()
+
+        return self.meta_df
+
+    def _extract_files_paths(self, extension: str = ''):
+        all_files = []
+        path = os.path.join(self.path, f'*.{extension}') if extension else self.path
+        for files in glob.glob(path):
+            files_paths = []
+            name = os.path.basename(files)
+            if not name.startswith('.'):
+                files_paths.append(files)
+
+            if files:
+                all_files.extend(files_paths)
+        self._load_to_meta_df(all_files)

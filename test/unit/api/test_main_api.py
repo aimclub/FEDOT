@@ -7,7 +7,8 @@ from sklearn.model_selection import train_test_split
 from fedot.api.main import Fedot, _define_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data

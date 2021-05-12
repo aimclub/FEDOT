@@ -1,7 +1,8 @@
 import pandas as pd
 
 from fedot.api.main import Fedot
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
@@ -49,7 +50,7 @@ def run_regression_example():
 
 
 def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
-    train_data_path = f'{fedot_project_root()}/notebooks/jupyter_media/intro/salaries.csv'
+    train_data_path = f'{fedot_project_root()}/notebooks/data/salaries.csv'
 
     target = pd.read_csv(train_data_path)['target']
 

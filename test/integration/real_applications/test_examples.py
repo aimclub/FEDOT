@@ -10,6 +10,7 @@ from examples.chain_log import run_log_example
 from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
 from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
                                         run_ts_forecasting_example)
+from examples.multi_modal_chain import run_multi_modal_chain
 from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
@@ -95,3 +96,8 @@ def test_api_example():
 
     pareto = run_classification_multiobj_example()
     assert pareto is not None
+
+
+def test_multi_modal_example():
+    result = run_multi_modal_chain(files_path='cases/data/mm_imdb', is_visualise=False)
+    assert result > 0
