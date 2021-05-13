@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 
 from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.merge import DataMerger
@@ -306,6 +307,43 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
         raise ValueError('InputData must be not empty')
 
     return train_data, test_data
+
+
+def train_test_data_generator(data: InputData, folds: int):
+    kf = KFold(n_splits=folds)
+
+    for train_idxs, test_idxs in kf.split(data.features):
+        train_features, train_target = \
+            _features_and_target_by_index(train_idxs, data)
+        test_features, test_target = \
+            _features_and_target_by_index(train_idxs, data)
+
+        idx_for_train = np.arange(0, len(train_features))
+        idx_for_test = np.arange(0, len(test_features))
+
+        train_data = InputData(idx=idx_for_train,
+                               features=train_features,
+                               target=train_target,
+                               task=data.task,
+                               data_type=data.data_type)
+        test_data = InputData(idx=idx_for_test,
+                              features=test_features,
+                              target=test_target,
+                              task=data.task,
+                              data_type=data.data_type)
+
+        yield [train_data, test_data]
+
+
+def _features_and_target_by_index(index, values: InputData):
+    features = np.array([])
+    target = np.array([])
+
+    for idx in index:
+        features = np.append(features, values.features[idx])
+        target = np.append(target, values.features[idx])
+
+    return features, target
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):
