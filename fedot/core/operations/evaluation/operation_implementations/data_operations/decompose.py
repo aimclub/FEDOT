@@ -93,7 +93,7 @@ class DecomposerRegImplementation(DecomposerImplementation):
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.target_action = None
+            output_data.target_action = 'ignore'
 
         return output_data
 
@@ -142,7 +142,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.target_action = None
+            output_data.target_action = 'ignore'
             output_data.task = regression_task
 
         return output_data

@@ -1,9 +1,6 @@
-import datetime
-import os
 import random
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
@@ -19,11 +16,11 @@ np.random.seed(1)
 def get_refinement_chain():
     """ Create a chain like this
                     (Main branch)
-             /->     knn        -->       \
+             /->    logit       -->       \
             /         |                    \
-    scaling           |                     logit
+    scaling           |                     xgboost
             \         V                   /
-             \-> class_decompose -> ridge
+             \-> class_decompose -> rfr
                 (Side - regression branch)
        1        2                  3       4
     """
@@ -32,37 +29,37 @@ def get_refinement_chain():
     node_scaling = PrimaryNode('scaling')
 
     # 2
-    node_knn = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_knn, node_scaling])
+    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
+    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
 
     # 3
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_decompose])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
 
     # 4
-    node_logit = SecondaryNode('logit', nodes_from=[node_ridge, node_knn])
-    chain = Chain(node_logit)
+    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
+    chain = Chain(node_xgboost)
     return chain
 
 
 def get_non_refinement_chain():
     """ Create a chain like this
-             /->         knn           ->\
+             /->        logit          ->\
             /                             \
-    scaling                                logit
+    scaling                                xgboost
             \                             /
-             \->        logit          ->/
+             \->          rf           ->/
        1                  2                  3
     """
     # 1
     node_scaling = PrimaryNode('scaling')
 
     # 2
-    node_knn = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_logit_1 = SecondaryNode('logit', nodes_from=[node_scaling])
+    node_rf = SecondaryNode('rf', nodes_from=[node_scaling])
+    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
 
     # 3
-    node_logit_2 = SecondaryNode('logit', nodes_from=[node_logit_1, node_knn])
-    chain = Chain(node_logit_2)
+    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_logit, node_rf])
+    chain = Chain(node_xgboost)
     return chain
 
 
@@ -79,33 +76,33 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
     test_dataset = InputData.from_csv(test_path, task=task)
 
     # Get and fit chains
-    # non_refinement_chain = get_non_refinement_chain()
+    non_refinement_chain = get_non_refinement_chain()
     refinement_chain = get_refinement_chain()
 
-    # non_refinement_chain.fit(train_dataset)
+    non_refinement_chain.fit(train_dataset)
     refinement_chain.fit(train_dataset)
 
     # Check metrics
-    # roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
-    # print(f'Non decomposition chain ROC AUC: {roc_auc_metric:.2f}')
+    roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
+    print(f'Non decomposition chain ROC AUC: {roc_auc_metric:.4f}')
 
-    roc_auc_metric, f1_metric = calculate_validation_metric(refinement_chain, test_dataset)
-    print(f'With decomposition chain ROC AUC: {roc_auc_metric:2f}')
+    roc_auc_metric = calculate_validation_metric(refinement_chain, test_dataset)
+    print(f'With decomposition chain ROC AUC: {roc_auc_metric:.4f}')
 
     if with_tuning:
-        # non_refinement_chain.fine_tune_all_nodes(loss_function=roc_auc,
-        #                                          loss_params=None,
-        #                                          input_data=train_dataset,
-        #                                          iterations=30)
-        # roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
-        # print(f'Non decomposition chain ROC AUC after tuning: {roc_auc_metric:.2f}')
+        non_refinement_chain.fine_tune_all_nodes(loss_function=roc_auc,
+                                                 loss_params=None,
+                                                 input_data=train_dataset,
+                                                 iterations=30)
+        roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
+        print(f'Non decomposition chain ROC AUC after tuning: {roc_auc_metric:.4f}')
 
         refinement_chain.fine_tune_all_nodes(loss_function=roc_auc,
                                              loss_params=None,
                                              input_data=train_dataset,
                                              iterations=30)
         roc_auc_metric = calculate_validation_metric(refinement_chain, test_dataset)
-        print(f'With decomposition chain ROC AUC after tuning: {roc_auc_metric:.2f}')
+        print(f'With decomposition chain ROC AUC after tuning: {roc_auc_metric:.4f}')
 
 
 if __name__ == '__main__':

@@ -203,6 +203,7 @@ class DataMerger:
 
 
 class TaskTargetMerger:
+    """ Class for merging target and tasks """
 
     def __init__(self, outputs):
         self.outputs = outputs
@@ -214,17 +215,13 @@ class TaskTargetMerger:
         targets = [output.target for output in self.outputs]
         tasks = [output.task for output in self.outputs]
 
-        # Is there is chain predict stage without target at all
-        if self.outputs[0].target is None:
-            return None, None, tasks[0]
-
         # If all actions is empty - there is no need to merge targets
         if all(action is None for action in actions):
             target = self.outputs[0].target
             task = self.outputs[0].task
             target_action = None
             return target, target_action, task
-        # If there is an "ignore" action
+        # If there is an "ignore" action - need to merge
         elif any(action == 'ignore' for action in actions):
             target, target_action, task = self.ignored_merge(targets, actions, tasks)
             return target, target_action, task
@@ -236,10 +233,14 @@ class TaskTargetMerger:
         targets = np.array(targets)
         tasks = np.array(tasks)
 
-        # Get non-ignored target and task
-        target = targets[main_ids]
-        target = target[0, :, :]
-        target_action = None
+        # Is there is chain predict stage without target at all
+        if targets[0] is None:
+            target = None
+            target_action = None
+        else:
+            target = targets[main_ids]
+            target = target[0, :, :]
+            target_action = None
 
         task = tasks[main_ids]
         task = task[0]
