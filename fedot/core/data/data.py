@@ -332,7 +332,7 @@ def train_test_data_generator(data: InputData, folds: int):
                               task=data.task,
                               data_type=data.data_type)
 
-        yield [train_data, test_data]
+        yield train_data, test_data
 
 
 def _features_and_target_by_index(index, values: InputData):
@@ -341,9 +341,9 @@ def _features_and_target_by_index(index, values: InputData):
 
     for idx in index:
         features = np.append(features, values.features[idx])
-        target = np.append(target, values.features[idx])
+        target = np.append(target, values.target[idx])
 
-    return features, target
+    return features.reshape(len(index), 1), target.reshape(len(index), 1)
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):

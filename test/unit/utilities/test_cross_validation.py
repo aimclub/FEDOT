@@ -7,6 +7,7 @@ from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 
 
 def classification_dataset():
@@ -48,6 +49,9 @@ def test_kfold_cv_metric_correct():
     source = classification_dataset()
     chain = sample_chain()
 
-    actual_value = cross_validation(chain, source, cv=10, metrics=['roc_auc', 'precision'])
+    actual_value = cross_validation(chain, source, cv=10, metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
+                                                                   ClassificationMetricsEnum.accuracy,
+                                                                   ClassificationMetricsEnum.logloss])
+    print(actual_value)
 
-    assert actual_value > 0
+    assert all(list(map(lambda x: x >= -1, actual_value)))

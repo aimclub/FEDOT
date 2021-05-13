@@ -7,7 +7,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
 
 def cross_validation(chain: Chain, reference_data: InputData, cv: int, metrics: [str, Callable]):
-    evaluated_metrics = []
+    evaluated_metrics = [[] for _ in range(len(metrics))]
 
     for train_data, test_data in train_test_data_generator(reference_data, cv):
         chain.fit(train_data)
