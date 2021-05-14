@@ -101,13 +101,13 @@ class GPComposer(Composer):
 
     def compose_chain(self, data: InputData, is_visualise: bool = False,
                       is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None,
-                      folds: int = None) -> Union[Chain, List[Chain]]:
+                      folds: Optional[int] = None) -> Union[Chain, List[Chain]]:
         """ Function for optimal chain structure searching
         :param data: InputData for chain composing
         :param is_visualise: is it needed to visualise
         :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
-        :param folds: integer folds to cross validate
+        :param folds: integer folds to cross validate, or None with out CV
         :return best_chain: obtained result after composing: one chain for single-objective optimization;
             For the multi-objective case, the list of the chain is returned.
             In the list, the chains are ordered by the descending of primary metric (the first is the best)

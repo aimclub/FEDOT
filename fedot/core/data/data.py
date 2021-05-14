@@ -309,14 +309,14 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     return train_data, test_data
 
 
-def train_test_data_generator(data: InputData, folds: int):
+def train_test_data_generator_cv(data: InputData, folds: int):
     kf = KFold(n_splits=folds)
 
     for train_idxs, test_idxs in kf.split(data.features):
         train_features, train_target = \
             _features_and_target_by_index(train_idxs, data)
         test_features, test_target = \
-            _features_and_target_by_index(train_idxs, data)
+            _features_and_target_by_index(test_idxs, data)
 
         idx_for_train = np.arange(0, len(train_features))
         idx_for_test = np.arange(0, len(test_features))

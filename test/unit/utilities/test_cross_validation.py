@@ -1,6 +1,5 @@
 import numpy as np
 from datetime import timedelta
-from sklearn.model_selection import KFold
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -29,26 +28,12 @@ def classification_dataset():
 
 
 def sample_chain():
-    first = PrimaryNode(operation_type='xgboost')
-    second = PrimaryNode(operation_type='scaling')
-    final = SecondaryNode(operation_type='logit', nodes_from=[first, second])
-    chain = Chain(final)
-
-    return chain
+    return Chain(SecondaryNode(operation_type='logit',
+                               nodes_from=[PrimaryNode(operation_type='xgboost'),
+                                           PrimaryNode(operation_type='scaling')]))
 
 
-def test_sklearn_kfold_correct():
-    features = list('qwerasdfzxcvghkj')
-    target = list('qwerasdfzxcvghkj')
-    kf = KFold(n_splits=3)
-    for train_idxs, test_idxs in kf.split(X=features, y=target):
-        # train_values = [array[idx] for idx in train_idxs]
-        # train_values = [array[idx] for idx in test_idxs]
-
-        print(train_idxs)
-
-
-def test_kfold_cv_metric_correct():
+def test_cv_metric_correct():
     source = classification_dataset()
     chain = sample_chain()
 
@@ -60,7 +45,7 @@ def test_kfold_cv_metric_correct():
     assert all(list(map(lambda x: x >= -1, actual_value)))
 
 
-def test_composer_optimisation_correct():
+def test_cv_with_composer_optimisation_correct():
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose = classification_dataset()
 
@@ -73,13 +58,12 @@ def test_composer_optimisation_correct():
 
     composer_requirements = GPComposerRequirements(primary=available_model_types,
                                                    secondary=available_model_types,
-                                                   max_lead_time=timedelta(minutes=20),
+                                                   max_lead_time=timedelta(minutes=2),
                                                    num_of_generations=5)
 
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False, folds=4)[0]
-    chain_evo_composed.fit(input_data=dataset_to_compose, use_cache=False)
 
-    assert 2 == 2
+    assert isinstance(chain_evo_composed, Chain)
