@@ -16,13 +16,13 @@ np.random.seed(1)
 def get_refinement_chain():
     """ Create a chain like this
                     (Main branch)
-             /->    logit       -->       \
+             /->    logit       -->     ->\
             /         |                    \
     scaling           |                     xgboost
-            \         V                   /
-             \-> class_decompose -> rfr
+            \         V                    /
+             \-> class_decompose -> rfr ->/
                 (Side - regression branch)
-       1        2                  3       4
+       1              2              3         4
     """
 
     # 1

@@ -92,7 +92,7 @@ def run_classification_tuning_experiment(chain, tuner=None):
                                                                       features_amount,
                                                                       classes_amount)
 
-        # Define regression task
+        # Define classification task
         task = Task(TaskTypesEnum.classification)
 
         # Prepare data to train the model

@@ -6,7 +6,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData
-from fedot.core.data.merge import DataMerger
+from fedot.core.data.merge import DataMerger, TaskTargetMerger
 
 from examples.regression_with_tuning_example import get_regression_dataset
 
@@ -74,6 +74,61 @@ def test_data_merge_function():
                                  data_type=DataTypesEnum.table)
         list_with_outputs.append(output_data)
 
-    new_idx, features, target, masked_fs, target_action, task, d_type = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, masked_fs, action, task, d_type = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
+
+
+def test_target_task_two_ignore_merge():
+    """ The test runs an example of how different targets and tasks will be
+    combined. Consider situation when one target should be untouched"""
+
+    # Targets in different outputs
+    labels_col = [[1], [1]]
+    probabilities_col_1 = [[0.8], [0.7]]
+    probabilities_col_2 = [[0.5], [0.5]]
+    targets = np.array([labels_col,
+                        probabilities_col_1,
+                        probabilities_col_2])
+
+    # Actions to do with targets
+    actions = [None, 'ignore', 'ignore']
+
+    # Tasks
+    class_task = Task(TaskTypesEnum.classification)
+    regr_task = Task(TaskTypesEnum.classification)
+    tasks = [class_task, regr_task, regr_task]
+
+    merger = TaskTargetMerger(None)
+    target, target_action, task = merger.ignored_merge(targets, actions, tasks)
+
+    assert target_action is None
+    assert task == class_task
+
+
+def test_target_task_two_none_merge():
+    """ The test runs an example of how different targets and tasks will be
+    combined. Consider situation when two targets are main ones (labeled as None)
+    """
+
+    # Targets in different outputs
+    labels_col = [[1], [1]]
+    labels_col_copy = [[1], [1]]
+    probabilities_col = [[0.5], [0.5]]
+    targets = np.array([labels_col,
+                        labels_col_copy,
+                        probabilities_col])
+
+    # Actions to do with targets
+    actions = [None, None, 'ignore']
+
+    # Tasks
+    class_task = Task(TaskTypesEnum.classification)
+    regr_task = Task(TaskTypesEnum.classification)
+    tasks = [class_task, class_task, regr_task]
+
+    merger = TaskTargetMerger(None)
+    target, target_action, task = merger.ignored_merge(targets, actions, tasks)
+
+    assert target_action is None
+    assert task == class_task

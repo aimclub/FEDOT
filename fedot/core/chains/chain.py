@@ -356,3 +356,23 @@ class Chain:
             setattr(result, k, deepcopy(v, memo))
         result.uid = uuid4()
         return result
+
+
+def nodes_amount_with_operation(chain: Chain, operation_name: str):
+    """ The function counts the number of nodes with operation in the chain
+
+    :param chain: chain to process
+    :param operation_name: name of operation to search
+
+    :return : amount of nodes in the chain with defined operation
+    :return : list with nodes, None if there are no nodes
+    """
+
+    # Check if model has decompose operations
+    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, chain.nodes)
+    appropriate_nodes = list(appropriate_nodes)
+
+    if len(appropriate_nodes) == 0:
+        return 0, None
+    else:
+        return len(appropriate_nodes), appropriate_nodes

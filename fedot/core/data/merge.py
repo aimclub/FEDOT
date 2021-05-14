@@ -138,7 +138,7 @@ class DataMerger:
             task = outputs[0].task
         else:
             # Update target from multiple parents
-            target, target_action, task = TaskTargetMerger(outputs).obtain_target()
+            target, target_action, task = TaskTargetMerger(outputs).obtain_equal_target()
 
         return idx, features, target, target_action, task
 
@@ -159,29 +159,17 @@ class DataMerger:
         if len(common_idx) == 0:
             raise ValueError(f'There are no common indices for outputs')
 
-        features = []
+        idx_list = [list(output.idx) for output in outputs]
+        predicts = [output.predict for output in outputs]
 
-        for elem in outputs:
-            # Create mask where True - appropriate objects
-            mask = np.in1d(np.array(elem.idx), common_idx)
-
-            if len(elem.predict.shape) == 1:
-                filtered_predict = elem.predict[mask]
-                features.append(filtered_predict)
-            else:
-                # if the model prediction is multivariate
-                number_of_variables_in_prediction = elem.predict.shape[1]
-                for i in range(number_of_variables_in_prediction):
-                    predict = elem.predict[:, i]
-                    filtered_predict = predict[mask]
-                    features.append(filtered_predict)
-
-        old_target = outputs[-1].target
-        # TODO add ability to merge non-equal different targets
-        filtered_target = old_target[mask]
+        # Generate feature table with overlapping ids
+        features = tables_mapping(idx_list, predicts, common_idx)
+        # Link tables with features into one table
         features = np.array(features).T
-        target_action = None
-        task = outputs[0].task
+
+        # Merge tasks and targets
+        t_merger = TaskTargetMerger(outputs)
+        filtered_target, target_action, task = t_merger.obtain_non_equal_target(common_idx)
         return common_idx, features, filtered_target, target_action, task
 
     @staticmethod
@@ -208,12 +196,13 @@ class TaskTargetMerger:
     def __init__(self, outputs):
         self.outputs = outputs
 
-    def obtain_target(self):
-        """ Method can merge different targets """
-        # Get actions for target
-        actions = [output.target_action for output in self.outputs]
-        targets = [output.target for output in self.outputs]
-        tasks = [output.task for output in self.outputs]
+    def obtain_equal_target(self):
+        """ Method can merge different targets if the amount of objects in the
+        training sample are equal
+        """
+
+        # Get actions for target and tasks
+        actions, targets, tasks = self._disintegrate_outputs()
 
         # If all actions is empty - there is no need to merge targets
         if all(action is None for action in actions):
@@ -221,10 +210,54 @@ class TaskTargetMerger:
             task = self.outputs[0].task
             target_action = None
             return target, target_action, task
-        # If there is an "ignore" action - need to merge
+        # If there is an "ignore" action - need to apply intelligent merge
         elif any(action == 'ignore' for action in actions):
             target, target_action, task = self.ignored_merge(targets, actions, tasks)
             return target, target_action, task
+
+    def obtain_non_equal_target(self, common_idx):
+        """ Method for merging targets which have different amount of objects
+        (amount of rows)
+
+        :param common_idx: array with indices of common objects
+        """
+
+        # Get actions for target and tasks
+        actions, targets, tasks = self._disintegrate_outputs()
+
+        # Match targets - make them equal
+        idx_list = [output.idx for output in self.outputs]
+        mapped_targets = tables_mapping(idx_list, targets, common_idx)
+
+        # If all actions is empty - there is no need to merge targets
+        if all(action is None for action in actions):
+            # Just applying merge operation for common_idx
+            filtered_target = mapped_targets[0]
+
+            task = tasks[0]
+            target_action = None
+            return filtered_target, target_action, task
+        elif any(action == 'ignore' for action in actions):
+            new_mapped_targets = []
+            # Convert targets into tables:
+            for target in mapped_targets:
+                if len(target.shape) == 1:
+                    new_mapped_targets.append(target.reshape((-1, 1)))
+            new_mapped_targets = np.array(new_mapped_targets)
+            filtered_target, target_action, task = self.ignored_merge(new_mapped_targets,
+                                                                      actions,
+                                                                      tasks)
+            return filtered_target, target_action, task
+
+    def _disintegrate_outputs(self):
+        """
+        Method extract actions, targets and tasks from list with OutputData
+        """
+        actions = [output.target_action for output in self.outputs]
+        targets = [output.target for output in self.outputs]
+        tasks = [output.task for output in self.outputs]
+
+        return actions, targets, tasks
 
     @staticmethod
     def ignored_merge(targets, actions, tasks):
@@ -237,6 +270,7 @@ class TaskTargetMerger:
         if targets[0] is None:
             target = None
             target_action = None
+        # If there are several known targets
         else:
             target = targets[main_ids]
             target = target[0, :, :]
@@ -245,3 +279,34 @@ class TaskTargetMerger:
         task = tasks[main_ids]
         task = task[0]
         return target, target_action, task
+
+
+def tables_mapping(idx_list, object_list, common_idx):
+    """ The function maps tables by matching object indices
+
+    :param idx_list: list with indices for mapping
+    :param object_list: list with tables (with features, targets or predictions)
+     for mapping
+    :param common_idx: list with common indices
+
+    :return : list with matched tables
+    """
+
+    common_tables = []
+    for number in range(len(idx_list)):
+        # Create mask where True - appropriate objects
+        current_idx = idx_list[number]
+        mask = np.in1d(np.array(current_idx), common_idx)
+
+        current_object = object_list[number]
+        if len(current_object.shape) == 1:
+            filtered_predict = current_object[mask]
+            common_tables.append(filtered_predict)
+        else:
+            # If the table object has many columns
+            number_of_variables_in_prediction = current_object.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                predict = current_object[:, i]
+                filtered_predict = predict[mask]
+                common_tables.append(filtered_predict)
+    return common_tables

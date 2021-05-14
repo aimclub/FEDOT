@@ -4,7 +4,7 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain import Chain, nodes_amount_with_operation
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
@@ -25,6 +25,7 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
     has_no_conflicts_with_data_flow(chain)
+    has_no_conflicts_in_decompose(chain)
 
     # TSForecasting specific task validations
     if is_chain_contains_ts_operations(chain) is True:
@@ -199,6 +200,49 @@ def only_ts_specific_operations_are_primary(chain: Chain):
     return True
 
 
+def has_no_conflicts_in_decompose(chain: Chain):
+    """ The function checks whether the 'class_decompose' or 'decompose'
+    operation has two ancestors
+    """
+
+    for decomposer in ['decompose', 'class_decompose']:
+        amount, decompose_nodes = nodes_amount_with_operation(chain,
+                                                              decomposer)
+        if amount != 0:
+            # Launch check decomposers
+            __check_decomposer_has_two_parents(list_with_nodes=decompose_nodes)
+            __check_decompose_parent_position(list_with_nodes=decompose_nodes)
+
+    return True
+
+
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
+
+
+def __check_decompose_parent_position(list_with_nodes):
+    """ Function check if the data flow before decompose operation is correct
+    or not
+
+    param list_with_nodes: list with decompose nodes in the chain
+    """
+    for decompose_node in list_with_nodes:
+        parents = decompose_node.nodes_from
+        model_parent = parents[0]
+
+        if type(model_parent.operation) is not Model:
+            raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes position for decompose operation')
+
+
+def __check_decomposer_has_two_parents(list_with_nodes):
+    """ Function check if there are two parent nodes for decompose operation
+
+    :param list_with_nodes: list with decompose nodes in the chain
+    """
+
+    for decompose_node in list_with_nodes:
+        parents = decompose_node.nodes_from
+
+        if len(parents) != 2:
+            raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes amount for decompose operation')
