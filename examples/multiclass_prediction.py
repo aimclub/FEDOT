@@ -25,7 +25,7 @@ from fedot.core.repository.quality_metrics_repository import \
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import probs_to_labels
 from fedot.core.utils import ensure_directory_exists, get_split_data_paths, \
-    project_root, save_file_to_csv, split_data
+    fedot_project_root, save_file_to_csv, split_data
 
 random.seed(1)
 np.random.seed(1)
@@ -44,7 +44,7 @@ def create_multi_clf_examples_from_excel(file_path: str, return_df: bool = False
     if return_df:
         # Need to return dataframe and path to the file in csv format
         path = os.path.join(directory_names[0], directory_names[1], directory_names[2], file_csv_name)
-        full_file_path = os.path.join(str(project_root()), path)
+        full_file_path = os.path.join(str(fedot_project_root()), path)
         save_file_to_csv(df, full_file_path)
         return df, full_file_path
     else:

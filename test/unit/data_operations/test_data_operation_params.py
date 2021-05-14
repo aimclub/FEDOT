@@ -7,7 +7,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 
 def get_ts_chain(window_size):
@@ -29,7 +29,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     len_forecast = 50
 
     # The length of the time series is 500 elements
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path = os.path.join(project_root_path, 'test/data/short_time_series.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['sea_height'])

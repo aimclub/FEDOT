@@ -3,12 +3,12 @@ import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 
 def run_classification_example():
-    train_data_path = f'{project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{project_root()}/cases/data/scoring/scoring_test.csv'
+    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
 
@@ -27,7 +27,7 @@ def run_classification_example():
 
 
 def run_regression_example():
-    data_path = f'{project_root()}/cases/data/cholesterol/cholesterol.csv'
+    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path)
     train, test = train_test_data_setup(data)
@@ -49,7 +49,7 @@ def run_regression_example():
 
 
 def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
-    train_data_path = f'{project_root()}/notebooks/jupyter_media/intro/salaries.csv'
+    train_data_path = f'{fedot_project_root()}/notebooks/jupyter_media/intro/salaries.csv'
 
     target = pd.read_csv(train_data_path)['target']
 
@@ -78,8 +78,8 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
 
 
 def run_classification_multiobj_example(with_plot=True):
-    train_data = pd.read_csv(f'{project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
-    test_data = pd.read_csv(f'{project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
+    train_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
+    test_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
     target = test_data['class']
     del test_data['class']
     problem = 'classification'

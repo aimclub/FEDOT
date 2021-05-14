@@ -14,7 +14,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 random.seed(1)
 np.random.seed(1)
@@ -103,11 +103,11 @@ def get_scoring_data():
     # a dataset that will be used as a train and test set during composition
 
     file_path_train = 'cases/data/scoring/scoring_train.csv'
-    full_path_train = os.path.join(str(project_root()), file_path_train)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
     file_path_test = 'cases/data/scoring/scoring_test.csv'
-    full_path_test = os.path.join(str(project_root()), file_path_test)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     return full_path_train, full_path_test
 
