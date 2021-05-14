@@ -7,7 +7,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, median_abso
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
 
@@ -105,7 +105,7 @@ def run_gapfilling_case(file_path):
     """
 
     # Load dataframe
-    full_path = os.path.join(str(project_root()), file_path)
+    full_path = os.path.join(str(fedot_project_root()), file_path)
     dataframe = pd.read_csv(full_path)
     dataframe['date'] = pd.to_datetime(dataframe['date'])
 

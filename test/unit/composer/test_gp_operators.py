@@ -19,7 +19,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 from test.unit.chains.test_node_cache import chain_fifth, chain_first, chain_fourth, chain_second, chain_third
 
 
@@ -56,9 +56,9 @@ def test_nodes_from_height():
 
 
 def test_evaluate_individuals():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
-    full_path_train = os.path.join(str(project_root()), file_path_train)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(full_path_train, task=task)

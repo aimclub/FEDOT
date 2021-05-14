@@ -9,7 +9,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
@@ -24,8 +24,8 @@ composer_params = {'max_depth': 1,
 def get_split_data_paths():
     file_path_train = 'test/data/simple_regression_train.csv'
     file_path_test = 'test/data/simple_regression_test.csv'
-    full_path_train = os.path.join(str(project_root()), file_path_train)
-    full_path_test = os.path.join(str(project_root()), file_path_test)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     return full_path_train, full_path_test
 

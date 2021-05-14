@@ -10,7 +10,7 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 
 def get_composite_chain():
@@ -99,8 +99,8 @@ def prepare_input_data(train_file_path, test_file_path, forecast_length):
                          TsForecastingParams(forecast_length=forecast_length))
 
     # Load train and test dataframes
-    full_path_train = os.path.join(str(project_root()), train_file_path)
-    full_path_test = os.path.join(str(project_root()), test_file_path)
+    full_path_train = os.path.join(str(fedot_project_root()), train_file_path)
+    full_path_test = os.path.join(str(fedot_project_root()), test_file_path)
     df_train = pd.read_csv(full_path_train)
     df_test = pd.read_csv(full_path_test)
 
@@ -164,11 +164,11 @@ if __name__ == '__main__':
 
     # a dataset that will be used as a train and test set during composition
     file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(project_root()), file_path_train)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(project_root()), file_path_test)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     run_metocean_forecasting_problem(full_path_train, full_path_test,
                                      forecast_length=72,

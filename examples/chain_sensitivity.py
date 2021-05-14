@@ -12,7 +12,7 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import project_root, default_fedot_data_dir
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
@@ -77,11 +77,11 @@ def get_composed_chain(dataset_to_compose, task, metric_function):
 
 def get_scoring_data():
     file_path_train = 'cases/data/scoring/scoring_train.csv'
-    full_path_train = join(str(project_root()), file_path_train)
+    full_path_train = join(str(fedot_project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
     file_path_test = 'cases/data/scoring/scoring_test.csv'
-    full_path_test = join(str(project_root()), file_path_test)
+    full_path_test = join(str(fedot_project_root()), file_path_test)
     task = Task(TaskTypesEnum.classification)
     train = InputData.from_csv(full_path_train, task=task)
     test = InputData.from_csv(full_path_test, task=task)
@@ -91,7 +91,7 @@ def get_scoring_data():
 
 def get_kc2_data():
     file_path = 'cases/data/kc2/kc2.csv'
-    full_path = join(str(project_root()), file_path)
+    full_path = join(str(fedot_project_root()), file_path)
     task = Task(TaskTypesEnum.classification)
     data = InputData.from_csv(full_path, task=task)
     train, test = train_test_data_setup(data)
@@ -101,7 +101,7 @@ def get_kc2_data():
 
 def get_cholesterol_data():
     file_path = 'cases/data/cholesterol/cholesterol.csv'
-    full_path = join(str(project_root()), file_path)
+    full_path = join(str(fedot_project_root()), file_path)
     task = Task(TaskTypesEnum.regression)
     data = InputData.from_csv(full_path, task=task)
     train, test = train_test_data_setup(data)

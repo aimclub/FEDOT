@@ -7,7 +7,7 @@ from datetime import timedelta
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.tuning.unified import ChainTuner
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 from cases.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
@@ -21,22 +21,22 @@ np.random.seed(1)
 
 
 def test_credit_scoring_problem():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
     file_path_test = file_path_train
-    full_path_train = os.path.join(str(project_root()), file_path_train)
-    full_path_test = os.path.join(str(project_root()), file_path_test)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, max_lead_time=timedelta(minutes=0.1))
     assert roc_auc_test > 0.5
 
 
 def test_metocean_forecasting_problem():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
     file_path_test = file_path_train
-    full_path_train = os.path.join(str(project_root()), file_path_train)
-    full_path_test = os.path.join(str(project_root()), file_path_test)
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     rmse = run_metocean_forecasting_problem(full_path_train,
                                             full_path_test,
@@ -72,7 +72,7 @@ def test_river_levels_problem():
 
     init_chain = Chain(node_final)
 
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/station_levels.csv')
 
     run_river_experiment(file_path=file_path_train,
@@ -88,7 +88,7 @@ def test_river_levels_problem():
 
 def test_spam_detection_problem():
     """ Simple launch of spam detection case """
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/spam_detection.csv')
 
     # Classification task based on text data

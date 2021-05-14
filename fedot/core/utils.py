@@ -6,8 +6,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-def project_root() -> Path:
-    """Returns project root folder."""
+def fedot_project_root() -> Path:
+    """Returns FEDOT project root folder."""
     return Path(__file__).parent.parent.parent
 
 
@@ -49,15 +49,15 @@ def save_file_to_csv(df: pd.DataFrame, path_to_save: str):
 
 def get_split_data_paths(directory_names: list):
     train_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'train.csv')
-    full_train_file_path = os.path.join(str(project_root()), train_file_path)
+    full_train_file_path = os.path.join(str(fedot_project_root()), train_file_path)
     test_file_path = os.path.join(directory_names[0], directory_names[1], directory_names[2], 'test.csv')
-    full_test_file_path = os.path.join(str(project_root()), test_file_path)
+    full_test_file_path = os.path.join(str(fedot_project_root()), test_file_path)
     return full_train_file_path, full_test_file_path
 
 
 def ensure_directory_exists(dir_names: list):
-    main_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1])
-    dataset_dir = os.path.join(str(project_root()), dir_names[0], dir_names[1], dir_names[2])
+    main_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1])
+    dataset_dir = os.path.join(str(fedot_project_root()), dir_names[0], dir_names[1], dir_names[2])
     if not os.path.exists(main_dir):
         os.mkdir(main_dir)
     if not os.path.exists(dataset_dir):

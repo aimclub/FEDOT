@@ -14,11 +14,11 @@ from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_gapfilling_example import run_gapfilling_example
 from examples.ts_multistep_example import run_multistep_example
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 
 def test_multiclass_example():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/multiclass_classification.csv')
 
     chain = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
@@ -41,7 +41,7 @@ def test_gapfilling_example():
 
 
 def test_exogenous_ts_example():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
     run_exogenous_experiment(path_to_file=path,
                              len_forecast=50, with_exog=True,
@@ -74,7 +74,7 @@ def test_chain_tuning_example():
 
 
 def test_multistep_example():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
 
     df = pd.read_csv(path)
