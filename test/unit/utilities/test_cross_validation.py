@@ -1,4 +1,5 @@
 import numpy as np
+from datetime import timedelta
 from sklearn.model_selection import KFold
 
 from fedot.core.chains.chain import Chain
@@ -8,6 +9,8 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
 
 
 def classification_dataset():
@@ -49,9 +52,34 @@ def test_kfold_cv_metric_correct():
     source = classification_dataset()
     chain = sample_chain()
 
-    actual_value = cross_validation(chain, source, cv=10, metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
-                                                                   ClassificationMetricsEnum.accuracy,
-                                                                   ClassificationMetricsEnum.logloss])
-    print(actual_value)
+    actual_value = cross_validation(chain=chain, reference_data=source, cv=10,
+                                    metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
+                                             ClassificationMetricsEnum.accuracy,
+                                             ClassificationMetricsEnum.logloss])
 
     assert all(list(map(lambda x: x >= -1, actual_value)))
+
+
+def test_composer_optimisation_correct():
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose = classification_dataset()
+
+    models_repo = OperationTypesRepository()
+    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+
+    metric_function = [ClassificationMetricsEnum.ROCAUC_penalty,
+                       ClassificationMetricsEnum.accuracy,
+                       ClassificationMetricsEnum.logloss]
+
+    composer_requirements = GPComposerRequirements(primary=available_model_types,
+                                                   secondary=available_model_types,
+                                                   max_lead_time=timedelta(minutes=20),
+                                                   num_of_generations=5)
+
+    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    composer = builder.build()
+
+    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False, folds=4)[0]
+    chain_evo_composed.fit(input_data=dataset_to_compose, use_cache=False)
+
+    assert 2 == 2

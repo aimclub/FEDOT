@@ -343,7 +343,10 @@ def _features_and_target_by_index(index, values: InputData):
         features = np.append(features, values.features[idx])
         target = np.append(target, values.target[idx])
 
-    return features.reshape(len(index), 1), target.reshape(len(index), 1)
+    features = features.reshape(len(index), 1)
+    target = target.reshape(len(index), 1)
+
+    return features, target
 
 
 def _convert_dtypes(data_frame: pd.DataFrame):

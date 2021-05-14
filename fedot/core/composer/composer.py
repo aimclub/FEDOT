@@ -66,12 +66,13 @@ class Composer(ABC):
 
     @abstractmethod
     def compose_chain(self, data: InputData,
-                      is_visualise: bool = False) -> Chain:
+                      is_visualise: bool = False, folds: int = None) -> Chain:
         """
         Base method to run the composition process
 
         :param data: data used for problem solving
         :param is_visualise: flag to enable visualization. Default False.
+        :param folds: integer folds to cross validate
         :return: Chain object
         """
         raise NotImplementedError()
