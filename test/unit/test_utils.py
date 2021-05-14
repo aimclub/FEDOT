@@ -11,10 +11,12 @@ def test_default_fedot_data_dir():
     default_fedot_data_dir()
     assert 'Fedot' in os.listdir(str(Path.home()))
 
+
 def test_fedot_project_root():
-    root_path=fedot_project_root()
+    root_path = fedot_project_root()
     assert 'core' in os.listdir(os.path.join(root_path, 'fedot'))
     assert 'api' in os.listdir(os.path.join(root_path, 'fedot'))
+
 
 def test_labels_to_dummy_probs():
     probs = labels_to_dummy_probs(np.array(['ok', 'not ok', 'ok']))
