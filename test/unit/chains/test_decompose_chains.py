@@ -69,6 +69,38 @@ def generate_chain_with_filtering():
     return full_chain
 
 
+def get_classification_data(classes_amount: int):
+    """ Function generate synthetic dataset for classification task
+
+    :param classes_amount: amount of classes to predict
+
+    :return train_input: InputData for model fit
+    :return predict_input: InputData for predict stage
+    """
+
+    # Define options for dataset with 800 objects
+    features_options = {'informative': 2, 'redundant': 1,
+                        'repeated': 1, 'clusters_per_class': 1}
+    x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
+                                                                  800, 4,
+                                                                  classes_amount)
+    y_train = y_train.reshape((-1, 1))
+    y_test = y_test.reshape((-1, 1))
+
+    # Define classification task
+    task = Task(TaskTypesEnum.classification)
+
+    # Prepare data to train and validate the model
+    train_input = InputData(idx=np.arange(0, len(x_train)),
+                            features=x_train, target=y_train,
+                            task=task, data_type=DataTypesEnum.table)
+    predict_input = InputData(idx=np.arange(0, len(x_test)),
+                              features=x_test, target=y_test,
+                              task=task, data_type=DataTypesEnum.table)
+
+    return train_input, predict_input
+
+
 def test_order_by_descriptive_id():
     """
     The function checks the order of nodes by its descriptive_id property
@@ -120,33 +152,25 @@ def test_correctness_filter_chain_decomposition():
     """ The function runs an example of classification task using an outlier
     filtering algorithm (RANSAC) in its structure in the regression branch
     """
-
-    # Generate synthetic dataset with 800 objects for binary classification
-    features_options = {'informative': 2, 'redundant': 1,
-                        'repeated': 1, 'clusters_per_class': 1}
-    x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
-                                                                  800, 4, 2)
-    y_train = y_train.reshape((-1, 1))
-    y_test = y_test.reshape((-1, 1))
-
-    # Define classification task
-    task = Task(TaskTypesEnum.classification)
-
-    # Prepare data to train and validate the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train, target=y_train,
-                            task=task, data_type=DataTypesEnum.table)
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test, target=y_test,
-                              task=task, data_type=DataTypesEnum.table)
+    # Generate synthetic dataset for binary classification task
+    train_input, predict_input = get_classification_data(classes_amount=2)
 
     # Get chain
     chain = generate_chain_with_filtering()
-
-    # Fit it
     chain.fit(train_input)
+    predicted_output = chain.predict(predict_input)
 
-    # Predict
+    is_chain_worked_correctly = True
+    return is_chain_worked_correctly
+
+
+def test_multiclass_classification_decomposition():
+    # Generate synthetic dataset for multiclass classification task
+    train_input, predict_input = get_classification_data(classes_amount=4)
+
+    # Get chain
+    chain = generate_chain_with_filtering()
+    chain.fit(train_input)
     predicted_output = chain.predict(predict_input)
 
     is_chain_worked_correctly = True

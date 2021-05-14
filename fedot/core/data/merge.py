@@ -309,4 +309,5 @@ def tables_mapping(idx_list, object_list, common_idx):
                 predict = current_object[:, i]
                 filtered_predict = predict[mask]
                 common_tables.append(filtered_predict)
+    # TODO fix exog ts forecasting here
     return common_tables

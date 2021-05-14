@@ -116,4 +116,4 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 if __name__ == '__main__':
     run_exogenous_experiment(path_to_file='../notebooks/jupyter_media/time_series_forecasting/sea_level.csv',
                              len_forecast=250,
-                             with_exog=False)
+                             with_exog=True)
