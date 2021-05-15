@@ -164,8 +164,8 @@ class DataMerger:
 
         # Generate feature table with overlapping ids
         features = tables_mapping(idx_list, predicts, common_idx)
-        # Link tables with features into one table
-        features = np.array(features).T
+        # Link tables with features into one table - rotate array
+        features = np.hstack(features)
 
         # Merge tasks and targets
         t_merger = TaskTargetMerger(outputs)
@@ -225,9 +225,12 @@ class TaskTargetMerger:
         # Get actions for target and tasks
         actions, targets, tasks = self._disintegrate_outputs()
 
-        # Match targets - make them equal
-        idx_list = [output.idx for output in self.outputs]
-        mapped_targets = tables_mapping(idx_list, targets, common_idx)
+        if targets[0] is None:
+            mapped_targets = [None]
+        else:
+            # Match targets - make them equal
+            idx_list = [output.idx for output in self.outputs]
+            mapped_targets = tables_mapping(idx_list, targets, common_idx)
 
         # If all actions is empty - there is no need to merge targets
         if all(action is None for action in actions):
@@ -238,13 +241,8 @@ class TaskTargetMerger:
             target_action = None
             return filtered_target, target_action, task
         elif any(action == 'ignore' for action in actions):
-            new_mapped_targets = []
-            # Convert targets into tables:
-            for target in mapped_targets:
-                if len(target.shape) == 1:
-                    new_mapped_targets.append(target.reshape((-1, 1)))
-            new_mapped_targets = np.array(new_mapped_targets)
-            filtered_target, target_action, task = self.ignored_merge(new_mapped_targets,
+
+            filtered_target, target_action, task = self.ignored_merge(mapped_targets,
                                                                       actions,
                                                                       tasks)
             return filtered_target, target_action, task
@@ -274,6 +272,8 @@ class TaskTargetMerger:
         else:
             target = targets[main_ids]
             target = target[0, :, :]
+            if len(target.shape) == 1:
+                target = target.reshape((-1, 1))
             target_action = None
 
         task = tasks[main_ids]
@@ -301,6 +301,7 @@ def tables_mapping(idx_list, object_list, common_idx):
         current_object = object_list[number]
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]
+            filtered_predict = filtered_predict.reshape((-1, 1))
             common_tables.append(filtered_predict)
         else:
             # If the table object has many columns
@@ -308,6 +309,12 @@ def tables_mapping(idx_list, object_list, common_idx):
             for i in range(number_of_variables_in_prediction):
                 predict = current_object[:, i]
                 filtered_predict = predict[mask]
-                common_tables.append(filtered_predict)
-    # TODO fix exog ts forecasting here
+
+                # Convert to column
+                filtered_predict = filtered_predict.reshape((-1, 1))
+                if i == 0:
+                    filtered_table = filtered_predict
+                else:
+                    filtered_table = np.hstack((filtered_table, filtered_predict))
+            common_tables.append(filtered_table)
     return common_tables
