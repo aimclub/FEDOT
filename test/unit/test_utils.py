@@ -4,12 +4,18 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from fedot.core.utils import default_fedot_data_dir, \
-    labels_to_dummy_probs, split_data, save_file_to_csv
+    labels_to_dummy_probs, split_data, save_file_to_csv, fedot_project_root
 
 
 def test_default_fedot_data_dir():
     default_fedot_data_dir()
     assert 'Fedot' in os.listdir(str(Path.home()))
+
+
+def test_fedot_project_root():
+    root_path = fedot_project_root()
+    assert 'core' in os.listdir(os.path.join(root_path, 'fedot'))
+    assert 'api' in os.listdir(os.path.join(root_path, 'fedot'))
 
 
 def test_labels_to_dummy_probs():
