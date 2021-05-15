@@ -118,7 +118,8 @@ class GPComposer(Composer):
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
         if self.optimiser.parameters.cv_folds is not None:
-            metric_function_for_nodes = partial(cross_validation, data, self.optimiser.parameters.cv_folds, self.metrics)
+            metric_function_for_nodes = partial(cross_validation, data,
+                                                self.optimiser.parameters.cv_folds, self.metrics)
         else:
             train_data, test_data = train_test_data_setup(data,
                                                           sample_split_ration_for_tasks[data.task.task_type])
