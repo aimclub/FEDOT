@@ -8,6 +8,7 @@ from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
 from cases.credit_scoring_problem import get_scoring_data
@@ -20,11 +21,10 @@ def sample_chain():
                                            PrimaryNode(operation_type='scaling')]))
 
 
-def test_cv_metric_correct():
-    source = classification_dataset()
+def test_cv_metric_correct(classification_dataset):
     chain = sample_chain()
 
-    actual_value = cross_validation(chain=chain, reference_data=source, cv=10,
+    actual_value = cross_validation(chain=chain, reference_data=classification_dataset, cv_folds=10,
                                     metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
                                              ClassificationMetricsEnum.accuracy,
                                              ClassificationMetricsEnum.logloss])
@@ -45,15 +45,18 @@ def test_cv_with_composer_optimisation_correct():
                        ClassificationMetricsEnum.accuracy,
                        ClassificationMetricsEnum.logloss]
 
+    optimiser_parameters = GPChainOptimiserParameters(cv_folds=3)
+
     composer_requirements = GPComposerRequirements(primary=available_model_types,
                                                    secondary=available_model_types,
                                                    max_lead_time=timedelta(minutes=2),
                                                    num_of_generations=5)
 
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = GPComposerBuilder(task).with_requirements(composer_requirements)\
+        .with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters)
     composer = builder.build()
 
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False, folds=4)[0]
+    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False)[0]
 
     assert isinstance(chain_evo_composed, Chain)
 

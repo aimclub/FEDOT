@@ -99,15 +99,13 @@ class GPComposer(Composer):
         else:
             self.log = logger
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False,
-                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None,
-                      folds: Optional[int] = None) -> Union[Chain, List[Chain]]:
+    def compose_chain(self, data: InputData, is_visualise: bool = False, is_tune: bool = False,
+                      on_next_iteration_callback: Optional[Callable] = None) -> Union[Chain, List[Chain]]:
         """ Function for optimal chain structure searching
         :param data: InputData for chain composing
         :param is_visualise: is it needed to visualise
         :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
-        :param folds: integer folds to cross validate, or None with out CV
         :return best_chain: obtained result after composing: one chain for single-objective optimization;
             For the multi-objective case, the list of the chain is returned.
             In the list, the chains are ordered by the descending of primary metric (the first is the best)
@@ -119,8 +117,8 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        if folds is not None:
-            metric_function_for_nodes = partial(cross_validation, data, folds, self.metrics)
+        if self.optimiser.parameters.cv_folds is not None:
+            metric_function_for_nodes = partial(cross_validation, data, self.optimiser.parameters.cv_folds, self.metrics)
         else:
             train_data, test_data = train_test_data_setup(data,
                                                           sample_split_ration_for_tasks[data.task.task_type])
