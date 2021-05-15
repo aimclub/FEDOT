@@ -1,30 +1,17 @@
-import numpy as np
 from datetime import timedelta
+
+from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-
-
-def classification_dataset():
-    samples = 1000
-    x = 10.0 * np.random.rand(samples, ) - 5.0
-    x = np.expand_dims(x, axis=1)
-    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
-    threshold = 0.5
-    classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
-    classes = np.expand_dims(classes, axis=1)
-    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-
-    return data
+from cases.credit_scoring_problem import get_scoring_data
+from test.unit.models.test_model import classification_dataset
 
 
 def sample_chain():
@@ -46,8 +33,10 @@ def test_cv_metric_correct():
 
 
 def test_cv_with_composer_optimisation_correct():
+    full_path_train, full_path_test = get_scoring_data()
     task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose = classification_dataset()
+    dataset_to_compose = InputData.from_csv(full_path_train, task=task)
+    dataset_to_validate = InputData.from_csv(full_path_test, task=task)
 
     models_repo = OperationTypesRepository()
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
@@ -67,3 +56,9 @@ def test_cv_with_composer_optimisation_correct():
     chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False, folds=4)[0]
 
     assert isinstance(chain_evo_composed, Chain)
+
+    chain_evo_composed.fit(input_data=dataset_to_compose)
+    predicted = chain_evo_composed.predict(dataset_to_validate)
+    roc_on_valid_evo_composed = roc_auc(y_score=predicted.predict, y_true=dataset_to_validate.target)
+
+    assert roc_on_valid_evo_composed > 0

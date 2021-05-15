@@ -336,15 +336,8 @@ def train_test_data_generator_cv(data: InputData, folds: int):
 
 
 def _features_and_target_by_index(index, values: InputData):
-    features = np.array([])
-    target = np.array([])
-
-    for idx in index:
-        features = np.append(features, values.features[idx])
-        target = np.append(target, values.target[idx])
-
-    features = features.reshape(len(index), 1)
-    target = target.reshape(len(index), 1)
+    features = values.features[index, :]
+    target = np.take(values.target, index)
 
     return features, target
 
