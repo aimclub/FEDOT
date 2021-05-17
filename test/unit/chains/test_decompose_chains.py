@@ -12,10 +12,10 @@ from examples.classification_with_tuning_example import get_classification_datas
 def generate_chain_with_decomposition(primary_operation, secondary_operation):
     """ The function generates a chain in which there is an operation of
     decomposing the target variable into residuals
-                     /secondary_operation (1)    \
-    primary_operation (0)                         xgboost
-                     \class_decompose (1) -> rfr /
-          1                   2              3         4
+                     secondary_operation (1)
+    primary_operation (0)                       xgboost
+                     class_decompose (1) -> rfr
+          1                   2              3     4
 
     :param primary_operation: name of operation to place in primary node
     :aram secondary_operation: name of operation to place in secondary node
@@ -39,10 +39,10 @@ def generate_chain_with_decomposition(primary_operation, secondary_operation):
 
 def generate_chain_with_filtering():
     """
-           / logit                            \
-    scaling                                    xgboost
-           \ class_decompose -> RANSAC -> rfr /
-       1           2              3        4      5
+           logit
+    scaling                                 xgboost
+           class_decompose -> RANSAC -> rfr
+       1         2              3        4     5
     """
 
     # 1

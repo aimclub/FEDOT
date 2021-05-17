@@ -189,9 +189,9 @@ def ts_chain_with_incorrect_data_flow():
 
 def chain_with_incorrect_parent_amount_for_decompose():
     """ Chain structure:
-           / logit                  \
-    scaling                          xgboost
-           \ class_decompose -> rfr /
+           logit
+    scaling                        xgboost
+           class_decompose -> rfr
     For class_decompose connection with "logit" model needed
     """
 
