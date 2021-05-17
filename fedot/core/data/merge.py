@@ -134,14 +134,9 @@ class DataMerger:
 
         features = np.array(features).T
         idx = outputs[0].idx
-        # If the amount of parent nodes is equal to 1
-        if len(outputs) == 1:
-            target = outputs[0].target
-            target_action = outputs[0].target_action
-            task = outputs[0].task
-        else:
-            # Update target from multiple parents
-            target, target_action, task = TaskTargetMerger(outputs).obtain_equal_target()
+
+        # Update target from multiple parents
+        target, target_action, task = TaskTargetMerger(outputs).obtain_equal_target()
 
         return idx, features, target, target_action, task
 
@@ -203,6 +198,12 @@ class TaskTargetMerger:
         """ Method can merge different targets if the amount of objects in the
         training sample are equal
         """
+        # If there is only one parent
+        if len(self.outputs) == 1:
+            target = self.outputs[0].target
+            target_action = self.outputs[0].target_action
+            task = self.outputs[0].task
+            return target, target_action, task
 
         # Get actions for target and tasks
         actions, targets, tasks = self._disintegrate_outputs()

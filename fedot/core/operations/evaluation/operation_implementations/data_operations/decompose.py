@@ -127,7 +127,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
 
             classes = np.unique(target)
             if len(classes) > 2:
-                diff = self._multi_difference(classes, target, prev_prediction)
+                diff = self._multi_difference(target, prev_prediction)
             else:
                 # Binary classification task
                 diff = self._binary_difference(classes, target, prev_prediction)
