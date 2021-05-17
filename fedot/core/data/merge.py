@@ -87,7 +87,10 @@ class DataMerger:
     @staticmethod
     def prepare_parent_mask(outputs):
         """ The method for outputs from multiple parent nodes prepares a field
-        with encoded values
+        with encoded values. This allow distinguishing from which ancestor the
+        data was attached to. For example, a mask for two ancestors, each of
+        which gives predictions in the form of a tabular data with two columns
+        will look like this: [0, 0, 1, 1] where 0 and 1 - ids of parents
 
         :param outputs: list with OutputData
         :return masked_features: list with masked features
