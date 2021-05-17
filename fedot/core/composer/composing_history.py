@@ -51,8 +51,6 @@ class ComposingHistory:
 
         self.parent_operators.append(parent_operators)
 
-        self.parent_operators.append(parent_operators)
-
     def add_to_archive_history(self, individuals: List[Any]):
         new_individuals = []
         archive_comp_time = []

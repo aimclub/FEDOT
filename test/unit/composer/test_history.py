@@ -6,7 +6,7 @@ from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.composer.composing_history import ParentOperator
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.utils import project_root
+from fedot.core.utils import fedot_project_root
 
 
 def test_parent_operator():
@@ -22,7 +22,7 @@ def test_parent_operator():
 
 
 def test_operators_in_history():
-    project_root_path = str(project_root())
+    project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
     auto_model = Fedot(problem='classification', seed=42, composer_params={'num_of_generations': 3, 'pop_size': 4})
