@@ -8,7 +8,10 @@ from fedot.core.operations.evaluation.operation_implementations.\
 
 
 class DecomposerImplementation(DataOperationImplementation):
-    """ Base class for decomposing target """
+    """ Base class for decomposing target. The idea is to find the difference
+    between the actual and predicted values - the residuals. Then the residuals
+    replace the original target.
+    """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -59,7 +62,7 @@ class DecomposerImplementation(DataOperationImplementation):
 
 
 class DecomposerRegImplementation(DecomposerImplementation):
-    """ Class for decomposing target """
+    """ Class for decomposing target for regression task """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
@@ -100,6 +103,9 @@ class DecomposerRegImplementation(DecomposerImplementation):
 
 
 class DecomposerClassImplementation(DecomposerImplementation):
+    """ Class for decomposing target for both binary and multiclass
+    classification task
+    """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
