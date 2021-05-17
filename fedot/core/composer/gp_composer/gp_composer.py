@@ -23,8 +23,8 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
+                                                              MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 sample_split_ratio_for_tasks = {
@@ -72,6 +72,7 @@ class ChainGenerationParams:
     primary_node_func: Callable = PrimaryNode
     secondary_node_func: Callable = SecondaryNode
     chain_class: Callable = Chain
+    rules_for_constraint: Optional[List[Callable]] = None
 
 
 class GPComposer(Composer):

@@ -94,10 +94,11 @@ class GPChainParameterFreeOptimiser(GPChainOptimiser):
 
                 self.max_std = self.update_max_std()
 
-                individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
-                                                               population=self.population,
-                                                               objective_function=objective_function,
-                                                               chain_class=self.chain_class, timer=t)
+                individuals_to_select = \
+                    regularized_population(reg_type=self.parameters.regularization_type,
+                                           population=self.population,
+                                           objective_function=objective_function,
+                                           chain_generation_params=self.chain_generation_params, timer=t)
 
                 if self.parameters.multi_objective:
                     filtered_archive_items = duplicates_filtration(archive=self.archive,

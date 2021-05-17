@@ -21,7 +21,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
-from test.unit.chains.test_graph_operator import get_chain
+from test.unit.graphs.test_graph_operator import get_chain
 
 seed(1)
 np.random.seed(1)
@@ -129,7 +129,7 @@ def test_chain_sequential_fit_correct(data_setup):
     for node in [first, second, third, final]:
         chain.add_node(node)
 
-    train_predicted = chain.fit(input_data=train, use_cache=False)
+    train_predicted = chain.fit(input_data=train, use_fitted=False)
 
     assert chain.root_node.descriptive_id == (
         '(((/n_logit_default_params;)/'
@@ -287,18 +287,20 @@ def test_chain_repr():
     assert repr(chain) == expected_chain_description
 
 
-def test_update_node_in_chain_raise_exception():
+def test_update_node_in_chain_correct():
     first = PrimaryNode(operation_type='logit')
     final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
 
     chain = Chain()
     chain.add_node(final)
-    replacing_node = SecondaryNode('logit')
+    new_node = PrimaryNode('svc')
+    replacing_node = SecondaryNode('logit', nodes_from=[new_node])
 
-    with pytest.raises(ValueError) as exc:
-        chain.update_node(old_node=first, new_node=replacing_node)
+    chain.update_node(old_node=first, new_node=replacing_node)
 
-    assert str(exc.value) == "Can't update PrimaryNode with SecondaryNode"
+    assert replacing_node in chain.nodes
+    assert new_node in chain.nodes
+    assert first not in chain.nodes
 
 
 def test_delete_node_with_redirection():

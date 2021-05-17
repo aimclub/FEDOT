@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.data.data import InputData
@@ -18,7 +19,6 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.chains.chain_validation import validate
 
 
 class NodeAnalysis:
@@ -140,7 +140,7 @@ class NodeAnalyzeApproach(ABC):
         return changed_chain_metric / self._origin_metric
 
     def _get_metric_value(self, chain: Chain, metric: MetricByTask) -> float:
-        chain.fit(self._train_data, use_cache=False)
+        chain.fit(self._train_data, use_fitted=False)
         predicted = chain.predict(self._test_data)
         metric_value = metric.get_value(true=self._test_data,
                                         predicted=predicted)

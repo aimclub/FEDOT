@@ -28,7 +28,10 @@ class ChainTemplate:
         self.depth = chain.depth
         self.operation_templates = []
         self.unique_chain_id = str(uuid4()) if not chain.uid else chain.uid
-        self.computation_time = chain.computation_time
+        try:
+            self.computation_time = chain.computation_time
+        except AttributeError:
+            self.computation_time = None
 
         if not log:
             self.log = default_log(__name__)
@@ -38,10 +41,15 @@ class ChainTemplate:
         self._chain_to_template(chain)
 
     def _chain_to_template(self, chain):
-        if chain.root_node:
-            self._extract_chain_structure(chain.root_node, 0, [])
-        else:
-            self.link_to_empty_chain = chain
+        try:
+            if isinstance(chain.root_node, list):
+                self._extract_chain_structure(chain.root_node[0], 0, [])
+            else:
+                self._extract_chain_structure(chain.root_node, 0, [])
+            return
+        except Exception as ex:
+            self.log.info(f'Cannot export to template: {ex}')
+        self.link_to_empty_chain = chain
 
     def _extract_chain_structure(self, node: Node, operation_id: int, visited_nodes: List[Node]):
         """
@@ -62,7 +70,8 @@ class ChainTemplate:
         else:
             nodes_from = []
 
-        if node.operation.operation_type == atomized_model_type():
+        if (not isinstance(node.operation, str) and
+                node.operation.operation_type == atomized_model_type()):
             operation_template = AtomizedModelTemplate(node, operation_id, nodes_from)
         else:
             operation_template = OperationTemplate(node, operation_id, nodes_from)

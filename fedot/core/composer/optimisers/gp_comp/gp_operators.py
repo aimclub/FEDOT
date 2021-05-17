@@ -35,7 +35,8 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
         chain_root = secondary_node_func(operation_type=choice(requirements.secondary))
         chain.add_node(chain_root)
         chain_growth(chain, chain_root)
-        is_correct_chain = constraint_function(chain)
+        is_correct_chain = constraint_function(chain,
+                                               chain_generation_params.rules_for_constraint)
     return chain
 
 

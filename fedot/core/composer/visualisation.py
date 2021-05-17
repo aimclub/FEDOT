@@ -21,6 +21,80 @@ from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 
 
+class GraphVisualiser:
+    def __init__(self, log: Log = default_log(__name__)):
+        default_data_dir = default_fedot_data_dir()
+        self.temp_path = os.path.join(default_data_dir, 'composing_history')
+        self.log = log
+
+    def visualise(self, chain: 'GraphObject', save_path: Optional[str] = None):
+        try:
+            fig, axs = plt.subplots(figsize=(9, 9))
+            fig.suptitle('Current chain')
+            self.draw_single_graph(chain, axs)
+            if not save_path:
+                plt.show()
+            else:
+                plt.savefig(save_path)
+                plt.close()
+        except Exception as ex:
+            self.log.error(f'Visualisation failed with {ex}')
+
+    def draw_single_graph(self, graph: 'GraphObject', ax=None, title=None,
+                          in_graph_converter_function=chain_as_nx_graph):
+        if type(graph).__name__ == 'Chain':
+            pos, node_labels = self._draw_tree(graph, ax, title, in_graph_converter_function)
+        else:
+            pos, node_labels = self._draw_dag(graph, ax, title, in_graph_converter_function)
+
+        self._draw_labels(pos, node_labels, ax)
+
+    def _draw_tree(self, graph: 'Chain', ax=None, title=None,
+                   in_graph_converter_function=chain_as_nx_graph):
+        nx_graph, node_labels = in_graph_converter_function(chain=graph)
+        word_labels = [str(node) for node in node_labels.values()]
+        inv_map = {v: k for k, v in node_labels.items()}
+        if type(graph).__name__ == 'Chain':
+            root = inv_map[graph.root_node]
+        else:
+            root = 0
+        minimum_spanning_tree = nx.minimum_spanning_tree(nx_graph.to_undirected())
+        pos = hierarchy_pos(minimum_spanning_tree, root=root)
+        min_size = 3000
+        node_sizes = [min_size for _ in word_labels]
+        if title:
+            plt.title(title)
+        colors = colors_by_node_labels(node_labels)
+        nx.draw(nx_graph, pos=pos, with_labels=False,
+                node_size=node_sizes, width=2.0,
+                node_color=colors, cmap='Set3', ax=ax)
+        return pos, node_labels
+
+    def _draw_dag(self, graph: 'GraphObject', ax=None, title=None,
+                  in_graph_converter_function=chain_as_nx_graph):
+        nx_graph, node_labels = in_graph_converter_function(chain=graph)
+        word_labels = [str(node) for node in node_labels.values()]
+
+        pos = nx.circular_layout(nx_graph)
+
+        min_size = 3000
+        node_sizes = [min_size for _ in word_labels]
+        if title:
+            plt.title(title)
+        colors = colors_by_node_labels(node_labels)
+        nx.draw(nx_graph, pos=pos, with_labels=False,
+                node_size=node_sizes, width=2.0,
+                node_color=colors, cmap='Set3', ax=ax)
+        return pos, node_labels
+
+    def _draw_labels(self, pos, node_labels, ax):
+        for node, (x, y) in pos.items():
+            text = '\n'.join(str(node_labels[node]).split('_'))
+            if ax is None:
+                ax = plt
+            ax.text(x, y, text, ha='center', va='center')
+
+
 class ChainVisualiser:
 
     def __init__(self, log: Log = default_log(__name__)):
@@ -33,52 +107,7 @@ class ChainVisualiser:
         self.convergence_imgs = []
         self.best_chains_imgs = []
         self.merged_imgs = []
-
-    def visualise(self, chain: 'Chain', save_path: Optional[str] = None):
-        try:
-            fig, axs = plt.subplots(figsize=(9, 9))
-            fig.suptitle('Current chain')
-            self._visualise_chain(chain, axs)
-            if not save_path:
-                plt.show()
-            else:
-                plt.savefig(save_path)
-                plt.close()
-        except Exception as ex:
-            self.log.error(f'Visualisation failed with {ex}')
-
-    def _visualise_chain(self, chain: 'Chain', ax=None, title=None,
-                         in_graph_converter_function=chain_as_nx_graph):
-        pos, node_labels = self._draw_tree(chain, ax, title, in_graph_converter_function)
-        self._draw_labels(pos, node_labels, ax)
-
-    def _draw_tree(self, chain: 'Chain', ax=None, title=None,
-                   in_graph_converter_function=chain_as_nx_graph):
-        graph, node_labels = in_graph_converter_function(chain=chain)
-        word_labels = [str(node) for node in node_labels.values()]
-        inv_map = {v: k for k, v in node_labels.items()}
-        if type(chain).__name__ == 'Chain':
-            root = inv_map[chain.root_node]
-        else:
-            root = 0
-        minimum_spanning_tree = nx.minimum_spanning_tree(graph.to_undirected())
-        pos = hierarchy_pos(minimum_spanning_tree, root=root)
-        min_size = 3000
-        node_sizes = [min_size for _ in word_labels]
-        if title:
-            plt.title(title)
-        colors = colors_by_node_labels(node_labels)
-        nx.draw(graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0,
-                node_color=colors, cmap='Set3', ax=ax)
-        return pos, node_labels
-
-    def _draw_labels(self, pos, node_labels, ax):
-        for node, (x, y) in pos.items():
-            text = '\n'.join(str(node_labels[node]).split('_'))
-            if ax is None:
-                ax = plt
-            ax.text(x, y, text, ha='center', va='center')
+        self.graph_visualizer = GraphVisualiser(log=log)
 
     def _visualise_chains(self, chains, fitnesses):
         fitnesses = deepcopy(fitnesses)
@@ -86,8 +115,9 @@ class ChainVisualiser:
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
         for ch_id, chain in enumerate(chains):
-            self._visualise_chain(chain, title='Current chain',
-                                  in_graph_converter_function=chain_template_as_nx_graph)
+            self.graph_visualizer.draw_single_graph(chain,
+                                                    title='Current chain',
+                                                    in_graph_converter_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.chains_imgs.append(img)
@@ -98,8 +128,9 @@ class ChainVisualiser:
                 last_best_chain = chain
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self._visualise_chain(last_best_chain, title=f'Best chain after {round(ch_id)} evals',
-                                  in_graph_converter_function=chain_template_as_nx_graph)
+            self.graph_visualizer.draw_single_graph(last_best_chain,
+                                                    title=f'Best chain after {round(ch_id)} evals',
+                                                    in_graph_converter_function=chain_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_chains_imgs.append(img)

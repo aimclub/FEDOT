@@ -7,6 +7,8 @@ API
 
    api
    composer
+   graph
+   graph_node
    chain
    node
    operation

@@ -37,30 +37,37 @@ class ComposingHistory:
         return chain_template
 
     def add_to_history(self, individuals: List[Any]):
-        new_individuals = []
-        chains_comp_time = []
-        parent_operators = []
-        for ind in individuals:
-            new_ind = deepcopy(ind)
-            new_ind.chain = self._convert_chain_to_template(ind.chain)
-            new_individuals.append(new_ind)
-            chains_comp_time.append(ind.chain.computation_time)
-            parent_operators.append(ind.parent_operators)
-        self.individuals.append(new_individuals)
-        self.chains_comp_time_history.append(chains_comp_time)
+        try:
+            new_individuals = []
+            chains_comp_time = []
+            parent_operators = []
+            for ind in individuals:
+                new_ind = deepcopy(ind)
+                new_ind.chain = self._convert_chain_to_template(ind.chain)
+                new_individuals.append(new_ind)
+                if hasattr(ind.chain, 'computation_time'):
+                    chains_comp_time.append(ind.chain.computation_time)
+                parent_operators.append(ind.parent_operators)
+            self.individuals.append(new_individuals)
+            self.chains_comp_time_history.append(chains_comp_time)
+        except Exception as ex:
+            print(f'Cannot add to history: {ex}')
 
         self.parent_operators.append(parent_operators)
 
     def add_to_archive_history(self, individuals: List[Any]):
-        new_individuals = []
-        archive_comp_time = []
-        for ind in individuals:
-            new_ind = deepcopy(ind)
-            new_ind.chain = self._convert_chain_to_template(ind.chain)
-            new_individuals.append(new_ind)
-            archive_comp_time.append(ind.chain.computation_time)
-        self.archive_history.append(new_individuals)
-        self.archive_comp_time_history.append(archive_comp_time)
+        try:
+            new_individuals = []
+            archive_comp_time = []
+            for ind in individuals:
+                new_ind = deepcopy(ind)
+                new_ind.chain = self._convert_chain_to_template(ind.chain)
+                new_individuals.append(new_ind)
+                archive_comp_time.append(ind.chain.computation_time)
+            self.archive_history.append(new_individuals)
+            self.archive_comp_time_history.append(archive_comp_time)
+        except Exception as ex:
+            print(f'Cannot add to archive history: {ex}')
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = os.path.join(default_fedot_data_dir(), 'composing_history')

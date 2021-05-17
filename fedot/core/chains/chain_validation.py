@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Callable, List, Optional
 
 import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
@@ -7,6 +7,7 @@ from networkx.algorithms.isolate import isolates
 from fedot.core.chains.chain import Chain, nodes_with_operation
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.graphs.graph import GraphObject
 from fedot.core.operations.model import Model
 from fedot.core.repository.operation_types_repository import \
     OperationTypesRepository, get_ts_operations
@@ -15,7 +16,14 @@ from fedot.core.repository.tasks import Task
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
-def validate(chain: Chain, task: Optional[Task] = None):
+def custom_validate(graph: GraphObject, rules: List[Callable]):
+    for rule_func in rules:
+        rule_func(graph)
+
+    return True
+
+
+def validate(chain: 'Chain', task: Optional[Task] = None):
     # TODO pass task to this function
     has_one_root(chain)
     has_no_cycle(chain)
@@ -36,12 +44,12 @@ def validate(chain: Chain, task: Optional[Task] = None):
     return True
 
 
-def has_one_root(chain: Chain):
+def has_one_root(chain: 'GraphObject'):
     if chain.root_node:
         return True
 
 
-def has_no_cycle(chain: Chain):
+def has_no_cycle(chain: 'GraphObject'):
     graph, _ = chain_as_nx_graph(chain)
     cycled = list(simple_cycles(graph))
     if len(cycled) > 0:
@@ -50,7 +58,7 @@ def has_no_cycle(chain: Chain):
     return True
 
 
-def has_no_isolated_nodes(chain: Chain):
+def has_no_isolated_nodes(chain: 'GraphObject'):
     graph, _ = chain_as_nx_graph(chain)
     isolated = list(isolates(graph))
     if len(isolated) > 0 and chain.length != 1:
@@ -58,19 +66,19 @@ def has_no_isolated_nodes(chain: Chain):
     return True
 
 
-def has_primary_nodes(chain: Chain):
+def has_primary_nodes(chain: 'GraphObject'):
     if not any(node for node in chain.nodes if isinstance(node, PrimaryNode)):
         raise ValueError(f'{ERROR_PREFIX} Chain does not have primary nodes')
     return True
 
 
-def has_no_self_cycled_nodes(chain: Chain):
+def has_no_self_cycled_nodes(chain: 'GraphObject'):
     if any([node for node in chain.nodes if isinstance(node, SecondaryNode) and node in node.nodes_from]):
         raise ValueError(f'{ERROR_PREFIX} Chain has self-cycled nodes')
     return True
 
 
-def has_no_isolated_components(chain: Chain):
+def has_no_isolated_components(chain: 'GraphObject'):
     graph, _ = chain_as_nx_graph(chain)
     ud_graph = nx.Graph()
     ud_graph.add_nodes_from(graph)
@@ -80,7 +88,7 @@ def has_no_isolated_components(chain: Chain):
     return True
 
 
-def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
+def has_correct_operation_positions(chain: 'Chain', task: Optional[Task] = None):
     is_root_satisfy_task_type = True
     if task:
         is_root_satisfy_task_type = task.task_type in chain.root_node.operation.acceptable_task_types
@@ -91,7 +99,7 @@ def has_correct_operation_positions(chain: Chain, task: Optional[Task] = None):
     return True
 
 
-def has_final_operation_as_model(chain: Chain):
+def has_final_operation_as_model(chain: 'Chain'):
     """ Check if the operation in root node is model or not """
     root_node = chain.root_node
 
@@ -101,7 +109,7 @@ def has_final_operation_as_model(chain: Chain):
     return True
 
 
-def has_no_conflicts_with_data_flow(chain: Chain):
+def has_no_conflicts_with_data_flow(chain: 'Chain'):
     """ Check if the chain contains incorrect connections between nodes """
     operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
     forbidden_parents_combination, _ = operation_repo.suitable_operation()
@@ -124,7 +132,7 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     return True
 
 
-def has_correct_data_connections(chain: Chain):
+def has_correct_data_connections(chain: 'Chain'):
     """ Check if the chain contains incorrect connections between operation for different data types """
     operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
     models_repo = OperationTypesRepository(repository_name='model_repository.json')
@@ -154,7 +162,7 @@ def get_supported_data_types(node, operation_repo, models_repo):
     return supported_data_types
 
 
-def is_chain_contains_ts_operations(chain: Chain):
+def is_chain_contains_ts_operations(chain: 'Chain'):
     """ Function checks is the model contains operations for time series
     forecasting """
     # Get time series specific operations with tag "ts_specific"
@@ -171,7 +179,7 @@ def is_chain_contains_ts_operations(chain: Chain):
         return False
 
 
-def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
+def has_no_data_flow_conflicts_in_ts_chain(chain: 'Chain'):
     """ Function checks the correctness of connection between nodes """
     models = get_ts_operations(mode='models')
     # Preprocessing not only for time series
@@ -216,7 +224,7 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
     return True
 
 
-def only_ts_specific_operations_are_primary(chain: Chain):
+def only_ts_specific_operations_are_primary(chain: 'Chain'):
     """ Only time series specific operations could be placed in primary nodes """
     ts_data_operations = get_ts_operations(mode='data_operations',
                                            tags=["ts_specific"])

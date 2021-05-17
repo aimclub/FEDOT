@@ -1,25 +1,30 @@
+
 from copy import copy
 from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
 from uuid import uuid4
+from datetime import timedelta
+from multiprocessing import Manager, Process
+from typing import Callable, List, Optional, Union
 
 from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.graph_operator import GraphOperator
-from fedot.core.chains.node import (Node, PrimaryNode)
+from fedot.core.chains.node import Node
 from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.composer.timer import Timer
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.graphs.graph import GraphObject
+from fedot.core.log import Log
 
 ERROR_PREFIX = 'Invalid chain configuration:'
 
 
-class Chain:
+class Chain(GraphObject):
     """
     Base class used for composite model structure definition
 
@@ -33,36 +38,22 @@ class Chain:
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = None):
-        self.uid = str(uuid4())
-        self.nodes = []
-        self.log = log
-        self.template = None
+
         self.computation_time = None
-        self.operator = GraphOperator(self)
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
-
-        if nodes:
-            if isinstance(nodes, list):
-                for node in nodes:
-                    self.add_node(node)
-            else:
-                self.add_node(nodes)
+        self.template = None
         self.fitted_on_data = {}
+        super().__init__(nodes, log)
 
     def fit_from_scratch(self, input_data: InputData = None):
         """
-        Method used for training the chain without using cached information
+        Method used for training the chain without using saved information
 
         :param input_data: data used for operation training
         """
-        # Clean all cache and fit all operations
+        # Clean all saved states and fit all operations
         self.log.info('Fit chain from scratch')
         self.unfit()
-        self.fit(input_data, use_cache=False)
+        self.fit(input_data, use_fitted=False)
 
     def update_fitted_on_data(self, data: InputData):
         characteristics = input_data_characteristics(data=data, log=self.log)
@@ -70,27 +61,28 @@ class Chain:
         self.fitted_on_data['features_hash'] = characteristics[1]
         self.fitted_on_data['target_hash'] = characteristics[2]
 
-    def _cache_status_if_new_data(self, new_input_data: InputData, cache_status: bool):
+    def _fitted_status_if_new_data(self, new_input_data: InputData, fitted_status: bool):
         new_data_params = input_data_characteristics(new_input_data, log=self.log)
-        if cache_status and self.fitted_on_data:
+        if fitted_status and self.fitted_on_data:
             params_names = ('data_type', 'features_hash', 'target_hash')
             are_data_params_different = any(
                 [new_data_param != self.fitted_on_data[param_name] for new_data_param, param_name in
                  zip(new_data_params, params_names)])
             if are_data_params_different:
-                info = 'Trained operation cache is not actual because you are using new dataset for training. ' \
-                       'Parameter use_cache value changed to False'
+                info = 'Trained operation is not actual because you are using new dataset for training. ' \
+                       'Parameter use_fitted value changed to False'
                 self.log.info(info)
-                cache_status = False
-        return cache_status
+                fitted_status = False
+        return fitted_status
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_cache=False,
+    def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations=False,
                              time: timedelta = timedelta(minutes=3)) -> Manager:
         """
         Run training process with time limit. Create
 
         :param input_data: data used for operation training
-        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param use_fitted_operations: flag defining whether use saved information about previous executions or not,
+        default True
         :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
@@ -98,7 +90,7 @@ class Chain:
         process_state_dict = manager.dict()
         fitted_operations = manager.list()
         p = Process(target=self._fit,
-                    args=(input_data, use_cache, process_state_dict, fitted_operations),
+                    args=(input_data, use_fitted_operations, process_state_dict, fitted_operations),
                     kwargs={})
         p.start()
         p.join(time)
@@ -112,13 +104,14 @@ class Chain:
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: InputData, use_cache=False, process_state_dict: Manager = None,
+    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: Manager = None,
              fitted_operations: Manager = None):
         """
         Run training process in all nodes in chain starting with root.
 
         :param input_data: data used for operation training
-        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param use_fitted_operations: flag defining whether use saved information about previous executions or not,
+        default True
         :param process_state_dict: this dictionary is used for saving required chain parameters (which were changed
         inside the process) in a case of operation fit time control (when process created)
         :param fitted_operations: this list is used for saving fitted operations of chain nodes
@@ -126,17 +119,18 @@ class Chain:
 
         # InputData was set directly to the primary nodes
         if input_data is None:
-            use_cache = False
+            use_fitted_operations = False
         else:
-            use_cache = self._cache_status_if_new_data(new_input_data=input_data, cache_status=use_cache)
+            use_fitted_operations = self._fitted_status_if_new_data(new_input_data=input_data,
+                                                                    fitted_status=use_fitted_operations)
 
-            if not use_cache or not self.fitted_on_data:
+            if not use_fitted_operations or not self.fitted_on_data:
                 # Don't use previous information
                 self.unfit()
                 self.update_fitted_on_data(input_data)
 
         with Timer(log=self.log) as t:
-            computation_time_update = not use_cache or not self.root_node.fitted_operation or \
+            computation_time_update = not use_fitted_operations or not self.root_node.fitted_operation or \
                                       self.computation_time is None
 
             train_predicted = self.root_node.fit(input_data=input_data)
@@ -152,17 +146,17 @@ class Chain:
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_cache=True,
+    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=True,
             time_constraint: Optional[timedelta] = None):
         """
         Run training process in all nodes in chain starting with root.
 
         :param input_data: data used for operation training
-        :param use_cache: flag defining whether use cache information about previous executions or not, default True
+        :param use_fitted: flag defining whether use saved information about previous executions or not,
+            default True
         :param time_constraint: time constraint for operation fitting (seconds)
         """
-
-        if not use_cache:
+        if not use_fitted:
             self.unfit()
 
         # Make copy of the input data to avoid performing inplace operations
@@ -170,11 +164,32 @@ class Chain:
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data, use_cache=use_cache)
+            train_predicted = self._fit(input_data=copied_input_data,
+                                        use_fitted_operations=use_fitted)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, use_cache=use_cache,
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data,
+                                                        use_fitted_operations=use_fitted,
                                                         time=time_constraint)
         return train_predicted
+
+    @property
+    def is_fitted(self):
+        return all([(node.fitted_operation is not None) for node in self.nodes])
+
+    def unfit(self):
+        """
+        Remove fitted operations for all nodes.
+        """
+        for node in self.nodes:
+            node.unfit()
+
+    def fit_from_cache(self, cache: OperationsCache):
+        for node in self.nodes:
+            cached_state = cache.get(node)
+            if cached_state:
+                node.fitted_operation = cached_state.operation
+            else:
+                node.fitted_operation = None
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
@@ -190,7 +205,7 @@ class Chain:
         """
 
         if not self.is_fitted:
-            ex = 'Trained operation cache is not actual or empty'
+            ex = 'Trained operation is not actual or empty'
             self.log.error(ex)
             raise ValueError(ex)
 
@@ -226,69 +241,6 @@ class Chain:
 
         return tuned_chain
 
-    def add_node(self, new_node: Node):
-        """
-        Add new node to the Chain
-
-        :param node: new Node object
-        """
-        self.operator.add_node(new_node)
-
-    def update_node(self, old_node: Node, new_node: Node):
-        """
-        Replace old_node with new one.
-
-        :param old_node: Node object to replace
-        :param new_node: Node object to replace
-        """
-
-        self.operator.update_node(old_node, new_node)
-
-    def update_subtree(self, old_subroot: Node, new_subroot: Node):
-        """
-        Replace the subtrees with old and new nodes as subroots
-
-        :param old_subroot: Node object to replace
-        :param new_subroot: Node object to replace
-        """
-        self.operator.update_subtree(old_subroot, new_subroot)
-
-    def delete_node(self, node: Node):
-        """
-        Delete chosen node redirecting all its parents to the child.
-
-        :param node: Node object to delete
-        """
-
-        self.operator.delete_node(node)
-
-    def delete_subtree(self, subroot: Node):
-        """
-        Delete the subtree with node as subroot.
-
-        :param subroot:
-        """
-        self.operator.delete_subtree(subroot)
-
-    @property
-    def is_fitted(self):
-        return all([(node.fitted_operation is not None) for node in self.nodes])
-
-    def unfit(self):
-        """
-        Remove fitted operations for all nodes.
-        """
-        for node in self.nodes:
-            node.unfit()
-
-    def fit_from_cache(self, cache):
-        for node in self.nodes:
-            cached_state = cache.get(node)
-            if cached_state:
-                node.fitted_operation = cached_state.operation
-            else:
-                node.fitted_operation = None
-
     def save(self, path: str):
         """
         Save the chain to the json representation with pickled fitted operations.
@@ -311,9 +263,6 @@ class Chain:
         self.template = ChainTemplate(self, self.log)
         self.template.import_chain(path)
 
-    def show(self, path: str = None):
-        ChainVisualiser().visualise(self, path)
-
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 
@@ -325,9 +274,6 @@ class Chain:
         }
         return f'{description}'
 
-    def __repr__(self):
-        return self.__str__()
-
     @property
     def root_node(self) -> Optional[Node]:
         if len(self.nodes) == 0:
@@ -337,38 +283,6 @@ class Chain:
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
         return root[0]
-
-    @property
-    def length(self) -> int:
-        return len(self.nodes)
-
-    @property
-    def depth(self) -> int:
-        def _depth_recursive(node):
-            if node is None:
-                return 0
-            if isinstance(node, PrimaryNode):
-                return 1
-            else:
-                return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
-
-        return _depth_recursive(self.root_node)
-
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        result.uid = uuid4()
-        return result
-
-    def __deepcopy__(self, memo=None):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, deepcopy(v, memo))
-        result.uid = uuid4()
-        return result
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):

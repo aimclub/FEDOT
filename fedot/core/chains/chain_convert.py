@@ -2,10 +2,8 @@ from uuid import uuid4
 
 import networkx as nx
 
-from fedot.core.chains.chain_template import ChainTemplate
 
-
-def chain_as_nx_graph(chain: 'Chain'):
+def chain_as_nx_graph(chain: 'GraphObject'):
     """ Convert FEDOT chain into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}
@@ -20,13 +18,14 @@ def chain_as_nx_graph(chain: 'Chain'):
         for node in chain.nodes:
             if node.nodes_from is not None:
                 for child in node.nodes_from:
-                    graph.add_edge(new_node_idx[child], new_node_idx[node])
+                    graph.add_edge(new_node_idx[child],
+                                   new_node_idx[node])
 
     add_edges(graph, chain, new_node_idx)
     return graph, node_labels
 
 
-def chain_template_as_nx_graph(chain: ChainTemplate):
+def chain_template_as_nx_graph(chain: 'ChainTemplate'):
     """ Convert FEDOT chain template into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}

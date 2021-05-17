@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Any, List
+from typing import Any, Callable, List, Union
 
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.composer.composing_history import ParentOperator
@@ -26,19 +26,26 @@ def will_crossover_be_applied(chain_first, chain_second, crossover_prob, crossov
                 crossover_type == CrossoverTypesEnum.none)
 
 
-def crossover(types: List[CrossoverTypesEnum],
+def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
               ind_first: Individual, ind_second: Individual,
               max_depth: int, log: Log,
-              crossover_prob: float = 0.8) -> Any:
+              crossover_prob: float = 0.8, chain_generation_params=None) -> Any:
     crossover_type = choice(types)
+    rules = chain_generation_params.rules_for_constraint if chain_generation_params else None
+    is_custom_crossover = isinstance(crossover_type, Callable)
     try:
         if will_crossover_be_applied(ind_first.chain, ind_second.chain, crossover_prob, crossover_type):
-            if crossover_type in crossover_by_type.keys():
+            if crossover_type in crossover_by_type.keys() or is_custom_crossover:
                 for _ in range(MAX_NUM_OF_ATTEMPTS):
+                    if is_custom_crossover:
+                        crossover_func = crossover_type
+                    else:
+                        crossover_func = crossover_by_type[crossover_type]
                     new_inds = []
-                    new_chains = crossover_by_type[crossover_type](deepcopy(ind_first.chain),
-                                                                   deepcopy(ind_second.chain), max_depth)
-                    are_correct = all([constraint_function(new_chain) for new_chain in new_chains])
+                    new_chains = crossover_func(deepcopy(ind_first.chain),
+                                                deepcopy(ind_second.chain), max_depth)
+                    are_correct = all([constraint_function(new_chain, rules) for new_chain in new_chains])
+
                     if are_correct:
                         for chain in new_chains:
                             new_ind = Individual(chain)

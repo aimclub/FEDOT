@@ -42,8 +42,8 @@ class GPChainOptimiserParameters:
     """
 
     def __init__(self, selection_types: List[SelectionTypesEnum] = None,
-                 crossover_types: List[CrossoverTypesEnum] = None,
-                 mutation_types: List[MutationTypesEnum] = None,
+                 crossover_types: List[Union[CrossoverTypesEnum, Any]] = None,
+                 mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
                  with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
@@ -171,10 +171,12 @@ class GPChainOptimiser:
                 if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
 
-                individuals_to_select = regularized_population(reg_type=self.parameters.regularization_type,
-                                                               population=self.population,
-                                                               objective_function=objective_function,
-                                                               chain_class=self.chain_class, timer=t)
+                individuals_to_select = \
+                    regularized_population(reg_type=self.parameters.regularization_type,
+                                           population=self.population,
+                                           objective_function=objective_function,
+                                           chain_generation_params=self.chain_generation_params.chain_class,
+                                           timer=t)
 
                 if self.parameters.multi_objective:
                     filtered_archive_items = duplicates_filtration(archive=self.archive,
@@ -294,7 +296,8 @@ class GPChainOptimiser:
                                  selected_individual_first,
                                  selected_individual_second,
                                  crossover_prob=self.requirements.crossover_prob,
-                                 max_depth=self.max_depth, log=self.log)
+                                 max_depth=self.max_depth, log=self.log,
+                                 chain_generation_params=self.chain_generation_params)
         else:
             new_inds = [selected_individual_first]
 
@@ -312,7 +315,7 @@ class GPChainOptimiser:
         while len(pop) < pop_size:
             iter_number += 1
             chain = self.chain_generation_function()
-            if constraint_function(chain):
+            if constraint_function(chain, self.chain_generation_params.rules_for_constraint):
                 pop.append(Individual(chain))
 
             if iter_number > MAX_NUM_OF_GENERATED_INDS:

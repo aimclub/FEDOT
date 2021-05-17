@@ -1,5 +1,5 @@
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import SecondaryNode, PrimaryNode
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composing_history import ComposingHistory
 from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.visualisation import ChainVisualiser
@@ -50,7 +50,7 @@ def run_chain_ang_history_visualisation(generations=2, pop_size=10,
     visualiser = ChainVisualiser()
     visualiser.visualise_history(history)
     if with_chain_visualisation:
-        visualiser.visualise(chain)
+        chain.show()
 
 
 if __name__ == '__main__':

@@ -12,7 +12,6 @@ from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
@@ -224,8 +223,7 @@ def run_ts_forecasting_problem(forecast_length=50,
     # Obtained chain visualisation #
     ################################
     if with_visualisation:
-        visualiser = ChainVisualiser()
-        visualiser.visualise(obtained_chain)
+        obtained_chain.show()
 
     preds = fit_predict_for_chain(chain=obtained_chain,
                                   train_input=train_input,

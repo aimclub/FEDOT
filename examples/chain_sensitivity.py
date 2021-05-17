@@ -1,19 +1,18 @@
 from os import makedirs
-from os.path import join, exists
+from os.path import exists, join
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import fedot_project_root, default_fedot_data_dir
+from fedot.core.utils import default_fedot_data_dir, fedot_project_root
 from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
@@ -135,8 +134,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
         if not exists(result_path):
             makedirs(result_path)
 
-    visualiser = ChainVisualiser()
-    visualiser.visualise(chain, save_path=result_path)
+    chain.show(path=result_path)
 
     chain_analysis_result = ChainStructureAnalyze(chain=chain, train_data=train_data,
                                                   test_data=test_data, all_nodes=True, path_to_save=result_path,

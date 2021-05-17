@@ -17,9 +17,10 @@ class RegularizationTypesEnum(Enum):
 
 def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
                            objective_function: Callable,
-                           chain_class: Any, size: Optional[int] = None, timer=None) -> List[Any]:
+                           chain_generation_params: Any, size: Optional[int] = None, timer=None) -> List[Any]:
     if reg_type == RegularizationTypesEnum.decremental:
-        additional_inds = decremental_regularization(population, objective_function, chain_class, size, timer=timer)
+        additional_inds = decremental_regularization(population, objective_function,
+                                                     chain_generation_params.chain_class, size, timer=timer)
         return population + additional_inds
     elif reg_type == RegularizationTypesEnum.none:
         return population

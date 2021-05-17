@@ -1,15 +1,14 @@
-from abc import ABC
 from copy import copy
 from typing import List, Optional
 
-from fedot.core.chains.node_operator import NodeOperator
+from fedot.core.graphs.node_operator import NodeOperator
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
+from fedot.core.graphs.graph_node import GraphNode, PrimaryGraphNode, SecondaryGraphNode
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 
 
-class Node(ABC):
+class Node(GraphNode):
     """
     Base class for Node definition in Chain structure
 
@@ -23,15 +22,10 @@ class Node(ABC):
     def __init__(self, nodes_from: Optional[List['Node']],
                  operation_type: [str, 'Operation'],
                  log=None):
-        self.nodes_from = nodes_from
-        self.log = log
+        GraphNode.__init__(self, nodes_from, operation_type, log)
+
         self._fitted_operation = None
         self._operator = NodeOperator(self)
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
         if not isinstance(operation_type, str):
             # AtomizedModel
@@ -115,20 +109,6 @@ class Node(ABC):
                                                    is_fit_chain_stage=False)
         return operation_predict
 
-    def __str__(self):
-        operation = f'{self.operation}'
-        return operation
-
-    def __repr__(self):
-        return self.__str__()
-
-    def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
-        return self._operator.ordered_subnodes_hierarchy(visited)
-
-    @property
-    def distance_to_primary_level(self):
-        return self._operator.distance_to_primary_level()
-
     @property
     def custom_params(self) -> dict:
         return self.operation.params
@@ -139,7 +119,7 @@ class Node(ABC):
             self.operation.params = params
 
 
-class PrimaryNode(Node):
+class PrimaryNode(Node, PrimaryGraphNode):
     """
     The class defines the interface of Primary nodes where initial task data is located
 
@@ -149,7 +129,8 @@ class PrimaryNode(Node):
     """
 
     def __init__(self, operation_type: [str, 'Operation'], node_data: dict = None, **kwargs):
-        super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
+        Node.__init__(self, nodes_from=None, operation_type=operation_type, **kwargs)
+        PrimaryGraphNode.__init__(self, operation_type=self.operation, **kwargs)
 
         if node_data is None:
             self._node_data = {}
@@ -214,21 +195,21 @@ class PrimaryNode(Node):
             self._node_data = value
 
 
-class SecondaryNode(Node):
+class SecondaryNode(Node, SecondaryGraphNode):
     """
     The class defines the interface of Secondary nodes modifying tha data flow in Chain
 
     :param operation_type: str type of the operation defined in operation repository
     :param nodes_from: parent nodes where data comes from
-    :param operation: optional custom atomized_operation
     :param kwargs: optional arguments (i.e. logger)
     """
 
     def __init__(self, operation_type: [str, 'Operation'], nodes_from: Optional[List['Node']] = None,
                  **kwargs):
-        nodes_from = [] if nodes_from is None else nodes_from
-        super().__init__(nodes_from=nodes_from, operation_type=operation_type,
-                         **kwargs)
+        Node.__init__(self, nodes_from=nodes_from, operation_type=operation_type,
+                      **kwargs)
+        SecondaryGraphNode.__init__(self, nodes_from=nodes_from, operation_type=self.operation,
+                                    **kwargs)
 
     def fit(self, input_data: InputData) -> OutputData:
         """
@@ -255,10 +236,6 @@ class SecondaryNode(Node):
                                                    parent_operation='predict')
 
         return super().predict(input_data=secondary_input, output_mode=output_mode)
-
-    def _nodes_from_with_fixed_order(self):
-        if self.nodes_from is not None:
-            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str) -> InputData:

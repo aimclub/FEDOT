@@ -87,7 +87,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         composer.log.debug('History visualization finished')
 
         composer.log.debug('Best chain visualization started')
-        visualiser.visualise(chain_evo_composed)
+        chain_evo_composed.show()
         composer.log.debug('Best chain visualization finished')
 
     # the quality assessment for the obtained composite models

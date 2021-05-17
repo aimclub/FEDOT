@@ -11,7 +11,11 @@ CachedState = namedtuple('CachedState', 'operation')
 class OperationsCache:
     def __init__(self, db_path=None, clear_exiting=True):
         if not db_path:
-            self.db_path = f'{str(default_fedot_data_dir())}/{str(uuid.uuid4())}'
+            cache_dir = os.path.join(str(default_fedot_data_dir()), 'fedot_cache')
+            if not os.path.exists(cache_dir):
+                os.mkdir(cache_dir)
+
+            self.db_path = os.path.join(cache_dir, str(uuid.uuid4()))
         else:
             self.db_path = db_path
 

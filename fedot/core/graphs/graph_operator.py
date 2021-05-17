@@ -1,17 +1,19 @@
 from copy import deepcopy
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
-from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.graphs.graph_node import GraphNode, PrimaryGraphNode, SecondaryGraphNode
 
 
 class GraphOperator:
     def __init__(self, chain=None):
         self._chain = chain
 
-    def delete_node(self, node: Node):
-        def make_secondary_node_as_primary(node_child):
-            extracted_type = node_child.operation.operation_type
-            new_primary_node = PrimaryNode(extracted_type)
+    def delete_node(self, node: GraphNode):
+        def make_secondary_node_as_primary(node_child, new_type):
+            extracted_type = (node_child.operation.operation_type
+                              if not isinstance(node_child.operation, str)
+                              else node_child.operation)
+            new_primary_node = new_type(extracted_type)
             this_node_children = self.node_children(node_child)
             for node in this_node_children:
                 index = node.nodes_from.index(node_child)
@@ -24,35 +26,32 @@ class GraphOperator:
         for node_child in self.node_children(node):
             node_child.nodes_from.remove(node)
 
-        if type(node) is SecondaryNode and len(node_children_cached) == 1:
+        if isinstance(node, SecondaryGraphNode) and len(node_children_cached) == 1:
             for node_from in node.nodes_from:
                 node_children_cached[0].nodes_from.append(node_from)
-        elif type(node) is PrimaryNode:
+        elif isinstance(node, PrimaryGraphNode):
             for node_child in node_children_cached:
                 if not node_child.nodes_from:
-                    make_secondary_node_as_primary(node_child)
+                    make_secondary_node_as_primary(node_child, type(node))
         self._chain.nodes.clear()
         self.add_node(self_root_node_cached)
 
-    def delete_subtree(self, node: Node):
+    def delete_subtree(self, node: GraphNode):
         """Delete node with all the parents it has"""
         for node_child in self.node_children(node):
             node_child.nodes_from.remove(node)
         for subtree_node in node.ordered_subnodes_hierarchy():
             self._chain.nodes.remove(subtree_node)
 
-    def update_node(self, old_node: Node, new_node: Node):
-        if type(new_node) is not type(old_node):
-            raise ValueError(f"Can't update {old_node.__class__.__name__} "
-                             f"with {new_node.__class__.__name__}")
-
+    def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
-        new_node.nodes_from = old_node.nodes_from
+        if type(new_node) == type(old_node):
+            new_node.nodes_from = old_node.nodes_from
         self._chain.nodes.remove(old_node)
         self._chain.nodes.append(new_node)
         self.sort_nodes()
 
-    def update_subtree(self, old_node: Node, new_node: Node):
+    def update_subtree(self, old_node: GraphNode, new_node: GraphNode):
         """Exchange subtrees with old and new nodes as roots of subtrees"""
         new_node = deepcopy(new_node)
         self.actualise_old_node_children(old_node, new_node)
@@ -60,7 +59,7 @@ class GraphOperator:
         self.add_node(new_node)
         self.sort_nodes()
 
-    def add_node(self, node: Node):
+    def add_node(self, node: GraphNode):
         """
         Add new node to the Chain
 
@@ -72,8 +71,8 @@ class GraphOperator:
                 for new_parent_node in node.nodes_from:
                     self.add_node(new_parent_node)
 
-    def distance_to_root_level(self, node: Node):
-        def recursive_child_height(parent_node: Node) -> int:
+    def distance_to_root_level(self, node: GraphNode):
+        def recursive_child_height(parent_node: GraphNode) -> int:
             node_child = self.node_children(parent_node)
             if node_child:
                 height = recursive_child_height(node_child[0]) + 1
@@ -98,7 +97,7 @@ class GraphOperator:
         nodes = get_nodes(self._chain.root_node, current_height=0)
         return nodes
 
-    def actualise_old_node_children(self, old_node: Node, new_node: Node):
+    def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
         old_node_offspring = self.node_children(old_node)
         for old_node_child in old_node_offspring:
             index_of_old_node_in_child_nodes_from = old_node_child.nodes_from.index(old_node)
@@ -106,9 +105,21 @@ class GraphOperator:
 
     def sort_nodes(self):
         """layer by layer sorting"""
-        nodes = self._chain.root_node.ordered_subnodes_hierarchy()
+        if not isinstance(self._chain.root_node, list):
+            nodes = self._chain.root_node.ordered_subnodes_hierarchy()
+        else:
+            nodes = self._chain.nodes
         self._chain.nodes = nodes
 
-    def node_children(self, node) -> List[Optional[Node]]:
-        return [other_node for other_node in self._chain.nodes if isinstance(other_node, SecondaryNode) and
+    def node_children(self, node) -> List[Optional[GraphNode]]:
+        return [other_node for other_node in self._chain.nodes if isinstance(other_node, SecondaryGraphNode) and
                 node in other_node.nodes_from]
+
+    def connect_nodes(self, parent: GraphNode, child: GraphNode):
+        if not isinstance(child, PrimaryGraphNode):
+            if parent.descriptive_id not in [p.descriptive_id for p in child.nodes_from]:
+                child.nodes_from.append(parent)
+        else:
+            new_child = SecondaryGraphNode(child.operation)
+            new_child.nodes_from.append(parent)
+            self.update_node(child, new_child)

@@ -1,4 +1,3 @@
-from fedot.core.chains.node_operator import NodeOperator
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 
 

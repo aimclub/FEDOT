@@ -25,7 +25,7 @@ def results_visualization(history, composed_chains):
     visualiser.pareto_gif_create(history.archive_history, history.individuals)
     visualiser.boxplots_gif_create(history.individuals)
     for chain_evo_composed in composed_chains:
-        visualiser.visualise(chain_evo_composed)
+        chain_evo_composed.visualise()
 
 
 def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) -> float:
