@@ -172,10 +172,10 @@ class DecomposerClassImplementation(DecomposerImplementation):
         return diff
 
     @staticmethod
-    def _multi_difference(classes, target, prev_prediction):
+    def _multi_difference(target, prev_prediction):
         """ Calculates difference between predictions (probabilities) and target
         for multiclass classification task
-        :param classes: which classes are in the target
+
         :param target: class labels
         :param prev_prediction: predictions from previous classification model
         :return diff: difference between probabilities of classes
