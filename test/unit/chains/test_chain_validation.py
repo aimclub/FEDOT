@@ -206,9 +206,9 @@ def chain_with_incorrect_parent_amount_for_decompose():
 
 def chain_with_incorrect_parents_position_for_decompose():
     """ Chain structure:
-         / scaling                \
-    logit                          xgboost
-         \ class_decompose -> rfr /
+         scaling
+    logit                       xgboost
+         class_decompose -> rfr
     """
 
     node_first = PrimaryNode('logit')

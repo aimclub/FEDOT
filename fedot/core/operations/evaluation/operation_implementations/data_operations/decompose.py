@@ -1,6 +1,7 @@
 import numpy as np
 
 from typing import Optional
+from sklearn.preprocessing import OneHotEncoder
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.\
     implementation_interfaces import DataOperationImplementation
@@ -180,22 +181,9 @@ class DecomposerClassImplementation(DecomposerImplementation):
         :return diff: difference between probabilities of classes
         """
 
-        # Range labels in target column
-        labels = np.sort(classes)
-
-        # Create blank array
-        probabilities_target = np.zeros(prev_prediction.shape)
-        for object_id in range(len(probabilities_target)):
-            true_label = target[object_id]
-            label_column = int(np.argwhere(labels == true_label))
-
-            # Generate line with right probs places
-            prob_line = np.zeros(4)
-            prob_line[label_column] = 1.0
-
-            # Insert the resulting string with probabilities into the table
-            probabilities_target[object_id] = prob_line
-
+        # Make on-hot encoding for target
+        binary_enc = OneHotEncoder().fit_transform(target)
+        probabilities_target = binary_enc.toarray()
         diff = probabilities_target - prev_prediction
 
         return diff
