@@ -27,7 +27,7 @@ class ChainTemplate:
         self.total_chain_operations = Counter()
         self.depth = chain.depth
         self.operation_templates = []
-        self.unique_chain_id = str(uuid4())
+        self.unique_chain_id = str(uuid4()) if not chain.uid else chain.uid
         self.computation_time = chain.computation_time
 
         if not log:

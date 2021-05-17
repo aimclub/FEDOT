@@ -1,10 +1,14 @@
+
+from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
-from typing import Callable
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
+from uuid import uuid4
 
-from fedot.core.chains.graph_operator import GraphOperator
+from uuid import uuid4
+
 from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.node import (Node, PrimaryNode)
 from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.optimisers.utils.population_utils import input_data_characteristics
@@ -30,11 +34,13 @@ class Chain:
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = None):
+        self.uid = str(uuid4())
         self.nodes = []
         self.log = log
         self.template = None
         self.computation_time = None
         self.operator = GraphOperator(self)
+
         if not log:
             self.log = default_log(__name__)
         else:
@@ -334,3 +340,19 @@ class Chain:
                 return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
 
         return _depth_recursive(self.root_node)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result.uid = uuid4()
+        return result
+
+    def __deepcopy__(self, memo=None):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        result.uid = uuid4()
+        return result

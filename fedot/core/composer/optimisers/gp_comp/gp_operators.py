@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, List, Tuple, Callable)
+from typing import (Any, Callable, List, Tuple)
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -29,6 +29,7 @@ def random_chain(chain_generation_params, requirements, max_depth=None) -> Any:
                 chain_growth(chain, secondary_node)
 
     is_correct_chain = False
+    chain = None
     while not is_correct_chain:
         chain = chain_class()
         chain_root = secondary_node_func(operation_type=choice(requirements.secondary))
@@ -81,19 +82,20 @@ def evaluate_individuals(individuals_set, objective_function, is_multi_objective
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
     for ind_num, ind in enumerate(reversed_set):
-        ind.fitness = calculate_objective(ind, objective_function, is_multi_objective)
+        ind.fitness = calculate_objective(ind.chain, objective_function, is_multi_objective)
         if ind.fitness is None:
             individuals_set.remove(ind)
         else:
             num_of_successful_evals += 1
         if timer is not None and num_of_successful_evals:
             if timer.is_time_limit_reached():
-                for del_ind_num in range(0, len(individuals_set) - num_of_successful_evals):
+                for _ in range(0, len(individuals_set) - num_of_successful_evals):
                     individuals_set.remove(individuals_set[0])
                 break
     if len(individuals_set) == 0:
-        raise AttributeError('List became empty after incorrect individuals removing.'
-                             'It can occur because of too short model fitting time constraint')
+        raise AttributeError('List became empty after incorrect individuals removing. '
+                             'It can occur because of too short model fitting time constraint'
+                             'or chain generation errors')
 
 
 def calculate_objective(ind: Any, objective_function: Callable, is_multi_objective: bool) -> Any:
@@ -124,3 +126,8 @@ def filter_duplicates(archive, population) -> List[Any]:
 
 def duplicates_filtration(archive, population):
     return list(filter(lambda x: not any([x.fitness == pop_ind.fitness for pop_ind in population]), archive.items))
+
+
+def clean_operators_history(population):
+    for chain in population:
+        chain.parent_operator = []

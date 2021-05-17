@@ -1,6 +1,8 @@
 import csv
 import itertools
 import os
+from copy import deepcopy
+from dataclasses import dataclass
 from typing import (Any, List)
 
 from fedot.core.chains.chain_template import ChainTemplate
@@ -10,6 +12,13 @@ from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
 
 
+@dataclass
+class ParentOperator:
+    operator_name: str
+    operator_type: str
+    parent_chains: List[ChainTemplate]
+
+
 class ComposingHistory:
     """
     Contain history, convert Chain to ChainTemplate, save history to csv
@@ -17,31 +26,39 @@ class ComposingHistory:
 
     def __init__(self, metrics=None):
         self.metrics = metrics
-        self.chains = []
+        self.individuals = []
         self.archive_history = []
         self.chains_comp_time_history = []
         self.archive_comp_time_history = []
+        self.parent_operators = []
 
     def _convert_chain_to_template(self, chain):
         chain_template = ChainTemplate(chain)
-        chain_template.fitness = chain.fitness
         return chain_template
 
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
         chains_comp_time = []
-        for chain in individuals:
-            new_individuals.append(self._convert_chain_to_template(chain))
-            chains_comp_time.append(chain.computation_time)
-        self.chains.append(new_individuals)
+        parent_operators = []
+        for ind in individuals:
+            new_ind = deepcopy(ind)
+            new_ind.chain = self._convert_chain_to_template(ind.chain)
+            new_individuals.append(new_ind)
+            chains_comp_time.append(ind.chain.computation_time)
+            parent_operators.append(ind.parent_operators)
+        self.individuals.append(new_individuals)
         self.chains_comp_time_history.append(chains_comp_time)
+
+        self.parent_operators.append(parent_operators)
 
     def add_to_archive_history(self, individuals: List[Any]):
         new_individuals = []
         archive_comp_time = []
-        for chain in individuals:
-            new_individuals.append(self._convert_chain_to_template(chain))
-            archive_comp_time.append(chain.computation_time)
+        for ind in individuals:
+            new_ind = deepcopy(ind)
+            new_ind.chain = self._convert_chain_to_template(ind.chain)
+            new_individuals.append(new_ind)
+            archive_comp_time.append(ind.chain.computation_time)
         self.archive_history.append(new_individuals)
         self.archive_comp_time_history.append(archive_comp_time)
 
@@ -52,14 +69,14 @@ class ComposingHistory:
             os.mkdir(history_dir)
         self._write_header_to_csv(file)
         idx = 0
-        for gen_num, gen_chains in enumerate(self.chains):
-            for chain_num, chain in enumerate(gen_chains):
+        for gen_num, gen_inds in enumerate(self.individuals):
+            for ind_num, ind in enumerate(gen_inds):
                 if self.is_multi_objective:
-                    fitness = chain.fitness.values
+                    fitness = ind.fitness.values
                 else:
-                    fitness = chain.fitness
-                row = [idx, gen_num, fitness, len(chain.operation_templates), chain.depth,
-                       self.chains_comp_time_history[gen_num][chain_num]]
+                    fitness = ind.fitness
+                row = [idx, gen_num, fitness, len(ind.chain.operation_templates), ind.chain.depth,
+                       self.chains_comp_time_history[gen_num][ind_num]]
                 self._add_history_to_csv(file, row)
                 idx += 1
 
@@ -81,11 +98,11 @@ class ComposingHistory:
     def historical_fitness(self):
         if self.is_multi_objective:
             historical_fitness = []
-            for objective_num in range(len(self.chains[0][0].fitness.values)):
-                objective_history = [[chain.fitness.values[objective_num] for chain in pop] for pop in self.chains]
+            for objective_num in range(len(self.individuals[0][0].fitness.values)):
+                objective_history = [[chain.fitness.values[objective_num] for chain in pop] for pop in self.individuals]
                 historical_fitness.append(objective_history)
         else:
-            historical_fitness = [[chain.fitness for chain in pop] for pop in self.chains]
+            historical_fitness = [[chain.fitness for chain in pop] for pop in self.individuals]
         return historical_fitness
 
     @property
@@ -113,8 +130,8 @@ class ComposingHistory:
 
     @property
     def historical_chains(self):
-        return list(itertools.chain(*self.chains))
+        return list(itertools.chain(*self.individuals))
 
     @property
     def is_multi_objective(self):
-        return type(self.chains[0][0].fitness) is MultiObjFitness
+        return type(self.individuals[0][0].fitness) is MultiObjFitness

@@ -4,6 +4,9 @@ from typing import (Any, List)
 
 from deap import tools
 
+from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.composer.composing_history import ParentOperator
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -13,7 +16,7 @@ class SelectionTypesEnum(Enum):
     spea2 = 'spea2'
 
 
-def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: int) -> List[Any]:
+def selection(types: List[SelectionTypesEnum], population: List[Individual], pop_size: int) -> List[Any]:
     """
     Selection of individuals based on specified type of selection
     :param types: The set of selection types
@@ -26,11 +29,16 @@ def selection(types: List[SelectionTypesEnum], population: List[Any], pop_size: 
         SelectionTypesEnum.spea2: spea2_selection
     }
 
-    type = choice(types)
-    if type in selection_by_type.keys():
-        return selection_by_type[type](population, pop_size)
+    selection_type = choice(types)
+    if selection_type in selection_by_type.keys():
+        selected = selection_by_type[selection_type](population, pop_size)
+        for selected_ind in selected:
+            selected_ind.parent_operator = ParentOperator(operator_type='selection',
+                                                          operator_name=str(selection_type),
+                                                          parent_chains=[ChainTemplate(selected_ind.chain)])
+        return selected
     else:
-        raise ValueError(f'Required selection not found: {type}')
+        raise ValueError(f'Required selection not found: {selection_type}')
 
 
 def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any], pop_size: int) -> List[Any]:

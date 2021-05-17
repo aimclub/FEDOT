@@ -3,22 +3,20 @@ from typing import Callable, Union
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_squared_error,
-                             r2_score, roc_auc_score, mean_absolute_error)
+from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
+                             roc_auc_score)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
-                                                         GPComposerRequirements,
-                                                         GPChainOptimiserParameters)
+from fedot.core.composer.gp_composer.gp_composer import (GPChainOptimiserParameters, GPComposerBuilder,
+                                                         GPComposerRequirements)
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.operation_types_repository import get_ts_operations
+from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
@@ -225,7 +223,9 @@ def compose_fedot_model(train_data: InputData,
 
     logger.message('Model composition finished')
 
-    return chain_for_return, best_candidates
+    history = gp_composer.optimiser.history
+
+    return chain_for_return, best_candidates, history
 
 
 def _obtain_initial_assumption(task: Task) -> Chain:

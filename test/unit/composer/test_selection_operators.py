@@ -4,6 +4,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import ChainGenerationParams, GPComposerRequirements
 from fedot.core.composer.optimisers.gp_comp.gp_operators import random_chain
+from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.optimisers.gp_comp.operators.selection import (
     SelectionTypesEnum,
     individuals_selection,
@@ -25,7 +26,7 @@ def rand_population_gener_and_eval(pop_size=4):
                                                primary_node_func=primary_node_func)
     random_chain_function = partial(random_chain, chain_generation_params=chain_gener_params,
                                     requirements=requirements)
-    population = [random_chain_function() for _ in range(pop_size)]
+    population = [Individual(random_chain_function()) for _ in range(pop_size)]
     # evaluation
     for ind in population:
         ind.fitness = obj_function()
