@@ -15,14 +15,10 @@ np.random.seed(1)
 
 def get_refinement_chain():
     """ Create a chain like this
-                    (Main branch)
-             /->    logit       -->     ->\
-            /         |                    \
-    scaling           |                     xgboost
-            \         V                    /
-             \-> class_decompose -> rfr ->/
-                (Side - regression branch)
-       1              2              3         4
+    4      xgboost
+    3                 rfr
+    2 logit      class_decompose
+    1      scaling
     """
 
     # 1
@@ -43,12 +39,9 @@ def get_refinement_chain():
 
 def get_non_refinement_chain():
     """ Create a chain like this
-             /->        logit          ->\
-            /                             \
-    scaling                                xgboost
-            \                             /
-             \->          rf           ->/
-       1                  2                  3
+    3      xgboost
+    2 logit        rf
+    1      scaling
     """
     # 1
     node_scaling = PrimaryNode('scaling')

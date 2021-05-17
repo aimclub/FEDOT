@@ -19,15 +19,10 @@ np.random.seed(2020)
 
 def get_refinement_chain(lagged):
     """ Create a chain like this
-                    (Main branch)
-            /->     lasso   ->    ->    -> ridge -> FINAL FORECAST
-           /          |                   /
-    lagged            |                  /
-           \          V                 /
-            \->   decompose ->  dtreg  /
-                    (Side branch)
-
-       1              2          3            4
+    4     ridge
+    3           dtreg
+    2 lasso   decompose
+    1    lagged
     """
 
     # 1
@@ -54,15 +49,7 @@ def get_refinement_chain(lagged):
 
 
 def get_non_refinement_chain(lagged):
-    """ Create a chain like this
-            /->    lasso   ->  ridge -> FINAL FORECAST
-           /                 /
-    lagged                  /
-           \               /
-            \->    dtreg  /
-
-       1              2          3
-    """
+    """ Create a chain without decompose operation """
 
     # 1
     node_lagged = PrimaryNode('lagged')

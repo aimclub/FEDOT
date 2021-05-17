@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast(chain, train_input, predict_input, task):
+def make_forecast_with_tuning(chain, train_input, predict_input, task):
     """
     Function for predicting values in a time series
 
@@ -154,8 +154,8 @@ def run_experiment_with_tuning(time_series, with_ar_chain=False, len_forecast=25
     else:
         chain = get_complex_chain()
 
-    old_predicted, new_predicted = make_forecast(chain, train_input,
-                                                 predict_input, task)
+    old_predicted, new_predicted = make_forecast_with_tuning(chain, train_input,
+                                                             predict_input, task)
 
     old_predicted = np.ravel(np.array(old_predicted))
     new_predicted = np.ravel(np.array(new_predicted))
