@@ -10,7 +10,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository
 def cross_validation(reference_data: InputData, cv_folds: int,
                      metrics: [str, Callable], chain: Optional[Chain]) -> Tuple[float, ...]:
     if reference_data.task.task_type in [TaskTypesEnum.ts_forecasting, TaskTypesEnum.clustering]:
-        raise NotImplementedError("Cross validation for time series is not implemented.")
+        raise NotImplementedError(f"Cross validation for {reference_data.task.task_type} is not implemented.")
 
     evaluated_metrics = [[] for _ in range(len(metrics))]
 

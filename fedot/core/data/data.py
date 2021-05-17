@@ -310,8 +310,9 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
 
 
 def train_test_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
-    """ Function to split data(InputData) to train/test(InputData)
-     and return generator of pair(train, test).
+    """ The function for splitting data into a train and test samples
+        in the InputData format for KFolds cross validation. The function
+        return a generator of tuples, consisting of a pair of train, test.
 
     :param data: InputData for train and test splitting
     :param folds: number of folds
