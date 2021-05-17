@@ -23,6 +23,7 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    # Action with target if there will a need to combine actions
     target_action: str
 
     @staticmethod
@@ -162,7 +163,6 @@ class InputData(Data):
     """
     target: Optional[np.array] = None
     masked_features: Optional[list] = None
-    # Action with target if there will a need to combine actions
     target_action: Optional[str] = None
 
     @property
@@ -199,7 +199,6 @@ class OutputData(Data):
     """
     predict: np.array = None
     target: Optional[np.array] = None
-    # Action with target if there will a need to combine actions
     target_action: Optional[str] = None
 
 

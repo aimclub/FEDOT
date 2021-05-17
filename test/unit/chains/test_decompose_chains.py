@@ -125,7 +125,7 @@ def test_order_by_descriptive_correct():
         chain = generate_chain_with_decomposition(data_operation,
                                                   model_operation)
 
-        # Sort nodes in the chain using descriptive_id field
+        # Get nodes with decompose operation in it
         _, decompose_nodes = nodes_amount_with_operation(chain,
                                                          'class_decompose')
         decompose_node = decompose_nodes[0]
