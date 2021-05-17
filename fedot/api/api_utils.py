@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -142,7 +142,8 @@ def compose_fedot_model(train_data: InputData,
                         composer_metric=None,
                         learning_time: float = 5,
                         with_tuning=False,
-                        tuner_metric=None
+                        tuner_metric=None,
+                        cv_folds: Optional[int] = None
                         ):
     """ Function for composing FEDOT chain model """
 
@@ -167,7 +168,8 @@ def compose_fedot_model(train_data: InputData,
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
                                max_lead_time=datetime.timedelta(minutes=learning_time_for_composing),
-                               allow_single_operations=False)
+                               allow_single_operations=False,
+                               cv_folds=cv_folds)
 
     optimizer_parameters = GPChainOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
                                                       mutation_types=[MutationTypesEnum.parameter_change,

@@ -117,10 +117,12 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for chain composition is not defined')
 
-        if self.optimiser.parameters.cv_folds is not None:
+        if self.composer_requirements.cv_folds is not None:
+            self.log.info("KFolds cross validation for chain composing was implemented.")
             metric_function_for_nodes = partial(cross_validation, data,
-                                                self.optimiser.parameters.cv_folds, self.metrics)
+                                                self.composer_requirements.cv_folds, self.metrics)
         else:
+            self.log.info("Hold out validation for chain composing was implemented.")
             train_data, test_data = train_test_data_setup(data,
                                                           sample_split_ration_for_tasks[data.task.task_type])
             metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)

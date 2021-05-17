@@ -38,7 +38,6 @@ class GPChainOptimiserParameters:
         :param depth_increase_step: the step of depth increase in automated depth configuration
         :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
         if false). Value is defined in GPComposerBuilder. Default False.
-        :param cv_folds: integer or None to use cross validate.
     """
 
     def __init__(self, selection_types: List[SelectionTypesEnum] = None,
@@ -47,7 +46,7 @@ class GPChainOptimiserParameters:
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
                  with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False, cv_folds: Optional[int] = None):
+                 multi_objective: bool = False):
 
         self.selection_types = selection_types
         self.crossover_types = crossover_types
@@ -57,7 +56,6 @@ class GPChainOptimiserParameters:
         self.with_auto_depth_configuration = with_auto_depth_configuration
         self.depth_increase_step = depth_increase_step
         self.multi_objective = multi_objective
-        self.cv_folds = cv_folds
         self.set_default_params()
 
     def set_default_params(self):

@@ -1,7 +1,7 @@
 import os
 import warnings
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Iterator
 
 import numpy as np
 import pandas as pd
@@ -309,7 +309,15 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     return train_data, test_data
 
 
-def train_test_data_generator_cv(data: InputData, folds: int):
+def train_test_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
+    """ Function to split data(InputData) to train/test(InputData)
+     and return generator of pair(train, test).
+
+    :param data: InputData for train and test splitting
+    :param folds: number of folds
+
+    :return Iterator[InputData, InputData]: return split train/test data
+    """
     kf = KFold(n_splits=folds)
 
     for train_idxs, test_idxs in kf.split(data.features):

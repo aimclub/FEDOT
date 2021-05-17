@@ -22,6 +22,7 @@ class ComposerRequirements:
     :attribute max_arity: maximal number of parent for node
     :attribute min_arity: minimal number of parent for node
     :attribute allow_single_operations: allow to have chain with only one node
+    :attribute cv_folds: integer or None to use cross validation
     """
     primary: List[str]
     secondary: List[str]
@@ -31,6 +32,7 @@ class ComposerRequirements:
     max_arity: int = 2
     min_arity: int = 2
     allow_single_operations: bool = False
+    cv_folds: Optional[int] = None
 
     def __post_init__(self):
         if self.max_depth < 0:
@@ -39,6 +41,8 @@ class ComposerRequirements:
             raise ValueError(f'invalid max_arity value')
         if self.min_arity < 0:
             raise ValueError(f'invalid min_arity value')
+        if self.cv_folds is not None and self.cv_folds <= 2:
+            raise ValueError(f'invalid cv_folds value')
 
 
 class Composer(ABC):
@@ -66,13 +70,12 @@ class Composer(ABC):
 
     @abstractmethod
     def compose_chain(self, data: InputData,
-                      is_visualise: bool = False, folds: int = None) -> Chain:
+                      is_visualise: bool = False) -> Chain:
         """
         Base method to run the composition process
 
         :param data: data used for problem solving
         :param is_visualise: flag to enable visualization. Default False.
-        :param folds: integer folds to cross validate
         :return: Chain object
         """
         raise NotImplementedError()
