@@ -126,8 +126,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
 
             classes = np.unique(target)
             if len(classes) > 2:
-                # TODO add multiclass classification
-                raise NotImplementedError('Decomposition is not available for multiclass classification')
+                diff = self._multi_difference(classes, target, prev_prediction)
             else:
                 # Binary classification task
                 diff = self._binary_difference(classes, target, prev_prediction)
@@ -150,7 +149,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
     @staticmethod
     def _binary_difference(classes, target, prev_prediction):
         """ Calculates difference between predictions (probabilities) and target
-
+        for binary classification task
         :param classes: which classes are in the target
         :param target: class labels
         :param prev_prediction: predictions from previous classification model
@@ -168,5 +167,35 @@ class DecomposerClassImplementation(DecomposerImplementation):
         bin_target[plus_ids] = 1.0
 
         diff = bin_target - prev_prediction
+
+        return diff
+
+    @staticmethod
+    def _multi_difference(classes, target, prev_prediction):
+        """ Calculates difference between predictions (probabilities) and target
+        for multiclass classification task
+        :param classes: which classes are in the target
+        :param target: class labels
+        :param prev_prediction: predictions from previous classification model
+        :return diff: difference between probabilities of classes
+        """
+
+        # Range labels in target column
+        labels = np.sort(classes)
+
+        # Create blank array
+        probabilities_target = np.zeros(prev_prediction.shape)
+        for object_id in range(len(probabilities_target)):
+            true_label = target[object_id]
+            label_column = int(np.argwhere(labels == true_label))
+
+            # Generate line with right probs places
+            prob_line = np.zeros(4)
+            prob_line[label_column] = 1.0
+
+            # Insert the resulting string with probabilities into the table
+            probabilities_target[object_id] = prob_line
+
+        diff = probabilities_target - prev_prediction
 
         return diff

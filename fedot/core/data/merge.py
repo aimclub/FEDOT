@@ -261,7 +261,6 @@ class TaskTargetMerger:
     def ignored_merge(targets, actions, tasks):
         """ Method merge targets with 'ignore' labels """
         main_ids = np.ravel(np.argwhere(np.array(actions) != 'ignore'))
-        targets = np.array(targets)
         tasks = np.array(tasks)
 
         # Is there is chain predict stage without target at all
@@ -270,8 +269,9 @@ class TaskTargetMerger:
             target_action = None
         # If there are several known targets
         else:
-            target = targets[main_ids]
-            target = target[0, :, :]
+            # Take first non-ignored target
+            main_id = main_ids[0]
+            target = targets[main_id]
             if len(target.shape) == 1:
                 target = target.reshape((-1, 1))
             target_action = None

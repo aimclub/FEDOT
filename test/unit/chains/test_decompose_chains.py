@@ -130,7 +130,7 @@ def test_order_by_descriptive_correct():
         chain = generate_chain_with_decomposition(data_operation,
                                                   model_operation)
 
-        # Sort nodes in the chain using descriptive_id filed
+        # Sort nodes in the chain using descriptive_id field
         _, decompose_nodes = nodes_amount_with_operation(chain,
                                                          'class_decompose')
         decompose_node = decompose_nodes[0]
@@ -155,6 +155,10 @@ def test_correctness_filter_chain_decomposition():
     # Generate synthetic dataset for binary classification task
     train_input, predict_input = get_classification_data(classes_amount=2)
 
+    # Distort labels in targets
+    train_input.target = np.array(train_input.target) + 2
+    predict_input.target = np.array(predict_input.target) + 2
+
     # Get chain
     chain = generate_chain_with_filtering()
     chain.fit(train_input)
@@ -168,8 +172,12 @@ def test_multiclass_classification_decomposition():
     # Generate synthetic dataset for multiclass classification task
     train_input, predict_input = get_classification_data(classes_amount=4)
 
+    # Distort labels targets
+    train_input.target = np.array(train_input.target) + 1
+    predict_input.target = np.array(predict_input.target) + 1
+
     # Get chain
-    chain = generate_chain_with_filtering()
+    chain = generate_chain_with_decomposition('scaling', 'logit')
     chain.fit(train_input)
     predicted_output = chain.predict(predict_input)
 
