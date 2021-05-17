@@ -38,10 +38,10 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
     def convert_to_dict(self) -> dict:
 
         operation_object = {
-            "operation_id": self.operation_id,
-            "operation_type": self.operation_type,
-            "nodes_from": self.nodes_from,
-            "atomized_model_json_path": self.atomized_model_json_path
+            'operation_id': self.operation_id,
+            'operation_type': self.operation_type,
+            'nodes_from': self.nodes_from,
+            'atomized_model_json_path': self.atomized_model_json_path
         }
 
         return operation_object

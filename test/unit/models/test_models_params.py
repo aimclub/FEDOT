@@ -1,8 +1,8 @@
 import numpy as np
 
-from fedot.core.data.data import InputData
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import regression_dataset, classification_dataset

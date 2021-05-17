@@ -1,10 +1,11 @@
-import numpy as np
-
 from typing import Optional, Callable
+
+import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from fedot.core.operations.evaluation.\
-    operation_implementations.implementation_interfaces import ModelImplementation
+
 from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation. \
+    operation_implementations.implementation_interfaces import ModelImplementation
 
 
 class KNeighborsImplementation(ModelImplementation):

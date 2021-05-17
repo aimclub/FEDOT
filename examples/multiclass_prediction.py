@@ -1,5 +1,5 @@
-import os
 import datetime
+import os
 import random
 
 import pandas as pd
@@ -17,7 +17,6 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
@@ -111,8 +110,7 @@ if __name__ == '__main__':
 
     fitted_model = get_model(train_file_path)
 
-    visualiser = ChainVisualiser()
-    visualiser.visualise(fitted_model)
+    fitted_model.show()
 
     roc_auc = validate_model_quality(fitted_model, test_file_path)
     print(f'ROC AUC metric is {roc_auc}')

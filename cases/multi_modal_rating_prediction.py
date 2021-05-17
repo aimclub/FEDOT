@@ -4,8 +4,8 @@ from examples.multi_modal_chain import prepare_multi_modal_data, \
     generate_initial_chain_and_data, \
     calculate_validation_metric
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -37,7 +37,7 @@ def run_multi_modal_case(files_path, is_visualise=False):
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
     logger = default_log('FEDOT logger', verbose_level=4)

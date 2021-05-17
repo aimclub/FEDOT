@@ -2,8 +2,9 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_template_as_nx_graph
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.node import SecondaryNode, PrimaryNode
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from fedot.core.composer.visualisation import hierarchy_pos, ChainVisualiser
+from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.visualisation.graph_viz import hierarchy_pos
+from fedot.core.visualisation.opt_viz import ChainEvolutionVisualiser
 
 
 def chain_first():  # tested chain
@@ -78,7 +79,7 @@ def test_hierarchy_pos():
 
 
 def test_extract_objectives():
-    visualiser = ChainVisualiser()
+    visualiser = ChainEvolutionVisualiser()
     num_of_inds = 5
     individuals = [chain_first() for _ in range(num_of_inds)]
     fitness = (-0.8, 0.1)

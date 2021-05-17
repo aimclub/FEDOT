@@ -13,7 +13,7 @@ DEFAULT_PARAMS_STUB = 'default_params'
 
 class Operation:
     """
-    Base class for operators in nodes. Operators could be machine learning
+    Base class for operations in nodes. Operations could be machine learning
     (or statistical) models or data operations
 
     :param operation_type: name of the operation
@@ -81,7 +81,8 @@ class Operation:
         """
         self._init(data.task)
 
-        data = _fill_remaining_gaps(data, self.operation_type)
+        if 'imputation' not in self.operation_type:
+            data = _fill_remaining_gaps(data, self.operation_type)
 
         fitted_operation = self._eval_strategy.fit(train_data=data)
 

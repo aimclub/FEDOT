@@ -1,16 +1,16 @@
 import warnings
-
 from typing import Optional
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
-from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerRegImplementation
+from fedot.core.operations.evaluation.operation_implementations. \
+    data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
+from fedot.core.operations.evaluation.operation_implementations. \
+    data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 

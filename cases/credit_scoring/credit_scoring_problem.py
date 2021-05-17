@@ -7,14 +7,14 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.visualisation.opt_viz import ChainEvolutionVisualiser
 
 random.seed(1)
 np.random.seed(1)
@@ -52,7 +52,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
     logger = default_log('FEDOT logger', verbose_level=4)
@@ -80,14 +80,14 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     composer.history.write_composer_history_to_csv()
 
     if is_visualise:
-        visualiser = ChainVisualiser()
+        visualiser = ChainEvolutionVisualiser()
 
         composer.log.debug('History visualization started')
         visualiser.visualise_history(composer.history)
         composer.log.debug('History visualization finished')
 
         composer.log.debug('Best chain visualization started')
-        visualiser.visualise(chain_evo_composed)
+        chain_evo_composed.show()
         composer.log.debug('Best chain visualization finished')
 
     # the quality assessment for the obtained composite models

@@ -1,7 +1,7 @@
 import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Union, List, Optional)
+from typing import (Union, List, Optional)
 
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
@@ -21,7 +21,6 @@ class ComposerRequirements:
     :attribute max_chain_fit_time: time constraint for operation fitting (minutes)
     :attribute max_arity: maximal number of parent for node
     :attribute min_arity: minimal number of parent for node
-    :attribute allow_single_operations: allow to have chain with only one node
     :attribute cv_folds: integer or None to use cross validation
     """
     primary: List[str]
@@ -31,7 +30,6 @@ class ComposerRequirements:
     max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
-    allow_single_operations: bool = False
     cv_folds: Optional[int] = None
 
     def __post_init__(self):
@@ -48,25 +46,26 @@ class ComposerRequirements:
 class Composer(ABC):
     """
     Base class used for receiving composite operations via optimization
-    :param metrics: metrics used to define the quality of found solution
+    :param optimiser: optimiser generated in GPComposerBuilder
+    :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process
-    :param optimiser_parameters: parameters used by optimization process (i.e. GPComposerRequirements)
     :param initial_chain: defines the initial state of the population. If None then initial population is random.
     :param log: optional parameter for log oject
     """
 
-    def __init__(self, metrics: Union[List[MetricsEnum], MetricsEnum], composer_requirements: ComposerRequirements,
-                 optimiser_parameters: Any = None, initial_chain: Optional[Chain] = None,
-                 log: Log = None):
+    def __init__(self, optimiser=None,
+                 composer_requirements: Optional[ComposerRequirements] = None,
+                 metrics: Union[List[MetricsEnum], MetricsEnum] = None,
+                 initial_chain: Optional[Chain] = None,
+                 logger: Log = None):
         self.metrics = metrics
         self.composer_requirements = composer_requirements
-        self.optimiser_parameters = optimiser_parameters
         self.initial_chain = initial_chain
 
-        if not log:
+        if not logger:
             self.log = default_log(__name__)
         else:
-            self.log = log
+            self.log = logger
 
     @abstractmethod
     def compose_chain(self, data: InputData,

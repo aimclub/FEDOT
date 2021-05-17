@@ -1,9 +1,10 @@
-import numpy as np
-
 from typing import Optional
+
+import numpy as np
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
-from fedot.core.operations.evaluation.\
+
+from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.log import Log
 

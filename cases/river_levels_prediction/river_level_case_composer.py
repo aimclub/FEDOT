@@ -28,7 +28,7 @@ def get_chain_info(chain):
     """
 
     obtained_operations = [str(node) for node in chain.nodes]
-    depth = int(chain.depth)
+    depth = int(chain.graph_depth)
     chain.print_structure()
 
     return obtained_operations, depth
@@ -93,8 +93,7 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
             secondary=available_secondary_operations, max_arity=3,
             max_depth=8, pop_size=10, num_of_generations=5,
             crossover_prob=0.8, mutation_prob=0.8,
-            max_lead_time=datetime.timedelta(minutes=5),
-            allow_single_operations=False)
+            max_lead_time=datetime.timedelta(minutes=5))
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)
@@ -147,7 +146,6 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
 
 
 if __name__ == '__main__':
-
     # Define chain to start composing with it
     node_encoder = PrimaryNode('one_hot_encoding')
     node_rans = SecondaryNode('ransac_lin_reg', nodes_from=[node_encoder])

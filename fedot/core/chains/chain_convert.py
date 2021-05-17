@@ -2,32 +2,31 @@ from uuid import uuid4
 
 import networkx as nx
 
-from fedot.core.chains.chain_template import ChainTemplate
 
-
-def chain_as_nx_graph(chain: 'Chain'):
-    """ Convert FEDOT chain into networkx graph object """
-    graph = nx.DiGraph()
+def graph_structure_as_nx_graph(structural_graph: 'Graph'):
+    """ Convert graph into networkx graph object """
+    nx_graph = nx.DiGraph()
     node_labels = {}
-    new_node_idx = {}
-    for node in chain.nodes:
-        unique_id, label = uuid4(), node
+    new_node_indices = {}
+    for node in structural_graph.nodes:
+        unique_id = uuid4()
         node_labels[unique_id] = node
-        new_node_idx[node] = unique_id
-        graph.add_node(unique_id)
+        new_node_indices[node] = unique_id
+        nx_graph.add_node(unique_id)
 
-    def add_edges(graph, chain, new_node_idx):
-        for node in chain.nodes:
+    def add_edges(nx_graph, structural_graph, new_node_indices):
+        for node in structural_graph.nodes:
             if node.nodes_from is not None:
-                for child in node.nodes_from:
-                    graph.add_edge(new_node_idx[child], new_node_idx[node])
+                for parent in node.nodes_from:
+                    nx_graph.add_edge(new_node_indices[parent],
+                                      new_node_indices[node])
 
-    add_edges(graph, chain, new_node_idx)
-    return graph, node_labels
+    add_edges(nx_graph, structural_graph, new_node_indices)
+    return nx_graph, node_labels
 
 
-def chain_template_as_nx_graph(chain: ChainTemplate):
-    """ Convert FEDOT chain template into networkx graph object """
+def chain_template_as_nx_graph(chain: 'ChainTemplate'):
+    """ Convert chain template into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}
     for operation in chain.operation_templates:

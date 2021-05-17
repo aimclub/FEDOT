@@ -2,8 +2,8 @@ from typing import List
 
 import numpy as np
 
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class DataMerger:

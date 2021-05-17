@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from examples.ts_forecasting_tuning import prepare_input_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from examples.ts_forecasting_tuning import prepare_input_data
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)

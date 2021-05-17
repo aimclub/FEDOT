@@ -8,6 +8,11 @@ from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
+from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
+from fedot.core.data.data import InputData
+from fedot.core.log import Log, default_log
+from fedot.core.utils import default_fedot_data_dir
+from fedot.sensitivity.nodes_sensitivity import NodeAnalysis, NodeAnalyzeApproach
 
 
 class ChainAnalysis:

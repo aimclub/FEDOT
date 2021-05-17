@@ -1,18 +1,16 @@
 import warnings
-
-import numpy as np
-
 from copy import copy
 from datetime import timedelta
 
+import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
 

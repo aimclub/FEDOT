@@ -1,15 +1,13 @@
-from abc import ABC
-from copy import copy
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from fedot.core.chains.node_operator import NodeOperator
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import default_log
+from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 
 
-class Node(ABC):
+class Node(GraphNode):
     """
     Base class for Node definition in Chain structure
 
@@ -21,52 +19,42 @@ class Node(ABC):
     """
 
     def __init__(self, nodes_from: Optional[List['Node']],
-                 operation_type: [str, 'Operation'],
-                 log=None):
-        self.nodes_from = nodes_from
-        self.log = log
-        self._fitted_operation = None
-        self._operator = NodeOperator(self)
-        self.rating = None
+                 operation_type: Optional[Union[str, 'Operation']] = None,
+                 log: Log = None, **kwargs):
+
+        passed_content = kwargs.get('content')
+        if passed_content:
+            operation_type = passed_content
+
+        if not operation_type:
+            raise ValueError('Operation is not defined in the node')
+
+        if not isinstance(operation_type, str):
+            # AtomizedModel
+            operation = operation_type
+        else:
+            # Define appropriate operation or data operation
+            operation_factory = OperationFactory(operation_name=operation_type)
+            operation = operation_factory.get_operation()
+
+        super().__init__(nodes_from, content=operation)
 
         if not log:
             self.log = default_log(__name__)
         else:
             self.log = log
 
-        if not isinstance(operation_type, str):
-            # AtomizedModel
-            self.operation = operation_type
-        else:
-            # Define appropriate operation or data operation
-            self.operation_factory = OperationFactory(operation_name=operation_type)
-            self.operation = self.operation_factory.get_operation()
+        self._fitted_operation = None
+        self.rating = None
 
+    # wrappers for 'operation' field from GraphNode class
     @property
-    def descriptive_id(self):
-        return self._descriptive_id_recursive(visited_nodes=[])
+    def operation(self):
+        return self.content
 
-    def _descriptive_id_recursive(self, visited_nodes):
-        """
-        Method returns verbal description of the operation in the node
-        and its parameters
-        """
-
-        node_label = self.operation.description
-        full_path = ''
-        if self in visited_nodes:
-            return 'ID_CYCLED'
-        visited_nodes.append(self)
-        if self.nodes_from:
-            previous_items = []
-            for parent_node in self.nodes_from:
-                previous_items.append(f'{parent_node._descriptive_id_recursive(copy(visited_nodes))};')
-            previous_items.sort()
-            previous_items_str = ';'.join(previous_items)
-
-            full_path += f'({previous_items_str})'
-        full_path += f'/{node_label}'
-        return full_path
+    @operation.setter
+    def operation(self, value):
+        self.content = value
 
     @property
     def fitted_operation(self):
@@ -116,20 +104,6 @@ class Node(ABC):
                                                    is_fit_chain_stage=False)
         return operation_predict
 
-    def __str__(self):
-        operation = f'{self.operation}'
-        return operation
-
-    def __repr__(self):
-        return self.__str__()
-
-    def ordered_subnodes_hierarchy(self, visited=None) -> List['Node']:
-        return self._operator.ordered_subnodes_hierarchy(visited)
-
-    @property
-    def distance_to_primary_level(self):
-        return self._operator.distance_to_primary_level()
-
     @property
     def custom_params(self) -> dict:
         return self.operation.params
@@ -138,6 +112,9 @@ class Node(ABC):
     def custom_params(self, params):
         if params:
             self.operation.params = params
+
+    def __str__(self):
+        return str(self.operation.operation_type)
 
 
 class PrimaryNode(Node):
@@ -149,7 +126,10 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: [str, 'Operation'], node_data: dict = None, **kwargs):
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: dict = None, **kwargs):
+        if 'nodes_from' in kwargs:
+            del kwargs['nodes_from']
+
         super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
 
         if node_data is None:
@@ -221,15 +201,14 @@ class SecondaryNode(Node):
 
     :param operation_type: str type of the operation defined in operation repository
     :param nodes_from: parent nodes where data comes from
-    :param operation: optional custom atomized_operation
     :param kwargs: optional arguments (i.e. logger)
     """
 
-    def __init__(self, operation_type: [str, 'Operation'], nodes_from: Optional[List['Node']] = None,
-                 **kwargs):
-        nodes_from = [] if nodes_from is None else nodes_from
-        super().__init__(nodes_from=nodes_from, operation_type=operation_type,
-                         **kwargs)
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
+                 nodes_from: Optional[List['Node']] = None, **kwargs):
+        if nodes_from is None:
+            nodes_from = []
+        super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
     def fit(self, input_data: InputData) -> OutputData:
         """
@@ -257,10 +236,6 @@ class SecondaryNode(Node):
 
         return super().predict(input_data=secondary_input, output_mode=output_mode)
 
-    def _nodes_from_with_fixed_order(self):
-        if self.nodes_from is not None:
-            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str) -> InputData:
         if len(self.nodes_from) == 0:
@@ -276,6 +251,12 @@ class SecondaryNode(Node):
         secondary_input = InputData.from_predictions(outputs=parent_results)
 
         return secondary_input
+
+    def _nodes_from_with_fixed_order(self):
+        if self.nodes_from is not None:
+            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
+        else:
+            return None
 
 
 def _combine_parents(parent_nodes: List[Node],

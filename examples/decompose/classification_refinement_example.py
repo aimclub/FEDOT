@@ -3,11 +3,11 @@ import random
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 
 random.seed(1)
 np.random.seed(1)

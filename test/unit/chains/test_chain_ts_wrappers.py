@@ -1,9 +1,8 @@
 import numpy as np
-
 from sklearn.metrics import mean_absolute_error
 
-from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, in_sample_ts_forecast
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, in_sample_ts_forecast
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
