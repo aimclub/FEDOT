@@ -24,7 +24,7 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     # Action with target if there will a need to combine actions
-    target_action: str
+    target_action: str = None
 
     @staticmethod
     def from_csv(file_path=None,
@@ -163,7 +163,6 @@ class InputData(Data):
     """
     target: Optional[np.array] = None
     masked_features: Optional[list] = None
-    target_action: Optional[str] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -199,7 +198,6 @@ class OutputData(Data):
     """
     predict: np.array = None
     target: Optional[np.array] = None
-    target_action: Optional[str] = None
 
 
 def _split_time_series(data, task):

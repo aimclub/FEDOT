@@ -103,7 +103,7 @@ def test_target_task_two_ignore_merge():
     target, target_action, task = merger.ignored_merge(targets, actions, tasks)
 
     assert target_action is None
-    assert task is class_task
+    assert task.task_type is TaskTypesEnum.classification
 
 
 def test_target_task_two_none_merge():
@@ -131,4 +131,4 @@ def test_target_task_two_none_merge():
     target, target_action, task = merger.ignored_merge(targets, actions, tasks)
 
     assert target_action is None
-    assert task is class_task
+    assert task.task_type is TaskTypesEnum.classification
