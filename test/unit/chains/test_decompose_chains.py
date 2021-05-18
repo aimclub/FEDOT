@@ -126,8 +126,8 @@ def test_order_by_descriptive_correct():
                                                   model_operation)
 
         # Get nodes with decompose operation in it
-        _, decompose_nodes = nodes_amount_with_operation(chain,
-                                                         'class_decompose')
+        decompose_nodes = nodes_amount_with_operation(chain,
+                                                      'class_decompose')
         decompose_node = decompose_nodes[0]
 
         # Get parents for decompose node
