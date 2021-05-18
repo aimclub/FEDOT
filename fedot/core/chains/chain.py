@@ -356,8 +356,8 @@ class Chain:
         return result
 
 
-def nodes_amount_with_operation(chain: Chain, operation_name: str) -> list:
-    """ The function counts the number of nodes with operation in the chain
+def nodes_with_operation(chain: Chain, operation_name: str) -> list:
+    """ The function return list with nodes with the needed operation
 
     :param chain: chain to process
     :param operation_name: name of operation to search

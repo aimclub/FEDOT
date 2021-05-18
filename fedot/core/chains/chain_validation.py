@@ -4,7 +4,7 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from fedot.core.chains.chain import Chain, nodes_amount_with_operation
+from fedot.core.chains.chain import Chain, nodes_with_operation
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
@@ -206,9 +206,9 @@ def has_no_conflicts_in_decompose(chain: Chain):
     """
 
     for decomposer in ['decompose', 'class_decompose']:
-        amount, decompose_nodes = nodes_amount_with_operation(chain,
-                                                              decomposer)
-        if amount != 0:
+        decompose_nodes = nodes_with_operation(chain,
+                                               decomposer)
+        if len(decompose_nodes) != 0:
             # Launch check decomposers
             __check_decomposer_has_two_parents(list_with_nodes=decompose_nodes)
             __check_decompose_parent_position(list_with_nodes=decompose_nodes)

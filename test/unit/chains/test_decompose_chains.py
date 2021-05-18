@@ -1,7 +1,7 @@
 import numpy as np
 from itertools import product
 
-from fedot.core.chains.chain import Chain, nodes_amount_with_operation
+from fedot.core.chains.chain import Chain, nodes_with_operation
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -143,7 +143,7 @@ def test_order_by_descriptive_correct():
                                                   model_operation)
 
         # Get nodes with decompose operation in it
-        decompose_nodes = nodes_amount_with_operation(chain,
+        decompose_nodes = nodes_with_operation(chain,
                                                       'class_decompose')
         decompose_node = decompose_nodes[0]
 
