@@ -64,6 +64,23 @@ def generate_chain_with_filtering():
     return full_chain
 
 
+def generate_cascade_decompose_chain():
+    """ The function of generating a multi-stage model with many connections
+    and solving many problems (regression and classification)
+    """
+
+    node_scaling = PrimaryNode('scaling')
+    node_second = SecondaryNode('logit', nodes_from=[node_scaling])
+    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_scaling])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
+    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
+    node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_xgboost, node_scaling])
+    node_rfr_2 = SecondaryNode('rfr', nodes_from=[node_decompose_new])
+    node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_xgboost])
+    chain = Chain(node_final)
+    return chain
+
+
 def get_classification_data(classes_amount: int):
     """ Function generate synthetic dataset for classification task
 
@@ -173,6 +190,23 @@ def test_multiclass_classification_decomposition():
 
     # Get chain
     chain = generate_chain_with_decomposition('scaling', 'logit')
+    chain.fit(train_input)
+    predicted_output = chain.predict(predict_input)
+
+    is_chain_worked_correctly = True
+    return is_chain_worked_correctly
+
+
+def test_cascade_decompose_classification_decomposition():
+    # Generate synthetic dataset for multiclass classification task
+    train_input, predict_input = get_classification_data(classes_amount=4)
+
+    # Distort labels targets
+    train_input.target = np.array(train_input.target) + 3
+    predict_input.target = np.array(predict_input.target) + 3
+
+    # Get chain
+    chain = generate_cascade_decompose_chain()
     chain.fit(train_input)
     predicted_output = chain.predict(predict_input)
 
