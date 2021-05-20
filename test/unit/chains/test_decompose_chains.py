@@ -12,53 +12,35 @@ from examples.classification_with_tuning_example import get_classification_datas
 def generate_chain_with_decomposition(primary_operation, secondary_operation):
     """ The function generates a chain in which there is an operation of
     decomposing the target variable into residuals
-                     secondary_operation (1)
-    primary_operation (0)                       xgboost
-                     class_decompose (1) -> rfr
-          1                   2              3     4
+                     secondary_operation
+    primary_operation                       xgboost
+                     class_decompose -> rfr
 
     :param primary_operation: name of operation to place in primary node
-    :aram secondary_operation: name of operation to place in secondary node
+    :param secondary_operation: name of operation to place in secondary node
     """
 
-    # 1
     node_first = PrimaryNode(primary_operation)
-
-    # 2
     node_second = SecondaryNode(secondary_operation, nodes_from=[node_first])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
-
-    # 3
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-
-    # 4
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
     full_chain = Chain(node_xgboost)
     return full_chain
 
 
 def generate_chain_with_filtering():
-    """
+    """ Return 5-level chain with decompose and filtering operations
            logit
     scaling                                 xgboost
            class_decompose -> RANSAC -> rfr
-       1         2              3        4     5
     """
 
-    # 1
     node_scaling = PrimaryNode('scaling')
-
-    # 2
     node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
-
-    # 3
     node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_decompose])
-
-    # 4
     node_rfr = SecondaryNode('rfr', nodes_from=[node_ransac])
-
-    # 5
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
     full_chain = Chain(node_xgboost)
     return full_chain

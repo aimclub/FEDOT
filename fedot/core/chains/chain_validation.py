@@ -210,8 +210,8 @@ def has_no_conflicts_in_decompose(chain: Chain):
                                                decomposer)
         if len(decompose_nodes) != 0:
             # Launch check decomposers
-            __check_decomposer_has_two_parents(list_with_nodes=decompose_nodes)
-            __check_decompose_parent_position(list_with_nodes=decompose_nodes)
+            __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)
+            __check_decompose_parent_position(nodes_to_check=decompose_nodes)
 
     return True
 
@@ -221,13 +221,13 @@ def __check_connection(parent_operation, forbidden_parents):
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
 
 
-def __check_decompose_parent_position(list_with_nodes):
+def __check_decompose_parent_position(nodes_to_check: list):
     """ Function check if the data flow before decompose operation is correct
     or not
 
-    param list_with_nodes: list with decompose nodes in the chain
+    :param nodes_to_check: list with decompose nodes in the chain
     """
-    for decompose_node in list_with_nodes:
+    for decompose_node in nodes_to_check:
         parents = decompose_node.nodes_from
         model_parent = parents[0]
 
@@ -235,14 +235,15 @@ def __check_decompose_parent_position(list_with_nodes):
             raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes position for decompose operation')
 
 
-def __check_decomposer_has_two_parents(list_with_nodes):
+def __check_decomposer_has_two_parents(nodes_to_check):
     """ Function check if there are two parent nodes for decompose operation
 
-    :param list_with_nodes: list with decompose nodes in the chain
+    :param nodes_to_check: list with decompose nodes in the chain
     """
 
-    for decompose_node in list_with_nodes:
+    for decompose_node in nodes_to_check:
         parents = decompose_node.nodes_from
 
         if len(parents) != 2:
-            raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes amount for decompose operation')
+            raise ValueError(f'{ERROR_PREFIX} Two parents for decompose node were'
+                             f' expected, but {len(parents)} were given')
