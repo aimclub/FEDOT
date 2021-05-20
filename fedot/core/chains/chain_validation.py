@@ -235,7 +235,7 @@ def __check_decompose_parent_position(nodes_to_check: list):
             raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes position for decompose operation')
 
 
-def __check_decomposer_has_two_parents(nodes_to_check):
+def __check_decomposer_has_two_parents(nodes_to_check: list):
     """ Function check if there are two parent nodes for decompose operation
 
     :param nodes_to_check: list with decompose nodes in the chain
