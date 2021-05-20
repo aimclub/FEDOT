@@ -69,16 +69,30 @@ def display_metrics(test_part, predicted_values, chain_name):
     print(f'MAE {chain_name} - {mae:.4f}\n')
 
 
+def time_series_into_input(len_forecast, train_part, time_series):
+    """ Function wrap univariate time series into InputData """
+    train_input, _, task = prepare_input_data(len_forecast=len_forecast,
+                                              train_data_features=train_part,
+                                              train_data_target=train_part,
+                                              test_data_features=train_part)
+    # Create data for validation
+    predict_input = InputData(idx=range(0, len(time_series)),
+                              features=time_series,
+                              target=time_series,
+                              task=task,
+                              data_type=DataTypesEnum.ts)
+
+    return train_input, predict_input
+
+
 def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
-                            validation_blocks=3, with_tuning=False,
-                            vis_with_decompose=True):
+                            validation_blocks=3, vis_with_decompose=True):
     """ Function launch example with experimental features of the FEDOT framework
 
     :param path_to_file: path to the csv file
     :param len_forecast: forecast length
     :param lagged: window size for lagged transformation
     :param validation_blocks: amount of parts for time series validation
-    :param with_tuning: is it need to tune chains or not
     :param vis_with_decompose: visualise part of main forecast
     """
 
@@ -95,33 +109,19 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Get simple chain without decomposing operation
     simple_chain = get_non_refinement_chain(lagged)
 
-    # Prepare InputData
-    train_input, _, task = prepare_input_data(len_forecast=len_forecast,
-                                              train_data_features=train_part,
-                                              train_data_target=train_part,
-                                              test_data_features=train_part)
-    # Create data for validation
-    predict_input = InputData(idx=range(0, len(time_series)),
-                              features=time_series,
-                              target=time_series,
-                              task=task,
-                              data_type=DataTypesEnum.ts)
+    train_input, predict_input = time_series_into_input(len_forecast,
+                                                        train_part,
+                                                        time_series)
 
-    # Fit chain
-    chain.fit(train_input)
-    if with_tuning:
-        chain.fine_tune_all_nodes(loss_function=mean_absolute_error, loss_params=None,
-                                  input_data=train_input, iterations=20)
-
-    # Make prediction
-    predicted_values = in_sample_ts_forecast(chain=chain,
-                                             input_data=predict_input,
-                                             horizon=horizon)
-
+    # Forecast of chain with decomposition
+    predicted_values = in_sample_fit_predict(chain, train_input,
+                                             predict_input, horizon)
     display_metrics(test_part, predicted_values, chain_name='with decomposition')
 
-    plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(train_part), len(time_series)), predicted_values, label='With decomposition')
+    # Range for visualisation
+    ids_for_test = range(len(train_part), len(time_series))
+    plt.plot(time_series, label='Actual time series')
+    plt.plot(ids_for_test, predicted_values, label='With decomposition')
 
     if vis_with_decompose:
         # Forecast of first model in the chain
@@ -131,21 +131,12 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
         predicted_decompose = in_sample_fit_predict(chain_with_decompose_finish, train_input,
                                                     predict_input, horizon)
 
-        plt.plot(range(len(train_part), len(time_series)), predicted_main, label='Main branch forecast')
-        plt.plot(range(len(train_part), len(time_series)), predicted_decompose, label='Residual branch forecast')
+        plt.plot(ids_for_test, predicted_main, label='Main branch forecast')
+        plt.plot(ids_for_test, predicted_decompose, label='Residual branch forecast')
     else:
-        simple_chain.fit(train_input)
-        if with_tuning:
-            simple_chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                             loss_params=None,
-                                             input_data=train_input,
-                                             iterations=20)
-
-        predicted_simple = in_sample_ts_forecast(chain=simple_chain,
-                                                 input_data=predict_input,
-                                                 horizon=horizon)
-        plt.plot(range(len(train_part), len(time_series)), predicted_simple, label='Non decomposition')
-
+        predicted_simple = in_sample_fit_predict(simple_chain, train_input,
+                                                 predict_input, horizon)
+        plt.plot(ids_for_test, predicted_simple, label='Non decomposition')
         display_metrics(test_part, predicted_simple, chain_name='without decomposition')
 
     i = len(train_part)
@@ -162,5 +153,4 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
 if __name__ == '__main__':
     path = '../../cases/data/time_series/economic_data.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
-                            lagged=50, with_tuning=False,
-                            vis_with_decompose=False)
+                            lagged=50, vis_with_decompose=False)
