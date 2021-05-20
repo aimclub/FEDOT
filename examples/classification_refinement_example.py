@@ -14,43 +14,22 @@ np.random.seed(1)
 
 
 def get_refinement_chain():
-    """ Create a chain like this
-    4      xgboost
-    3                 rfr
-    2 logit      class_decompose
-    1      scaling
-    """
-
-    # 1
+    """ Create 3-level chain with class_decompose node """
     node_scaling = PrimaryNode('scaling')
-
-    # 2
     node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
-
-    # 3
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-
-    # 4
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
+
     chain = Chain(node_xgboost)
     return chain
 
 
 def get_non_refinement_chain():
-    """ Create a chain like this
-    3      xgboost
-    2 logit        rf
-    1      scaling
-    """
-    # 1
+    """ Create 3-level chain without class_decompose node """
     node_scaling = PrimaryNode('scaling')
-
-    # 2
     node_rf = SecondaryNode('rf', nodes_from=[node_scaling])
     node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-
-    # 3
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_logit, node_rf])
     chain = Chain(node_xgboost)
     return chain

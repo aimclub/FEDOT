@@ -16,24 +16,13 @@ warnings.filterwarnings('ignore')
 
 
 def get_refinement_chain():
-    """ Create a chain like this
-    5      ridge
-    4             dtreg
-    3 lasso     decompose
-    2     scaling
-    1 one_hot_encoding
-    """
-    # 1
+    """ Create five-level chain with decompose operation """
     node_encoding = PrimaryNode('one_hot_encoding')
-    # 2
     node_scaling = SecondaryNode('scaling', nodes_from=[node_encoding])
-    # 3
     node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('decompose', nodes_from=[node_scaling, node_lasso])
-    # 4
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.custom_params = {'max_depth': 3}
-    # 5
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     chain = Chain(final_node)
