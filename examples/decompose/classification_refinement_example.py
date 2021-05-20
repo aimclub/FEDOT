@@ -35,6 +35,11 @@ def get_non_refinement_chain():
     return chain
 
 
+def display_roc_auc(chain_to_validate, test_dataset, chain_name: str):
+    roc_auc_metric = calculate_validation_metric(chain_to_validate, test_dataset)
+    print(f'{chain_name} ROC AUC: {roc_auc_metric:.4f}')
+
+
 def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
     """ Function launch example with error modeling for classification task
 
@@ -48,33 +53,25 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
     test_dataset = InputData.from_csv(test_path, task=task)
 
     # Get and fit chains
-    non_refinement_chain = get_non_refinement_chain()
-    refinement_chain = get_refinement_chain()
+    no_decompose_c = get_non_refinement_chain()
+    decompose_c = get_refinement_chain()
 
-    non_refinement_chain.fit(train_dataset)
-    refinement_chain.fit(train_dataset)
+    no_decompose_c.fit(train_dataset)
+    decompose_c.fit(train_dataset)
 
-    # Check metrics
-    roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
-    print(f'Non decomposition chain ROC AUC: {roc_auc_metric:.4f}')
-
-    roc_auc_metric = calculate_validation_metric(refinement_chain, test_dataset)
-    print(f'With decomposition chain ROC AUC: {roc_auc_metric:.4f}')
+    # Check metrics for both chains
+    display_roc_auc(no_decompose_c, test_dataset, 'Non decomposition chain')
+    display_roc_auc(decompose_c, test_dataset, 'With decomposition chain')
 
     if with_tuning:
-        non_refinement_chain.fine_tune_all_nodes(loss_function=roc_auc,
-                                                 loss_params=None,
-                                                 input_data=train_dataset,
-                                                 iterations=30)
-        roc_auc_metric = calculate_validation_metric(non_refinement_chain, test_dataset)
-        print(f'Non decomposition chain ROC AUC after tuning: {roc_auc_metric:.4f}')
+        no_decompose_c.fine_tune_all_nodes(loss_function=roc_auc, loss_params=None,
+                                           input_data=train_dataset, iterations=30)
 
-        refinement_chain.fine_tune_all_nodes(loss_function=roc_auc,
-                                             loss_params=None,
-                                             input_data=train_dataset,
-                                             iterations=30)
-        roc_auc_metric = calculate_validation_metric(refinement_chain, test_dataset)
-        print(f'With decomposition chain ROC AUC after tuning: {roc_auc_metric:.4f}')
+        decompose_c.fine_tune_all_nodes(loss_function=roc_auc, loss_params=None,
+                                        input_data=train_dataset, iterations=30)
+
+        display_roc_auc(no_decompose_c, test_dataset, 'Non decomposition chain after tuning')
+        display_roc_auc(decompose_c, test_dataset, 'With decomposition chain after tuning')
 
 
 if __name__ == '__main__':

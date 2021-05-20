@@ -18,22 +18,12 @@ np.random.seed(2020)
 
 
 def get_refinement_chain(lagged):
-    """ Create a chain like this
-    4     ridge
-    3           dtreg
-    2 lasso   decompose
-    1    lagged
-    """
+    """ Create 4-level chain with decompose operation """
 
-    # 1
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': lagged}
-
-    # 2
     node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
     node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_lasso])
-
-    # 3
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.custom_params = {'max_depth': 3}
 
@@ -41,7 +31,7 @@ def get_refinement_chain(lagged):
     chain_with_decompose_finish = Chain(node_dtreg)
     chain_with_main_finish = Chain(node_lasso)
 
-    # 4 Combining branches with different targets (T and T_decomposed)
+    # Combining branches with different targets (T and T_decomposed)
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     chain = Chain(final_node)
@@ -49,22 +39,34 @@ def get_refinement_chain(lagged):
 
 
 def get_non_refinement_chain(lagged):
-    """ Create a chain without decompose operation """
+    """ Create 4-level chain without decompose operation """
 
-    # 1
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': lagged}
-
-    # 2
     node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_lagged])
     node_dtreg.custom_params = {'max_depth': 3}
-
-    # 3
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     chain = Chain(final_node)
     return chain
+
+
+def in_sample_fit_predict(chain, train_input, predict_input, horizon) -> np.array:
+    """ Fit chain and make predictions (in-sample forecasting) """
+    chain.fit(train_input)
+
+    predicted_main = in_sample_ts_forecast(chain=chain,
+                                           input_data=predict_input,
+                                           horizon=horizon)
+    return predicted_main
+
+
+def display_metrics(test_part, predicted_values, chain_name):
+    mse = mean_squared_error(test_part, predicted_values, squared=False)
+    mae = mean_absolute_error(test_part, predicted_values)
+    print(f'RMSE {chain_name} - {mse:.4f}')
+    print(f'MAE {chain_name} - {mae:.4f}\n')
 
 
 def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
@@ -98,15 +100,6 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
                                               train_data_features=train_part,
                                               train_data_target=train_part,
                                               test_data_features=train_part)
-    # Fit chain
-    chain.fit(train_input)
-
-    if with_tuning:
-        chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                  loss_params=None,
-                                  input_data=train_input,
-                                  iterations=20)
-
     # Create data for validation
     predict_input = InputData(idx=range(0, len(time_series)),
                               features=time_series,
@@ -114,30 +107,29 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
                               task=task,
                               data_type=DataTypesEnum.ts)
 
+    # Fit chain
+    chain.fit(train_input)
+    if with_tuning:
+        chain.fine_tune_all_nodes(loss_function=mean_absolute_error, loss_params=None,
+                                  input_data=train_input, iterations=20)
+
     # Make prediction
     predicted_values = in_sample_ts_forecast(chain=chain,
                                              input_data=predict_input,
                                              horizon=horizon)
 
-    mse = mean_squared_error(test_part, predicted_values, squared=False)
-    mae = mean_absolute_error(test_part, predicted_values)
-    print(f'RMSE with decomposition - {mse:.4f}')
-    print(f'MAE with decomposition - {mae:.4f}\n')
+    display_metrics(test_part, predicted_values, chain_name='with decomposition')
 
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
     plt.plot(range(len(train_part), len(time_series)), predicted_values, label='With decomposition')
 
     if vis_with_decompose:
-        chain_with_main_finish.fit(train_input)
-        chain_with_decompose_finish.fit(train_input)
-
-        # Make prediction
-        predicted_main = in_sample_ts_forecast(chain=chain_with_main_finish,
-                                               input_data=predict_input,
-                                               horizon=horizon)
-        predicted_decompose = in_sample_ts_forecast(chain=chain_with_decompose_finish,
-                                                    input_data=predict_input,
-                                                    horizon=horizon)
+        # Forecast of first model in the chain
+        predicted_main = in_sample_fit_predict(chain_with_main_finish, train_input,
+                                               predict_input, horizon)
+        # Forecast for residuals
+        predicted_decompose = in_sample_fit_predict(chain_with_decompose_finish, train_input,
+                                                    predict_input, horizon)
 
         plt.plot(range(len(train_part), len(time_series)), predicted_main, label='Main branch forecast')
         plt.plot(range(len(train_part), len(time_series)), predicted_decompose, label='Residual branch forecast')
@@ -154,10 +146,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
                                                  horizon=horizon)
         plt.plot(range(len(train_part), len(time_series)), predicted_simple, label='Non decomposition')
 
-        mse = mean_squared_error(test_part, predicted_simple, squared=False)
-        mae = mean_absolute_error(test_part, predicted_simple)
-        print(f'RMSE without decomposition - {mse:.4f}')
-        print(f'MAE without decomposition - {mae:.4f}\n')
+        display_metrics(test_part, predicted_simple, chain_name='without decomposition')
 
     i = len(train_part)
     for _ in range(0, validation_blocks):
@@ -171,9 +160,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
 
 
 if __name__ == '__main__':
-    # Good example: economic_data_6.csv
-    path = '../cases/data/time_series/economic_data_2.csv'
+    path = '../../cases/data/time_series/economic_data.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
-                            lagged=50,
-                            with_tuning=False,
+                            lagged=50, with_tuning=False,
                             vis_with_decompose=False)
