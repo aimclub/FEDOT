@@ -13,6 +13,28 @@ from examples.regression_with_tuning_example import get_regression_dataset
 np.random.seed(2021)
 
 
+def generate_outputs():
+    """ Function for simple case with non-equal outputs in list """
+    idx_1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    idx_2 = [2, 3, 4, 5, 6, 7, 8, 9]
+
+    task = Task(TaskTypesEnum.regression)
+    generated_target = np.random.sample((len(idx_1), 1))
+    generated_features = np.random.sample((len(idx_1), 2))
+
+    list_with_outputs = []
+    for idx in [idx_1, idx_2]:
+        output_data = OutputData(idx=idx,
+                                 features=generated_features[idx, :],
+                                 predict=generated_target[idx, :],
+                                 task=task,
+                                 target=generated_target[idx, :],
+                                 data_type=DataTypesEnum.table)
+        list_with_outputs.append(output_data)
+
+    return list_with_outputs, idx_1, idx_2
+
+
 def test_data_merge_in_chain():
     """ Test check is the chain can correctly work with dynamic changes in
     tables during the fit process
@@ -57,22 +79,7 @@ def test_data_merge_function():
     indices. Set {idx_2} ∈ set {idx_1}, so intersection must be = idx_2
     """
 
-    idx_1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    idx_2 = [2, 3, 4, 5, 6, 7, 8, 9]
-
-    task = Task(TaskTypesEnum.regression)
-    generated_target = np.random.sample((len(idx_1), 1))
-    generated_features = np.random.sample((len(idx_1), 2))
-
-    list_with_outputs = []
-    for idx in [idx_1, idx_2]:
-        output_data = OutputData(idx=idx,
-                                 features=generated_features[idx, :],
-                                 predict=generated_target[idx, :],
-                                 task=task,
-                                 target=generated_target[idx, :],
-                                 data_type=DataTypesEnum.table)
-        list_with_outputs.append(output_data)
+    list_with_outputs, idx_1, idx_2 = generate_outputs()
 
     new_idx, features, target, masked_fs, action, task, d_type = DataMerger(list_with_outputs).merge()
 
@@ -132,3 +139,16 @@ def test_target_task_two_none_merge():
 
     assert target_action is None
     assert task.task_type is TaskTypesEnum.classification
+
+
+def test_parent_mask_correct():
+    """ Test correctness of function for tables mask generation """
+    correct_parent_mask = (0, 1)
+
+    # Generates outputs with 1 column in prediction
+    list_with_outputs, idx_1, idx_2 = generate_outputs()
+    merger = DataMerger(list_with_outputs)
+
+    parent_mask = merger.prepare_parent_mask(list_with_outputs)
+
+    assert tuple(parent_mask) == correct_parent_mask
