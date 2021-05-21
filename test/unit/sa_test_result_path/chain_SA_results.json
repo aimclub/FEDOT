@@ -1,0 +1,14 @@
+{
+    "id = 0, operation = xgboost": {
+        "NodeDeletionAnalyze": 1.0
+    },
+    "id = 1, operation = knn": {
+        "NodeDeletionAnalyze": 1.2085308056872037
+    },
+    "id = 2, operation = qda": {
+        "NodeDeletionAnalyze": 1.1311216429699842
+    },
+    "id = 3, operation = xgboost": {
+        "NodeDeletionAnalyze": 0.9494470774091627
+    }
+}

@@ -17,6 +17,7 @@ class DataMerger:
     def merge(self):
         """ Method automatically determine which merge function should be
         applied """
+        nodes_counter = self._update_counter()
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
@@ -44,7 +45,20 @@ class DataMerger:
         else:
             idx, features, target, is_main_target, task = merge_func()
 
-        return idx, features, target, masked_features, is_main_target, task, first_data_type
+        return idx, features, target, masked_features, is_main_target, task, first_data_type, nodes_counter
+
+    def _update_counter(self) -> int:
+        """ Method for updating nodes counter in InputData or OutputData """
+        nodes_counters = [output.nodes_counter for output in self.outputs]
+
+        if len(nodes_counters) == 1:
+            nodes_counter = nodes_counters[0]
+        else:
+            nodes_counter = max(nodes_counters)
+
+        # Update amount of nodes which this data have visited
+        nodes_counter += 1
+        return nodes_counter
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -90,14 +104,15 @@ class DataMerger:
         with encoded values. This allow distinguishing from which ancestor the
         data was attached to. For example, a mask for two ancestors, each of
         which gives predictions in the form of a tabular data with two columns
-        will look like this: [0, 0, 1, 1] where 0 and 1 - ids of parents
+        will look like this: ['0.1', '0.1', '1.0', '1.0'] where 0 and 1 - ids
+        of parents
 
         :param outputs: list with OutputData
         :return masked_features: list with masked features
         """
 
         # For each parent output prepare mask
-        current_flag = 0
+        current_flag_base = 0
         masked_features = []
         for output in outputs:
             predicted_values = np.array(output.predict)
@@ -109,12 +124,14 @@ class DataMerger:
                 features_amount = 1
             else:
                 features_amount = table_shape[1]
-
+            # Create flag value as 'id.<already visited nodes>'
+            current_flag = ''.join((str(current_flag_base),
+                                    '.', str(output.nodes_counter)))
             mask = [current_flag]*features_amount
             masked_features.extend(mask)
 
             # Update flag
-            current_flag += 1
+            current_flag_base += 1
 
         return masked_features
 

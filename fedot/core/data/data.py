@@ -25,6 +25,7 @@ class Data:
     data_type: DataTypesEnum
     # Is it data in the main branch
     is_main_target: bool = True
+    nodes_counter: int = 0
 
     @staticmethod
     def from_csv(file_path=None,
@@ -175,11 +176,11 @@ class InputData(Data):
     def from_predictions(outputs: List['OutputData']):
         """ Method obtain predictions from previous nodes """
         # Update not only features but idx, target and task also
-        idx, features, target, masked_fs, is_main_target, task, d_type = DataMerger(outputs).merge()
+        idx, features, target, masked_fs, is_main_target, task, d_type, n_counter = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, masked_features=masked_fs,
-                         is_main_target=is_main_target)
+                         is_main_target=is_main_target, nodes_counter=n_counter)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):

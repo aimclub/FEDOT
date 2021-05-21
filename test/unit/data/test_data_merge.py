@@ -81,7 +81,7 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, masked_fs, is_main, task, d_type = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, masked_fs, is_main, task, d_type, n_counter = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
 

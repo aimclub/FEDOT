@@ -45,13 +45,20 @@ class DecomposerImplementation(DataOperationImplementation):
         # Array with masks
         masked_features = np.array(input_data.masked_features)
 
+        # Get amount of nodes data already visited
+        counters = np.array(list(map(_get_counters, input_data.masked_features)))
+
+        # Find minimum and maximum of visited nodes and first indices of them
+        min_count_i = np.argmin(counters)
+        max_count_i = np.argmax(counters)
+
         # Get prediction from "Model parent"
-        model_parent = 0
+        model_parent = masked_features[max_count_i]
         prev_prediction_id = np.ravel(np.argwhere(masked_features == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        data_parent = np.max(masked_features)
+        data_parent = masked_features[min_count_i]
         prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
         prev_features = features[:, prev_features_id]
 
@@ -193,3 +200,9 @@ class DecomposerClassImplementation(DecomposerImplementation):
         diff = probabilities_target - prev_prediction
 
         return diff
+
+
+def _get_counters(id_object):
+    """ Function execute amount of nodes Data block visited """
+    splitted = id_object.split('.')
+    return int(splitted[-1])
