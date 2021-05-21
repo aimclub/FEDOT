@@ -1,1 +1,0 @@
-2_subdir_2_file.txt content
