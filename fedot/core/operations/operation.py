@@ -102,7 +102,7 @@ class Operation:
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
-        target_action = data.target_action
+        is_main_target = data.is_main_target
         self._init(data.task, output_mode=output_mode)
 
         data = _fill_remaining_gaps(data, self.operation_type)
@@ -112,8 +112,8 @@ class Operation:
             predict_data=data,
             is_fit_chain_stage=is_fit_chain_stage)
 
-        if target_action is not None:
-            prediction.target_action = target_action
+        if is_main_target is False:
+            prediction.is_main_target = is_main_target
 
         return prediction
 

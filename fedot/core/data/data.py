@@ -23,8 +23,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
-    # Action with target if there will a need to combine actions
-    target_action: str = None
+    # Is it data in the main branch
+    is_main_target: bool = True
 
     @staticmethod
     def from_csv(file_path=None,
@@ -175,11 +175,11 @@ class InputData(Data):
     def from_predictions(outputs: List['OutputData']):
         """ Method obtain predictions from previous nodes """
         # Update not only features but idx, target and task also
-        idx, features, target, masked_fs, target_action, task, d_type = DataMerger(outputs).merge()
+        idx, features, target, masked_fs, is_main_target, task, d_type = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, masked_features=masked_fs,
-                         target_action=target_action)
+                         is_main_target=is_main_target)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):

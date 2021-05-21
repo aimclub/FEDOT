@@ -81,7 +81,7 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, masked_fs, action, task, d_type = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, masked_fs, is_main, task, d_type = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
 
@@ -98,8 +98,8 @@ def test_target_task_two_ignore_merge():
                         probabilities_col_1,
                         probabilities_col_2])
 
-    # Actions to do with targets
-    actions = [None, 'ignore', 'ignore']
+    # Flags for targets
+    main_targets = [True, False, False]
 
     # Tasks
     class_task = Task(TaskTypesEnum.classification)
@@ -107,9 +107,9 @@ def test_target_task_two_ignore_merge():
     tasks = [class_task, regr_task, regr_task]
 
     merger = TaskTargetMerger(None)
-    target, target_action, task = merger.ignored_merge(targets, actions, tasks)
+    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
 
-    assert target_action is None
+    assert is_main_target is True
     assert task.task_type is TaskTypesEnum.classification
 
 
@@ -126,8 +126,8 @@ def test_target_task_two_none_merge():
                         labels_col_copy,
                         probabilities_col])
 
-    # Actions to do with targets
-    actions = [None, None, 'ignore']
+    # Flags for targets
+    main_targets = [True, True, False]
 
     # Tasks
     class_task = Task(TaskTypesEnum.classification)
@@ -135,9 +135,9 @@ def test_target_task_two_none_merge():
     tasks = [class_task, class_task, regr_task]
 
     merger = TaskTargetMerger(None)
-    target, target_action, task = merger.ignored_merge(targets, actions, tasks)
+    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
 
-    assert target_action is None
+    assert is_main_target is True
     assert task.task_type is TaskTypesEnum.classification
 
 

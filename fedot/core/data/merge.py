@@ -42,9 +42,9 @@ class DataMerger:
             message = f"For data type '{first_data_type}' doesn't exist merge function"
             raise NotImplementedError(message)
         else:
-            idx, features, target, target_action, task = merge_func()
+            idx, features, target, is_main_target, task = merge_func()
 
-        return idx, features, target, masked_features, target_action, task, first_data_type
+        return idx, features, target, masked_features, is_main_target, task, first_data_type
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -57,12 +57,12 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target, target_action, task = self._merge_equal_outputs(self.outputs)
+            idx, features, target, is_main_target, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target, target_action, task = self._merge_non_equal_outputs(self.outputs,
-                                                                                       idx_list)
+            idx, features, target, is_main_target, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                        idx_list)
 
-        return idx, features, target, target_action, task
+        return idx, features, target, is_main_target, task
 
     def combine_datasets_ts(self):
         """ Function for combining datasets from parents to make features to
@@ -75,14 +75,14 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target, target_action, task = self._merge_equal_outputs(self.outputs)
+            idx, features, target, is_main_target, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target, target_action, task = self._merge_non_equal_outputs(self.outputs,
-                                                                                       idx_list)
+            idx, features, target, is_main_target, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                        idx_list)
 
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
-        return idx, features, target, target_action, task
+        return idx, features, target, is_main_target, task
 
     @staticmethod
     def prepare_parent_mask(outputs):
@@ -136,9 +136,9 @@ class DataMerger:
         idx = outputs[0].idx
 
         # Update target from multiple parents
-        target, target_action, task = TaskTargetMerger(outputs).obtain_equal_target()
+        target, is_main_target, task = TaskTargetMerger(outputs).obtain_equal_target()
 
-        return idx, features, target, target_action, task
+        return idx, features, target, is_main_target, task
 
     @staticmethod
     def _merge_non_equal_outputs(outputs: list, idx_list: List):
@@ -167,8 +167,8 @@ class DataMerger:
 
         # Merge tasks and targets
         t_merger = TaskTargetMerger(outputs)
-        filtered_target, target_action, task = t_merger.obtain_non_equal_target(common_idx)
-        return common_idx, features, filtered_target, target_action, task
+        filtered_target, is_main_target, task = t_merger.obtain_non_equal_target(common_idx)
+        return common_idx, features, filtered_target, is_main_target, task
 
     @staticmethod
     def _check_size_equality(outputs: list):
@@ -201,23 +201,23 @@ class TaskTargetMerger:
         # If there is only one parent
         if len(self.outputs) == 1:
             target = self.outputs[0].target
-            target_action = self.outputs[0].target_action
+            is_main_target = self.outputs[0].is_main_target
             task = self.outputs[0].task
-            return target, target_action, task
+            return target, is_main_target, task
 
-        # Get actions for target and tasks
-        actions, targets, tasks = self._disintegrate_outputs()
+        # Get target flags, targets and tasks
+        t_flags, targets, tasks = self._disintegrate_outputs()
 
-        # If all actions is empty - there is no need to merge targets
-        if all(action is None for action in actions):
+        # If all t_flags are True - there is no need to merge targets
+        if all(flag is True for flag in t_flags):
             target = self.outputs[0].target
             task = self.outputs[0].task
-            target_action = None
-            return target, target_action, task
-        # If there is an "ignore" action - need to apply intelligent merge
-        elif any(action == 'ignore' for action in actions):
-            target, target_action, task = self.ignored_merge(targets, actions, tasks)
-            return target, target_action, task
+            is_main_target = True
+            return target, is_main_target, task
+        # If there is an "ignore" (False) flag - need to apply intelligent merge
+        elif any(flag is False for flag in t_flags):
+            target, is_main_target, task = self.ignored_merge(targets, t_flags, tasks)
+            return target, is_main_target, task
 
     def obtain_non_equal_target(self, common_idx):
         """ Method for merging targets which have different amount of objects
@@ -226,8 +226,7 @@ class TaskTargetMerger:
         :param common_idx: array with indices of common objects
         """
 
-        # Get actions for target and tasks
-        actions, targets, tasks = self._disintegrate_outputs()
+        t_flags, targets, tasks = self._disintegrate_outputs()
 
         if targets[0] is None:
             mapped_targets = [None]
@@ -236,41 +235,43 @@ class TaskTargetMerger:
             idx_list = [output.idx for output in self.outputs]
             mapped_targets = tables_mapping(idx_list, targets, common_idx)
 
-        # If all actions is empty - there is no need to merge targets
-        if all(action is None for action in actions):
+        # If all t_flags are True - there is no need to merge targets
+        if all(flag is True for flag in t_flags):
             # Just applying merge operation for common_idx
             filtered_target = mapped_targets[0]
 
             task = tasks[0]
-            target_action = None
-            return filtered_target, target_action, task
-        elif any(action == 'ignore' for action in actions):
+            is_main_target = True
+            return filtered_target, is_main_target, task
+        elif any(flag is False for flag in t_flags):
 
-            filtered_target, target_action, task = self.ignored_merge(mapped_targets,
-                                                                      actions,
-                                                                      tasks)
-            return filtered_target, target_action, task
+            filtered_target, is_main_target, task = self.ignored_merge(mapped_targets,
+                                                                       t_flags,
+                                                                       tasks)
+            return filtered_target, is_main_target, task
 
     def _disintegrate_outputs(self):
         """
-        Method extract actions, targets and tasks from list with OutputData
+        Method extract target flags, targets and tasks from list with OutputData
         """
-        actions = [output.target_action for output in self.outputs]
+        t_flags = [output.is_main_target for output in self.outputs]
         targets = [output.target for output in self.outputs]
         tasks = [output.task for output in self.outputs]
 
-        return actions, targets, tasks
+        return t_flags, targets, tasks
 
     @staticmethod
-    def ignored_merge(targets, actions, tasks):
-        """ Method merge targets with 'ignore' labels """
-        main_ids = np.ravel(np.argwhere(np.array(actions) != 'ignore'))
+    def ignored_merge(targets, t_flags, tasks):
+        """ Method merge targets with 'ignore' (False) labels """
+        # PEP8 fix through converting boolean into string
+        t_flags = np.array(t_flags, dtype=str)
+        main_ids = np.ravel(np.argwhere(t_flags == 'True'))
         tasks = np.array(tasks)
 
         # Is there is chain predict stage without target at all
         if targets[0] is None:
             target = None
-            target_action = None
+            is_main_target = True
         # If there are several known targets
         else:
             # Take first non-ignored target
@@ -278,11 +279,11 @@ class TaskTargetMerger:
             target = targets[main_id]
             if len(target.shape) == 1:
                 target = target.reshape((-1, 1))
-            target_action = None
+            is_main_target = True
 
         task = tasks[main_ids]
         task = task[0]
-        return target, target_action, task
+        return target, is_main_target, task
 
 
 def tables_mapping(idx_list, object_list, common_idx):
