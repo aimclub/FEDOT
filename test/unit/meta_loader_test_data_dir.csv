@@ -1,0 +1,5 @@
+,text,label
+0,1_subdir_2_file.txt content,subdir1
+1,2_subdir_2_file.txt content,subdir2
+2,1_subdir_1_file.txt content,subdir1
+3,2_subdir_1_file.txt content,subdir2

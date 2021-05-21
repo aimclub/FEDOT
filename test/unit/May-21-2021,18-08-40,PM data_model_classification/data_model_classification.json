@@ -1,0 +1,141 @@
+{
+    "total_chain_operations": {
+        "scaling": 1,
+        "xgboost": 1,
+        "rfe_lin_class": 1,
+        "logit": 1,
+        "knn": 1
+    },
+    "depth": 3,
+    "nodes": [
+        {
+            "operation_id": 2,
+            "operation_type": "scaling",
+            "operation_name": "ScalingImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "copy": true,
+                "with_mean": true,
+                "with_std": true
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_2.pkl"
+        },
+        {
+            "operation_id": 1,
+            "operation_type": "xgboost",
+            "operation_name": "XGBClassifier",
+            "custom_params": "default_params",
+            "params": {
+                "objective": "binary:logistic",
+                "base_score": 0.5,
+                "booster": null,
+                "colsample_bylevel": 1,
+                "colsample_bynode": 1,
+                "colsample_bytree": 1,
+                "gamma": 0,
+                "gpu_id": -1,
+                "importance_type": "gain",
+                "interaction_constraints": null,
+                "learning_rate": 0.300000012,
+                "max_delta_step": 0,
+                "max_depth": 6,
+                "min_child_weight": 1,
+                "missing": NaN,
+                "monotone_constraints": null,
+                "n_estimators": 100,
+                "n_jobs": 0,
+                "num_parallel_tree": 1,
+                "random_state": 0,
+                "reg_alpha": 0,
+                "reg_lambda": 1,
+                "scale_pos_weight": 1,
+                "subsample": 1,
+                "tree_method": null,
+                "validate_parameters": false,
+                "verbosity": null
+            },
+            "nodes_from": [
+                2
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_1.pkl"
+        },
+        {
+            "operation_id": 4,
+            "operation_type": "rfe_lin_class",
+            "operation_name": "LinearClassFSImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "estimator__C": 1.0,
+                "estimator__class_weight": null,
+                "estimator__dual": false,
+                "estimator__fit_intercept": true,
+                "estimator__intercept_scaling": 1,
+                "estimator__l1_ratio": null,
+                "estimator__max_iter": 100,
+                "estimator__multi_class": "auto",
+                "estimator__n_jobs": null,
+                "estimator__penalty": "l2",
+                "estimator__random_state": null,
+                "estimator__solver": "lbfgs",
+                "estimator__tol": 0.0001,
+                "estimator__verbose": 0,
+                "estimator__warm_start": false,
+                "importance_getter": "auto",
+                "n_features_to_select": null,
+                "step": 1,
+                "verbose": 0
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_4.pkl"
+        },
+        {
+            "operation_id": 3,
+            "operation_type": "logit",
+            "operation_name": "LogisticRegression",
+            "custom_params": "default_params",
+            "params": {
+                "C": 1.0,
+                "class_weight": null,
+                "dual": false,
+                "fit_intercept": true,
+                "intercept_scaling": 1,
+                "l1_ratio": null,
+                "max_iter": 100,
+                "multi_class": "auto",
+                "n_jobs": null,
+                "penalty": "l2",
+                "random_state": null,
+                "solver": "lbfgs",
+                "tol": 0.0001,
+                "verbose": 0,
+                "warm_start": false
+            },
+            "nodes_from": [
+                4
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_3.pkl"
+        },
+        {
+            "operation_id": 0,
+            "operation_type": "knn",
+            "operation_name": "CustomKnnClassImplementation",
+            "custom_params": "default_params",
+            "params": {
+                "algorithm": "auto",
+                "leaf_size": 30,
+                "metric": "minkowski",
+                "metric_params": null,
+                "n_jobs": null,
+                "n_neighbors": 5,
+                "p": 2,
+                "weights": "uniform"
+            },
+            "nodes_from": [
+                1,
+                3
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_0.pkl"
+        }
+    ]
+}

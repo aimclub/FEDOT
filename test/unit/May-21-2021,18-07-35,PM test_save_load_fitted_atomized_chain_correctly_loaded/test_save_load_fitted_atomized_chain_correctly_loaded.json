@@ -1,0 +1,77 @@
+{
+    "total_chain_operations": {
+        "atomized_operation": 3,
+        "knn": 2
+    },
+    "depth": 4,
+    "nodes": [
+        {
+            "operation_id": 2,
+            "operation_type": "atomized_operation",
+            "nodes_from": [],
+            "atomized_model_json_path": "nested_2"
+        },
+        {
+            "operation_id": 3,
+            "operation_type": "atomized_operation",
+            "nodes_from": [
+                2
+            ],
+            "atomized_model_json_path": "nested_3"
+        },
+        {
+            "operation_id": 4,
+            "operation_type": "knn",
+            "operation_name": "CustomKnnClassImplementation",
+            "custom_params": {
+                "n_neighbors": 9
+            },
+            "params": {
+                "algorithm": "auto",
+                "leaf_size": 30,
+                "metric": "minkowski",
+                "metric_params": null,
+                "n_jobs": null,
+                "n_neighbors": 9,
+                "p": 2,
+                "weights": "uniform"
+            },
+            "nodes_from": [
+                2
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_4.pkl"
+        },
+        {
+            "operation_id": 1,
+            "operation_type": "knn",
+            "operation_name": "CustomKnnClassImplementation",
+            "custom_params": {
+                "n_neighbors": 5
+            },
+            "params": {
+                "algorithm": "auto",
+                "leaf_size": 30,
+                "metric": "minkowski",
+                "metric_params": null,
+                "n_jobs": null,
+                "n_neighbors": 5,
+                "p": 2,
+                "weights": "uniform"
+            },
+            "nodes_from": [
+                2,
+                3,
+                4
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_1.pkl"
+        },
+        {
+            "operation_id": 0,
+            "operation_type": "atomized_operation",
+            "nodes_from": [
+                1
+            ],
+            "atomized_model_json_path": "nested_0"
+        }
+    ]
+}

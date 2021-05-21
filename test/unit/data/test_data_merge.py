@@ -23,13 +23,14 @@ def generate_outputs():
     generated_features = np.random.sample((len(idx_1), 2))
 
     list_with_outputs = []
-    for idx in [idx_1, idx_2]:
+    for idx, n_counter in zip([idx_1, idx_2], [1, 0]):
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],
                                  task=task,
                                  target=generated_target[idx, :],
-                                 data_type=DataTypesEnum.table)
+                                 data_type=DataTypesEnum.table,
+                                 nodes_counter=n_counter)
         list_with_outputs.append(output_data)
 
     return list_with_outputs, idx_1, idx_2
@@ -143,7 +144,7 @@ def test_target_task_two_none_merge():
 
 def test_parent_mask_correct():
     """ Test correctness of function for tables mask generation """
-    correct_parent_mask = (0, 1)
+    correct_parent_mask = ('0.1', '1.0')
 
     # Generates outputs with 1 column in prediction
     list_with_outputs, idx_1, idx_2 = generate_outputs()
