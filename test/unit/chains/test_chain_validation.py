@@ -348,4 +348,4 @@ def test_decompose_parents_has_wright_positions():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect parent nodes position for decompose operation'
+    assert str(exc.value) == f'{ERROR_PREFIX} For decompose operation Model as first parent is required'

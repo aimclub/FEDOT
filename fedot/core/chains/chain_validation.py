@@ -232,7 +232,7 @@ def __check_decompose_parent_position(nodes_to_check: list):
         model_parent = parents[0]
 
         if type(model_parent.operation) is not Model:
-            raise ValueError(f'{ERROR_PREFIX} Chain has incorrect parent nodes position for decompose operation')
+            raise ValueError(f'{ERROR_PREFIX} For decompose operation Model as first parent is required')
 
 
 def __check_decomposer_has_two_parents(nodes_to_check: list):
