@@ -9,7 +9,7 @@ from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
 from fedot.core.data.data import InputData
-from fedot.core.models.evaluation.evaluation import EvaluationStrategy
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
 
 from FEDOT.fedot.core.utils import probs_to_labels
