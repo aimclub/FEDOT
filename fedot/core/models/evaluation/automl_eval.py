@@ -18,9 +18,9 @@ from FEDOT.fedot.core.utils import probs_to_labels
 def fit_tpot(data: InputData, max_run_time_min: int):
     models_hyperparameters = _get_models_hyperparameters(max_run_time_min)['TPOT']
     estimator = None
-    if data.task.task_type.task_type.name == 'classification':
+    if data.task.task_type.name == 'classification':
         estimator = TPOTClassifier
-    elif data.task.task_type.task_type.name == 'regression':
+    elif data.task.task_type.name == 'regression':
         estimator = TPOTRegressor
 
     model = estimator(generations=models_hyperparameters['GENERATIONS'],
