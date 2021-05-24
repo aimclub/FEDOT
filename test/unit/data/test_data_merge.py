@@ -23,14 +23,14 @@ def generate_outputs():
     generated_features = np.random.sample((len(idx_1), 2))
 
     list_with_outputs = []
-    for idx, n_counter in zip([idx_1, idx_2], [1, 0]):
+    for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],
                                  task=task,
                                  target=generated_target[idx, :],
                                  data_type=DataTypesEnum.table,
-                                 nodes_counter=n_counter)
+                                 data_flow_length=data_flow_len)
         list_with_outputs.append(output_data)
 
     return list_with_outputs, idx_1, idx_2
@@ -82,7 +82,7 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, masked_fs, is_main, task, d_type, n_counter = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, masked_fs, is_main, task, d_type, data_flow_len = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
 

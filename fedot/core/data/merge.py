@@ -17,7 +17,7 @@ class DataMerger:
     def merge(self):
         """ Method automatically determine which merge function should be
         applied """
-        nodes_counter = self._update_counter()
+        data_flow_len = self._update_data_flow_len()
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
@@ -45,20 +45,21 @@ class DataMerger:
         else:
             idx, features, target, is_main_target, task = merge_func()
 
-        return idx, features, target, masked_features, is_main_target, task, first_data_type, nodes_counter
+        return idx, features, target, masked_features, is_main_target, task, first_data_type, data_flow_len
 
-    def _update_counter(self) -> int:
-        """ Method for updating nodes counter in InputData or OutputData """
-        nodes_counters = [output.nodes_counter for output in self.outputs]
+    def _update_data_flow_len(self) -> int:
+        """ Method for updating data flow length (amount of visited nodes) in
+        InputData or OutputData """
+        data_flow_lens = [output.data_flow_length for output in self.outputs]
 
-        if len(nodes_counters) == 1:
-            nodes_counter = nodes_counters[0]
+        if len(data_flow_lens) == 1:
+            data_flow_len = data_flow_lens[0]
         else:
-            nodes_counter = max(nodes_counters)
+            data_flow_len = max(data_flow_lens)
 
         # Update amount of nodes which this data have visited
-        nodes_counter += 1
-        return nodes_counter
+        data_flow_len += 1
+        return data_flow_len
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -126,7 +127,7 @@ class DataMerger:
                 features_amount = table_shape[1]
             # Create flag value as 'id.<already visited nodes>'
             current_flag = ''.join((str(current_flag_base),
-                                    '.', str(output.nodes_counter)))
+                                    '.', str(output.data_flow_length)))
             mask = [current_flag]*features_amount
             masked_features.extend(mask)
 

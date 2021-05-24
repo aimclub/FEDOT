@@ -34,7 +34,7 @@ class DecomposerImplementation(DataOperationImplementation):
 
     def divide_inputs(self, input_data):
         """ Method for dividing InputData into parts:
-        first came from Data parent and second came from Model parent
+        first came from Model parent and second came from Data parent
 
         :param input_data: InputData object
         :return prev_prediction: data obtained from "Model parent" at the previous node
@@ -46,19 +46,19 @@ class DecomposerImplementation(DataOperationImplementation):
         masked_features = np.array(input_data.masked_features)
 
         # Get amount of nodes data already visited
-        counters = np.array(list(map(_get_counters, input_data.masked_features)))
+        flow_length = np.array(list(map(_get_flow_length, input_data.masked_features)))
 
         # Find minimum and maximum of visited nodes and first indices of them
-        min_count_i = np.argmin(counters)
-        max_count_i = np.argmax(counters)
+        min_flow_length_i = np.argmin(flow_length)
+        max_flow_length_i = np.argmax(flow_length)
 
         # Get prediction from "Model parent"
-        model_parent = masked_features[max_count_i]
+        model_parent = masked_features[max_flow_length_i]
         prev_prediction_id = np.ravel(np.argwhere(masked_features == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        data_parent = masked_features[min_count_i]
+        data_parent = masked_features[min_flow_length_i]
         prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
         prev_features = features[:, prev_features_id]
 
@@ -194,7 +194,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         :return diff: difference between probabilities of classes
         """
 
-        # Make on-hot encoding for target
+        # Make one-hot encoding for target
         binary_enc = OneHotEncoder().fit_transform(target)
         probabilities_target = binary_enc.toarray()
         diff = probabilities_target - prev_prediction
@@ -202,7 +202,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         return diff
 
 
-def _get_counters(id_object):
+def _get_flow_length(id_object):
     """ Function execute amount of nodes Data block visited """
     splitted = id_object.split('.')
     return int(splitted[-1])

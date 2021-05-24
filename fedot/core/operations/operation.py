@@ -103,7 +103,7 @@ class Operation:
         for example, is the operation predict probabilities or class labels
         """
         is_main_target = data.is_main_target
-        nodes_counter = data.nodes_counter
+        data_flow_length = data.data_flow_length
         self._init(data.task, output_mode=output_mode)
 
         data = _fill_remaining_gaps(data, self.operation_type)
@@ -116,7 +116,7 @@ class Operation:
         if is_main_target is False:
             prediction.is_main_target = is_main_target
 
-        prediction.nodes_counter = nodes_counter
+        prediction.data_flow_length = data_flow_length
         return prediction
 
     def __str__(self):
