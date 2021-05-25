@@ -7,7 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
-
+from fedot.core.data.metadata import DataInfo
 from examples.regression_with_tuning_example import get_regression_dataset
 
 np.random.seed(2021)
@@ -24,13 +24,14 @@ def generate_outputs():
 
     list_with_outputs = []
     for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
+        metadata = DataInfo(data_flow_length=data_flow_len)
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],
                                  task=task,
                                  target=generated_target[idx, :],
                                  data_type=DataTypesEnum.table,
-                                 data_flow_length=data_flow_len)
+                                 metadata=metadata)
         list_with_outputs.append(output_data)
 
     return list_with_outputs, idx_1, idx_2
@@ -82,7 +83,7 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, masked_fs, is_main, task, d_type, data_flow_len = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, task, d_type, updated_info = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
 

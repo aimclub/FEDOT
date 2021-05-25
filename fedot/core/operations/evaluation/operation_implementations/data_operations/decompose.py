@@ -43,10 +43,10 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        masked_features = np.array(input_data.masked_features)
+        masked_features = np.array(input_data.get_features_mask)
 
         # Get amount of nodes data already visited
-        flow_length = np.array(list(map(_get_flow_length, input_data.masked_features)))
+        flow_length = np.array(list(map(_get_flow_length, input_data.get_features_mask)))
 
         # Find minimum and maximum of visited nodes and first indices of them
         min_flow_length_i = np.argmin(flow_length)
@@ -150,12 +150,12 @@ class DecomposerClassImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.is_main_target = False
+            output_data.set_target_flag(False)
             output_data.task = regression_task
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.is_main_target = False
+            output_data.set_target_flag(False)
             output_data.task = regression_task
 
         return output_data

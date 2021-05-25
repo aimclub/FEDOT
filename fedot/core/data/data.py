@@ -12,6 +12,7 @@ from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.merge import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.metadata import DataInfo
 
 
 @dataclass
@@ -23,10 +24,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
-    # Is it data in the main branch
-    is_main_target: bool = True
-    # Amount of nodes, which Data visited
-    data_flow_length: int = 0
+    # Object with additional info
+    metadata: DataInfo = DataInfo()
 
     @staticmethod
     def from_csv(file_path=None,
@@ -157,6 +156,24 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
+    @property
+    def get_target_flag(self) -> bool:
+        return self.metadata.is_main_target
+
+    @property
+    def get_flow_length(self) -> int:
+        return self.metadata.data_flow_length
+
+    @property
+    def get_features_mask(self) -> list:
+        return self.metadata.masked_features
+
+    def set_target_flag(self, new_value):
+        self.metadata.is_main_target = new_value
+
+    def set_flow_length(self, new_value):
+        self.metadata.data_flow_length = new_value
+
 
 @dataclass
 class InputData(Data):
@@ -164,7 +181,6 @@ class InputData(Data):
     Data class for input data for the nodes
     """
     target: Optional[np.array] = None
-    masked_features: Optional[list] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -177,11 +193,10 @@ class InputData(Data):
     def from_predictions(outputs: List['OutputData']):
         """ Method obtain predictions from previous nodes """
         # Update not only features but idx, target and task also
-        idx, features, target, masked_fs, is_main_target, task, d_type, data_flow_len = DataMerger(outputs).merge()
+        idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=d_type, masked_features=masked_fs,
-                         is_main_target=is_main_target, data_flow_length=data_flow_len)
+                         data_type=d_type, metadata=updated_info)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):

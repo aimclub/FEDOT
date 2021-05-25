@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.metadata import DataInfo
 
 
 class DataMerger:
@@ -45,21 +46,11 @@ class DataMerger:
         else:
             idx, features, target, is_main_target, task = merge_func()
 
-        return idx, features, target, masked_features, is_main_target, task, first_data_type, data_flow_len
-
-    def _update_data_flow_len(self) -> int:
-        """ Method for updating data flow length (amount of visited nodes) in
-        InputData or OutputData """
-        data_flow_lens = [output.data_flow_length for output in self.outputs]
-
-        if len(data_flow_lens) == 1:
-            data_flow_len = data_flow_lens[0]
-        else:
-            data_flow_len = max(data_flow_lens)
-
-        # Update amount of nodes which this data have visited
-        data_flow_len += 1
-        return data_flow_len
+        updated_info = DataInfo(is_main_target=is_main_target,
+                                masked_features=masked_features)
+        # Calculate amount of visited nodes for data
+        updated_info.calculate_data_flow_len(self.outputs)
+        return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -127,7 +118,7 @@ class DataMerger:
                 features_amount = table_shape[1]
             # Create flag value as 'id.<already visited nodes>'
             current_flag = ''.join((str(current_flag_base),
-                                    '.', str(output.data_flow_length)))
+                                    '.', str(output.get_flow_length)))
             mask = [current_flag]*features_amount
             masked_features.extend(mask)
 
@@ -219,7 +210,7 @@ class TaskTargetMerger:
         # If there is only one parent
         if len(self.outputs) == 1:
             target = self.outputs[0].target
-            is_main_target = self.outputs[0].is_main_target
+            is_main_target = self.outputs[0].get_target_flag
             task = self.outputs[0].task
             return target, is_main_target, task
 
@@ -272,7 +263,7 @@ class TaskTargetMerger:
         """
         Method extract target flags, targets and tasks from list with OutputData
         """
-        t_flags = [output.is_main_target for output in self.outputs]
+        t_flags = [output.get_target_flag for output in self.outputs]
         targets = [output.target for output in self.outputs]
         tasks = [output.task for output in self.outputs]
 
