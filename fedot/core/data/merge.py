@@ -18,25 +18,16 @@ class DataMerger:
     def merge(self):
         """ Method automatically determine which merge function should be
         applied """
-        data_flow_len = self._update_data_flow_len()
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
 
-        first_data_type = self.outputs[0].data_type
-        output_data_types = []
-        for output in self.outputs:
-            output_data_types.append(output.data_type)
+        output_data_types = [output.data_type for output in self.outputs]
+        first_data_type = output_data_types[0]
 
         # Check is all data types can be merged or not
         if len(set(output_data_types)) > 1:
             raise ValueError("There is no ability to merge different data types")
-
-        # Prepare mask with predict from different parent nodes
-        if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
-            masked_features = self.prepare_parent_mask(self.outputs)
-        else:
-            masked_features = None
 
         # Define appropriate strategy
         merge_func = merge_function_by_type.get(first_data_type)
@@ -46,10 +37,13 @@ class DataMerger:
         else:
             idx, features, target, is_main_target, task = merge_func()
 
-        updated_info = DataInfo(is_main_target=is_main_target,
-                                masked_features=masked_features)
+        updated_info = DataInfo(is_main_target=is_main_target)
         # Calculate amount of visited nodes for data
         updated_info.calculate_data_flow_len(self.outputs)
+        # Prepare mask with predict from different parent nodes
+        if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
+            updated_info.prepare_parent_mask(self.outputs)
+
         return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
@@ -89,43 +83,6 @@ class DataMerger:
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
         return idx, features, target, is_main_target, task
-
-    @staticmethod
-    def prepare_parent_mask(outputs):
-        """ The method for outputs from multiple parent nodes prepares a field
-        with encoded values. This allow distinguishing from which ancestor the
-        data was attached to. For example, a mask for two ancestors, each of
-        which gives predictions in the form of a tabular data with two columns
-        will look like this: ['0.1', '0.1', '1.0', '1.0'] where 0 and 1 - ids
-        of parents
-
-        :param outputs: list with OutputData
-        :return masked_features: list with masked features
-        """
-
-        # For each parent output prepare mask
-        current_flag_base = 0
-        masked_features = []
-        for output in outputs:
-            predicted_values = np.array(output.predict)
-            # Calculate columns
-            table_shape = predicted_values.shape
-
-            # Calculate columns
-            if len(table_shape) == 1:
-                features_amount = 1
-            else:
-                features_amount = table_shape[1]
-            # Create flag value as 'id.<already visited nodes>'
-            current_flag = ''.join((str(current_flag_base),
-                                    '.', str(output.get_flow_length)))
-            mask = [current_flag]*features_amount
-            masked_features.extend(mask)
-
-            # Update flag
-            current_flag_base += 1
-
-        return masked_features
 
     @staticmethod
     def _merge_equal_outputs(outputs: list):

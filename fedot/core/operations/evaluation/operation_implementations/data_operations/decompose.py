@@ -32,7 +32,8 @@ class DecomposerImplementation(DataOperationImplementation):
         """
         raise NotImplementedError()
 
-    def divide_inputs(self, input_data):
+    @staticmethod
+    def divide_inputs(input_data):
         """ Method for dividing InputData into parts:
         first came from Model parent and second came from Data parent
 
@@ -43,14 +44,14 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        masked_features = np.array(input_data.get_features_mask)
+        masked_features = np.array(input_data.metadata.get_compound_mask())
 
         # Get amount of nodes data already visited
-        flow_length = np.array(list(map(_get_flow_length, input_data.get_features_mask)))
+        flow_lengths = input_data.metadata.get_flow_mask()
 
         # Find minimum and maximum of visited nodes and first indices of them
-        min_flow_length_i = np.argmin(flow_length)
-        max_flow_length_i = np.argmax(flow_length)
+        min_flow_length_i = np.argmin(flow_lengths)
+        max_flow_length_i = np.argmax(flow_lengths)
 
         # Get prediction from "Model parent"
         model_parent = masked_features[max_flow_length_i]
@@ -100,11 +101,11 @@ class DecomposerRegImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.is_main_target = False
+            output_data.set_target_flag(False)
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.is_main_target = False
+            output_data.set_target_flag(False)
 
         return output_data
 
@@ -200,9 +201,3 @@ class DecomposerClassImplementation(DecomposerImplementation):
         diff = probabilities_target - prev_prediction
 
         return diff
-
-
-def _get_flow_length(id_object):
-    """ Function execute amount of nodes Data block visited """
-    splitted = id_object.split('.')
-    return int(splitted[-1])

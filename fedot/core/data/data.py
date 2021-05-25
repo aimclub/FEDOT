@@ -164,10 +164,6 @@ class Data:
     def get_flow_length(self) -> int:
         return self.metadata.data_flow_length
 
-    @property
-    def get_features_mask(self) -> list:
-        return self.metadata.masked_features
-
     def set_target_flag(self, new_value):
         self.metadata.is_main_target = new_value
 
