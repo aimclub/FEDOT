@@ -6,6 +6,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 # to time_series.py CustomTsForecastingStrategy(EvaluationStrategy) as 'custom': DomainSpecificModelImplementation
 
+
 class DomainSpecificModelImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__()
@@ -18,6 +19,7 @@ class DomainSpecificModelImplementation(ModelImplementation):
             self.log = default_log(__name__)
         else:
             self.log = log
+
 
     def _check_model_structure(self):
 
@@ -33,12 +35,8 @@ class DomainSpecificModelImplementation(ModelImplementation):
         self.input_data = input_data
         pass
 
-    def predict(self):
 
     def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
-
-
-
 
         predicted = self.model.predict()
 
@@ -46,10 +44,6 @@ class DomainSpecificModelImplementation(ModelImplementation):
                                               predict=predicted,
                                               data_type=DataTypesEnum.table)
         return output_data
-
-    def get_params(self):
-        return self.params
-
 
 
 
