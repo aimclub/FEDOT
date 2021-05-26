@@ -11,10 +11,10 @@ def run_classification_example(yaml_flag: bool = False):
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
-    baseline_model = Fedot(problem=problem)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
-    baseline_model.predict(features=test_data_path)
-    print(baseline_model.get_metrics())
+    # baseline_model = Fedot(problem=problem)
+    # baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    # baseline_model.predict(features=test_data_path)
+    # print(baseline_model.get_metrics())
 
     if yaml_flag:
         yaml_path = r'.\data\scoring\config.yaml'
@@ -101,7 +101,7 @@ def run_classification_multiobj_example(with_plot=True):
 
 if __name__ == '__main__':
     # run_classification_example(yaml_flag=True)
-    # run_classification_example()
-    # run_regression_example()
-    # run_ts_forecasting_example()
+    run_classification_example()
+    run_regression_example()
+    run_ts_forecasting_example()
     run_classification_multiobj_example()

@@ -16,7 +16,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
-
+from fedot.core.utils import probs_to_labels
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
@@ -239,17 +239,17 @@ class Fedot:
                                       features=features, is_predict=True)
 
         if self.problem.task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_model.predict()
-            self.prediction = self.current_model.predict()
+            self.prediction_labels = self.current_model.predict(input_data=self.test_data)
+            self.prediction = self.current_model.predict(input_data=self.test_data)
             output_prediction = self.prediction
         elif self.problem.task_type == TaskTypesEnum.ts_forecasting:
             # Convert forecast into one-dimensional array
-            self.prediction = self.current_model.predict()
+            self.prediction = self.current_model.predict(input_data=self.test_data)
             forecast = np.ravel(np.array(self.prediction.predict))
             self.prediction.predict = forecast
             output_prediction = self.prediction
         else:
-            self.prediction = self.current_model.predict()
+            self.prediction = self.current_model.predict(input_data=self.test_data)
             output_prediction = self.prediction
 
         if save_predictions:
@@ -268,6 +268,8 @@ class Fedot:
         :param probs_for_all_classes: return probability for each class even for binary case
         :return: the array with prediction values
         """
+        if features is None:
+            features = self.schema.test_path
 
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -278,8 +280,8 @@ class Fedot:
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
-            self.prediction = self.current_model.predict()
-            self.prediction_labels = self.current_model.predict()
+            self.prediction = self.current_model.predict(input_data=self.test_data)
+            self.prediction_labels = self.current_model.predict(input_data=self.test_data)
 
             if save_predictions:
                 save_predict(self.prediction)
@@ -385,9 +387,14 @@ class Fedot:
                 if self.problem.task_type == TaskTypesEnum.ts_forecasting:
                     real.target = real.target[~np.isnan(prediction.predict)]
                     prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+                try:
+                    metric_value = abs(metric_cls.metric(reference=real,
+                                                         predicted=prediction))
+                except Exception as ex:
+                    prediction.predict = probs_to_labels(prediction.predict)
+                    metric_value = abs(metric_cls.metric(reference=real,
+                                                         predicted=prediction))
 
-                metric_value = abs(metric_cls.metric(reference=real,
-                                                     predicted=prediction))
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
