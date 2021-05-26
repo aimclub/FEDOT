@@ -1,12 +1,25 @@
-from dataclasses import dataclass, field
+import gc
 from typing import List
 
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.composing_history import ParentOperator
 
 
-@dataclass
 class Individual:
-    chain: Chain  # TODO replace to Graph after merge
-    fitness: List[float] = None
-    parent_operators: List[ParentOperator] = field(default_factory=lambda: [])
+    def __init__(self, chain: Chain, fitness: List[float] = None,
+                 parent_operators: List[ParentOperator] = None):
+        self.parent_operators = parent_operators if parent_operators is not None else []
+        self.fitness = fitness
+
+        self.chain = _simplify_chain(chain)
+
+
+def _simplify_chain(chain: Chain):
+    """
+    Remove all 'heavy' parts from the chain
+    :param chain: fitted chain
+    :return: chain without fitted models and data
+    """
+    chain.unfit()
+    gc.collect()
+    return chain

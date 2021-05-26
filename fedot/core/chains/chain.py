@@ -1,10 +1,9 @@
+from copy import copy
 from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
-
 from uuid import uuid4
-
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.node import (Node, PrimaryNode)
@@ -162,10 +161,13 @@ class Chain:
         if not use_cache:
             self.unfit()
 
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
+
         if time_constraint is None:
-            train_predicted = self._fit(input_data=input_data, use_cache=use_cache)
+            train_predicted = self._fit(input_data=copied_input_data, use_cache=use_cache)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=input_data, use_cache=use_cache,
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, use_cache=use_cache,
                                                         time=time_constraint)
         return train_predicted
 
@@ -187,7 +189,10 @@ class Chain:
             self.log.error(ex)
             raise ValueError(ex)
 
-        result = self.root_node.predict(input_data=input_data, output_mode=output_mode)
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
+
+        result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
@@ -198,13 +203,17 @@ class Chain:
             optimization using ChainTuner. For details, see
         :meth:`~fedot.core.chains.tuning.unified.ChainTuner.tune_chain`
         """
+
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
+
         max_lead_time = timedelta(minutes=max_lead_time)
         chain_tuner = ChainTuner(chain=self,
-                                 task=input_data.task,
+                                 task=copied_input_data.task,
                                  iterations=iterations,
                                  max_lead_time=max_lead_time)
         self.log.info('Start tuning of primary nodes')
-        tuned_chain = chain_tuner.tune_chain(input_data=input_data,
+        tuned_chain = chain_tuner.tune_chain(input_data=copied_input_data,
                                              loss_function=loss_function,
                                              loss_params=loss_params)
         self.log.info('Tuning was finished')
