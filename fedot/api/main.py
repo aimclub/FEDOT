@@ -6,7 +6,7 @@ import pandas as pd
 from deap import tools
 
 from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, composer_metrics_mapping,
-                                 filter_operations_by_preset, save_predict)
+                                 filter_operations_by_preset, save_predict, read_yaml_params)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.composer.optimisers.utils.pareto import ParetoFront
@@ -69,20 +69,13 @@ class Fedot:
     """
 
     def __init__(self,
-                 problem: str,
+                 problem: str = None,
                  preset: str = None,
+                 config_path: str = None,
                  learning_time: Optional[float] = None,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 1):
-        if seed is not None:
-            np.random.seed(seed)
-            random.seed(seed)
-
-        # metainfo
-        self.problem = problem
-        self.composer_params = composer_params
-        self.task_params = task_params
 
         # model to use
         self.current_model = None
@@ -99,6 +92,24 @@ class Fedot:
         self.prediction = None
         self.prediction_labels = None  # classification-only
         self.target_name = None
+
+        if config_path is not None:
+            self.schema = read_yaml_params(config_path)
+            self.problem = self.schema.problem
+            self.composer_params = self.schema.composer_params
+            self.task_params = self.schema.task_params
+            self.learning_time = self.schema.learning_time
+            self.seed = self.schema.seed
+            self.verbose_level = self.schema.verbose_level
+        else:
+            # metainfo
+            self.problem = problem
+            self.composer_params = composer_params
+            self.task_params = task_params
+
+        if seed is not None:
+            np.random.seed(seed)
+            random.seed(seed)
 
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
@@ -172,7 +183,7 @@ class Fedot:
         self.current_model = None
 
     def fit(self,
-            features: Union[str, np.ndarray, pd.DataFrame, InputData],
+            features: Union[str, np.ndarray, pd.DataFrame, InputData] = None,
             target: Union[str, np.ndarray, pd.Series] = 'target',
             predefined_model: Union[str, Chain] = None):
         """
@@ -183,6 +194,9 @@ class Fedot:
         :param predefined_model: the name of the atomic model or Chain instance
         :return: Chain object
         """
+
+        if features is None:
+            features = self.schema.train_path
 
         self.target_name = target
         self.train_data = _define_data(ml_task=self.problem,
@@ -206,7 +220,7 @@ class Fedot:
         return self._obtain_model(is_composing_required)
 
     def predict(self,
-                features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                features: Union[str, np.ndarray, pd.DataFrame, InputData] = None,
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
@@ -218,21 +232,24 @@ class Fedot:
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
+        if features is None:
+            features = self.schema.test_path
+
         self.test_data = _define_data(ml_task=self.problem, target=self.target_name,
                                       features=features, is_predict=True)
 
         if self.problem.task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
-            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
+            self.prediction_labels = self.current_model.predict()
+            self.prediction = self.current_model.predict()
             output_prediction = self.prediction
         elif self.problem.task_type == TaskTypesEnum.ts_forecasting:
             # Convert forecast into one-dimensional array
-            self.prediction = self.current_model.predict(self.test_data)
+            self.prediction = self.current_model.predict()
             forecast = np.ravel(np.array(self.prediction.predict))
             self.prediction.predict = forecast
             output_prediction = self.prediction
         else:
-            self.prediction = self.current_model.predict(self.test_data)
+            self.prediction = self.current_model.predict()
             output_prediction = self.prediction
 
         if save_predictions:
@@ -240,7 +257,7 @@ class Fedot:
         return output_prediction.predict
 
     def predict_proba(self,
-                      features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                      features: Union[str, np.ndarray, pd.DataFrame, InputData] = None,
                       save_predictions: bool = False,
                       probs_for_all_classes: bool = False):
         """
@@ -261,8 +278,8 @@ class Fedot:
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
-            self.prediction = self.current_model.predict(self.test_data, output_mode=mode)
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
+            self.prediction = self.current_model.predict()
+            self.prediction_labels = self.current_model.predict()
 
             if save_predictions:
                 save_predict(self.prediction)
