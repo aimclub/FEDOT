@@ -20,7 +20,7 @@ class DataInfo:
 
         :param outputs: list with OutputData
         """
-        data_flow_lens = [output.get_flow_length for output in outputs]
+        data_flow_lens = [output.metadata.data_flow_length for output in outputs]
 
         if len(data_flow_lens) == 1:
             data_flow_len = data_flow_lens[0]
@@ -40,7 +40,7 @@ class DataInfo:
          'flow_lens': [1, 1, 0, 0]}
 
         :param outputs: list with OutputData
-        :return masked_features: dict with masked features. A composite ID of
+        :return features_mask: dict with mask for features. A composite ID of
         two lists is used
             - id of parent operation order
             - amount of nodes, which data have visited
@@ -65,7 +65,7 @@ class DataInfo:
             input_ids.extend(id_mask)
 
             # Number of nodes visited by the data
-            flow_mask = [output.get_flow_length] * features_amount
+            flow_mask = [output.metadata.data_flow_length] * features_amount
             flow_lens.extend(flow_mask)
 
             # Update input id

@@ -12,7 +12,7 @@ from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.merge import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.metadata import DataInfo
+from fedot.core.data.data_info import DataInfo
 
 
 @dataclass
@@ -155,20 +155,6 @@ class Data:
 
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
-
-    @property
-    def get_target_flag(self) -> bool:
-        return self.metadata.is_main_target
-
-    @property
-    def get_flow_length(self) -> int:
-        return self.metadata.data_flow_length
-
-    def set_target_flag(self, new_value):
-        self.metadata.is_main_target = new_value
-
-    def set_flow_length(self, new_value):
-        self.metadata.data_flow_length = new_value
 
 
 @dataclass

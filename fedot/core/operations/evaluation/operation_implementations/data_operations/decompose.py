@@ -101,11 +101,11 @@ class DecomposerRegImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.set_target_flag(False)
+            output_data.metadata.is_main_target = False
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.set_target_flag(False)
+            output_data.metadata.is_main_target = False
 
         return output_data
 
@@ -151,12 +151,12 @@ class DecomposerClassImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.set_target_flag(False)
+            output_data.metadata.is_main_target = False
             output_data.task = regression_task
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.set_target_flag(False)
+            output_data.metadata.is_main_target = False
             output_data.task = regression_task
 
         return output_data

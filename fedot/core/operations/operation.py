@@ -102,8 +102,8 @@ class Operation:
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
-        is_main_target = data.get_target_flag
-        data_flow_length = data.get_flow_length
+        is_main_target = data.metadata.is_main_target
+        data_flow_length = data.metadata.data_flow_length
         self._init(data.task, output_mode=output_mode)
 
         data = _fill_remaining_gaps(data, self.operation_type)
@@ -114,9 +114,9 @@ class Operation:
             is_fit_chain_stage=is_fit_chain_stage)
 
         if is_main_target is False:
-            prediction.set_target_flag(is_main_target)
+            prediction.metadata.is_main_target = is_main_target
 
-        prediction.set_flow_length(data_flow_length)
+        prediction.metadata.data_flow_length = data_flow_length
         return prediction
 
     def __str__(self):

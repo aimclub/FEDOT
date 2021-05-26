@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.metadata import DataInfo
+from fedot.core.data.data_info import DataInfo
 
 
 class DataMerger:
@@ -167,7 +167,7 @@ class TaskTargetMerger:
         # If there is only one parent
         if len(self.outputs) == 1:
             target = self.outputs[0].target
-            is_main_target = self.outputs[0].get_target_flag
+            is_main_target = self.outputs[0].metadata.is_main_target
             task = self.outputs[0].task
             return target, is_main_target, task
 
@@ -220,7 +220,7 @@ class TaskTargetMerger:
         """
         Method extract target flags, targets and tasks from list with OutputData
         """
-        t_flags = [output.get_target_flag for output in self.outputs]
+        t_flags = [output.metadata.is_main_target for output in self.outputs]
         targets = [output.target for output in self.outputs]
         tasks = [output.task for output in self.outputs]
 
