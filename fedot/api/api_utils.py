@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Dict
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,17 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
                                                               RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from dataclasses import dataclass, field
+from marshmallow_dataclass import class_schema
+import yaml
+import logging
+import sys
+from typing import List
+
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(sys.stdout)
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -304,3 +315,32 @@ def _obtain_metric(task: Task, composer_metric: Union[str, Callable]):
             specific_metric_function = MetricsRepository().metric_by_id(metric_id)
         metric_function.append(specific_metric_function)
     return metric_function
+
+
+@dataclass()
+class Params:
+    problem: str = None
+    train_path: str = None
+    test_path: str = None
+    learning_time: int = None
+    composer_params: dict = None
+    task_params: dict = None
+    seed: int = None
+    verbose_level: int = None
+
+
+PipelineParams = class_schema(Params)
+
+
+def read_yaml_params(path: str) -> Params:
+    """
+    Load params for FEDOT from yaml-config
+
+    :param path: the path to yaml-config
+    :return: schema object
+    """
+    with open(path, "r") as input_stream:
+        config_dict = yaml.safe_load(input_stream)
+        schema = PipelineParams().load(config_dict)
+        logger.info(f"schema ready: {schema}")
+        return schema

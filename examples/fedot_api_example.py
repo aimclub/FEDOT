@@ -6,23 +6,27 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def run_classification_example():
+def run_classification_example(yaml_flag: bool = False):
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
-
     baseline_model = Fedot(problem=problem)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
-
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    auto_model = Fedot(problem=problem, seed=42)
-    auto_model.fit(features=train_data_path, target='target')
-    prediction = auto_model.predict_proba(features=test_data_path)
-    print(auto_model.get_metrics())
+    if yaml_flag:
+        yaml_path = r'.\data\scoring\config.yaml'
+        auto_model = Fedot(config_path=yaml_path)
+        auto_model.fit()
+        prediction = auto_model.predict_proba()
+    else:
+        auto_model = Fedot(problem=problem, seed=42)
+        auto_model.fit(features=train_data_path, target='target')
+        prediction = auto_model.predict_proba(features=test_data_path)
 
+    print(auto_model.get_metrics())
     return prediction
 
 
@@ -83,7 +87,6 @@ def run_classification_multiobj_example(with_plot=True):
     target = test_data['class']
     del test_data['class']
     problem = 'classification'
-
     auto_model = Fedot(problem=problem, learning_time=2, preset='light',
                        composer_params={'metric': ['f1', 'node_num']}, seed=42)
     auto_model.fit(features=train_data, target='class')
@@ -97,7 +100,8 @@ def run_classification_multiobj_example(with_plot=True):
 
 
 if __name__ == '__main__':
-    run_classification_example()
-    run_regression_example()
-    run_ts_forecasting_example()
+    # run_classification_example(yaml_flag=True)
+    # run_classification_example()
+    # run_regression_example()
+    # run_ts_forecasting_example()
     run_classification_multiobj_example()
