@@ -13,7 +13,7 @@ class DataInfo:
     # Amount of nodes, which Data visited
     data_flow_length: int = 0
     # Masked features in the for data
-    masked_features: Optional[dict] = None
+    features_mask: Optional[dict] = None
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)
@@ -71,17 +71,17 @@ class DataInfo:
             # Update input id
             input_id += 1
 
-        self.masked_features = {'input_ids': input_ids, 'flow_lens': flow_lens}
+        self.features_mask = {'input_ids': input_ids, 'flow_lens': flow_lens}
 
     def get_compound_mask(self):
         """ The method allows to combine a mask with features in the form of
         an one-dimensional array.
         """
 
-        input_ids = np.array(self.masked_features.get('input_ids'), dtype=str)
-        flow_lens = np.array(self.masked_features.get('flow_lens'), dtype=str)
+        input_ids = np.array(self.features_mask.get('input_ids'), dtype=str)
+        flow_lens = np.array(self.features_mask.get('flow_lens'), dtype=str)
         comp_list = np.core.defchararray.add(input_ids, flow_lens)
         return comp_list
 
     def get_flow_mask(self) -> list:
-        return self.masked_features.get('flow_lens')
+        return self.features_mask.get('flow_lens')

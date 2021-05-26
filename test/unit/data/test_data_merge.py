@@ -153,6 +153,6 @@ def test_parent_mask_correct():
     # Calculate parent mask from outputs
     data_info = DataInfo()
     data_info.prepare_parent_mask(list_with_outputs)
-    p_mask = data_info.masked_features
+    p_mask = data_info.features_mask
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
     assert tuple(p_mask['flow_lens']) == tuple(correct_parent_mask['flow_lens'])

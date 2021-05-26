@@ -44,7 +44,7 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        masked_features = np.array(input_data.metadata.get_compound_mask())
+        features_mask = np.array(input_data.metadata.get_compound_mask())
 
         # Get amount of nodes data already visited
         flow_lengths = input_data.metadata.get_flow_mask()
@@ -54,13 +54,13 @@ class DecomposerImplementation(DataOperationImplementation):
         max_flow_length_i = np.argmax(flow_lengths)
 
         # Get prediction from "Model parent"
-        model_parent = masked_features[max_flow_length_i]
-        prev_prediction_id = np.ravel(np.argwhere(masked_features == model_parent))
+        model_parent = features_mask[max_flow_length_i]
+        prev_prediction_id = np.ravel(np.argwhere(features_mask == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        data_parent = masked_features[min_flow_length_i]
-        prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
+        data_parent = features_mask[min_flow_length_i]
+        prev_features_id = np.ravel(np.argwhere(features_mask == data_parent))
         prev_features = features[:, prev_features_id]
 
         return prev_prediction, prev_features
