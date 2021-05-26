@@ -141,18 +141,3 @@ def test_target_task_two_none_merge():
 
     assert is_main_target is True
     assert task.task_type is TaskTypesEnum.classification
-
-
-def test_parent_mask_correct():
-    """ Test correctness of function for tables mask generation """
-    correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
-
-    # Generates outputs with 1 column in prediction
-    list_with_outputs, idx_1, idx_2 = generate_outputs()
-
-    # Calculate parent mask from outputs
-    data_info = DataInfo()
-    data_info.prepare_parent_mask(list_with_outputs)
-    p_mask = data_info.features_mask
-    assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
-    assert tuple(p_mask['flow_lens']) == tuple(correct_parent_mask['flow_lens'])
