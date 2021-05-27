@@ -216,6 +216,6 @@ def _convert_to_output_function(input_data, transformed_features,
                            task=input_data.task,
                            target=input_data.target,
                            data_type=data_type,
-                           metadata=input_data.metadata)
+                           supplementary_data=input_data.supplementary_data)
 
     return converted

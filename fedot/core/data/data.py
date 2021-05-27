@@ -24,8 +24,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
-    # Object with additional info
-    metadata: SupplementaryData = SupplementaryData()
+    # Object with supplementary info
+    supplementary_data: SupplementaryData = SupplementaryData()
 
     @staticmethod
     def from_csv(file_path=None,
@@ -178,7 +178,7 @@ class InputData(Data):
         idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=d_type, metadata=updated_info)
+                         data_type=d_type, supplementary_data=updated_info)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):

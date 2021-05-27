@@ -21,7 +21,7 @@ class SupplementaryData:
 
         :param outputs: list with OutputData
         """
-        data_flow_lens = [output.metadata.data_flow_length for output in outputs]
+        data_flow_lens = [output.supplementary_data.data_flow_length for output in outputs]
 
         if len(data_flow_lens) == 1:
             data_flow_len = data_flow_lens[0]
@@ -66,7 +66,7 @@ class SupplementaryData:
             input_ids.extend(id_mask)
 
             # Number of nodes visited by the data
-            flow_mask = [output.metadata.data_flow_length] * features_amount
+            flow_mask = [output.supplementary_data.data_flow_length] * features_amount
             flow_lens.extend(flow_mask)
 
             # Update input id

@@ -44,10 +44,10 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        features_mask = np.array(input_data.metadata.get_compound_mask())
+        features_mask = np.array(input_data.supplementary_data.get_compound_mask())
 
         # Get amount of nodes data already visited
-        flow_lengths = input_data.metadata.get_flow_mask()
+        flow_lengths = input_data.supplementary_data.get_flow_mask()
 
         # Find minimum and maximum of visited nodes and first indices of them
         min_flow_length_i = np.argmin(flow_lengths)
@@ -101,11 +101,11 @@ class DecomposerRegImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.metadata.is_main_target = False
+            output_data.supplementary_data.is_main_target = False
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.metadata.is_main_target = False
+            output_data.supplementary_data.is_main_target = False
 
         return output_data
 
@@ -151,12 +151,12 @@ class DecomposerClassImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.metadata.is_main_target = False
+            output_data.supplementary_data.is_main_target = False
             output_data.task = regression_task
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.metadata.is_main_target = False
+            output_data.supplementary_data.is_main_target = False
             output_data.task = regression_task
 
         return output_data

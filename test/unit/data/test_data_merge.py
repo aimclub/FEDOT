@@ -24,14 +24,14 @@ def generate_outputs():
 
     list_with_outputs = []
     for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
-        metadata = SupplementaryData(data_flow_length=data_flow_len)
+        data_info = SupplementaryData(data_flow_length=data_flow_len)
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],
                                  task=task,
                                  target=generated_target[idx, :],
                                  data_type=DataTypesEnum.table,
-                                 metadata=metadata)
+                                 supplementary_data=data_info)
         list_with_outputs.append(output_data)
 
     return list_with_outputs, idx_1, idx_2

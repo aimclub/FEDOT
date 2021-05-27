@@ -59,10 +59,10 @@ class AtomizedModel(Operation):
         allowed_positions = ['any']
         tags = list(tags)
 
-        operation_info = OperationMetaInfo(root_node.operation.metadata.id,
-                                           root_node.operation.metadata.input_types,
-                                           root_node.operation.metadata.output_types,
-                                           root_node.operation.metadata.task_type,
+        operation_info = OperationMetaInfo(root_node.operation.supplementary_data.id,
+                                           root_node.operation.supplementary_data.input_types,
+                                           root_node.operation.supplementary_data.output_types,
+                                           root_node.operation.supplementary_data.task_type,
                                            supported_strategies, allowed_positions,
                                            tags)
         return operation_info

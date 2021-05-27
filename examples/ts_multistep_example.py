@@ -72,7 +72,7 @@ def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../notebooks/jupyter_media/time_series_forecasting/sea_level.csv')
+    df = pd.read_csv('../notebooks/data/ts_sea_level.csv')
     time_series = np.array(df['Level'])
 
     run_multistep_example(time_series,

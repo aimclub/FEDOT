@@ -167,7 +167,7 @@ class TaskTargetMerger:
         # If there is only one parent
         if len(self.outputs) == 1:
             target = self.outputs[0].target
-            is_main_target = self.outputs[0].metadata.is_main_target
+            is_main_target = self.outputs[0].supplementary_data.is_main_target
             task = self.outputs[0].task
             return target, is_main_target, task
 
@@ -220,7 +220,7 @@ class TaskTargetMerger:
         """
         Method extract target flags, targets and tasks from list with OutputData
         """
-        t_flags = [output.metadata.is_main_target for output in self.outputs]
+        t_flags = [output.supplementary_data.is_main_target for output in self.outputs]
         targets = [output.target for output in self.outputs]
         tasks = [output.task for output in self.outputs]
 
@@ -228,7 +228,8 @@ class TaskTargetMerger:
 
     @staticmethod
     def ignored_merge(targets, t_flags, tasks):
-        """ Method merge targets with 'ignore' (False) labels """
+        """ Method merge targets with False labels. False - means that such
+        branch target must be ignored """
         # PEP8 fix through converting boolean into string
         t_flags = np.array(t_flags, dtype=str)
         main_ids = np.ravel(np.argwhere(t_flags == 'True'))

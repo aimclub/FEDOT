@@ -44,7 +44,7 @@ def test_calculate_data_flow_len_correct():
     simple_chain.fit(data)
     predict_output = simple_chain.predict(data)
 
-    assert predict_output.metadata.data_flow_length == 2
+    assert predict_output.supplementary_data.data_flow_length == 2
 
 
 def test_get_compound_mask_correct():
@@ -56,8 +56,8 @@ def test_get_compound_mask_correct():
     output_example = OutputData(idx=[0, 0], features=[0, 0], predict=[0, 0],
                                 task=Task(TaskTypesEnum.regression),
                                 target=[0, 0], data_type=DataTypesEnum.table,
-                                metadata=SupplementaryData(features_mask=synthetic_mask))
+                                supplementary_data=SupplementaryData(features_mask=synthetic_mask))
 
-    mask = output_example.metadata.get_compound_mask()
+    mask = output_example.supplementary_data.get_compound_mask()
 
     assert ('01', '01', '10', '10') == tuple(mask)
