@@ -32,9 +32,10 @@ class DecomposerImplementation(DataOperationImplementation):
         """
         raise NotImplementedError()
 
-    def divide_inputs(self, input_data):
+    @staticmethod
+    def divide_inputs(input_data):
         """ Method for dividing InputData into parts:
-        first came from Data parent and second came from Model parent
+        first came from Model parent and second came from Data parent
 
         :param input_data: InputData object
         :return prev_prediction: data obtained from "Model parent" at the previous node
@@ -43,16 +44,23 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        masked_features = np.array(input_data.masked_features)
+        features_mask = np.array(input_data.metadata.get_compound_mask())
+
+        # Get amount of nodes data already visited
+        flow_lengths = input_data.metadata.get_flow_mask()
+
+        # Find minimum and maximum of visited nodes and first indices of them
+        min_flow_length_i = np.argmin(flow_lengths)
+        max_flow_length_i = np.argmax(flow_lengths)
 
         # Get prediction from "Model parent"
-        model_parent = 0
-        prev_prediction_id = np.ravel(np.argwhere(masked_features == model_parent))
+        model_parent = features_mask[max_flow_length_i]
+        prev_prediction_id = np.ravel(np.argwhere(features_mask == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        data_parent = np.max(masked_features)
-        prev_features_id = np.ravel(np.argwhere(masked_features == data_parent))
+        data_parent = features_mask[min_flow_length_i]
+        prev_features_id = np.ravel(np.argwhere(features_mask == data_parent))
         prev_features = features[:, prev_features_id]
 
         return prev_prediction, prev_features
@@ -93,11 +101,11 @@ class DecomposerRegImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.is_main_target = False
+            output_data.metadata.is_main_target = False
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.is_main_target = False
+            output_data.metadata.is_main_target = False
 
         return output_data
 
@@ -143,12 +151,12 @@ class DecomposerClassImplementation(DecomposerImplementation):
             # Create OutputData
             output_data = self._convert_to_output(input_data, prev_features)
             # We decompose the target, so in the future we need to ignore
-            output_data.is_main_target = False
+            output_data.metadata.is_main_target = False
             output_data.task = regression_task
         else:
             # For predict stage there is no need to worry about target
             output_data = self._convert_to_output(input_data, prev_features)
-            output_data.is_main_target = False
+            output_data.metadata.is_main_target = False
             output_data.task = regression_task
 
         return output_data
@@ -187,7 +195,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         :return diff: difference between probabilities of classes
         """
 
-        # Make on-hot encoding for target
+        # Make one-hot encoding for target
         binary_enc = OneHotEncoder().fit_transform(target)
         probabilities_target = binary_enc.toarray()
         diff = probabilities_target - prev_prediction

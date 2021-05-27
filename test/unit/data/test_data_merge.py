@@ -7,7 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
-
+from fedot.core.data.supplementary_data import SupplementaryData
 from examples.regression_with_tuning_example import get_regression_dataset
 
 np.random.seed(2021)
@@ -23,13 +23,15 @@ def generate_outputs():
     generated_features = np.random.sample((len(idx_1), 2))
 
     list_with_outputs = []
-    for idx in [idx_1, idx_2]:
+    for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
+        metadata = SupplementaryData(data_flow_length=data_flow_len)
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],
                                  task=task,
                                  target=generated_target[idx, :],
-                                 data_type=DataTypesEnum.table)
+                                 data_type=DataTypesEnum.table,
+                                 metadata=metadata)
         list_with_outputs.append(output_data)
 
     return list_with_outputs, idx_1, idx_2
@@ -81,7 +83,7 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, masked_fs, is_main, task, d_type = DataMerger(list_with_outputs).merge()
+    new_idx, features, target, task, d_type, updated_info = DataMerger(list_with_outputs).merge()
 
     assert tuple(new_idx) == tuple(idx_2)
 
@@ -139,16 +141,3 @@ def test_target_task_two_none_merge():
 
     assert is_main_target is True
     assert task.task_type is TaskTypesEnum.classification
-
-
-def test_parent_mask_correct():
-    """ Test correctness of function for tables mask generation """
-    correct_parent_mask = (0, 1)
-
-    # Generates outputs with 1 column in prediction
-    list_with_outputs, idx_1, idx_2 = generate_outputs()
-    merger = DataMerger(list_with_outputs)
-
-    parent_mask = merger.prepare_parent_mask(list_with_outputs)
-
-    assert tuple(parent_mask) == correct_parent_mask

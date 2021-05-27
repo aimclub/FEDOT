@@ -103,7 +103,8 @@ class EvaluationStrategy:
                                    predict=prediction,
                                    task=predict_data.task,
                                    target=predict_data.target,
-                                   data_type=output_data_type)
+                                   data_type=output_data_type,
+                                   metadata=predict_data.metadata)
         else:
             converted = prediction
 

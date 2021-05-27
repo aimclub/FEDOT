@@ -6,7 +6,12 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.data import InputData
+
 from examples.classification_with_tuning_example import get_classification_dataset
+from examples.decompose.refinement_forecast_example import get_refinement_chain
+
+from test.unit.tasks.test_classification import get_iris_data
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
 def generate_chain_with_decomposition(primary_operation, secondary_operation):
@@ -95,50 +100,35 @@ def get_classification_data(classes_amount: int):
     return train_input, predict_input
 
 
-def test_order_by_descriptive_id():
+def test_order_by_data_flow_len_correct():
+    """ The function checks whether the current version of data flow length
+    counters can allow for decompose implementation to determine how the nodes
+    in the chain are located
     """
-    The function checks the order of nodes by its descriptive_id property
-    """
-    # Generate chain with defined operation in the nodes
-    full_chain = generate_chain_with_decomposition(primary_operation='scaling',
-                                                   secondary_operation='logit')
-    desc_decompose = '((/n_scaling_default_params;)/n_logit_default_params;;' \
-                     '/n_scaling_default_params;)/n_class_decompose_default_params'
+    input_data = get_iris_data()
 
-    for node in full_chain.nodes:
-        if node.operation.operation_type == 'class_decompose':
-            assert node.descriptive_id == desc_decompose
-
-
-def test_order_by_descriptive_correct():
-    """ The function checks whether the current version of descriptive_id can
-    determine how the nodes in the chain are located
-    """
-
-    data_operations = ['scaling', 'normalization', 'pca', 'dt', 'poly_features']
-    model_operations = ['lda', 'qda', 'knn', 'logit']
+    data_operations = ['scaling', 'normalization', 'pca', 'poly_features']
+    model_operations = ['lda', 'knn', 'logit']
     list_with_operations = list(product(data_operations, model_operations))
 
     for data_operation, model_operation in list_with_operations:
         # Generate chain with different operations in the nodes with decomposition
         chain = generate_chain_with_decomposition(data_operation,
                                                   model_operation)
+        chain.fit(input_data)
 
-        # Get nodes with decompose operation in it
+        # Get one node with decompose operation in it
         decompose_nodes = nodes_with_operation(chain, 'class_decompose')
         decompose_node = decompose_nodes[0]
+        # Predict from decompose must be the same as predict from Data parent
+        dec_output = decompose_node.predict(input_data)
 
-        # Get parents for decompose node
-        parent_nodes = decompose_node._nodes_from_with_fixed_order()
-        parent_nodes = np.array(parent_nodes, dtype=str)
+        # Get data parent operation for node
+        data_node = nodes_with_operation(chain, data_operation)[0]
+        data_output = data_node.predict(input_data)
 
-        # Get orders for parent operations
-        data_parent_id = int(np.argwhere(parent_nodes == data_operation))
-        model_parent_id = int(np.argwhere(parent_nodes == model_operation))
-
-        # Data parent must be always in the end of the list
-        if data_parent_id != 1 and model_parent_id != 0:
-            raise ValueError('Parent nodes for decompose operation has incorrect order')
+        if tuple(data_output.predict.shape) != tuple(dec_output.predict.shape):
+            raise ValueError('Data parent is not identified correctly for the decompose operation')
 
 
 def test_correctness_filter_chain_decomposition():
@@ -178,7 +168,7 @@ def test_multiclass_classification_decomposition():
     return is_chain_worked_correctly
 
 
-def test_cascade_decompose_classification_decomposition():
+def test_cascade_classification_decomposition():
     # Generate synthetic dataset for multiclass classification task
     train_input, predict_input = get_classification_data(classes_amount=4)
 
@@ -193,3 +183,28 @@ def test_cascade_decompose_classification_decomposition():
 
     is_chain_worked_correctly = True
     return is_chain_worked_correctly
+
+
+def test_ts_forecasting_decomposition():
+    """ The function checks whether, after the decompose operation, the chain
+    actually models the original target (not decomposed) for the time series
+    forecasting task
+    """
+    # Generate synthetic data for time series forecasting
+    train_data, _ = get_synthetic_ts_data_period(forecast_length=5)
+    # Distort original values
+    train_data.features = train_data.features + 150
+    train_data.target = train_data.target + 150
+
+    _, chain_decompose_finish, chain = get_refinement_chain(lagged=10)
+
+    chain.fit(train_data)
+    chain_decompose_finish.fit(train_data)
+
+    full_output = chain.predict(train_data)
+    decompose_output = chain_decompose_finish.predict(train_data)
+
+    full_level = np.mean(full_output.predict)
+    decompose_level = np.mean(decompose_output.predict)
+
+    assert full_level > (decompose_level + 100)
