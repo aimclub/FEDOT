@@ -12,7 +12,7 @@ from fedot.core.data.load_data import TextBatchLoader
 from fedot.core.data.merge import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.data_info import DataInfo
+from fedot.core.data.supplementary_data import SupplementaryData
 
 
 @dataclass
@@ -25,7 +25,7 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     # Object with additional info
-    metadata: DataInfo = DataInfo()
+    metadata: SupplementaryData = SupplementaryData()
 
     @staticmethod
     def from_csv(file_path=None,

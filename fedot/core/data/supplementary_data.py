@@ -4,9 +4,10 @@ from typing import Optional
 
 
 @dataclass
-class DataInfo:
+class SupplementaryData:
     """
-    Data class with additional info for the InputData and OutputData objects
+    A class that stores variables for for internal purposes in core during fit
+    and predict. For instance, to manage dataflow properties.
     """
     # Is it data in the main branch
     is_main_target: bool = True

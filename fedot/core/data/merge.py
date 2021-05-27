@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data_info import DataInfo
+from fedot.core.data.supplementary_data import SupplementaryData
 
 
 class DataMerger:
@@ -37,7 +37,7 @@ class DataMerger:
         else:
             idx, features, target, is_main_target, task = merge_func()
 
-        updated_info = DataInfo(is_main_target=is_main_target)
+        updated_info = SupplementaryData(is_main_target=is_main_target)
         # Calculate amount of visited nodes for data
         updated_info.calculate_data_flow_len(self.outputs)
         # Prepare mask with predict from different parent nodes

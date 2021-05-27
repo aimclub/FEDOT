@@ -7,7 +7,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
-from fedot.core.data.data_info import DataInfo
+from fedot.core.data.supplementary_data import SupplementaryData
 from examples.regression_with_tuning_example import get_regression_dataset
 
 np.random.seed(2021)
@@ -24,7 +24,7 @@ def generate_outputs():
 
     list_with_outputs = []
     for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
-        metadata = DataInfo(data_flow_length=data_flow_len)
+        metadata = SupplementaryData(data_flow_length=data_flow_len)
         output_data = OutputData(idx=idx,
                                  features=generated_features[idx, :],
                                  predict=generated_target[idx, :],

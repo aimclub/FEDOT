@@ -1,4 +1,4 @@
-from fedot.core.data.data_info import DataInfo
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
 from fedot.core.data.data import OutputData
@@ -26,7 +26,7 @@ def test_parent_mask_correct():
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
     # Calculate parent mask from outputs
-    data_info = DataInfo()
+    data_info = SupplementaryData()
     data_info.prepare_parent_mask(list_with_outputs)
     p_mask = data_info.features_mask
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
@@ -56,7 +56,7 @@ def test_get_compound_mask_correct():
     output_example = OutputData(idx=[0, 0], features=[0, 0], predict=[0, 0],
                                 task=Task(TaskTypesEnum.regression),
                                 target=[0, 0], data_type=DataTypesEnum.table,
-                                metadata=DataInfo(features_mask=synthetic_mask))
+                                metadata=SupplementaryData(features_mask=synthetic_mask))
 
     mask = output_example.metadata.get_compound_mask()
 
