@@ -61,5 +61,3 @@ def test_get_compound_mask_correct():
     mask = output_example.metadata.get_compound_mask()
 
     assert ('01', '01', '10', '10') == tuple(mask)
-
-
