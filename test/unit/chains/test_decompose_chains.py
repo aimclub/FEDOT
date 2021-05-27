@@ -6,8 +6,12 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.data import InputData
+
 from examples.classification_with_tuning_example import get_classification_dataset
+from examples.decompose.refinement_forecast_example import get_refinement_chain
+
 from test.unit.tasks.test_classification import get_iris_data
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
 def generate_chain_with_decomposition(primary_operation, secondary_operation):
@@ -98,7 +102,8 @@ def get_classification_data(classes_amount: int):
 
 def test_order_by_data_flow_len_correct():
     """ The function checks whether the current version of data flow length
-    counters can determine how the nodes in the chain are located
+    counters can allow for decompose implementation to determine how the nodes
+    in the chain are located
     """
     input_data = get_iris_data()
 
@@ -178,3 +183,28 @@ def test_cascade_classification_decomposition():
 
     is_chain_worked_correctly = True
     return is_chain_worked_correctly
+
+
+def test_ts_forecasting_decomposition():
+    """ The function checks whether, after the decompose operation, the chain
+    actually models the original target (not decomposed) for the time series
+    forecasting task
+    """
+    # Generate synthetic data for time series forecasting
+    train_data, _ = get_synthetic_ts_data_period(forecast_length=5)
+    # Distort original values
+    train_data.features = train_data.features + 150
+    train_data.target = train_data.target + 150
+
+    _, chain_decompose_finish, chain = get_refinement_chain(lagged=10)
+
+    chain.fit(train_data)
+    chain_decompose_finish.fit(train_data)
+
+    full_output = chain.predict(train_data)
+    decompose_output = chain_decompose_finish.predict(train_data)
+
+    full_level = np.mean(full_output.predict)
+    decompose_level = np.mean(decompose_output.predict)
+
+    assert full_level > (decompose_level + 100)
