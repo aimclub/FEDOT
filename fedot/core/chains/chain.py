@@ -162,13 +162,12 @@ class Chain:
         :param time_constraint: time constraint for operation fitting (seconds)
         """
 
-        input_data = self._assign_data_to_nodes(input_data)
-
         if not use_cache:
             self.unfit()
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data, use_cache=use_cache)
@@ -189,7 +188,6 @@ class Chain:
                 'full_probs' (return all probabilities - for binary classification).
         :return: OutputData with prediction
         """
-        input_data = self._assign_data_to_nodes(input_data)
 
         if not self.is_fitted:
             ex = 'Trained operation cache is not actual or empty'
@@ -198,6 +196,7 @@ class Chain:
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
         return result
