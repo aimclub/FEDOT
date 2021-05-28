@@ -4,7 +4,8 @@ import os
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
+                                                              get_operation_type_from_id)
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
@@ -80,3 +81,9 @@ def _model_metadata_example(path):
                         if model_key == current_model_key][0]
     model_metadata = metadata_json[model_properties['meta']]
     return model_metadata
+
+
+def test_names_with_postfix():
+    name_with_postfix = 'xgboost/best_model_ever'
+    name_without_postfix = get_operation_type_from_id(name_with_postfix)
+    assert name_without_postfix == 'xgboost'

@@ -6,7 +6,7 @@ from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
 from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
-from fedot.core.data.data import train_test_data_setup
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 
 MAX_METRIC_VALUE = 10e6

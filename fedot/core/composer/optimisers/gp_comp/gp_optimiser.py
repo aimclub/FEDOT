@@ -360,10 +360,13 @@ class GPChainOptimiser:
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
     def default_on_next_iteration_callback(self, individuals, archive):
-        self.history.add_to_history(individuals)
-        archive = deepcopy(archive)
-        if archive is not None:
-            self.history.add_to_archive_history(archive.items)
+        try:
+            self.history.add_to_history(individuals)
+            archive = deepcopy(archive)
+            if archive is not None:
+                self.history.add_to_archive_history(archive.items)
+        except Exception as ex:
+            self.log.warn(f'Callback was not successful because of {ex}')
 
     def result_individual(self) -> Union[Any, List[Any]]:
         if not self.parameters.multi_objective:

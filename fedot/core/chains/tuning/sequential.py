@@ -1,14 +1,13 @@
-import numpy as np
-
 from datetime import timedelta
 from functools import partial
 
-from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
-from fedot.core.data.data import train_test_data_setup
-from fedot.core.log import Log
+import numpy as np
 from hyperopt import fmin, tpe, space_eval
 
+from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
 from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import Log
 
 
 class SequentialTuner(HyperoptTuner):

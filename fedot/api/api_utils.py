@@ -108,8 +108,8 @@ def filter_operations_by_preset(task, preset: str):
     """ Function filter operations by preset, remove "heavy" operations and save
     appropriate ones
     """
-    excluded_models_dict = {'light': ['mlp', 'svc', 'arima', 'exog', 'text_clean'],
-                            'light_tun': ['mlp', 'svc', 'arima', 'exog', 'text_clean']}
+    excluded_models_dict = {'light': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean'],
+                            'light_tun': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean']}
 
     # Get data operations and models
     available_operations = get_operations_for_task(task, mode='all')
@@ -275,7 +275,7 @@ def _divide_operations(available_operations, task):
         ts_data_operations = get_ts_operations(mode='data_operations',
                                                tags=["ts_specific"])
         # Remove exog data operation from the list
-        ts_data_operations.remove('exog')
+        ts_data_operations.remove('exog_ts_data_source')
 
         primary_operations = ts_data_operations
         secondary_operations = available_operations

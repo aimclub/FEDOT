@@ -4,6 +4,7 @@ from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
 from uuid import uuid4
+
 from fedot.core.chains.chain_template import ChainTemplate
 from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.node import (Node, PrimaryNode)
@@ -12,6 +13,7 @@ from fedot.core.composer.optimisers.utils.population_utils import input_data_cha
 from fedot.core.composer.timer import Timer
 from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 
 ERROR_PREFIX = 'Invalid chain configuration:'
@@ -150,7 +152,8 @@ class Chain:
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Optional[InputData] = None, use_cache=True, time_constraint: Optional[timedelta] = None):
+    def fit(self, input_data: Union[InputData, MultiModalData], use_cache=True,
+            time_constraint: Optional[timedelta] = None):
         """
         Run training process in all nodes in chain starting with root.
 
@@ -158,11 +161,13 @@ class Chain:
         :param use_cache: flag defining whether use cache information about previous executions or not, default True
         :param time_constraint: time constraint for operation fitting (seconds)
         """
+
         if not use_cache:
             self.unfit()
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data, use_cache=use_cache)
@@ -171,7 +176,7 @@ class Chain:
                                                         time=time_constraint)
         return train_predicted
 
-    def predict(self, input_data: InputData = None, output_mode: str = 'default'):
+    def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
         Run the predict process in all nodes in chain starting with root.
 
@@ -191,21 +196,22 @@ class Chain:
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: Callable = None,
-                            input_data: Optional[InputData] = None,
+                            input_data: Union[InputData, MultiModalData] = None,
                             iterations=50, max_lead_time: int = 5) -> 'Chain':
         """ Tune all hyperparameters of nodes simultaneously via black-box
             optimization using ChainTuner. For details, see
         :meth:`~fedot.core.chains.tuning.unified.ChainTuner.tune_chain`
         """
-
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         max_lead_time = timedelta(minutes=max_lead_time)
         chain_tuner = ChainTuner(chain=self,
@@ -363,6 +369,15 @@ class Chain:
             setattr(result, k, deepcopy(v, memo))
         result.uid = uuid4()
         return result
+
+    def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
+        if isinstance(input_data, MultiModalData):
+            for node in self.nodes:
+                if node.operation.operation_type in input_data.keys():
+                    node.node_data = input_data[node.operation.operation_type]
+                    node.direct_set = True
+            return None
+        return input_data
 
 
 def nodes_with_operation(chain: Chain, operation_name: str) -> list:

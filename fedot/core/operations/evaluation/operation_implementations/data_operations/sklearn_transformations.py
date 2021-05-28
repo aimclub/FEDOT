@@ -1,10 +1,9 @@
 from typing import Optional
 
 import numpy as np
-from sklearn.decomposition import PCA, KernelPCA
+from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, PolynomialFeatures, \
-    StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
 
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
@@ -95,6 +94,7 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 
     :param params: optional, dictionary with the hyperparameters
     """
+
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
@@ -198,13 +198,13 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return non_categorical_ids: indices of non categorical columns in table
         """
         source_shape = features.shape
-        columns_amount = source_shape[1]
+        columns_amount = source_shape[1] if len(source_shape) > 1 else 1
 
         categorical_ids = []
         non_categorical_ids = []
         # For every column in table make check for first element
         for column_id in range(0, columns_amount):
-            column = features[:, column_id]
+            column = features[:, column_id] if columns_amount > 1 else features
             if type(column[0]) == str:
                 categorical_ids.append(column_id)
             else:

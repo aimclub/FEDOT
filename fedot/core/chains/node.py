@@ -15,6 +15,8 @@ class Node(ABC):
 
     :param nodes_from: parent nodes which information comes from
     :param operation_type: str type of the operation defined in operation repository
+                            the custom prefix can be added after / (to highlight the specific node)
+                            The prefix will be ignored at Implementation stage
     :param log: Log object to record messages
     """
 
@@ -165,10 +167,10 @@ class PrimaryNode(Node):
         """
         self.log.ext_debug(f'Trying to fit primary node with operation: {self.operation}')
 
-        if self.direct_set is True:
-            input_data = self.node_data.get('fit')
+        if self.direct_set:
+            input_data = self.node_data
         else:
-            self.node_data.update({'fit': input_data})
+            self.node_data = input_data
         return super().fit(input_data)
 
     def unfit(self):
@@ -186,10 +188,10 @@ class PrimaryNode(Node):
         """
         self.log.ext_debug(f'Predict in primary node by operation: {self.operation}')
 
-        if self.direct_set is True:
-            input_data = self.node_data.get('predict')
+        if self.direct_set:
+            input_data = self.node_data
         else:
-            self.node_data.update({'predict': input_data})
+            self.node_data = input_data
         return super().predict(input_data, output_mode)
 
     def get_data_from_node(self):
@@ -294,7 +296,6 @@ def _combine_parents(parent_nodes: List[Node],
         target = input_data.target
     parent_results = []
     for parent in parent_nodes:
-
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)

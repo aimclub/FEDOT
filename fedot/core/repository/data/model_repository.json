@@ -2,8 +2,8 @@
   "metadata": {
 	"sklearn_class": {
 	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.classification", "SkLearnClassificationStrategy"],
@@ -12,8 +12,8 @@
 	},
 	"custom_class": {
 	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
@@ -22,8 +22,8 @@
 	},
 	"custom_regr": {
 	  "tasks": "[TaskTypesEnum.regression]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.regression", "CustomRegressionStrategy"],
@@ -182,7 +182,9 @@
 		  "tags": [
 			  "deep",
 			  "non-default"
-		  ]
+		  ],
+		"input_type": "[DataTypesEnum.image]",
+	  	"output_type": "[DataTypesEnum.table]"
 	  },
 	  "tfidf": {
 		  "meta": "text_classification",

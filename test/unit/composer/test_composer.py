@@ -13,11 +13,12 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
-    sample_split_ration_for_tasks
+    sample_split_ratio_for_tasks
 from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
@@ -299,7 +300,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
         quality_metric).with_optimiser_parameters(optimiser_parameters).with_cache()
     composer = builder.build()
     train_data, test_data = train_test_data_setup(data,
-                                                  sample_split_ration_for_tasks[data.task.task_type])
+                                                  sample_split_ratio_for_tasks[data.task.task_type])
     composer.compose_chain(data=dataset_to_compose, is_visualise=True)
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)

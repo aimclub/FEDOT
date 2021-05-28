@@ -1,15 +1,13 @@
 import warnings
-
 from typing import Optional
-
-from fedot.core.operations.evaluation.operation_implementations.models.\
-    ts_implementations import ARIMAImplementation, AutoRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
-    import LaggedTransformationImplementation, TsSmoothingImplementation, \
-    ExogDataTransformationImplementation, GaussianFilterImplementation
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
+    import LaggedTransformationImplementation, TsSmoothingImplementation, \
+    ExogDataTransformationImplementation, GaussianFilterImplementation
+from fedot.core.operations.evaluation.operation_implementations.models. \
+    ts_implementations import ARIMAImplementation, AutoRegImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -86,12 +84,12 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'lagged': LaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,
-        'exog': ExogDataTransformationImplementation,
+        'exog_ts_data_source': ExogDataTransformationImplementation,
         'gaussian_filter': GaussianFilterImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
-        self.operation = self._convert_to_operation(operation_type)
+        self.operation = self._convert_to_operation(self.operation_type)
         self.params_for_fit = params
 
     def fit(self, train_data: InputData):

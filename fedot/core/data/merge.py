@@ -1,5 +1,7 @@
-import numpy as np
 from typing import List
+
+import numpy as np
+
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.supplementary_data import SupplementaryData
 
@@ -18,6 +20,18 @@ class DataMerger:
     def merge(self):
         """ Method automatically determine which merge function should be
         applied """
+
+        if len(self.outputs) == 1 and self.outputs[0].data_type in [DataTypesEnum.image, DataTypesEnum.text]:
+            # TODO imlement correct merge
+            idx = self.outputs[0].idx
+            features = self.outputs[0].features
+            target = self.outputs[0].target
+            task = self.outputs[0].task
+            data_type = self.outputs[0].data_type
+            updated_info = SupplementaryData(is_main_target=True)
+            updated_info.calculate_data_flow_len(self.outputs)
+            return idx, features, target, task, data_type, updated_info
+
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}

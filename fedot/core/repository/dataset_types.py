@@ -11,4 +11,5 @@ class DataTypesEnum(Enum):
     # Table, where cells contains text
     text = 'text'
 
+    # Images represented as 3d arrays
     image = 'image'
