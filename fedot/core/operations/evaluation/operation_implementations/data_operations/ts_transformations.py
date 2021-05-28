@@ -1,13 +1,14 @@
+from copy import copy
 from typing import Optional
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from scipy.ndimage import gaussian_filter
 
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.operations.evaluation.operation_implementations.\
-    implementation_interfaces import DataOperationImplementation
 from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation.operation_implementations. \
+    implementation_interfaces import DataOperationImplementation
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class LaggedTransformationImplementation(DataOperationImplementation):
@@ -42,17 +43,19 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         :param is_fit_chain_stage: is this fit or predict stage for chain
         :return output_data: output data with transformed features table
         """
-        parameters = input_data.task.task_params
-        old_idx = input_data.idx
+
+        new_input_data = copy(input_data)
+        parameters = new_input_data.task.task_params
+        old_idx = new_input_data.idx
         forecast_length = parameters.forecast_length
 
         # Correct window size parameter
-        self.check_and_correct_window_size(input_data, forecast_length)
+        self.check_and_correct_window_size(new_input_data, forecast_length)
 
         if is_fit_chain_stage:
             # Transformation for fit stage of the chain
-            target = input_data.target
-            features = np.array(input_data.features)
+            target = new_input_data.target
+            features = np.array(new_input_data.features)
             # Prepare features for training
             new_idx, features_columns = _ts_to_table(idx=old_idx,
                                                      time_series=features,
@@ -64,15 +67,15 @@ class LaggedTransformationImplementation(DataOperationImplementation):
                                                                     target=target,
                                                                     forecast_length=forecast_length)
             # Update target for Input Data
-            input_data.target = new_target
-            input_data.idx = new_idx
+            new_input_data.target = new_target
+            new_input_data.idx = new_idx
         else:
             # Transformation for predict stage of the chain
-            features = np.array(input_data.features)
+            features = np.array(new_input_data.features)
             features_columns = features[-self.window_size:]
             features_columns = features_columns.reshape(1, -1)
 
-        output_data = self._convert_to_output(input_data,
+        output_data = self._convert_to_output(new_input_data,
                                               features_columns,
                                               data_type=DataTypesEnum.table)
         return output_data
