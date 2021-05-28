@@ -130,7 +130,7 @@ class ComposingHistory:
 
     @property
     def historical_chains(self):
-        return list(itertools.chain(*self.individuals))
+        return [ind.chain for ind in list(itertools.chain(*self.individuals))]
 
     @property
     def is_multi_objective(self):

@@ -1,3 +1,4 @@
+import gc
 import platform
 from dataclasses import dataclass
 from functools import partial
@@ -18,11 +19,11 @@ from fedot.core.composer.optimisers.gp_comp.operators.regularization import Regu
 from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import Log, default_log
+from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.cross_validation import cross_validation
 
 sample_split_ration_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -169,6 +170,9 @@ class GPComposer(Composer):
 
             self.log.debug(f'Chain {chain.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
 
+            # enforce memory cleaning
+            chain.unfit()
+            gc.collect()
         except Exception as ex:
             self.log.info(f'Chain assessment warning: {ex}. Continue.')
             evaluated_metrics = None
