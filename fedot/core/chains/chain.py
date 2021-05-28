@@ -1,9 +1,7 @@
-
 from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
-from uuid import uuid4
 
 from uuid import uuid4
 
@@ -356,3 +354,17 @@ class Chain:
             setattr(result, k, deepcopy(v, memo))
         result.uid = uuid4()
         return result
+
+
+def nodes_with_operation(chain: Chain, operation_name: str) -> list:
+    """ The function return list with nodes with the needed operation
+
+    :param chain: chain to process
+    :param operation_name: name of operation to search
+    :return : list with nodes, None if there are no nodes
+    """
+
+    # Check if model has decompose operations
+    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, chain.nodes)
+
+    return list(appropriate_nodes)

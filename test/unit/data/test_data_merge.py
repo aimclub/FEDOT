@@ -6,11 +6,35 @@ from fedot.core.chains.chain import Chain
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.data.data import OutputData
-from fedot.core.data.merge import DataMerger
-
+from fedot.core.data.merge import DataMerger, TaskTargetMerger
+from fedot.core.data.supplementary_data import SupplementaryData
 from examples.regression_with_tuning_example import get_regression_dataset
 
 np.random.seed(2021)
+
+
+def generate_outputs():
+    """ Function for simple case with non-equal outputs in list """
+    idx_1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    idx_2 = [2, 3, 4, 5, 6, 7, 8, 9]
+
+    task = Task(TaskTypesEnum.regression)
+    generated_target = np.random.sample((len(idx_1), 1))
+    generated_features = np.random.sample((len(idx_1), 2))
+
+    list_with_outputs = []
+    for idx, data_flow_len in zip([idx_1, idx_2], [1, 0]):
+        data_info = SupplementaryData(data_flow_length=data_flow_len)
+        output_data = OutputData(idx=idx,
+                                 features=generated_features[idx, :],
+                                 predict=generated_target[idx, :],
+                                 task=task,
+                                 target=generated_target[idx, :],
+                                 data_type=DataTypesEnum.table,
+                                 supplementary_data=data_info)
+        list_with_outputs.append(output_data)
+
+    return list_with_outputs, idx_1, idx_2
 
 
 def test_data_merge_in_chain():
@@ -57,23 +81,63 @@ def test_data_merge_function():
     indices. Set {idx_2} ∈ set {idx_1}, so intersection must be = idx_2
     """
 
-    idx_1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    idx_2 = [2, 3, 4, 5, 6, 7, 8, 9]
+    list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    task = Task(TaskTypesEnum.regression)
-    generated_target = np.random.sample((len(idx_1), 1))
-    generated_features = np.random.sample((len(idx_1), 2))
+    new_idx, features, target, task, d_type, updated_info = DataMerger(list_with_outputs).merge()
 
-    list_with_outputs = []
-    for idx in [idx_1, idx_2]:
-        output_data = OutputData(idx=idx,
-                                 features=generated_features[idx, :],
-                                 predict=generated_target[idx, :],
-                                 task=task,
-                                 target=generated_target[idx, :],
-                                 data_type=DataTypesEnum.table)
-        list_with_outputs.append(output_data)
+    assert tuple(new_idx) == tuple(idx_2)
 
-    idx, features, target = DataMerger(list_with_outputs).merge()
 
-    assert tuple(idx) == tuple(idx_2)
+def test_target_task_two_ignore_merge():
+    """ The test runs an example of how different targets and tasks will be
+    combined. Consider situation when one target should be untouched"""
+
+    # Targets in different outputs
+    labels_col = [[1], [1]]
+    probabilities_col_1 = [[0.8], [0.7]]
+    probabilities_col_2 = [[0.5], [0.5]]
+    targets = np.array([labels_col,
+                        probabilities_col_1,
+                        probabilities_col_2])
+
+    # Flags for targets
+    main_targets = [True, False, False]
+
+    # Tasks
+    class_task = Task(TaskTypesEnum.classification)
+    regr_task = Task(TaskTypesEnum.classification)
+    tasks = [class_task, regr_task, regr_task]
+
+    merger = TaskTargetMerger(None)
+    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
+
+    assert is_main_target is True
+    assert task.task_type is TaskTypesEnum.classification
+
+
+def test_target_task_two_none_merge():
+    """ The test runs an example of how different targets and tasks will be
+    combined. Consider situation when two targets are main ones (labeled as None)
+    """
+
+    # Targets in different outputs
+    labels_col = [[1], [1]]
+    labels_col_copy = [[1], [1]]
+    probabilities_col = [[0.5], [0.5]]
+    targets = np.array([labels_col,
+                        labels_col_copy,
+                        probabilities_col])
+
+    # Flags for targets
+    main_targets = [True, True, False]
+
+    # Tasks
+    class_task = Task(TaskTypesEnum.classification)
+    regr_task = Task(TaskTypesEnum.classification)
+    tasks = [class_task, class_task, regr_task]
+
+    merger = TaskTargetMerger(None)
+    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
+
+    assert is_main_target is True
+    assert task.task_type is TaskTypesEnum.classification

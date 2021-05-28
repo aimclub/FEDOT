@@ -70,8 +70,10 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                                 is_visualise=True)
 
     if with_tuning:
-        # TODO Add tuning
-        raise NotImplementedError(f'Tuning is not supported')
+        chain_evo_composed.fine_tune_all_nodes(loss_function=roc_auc,
+                                               loss_params=None,
+                                               input_data=dataset_to_compose,
+                                               iterations=20)
 
     chain_evo_composed.fit(input_data=dataset_to_compose)
 
@@ -117,4 +119,5 @@ if __name__ == '__main__':
     run_credit_scoring_problem(full_path_train,
                                full_path_test,
                                is_visualise=True,
+                               with_tuning=True,
                                cache_path='credit_scoring_problem_cache')

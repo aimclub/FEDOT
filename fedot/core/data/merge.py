@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.supplementary_data import SupplementaryData
 
 
 class DataMerger:
@@ -21,10 +22,8 @@ class DataMerger:
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
 
-        first_data_type = self.outputs[0].data_type
-        output_data_types = []
-        for output in self.outputs:
-            output_data_types.append(output.data_type)
+        output_data_types = [output.data_type for output in self.outputs]
+        first_data_type = output_data_types[0]
 
         # Check is all data types can be merged or not
         if len(set(output_data_types)) > 1:
@@ -36,9 +35,16 @@ class DataMerger:
             message = f"For data type '{first_data_type}' doesn't exist merge function"
             raise NotImplementedError(message)
         else:
-            idx, features, target = merge_func()
+            idx, features, target, is_main_target, task = merge_func()
 
-        return idx, features, target
+        updated_info = SupplementaryData(is_main_target=is_main_target)
+        # Calculate amount of visited nodes for data
+        updated_info.calculate_data_flow_len(self.outputs)
+        # Prepare mask with predict from different parent nodes
+        if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
+            updated_info.prepare_parent_mask(self.outputs)
+
+        return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
         """ Function for combining datasets from parents to make features to
@@ -51,12 +57,12 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target = self._merge_equal_outputs(self.outputs)
+            idx, features, target, is_main_target, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target = self._merge_non_equal_outputs(self.outputs,
-                                                                  idx_list)
+            idx, features, target, is_main_target, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                        idx_list)
 
-        return idx, features, target
+        return idx, features, target, is_main_target, task
 
     def combine_datasets_ts(self):
         """ Function for combining datasets from parents to make features to
@@ -69,14 +75,14 @@ class DataMerger:
         are_lengths_equal, idx_list = self._check_size_equality(self.outputs)
 
         if are_lengths_equal:
-            idx, features, target = self._merge_equal_outputs(self.outputs)
+            idx, features, target, is_main_target, task = self._merge_equal_outputs(self.outputs)
         else:
-            idx, features, target = self._merge_non_equal_outputs(self.outputs,
-                                                                  idx_list)
+            idx, features, target, is_main_target, task = self._merge_non_equal_outputs(self.outputs,
+                                                                                        idx_list)
 
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
-        return idx, features, target
+        return idx, features, target, is_main_target, task
 
     @staticmethod
     def _merge_equal_outputs(outputs: list):
@@ -94,13 +100,15 @@ class DataMerger:
 
         features = np.array(features).T
         idx = outputs[0].idx
-        target = outputs[0].target
-        return idx, features, target
+
+        # Update target from multiple parents
+        target, is_main_target, task = TaskTargetMerger(outputs).obtain_equal_target()
+
+        return idx, features, target, is_main_target, task
 
     @staticmethod
     def _merge_non_equal_outputs(outputs: list, idx_list: List):
         """ Method merge datasets with different amount of rows by idx field """
-        # TODO add ability to merge datasets with different amount of features
 
         # Search overlapping indices in data
         for i, idx in enumerate(idx_list):
@@ -115,27 +123,18 @@ class DataMerger:
         if len(common_idx) == 0:
             raise ValueError(f'There are no common indices for outputs')
 
-        features = []
+        idx_list = [list(output.idx) for output in outputs]
+        predicts = [output.predict for output in outputs]
 
-        for elem in outputs:
-            # Create mask where True - appropriate objects
-            mask = np.in1d(np.array(elem.idx), common_idx)
+        # Generate feature table with overlapping ids
+        features = tables_mapping(idx_list, predicts, common_idx)
+        # Link tables with features into one table - rotate array
+        features = np.hstack(features)
 
-            if len(elem.predict.shape) == 1:
-                filtered_predict = elem.predict[mask]
-                features.append(filtered_predict)
-            else:
-                # if the model prediction is multivariate
-                number_of_variables_in_prediction = elem.predict.shape[1]
-                for i in range(number_of_variables_in_prediction):
-                    predict = elem.predict[:, i]
-                    filtered_predict = predict[mask]
-                    features.append(filtered_predict)
-
-        old_target = outputs[-1].target
-        filtered_target = old_target[mask]
-        features = np.array(features).T
-        return common_idx, features, filtered_target
+        # Merge tasks and targets
+        t_merger = TaskTargetMerger(outputs)
+        filtered_target, is_main_target, task = t_merger.obtain_non_equal_target(common_idx)
+        return common_idx, features, filtered_target, is_main_target, task
 
     @staticmethod
     def _check_size_equality(outputs: list):
@@ -153,3 +152,141 @@ class DataMerger:
             are_lengths_equal = False
 
         return are_lengths_equal, idx_list
+
+
+class TaskTargetMerger:
+    """ Class for merging target and tasks """
+
+    def __init__(self, outputs):
+        self.outputs = outputs
+
+    def obtain_equal_target(self):
+        """ Method can merge different targets if the amount of objects in the
+        training sample are equal
+        """
+        # If there is only one parent
+        if len(self.outputs) == 1:
+            target = self.outputs[0].target
+            is_main_target = self.outputs[0].supplementary_data.is_main_target
+            task = self.outputs[0].task
+            return target, is_main_target, task
+
+        # Get target flags, targets and tasks
+        t_flags, targets, tasks = self._disintegrate_outputs()
+
+        # If all t_flags are True - there is no need to merge targets
+        if all(flag is True for flag in t_flags):
+            target = self.outputs[0].target
+            task = self.outputs[0].task
+            is_main_target = True
+            return target, is_main_target, task
+        # If there is an "ignore" (False) flag - need to apply intelligent merge
+        elif any(flag is False for flag in t_flags):
+            target, is_main_target, task = self.ignored_merge(targets, t_flags, tasks)
+            return target, is_main_target, task
+
+    def obtain_non_equal_target(self, common_idx):
+        """ Method for merging targets which have different amount of objects
+        (amount of rows)
+
+        :param common_idx: array with indices of common objects
+        """
+
+        t_flags, targets, tasks = self._disintegrate_outputs()
+
+        if targets[0] is None:
+            mapped_targets = [None]
+        else:
+            # Match targets - make them equal
+            idx_list = [output.idx for output in self.outputs]
+            mapped_targets = tables_mapping(idx_list, targets, common_idx)
+
+        # If all t_flags are True - there is no need to merge targets
+        if all(flag is True for flag in t_flags):
+            # Just applying merge operation for common_idx
+            filtered_target = mapped_targets[0]
+
+            task = tasks[0]
+            is_main_target = True
+            return filtered_target, is_main_target, task
+        elif any(flag is False for flag in t_flags):
+
+            filtered_target, is_main_target, task = self.ignored_merge(mapped_targets,
+                                                                       t_flags,
+                                                                       tasks)
+            return filtered_target, is_main_target, task
+
+    def _disintegrate_outputs(self):
+        """
+        Method extract target flags, targets and tasks from list with OutputData
+        """
+        t_flags = [output.supplementary_data.is_main_target for output in self.outputs]
+        targets = [output.target for output in self.outputs]
+        tasks = [output.task for output in self.outputs]
+
+        return t_flags, targets, tasks
+
+    @staticmethod
+    def ignored_merge(targets, t_flags, tasks):
+        """ Method merge targets with False labels. False - means that such
+        branch target must be ignored """
+        # PEP8 fix through converting boolean into string
+        t_flags = np.array(t_flags, dtype=str)
+        main_ids = np.ravel(np.argwhere(t_flags == 'True'))
+        tasks = np.array(tasks)
+
+        # Is there is chain predict stage without target at all
+        if targets[0] is None:
+            target = None
+            is_main_target = True
+        # If there are several known targets
+        else:
+            # Take first non-ignored target
+            main_id = main_ids[0]
+            target = targets[main_id]
+            if len(target.shape) == 1:
+                target = target.reshape((-1, 1))
+            is_main_target = True
+
+        task = tasks[main_ids]
+        task = task[0]
+        return target, is_main_target, task
+
+
+def tables_mapping(idx_list, object_list, common_idx):
+    """ The function maps tables by matching object indices
+
+    :param idx_list: list with indices for mapping
+    :param object_list: list with tables (with features, targets or predictions)
+     for mapping
+    :param common_idx: list with common indices
+
+    :return : list with matched tables
+    """
+
+    common_tables = []
+    for number in range(len(idx_list)):
+        # Create mask where True - appropriate objects
+        current_idx = idx_list[number]
+        mask = np.in1d(np.array(current_idx), common_idx)
+
+        current_object = object_list[number]
+        if len(current_object.shape) == 1:
+            filtered_predict = current_object[mask]
+            filtered_predict = filtered_predict.reshape((-1, 1))
+            common_tables.append(filtered_predict)
+        else:
+            # If the table object has many columns
+            number_of_variables_in_prediction = current_object.shape[1]
+            for i in range(number_of_variables_in_prediction):
+                predict = current_object[:, i]
+                filtered_predict = predict[mask]
+
+                # Convert to column
+                filtered_predict = filtered_predict.reshape((-1, 1))
+                if i == 0:
+                    filtered_table = filtered_predict
+                else:
+                    filtered_table = np.hstack((filtered_table, filtered_predict))
+            common_tables.append(filtered_table)
+    return common_tables

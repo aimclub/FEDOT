@@ -42,7 +42,6 @@ def get_synthetic_ts_data_period(n_steps=1000, forecast_length=5):
                      target=simulated_data,
                      task=task,
                      data_type=DataTypesEnum.ts)
-    a, b = train_test_data_setup(data)
     return train_test_data_setup(data)
 
 

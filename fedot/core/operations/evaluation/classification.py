@@ -10,6 +10,8 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearClassFSImplementation, NonLinearClassFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnClassImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
+    import DecomposerClassImplementation
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
@@ -117,7 +119,8 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
 
     __operations_by_types = {
         'rfe_lin_class': LinearClassFSImplementation,
-        'rfe_non_lin_class': NonLinearClassFSImplementation
+        'rfe_non_lin_class': NonLinearClassFSImplementation,
+        'class_decompose': DecomposerClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
