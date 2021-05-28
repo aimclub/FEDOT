@@ -11,10 +11,10 @@ class Individual:
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
 
-        self.chain = _simplify_chain(chain)
+        self.chain = _release_chain_resources(chain)
 
 
-def _simplify_chain(chain: Chain):
+def _release_chain_resources(chain: Chain):
     """
     Remove all 'heavy' parts from the chain
     :param chain: fitted chain
