@@ -2,21 +2,20 @@ import os
 from unittest.mock import patch
 
 import pytest
-from typing import List
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, train_test_data_setup
 from fedot.core.log import default_log
+from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
+from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
+from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 from fedot.sensitivity.non_structure_sensitivity import ChainNonStructureAnalyze
 from fedot.sensitivity.operations_sensitivity.multi_operations_sensitivity import MultiOperationsAnalyze
-from fedot.sensitivity.structure_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.operations_sensitivity.one_operation_sensitivity import OneOperationAnalyze
-from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze, \
-    NodeTuneAnalyze
+from fedot.sensitivity.structure_sensitivity import ChainStructureAnalyze
 from test.unit.utilities.test_chain_import_export import create_func_delete_files
-from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -225,19 +224,6 @@ def test_node_deletion_analyze_zero_node_id():
     assert node_analysis_result == 1.0
 
 
-def test_node_tune_analyze():
-    # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
-
-    # when
-    node_analysis_result = NodeTuneAnalyze(chain=chain,
-                                           train_data=train_data,
-                                           test_data=test_data,
-                                           path_to_save=result_dir).analyze(node_id=node_index)
-    # then
-    assert isinstance(node_analysis_result, float)
-
-
 def test_node_replacement_analyze_defined_nodes():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
@@ -309,6 +295,7 @@ def test_multi_operations_analyze_analyze(analyze_method):
 
 
 # ------------------------------------------------------------------------------
+# SA Facade
 
 def test_chain_sensitivity_facade_init():
     # given
@@ -343,6 +330,9 @@ def test_chain_sensitivity_facade_analyze(analyze_method):
     assert analyze_method.called
 
 
+# ------------------------------------------------------------------------------
+# SA Non-structural analysis
+
 def test_chain_non_structure_analyze_init():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
@@ -375,4 +365,46 @@ def test_chain_non_structure_analyze_analyze(analyze_method):
 
     # then
     assert type(non_structure_analyze_result) is list
+    assert analyze_method.called
+
+
+# ------------------------------------------------------------------------------
+# Multi-Times-Analysis for Chain size decrease
+
+def test_multi_times_analyze_init_defined_approaches():
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+    approaches = [NodeDeletionAnalyze]
+    test_data, valid_data = train_test_data_setup(test_data, split_ratio=0.5)
+
+    # when
+    analyzer = MultiTimesAnalyze(chain=chain,
+                                 train_data=train_data,
+                                 test_data=test_data,
+                                 valid_data=valid_data,
+                                 case_name='test_case_name',
+                                 path_to_save=result_dir,
+                                 approaches=approaches)
+
+    # then
+    assert type(analyzer) is MultiTimesAnalyze
+
+
+@patch('fedot.sensitivity.deletion_methods.multi_times_analysis.MultiTimesAnalyze.analyze',
+       return_value=1.0)
+def test_multi_times_analyze_analyze(analyze_method):
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+    test_data, valid_data = train_test_data_setup(test_data, split_ratio=0.5)
+
+    # when
+    analyze_result = MultiTimesAnalyze(chain=chain,
+                                       train_data=train_data,
+                                       test_data=test_data,
+                                       valid_data=valid_data,
+                                       case_name='test_case_name',
+                                       path_to_save=result_dir).analyze()
+
+    # then
+    assert type(analyze_result) is float
     assert analyze_method.called

@@ -2,7 +2,6 @@ import json
 import random
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from datetime import timedelta
 from os import makedirs
 from os.path import exists, join
 from typing import List, Optional, Type, Union
@@ -11,14 +10,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain_validation import validate
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.chains.tuning.sequential import SequentialTuner
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.chains.chain_validation import validate
+from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class NodeAnalysis:
@@ -191,44 +189,6 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
     def __str__(self):
         return 'NodeDeletionAnalyze'
-
-
-class NodeTuneAnalyze(NodeAnalyzeApproach):
-    """
-    Tune node and evaluate the score difference
-    """
-
-    def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None):
-        super().__init__(chain, train_data, test_data,
-                         path_to_save)
-
-    def analyze(self, node_id: int) -> Union[List[dict], float]:
-        task = self._train_data.task
-
-        # Get appropriate metric for task
-        tune_metrics = TunerMetricByTask(task.task_type)
-        loss_function, loss_params = tune_metrics.get_metric_and_params(self._train_data)
-
-        # SequentialTuner
-        sequential_tuner = SequentialTuner(chain=self._chain,
-                                           task=task,
-                                           iterations=20,
-                                           max_lead_time=timedelta(minutes=1))
-        tuned_chain = sequential_tuner.tune_node(input_data=self._train_data,
-                                                 node_index=node_id,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params)
-
-        loss = self._compare_with_origin_by_metric(tuned_chain)
-
-        return loss
-
-    def sample(self, *args) -> Union[List[Chain], Chain]:
-        raise NotImplemented
-
-    def __str__(self):
-        return 'NodeTuneAnalyze'
 
 
 class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
