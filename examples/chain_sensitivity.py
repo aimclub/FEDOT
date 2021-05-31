@@ -14,7 +14,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository, 
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, default_fedot_data_dir
-from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
+from fedot.sensitivity.structure_sensitivity import ChainStructureAnalyze
 from fedot.sensitivity.node_sensitivity import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
 

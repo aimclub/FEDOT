@@ -1,17 +1,22 @@
 import os
+from unittest.mock import patch
 
 import pytest
+from typing import List
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
-from fedot.sensitivity.operation_sensitivity import OperationAnalyze
+from fedot.sensitivity.non_structure_sensitivity import ChainNonStructureAnalyze
+from fedot.sensitivity.operations_sensitivity.multi_operations_sensitivity import MultiOperationsAnalyze
+from fedot.sensitivity.structure_sensitivity import ChainStructureAnalyze
+from fedot.sensitivity.operations_sensitivity.one_operation_sensitivity import OneOperationAnalyze
 from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze, \
     NodeTuneAnalyze
 from test.unit.utilities.test_chain_import_export import create_func_delete_files
+from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -269,16 +274,106 @@ def test_node_replacement_analyze_random_nodes_default_number():
 
 
 # ------------------------------------------------------------------------------
-# ModelAnalyze
+# OneOperationAnalyze
 
 
-def test_model_analyze_analyze():
+def test_one_operation_analyze_analyze():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
-    result = OperationAnalyze(chain=chain, train_data=train_data,
-                              test_data=test_data, path_to_save=result_dir). \
+    result = OneOperationAnalyze(chain=chain, train_data=train_data,
+                                 test_data=test_data, path_to_save=result_dir). \
         analyze(node_id=node_index, sample_size=1)
 
     assert type(result) is list
+
+
+# ------------------------------------------------------------------------------
+# MultiOperationAnalyze
+
+@patch('fedot.sensitivity.operations_sensitivity.multi_operations_sensitivity.MultiOperationsAnalyze.analyze',
+       return_value=[{'key': 'value'}])
+def test_multi_operations_analyze_analyze(analyze_method):
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+
+    # when
+    result = MultiOperationsAnalyze(chain=chain,
+                                    train_data=train_data,
+                                    test_data=test_data, path_to_save=result_dir).analyze(sample_size=1)
+
+    # then
+    assert type(result) is list
+    assert analyze_method.called
+
+
+# ------------------------------------------------------------------------------
+
+@patch('fedot.sensitivity.chain_sensitivity_facade.ChainSensitivityAnalysis.analyze', return_value=None)
+def test_chain_sensitivity_facade_init():
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+    test_log_object = default_log('test_log_chain_sa')
+
+    # when
+    sensitivity_facade = ChainSensitivityAnalysis(chain=chain,
+                                                  train_data=train_data,
+                                                  test_data=test_data,
+                                                  nodes_ids_to_analyze=[node_index],
+                                                  path_to_save=result_dir,
+                                                  log=test_log_object)
+    # then
+    assert type(sensitivity_facade) is ChainSensitivityAnalysis
+
+
+@patch('fedot.sensitivity.chain_sensitivity_facade.ChainSensitivityAnalysis.analyze', return_value=None)
+def test_chain_sensitivity_facade_analyze(analyze_method):
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+
+    # when
+    sensitivity_analyze_result = ChainSensitivityAnalysis(chain=chain,
+                                                          train_data=train_data,
+                                                          test_data=test_data,
+                                                          nodes_ids_to_analyze=[node_index],
+                                                          path_to_save=result_dir).analyze()
+
+    # then
+    assert sensitivity_analyze_result is None
+    assert analyze_method.called
+
+
+def test_chain_non_structure_analyze_init():
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+    approaches = [MultiOperationsAnalyze]
+    test_log_object = default_log('test_log_chain_sa')
+
+    # when
+    non_structure_analyzer = ChainNonStructureAnalyze(chain=chain,
+                                                      train_data=train_data,
+                                                      test_data=test_data,
+                                                      approaches=approaches,
+                                                      path_to_save=result_dir,
+                                                      log=test_log_object)
+
+    # then
+    assert non_structure_analyzer is ChainNonStructureAnalyze
+
+
+@patch('fedot.sensitivity.non_structure_sensitivity.ChainNonStructureAnalyze.analyze',
+       return_value=[{'key': 'value'}])
+def test_chain_non_structure_analyze_analyze(analyze_method):
+    # given
+    chain, train_data, test_data, node_index, result_dir = given_data()
+
+    # when
+    non_structure_analyze_result = ChainNonStructureAnalyze(chain=chain,
+                                                            train_data=train_data,
+                                                            test_data=test_data,
+                                                            path_to_save=result_dir).analyze()
+
+    # then
+    assert type(non_structure_analyze_result) is list
+    assert analyze_method.called

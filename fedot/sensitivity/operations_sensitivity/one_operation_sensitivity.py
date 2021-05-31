@@ -11,15 +11,15 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach
-from fedot.sensitivity.sa_and_sample_methods import sample_method_by_name, analyze_method_by_name
-from fedot.sensitivity.problem import Problem
+from fedot.sensitivity.operations_sensitivity.problem import Problem, OneOperationProblem
+from fedot.sensitivity.operations_sensitivity.sa_and_sample_methods import sample_method_by_name, analyze_method_by_name
 
 
-class OperationAnalyze(NodeAnalyzeApproach):
+class OneOperationAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
     def __init__(self, chain: Chain, train_data, test_data: InputData, path_to_save=None):
-        super(OperationAnalyze, self).__init__(chain, train_data, test_data, path_to_save)
+        super().__init__(chain, train_data, test_data, path_to_save)
         self.operation_params = None
         self.operation_type = None
         self.problem = None
@@ -52,7 +52,7 @@ class OperationAnalyze(NodeAnalyzeApproach):
 
         # create problem
         self.operation_type: str = self._chain.nodes[node_id].operation.operation_type
-        self.problem: Problem = Problem(operation_type=self.operation_type)
+        self.problem: Problem = OneOperationProblem(operation_types=[self.operation_type])
 
         # sample
         samples = self.sample(sample_size)
@@ -107,9 +107,9 @@ class OperationAnalyze(NodeAnalyzeApproach):
         response_matrix = (response_matrix - np.mean(response_matrix)) / \
                           (max(response_matrix) - min(response_matrix))
 
-        OperationAnalyze.lock.acquire()
+        OneOperationAnalyze.lock.acquire()
         self.manager_dict[f'{param_name}'] = [samples.reshape(1, -1)[0], response_matrix]
-        OperationAnalyze.lock.release()
+        OneOperationAnalyze.lock.release()
 
     def _visualize_variance(self, data: dict):
         x_ticks_param = list()

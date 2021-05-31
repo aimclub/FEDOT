@@ -1,15 +1,15 @@
 import json
 from os.path import join
-from typing import List, Optional, Type
+from typing import Optional, List, Type
 
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeAnalyzeApproach
+from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach, NodeAnalysis
 
 
 def get_nodes_degrees(chain: Chain):
@@ -37,7 +37,6 @@ class ChainStructureAnalyze:
     :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes
     :param all_nodes: flag, used to choose all nodes to analyze.Default: False.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param interactive_mode: flag for interactive visualization or saving plots to file.
     Default: False
     :param log: log: Log object to record messages
     """
