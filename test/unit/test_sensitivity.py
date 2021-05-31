@@ -6,7 +6,8 @@ import pytest
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
@@ -138,7 +139,7 @@ def test_node_analysis_init_default():
 
     # then
     assert isinstance(node_analyzer, NodeAnalysis)
-    assert len(node_analyzer.approaches) == 3
+    assert len(node_analyzer.approaches) == 2
 
 
 def test_node_analysis_init_defined_approaches_and_log():

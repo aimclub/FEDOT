@@ -32,7 +32,7 @@ class NodeAnalysis:
                  path_to_save=None, log: Log = None):
 
         if not approaches:
-            self.approaches = [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
+            self.approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
         else:
             self.approaches = approaches
 
