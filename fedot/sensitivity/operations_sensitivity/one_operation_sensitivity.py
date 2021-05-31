@@ -78,7 +78,7 @@ class OneOperationAnalyze(NodeAnalyzeApproach):
         :return:
         """
         sample_size = args[0]
-        samples = self.sample_method(self.problem, num_of_samples=sample_size)
+        samples = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
 
         return samples
 

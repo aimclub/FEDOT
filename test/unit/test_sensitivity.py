@@ -310,7 +310,6 @@ def test_multi_operations_analyze_analyze(analyze_method):
 
 # ------------------------------------------------------------------------------
 
-@patch('fedot.sensitivity.chain_sensitivity_facade.ChainSensitivityAnalysis.analyze', return_value=None)
 def test_chain_sensitivity_facade_init():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
@@ -359,7 +358,7 @@ def test_chain_non_structure_analyze_init():
                                                       log=test_log_object)
 
     # then
-    assert non_structure_analyzer is ChainNonStructureAnalyze
+    assert type(non_structure_analyzer) is ChainNonStructureAnalyze
 
 
 @patch('fedot.sensitivity.non_structure_sensitivity.ChainNonStructureAnalyze.analyze',
