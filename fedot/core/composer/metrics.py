@@ -44,10 +44,21 @@ class QualityMetric:
         try:
             results = chain.predict(reference_data, output_mode=cls.output_mode)
 
+            # Define conditions for target and predictions transforming
+            is_regression = reference_data.task.task_type == TaskTypesEnum.regression
+            is_multi_target = len(np.array(results.predict).shape) > 1
             if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
                 # Convert prediction into one-dimensional array
                 forecast_values = np.ravel(np.array(results.predict))
                 results.predict = forecast_values
+                metric = cls.metric(reference_data, results)
+            elif is_regression and is_multi_target:
+                # Predictions convert into uni-variate array
+                forecast_values = np.ravel(np.array(results.predict))
+                results.predict = forecast_values
+                # Target convert into uni-variate array
+                target_values = np.ravel(np.array(reference_data.target))
+                reference_data.target = target_values
                 metric = cls.metric(reference_data, results)
             else:
                 metric = cls.metric(reference_data, results)

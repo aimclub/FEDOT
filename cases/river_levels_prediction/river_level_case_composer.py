@@ -28,10 +28,10 @@ def get_chain_info(chain):
     :return depth: depth of the chain
     """
 
-    print('\nObtained chain for current iteration')
+    print('\nObtained chain:')
     obtained_operations = []
     for node in chain.nodes:
-        print(str(node))
+        print(f'{node.operation.operation_type} - {node.custom_params}')
         obtained_operations.append(str(node))
     depth = int(chain.depth)
     print(f'Chain depth {depth}\n')
