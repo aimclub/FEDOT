@@ -127,12 +127,14 @@ Notebooks are issued with the corresponding release versions. In the "notebooks"
 
 Extended examples:
 
-- Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
+- Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 - Spam detection, i.e. `natural language preprocessing <https://github.com/nccr-itmo/FEDOT/blob/master/cases/spam_detection.py>`__
+- Movie rating prediction with `multi-modal data <https://github.com/nccr-itmo/FEDOT/blob/master/cases/multi_modal_rating_prediction.py>`__
 
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
+We also published several posts devoted to the FEDOT (`1 <https://habr.com/ru/company/spbifmo/blog/558450>`__, `2 <https://habr.com/ru/post/559796/>`__) (is Russian).
 
 Project structure
 =================
