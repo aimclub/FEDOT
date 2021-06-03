@@ -141,7 +141,7 @@ class GPComposer(Composer):
                                              on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
+        self.cache.clear()
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain

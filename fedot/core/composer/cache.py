@@ -2,7 +2,7 @@ import os
 import shelve
 import uuid
 from collections import namedtuple
-
+import glob
 from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'operation')
@@ -11,7 +11,7 @@ CachedState = namedtuple('CachedState', 'operation')
 class OperationsCache:
     def __init__(self, db_path=None, clear_exiting=True):
         if not db_path:
-            self.db_path = f'{str(default_fedot_data_dir())}/{str(uuid.uuid4())}'
+            self.db_path = f'{str(default_fedot_data_dir())}/tmp_{str(uuid.uuid4())}'
         else:
             self.db_path = db_path
 
@@ -32,6 +32,10 @@ class OperationsCache:
         for ext in ['bak', 'dir', 'dat']:
             if os.path.exists(f'{self.db_path}.{ext}'):
                 os.remove(f'{self.db_path}.{ext}')
+
+        temp_files = glob.glob('/home/varung/Documents/python/logs/*.log')
+        for file in temp_files:
+            os.remove(file)
 
     def get(self, node):
         found_operation = _load_cache_for_node(self.db_path, node.descriptive_id)
