@@ -134,7 +134,7 @@ Extended examples:
 
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
-We also published several posts devoted to the FEDOT (`1 <https://habr.com/ru/company/spbifmo/blog/558450>`__, `2 <https://habr.com/ru/post/559796/>`__) (is Russian).
+We also published several posts devoted to the FEDOT (`1 <https://habr.com/ru/company/spbifmo/blog/558450>`__, `2 <https://habr.com/ru/post/559796/>`__) (in Russian).
 
 Project structure
 =================
