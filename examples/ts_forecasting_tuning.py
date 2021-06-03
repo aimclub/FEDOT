@@ -1,3 +1,4 @@
+import os
 import timeit
 import warnings
 
@@ -12,6 +13,7 @@ from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
@@ -180,7 +182,8 @@ def run_experiment_with_tuning(time_series, with_ar_chain=False, len_forecast=25
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../notebooks/jupyter_media/time_series_forecasting/sea_level.csv')
+    data_path = os.path.join(f'{fedot_project_root()}', 'notebooks', 'data', 'ts_sea_level.csv')
+    df = pd.read_csv(data_path)
     time_series = np.array(df['Level'])
 
     run_experiment_with_tuning(time_series,
