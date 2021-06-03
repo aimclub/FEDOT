@@ -1,8 +1,9 @@
+import glob
 import os
 import shelve
 import uuid
 from collections import namedtuple
-import glob
+
 from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'operation')
@@ -28,12 +29,14 @@ class OperationsCache:
             _save_cache_for_node(self.db_path, node.descriptive_id,
                                  CachedState(node.fitted_operation))
 
-    def clear(self):
-        for ext in ['bak', 'dir', 'dat']:
-            if os.path.exists(f'{self.db_path}.{ext}'):
-                os.remove(f'{self.db_path}.{ext}')
+    def clear(self, tmp_only=False):
+        if not tmp_only:
+            for ext in ['bak', 'dir', 'dat']:
+                if os.path.exists(f'{self.db_path}.{ext}'):
+                    os.remove(f'{self.db_path}.{ext}')
 
-        temp_files = glob.glob('/home/varung/Documents/python/logs/*.log')
+        # clear tmo files in FEDOT folder
+        temp_files = glob.glob(f'{str(default_fedot_data_dir())}/tmp_*')
         for file in temp_files:
             os.remove(file)
 
