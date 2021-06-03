@@ -51,13 +51,27 @@ def plot_predictions(predicted_output, test_output):
     predicted_columns = np.array(predicted_output.predict)
     actual_columns = np.array(test_output.target)
 
-    # Take mean value for columns
+    # Take mean value for columns and also first and last columns
     predicted = predicted_columns.mean(axis=1)
+    first_column_pr = np.ravel(predicted_columns[:, 0])
+    last_column_pr = np.ravel(predicted_columns[:, -1])
     actual = actual_columns.mean(axis=1)
+    first_column_act = np.ravel(actual_columns[:, 0])
+    last_column_act = np.ravel(actual_columns[:, -1])
 
     plt.plot(actual, label='7-day moving average actual')
+    plt.fill_between(range(0, len(actual)), first_column_act, last_column_act, alpha=0.4)
     plt.plot(predicted, label='7-day moving average forecast')
-    plt.ylabel('River level', fontsize=14)
+    plt.fill_between(range(0, len(actual)), first_column_pr, last_column_pr, alpha=0.4)
+    plt.ylabel('River level, cm', fontsize=14)
+    plt.xlabel('Time index', fontsize=14)
+    plt.grid()
+    plt.legend(fontsize=12)
+    plt.show()
+
+    plt.plot(last_column_act, label='7th day actual')
+    plt.plot(last_column_pr, label='7th day forecast')
+    plt.ylabel('River level, cm', fontsize=14)
     plt.xlabel('Time index', fontsize=14)
     plt.grid()
     plt.legend(fontsize=12)
@@ -92,7 +106,7 @@ def run_multi_output_case(path, vis=False):
     composer_requirements = GPComposerRequirements(
         primary=available_operations_types,
         secondary=available_operations_types, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=25,
+        max_depth=8, pop_size=10, num_of_generations=1,
         crossover_prob=0.8, mutation_prob=0.8,
         max_lead_time=datetime.timedelta(minutes=5),
         allow_single_operations=False)
