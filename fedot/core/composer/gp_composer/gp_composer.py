@@ -135,13 +135,14 @@ class GPComposer(Composer):
         if self.cache_path is None:
             self.cache.clear()
         else:
+            self.cache.clear(tmp_only=True)
             self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
         best_chain = self.optimiser.optimise(metric_function_for_nodes,
                                              on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
-
+        self.cache.clear()
         if is_tune:
             self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
         return best_chain
