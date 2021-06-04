@@ -34,14 +34,14 @@ class Data:
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List] = None,
-                 target_column: Optional[str] = ''):
+                 target_columns: Union[str, List] = ''):
         """
         :param file_path: the path to the CSV with data
         :param columns_to_drop: the names of columns that should be dropped
         :param delimiter: the delimiter to separate the columns
         :param task: the task that should be solved with data
         :param data_type: the type of data interpretation
-        :param target_column: name of target column (last column if empty and no target if None)
+        :param target_columns: name of target column (last column if empty and no target if None)
         :return:
         """
 
@@ -49,24 +49,17 @@ class Data:
         if columns_to_drop:
             data_frame = data_frame.drop(columns_to_drop, axis=1)
         data_frame = _convert_dtypes(data_frame=data_frame)
+
+        # Get indices of the DataFrame
         data_array = np.array(data_frame).T
         idx = data_array[0]
 
-        if target_column == '':
-            target_column = data_frame.columns[-1]
-
-        if target_column and target_column in data_frame.columns:
-            target = np.array(data_frame[target_column]).astype(np.float)
-            pos = list(data_frame.keys()).index(target_column)
-            features = np.delete(data_array.T, [0, pos], axis=1)
+        if type(target_columns) is list:
+            features, target = process_multiple_columns(target_columns, data_frame)
         else:
-            # no target in data
-            features = data_array[1:].T
-            target = None
+            features, target = process_one_column(target_columns, data_frame,
+                                                  data_array)
 
-        target = np.array(target)
-        if len(target.shape) < 2:
-            target = target.reshape((-1, 1))
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
     @staticmethod
@@ -280,3 +273,42 @@ def _resize_image(file_path: str, target_size: tuple):
         # TODO refactor for multi-color
         img = img[..., 0] + img[..., 1] + img[..., 2]
     return img
+
+
+def process_one_column(target_column, data_frame, data_array):
+    """ Function process pandas dataframe with single column
+
+    :param target_column: name of column with target or None
+    :param data_frame: loaded panda DataFrame
+    :param data_array: array received from source DataFrame
+    :return features: numpy array (table) with features
+    :return target: numpy array (column) with target
+    """
+    if target_column == '':
+        # Take the last column in the table
+        target_columns = data_frame.columns[-1]
+
+    if target_column and target_column in data_frame.columns:
+        target = np.array(data_frame[target_column]).astype(np.float)
+        pos = list(data_frame.keys()).index(target_column)
+        features = np.delete(data_array.T, [0, pos], axis=1)
+    else:
+        # no target in data
+        features = data_array[1:].T
+        target = None
+
+    target = np.array(target)
+    if len(target.shape) < 2:
+        target = target.reshape((-1, 1))
+
+    return features, target
+
+
+def process_multiple_columns(target_columns, data_frame):
+    """ Function for processing target """
+    features = np.array(data_frame.drop(columns=target_columns))
+
+    # Remove index column
+    targets = np.array(data_frame[target_columns])
+
+    return features, targets

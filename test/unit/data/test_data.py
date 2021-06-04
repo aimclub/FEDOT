@@ -103,7 +103,7 @@ def test_with_custom_target():
 
     custom_file_data = InputData.from_csv(
         os.path.join(test_file_path, file_custom), delimiter=';',
-        columns_to_drop=['redundant'], target_column='custom_target')
+        columns_to_drop=['redundant'], target_columns='custom_target')
 
     actual_features = custom_file_data.features
     actual_target = custom_file_data.target
