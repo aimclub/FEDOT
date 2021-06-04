@@ -61,12 +61,12 @@ class QualityMetric:
         # Time series forecasting
         is_ts_forecasting = reference_data.task.task_type == TaskTypesEnum.ts_forecasting
         if is_ts_forecasting or is_multi_target_regression:
-            results, reference_data = cls.ravel_convert(results, reference_data)
+            results, reference_data = cls.flatten_convert(results, reference_data)
 
         return results, reference_data
 
     @staticmethod
-    def ravel_convert(results, reference_data):
+    def flatten_convert(results, reference_data):
         """ Transform target and predictions by converting them into
         one-dimensional array
 

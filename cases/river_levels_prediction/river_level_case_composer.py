@@ -29,7 +29,7 @@ def get_chain_info(chain):
 
     obtained_operations = [str(node) for node in chain.nodes]
     depth = int(chain.depth)
-    chain.display_structure()
+    chain.print_structure()
 
     return obtained_operations, depth
 

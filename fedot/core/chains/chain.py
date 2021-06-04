@@ -379,7 +379,7 @@ class Chain:
             return None
         return input_data
 
-    def display_structure(self):
+    def print_structure(self):
         """ Method print information about chain """
         print('Chain structure:')
         print(self.__str__())
