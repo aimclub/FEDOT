@@ -286,7 +286,7 @@ def process_one_column(target_column, data_frame, data_array):
     """
     if target_column == '':
         # Take the last column in the table
-        target_columns = data_frame.columns[-1]
+        target_column = data_frame.columns[-1]
 
     if target_column and target_column in data_frame.columns:
         target = np.array(data_frame[target_column]).astype(np.float)
