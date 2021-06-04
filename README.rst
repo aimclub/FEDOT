@@ -136,6 +136,14 @@ Extended examples:
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
 We also published several posts devoted to the FEDOT (`1 <https://habr.com/ru/company/spbifmo/blog/558450>`__, `2 <https://habr.com/ru/post/559796/>`__) (in Russian).
 
+Publications about FEDOT
+========================
+
+We also published several posts devoted to the different aspects of the framework:
+
+- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__ (in Russian)
+- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__ (in Russian)
+
 Project structure
 =================
 
