@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from sklearn.model_selection import train_test_split
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -12,7 +11,7 @@ from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -54,35 +53,6 @@ def fit_predict_for_chain(chain, train_input, predict_input):
     return preds
 
 
-def prepare_input_data(features, target):
-    """ Function create InputData with features """
-    x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(
-        features,
-        target,
-        test_size=0.2,
-        shuffle=True,
-        random_state=10)
-    y_data_test = np.ravel(y_data_test)
-
-    # Define regression task
-    task = Task(TaskTypesEnum.regression)
-
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_data_train)),
-                            features=x_data_train,
-                            target=y_data_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_data_test)),
-                              features=x_data_test,
-                              target=y_data_test,
-                              task=task,
-                              data_type=DataTypesEnum.table)
-
-    return train_input, predict_input, task
-
-
 def run_river_composer_experiment(file_path, init_chain, file_to_save,
                                   iterations=20, tuner=None):
     """ Function launch experiment for river level prediction. Composing and
@@ -97,20 +67,19 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
     """
 
     # Read dataframe and prepare train and test data
-    df = pd.read_csv(file_path)
-    features = np.array(df[['level_station_1', 'mean_temp', 'month', 'precip']])
-    target = np.array(df['level_station_2'])
+    data = InputData.from_csv(file_path, target_columns='level_station_2',
+                              task=Task(TaskTypesEnum.regression),
+                              columns_to_drop=['date'])
+    train_input, predict_input = train_test_data_setup(data)
+    y_data_test = np.array(predict_input.target)
 
-    # Prepare InputData for train and test
-    train_input, predict_input, task = prepare_input_data(features, target)
-    y_data_test = predict_input.target
-
-    available_operations_types = ['ridge', 'lasso', 'dtreg',
-                                  'xgbreg', 'adareg', 'knnreg',
-                                  'linear', 'svr', 'poly_features',
-                                  'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
-                                  'pca', 'ransac_non_lin_reg',
-                                  'rfe_non_lin_reg', 'normalization']
+    available_secondary_operations = ['ridge', 'lasso', 'dtreg',
+                                      'xgbreg', 'adareg', 'knnreg',
+                                      'linear', 'svr', 'poly_features',
+                                      'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
+                                      'pca', 'ransac_non_lin_reg',
+                                      'rfe_non_lin_reg', 'normalization']
+    available_primary_operations = ['one_hot_encoding']
 
     # Report arrays
     obtained_chains = []
@@ -120,8 +89,8 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
         print(f'Iteration {i}\n')
 
         composer_requirements = GPComposerRequirements(
-            primary=['one_hot_encoding'],
-            secondary=available_operations_types, max_arity=3,
+            primary=available_primary_operations,
+            secondary=available_secondary_operations, max_arity=3,
             max_depth=8, pop_size=10, num_of_generations=5,
             crossover_prob=0.8, mutation_prob=0.8,
             max_lead_time=datetime.timedelta(minutes=5),
@@ -129,7 +98,7 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)
-        builder = GPComposerBuilder(task=task).\
+        builder = GPComposerBuilder(task=data.task).\
             with_requirements(composer_requirements).\
             with_metrics(metric_function).with_initial_chain(init_chain)
         composer = builder.build()
@@ -151,7 +120,7 @@ def run_river_composer_experiment(file_path, init_chain, file_to_save,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            chain_tuner = tuner(chain=obtained_chain, task=task,
+            chain_tuner = tuner(chain=obtained_chain, task=data.task,
                                 iterations=100)
             tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                                  loss_function=mean_absolute_error)
