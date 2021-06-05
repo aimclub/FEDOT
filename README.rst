@@ -134,7 +134,6 @@ Extended examples:
 
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
-We also published several posts devoted to the FEDOT (`1 <https://habr.com/ru/company/spbifmo/blog/558450>`__, `2 <https://habr.com/ru/post/559796/>`__) (in Russian).
 
 Publications about FEDOT
 ========================
@@ -161,10 +160,17 @@ Also, you can check `benchmarking <https://github.com/ITMO-NSS-team/FEDOT-benchm
 Current R&D and future plans
 ============================
 
-At the moment, we are executing an extensive set of experiments to determine the most suitable approaches for evolutionary chain optimization, hyperparameters tuning, benchmarking, etc.
-The different case studies from different subject areas (metocean science, geology, robotics, economics, etc) are in progress now.
+Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
+The major ongoing tasks and plans:
 
-Various features are planned to be implemented: multi-data chains, Bayesian networks optimization, domain-specific and equation-based models, interpretable surrogate models, etc.
+* Effective and ready-to-use pipeline templates for certain tasks and data types;
+* Integration with GPU via Rapids framework;
+* Alternative optimization methods of fixed-shaped pipelines;
+* Integration with MLFlow for import and export of the pipelines;
+* Improvement of high-level API.
+
+
+Also, we are doing several research tasks related to AutoML time-series benchmarking and multi-modal modeling.
 
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 
