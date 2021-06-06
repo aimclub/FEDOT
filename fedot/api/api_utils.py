@@ -18,6 +18,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
@@ -130,6 +131,9 @@ def filter_operations_by_preset(task, preset: str):
         included_operations = light_models + available_data_operation
         available_operations = [_ for _ in available_operations if _ in included_operations]
 
+    if preset == 'gpu':
+        repository = OperationTypesRepository('gpu_models.json')
+        available_operations = repository.suitable_operation(task_type=task.task_type)
     return available_operations
 
 
