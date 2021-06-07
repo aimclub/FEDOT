@@ -129,8 +129,14 @@ class GPChainOptimiser:
         self.population = None
         if initial_chain:
             if type(initial_chain) != list:
+                initial_req = deepcopy(self.requirements)
+                initial_req.mutation_prob = 1
                 self.population = \
-                    [Individual(chain=deepcopy(initial_chain)) for _ in range(self.requirements.pop_size)]
+                    ([mutation(types=self.parameters.mutation_types,
+                               chain_generation_params=self.chain_generation_params,
+                               ind=Individual(deepcopy(initial_chain)), requirements=initial_req,
+                               max_depth=self.max_depth, log=self.log)
+                      for _ in range(self.requirements.pop_size)])
             else:
                 self.population = [Individual(chain=c) for c in initial_chain]
 

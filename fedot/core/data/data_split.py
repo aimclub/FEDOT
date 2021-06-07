@@ -165,9 +165,6 @@ def train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
     test_data = MultiModalData()
     for node in data.keys():
         data_part = data[node]
-        #if data_part.data_type == DataTypesEnum.ts:
-        #    train_data_part, test_data_part =
-        #else:
         train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag)
         train_data[node] = train_data_part
         test_data[node] = test_data_part
