@@ -22,6 +22,7 @@ from fedot.core.composer.optimisers.utils.pareto import ParetoFront
 
 class Fedot_composer_helper():
 
+
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the chain quality assessment during composition
         if composer_metric is None:
@@ -59,27 +60,32 @@ class Fedot_composer_helper():
             init_chain = Chain(node_final)
         return init_chain
 
-    def get_composer_dict(self):
-        return dict(train_data=None, task=Task, logger=Log, max_depth=None, max_arity=None, pop_size=None,
-                    num_of_generations=None, available_operations=None, composer_metric=None, learning_time=5,
-                    with_tuning=False, tuner_metric=None, cv_folds=None, initial_chain=None)
+    def get_composer_dict(self, composer_dict):
+        filtred_dict = composer_dict.copy()
+        params_dict = dict(train_data=None, task=Task, logger=Log, max_depth=None, max_arity=None, pop_size=None,
+                           num_of_generations=None, available_operations=None, composer_metric=None, learning_time=5,
+                           with_tuning=False, tuner_metric=None, cv_folds=None, initial_chain=None)
+        for key in composer_dict.keys():
+            if key not in params_dict.keys():
+                filtred_dict.pop(key)
+        return filtred_dict
 
     def obtain_model(self, **composer_dict):
         self.best_models = None
+        self.history = None
         self.current_model = composer_dict['current_model']
+
         if composer_dict['is_composing_required']:
-            execution_dict = self.get_composer_dict()
-            execution_dict.update(composer_dict)
-            self.current_model, self.best_models, self.history = self.compose_fedot_model(**composer_dict)
+            execution_dict = self.get_composer_dict(composer_dict)
+            self.current_model, self.best_models, self.history = self.compose_fedot_model(**execution_dict)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
             self.best_models.objective_names = composer_dict['composer_metric']
 
-        self.current_model = composer_dict['current_model']
         self.current_model.fit_from_scratch(composer_dict['train_data'])
 
-        return self.current_model
+        return self.current_model, self.best_models, self.history
 
     def get_gp_composer_builder(self,
                                 task: Task,
@@ -226,7 +232,7 @@ class Fedot_composer_helper():
 
         return chain_for_return, best_candidates, history
 
-    def tuner_metric_by_name(self, metric_name: str, train_data: InputData, task: Task):
+    def tuner_metric_by_name(self, metric_name: str, train_data: InputData, task: Task, tuner_loss):
         """ Function allow to obtain metric for tuner by its name
 
         :param metric_name: name of metric
@@ -237,7 +243,6 @@ class Fedot_composer_helper():
         :return loss_params: parameters for tuner loss (can be None in some cases)
         """
         loss_params = None
-        tuner_loss = self.get_tuner_metrics_mapping(metric_name)
         if tuner_loss is None:
             raise ValueError(f'Incorrect tuner metric {tuner_loss}')
 
