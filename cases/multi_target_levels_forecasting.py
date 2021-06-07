@@ -11,6 +11,45 @@ from fedot.core.data.data_split import train_test_data_setup
 warnings.filterwarnings('ignore')
 
 
+def plot_averaged_forecast(actual, predicted, first_column_act, last_column_act,
+                           first_column_pr, last_column_pr):
+    """
+    Function plot averaged forecasts and actual time series
+
+    :param actual: time series with averaged actual values
+    :param predicted: time series with averaged predicted values
+    :param first_column_act: numpy array with actual first days
+    :param last_column_act: numpy array with actual seventh days
+    :param first_column_pr: numpy array with predicted first days
+    :param last_column_pr: numpy array with predicted seventh days
+    """
+    plt.plot(actual, label='7-day moving average actual')
+    plt.fill_between(range(0, len(actual)), first_column_act, last_column_act, alpha=0.4)
+    plt.plot(predicted, label='7-day moving average forecast')
+    plt.fill_between(range(0, len(actual)), first_column_pr, last_column_pr, alpha=0.4)
+    plt.ylabel('River level, cm', fontsize=14)
+    plt.xlabel('Time index', fontsize=14)
+    plt.grid()
+    plt.legend(fontsize=12)
+    plt.show()
+
+
+def plot_last_day_forecast(last_column_act, last_column_pr):
+    """ The function draws model predictions and actual water level values for
+    every seventh day of the forecast (forecast horizon is 7 days)
+
+    :param last_column_act: numpy array with actual seventh days
+    :param last_column_pr: numpy array with predicted seventh days
+    """
+    plt.plot(last_column_act, label='7th day actual')
+    plt.plot(last_column_pr, label='7th day forecast')
+    plt.ylabel('River level, cm', fontsize=14)
+    plt.xlabel('Time index', fontsize=14)
+    plt.grid()
+    plt.legend(fontsize=12)
+    plt.show()
+
+
 def plot_predictions(predicted_array, test_output):
     """ Function plot the predictions of the algorithm """
     predicted_columns = np.array(predicted_array)
@@ -24,23 +63,11 @@ def plot_predictions(predicted_array, test_output):
     first_column_act = np.ravel(actual_columns[:, 0])
     last_column_act = np.ravel(actual_columns[:, -1])
 
-    plt.plot(actual, label='7-day moving average actual')
-    plt.fill_between(range(0, len(actual)), first_column_act, last_column_act, alpha=0.4)
-    plt.plot(predicted, label='7-day moving average forecast')
-    plt.fill_between(range(0, len(actual)), first_column_pr, last_column_pr, alpha=0.4)
-    plt.ylabel('River level, cm', fontsize=14)
-    plt.xlabel('Time index', fontsize=14)
-    plt.grid()
-    plt.legend(fontsize=12)
-    plt.show()
+    plot_averaged_forecast(actual, predicted, first_column_act,
+                           last_column_act,
+                           first_column_pr, last_column_pr)
 
-    plt.plot(last_column_act, label='7th day actual')
-    plt.plot(last_column_pr, label='7th day forecast')
-    plt.ylabel('River level, cm', fontsize=14)
-    plt.xlabel('Time index', fontsize=14)
-    plt.grid()
-    plt.legend(fontsize=12)
-    plt.show()
+    plot_last_day_forecast(last_column_act, last_column_pr)
 
 
 def run_multi_output_case(path, vis=False):
