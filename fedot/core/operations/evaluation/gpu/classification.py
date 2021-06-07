@@ -1,7 +1,6 @@
 import warnings
 
 import cudf
-import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
@@ -23,11 +22,11 @@ class CuMLClassificationStrategy(CuMLEvaluationStrategy):
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
-        features = cudf.DataFrame(predict_data.features)
+        features = cudf.DataFrame(predict_data.features.astype('float32'))
         if self.output_mode == 'labels':
-            prediction = np.asarray(trained_operation.predict(features).to_array())
+            prediction = trained_operation.predict(features)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = np.asarray(trained_operation.predict_proba(features).as_matrix())
+            prediction = trained_operation.predict_proba(features)
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs':
