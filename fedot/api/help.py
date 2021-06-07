@@ -2,7 +2,6 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.chains.tuning.hyperparams import get_operation_parameter_range
 from fedot.core.repository.tasks import TaskTypesEnum
 
-
 def print_models_info(task_name):
     """ Function display models and information about it for considered task
 
