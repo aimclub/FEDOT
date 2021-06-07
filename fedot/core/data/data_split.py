@@ -1,4 +1,4 @@
-from typing import Tuple, Iterator
+from typing import Tuple, Iterator, Union
 
 import numpy as np
 from sklearn.model_selection import train_test_split, KFold
@@ -139,7 +139,7 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     :return test_data: InputData for validation
     """
     # Split into train and test
-    if data.features is not None:
+    if data is not None:
         task = data.task
 
         split_func_dict = {
@@ -165,6 +165,9 @@ def train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
     test_data = MultiModalData()
     for node in data.keys():
         data_part = data[node]
+        #if data_part.data_type == DataTypesEnum.ts:
+        #    train_data_part, test_data_part =
+        #else:
         train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag)
         train_data[node] = train_data_part
         test_data[node] = test_data_part
@@ -212,3 +215,25 @@ def _features_and_target_by_index(index, values: InputData):
     target = np.take(values.target, index)
 
     return features, target
+
+
+def train_test_setup_for_dataset(dataset: Union[InputData, MultiModalData], split_ratio=0.8,
+                                 shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
+                                                              Union[InputData, MultiModalData]]:
+    """ Function for train and test split
+
+    :param dataset: dataset for train and test splitting
+    :param split_ratio: threshold for partitioning
+    :param shuffle_flag: is data needed to be shuffled or not
+
+    :return train_data: data for train
+    :return test_data: data for validation
+    """
+    if isinstance(dataset, InputData):
+        train_data, test_data = train_test_data_setup(dataset, split_ratio, shuffle_flag)
+    elif isinstance(dataset, MultiModalData):
+        train_data, test_data = train_test_multi_modal_data_setup(dataset, split_ratio, shuffle_flag)
+    else:
+        raise ValueError(f'Dataset {type(dataset)} is not supported')
+
+    return train_data, test_data

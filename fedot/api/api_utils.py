@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Union, Optional
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -14,6 +14,7 @@ from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTyp
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
@@ -183,10 +184,11 @@ def compose_fedot_model(train_data: InputData,
                                        metric_function=metric_function,
                                        composer_requirements=composer_requirements,
                                        optimizer_parameters=optimizer_parameters,
+                                       data=train_data,
                                        logger=logger)
     gp_composer = builder.build()
 
-    logger.message('Model composition started')
+    logger.message('Pipeline composition started')
     chain_gp_composed = gp_composer.compose_chain(data=train_data)
 
     chain_for_return = chain_gp_composed
@@ -230,27 +232,34 @@ def compose_fedot_model(train_data: InputData,
     return chain_for_return, best_candidates, history
 
 
-def _obtain_initial_assumption(task: Task) -> Chain:
-    init_chain = None
+def _obtain_initial_assumption(task: Task, data) -> Chain:
+    node_final = None
     if task.task_type == TaskTypesEnum.ts_forecasting:
         # Create init chain
-        node_lagged = PrimaryNode('lagged')
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
+        if isinstance(data, MultiModalData):
+            node_final = SecondaryNode('ridge', nodes_from=[])
+            for key in data.keys():
+                node_model = SecondaryNode('ridge',
+                                           nodes_from=[SecondaryNode('lagged',
+                                                                     nodes_from=[PrimaryNode(key)])])
+                node_final.nodes_from.append(node_model)
+        else:
+            node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
     elif task.task_type == TaskTypesEnum.classification:
         node_lagged = PrimaryNode('scaling')
         node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
     elif task.task_type == TaskTypesEnum.regression:
         node_lagged = PrimaryNode('scaling')
         node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-        init_chain = Chain(node_final)
+
+    init_chain = Chain(node_final)
     return init_chain
 
 
 def _get_gp_composer_builder(task: Task, metric_function,
                              composer_requirements: GPComposerRequirements,
                              optimizer_parameters: GPChainOptimiserParameters,
+                             data,
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary
     init_chain in it """
@@ -260,7 +269,7 @@ def _get_gp_composer_builder(task: Task, metric_function,
         with_optimiser_parameters(optimizer_parameters). \
         with_metrics(metric_function).with_logger(logger)
 
-    init_chain = _obtain_initial_assumption(task)
+    init_chain = _obtain_initial_assumption(task, data)
 
     if init_chain is not None:
         builder = builder.with_initial_chain(init_chain)

@@ -22,6 +22,11 @@ class MultiModalData(dict):
     def target(self):
         return next(iter(self.values())).target
 
+    @target.setter
+    def target(self, value):
+        for data_part in self.values():
+            data_part.target = value
+
     @property
     def data_type(self):
         return [i.data_type for i in iter(self.values())]

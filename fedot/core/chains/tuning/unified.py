@@ -6,7 +6,7 @@ from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
 from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
-from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.data_split import train_test_setup_for_dataset
 from fedot.core.log import Log
 
 MAX_METRIC_VALUE = 10e6
@@ -28,7 +28,7 @@ class ChainTuner(HyperoptTuner):
         parameters_dict = self._get_parameters_for_tune(self.chain)
 
         # Train test split
-        train_input, predict_input = train_test_data_setup(input_data)
+        train_input, predict_input = train_test_setup_for_dataset(input_data)
         test_target = np.array(predict_input.target)
 
         is_need_to_maximize = _greater_is_better(target=test_target,

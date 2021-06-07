@@ -114,6 +114,7 @@
 		},
 		"data_source_ts": {
 			"meta": "data_sources",
+		  	"tags": ["ts_specific"],
 			"input_type": "[DataTypesEnum.ts]",
 			"output_type": "[DataTypesEnum.ts]"
 		},
