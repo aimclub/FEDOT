@@ -59,7 +59,7 @@ def _load_cache_for_node(db_path: str, structural_id: str):
 
 
 def clear_folder(folder_path: str):
-    """ Method delete files from Fedot folder """
+    """ Delete files from chosen folder """
     temp_files = glob.glob(folder_path)
     for file in temp_files:
         os.remove(file)
