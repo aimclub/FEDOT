@@ -9,6 +9,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.composer.test_quality_metrics import multi_target_data_setup
 
 
 def get_simple_composer_params() -> dict:
@@ -86,12 +87,9 @@ def test_regression_chain_with_data_operation_fit_correct():
     assert results.predict.shape == test_data.target.shape
 
 
-def test_multi_target_regression_composing_correct():
+def test_multi_target_regression_composing_correct(multi_target_data_setup):
     # Load simple dataset for multi-target
-    path = '../../data/multi_target_sample.csv'
-    target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
-    data = InputData.from_csv(path, target_columns=target_columns, columns_to_drop=['date'])
-    train, test = train_test_data_setup(data)
+    train, test = multi_target_data_setup
 
     problem = 'regression'
     simple_composer_params = get_simple_composer_params()

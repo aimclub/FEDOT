@@ -50,7 +50,7 @@ class QualityMetric:
 
     @classmethod
     def prepare_data(cls, chain: Chain, reference_data: InputData):
-        """ Method prepare data for metric evaluation """
+        """ Method prepares data for metric evaluation """
         results = chain.predict(reference_data, output_mode=cls.output_mode)
 
         # Define conditions for target and predictions transforming

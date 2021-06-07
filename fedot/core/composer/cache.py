@@ -34,16 +34,19 @@ class OperationsCache:
             for ext in ['bak', 'dir', 'dat']:
                 if os.path.exists(f'{self.db_path}.{ext}'):
                     os.remove(f'{self.db_path}.{ext}')
-
-        # clear tmo files in FEDOT folder
-        temp_files = glob.glob(f'{str(default_fedot_data_dir())}/tmp_*')
-        for file in temp_files:
-            os.remove(file)
+        self.clear_folder()
 
     def get(self, node):
         found_operation = _load_cache_for_node(self.db_path, node.descriptive_id)
         # TODO: Add node and node from cache "fitted on data" field comparison
         return found_operation
+
+    @staticmethod
+    def clear_folder():
+        """ Method delete files from Fedot folder """
+        temp_files = glob.glob(f'{str(default_fedot_data_dir())}/tmp_*')
+        for file in temp_files:
+            os.remove(file)
 
 
 def _save_cache_for_node(db_path: str, structural_id: str,
