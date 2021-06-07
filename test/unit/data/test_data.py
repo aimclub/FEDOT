@@ -184,7 +184,9 @@ def test_target_data_from_csv_correct():
     """ Function tests two ways of processing target columns in "from_csv"
     method
     """
-    path = '../../data/multi_target_sample.csv'
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/multi_target_sample.csv'
+    path = os.path.join(test_file_path, file)
     task = Task(TaskTypesEnum.regression)
 
     # Process one column

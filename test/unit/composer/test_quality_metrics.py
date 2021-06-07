@@ -1,3 +1,4 @@
+import os
 import sys
 
 import numpy as np
@@ -40,7 +41,10 @@ def data_setup():
 
 @pytest.fixture()
 def multi_target_data_setup():
-    path = '../../data/multi_target_sample.csv'
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/multi_target_sample.csv'
+    path = os.path.join(test_file_path, file)
+
     target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
     task = Task(TaskTypesEnum.regression)
     data = InputData.from_csv(path, target_columns=target_columns,
