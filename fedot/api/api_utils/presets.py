@@ -1,8 +1,8 @@
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.api.main import Fedot
+from fedot.core.repository.tasks import Task
 
 
-class Fedot_data_helper(Fedot):
+class Fedot_preset_helper():
 
     def filter_operations_by_preset(self,
                                     task,
@@ -32,9 +32,9 @@ class Fedot_data_helper(Fedot):
         return available_operations
 
     def get_preset(self,
-                   problem,
-                   preset,
-                   composer_params):
+                   task: Task,
+                   preset: list,
+                   composer_params: dict):
         if preset is None and 'preset' in composer_params:
             preset = composer_params['preset']
 
@@ -42,6 +42,8 @@ class Fedot_data_helper(Fedot):
             del composer_params['preset']
 
         if preset is not None:
-            available_operations = self.filter_operations_by_preset(problem, preset)
+            available_operations = self.filter_operations_by_preset(task, preset)
             composer_params['available_operations'] = available_operations
             composer_params['with_tuning'] = '_tun' in preset or preset is None
+
+        return composer_params
