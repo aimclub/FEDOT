@@ -100,4 +100,3 @@ def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
     results, new_test = QualityMetric().prepare_data(simple_chain, test)
     number_elements = len(new_test.target)
     assert source_shape[0] * source_shape[1] == number_elements
-
