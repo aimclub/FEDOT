@@ -3,11 +3,23 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot.core.chains.chain import Chain
+from fedot.api.main import Fedot
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.composer.test_quality_metrics import multi_target_data_setup
+
+
+def get_simple_composer_params() -> dict:
+    params = {'max_depth': 2,
+              'max_arity': 3,
+              'pop_size': 2,
+              'num_of_generations': 2,
+              'learning_time': 1,
+              'preset': 'light'}
+    return params
 
 
 def generate_chain() -> Chain:
@@ -73,3 +85,16 @@ def test_regression_chain_with_data_operation_fit_correct():
     results = chain.predict(test_data)
 
     assert results.predict.shape == test_data.target.shape
+
+
+def test_multi_target_regression_composing_correct(multi_target_data_setup):
+    # Load simple dataset for multi-target
+    train, test = multi_target_data_setup
+
+    problem = 'regression'
+    simple_composer_params = get_simple_composer_params()
+
+    automl_model = Fedot(problem=problem, composer_params=simple_composer_params)
+    automl_model.fit(features=train)
+    predicted_array = automl_model.predict(features=test)
+    assert predicted_array is not None

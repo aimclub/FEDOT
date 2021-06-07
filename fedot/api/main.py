@@ -434,7 +434,7 @@ def _define_data(ml_task: Task,
             if target is None:
                 target = 'target'
             data = InputData.from_csv(features, task=ml_task,
-                                      target_column=target,
+                                      target_columns=target,
                                       data_type=data_type)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')

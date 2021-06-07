@@ -72,6 +72,7 @@ class HyperoptTuner(ABC):
         else:
             predicted_values = chain.predict(predict_input)
             preds = np.ravel(np.array(predicted_values.predict))
+            test_target = np.ravel(test_target)
 
         # Calculate metric
         if loss_params is None:

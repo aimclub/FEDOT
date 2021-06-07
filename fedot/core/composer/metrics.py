@@ -42,18 +42,45 @@ class QualityMetric:
     def get_value(cls, chain: Chain, reference_data: InputData) -> float:
         metric = cls.default_value
         try:
-            results = chain.predict(reference_data, output_mode=cls.output_mode)
-
-            if reference_data.task.task_type == TaskTypesEnum.ts_forecasting:
-                # Convert prediction into one-dimensional array
-                forecast_values = np.ravel(np.array(results.predict))
-                results.predict = forecast_values
-                metric = cls.metric(reference_data, results)
-            else:
-                metric = cls.metric(reference_data, results)
+            results, reference_data = cls.prepare_data(chain, reference_data)
+            metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
         return metric
+
+    @classmethod
+    def prepare_data(cls, chain: Chain, reference_data: InputData):
+        """ Method prepares data for metric evaluation """
+        results = chain.predict(reference_data, output_mode=cls.output_mode)
+
+        # Define conditions for target and predictions transforming
+        is_regression = reference_data.task.task_type == TaskTypesEnum.regression
+        is_multi_target = len(np.array(results.predict).shape) > 1
+        is_multi_target_regression = is_regression and is_multi_target
+
+        # Time series forecasting
+        is_ts_forecasting = reference_data.task.task_type == TaskTypesEnum.ts_forecasting
+        if is_ts_forecasting or is_multi_target_regression:
+            results, reference_data = cls.flatten_convert(results, reference_data)
+
+        return results, reference_data
+
+    @staticmethod
+    def flatten_convert(results, reference_data):
+        """ Transform target and predictions by converting them into
+        one-dimensional array
+
+        :param results: output from chain
+        :param reference_data: actual data for validation
+        """
+        # Predictions convert into uni-variate array
+        forecast_values = np.ravel(np.array(results.predict))
+        results.predict = forecast_values
+        # Target convert into uni-variate array
+        target_values = np.ravel(np.array(reference_data.target))
+        reference_data.target = target_values
+
+        return results, reference_data
 
     @classmethod
     def get_value_with_penalty(cls, chain: Chain, reference_data: InputData) -> float:

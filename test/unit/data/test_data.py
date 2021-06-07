@@ -103,7 +103,7 @@ def test_with_custom_target():
 
     custom_file_data = InputData.from_csv(
         os.path.join(test_file_path, file_custom), delimiter=';',
-        columns_to_drop=['redundant'], target_column='custom_target')
+        columns_to_drop=['redundant'], target_columns='custom_target')
 
     actual_features = custom_file_data.features
     actual_target = custom_file_data.target
@@ -178,3 +178,26 @@ def test_multi_modal_data():
     assert len(multi_modal.idx) == 5
     assert multi_modal.num_classes == 2
     assert np.array_equal(multi_modal.target, target)
+
+
+def test_target_data_from_csv_correct():
+    """ Function tests two ways of processing target columns in "from_csv"
+    method
+    """
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/multi_target_sample.csv'
+    path = os.path.join(test_file_path, file)
+    task = Task(TaskTypesEnum.regression)
+
+    # Process one column
+    target_column = '1_day'
+    one_column_data = InputData.from_csv(path, target_columns=target_column,
+                                         columns_to_drop=['date'], task=task)
+
+    # Process multiple target columns
+    target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
+    seven_columns_data = InputData.from_csv(path, target_columns=target_columns,
+                                            columns_to_drop=['date'], task=task)
+
+    assert one_column_data.target.shape == (499, 1)
+    assert seven_columns_data.target.shape == (499, 7)

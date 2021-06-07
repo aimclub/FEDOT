@@ -379,6 +379,13 @@ class Chain:
             return None
         return input_data
 
+    def print_structure(self):
+        """ Method print information about chain """
+        print('Chain structure:')
+        print(self.__str__())
+        for node in self.nodes:
+            print(f'{node.operation.operation_type} - {node.custom_params}')
+
 
 def nodes_with_operation(chain: Chain, operation_name: str) -> list:
     """ The function return list with nodes with the needed operation

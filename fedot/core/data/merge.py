@@ -22,7 +22,7 @@ class DataMerger:
         applied """
 
         if len(self.outputs) == 1 and self.outputs[0].data_type in [DataTypesEnum.image, DataTypesEnum.text]:
-            # TODO imlement correct merge
+            # TODO implement correct merge
             idx = self.outputs[0].idx
             features = self.outputs[0].features
             target = self.outputs[0].target
