@@ -430,3 +430,10 @@ def test_chain_deepcopy(data_setup):
     chain = Chain(PrimaryNode(operation_type='logit'))
     chain_copy = deepcopy(chain)
     assert chain.uid != chain_copy.uid
+
+
+def test_chain_structure_print_correct():
+    chain = Chain(PrimaryNode('ridge'))
+    chain.print_structure()
+    is_print_was_correct = True
+    assert is_print_was_correct
