@@ -3,11 +3,22 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot.core.chains.chain import Chain
+from fedot.api.main import Fedot
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+
+def get_simple_composer_params() -> dict:
+    params = {'max_depth': 2,
+              'max_arity': 3,
+              'pop_size': 2,
+              'num_of_generations': 2,
+              'learning_time': 1,
+              'preset': 'light'}
+    return params
 
 
 def generate_chain() -> Chain:
@@ -73,3 +84,19 @@ def test_regression_chain_with_data_operation_fit_correct():
     results = chain.predict(test_data)
 
     assert results.predict.shape == test_data.target.shape
+
+
+def test_multi_target_regression_composing_correct():
+    # Load simple dataset for multi-target
+    path = '../../data/multi_target_sample.csv'
+    target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
+    data = InputData.from_csv(path, target_columns=target_columns, columns_to_drop=['date'])
+    train, test = train_test_data_setup(data)
+
+    problem = 'regression'
+    simple_composer_params = get_simple_composer_params()
+
+    automl_model = Fedot(problem=problem, composer_params=simple_composer_params)
+    automl_model.fit(features=train)
+    predicted_array = automl_model.predict(features=test)
+    assert predicted_array is not None
