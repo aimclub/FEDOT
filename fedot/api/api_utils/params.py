@@ -3,6 +3,7 @@ import numpy as np
 
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.api.api_utils.presets import Fedot_preset_helper
 
 
 class Fedot_params_helper():
@@ -41,7 +42,7 @@ class Fedot_params_helper():
 
     def check_input_params(self, **input_params):
         self.metric_to_compose = None
-        self.composer_params['problem'] = input_params['problem']
+        self.api_params['problem'] = input_params['problem']
         self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
 
         if input_params['seed'] is not None:
@@ -49,13 +50,13 @@ class Fedot_params_helper():
             random.seed(input_params['seed'])
 
         if input_params['learning_time'] is not None:
-            self.composer_params['learning_time'] = self.composer_params['learning_time']
-            self.composer_params['num_of_generations'] = 10000
+            self.api_params['learning_time'] = self.api_params['learning_time']
+            self.api_params['num_of_generations'] = 10000
 
-        if 'metric' in self.composer_params:
-            self.composer_params['composer_metric'] = self.composer_params['metric']
-            del self.composer_params['metric']
-            self.metric_to_compose = self.composer_params['composer_metric']
+        if 'metric' in self.api_params:
+            self.api_params['composer_metric'] = self.api_params['metric']
+            del self.api_params['metric']
+            self.metric_to_compose = self.api_params['composer_metric']
 
         if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
             self.task_params = TsForecastingParams(forecast_length=30)
@@ -66,9 +67,9 @@ class Fedot_params_helper():
     def get_initial_params(self, **input_params):
 
         if input_params['composer_params'] is None:
-            self.composer_params = self.get_default_evo_params()
+            self.api_params = self.get_default_evo_params()
         else:
-            self.composer_params = {**self.get_default_evo_params(), **input_params['composer_params']}
+            self.api_params = {**self.get_default_evo_params(), **input_params['composer_params']}
 
         self.check_input_params(**input_params)
 
@@ -80,6 +81,10 @@ class Fedot_params_helper():
 
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
+        preset_model = Fedot_preset_helper()
+        self.api_params = preset_model.get_preset(task=self.task,
+                                                  preset=input_params['preset'],
+                                                  composer_params=self.api_params)
         param_dict = {
             'task': self.task,
             'logger': self.log,
@@ -87,4 +92,4 @@ class Fedot_params_helper():
             'composer_metric': self.metric_to_compose
         }
 
-        return {**param_dict, **self.composer_params}
+        return {**param_dict, **self.api_params}
