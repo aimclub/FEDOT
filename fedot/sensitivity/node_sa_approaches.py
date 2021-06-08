@@ -11,11 +11,12 @@ import numpy as np
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_validation import validate
-from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.chains.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
+from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements, ReplacementAnalysisMetaParams
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 
@@ -24,39 +25,34 @@ class NodeAnalysis:
     :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
     :param log: log: Log object to record messages
     """
 
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
+                 approaches_requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None):
 
-        if not approaches:
-            self.approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
-        else:
-            self.approaches = approaches
+        self.approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze] if approaches is None else approaches
 
-        if not path_to_save:
-            self.path_to_save = join(default_fedot_data_dir(), 'sensitivity')
-        else:
-            self.path_to_save = path_to_save
+        self.path_to_save = \
+            join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
+        self.log = default_log(__name__) if log is None else log
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.approaches_requirements = \
+            SensitivityAnalysisRequirements() if approaches_requirements is None else approaches_requirements
 
-    def analyze(self, chain: Chain, node_id: int,
-                train_data: InputData, test_data: InputData, is_save=True) -> dict:
+    def analyze(self, chain: Chain, node: Node,
+                train_data: InputData, test_data: InputData,
+                is_save: bool = False) -> dict:
 
         """
         Method runs Node analysis within defined approaches
 
+        :param is_save: whether the certain node analysis result is needed to ba saved
         :param chain: Chain containing the analyzed Node
-        :param node_id: node index in Chain
+        :param node: Node object to analyze in Chain
         :param train_data: data used for Chain training
         :param test_data: data used for Chain validation
-        :param is_save: flag to save results to json or not
         :return: dict with Node analysis result per approach
         """
 
@@ -66,15 +62,19 @@ class NodeAnalysis:
                 approach(chain=chain,
                          train_data=train_data,
                          test_data=test_data,
-                         path_to_save=self.path_to_save).analyze(node_id=node_id)
+                         requirements=self.approaches_requirements,
+                         path_to_save=self.path_to_save).analyze(node=node)
 
+        # TODO remove conflict with requirements.is_save
         if is_save:
-            self._save_results_to_json(results)
+            self._save_results_to_json(node, chain, results)
 
         return results
 
-    def _save_results_to_json(self, results):
-        result_file = join(self.path_to_save, 'node_sa_results.json')
+    def _save_results_to_json(self, node: Node, chain: Chain, results):
+        node_id = chain.nodes.index(node)
+        node_type = node.operation.operation_type
+        result_file = join(self.path_to_save, f'{node_id}{node_type}_sa_results.json')
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(results, indent=4))
 
@@ -89,41 +89,37 @@ class NodeAnalyzeApproach(ABC):
     :param train_data: data used for Chain training
     :param test_data: data used for Chain validation
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param interactive_mode: flag for interactive visualization or saving plots to file. Default: False
     :param log: log: Log object to record messages
     """
 
     def __init__(self, chain: Chain, train_data, test_data: InputData,
+                 requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None):
         self._chain = chain
         self._train_data = train_data
         self._test_data = test_data
         self._origin_metric = None
+        self._requirements = \
+            SensitivityAnalysisRequirements() if requirements is None else requirements
 
-        if not path_to_save:
-            self._path_to_save = join(default_fedot_data_dir(), 'sensitivity')
-        else:
-            self._path_to_save = path_to_save
+        self._path_to_save = \
+            join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
+        self.log = default_log(__name__) if log is None else log
 
         if not exists(self._path_to_save):
             makedirs(self._path_to_save)
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
-
     @abstractmethod
-    def analyze(self, node_id) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
         """Creates the difference metric(scorer, index, etc) of the changed
         chain in relation to the original one
 
-        :param node_id: the sequence number of the node as in DFS result
+        :param node: the sequence number of the node as in DFS result
         """
         pass
 
     @abstractmethod
-    def sample(self, *args) -> Union[Union[List[Chain], Chain], 'ndarray']:
+    def sample(self, *args) -> Union[List[Chain], Chain]:
         """Changes the chain according to the approach"""
         pass
 
@@ -147,37 +143,38 @@ class NodeAnalyzeApproach(ABC):
 
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None):
-        super().__init__(chain, train_data, test_data,
+    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+                 requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
+        super().__init__(chain, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node_id: int) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
         """
-        :param node_id: the sequence number of the node as in DFS result
+        :param node: Node object to analyze
         :return: the ratio of modified chain score to origin score
         """
-        if node_id == 0:
+        if node is self._chain.root_node:
             # TODO or warning?
             return 1.0
         else:
-            shortend_chain = self.sample(node_id)
-            if shortend_chain:
-                loss = self._compare_with_origin_by_metric(shortend_chain)
-                del shortend_chain
+            shortened_chain = self.sample(node)
+            if shortened_chain:
+                loss = self._compare_with_origin_by_metric(shortened_chain)
+                del shortened_chain
             else:
                 loss = 1
 
             return loss
 
-    def sample(self, node_id: int):
+    def sample(self, node: Node):
         """
 
-        :param node_id: the sequence number of the node as in DFS result
-        :return: Chain object without node with defined node_id
+        :param node: Node object to delete from Chain object
+        :return: Chain object without node
         """
         chain_sample = deepcopy(self._chain)
-        node_to_delete = chain_sample.nodes[node_id]
+        node_index_to_delete = self._chain.nodes.index(node)
+        node_to_delete = chain_sample.nodes[node_index_to_delete]
         chain_sample.delete_node(node_to_delete)
         try:
             validate(chain_sample)
@@ -197,26 +194,23 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
     and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData,
-                 path_to_save=None):
-        super().__init__(chain, train_data, test_data,
+    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+                 requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
+        super().__init__(chain, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node_id: int,
-                nodes_to_replace_to: Optional[List[Node]] = None,
-                number_of_random_operations: Optional[int] = None) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
         """
 
-        :param node_id:the sequence number of the node as in DFS result
-        :param nodes_to_replace_to: nodes provided for old_node replacement
-        :param number_of_random_operations: number of replacement operations, \
-        if nodes_to_replace_to not provided
+        :param node: Node object to analyze
+
         :return: the ratio of modified chain score to origin score
         """
-
-        samples = self.sample(node_id=node_id,
-                              nodes_to_replace_to=nodes_to_replace_to,
-                              number_of_random_operations=number_of_random_operations)
+        requirements: ReplacementAnalysisMetaParams = self._requirements.replacement_meta
+        node_id = self._chain.nodes.index(node)
+        samples = self.sample(node=node,
+                              nodes_to_replace_to=requirements.nodes_to_replace_to,
+                              number_of_random_operations=requirements.number_of_random_operations)
 
         loss_values = []
         new_nodes_types = []
@@ -228,18 +222,20 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             new_nodes_types.append(new_node.operation.operation_type)
 
         avg_loss = np.mean(loss_values)
-        self._visualize(x_values=new_nodes_types,
-                        y_values=loss_values,
-                        node_id=node_id)
+
+        if self._requirements.is_visualize:
+            self._visualize(x_values=new_nodes_types,
+                            y_values=loss_values,
+                            node_id=node_id)
 
         return float(avg_loss)
 
-    def sample(self, node_id: int,
+    def sample(self, node: Node,
                nodes_to_replace_to: Optional[List[Node]],
                number_of_random_operations: Optional[int] = None) -> Union[List[Chain], Chain]:
         """
 
-        :param node_id:the sequence number of the node as in DFS result
+        :param node: Node object to replace
         :param nodes_to_replace_to: nodes provided for old_node replacement
         :param number_of_random_operations: number of replacement operations, \
         if nodes_to_replace_to not provided
@@ -247,21 +243,22 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         """
 
         if not nodes_to_replace_to:
-            node_type = type(self._chain.nodes[node_id])
+            node_type = type(node)
             nodes_to_replace_to = self._node_generation(node_type=node_type,
                                                         number_of_operations=number_of_random_operations)
 
         samples = list()
         for replacing_node in nodes_to_replace_to:
             sample_chain = deepcopy(self._chain)
-            replaced_node = sample_chain.nodes[node_id]
+            replaced_node_index = self._chain.nodes.index(node)
+            replaced_node = sample_chain.nodes[replaced_node_index]
             sample_chain.update_node(old_node=replaced_node,
                                      new_node=replacing_node)
             samples.append(sample_chain)
 
         return samples
 
-    def _node_generation(self, node_type: Union[Type[PrimaryNode], Type[SecondaryNode]],
+    def _node_generation(self, node_type: Type[Node],
                          number_of_operations=None) -> List[Node]:
         task = self._train_data.task.task_type
         # Get models

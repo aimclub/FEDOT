@@ -11,11 +11,12 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
-from fedot.sensitivity.node_sensitivity import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.non_structure_sensitivity import ChainNonStructureAnalyze
-from fedot.sensitivity.operations_sensitivity.multi_operations_sensitivity import MultiOperationsAnalyze
-from fedot.sensitivity.operations_sensitivity.one_operation_sensitivity import OneOperationAnalyze
-from fedot.sensitivity.structure_sensitivity import ChainStructureAnalyze
+from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
+from fedot.sensitivity.chain_sensitivity import ChainAnalysis
+from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
+from fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity import OneOperationHPAnalyze
+from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
+from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
 from test.unit.utilities.test_chain_import_export import create_func_delete_files
 
 
@@ -55,7 +56,7 @@ def given_data():
     if not os.path.exists(result_path):
         os.mkdir(result_path)
 
-    return chain, train_data, test_data, node_index, result_path
+    return chain, train_data, test_data, chain.nodes[node_index], result_path
 
 
 # ------------------------------------------------------------------------------
@@ -63,53 +64,19 @@ def given_data():
 
 def test_chain_structure_analyze_init_log_defined():
     # given
-    chain, train_data, test_data, node_ids, _ = given_data()
+    chain, train_data, test_data, nodes_to_analyze, _ = given_data()
     approaches = [NodeDeletionAnalyze]
     test_log_object = default_log('test_log_chain_sa')
 
     # when
-    chain_analyzer = ChainStructureAnalyze(chain=chain,
-                                           train_data=train_data,
-                                           test_data=test_data,
-                                           approaches=approaches,
-                                           nodes_ids_to_analyze=[node_ids],
-                                           log=test_log_object)
+    chain_analyzer = NodesAnalysis(chain=chain,
+                                   train_data=train_data,
+                                   test_data=test_data,
+                                   approaches=approaches,
+                                   nodes_to_analyze=[nodes_to_analyze],
+                                   log=test_log_object)
 
-    assert isinstance(chain_analyzer, ChainStructureAnalyze)
-
-
-def test_chain_structure_analyze_init_all_and_ids_raise_exception():
-    # given
-    chain, train_data, test_data, _, _ = given_data()
-    approaches = [NodeDeletionAnalyze]
-
-    # when
-    with pytest.raises(ValueError) as exc:
-        assert ChainStructureAnalyze(chain=chain,
-                                     train_data=train_data,
-                                     test_data=test_data,
-                                     approaches=approaches,
-                                     all_nodes=True,
-                                     nodes_ids_to_analyze=[2])
-
-    assert str(exc.value) == "Choose only one parameter between " \
-                             "all_nodes and nodes_ids_to_analyze"
-
-
-def test_chain_structure_analyze_init_no_all_no_ids_raise_exception():
-    # given
-    chain, train_data, test_data, _, _ = given_data()
-    approaches = [NodeDeletionAnalyze]
-
-    # when
-    with pytest.raises(ValueError) as exc:
-        assert ChainStructureAnalyze(chain=chain,
-                                     train_data=train_data,
-                                     test_data=test_data,
-                                     approaches=approaches)
-
-    assert str(exc.value) == "Define nodes to analyze: " \
-                             "all_nodes or nodes_ids_to_analyze"
+    assert isinstance(chain_analyzer, NodesAnalysis)
 
 
 def test_chain_structure_analyze_analyze():
@@ -118,12 +85,11 @@ def test_chain_structure_analyze_analyze():
     approaches = [NodeDeletionAnalyze]
 
     # when
-    result = ChainStructureAnalyze(chain=chain,
-                                   train_data=train_data,
-                                   test_data=test_data,
-                                   approaches=approaches,
-                                   all_nodes=True,
-                                   path_to_save=result_dir).analyze()
+    result = NodesAnalysis(chain=chain,
+                           train_data=train_data,
+                           test_data=test_data,
+                           approaches=approaches,
+                           path_to_save=result_dir).analyze()
     assert isinstance(result, dict)
 
 
@@ -160,12 +126,12 @@ def test_node_analysis_init_defined_approaches_and_log():
 # @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_analysis_analyze():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     node_analysis_result: dict = NodeAnalysis(path_to_save=result_dir). \
         analyze(chain=chain,
-                node_id=node_index,
+                node=node_to_analyze,
                 train_data=train_data,
                 test_data=test_data)
 
@@ -177,13 +143,13 @@ def test_node_analysis_analyze():
 
 def test_node_deletion_analyze():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     node_analysis_result = NodeDeletionAnalyze(chain=chain,
                                                train_data=train_data,
                                                test_data=test_data,
-                                               path_to_save=result_dir).analyze(node_id=node_index)
+                                               path_to_save=result_dir).analyze(node=node_to_analyze)
 
     # then
     assert isinstance(node_analysis_result, float)
@@ -191,7 +157,7 @@ def test_node_deletion_analyze():
 
 def test_node_deletion_sample_method():
     # given
-    _, train_data, test_data, node_index, result_dir = given_data()
+    _, train_data, test_data, _, result_dir = given_data()
     primary_first = PrimaryNode('knn')
     primary_second = PrimaryNode('knn')
     central = SecondaryNode('xgboost', nodes_from=[primary_first, primary_second])
@@ -204,7 +170,7 @@ def test_node_deletion_sample_method():
     result = NodeDeletionAnalyze(chain=chain_with_multiple_children,
                                  train_data=train_data,
                                  test_data=test_data,
-                                 path_to_save=result_dir).sample(node_index)
+                                 path_to_save=result_dir).sample(chain_with_multiple_children.nodes[2])
 
     # then
     assert result is None
@@ -218,7 +184,7 @@ def test_node_deletion_analyze_zero_node_id():
     node_analysis_result = NodeDeletionAnalyze(chain=chain,
                                                train_data=train_data,
                                                test_data=test_data,
-                                               path_to_save=result_dir).analyze(node_id=0)
+                                               path_to_save=result_dir).analyze(node=chain.root_node)
 
     # then
     assert isinstance(node_analysis_result, float)
@@ -227,7 +193,7 @@ def test_node_deletion_analyze_zero_node_id():
 
 def test_node_replacement_analyze_defined_nodes():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     replacing_node = PrimaryNode('lda')
 
@@ -236,7 +202,7 @@ def test_node_replacement_analyze_defined_nodes():
         NodeReplaceOperationAnalyze(chain=chain,
                                     train_data=train_data,
                                     test_data=test_data,
-                                    path_to_save=result_dir).analyze(node_id=node_index,
+                                    path_to_save=result_dir).analyze(node=node_to_analyze,
                                                                      nodes_to_replace_to=[replacing_node])
 
     # then
@@ -246,7 +212,7 @@ def test_node_replacement_analyze_defined_nodes():
 # @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_replacement_analyze_random_nodes_default_number():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     node_analysis_result = \
@@ -254,7 +220,7 @@ def test_node_replacement_analyze_random_nodes_default_number():
                                      train_data=train_data,
                                      test_data=test_data,
                                      path_to_save=result_dir).
-         analyze(node_id=node_index))
+         analyze(node=node_to_analyze))
 
     # then
     assert isinstance(node_analysis_result, float)
@@ -266,29 +232,31 @@ def test_node_replacement_analyze_random_nodes_default_number():
 
 def test_one_operation_analyze_analyze():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+
+    requirements = SensitivityAnalysisRequirements(hyperparams_analysis_samples_size=1)
 
     # when
-    result = OneOperationAnalyze(chain=chain, train_data=train_data,
-                                 test_data=test_data, path_to_save=result_dir). \
-        analyze(node_id=node_index, sample_size=1)
+    result = OneOperationHPAnalyze(chain=chain, train_data=train_data, requirements=requirements,
+                                   test_data=test_data, path_to_save=result_dir). \
+        analyze(node=node_to_analyze)
 
-    assert type(result) is list
+    assert type(result) is dict
 
 
 # ------------------------------------------------------------------------------
 # MultiOperationAnalyze
 
-@patch('fedot.sensitivity.operations_sensitivity.multi_operations_sensitivity.MultiOperationsAnalyze.analyze',
+@patch('fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze.analyze',
        return_value=[{'key': 'value'}])
 def test_multi_operations_analyze_analyze(analyze_method):
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
 
     # when
-    result = MultiOperationsAnalyze(chain=chain,
-                                    train_data=train_data,
-                                    test_data=test_data, path_to_save=result_dir).analyze(sample_size=1)
+    result = MultiOperationsHPAnalyze(chain=chain,
+                                      train_data=train_data,
+                                      test_data=test_data, path_to_save=result_dir).analyze(sample_size=1)
 
     # then
     assert type(result) is list
@@ -300,14 +268,14 @@ def test_multi_operations_analyze_analyze(analyze_method):
 
 def test_chain_sensitivity_facade_init():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
     test_log_object = default_log('test_log_chain_sa')
 
     # when
     sensitivity_facade = ChainSensitivityAnalysis(chain=chain,
                                                   train_data=train_data,
                                                   test_data=test_data,
-                                                  nodes_ids_to_analyze=[node_index],
+                                                  nodes_to_analyze=[node_to_analyze],
                                                   path_to_save=result_dir,
                                                   log=test_log_object)
     # then
@@ -317,13 +285,13 @@ def test_chain_sensitivity_facade_init():
 @patch('fedot.sensitivity.chain_sensitivity_facade.ChainSensitivityAnalysis.analyze', return_value=None)
 def test_chain_sensitivity_facade_analyze(analyze_method):
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     sensitivity_analyze_result = ChainSensitivityAnalysis(chain=chain,
                                                           train_data=train_data,
                                                           test_data=test_data,
-                                                          nodes_ids_to_analyze=[node_index],
+                                                          nodes_to_analyze=[node_to_analyze],
                                                           path_to_save=result_dir).analyze()
 
     # then
@@ -337,32 +305,35 @@ def test_chain_sensitivity_facade_analyze(analyze_method):
 def test_chain_non_structure_analyze_init():
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
-    approaches = [MultiOperationsAnalyze]
+    approaches = [MultiOperationsHPAnalyze]
     test_log_object = default_log('test_log_chain_sa')
 
     # when
-    non_structure_analyzer = ChainNonStructureAnalyze(chain=chain,
-                                                      train_data=train_data,
-                                                      test_data=test_data,
-                                                      approaches=approaches,
-                                                      path_to_save=result_dir,
-                                                      log=test_log_object)
+    non_structure_analyzer = ChainAnalysis(chain=chain,
+                                           train_data=train_data,
+                                           test_data=test_data,
+                                           approaches=approaches,
+                                           path_to_save=result_dir,
+                                           log=test_log_object)
 
     # then
-    assert type(non_structure_analyzer) is ChainNonStructureAnalyze
+    assert type(non_structure_analyzer) is ChainAnalysis
 
 
-@patch('fedot.sensitivity.non_structure_sensitivity.ChainNonStructureAnalyze.analyze',
+@patch('fedot.sensitivity.chain_sensitivity.ChainAnalysis.analyze',
        return_value=[{'key': 'value'}])
-def test_chain_non_structure_analyze_analyze(analyze_method):
+def test_chain_analysis_analyze(analyze_method):
     # given
     chain, train_data, test_data, node_index, result_dir = given_data()
 
+    requirements = SensitivityAnalysisRequirements(hyperparams_analysis_samples_size=1)
+
     # when
-    non_structure_analyze_result = ChainNonStructureAnalyze(chain=chain,
-                                                            train_data=train_data,
-                                                            test_data=test_data,
-                                                            path_to_save=result_dir).analyze()
+    non_structure_analyze_result = ChainAnalysis(chain=chain,
+                                                 train_data=train_data,
+                                                 test_data=test_data,
+                                                 requirements=requirements,
+                                                 path_to_save=result_dir).analyze()
 
     # then
     assert type(non_structure_analyze_result) is list

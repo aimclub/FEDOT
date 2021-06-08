@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import List, Optional, Any
 
+from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import Node, PrimaryNode, SecondaryNode
 
 
@@ -112,3 +113,11 @@ class GraphOperator:
     def node_children(self, node) -> List[Optional[Node]]:
         return [other_node for other_node in self._chain.nodes if isinstance(other_node, SecondaryNode) and
                 node in other_node.nodes_from]
+
+    def get_nodes_degrees(self):
+        """ Nodes degree as the number of edges the node has:
+         k = k(in) + k(out)"""
+        graph, _ = chain_as_nx_graph(self._chain)
+        index_degree_pairs = graph.degree
+        node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
+        return node_degrees

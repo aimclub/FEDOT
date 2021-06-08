@@ -5,37 +5,28 @@ from typing import Optional, List, Type
 from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_convert import chain_as_nx_graph
+from fedot.core.chains.node import Node
+from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sensitivity import NodeAnalyzeApproach, NodeAnalysis
+from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeAnalysis
+from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
 
 
-def get_nodes_degrees(chain: Chain):
-    """ Nodes degree as the number of edges the node has:
-     k = k(in) + k(out)"""
-    graph, _ = chain_as_nx_graph(chain)
-    index_degree_pairs = graph.degree
-    node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
-    return node_degrees
-
-
-class ChainStructureAnalyze:
+class NodesAnalysis:
     """
-    This class is for Chain Sensitivity analysis.
-    It takes nodes(indices) and approaches to be applied to chosen nodes.
+    This class is for nodes sensitivity analysis within a Chain .
+    It takes nodes and approaches to be applied to chosen nodes.
     To define which nodes to analyze
-    pass their ids to nodes_ids_to_analyze or pass True to all_nodes flag.
+    pass them to nodes_to_analyze or pass True to all_nodes flag.
 
     :param chain: chain object to analyze
     :param train_data: data used for Chain training
     :param test_data: data used for Chain validation
     :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
-    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
-    :param metric: metric used for validation. Default: see MetricByTask
-    :param nodes_ids_to_analyze: numbers of nodes to analyze. Default: all nodes
-    :param all_nodes: flag, used to choose all nodes to analyze.Default: False.
+    Default: [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
+    :param nodes_to_analyze: nodes to analyze. Default: all nodes
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     Default: False
     :param log: log: Log object to record messages
@@ -43,34 +34,26 @@ class ChainStructureAnalyze:
 
     def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
-                 metric: str = None, nodes_ids_to_analyze: List[int] = None,
-                 all_nodes: bool = False, path_to_save=None, log: Log = None):
+                 requirements: SensitivityAnalysisRequirements = None,
+                 path_to_save=None, log: Log = None,
+                 nodes_to_analyze: List[Node] = None):
 
         self.chain = chain
         self.train_data = train_data
         self.test_data = test_data
         self.approaches = approaches
-        self.metric = metric
+        self.requirements = \
+            SensitivityAnalysisRequirements() if requirements is None else requirements
+        self.metric = self.requirements.metric
+        self.log = default_log(__name__) if log is None else log
+        self.path_to_save = \
+            join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
 
-        if all_nodes and nodes_ids_to_analyze:
-            raise ValueError("Choose only one parameter between all_nodes and nodes_ids_to_analyze")
-        elif not all_nodes and not nodes_ids_to_analyze:
-            raise ValueError("Define nodes to analyze: all_nodes or nodes_ids_to_analyze")
-
-        if all_nodes:
-            self.nodes_ids_to_analyze = [i for i in range(len(self.chain.nodes))]
+        if not nodes_to_analyze:
+            self.log.message('Nodes to analyze are not defined. All nodes will be analyzed.')
+            self.nodes_to_analyze = self.chain.nodes
         else:
-            self.nodes_ids_to_analyze = nodes_ids_to_analyze
-
-        if not path_to_save:
-            self.path_to_save = join(default_fedot_data_dir(), 'sensitivity')
-        else:
-            self.path_to_save = path_to_save
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+            self.nodes_to_analyze = nodes_to_analyze
 
     def analyze(self) -> dict:
         """
@@ -81,24 +64,30 @@ class ChainStructureAnalyze:
 
         nodes_results = dict()
         operation_types = []
-        for index in self.nodes_ids_to_analyze:
-            node_result = NodeAnalysis(approaches=self.approaches, path_to_save=self.path_to_save). \
-                analyze(chain=self.chain, node_id=index,
+        for node in self.nodes_to_analyze:
+            node_result = NodeAnalysis(approaches=self.approaches,
+                                       approaches_requirements=self.requirements,
+                                       path_to_save=self.path_to_save). \
+                analyze(chain=self.chain, node=node,
                         train_data=self.train_data,
-                        test_data=self.test_data,
-                        is_save=False)
-            operation_types.append(self.chain.nodes[index].operation.operation_type)
+                        test_data=self.test_data)
+            operation_types.append(node.operation.operation_type)
 
-            nodes_results[f'id = {index}, operation = {self.chain.nodes[index].operation.operation_type}'] = node_result
+            nodes_results[f'id = {self.chain.nodes.index(node)}, ' \
+                          f'operation = {node.operation.operation_type}'] = node_result
 
-        self._visualize_result_per_approach(nodes_results, operation_types)
-        if len(self.nodes_ids_to_analyze) == len(self.chain.nodes):
+        if self.requirements.is_visualize:
+            self._visualize_result_per_approach(nodes_results, operation_types)
+
+        if len(self.nodes_to_analyze) == len(self.chain.nodes):
             self._visualize_degree_correlation(nodes_results)
-        self._save_results_to_json(nodes_results)
+
+        if self.requirements.is_save:
+            self._save_results_to_json(nodes_results)
         return nodes_results
 
-    def _save_results_to_json(self, result):
-        result_file = join(self.path_to_save, 'chain_SA_results.json')
+    def _save_results_to_json(self, result: dict):
+        result_file = join(self.path_to_save, 'nodes_SA_results.json')
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(result, indent=4))
 
@@ -125,7 +114,7 @@ class ChainStructureAnalyze:
             self.log.message(f'Chain Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
-        nodes_degrees = get_nodes_degrees(self.chain)
+        nodes_degrees = GraphOperator(self.chain).get_nodes_degrees()
         gathered_results = self._extract_result_values(results)
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))

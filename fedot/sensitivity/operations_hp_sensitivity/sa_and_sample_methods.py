@@ -1,14 +1,19 @@
+from typing import List
+
 from SALib.analyze.sobol import analyze as sobol_analyze
 from SALib.sample import saltelli
 
+from fedot.core.chains.chain import Chain
+import numpy as np
 
-def sobol_method(problem: dict, samples, operation_response) -> dict:
+
+def sobol_method(problem: dict, samples: List[Chain], operation_response) -> dict:
     indices = sobol_analyze(problem, operation_response, print_to_console=False)
 
     return indices
 
 
-def make_saltelly_sample(problem: dict, num_of_samples=100):
+def make_saltelly_sample(problem: dict, num_of_samples=100) -> np.array:
     samples = saltelli.sample(problem, num_of_samples)
 
     return samples
