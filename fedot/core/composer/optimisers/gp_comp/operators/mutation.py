@@ -109,7 +109,10 @@ def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth
     return chain
 
 
-def single_add_mutation(chain: Any, requirements, chain_generation_params, max_depth: int):
+def _single_add_mutation(chain: Any, requirements, chain_generation_params):
+    """
+    Add new node between two sequential existing modes
+    """
     node = choice(chain.nodes)
     if node.nodes_from:
         new_node = chain_generation_params.secondary_node_func(operation_type=choice(requirements.secondary))
@@ -119,38 +122,45 @@ def single_add_mutation(chain: Any, requirements, chain_generation_params, max_d
     return chain
 
 
-def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True) -> Any:
+def _tree_growth(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True):
     """
     This mutation selects a random node in a tree, generates new subtree, and replaces the selected node's subtree.
+    """
+    random_layer_in_chain = randint(0, chain.depth - 1)
+    node_from_chain = choice(chain.operator.nodes_from_layer(random_layer_in_chain))
+    if local_growth:
+        is_primary_node_selected = (not node_from_chain.nodes_from) or (
+                node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
+    else:
+        is_primary_node_selected = randint(0, 1) and \
+                                   not chain.operator.distance_to_root_level(node_from_chain) < max_depth
+    if is_primary_node_selected:
+        new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
+    else:
+        if local_growth:
+            max_depth = node_from_chain.distance_to_primary_level
+        else:
+            max_depth = max_depth - chain.operator.distance_to_root_level(node_from_chain)
+        new_subtree = random_chain(chain_generation_params=chain_generation_params, requirements=requirements,
+                                   max_depth=max_depth).root_node
+    chain.update_subtree(node_from_chain, new_subtree)
+    return chain
+
+
+def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True) -> Any:
+    """
+    This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
     :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
     selected random node, if false then previous depth of selected node doesn't affect to new subtree depth,
     maximal depth of new subtree just should satisfy depth constraint in parent tree
     """
 
     if random() > 0.5:
-        # simple growth
-        return single_add_mutation(chain, requirements, chain_generation_params, max_depth)
+        # simple growth (one node can be added)
+        return _single_add_mutation(chain, requirements, chain_generation_params)
     else:
-        # advanced growth
-        random_layer_in_chain = randint(0, chain.depth - 1)
-        node_from_chain = choice(chain.operator.nodes_from_layer(random_layer_in_chain))
-        if local_growth:
-            is_primary_node_selected = (not node_from_chain.nodes_from) or (
-                    node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
-        else:
-            is_primary_node_selected = randint(0, 1) and \
-                                       not chain.operator.distance_to_root_level(node_from_chain) < max_depth
-        if is_primary_node_selected:
-            new_subtree = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
-        else:
-            if local_growth:
-                max_depth = node_from_chain.distance_to_primary_level
-            else:
-                max_depth = max_depth - chain.operator.distance_to_root_level(node_from_chain)
-            new_subtree = random_chain(chain_generation_params=chain_generation_params, requirements=requirements,
-                                       max_depth=max_depth).root_node
-        chain.update_subtree(node_from_chain, new_subtree)
-    return chain
+        # advanced growth (several nodes can be added)
+        return _tree_growth(chain, requirements, chain_generation_params, max_depth, local_growth)
 
 
 def reduce_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:

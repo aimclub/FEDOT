@@ -1,4 +1,5 @@
 import random
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -446,11 +447,11 @@ def _define_data(ml_task: Task,
             target = np.array([])
         target_array = target
 
+        data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
+
         # create labels for data sources
-        sources = dict((f'data_source_ts/{key}',
-                        array_to_input_data(features_array=features[key],
-                                            target_array=target_array,
-                                            task=ml_task)) for (key, value) in features.items())
+        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
+                       for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')

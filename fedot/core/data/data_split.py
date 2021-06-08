@@ -23,7 +23,7 @@ def _split_time_series(data, task, *args, **kwargs):
     x_train = input_features[:-forecast_length]
     x_test = input_features[:-forecast_length]
 
-    y_train = x_train
+    y_train = input_target[:-forecast_length]
     y_test = input_target[-forecast_length:]
 
     idx_for_train = np.arange(0, len(x_train))
@@ -127,8 +127,8 @@ def _split_text(data, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
 
 
-def train_test_data_setup(data: InputData, split_ratio=0.8,
-                          shuffle_flag=False) -> Tuple[InputData, InputData]:
+def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
+                                  shuffle_flag=False) -> Tuple[InputData, InputData]:
     """ Function for train and test split
 
     :param data: InputData for train and test splitting
@@ -159,8 +159,8 @@ def train_test_data_setup(data: InputData, split_ratio=0.8,
     return train_data, test_data
 
 
-def train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
-                                      shuffle_flag=False) -> Tuple[MultiModalData, MultiModalData]:
+def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
+                                       shuffle_flag=False) -> Tuple[MultiModalData, MultiModalData]:
     train_data = MultiModalData()
     test_data = MultiModalData()
     for node in data.keys():
@@ -214,23 +214,23 @@ def _features_and_target_by_index(index, values: InputData):
     return features, target
 
 
-def train_test_setup_for_dataset(dataset: Union[InputData, MultiModalData], split_ratio=0.8,
-                                 shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
-                                                              Union[InputData, MultiModalData]]:
-    """ Function for train and test split
+def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.8,
+                          shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
+                                                       Union[InputData, MultiModalData]]:
+    """ Function for train and test split for both InputData and MultiModalData
 
-    :param dataset: dataset for train and test splitting
+    :param data: data for train and test splitting
     :param split_ratio: threshold for partitioning
     :param shuffle_flag: is data needed to be shuffled or not
 
     :return train_data: data for train
     :return test_data: data for validation
     """
-    if isinstance(dataset, InputData):
-        train_data, test_data = train_test_data_setup(dataset, split_ratio, shuffle_flag)
-    elif isinstance(dataset, MultiModalData):
-        train_data, test_data = train_test_multi_modal_data_setup(dataset, split_ratio, shuffle_flag)
+    if isinstance(data, InputData):
+        train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag)
+    elif isinstance(data, MultiModalData):
+        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag)
     else:
-        raise ValueError(f'Dataset {type(dataset)} is not supported')
+        raise ValueError(f'Dataset {type(data)} is not supported')
 
     return train_data, test_data

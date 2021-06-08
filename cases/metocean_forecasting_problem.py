@@ -57,12 +57,10 @@ if __name__ == '__main__':
 
     # a dataset that will be used as a train and test set during composition
     file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     # a dataset for a final validation of the composed model
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    run_metocean_forecasting_problem(full_path_train, full_path_test,
-                                     forecast_length=72,
+    run_metocean_forecasting_problem(file_path_train, file_path_test,
+                                     forecast_length=12,
                                      is_visualise=True)

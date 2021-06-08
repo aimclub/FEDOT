@@ -130,7 +130,7 @@ def filter_operations_by_preset(task, preset: str):
     return available_operations
 
 
-def compose_fedot_model(train_data: InputData,
+def compose_fedot_model(train_data: [InputData, MultiModalData],
                         task: Task,
                         logger: Log,
                         max_depth: int,
@@ -238,11 +238,9 @@ def _obtain_initial_assumption(task: Task, data) -> Chain:
         # Create init chain
         if isinstance(data, MultiModalData):
             node_final = SecondaryNode('ridge', nodes_from=[])
-            for key in data.keys():
-                node_model = SecondaryNode('ridge',
-                                           nodes_from=[SecondaryNode('lagged',
-                                                                     nodes_from=[PrimaryNode(key)])])
-                node_final.nodes_from.append(node_model)
+            for data_source_name in data.keys():
+                node_last_model = SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
+                node_final.nodes_from.append(node_last_model)
         else:
             node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
     elif task.task_type == TaskTypesEnum.classification:
@@ -259,7 +257,7 @@ def _obtain_initial_assumption(task: Task, data) -> Chain:
 def _get_gp_composer_builder(task: Task, metric_function,
                              composer_requirements: GPComposerRequirements,
                              optimizer_parameters: GPChainOptimiserParameters,
-                             data,
+                             data: Union[InputData, MultiModalData],
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary
     init_chain in it """

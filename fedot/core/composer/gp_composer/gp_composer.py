@@ -18,7 +18,7 @@ from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationSt
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_setup_for_dataset
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.cross_validation import cross_validation
@@ -129,7 +129,7 @@ class GPComposer(Composer):
         else:
             self.log.info("Hold out validation for chain composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
-            train_data, test_data = train_test_setup_for_dataset(data, split_ratio)
+            train_data, test_data = train_test_data_setup(data, split_ratio)
             metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:

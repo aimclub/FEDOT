@@ -78,9 +78,9 @@ class QualityMetric:
         results.predict = forecast_values
         # Target convert into uni-variate array
         target_values = np.ravel(np.array(reference_data.target))
-        results.target = target_values
+        reference_data.target = target_values
 
-        return results, results
+        return results, reference_data
 
     @classmethod
     def get_value_with_penalty(cls, chain: Chain, reference_data: InputData) -> float:
