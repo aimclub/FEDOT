@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Optional, Union, List
+from typing import Callable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -8,21 +8,21 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
                                                          GPGraphOptimiserParameters)
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.data.data import data_has_categorical_features
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -175,8 +175,15 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                cv_folds=cv_folds,
                                validation_blocks=validation_blocks,
                                timeout=datetime.timedelta(minutes=timeout_for_composing))
-
-    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+    # optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                                                      mutation_types=[MutationTypesEnum.parameter_change,
+                                                                      MutationTypesEnum.simple,
+                                                                      MutationTypesEnum.reduce,
+                                                                      MutationTypesEnum.growth,
+                                                                      MutationTypesEnum.local_growth],
+                                                      crossover_types=[CrossoverTypesEnum.one_point,
+                                                                       CrossoverTypesEnum.subtree])
 
     # Create GP-based composer
     builder = _get_gp_composer_builder(task=task,

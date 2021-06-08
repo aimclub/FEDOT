@@ -2,7 +2,7 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List
+from typing import List, Union
 from uuid import uuid4
 
 import joblib
@@ -28,6 +28,8 @@ class PipelineTemplate:
         self.depth = pipeline.depth
         self.operation_templates = []
         self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
+        self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+
         try:
             self.computation_time = pipeline.computation_time
         except AttributeError:
@@ -80,12 +82,19 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: str):
+    def export_pipeline(self, path: str = None, root_node: Node = None):
         """
         Save JSON to path and return this JSON like object.
         :param path: custom path to save
         :return: JSON like object
+        :root_node: root node of exported pipeline
         """
+
+        pipeline_template_dict = self.convert_to_dict(root_node)
+        json_data = json.dumps(pipeline_template_dict, indent=4)
+
+        if path is None:
+            return json_data, self._create_fitted_operations()
 
         path = self._prepare_paths(path)
         absolute_path = os.path.abspath(path)
@@ -93,32 +102,36 @@ class PipelineTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        pipeline_template_dict = self.convert_to_dict()
-        json_data = json.dumps(pipeline_template_dict, indent=4)
-
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json_data)
+            f.write(json.dumps(json.loads(json_data), indent=4))
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
             self.log.message(f"The pipeline saved in the path: {resulted_path}.")
 
-        self._create_fitted_operations(absolute_path)
+        dict_fitted_operations = self._create_fitted_operations(absolute_path)
 
-        return json_data
+        return json_data, dict_fitted_operations
 
-    def convert_to_dict(self) -> dict:
+    def convert_to_dict(self, root_node: Node = None) -> dict:
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
-
         json_object = {
             "total_pipeline_operations": self.total_pipeline_operations,
             "depth": self.depth,
             "nodes": json_nodes,
         }
+        if root_node:
+            json_object['descriptive_id'] = root_node.descriptive_id
 
         return json_object
 
-    def _create_fitted_operations(self, path):
-        for operation in self.operation_templates:
-            operation.export_operation(path)
+    def _create_fitted_operations(self, path=None):
+        if path:
+            for operation in self.operation_templates:
+                operation.export_operation(path)
+        else:
+            dict_fitted_operations = {}
+            for operation in self.operation_templates:
+                dict_fitted_operations[operation.fitted_operation_path] = operation.export_operation()
+            return dict_fitted_operations
 
     def _prepare_paths(self, path: str):
         absolute_path = os.path.abspath(path)
@@ -139,15 +152,34 @@ class PipelineTemplate:
 
         return path_to_save
 
-    def import_pipeline(self, path: str):
-        self._check_path_correct(path)
+    # def import_pipeline(self, path: str):
+    #    self._check_path_correct(path)
+    #
+    #    with open(path) as json_file:
+    #        json_object_pipeline = json.load(json_file)
+    #        self.log.message(f"The pipeline was imported from the path: {path}.")
 
-        with open(path) as json_file:
-            json_object_pipeline = json.load(json_file)
-            self.log.message(f"The pipeline was imported from the path: {path}.")
+    #    self._extract_operations(json_object_pipeline, path)
+    #    self.convert_to_pipeline(self.link_to_empty_pipeline, path)
+    #    self.depth = self.link_to_empty_pipeline.depth
+
+    def import_chain(self, source: Union[str, dict], dict_fitted_operations: dict = None):
+        json_object_pipeline = None
+        path = None
+
+        if type(source) is str:
+            path = source
+            self._check_path_correct(path)
+
+            with open(path) as json_file:
+                json_object_pipeline = json.load(json_file)
+                self.log.message(f'The chain was imported from the path: {path}.')
+        else:
+            json_object_pipeline = source
+            self.log.message(f'The chain was imported from dict.')
 
         self._extract_operations(json_object_pipeline, path)
-        self.convert_to_pipeline(self.link_to_empty_pipeline, path)
+        self.convert_to_pipeline(self.link_to_empty_pipeline, path, dict_fitted_operations)
         self.depth = self.link_to_empty_pipeline.depth
 
     def _check_path_correct(self, path: str):
@@ -176,18 +208,19 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def convert_to_pipeline(self, pipeline, path: str = None):
+    def convert_to_pipeline(self, pipeline, path: str = None, dict_fitted_operations: dict = None):
         if path is not None:
             path = os.path.abspath(os.path.dirname(path))
         visited_nodes = {}
         root_template = [op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
-        root_node = self.roll_pipeline_structure(root_template, visited_nodes, path)
+
+        root_node = self.roll_pipeline_structure(root_template, visited_nodes, path, dict_fitted_operations)
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
 
     def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
                                                          'AtomizedModelTemplate'],
-                                visited_nodes: dict, path: str = None):
+                                visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
         """
         The function recursively traverses all disjoint operations
         and connects the operations in a pipeline.
@@ -197,6 +230,7 @@ class PipelineTemplate:
         :params path: path to save
         :return: root_node
         """
+        fitted_operation = None
         if operation_object.operation_id in visited_nodes:
             return visited_nodes[operation_object.operation_id]
 
@@ -223,13 +257,17 @@ class PipelineTemplate:
                 raise FileNotFoundError(message)
 
             fitted_operation = joblib.load(path_to_operation)
-            operation_object.fitted_operation = fitted_operation
-            node.fitted_operation = fitted_operation
+        elif dict_fitted_operations is not None:
+            fitted_operation = joblib.load(dict_fitted_operations[operation_object.fitted_operation_path])
+
+        operation_object.fitted_operation = fitted_operation
+        node.fitted_operation = fitted_operation
 
         nodes_from = [operation_template for operation_template in self.operation_templates
                       if operation_template.operation_id in operation_object.nodes_from]
-        node.nodes_from = [self.roll_pipeline_structure(node_from, visited_nodes, path) for node_from
-                           in nodes_from]
+
+        node.nodes_from = [self.roll_pipeline_structure(node_from, visited_nodes, path, dict_fitted_operations) for
+                           node_from in nodes_from]
 
         visited_nodes[operation_object.operation_id] = node
         return node

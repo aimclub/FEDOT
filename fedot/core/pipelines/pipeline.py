@@ -270,7 +270,7 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str):
+    def save(self, path: str = None):
         """
         Save the pipeline to the json representation with pickled fitted operations.
 
@@ -279,10 +279,10 @@ class Pipeline(Graph):
         """
         if not self.template:
             self.template = PipelineTemplate(self, self.log)
-        json_object = self.template.export_pipeline(path)
-        return json_object
+        json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node)
+        return json_object, dict_fitted_operations
 
-    def load(self, path: str):
+    def load(self, source: Union[str, dict], dict_fitted_operations: dict = None):
         """
         Load the pipeline the json representation with pickled fitted operations.
 
@@ -290,7 +290,7 @@ class Pipeline(Graph):
         """
         self.nodes = []
         self.template = PipelineTemplate(self, self.log)
-        self.template.import_pipeline(path)
+        self.template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id

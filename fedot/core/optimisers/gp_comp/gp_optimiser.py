@@ -28,6 +28,15 @@ MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
 
 
+class SimpleArchive(list):
+    def update(self, x):
+        self.extend((x))
+
+    @property
+    def items(self):
+        return list(self)
+
+
 class GPGraphOptimiserParameters:
     """
         This class is for defining the parameters of optimiser
@@ -108,9 +117,11 @@ class GPGraphOptimiser:
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
-        self.archive = archive_type
+
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
+        self.archive = archive_type if archive_type else SimpleArchive()
+
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
             else self.requirements.max_depth
@@ -234,6 +245,9 @@ class GPGraphOptimiser:
                 self.log_info_about_best()
 
                 self.generation_num += 1
+
+                if isinstance(self.archive, SimpleArchive):
+                    self.archive.clear()
 
                 clean_operators_history(self.population)
             best = self.result_individual()
