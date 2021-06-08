@@ -51,6 +51,7 @@ class CustomCatBoostClassImplementation(CatBoostImplementation):
         super().__init__(log)
         _default_params = {
             "allow_writing_files": False,
+            "verbose": False
         }
         if params is not None:
             self.params = {**params, **_default_params}
@@ -78,6 +79,7 @@ class CustomCatBoostRegImplementation(CatBoostImplementation):
         super().__init__(log)
         _default_params = {
             "allow_writing_files": False,
+            "verbose": False
         }
         if params is not None:
             self.params = {**params, **_default_params}
