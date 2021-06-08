@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
 
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData, OutputData
@@ -134,6 +135,64 @@ def test_lda_fit_correct(data_fixture, request):
                                predicted_data=train_predicted)
     roc_threshold = 0.95
     assert roc_on_train >= roc_threshold
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_lgbmclass_fit_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = Chain(PrimaryNode('lgbm'))
+    chain.fit(input_data=train_data)
+    test_pred = chain.predict(input_data=test_data)
+
+    roc_on_train = get_roc_auc(valid_data=test_data,
+                               predicted_data=test_pred)
+
+    roc_threshold = 0.95
+    assert roc_on_train >= roc_threshold
+
+
+def test_lgbmreg_fit_correct():
+    data = get_synthetic_regression_data(random_state=42)
+    train_data, test_data = train_test_data_setup(data)
+
+    chain = Chain(PrimaryNode('lgbmreg'))
+    chain.fit(input_data=train_data)
+    test_pred = chain.predict(input_data=test_data)
+    rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
+
+    rmse_threshold = np.std(test_data.target) * 2
+    assert rmse_value_test < rmse_threshold
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_catboost_fit_correct(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    chain = Chain(PrimaryNode('catboost'))
+    chain.fit(input_data=train_data)
+    test_pred = chain.predict(input_data=test_data)
+
+    roc_on_train = get_roc_auc(valid_data=test_data,
+                               predicted_data=test_pred)
+
+    roc_threshold = 0.95
+    assert roc_on_train >= roc_threshold
+
+
+def test_catboostreg_fit_correct():
+    data = get_synthetic_regression_data(random_state=42)
+    train_data, test_data = train_test_data_setup(data)
+
+    chain = Chain(PrimaryNode('catboostreg'))
+    chain.fit(input_data=train_data)
+    test_pred = chain.predict(input_data=test_data)
+    rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
+
+    rmse_threshold = np.std(test_data.target)
+    assert rmse_value_test < rmse_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

@@ -13,6 +13,8 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
     keras import CustomCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVCImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.lightgbm import CustomLightGBMClassImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.catboost import CustomCatBoostClassImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -53,7 +55,9 @@ class CustomClassificationStrategy(EvaluationStrategy):
         'qda': QDAImplementation,
         'svc': CustomSVCImplementation,
         'cnn': CustomCNNImplementation,
-        'knn': CustomKnnClassImplementation
+        'knn': CustomKnnClassImplementation,
+        'lgbm': CustomLightGBMClassImplementation,
+        'catboost': CustomCatBoostClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
