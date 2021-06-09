@@ -8,14 +8,15 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import ChainGenerationParams, GPComposerBuilder, \
-    GPComposerRequirements, sample_split_ration_for_tasks
+    GPComposerRequirements, sample_split_ratio_for_tasks
 from fedot.core.composer.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates
 from fedot.core.composer.optimisers.gp_comp.individual import Individual
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.composer.timer import CompositionTimer
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -75,7 +76,7 @@ def test_evaluate_individuals():
     composer = builder.build()
 
     train_data, test_data = train_test_data_setup(dataset_to_compose,
-                                                  sample_split_ration_for_tasks[dataset_to_compose.task.task_type])
+                                                  sample_split_ratio_for_tasks[dataset_to_compose.task.task_type])
     metric_function_for_nodes = partial(composer.composer_metric, composer.metrics, train_data, test_data)
     population = [Individual(c) for c in [chain_first(), chain_second(), chain_third(), chain_fourth()]]
     max_lead_time = datetime.timedelta(minutes=0.001)

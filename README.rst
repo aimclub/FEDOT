@@ -127,12 +127,21 @@ Notebooks are issued with the corresponding release versions. In the "notebooks"
 
 Extended examples:
 
-- Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring_problem.py>`__
+- Credit scoring problem, i.e. `binary classification task <https://github.com/nccr-itmo/FEDOT/blob/master/cases/credit_scoring/credit_scoring_problem.py>`__
 - Time series forecasting, i.e. `random process regression <https://github.com/nccr-itmo/FEDOT/blob/master/cases/metocean_forecasting_problem.py>`__
 - Spam detection, i.e. `natural language preprocessing <https://github.com/nccr-itmo/FEDOT/blob/master/cases/spam_detection.py>`__
+- Movie rating prediction with `multi-modal data <https://github.com/nccr-itmo/FEDOT/blob/master/cases/multi_modal_rating_prediction.py>`__
 
 
 Also, several video tutorials are `available <https://www.youtube.com/playlist?list=PLlbcHj5ytaFUjAxpZf7FbEaanmqpDYhnc>`__ (in Russian).
+
+Publications about FEDOT
+========================
+
+We also published several posts devoted to the different aspects of the framework:
+
+- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__ (in Russian)
+- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__ (in Russian)
 
 Project structure
 =================
@@ -151,10 +160,17 @@ Also, you can check `benchmarking <https://github.com/ITMO-NSS-team/FEDOT-benchm
 Current R&D and future plans
 ============================
 
-At the moment, we are executing an extensive set of experiments to determine the most suitable approaches for evolutionary chain optimization, hyperparameters tuning, benchmarking, etc.
-The different case studies from different subject areas (metocean science, geology, robotics, economics, etc) are in progress now.
+Currently, we are working on new features and trying to improve the performance and the user experience of FEDOT.
+The major ongoing tasks and plans:
 
-Various features are planned to be implemented: multi-data chains, Bayesian networks optimization, domain-specific and equation-based models, interpretable surrogate models, etc.
+* Effective and ready-to-use pipeline templates for certain tasks and data types;
+* Integration with GPU via Rapids framework;
+* Alternative optimization methods of fixed-shaped pipelines;
+* Integration with MLFlow for import and export of the pipelines;
+* Improvement of high-level API.
+
+
+Also, we are doing several research tasks related to AutoML time-series benchmarking and multi-modal modeling.
 
 Any contribution is welcome. Our R&D team is open for cooperation with other scientific teams as well as with industrial partners.
 

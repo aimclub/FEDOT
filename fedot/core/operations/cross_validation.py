@@ -1,10 +1,12 @@
 from typing import Callable, Tuple, Optional
+
 import numpy as np
 
-from fedot.core.data.data import InputData, train_test_cv_generator
 from fedot.core.chains.chain import Chain
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_cv_generator
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def cross_validation(reference_data: InputData, cv_folds: int,

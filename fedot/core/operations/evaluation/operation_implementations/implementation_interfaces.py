@@ -215,6 +215,7 @@ def _convert_to_output_function(input_data, transformed_features,
                            predict=transformed_features,
                            task=input_data.task,
                            target=input_data.target,
-                           data_type=data_type)
+                           data_type=data_type,
+                           supplementary_data=input_data.supplementary_data)
 
     return converted

@@ -5,14 +5,15 @@ import pytest
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from statsmodels.tsa.arima_process import ArmaProcess
 
-from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, train_test_data_setup
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, \
     in_sample_ts_forecast
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 
 np.random.seed(42)
 seed(42)
@@ -42,7 +43,6 @@ def get_synthetic_ts_data_period(n_steps=1000, forecast_length=5):
                      target=simulated_data,
                      task=task,
                      data_type=DataTypesEnum.ts)
-    a, b = train_test_data_setup(data)
     return train_test_data_setup(data)
 
 

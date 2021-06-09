@@ -1,17 +1,19 @@
+import glob
 import os
 import warnings
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union, Iterator
+from typing import List, Optional, Tuple, Union
 
+import imageio
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import KFold
+from PIL import Image
 
-from fedot.core.data.load_data import TextBatchLoader
+from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.merge import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.data.supplementary_data import SupplementaryData
 
 
 @dataclass
@@ -23,6 +25,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    # Object with supplementary info
+    supplementary_data: SupplementaryData = SupplementaryData()
 
     @staticmethod
     def from_csv(file_path=None,
@@ -30,14 +34,14 @@ class Data:
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List] = None,
-                 target_column: Optional[str] = ''):
+                 target_columns: Union[str, List] = ''):
         """
         :param file_path: the path to the CSV with data
         :param columns_to_drop: the names of columns that should be dropped
         :param delimiter: the delimiter to separate the columns
         :param task: the task that should be solved with data
         :param data_type: the type of data interpretation
-        :param target_column: name of target column (last column if empty and no target if None)
+        :param target_columns: name of target column (last column if empty and no target if None)
         :return:
         """
 
@@ -45,20 +49,16 @@ class Data:
         if columns_to_drop:
             data_frame = data_frame.drop(columns_to_drop, axis=1)
         data_frame = _convert_dtypes(data_frame=data_frame)
+
+        # Get indices of the DataFrame
         data_array = np.array(data_frame).T
         idx = data_array[0]
 
-        if target_column == '':
-            target_column = data_frame.columns[-1]
-
-        if target_column and target_column in data_frame.columns:
-            target = np.array(data_frame[target_column]).astype(np.float)
-            pos = list(data_frame.keys()).index(target_column)
-            features = np.delete(data_array.T, [0, pos], axis=1)
+        if type(target_columns) is list:
+            features, target = process_multiple_columns(target_columns, data_frame)
         else:
-            # no target in data
-            features = data_array[1:].T
-            target = None
+            features, target = process_one_column(target_columns, data_frame,
+                                                  data_array)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
@@ -94,19 +94,36 @@ class Data:
     @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
-                   task: Task = Task(TaskTypesEnum.classification)):
+                   task: Task = Task(TaskTypesEnum.classification),
+                   target_size: Optional[Tuple[int, int]] = None):
         """
         :param images: the path to the directory with image data in np.ndarray format or array in np.ndarray format
         :param labels: the path to the directory with image labels in np.ndarray format or array in np.ndarray format
         :param task: the task that should be solved with data
+        :param target_size: size for the images resizing (if necessary)
         :return:
         """
         features = images
         target = labels
 
         if type(images) is str:
-            features = np.load(images)
-            target = np.load(labels)
+            # if upload from path
+            if '*.jpeg' in images:
+                # upload from folder of images
+                path = images
+                images_list = []
+                for file_path in glob.glob(path):
+                    if target_size is not None:
+                        img = _resize_image(file_path, target_size)
+                        images_list.append(img)
+                    else:
+                        raise ValueError('Set target_size for images')
+                features = np.asarray(images_list)
+                target = labels
+            else:
+                # upload from array
+                features = np.load(images)
+                target = np.load(labels)
 
         idx = np.arange(0, len(features))
 
@@ -150,6 +167,48 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
+    @staticmethod
+    def from_json_files(files_path: str,
+                        fields_to_use: List,
+                        label: str = 'label',
+                        task: Task = Task(TaskTypesEnum.classification),
+                        data_type: DataTypesEnum = DataTypesEnum.table,
+                        export_to_meta=False) -> 'InputData':
+        """
+        Generates InputData from the set of JSON files with different fields
+        :param files_path: path the folder with jsons
+        :param fields_to_use: list of fields that will be considered as a features
+        :param label: name of field with target variable
+        :param task: task to solve
+        :param data_type: data type in fields (as well as type for obtained InputData)
+        :param export_to_meta: combine extracted field and save to CSV
+        :return: combined dataset
+        """
+
+        if os.path.isfile(files_path):
+            raise ValueError("""Path to the directory expected but got file""")
+
+        df_data = JSONBatchLoader(path=files_path, label=label, fields_to_use=fields_to_use).extract(export_to_meta)
+
+        if len(fields_to_use) > 1:
+            fields_to_combine = []
+            for f in fields_to_use:
+                fields_to_combine.append(np.array(df_data[f]))
+
+            features = np.column_stack(tuple(fields_to_combine))
+        else:
+            val = df_data[fields_to_use[0]]
+            # process field with nested list
+            if isinstance(val[0], list):
+                val = [v[0] for v in val]
+            features = np.array(val)
+
+        target = np.array(df_data[label])
+        idx = [index for index in range(len(target))]
+
+        return InputData(idx=idx, features=features,
+                         target=target, task=task, data_type=data_type)
+
 
 @dataclass
 class InputData(Data):
@@ -167,17 +226,12 @@ class InputData(Data):
 
     @staticmethod
     def from_predictions(outputs: List['OutputData']):
-        if len(set([output.task.task_type for output in outputs])) > 1:
-            raise ValueError('Inconsistent task types')
-
-        task = outputs[0].task
-        data_type = outputs[0].data_type
-
-        # Update not only features but idx and target also
-        idx, features, target = DataMerger(outputs).merge()
+        """ Method obtain predictions from previous nodes """
+        # Update not only features but idx, target and task also
+        idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
 
         return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=data_type)
+                         data_type=d_type, supplementary_data=updated_info)
 
     def subset(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
@@ -198,159 +252,6 @@ class OutputData(Data):
     target: Optional[np.array] = None
 
 
-def _split_time_series(data, task):
-    """ Split time series data into train and test parts
-
-    :param data: array with data to split (not InputData)
-    :param task: task to solve
-    """
-
-    input_features = data.features
-    input_target = data.target
-    forecast_length = task.task_params.forecast_length
-
-    # Source time series divide into two parts
-    x_train = input_features[:-forecast_length]
-    x_test = input_features[:-forecast_length]
-
-    y_train = x_train
-    y_test = input_target[-forecast_length:]
-
-    idx_for_train = np.arange(0, len(x_train))
-
-    # Define indices for test
-    start_forecast = len(x_train)
-    end_forecast = start_forecast + forecast_length
-    idx_for_predict = np.arange(start_forecast, end_forecast)
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
-
-    test_data = InputData(idx=idx_for_predict,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=DataTypesEnum.ts)
-
-    return train_data, test_data
-
-
-def _split_table(data, task, split_ratio, with_shuffle=False):
-    """ Split table data into train and test parts
-
-    :param data: array with data to split (not InputData)
-    :param task: task to solve
-    :param split_ratio: threshold for partitioning
-    :param with_shuffle: is data needed to be shuffled or not
-    """
-
-    if not 0. < split_ratio < 1.:
-        raise ValueError('Split ratio must belong to the interval (0; 1)')
-    random_state = 42
-
-    # Predictors and target
-    input_features = data.features
-    input_target = data.target
-
-    x_train, x_test, y_train, y_test = train_test_split(input_features,
-                                                        input_target,
-                                                        test_size=1. - split_ratio,
-                                                        shuffle=with_shuffle,
-                                                        random_state=random_state)
-
-    idx_for_train = np.arange(0, len(x_train))
-    idx_for_predict = np.arange(0, len(x_test))
-
-    # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=DataTypesEnum.table)
-
-    test_data = InputData(idx=idx_for_predict,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=DataTypesEnum.table)
-
-    return train_data, test_data
-
-
-def train_test_data_setup(data: InputData, split_ratio=0.8,
-                          shuffle_flag=False) -> Tuple[InputData, InputData]:
-    """ Function for train and test split
-
-    :param data: InputData for train and test splitting
-    :param split_ratio: threshold for partitioning
-    :param shuffle_flag: is data needed to be shuffled or not
-
-    :return train_data: InputData for train
-    :return test_data: InputData for validation
-    """
-    # Split into train and test
-    if data.features is not None:
-        task = data.task
-        if data.data_type == DataTypesEnum.ts:
-            train_data, test_data = _split_time_series(data, task)
-        elif data.data_type == DataTypesEnum.table:
-            train_data, test_data = _split_table(data, task, split_ratio,
-                                                 with_shuffle=shuffle_flag)
-        else:
-            train_data, test_data = _split_table(data, task, split_ratio,
-                                                 with_shuffle=shuffle_flag)
-    else:
-        raise ValueError('InputData must be not empty')
-
-    return train_data, test_data
-
-
-def train_test_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
-    """ The function for splitting data into a train and test samples
-        in the InputData format for KFolds cross validation. The function
-        return a generator of tuples, consisting of a pair of train, test.
-
-    :param data: InputData for train and test splitting
-    :param folds: number of folds
-
-    :return Iterator[InputData, InputData]: return split train/test data
-    """
-    kf = KFold(n_splits=folds)
-
-    for train_idxs, test_idxs in kf.split(data.features):
-        train_features, train_target = \
-            _features_and_target_by_index(train_idxs, data)
-        test_features, test_target = \
-            _features_and_target_by_index(test_idxs, data)
-
-        idx_for_train = np.arange(0, len(train_features))
-        idx_for_test = np.arange(0, len(test_features))
-
-        train_data = InputData(idx=idx_for_train,
-                               features=train_features,
-                               target=train_target,
-                               task=data.task,
-                               data_type=data.data_type)
-        test_data = InputData(idx=idx_for_test,
-                              features=test_features,
-                              target=test_target,
-                              task=data.task,
-                              data_type=data.data_type)
-
-        yield train_data, test_data
-
-
-def _features_and_target_by_index(index, values: InputData):
-    features = values.features[index, :]
-    target = np.take(values.target, index)
-
-    return features, target
-
-
 def _convert_dtypes(data_frame: pd.DataFrame):
     """ Function converts columns with objects into numerical form and fill na """
     objects: pd.DataFrame = data_frame.select_dtypes('object')
@@ -360,3 +261,54 @@ def _convert_dtypes(data_frame: pd.DataFrame):
         data_frame[column_name] = encoded
     data_frame = data_frame.fillna(0)
     return data_frame
+
+
+def _resize_image(file_path: str, target_size: tuple):
+    im = Image.open(file_path)
+    im_resized = im.resize(target_size, Image.NEAREST)
+    im_resized.save(file_path, 'jpeg')
+
+    img = np.asarray(imageio.imread(file_path, 'jpeg'))
+    if len(img.shape) == 3:
+        # TODO refactor for multi-color
+        img = img[..., 0] + img[..., 1] + img[..., 2]
+    return img
+
+
+def process_one_column(target_column, data_frame, data_array):
+    """ Function process pandas dataframe with single column
+
+    :param target_column: name of column with target or None
+    :param data_frame: loaded panda DataFrame
+    :param data_array: array received from source DataFrame
+    :return features: numpy array (table) with features
+    :return target: numpy array (column) with target
+    """
+    if target_column == '':
+        # Take the last column in the table
+        target_column = data_frame.columns[-1]
+
+    if target_column and target_column in data_frame.columns:
+        target = np.array(data_frame[target_column]).astype(np.float)
+        pos = list(data_frame.keys()).index(target_column)
+        features = np.delete(data_array.T, [0, pos], axis=1)
+    else:
+        # no target in data
+        features = data_array[1:].T
+        target = None
+
+    target = np.array(target)
+    if len(target.shape) < 2:
+        target = target.reshape((-1, 1))
+
+    return features, target
+
+
+def process_multiple_columns(target_columns, data_frame):
+    """ Function for processing target """
+    features = np.array(data_frame.drop(columns=target_columns))
+
+    # Remove index column
+    targets = np.array(data_frame[target_columns])
+
+    return features, targets

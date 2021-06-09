@@ -1,14 +1,37 @@
 {
 	"metadata":{
-		"sklearn_preprocessing": {
+		"data_sources": {
+			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
+			"accepted_node_types": [
+				"PrimaryNode"
+			],
+			"forbidden_node_types": "[]",
+			"strategies": [
+				"fedot.core.operations.evaluation.data_source",
+				"DataSourceStrategy"
+			],
+			"tags": [
+				"non-default"
+			],
+			"description": "Implementations of data sources in multi-modal pipelines"
+		},
+		"custom_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
-			"accepted_node_types": ["any"],
+			"accepted_node_types": [
+				"any"
+			],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
-			"tags": ["sklearn"],
-			"description": "Implementations of the preprocessing from scikit-learn framework"},
+			"strategies": [
+				"fedot.core.operations.evaluation.common_preprocessing",
+				"CustomPreprocessingStrategy"
+			],
+			"tags": [
+				"sklearn"
+			],
+			"description": "Implementations of the preprocessing from scikit-learn framework"
+		},
 		"sklearn_categorical": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering]",
 			"input_type": "[DataTypesEnum.table]",
@@ -27,7 +50,7 @@
 			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
-		"sklearn_regression_filters": {
+		"regression_preprocessing": {
 			"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
@@ -36,7 +59,7 @@
 			"strategies": ["fedot.core.operations.evaluation.regression", "CustomRegressionPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
-		"sklearn_classification_filters": {
+		"classification_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification]",
 			"input_type": "[DataTypesEnum.table]",
 			"output_type": "[DataTypesEnum.table]",
@@ -73,17 +96,38 @@
 			"description": "Preprocessing operations for text classification"
 		}
 	},
-	"operations":{
+	"operations": {
+		"data_source_img": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.image]",
+			"output_type": "[DataTypesEnum.image]"
+		},
+		"data_source_text": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.text]",
+			"output_type": "[DataTypesEnum.text]"
+		},
+		"data_source_table": {
+			"meta": "data_sources",
+			"input_type": "[DataTypesEnum.table]",
+			"output_type": "[DataTypesEnum.table]"
+		},
+		"data_source_ts": {
+			"meta": "data_sources",
+		  	"tags": ["ts_specific"],
+			"input_type": "[DataTypesEnum.ts]",
+			"output_type": "[DataTypesEnum.ts]"
+		},
 		"scaling": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple"]
 		},
 		"normalization": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
-			"meta": "sklearn_preprocessing",
+			"meta": "custom_preprocessing",
 			"tags": ["simple", "imputation"]
 		},
 		"pca": {
@@ -107,48 +151,71 @@
 			"tags": ["categorical", "dimensionality_transforming"]
 		},
 		"ransac_lin_reg": {
-			"meta": "sklearn_regression_filters",
+			"meta": "regression_preprocessing",
 			"tags": ["affects_target", "linear", "filtering"]
 		},
 		"ransac_non_lin_reg": {
-			"meta": "sklearn_regression_filters",
+			"meta": "regression_preprocessing",
 			"tags": ["affects_target", "non_linear", "filtering"]
 		},
 		"rfe_lin_reg": {
-			"meta": "sklearn_regression_filters",
+			"meta": "regression_preprocessing",
 			"tags": ["linear", "feature_selection"]
 		},
 		"rfe_non_lin_reg": {
-			"meta": "sklearn_regression_filters",
+			"meta": "regression_preprocessing",
 			"tags": ["non_linear", "feature_selection"]
 		},
 		"rfe_lin_class": {
-			"meta": "sklearn_classification_filters",
+			"meta": "classification_preprocessing",
 			"tags": ["linear", "feature_selection"]
 		},
 		"rfe_non_lin_class": {
-			"meta": "sklearn_classification_filters",
+			"meta": "classification_preprocessing",
 			"tags": ["non_linear", "feature_selection"]
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["affects_target", "dimensionality_transforming", "ts_specific"]
+			"tags": [
+				"affects_target",
+				"dimensionality_transforming",
+				"ts_specific"
+			]
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "smoothing", "ts_specific"]
+			"tags": [
+				"simple",
+				"smoothing",
+				"ts_specific"
+			]
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "smoothing", "ts_specific"]
+			"tags": [
+				"simple",
+				"smoothing",
+				"ts_specific"
+			]
 		},
-		"exog": {
+		"exog_ts_data_source": {
 			"meta": "custom_time_series_transformation",
-			"tags": ["simple", "ts_specific"]
+			"tags": [
+				"simple",
+				"ts_specific"
+			]
 		},
 		"text_clean": {
 			"meta": "text_preprocessing",
 			"tags": []
+		},
+		"decompose": {
+			"meta": "regression_preprocessing",
+			"tags": ["non-default"]
+		},
+		"class_decompose": {
+			"meta": "classification_preprocessing",
+			"tags": ["non-default"]
 		}
 	}
 }

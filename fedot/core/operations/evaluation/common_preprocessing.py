@@ -19,7 +19,7 @@ class CustomPreprocessingStrategy(EvaluationStrategy):
         'pca': PCAImplementation,
         'kernel_pca': KernelPCAImplementation,
         'poly_features': PolyFeaturesImplementation,
-        'one_hot_encoding': OneHotEncodingImplementation,
+        'one_hot_encoding': OneHotEncodingImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

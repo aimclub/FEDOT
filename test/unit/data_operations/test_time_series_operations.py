@@ -1,13 +1,13 @@
 import numpy as np
-from numpy import nan
 
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
+    _prepare_target, _ts_to_table
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
-    import _ts_to_table, _prepare_target
 
 window_size = 4
 forecast_length = 4
@@ -136,20 +136,20 @@ def test_forecast_with_exog():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
     # Source data for lagged node
-    node_lagged = PrimaryNode('lagged', node_data={'fit': train_source_ts,
-                                                   'predict': predict_source_ts})
+    node_lagged = PrimaryNode('lagged')
     # Set window size for lagged transformation
     node_lagged.custom_params = {'window_size': window_size}
     # Exogenous variable for exog node
-    node_exog = PrimaryNode('exog', node_data={'fit': train_exog_ts,
-                                               'predict': predict_exog_ts})
+    node_exog = PrimaryNode('exog_ts_data_source')
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_exog])
     chain = Chain(node_final)
 
-    chain.fit()
+    chain.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
+                                         'lagged': train_source_ts}))
 
-    forecast = chain.predict()
+    forecast = chain.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
+                                                        'lagged': predict_source_ts}))
     prediction = np.ravel(np.array(forecast.predict))
 
     assert tuple(prediction) == tuple(ts_test)

@@ -2,12 +2,11 @@ from sklearn.impute import SimpleImputer
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation.operation_implementations.data_operations. \
+    sklearn_transformations import OneHotEncodingImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.repository.tasks import compatible_task_types
-from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    sklearn_transformations import OneHotEncodingImplementation
+from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -40,11 +39,11 @@ class Operation:
             params_for_fit = self.params
 
         try:
-            self._eval_strategy = _eval_strategy_for_task(self.operation_type,
-                                                          task.task_type,
-                                                          self.operations_repo)(
-                self.operation_type,
-                params_for_fit)
+            self._eval_strategy = \
+                _eval_strategy_for_task(self.operation_type,
+                                        task.task_type,
+                                        self.operations_repo)(self.operation_type,
+                                                              params_for_fit)
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
             raise ex
@@ -68,7 +67,7 @@ class Operation:
     def metadata(self) -> OperationMetaInfo:
         operation_info = self.operations_repo.operation_info_by_id(self.operation_type)
         if not operation_info:
-            raise ValueError(f'Operation {self.operation_type} not found')
+            raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
     def fit(self, data: InputData, is_fit_chain_stage: bool = True):
@@ -102,6 +101,8 @@ class Operation:
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
+        is_main_target = data.supplementary_data.is_main_target
+        data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode)
 
         data = _fill_remaining_gaps(data, self.operation_type)
@@ -111,6 +112,10 @@ class Operation:
             predict_data=data,
             is_fit_chain_stage=is_fit_chain_stage)
 
+        if is_main_target is False:
+            prediction.supplementary_data.is_main_target = is_main_target
+
+        prediction.supplementary_data.data_flow_length = data_flow_length
         return prediction
 
     def __str__(self):
@@ -157,8 +162,8 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
     # TODO discuss: move this "filling" to the chain method - we use such method too much here (for all tables)
     #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays
     features = data.features
-    is_operation_not_for_text = operation_type != 'text_clean'
-    if data.data_type == DataTypesEnum.table and is_operation_not_for_text:
+
+    if data.data_type == DataTypesEnum.table and data.task.task_type != TaskTypesEnum.ts_forecasting:
         # Got indices of columns with string objects
         categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
 

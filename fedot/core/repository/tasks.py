@@ -36,7 +36,7 @@ def compatible_task_types(main_task_type: TaskTypesEnum) -> List[TaskTypesEnum]:
     _compatible_task_types = {
         TaskTypesEnum.ts_forecasting: [TaskTypesEnum.regression],
         TaskTypesEnum.classification: [TaskTypesEnum.clustering],
-        TaskTypesEnum.regression: [TaskTypesEnum.clustering]
+        TaskTypesEnum.regression: [TaskTypesEnum.clustering, TaskTypesEnum.classification]
     }
     if main_task_type not in _compatible_task_types:
         return []

@@ -2,11 +2,11 @@ from abc import ABC
 from copy import copy
 from typing import List, Optional
 
+from fedot.core.chains.node_operator import NodeOperator
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
-from fedot.core.chains.node_operator import NodeOperator
 
 
 class Node(ABC):
@@ -15,6 +15,8 @@ class Node(ABC):
 
     :param nodes_from: parent nodes which information comes from
     :param operation_type: str type of the operation defined in operation repository
+                            the custom prefix can be added after / (to highlight the specific node)
+                            The prefix will be ignored at Implementation stage
     :param log: Log object to record messages
     """
 
@@ -23,7 +25,7 @@ class Node(ABC):
                  log=None):
         self.nodes_from = nodes_from
         self.log = log
-        self.fitted_operation = None
+        self._fitted_operation = None
         self._operator = NodeOperator(self)
 
         if not log:
@@ -65,6 +67,21 @@ class Node(ABC):
         full_path += f'/{node_label}'
         return full_path
 
+    @property
+    def fitted_operation(self):
+        if hasattr(self, '_fitted_operation'):
+            return self._fitted_operation
+        else:
+            return None
+
+    @fitted_operation.setter
+    def fitted_operation(self, value):
+        if value is None:
+            if hasattr(self, '_fitted_operation'):
+                del self._fitted_operation
+        else:
+            self._fitted_operation = value
+
     def unfit(self):
         self.fitted_operation = None
 
@@ -74,15 +91,13 @@ class Node(ABC):
 
         :param input_data: data used for operation training
         """
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
 
         if self.fitted_operation is None:
-            self.fitted_operation, operation_predict = self.operation.fit(data=copied_input_data,
+            self.fitted_operation, operation_predict = self.operation.fit(data=input_data,
                                                                           is_fit_chain_stage=True)
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       data=copied_input_data,
+                                                       data=input_data,
                                                        is_fit_chain_stage=True)
 
         return operation_predict
@@ -94,11 +109,8 @@ class Node(ABC):
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
-
         operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                   data=copied_input_data,
+                                                   data=input_data,
                                                    output_mode=output_mode,
                                                    is_fit_chain_stage=False)
         return operation_predict
@@ -140,10 +152,10 @@ class PrimaryNode(Node):
         super().__init__(nodes_from=None, operation_type=operation_type, **kwargs)
 
         if node_data is None:
-            self.node_data = {}
+            self._node_data = {}
             self.direct_set = False
         else:
-            self.node_data = node_data
+            self._node_data = node_data
             # Was the data passed directly to the node or not
             self.direct_set = True
 
@@ -155,11 +167,16 @@ class PrimaryNode(Node):
         """
         self.log.ext_debug(f'Trying to fit primary node with operation: {self.operation}')
 
-        if self.direct_set is True:
-            input_data = self.node_data.get('fit')
+        if self.direct_set:
+            input_data = self.node_data
         else:
-            self.node_data.update({'fit': input_data})
+            self.node_data = input_data
         return super().fit(input_data)
+
+    def unfit(self):
+        self.fitted_operation = None
+        if hasattr(self, 'node_data'):
+            self.node_data = None
 
     def predict(self, input_data: InputData,
                 output_mode: str = 'default') -> OutputData:
@@ -171,15 +188,30 @@ class PrimaryNode(Node):
         """
         self.log.ext_debug(f'Predict in primary node by operation: {self.operation}')
 
-        if self.direct_set is True:
-            input_data = self.node_data.get('predict')
+        if self.direct_set:
+            input_data = self.node_data
         else:
-            self.node_data.update({'predict': input_data})
+            self.node_data = input_data
         return super().predict(input_data, output_mode)
 
     def get_data_from_node(self):
         """ Method returns data if the data was set to the nodes directly """
         return self.node_data
+
+    @property
+    def node_data(self):
+        if hasattr(self, '_node_data'):
+            return self._node_data
+        else:
+            return {}
+
+    @node_data.setter
+    def node_data(self, value):
+        if value is None:
+            if hasattr(self, '_node_data'):
+                del self._node_data
+        else:
+            self._node_data = value
 
 
 class SecondaryNode(Node):
@@ -264,7 +296,6 @@ def _combine_parents(parent_nodes: List[Node],
         target = input_data.target
     parent_results = []
     for parent in parent_nodes:
-
         if parent_operation == 'predict':
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)

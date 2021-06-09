@@ -93,9 +93,7 @@ def evaluate_individuals(individuals_set, objective_function, is_multi_objective
                     individuals_set.remove(individuals_set[0])
                 break
     if len(individuals_set) == 0:
-        raise AttributeError('List became empty after incorrect individuals removing. '
-                             'It can occur because of too short model fitting time constraint'
-                             'or chain generation errors')
+        raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
 
 
 def calculate_objective(ind: Any, objective_function: Callable, is_multi_objective: bool) -> Any:

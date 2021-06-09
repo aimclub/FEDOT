@@ -12,7 +12,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-from cases.credit_scoring_problem import get_scoring_data
+from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from test.unit.models.test_model import classification_dataset
 
 

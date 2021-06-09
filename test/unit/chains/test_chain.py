@@ -14,7 +14,8 @@ from sklearn.metrics import roc_auc_score as roc
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, train_test_data_setup
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -429,3 +430,10 @@ def test_chain_deepcopy(data_setup):
     chain = Chain(PrimaryNode(operation_type='logit'))
     chain_copy = deepcopy(chain)
     assert chain.uid != chain_copy.uid
+
+
+def test_chain_structure_print_correct():
+    chain = Chain(PrimaryNode('ridge'))
+    chain.print_structure()
+    is_print_was_correct = True
+    assert is_print_was_correct

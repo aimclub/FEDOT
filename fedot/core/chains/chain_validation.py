@@ -4,10 +4,11 @@ import networkx as nx
 from networkx.algorithms.cycles import simple_cycles
 from networkx.algorithms.isolate import isolates
 
-from fedot.core.chains.chain import Chain
+from fedot.core.chains.chain import Chain, nodes_with_operation
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import \
     OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task
@@ -25,6 +26,8 @@ def validate(chain: Chain, task: Optional[Task] = None):
     has_correct_operation_positions(chain, task)
     has_final_operation_as_model(chain)
     has_no_conflicts_with_data_flow(chain)
+    has_no_conflicts_in_decompose(chain)
+    has_correct_data_connections(chain)
 
     # TSForecasting specific task validations
     if is_chain_contains_ts_operations(chain) is True:
@@ -122,6 +125,36 @@ def has_no_conflicts_with_data_flow(chain: Chain):
     return True
 
 
+def has_correct_data_connections(chain: Chain):
+    """ Check if the chain contains incorrect connections between operation for different data types """
+    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    models_repo = OperationTypesRepository(repository_name='model_repository.json')
+
+    for node in chain.nodes:
+        parent_nodes = node.nodes_from
+
+        if parent_nodes is not None and len(parent_nodes) > 0:
+            for parent_node in parent_nodes:
+                current_nodes_supported_data_types = \
+                    get_supported_data_types(node, operation_repo, models_repo)
+                parent_node_supported_data_types = \
+                    get_supported_data_types(parent_node, operation_repo, models_repo)
+
+                node_dtypes = set(current_nodes_supported_data_types.input_types)
+                parent_dtypes = set(parent_node_supported_data_types.output_types)
+                if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
+                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect data connections')
+
+    return True
+
+
+def get_supported_data_types(node, operation_repo, models_repo):
+    supported_data_types = operation_repo.operation_info_by_id(node.operation.operation_type)
+    if supported_data_types is None:
+        supported_data_types = models_repo.operation_info_by_id(node.operation.operation_type)
+    return supported_data_types
+
+
 def is_chain_contains_ts_operations(chain: Chain):
     """ Function checks is the model contains operations for time series
     forecasting """
@@ -149,7 +182,7 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
                                            tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')
-    ts_data_operations.remove('exog')
+    ts_data_operations.remove('exog_ts_data_source')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],
@@ -186,15 +219,31 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
 
 def only_ts_specific_operations_are_primary(chain: Chain):
     """ Only time series specific operations could be placed in primary nodes """
+    # TODO refactor to check by data types instead tags
     ts_data_operations = get_ts_operations(mode='data_operations',
                                            tags=["ts_specific"])
 
     # Check only primary nodes
     for node in chain.nodes:
-        if type(node) == PrimaryNode:
-            if node.operation.operation_type not in ts_data_operations:
-                raise ValueError(
-                    f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+        if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
+            raise ValueError(
+                f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+
+    return True
+
+
+def has_no_conflicts_in_decompose(chain: Chain):
+    """ The function checks whether the 'class_decompose' or 'decompose'
+    operation has two ancestors
+    """
+
+    for decomposer in ['decompose', 'class_decompose']:
+        decompose_nodes = nodes_with_operation(chain,
+                                               decomposer)
+        if len(decompose_nodes) != 0:
+            # Launch check decomposers
+            __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)
+            __check_decompose_parent_position(nodes_to_check=decompose_nodes)
 
     return True
 
@@ -202,3 +251,31 @@ def only_ts_specific_operations_are_primary(chain: Chain):
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
         raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
+
+
+def __check_decompose_parent_position(nodes_to_check: list):
+    """ Function check if the data flow before decompose operation is correct
+    or not
+
+    :param nodes_to_check: list with decompose nodes in the chain
+    """
+    for decompose_node in nodes_to_check:
+        parents = decompose_node.nodes_from
+        model_parent = parents[0]
+
+        if type(model_parent.operation) is not Model:
+            raise ValueError(f'{ERROR_PREFIX} For decompose operation Model as first parent is required')
+
+
+def __check_decomposer_has_two_parents(nodes_to_check: list):
+    """ Function check if there are two parent nodes for decompose operation
+
+    :param nodes_to_check: list with decompose nodes in the chain
+    """
+
+    for decompose_node in nodes_to_check:
+        parents = decompose_node.nodes_from
+
+        if len(parents) != 2:
+            raise ValueError(f'{ERROR_PREFIX} Two parents for decompose node were'
+                             f' expected, but {len(parents)} were given')

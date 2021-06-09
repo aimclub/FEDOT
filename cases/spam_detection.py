@@ -1,19 +1,12 @@
 import os
-import tarfile
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from cases.dataset_preparation import unpack_archived_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, train_test_data_setup
-
-
-def unpack_archived_data():
-    archive_path = os.path.abspath(os.path.join('data', 'spamham.tar.gz'))
-    if 'spamham' not in os.listdir(os.path.dirname(archive_path)):
-        with tarfile.open(archive_path) as file:
-            file.extractall(path=os.path.dirname(archive_path))
-        print('Unpacking finished')
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 
 
 def execute_chain_for_text_problem(train_data, test_data):
@@ -43,9 +36,9 @@ def run_text_problem_from_meta_file():
 
 
 def run_text_problem_from_files():
-    unpack_archived_data()
-
     data_abspath = os.path.abspath(os.path.join('data', 'spamham'))
+
+    unpack_archived_data(data_abspath)
 
     train_path = os.path.join(data_abspath, 'train')
     test_path = os.path.join(data_abspath, 'test')
@@ -59,7 +52,6 @@ def run_text_problem_from_files():
 
 
 def run_text_problem_from_saved_meta_file(path):
-
     data = InputData.from_text_meta_file(meta_file_path=path)
 
     train_data, test_data = train_test_data_setup(data, split_ratio=0.7)
@@ -72,7 +64,3 @@ def run_text_problem_from_saved_meta_file(path):
 if __name__ == '__main__':
     run_text_problem_from_meta_file()
     run_text_problem_from_files()
-
-    # Example with csv file
-    data_file_path = os.path.abspath(os.path.join('data', 'spamham', 'spam_detection_train.csv'))
-    run_text_problem_from_saved_meta_file(data_file_path)

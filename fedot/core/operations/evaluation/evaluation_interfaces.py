@@ -1,35 +1,33 @@
 import warnings
-
 from abc import abstractmethod
 from typing import Optional
 
+from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (AdaBoostRegressor,
                               ExtraTreesRegressor,
                               GradientBoostingRegressor,
                               RandomForestRegressor)
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import (Lasso as SklearnLassoReg,
                                   LinearRegression as SklearnLinReg,
                                   Ridge as SklearnRidgeReg,
                                   SGDRegressor as SklearnSGD)
-
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
-from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-
 from sklearn.svm import LinearSVR as SklearnSVR
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBClassifier
 from xgboost import XGBRegressor
 
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.log import Log, default_log
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
+                                                              get_operation_type_from_id)
+from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -46,7 +44,7 @@ class EvaluationStrategy:
     def __init__(self, operation_type: str, params: Optional[dict] = None,
                  log=None):
         self.params_for_fit = params
-        self.operation_type = operation_type
+        self.operation_id = operation_type
 
         self.output_mode = False
 
@@ -54,6 +52,10 @@ class EvaluationStrategy:
             self.log: Log = default_log(__name__)
         else:
             self.log: Log = log
+
+    @property
+    def operation_type(self):
+        return get_operation_type_from_id(self.operation_id)
 
     @abstractmethod
     def fit(self, train_data: InputData):
@@ -103,7 +105,8 @@ class EvaluationStrategy:
                                    predict=prediction,
                                    task=predict_data.task,
                                    target=predict_data.target,
-                                   data_type=output_data_type)
+                                   data_type=output_data_type,
+                                   supplementary_data=predict_data.supplementary_data)
         else:
             converted = prediction
 
@@ -144,7 +147,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
-        self.operation_type = operation_type
+        self.operation_id = operation_type
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -160,7 +163,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        # If model doesn't support mulio-utput and current task is ts_forecasting
+        # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
         non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,

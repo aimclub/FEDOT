@@ -8,6 +8,7 @@ from fedot.core.chains.chain_validation import (has_correct_operation_positions,
                                                 has_no_conflicts_with_data_flow,
                                                 is_chain_contains_ts_operations,
                                                 has_no_data_flow_conflicts_in_ts_chain,
+                                                has_no_conflicts_in_decompose,
                                                 only_ts_specific_operations_are_primary)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -186,6 +187,39 @@ def ts_chain_with_incorrect_data_flow():
     return chain
 
 
+def chain_with_incorrect_parent_amount_for_decompose():
+    """ Chain structure:
+           logit
+    scaling                        xgboost
+           class_decompose -> rfr
+    For class_decompose connection with "logit" model needed
+    """
+
+    node_scaling = PrimaryNode('scaling')
+    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
+    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_scaling])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
+    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
+    chain = Chain(node_xgboost)
+    return chain
+
+
+def chain_with_incorrect_parents_position_for_decompose():
+    """ Chain structure:
+         scaling
+    logit                       xgboost
+         class_decompose -> rfr
+    """
+
+    node_first = PrimaryNode('logit')
+    node_second = SecondaryNode('scaling', nodes_from=[node_first])
+    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
+    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
+    chain = Chain(node_xgboost)
+    return chain
+
+
 def test_chain_with_cycle_raise_exception():
     chain = chain_with_cycle()
     with pytest.raises(Exception) as exc:
@@ -297,3 +331,21 @@ def test_only_ts_specific_operations_are_primary():
         assert only_ts_specific_operations_are_primary(incorrect_chain)
 
     assert str(exc.value) == f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
+
+
+def test_has_two_parents_for_decompose_operations():
+    incorrect_chain = chain_with_incorrect_parent_amount_for_decompose()
+
+    with pytest.raises(Exception) as exc:
+        assert has_no_conflicts_in_decompose(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
+
+
+def test_decompose_parents_has_wright_positions():
+    incorrect_chain = chain_with_incorrect_parents_position_for_decompose()
+
+    with pytest.raises(Exception) as exc:
+        assert has_no_conflicts_in_decompose(incorrect_chain)
+
+    assert str(exc.value) == f'{ERROR_PREFIX} For decompose operation Model as first parent is required'
