@@ -1,3 +1,4 @@
+from functools import partial
 from typing import List, Optional, Tuple, Union
 import random
 from functools import partial
@@ -187,6 +188,8 @@ class Fedot:
         :return: the array with prediction values
         """
 
+        # TODO use forecast length
+
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
@@ -288,3 +291,4 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
+

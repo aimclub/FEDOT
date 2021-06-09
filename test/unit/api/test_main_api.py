@@ -6,9 +6,11 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+
 from fedot.api.api_utils.data import Fedot_data_helper
 from cases.metocean_forecasting_problem import prepare_input_data
 from fedot.api.main import Fedot
+
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
