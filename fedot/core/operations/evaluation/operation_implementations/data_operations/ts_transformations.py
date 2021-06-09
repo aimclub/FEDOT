@@ -250,7 +250,6 @@ def _ts_to_table(idx, time_series, window_size):
     :return updated_idx: clipped indices of time series
     :return features_columns: lagged time series feature table
     """
-
     # Convert data to lagged form
     lagged_dataframe = pd.DataFrame({'t_id': time_series})
     vals = lagged_dataframe['t_id']

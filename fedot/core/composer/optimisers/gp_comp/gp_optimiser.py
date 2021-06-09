@@ -129,12 +129,26 @@ class GPChainOptimiser:
         self.population = None
         if initial_chain:
             if type(initial_chain) != list:
-                self.population = \
-                    [Individual(chain=deepcopy(initial_chain)) for _ in range(self.requirements.pop_size)]
+                self.population = self._create_randomized_pop_from_inital_chain(initial_chain)
             else:
                 self.population = [Individual(chain=c) for c in initial_chain]
 
         self.history = ComposingHistory(metrics)
+
+    def _create_randomized_pop_from_inital_chain(self, initial_chain) -> List[Individual]:
+        """
+        Fill first population with mutated variants of the initial_chain
+        :param initial_chain: Initial assumption for first population
+        :return: list of individuals
+        """
+        initial_req = deepcopy(self.requirements)
+        initial_req.mutation_prob = 1
+        randomized_pop = ([mutation(types=self.parameters.mutation_types,
+                                    chain_generation_params=self.chain_generation_params,
+                                    ind=Individual(deepcopy(initial_chain)), requirements=initial_req,
+                                    max_depth=self.max_depth, log=self.log)
+                           for _ in range(self.requirements.pop_size)])
+        return randomized_pop
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None):

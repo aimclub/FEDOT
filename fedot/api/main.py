@@ -1,4 +1,5 @@
 import random
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -11,6 +12,7 @@ from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.composer.optimisers.utils.pareto import ParetoFront
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -172,7 +174,7 @@ class Fedot:
         self.current_model = None
 
     def fit(self,
-            features: Union[str, np.ndarray, pd.DataFrame, InputData],
+            features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
             target: Union[str, np.ndarray, pd.Series] = 'target',
             predefined_model: Union[str, Chain] = None):
         """
@@ -206,7 +208,7 @@ class Fedot:
         return self._obtain_model(is_composing_required)
 
     def predict(self,
-                features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
@@ -240,7 +242,7 @@ class Fedot:
         return output_prediction.predict
 
     def predict_proba(self,
-                      features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                      features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                       save_predictions: bool = False,
                       probs_for_all_classes: bool = False):
         """
@@ -272,7 +274,7 @@ class Fedot:
         return self.prediction.predict
 
     def forecast(self,
-                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData],
+                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict],
                  forecast_length: int = 1,
                  save_predictions: bool = False):
         """
@@ -283,6 +285,8 @@ class Fedot:
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
         """
+
+        # TODO use forecast length
 
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -298,8 +302,10 @@ class Fedot:
                                       is_predict=True)
 
         self.current_model = Chain(self.current_model.root_node)
-
+        # TODO add incremental forecast
         self.prediction = self.current_model.predict(self.test_data)
+        if len(self.prediction.predict.shape) > 1:
+            self.prediction.predict = np.squeeze(self.prediction.predict)
 
         if save_predictions:
             save_predict(self.prediction)
@@ -377,7 +383,7 @@ class Fedot:
 
 
 def _define_data(ml_task: Task,
-                 features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                 features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                  target: Union[str, np.ndarray, pd.Series] = None,
                  is_predict=False):
     if type(features) == InputData:
@@ -436,6 +442,17 @@ def _define_data(ml_task: Task,
             data = InputData.from_csv(features, task=ml_task,
                                       target_columns=target,
                                       data_type=data_type)
+    elif type(features) == dict:
+        if target is None:
+            target = np.array([])
+        target_array = target
+
+        data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
+
+        # create labels for data sources
+        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
+                       for (data_part_key, data_part) in features.items())
+        data = MultiModalData(sources)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
 
