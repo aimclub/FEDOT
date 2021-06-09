@@ -10,15 +10,9 @@ from fedot.core.log import Log, default_log
 class KNeighborsImplementation(ModelImplementation):
 
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__()
+        super().__init__(log)
         self.params = params
         self.model = None
-
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def fit(self, train_data):
         """ Method fit model on a dataset

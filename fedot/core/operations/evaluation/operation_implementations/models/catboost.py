@@ -3,20 +3,23 @@ from catboost import CatBoostRegressor, CatBoostClassifier
 
 from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log
 
 
 class CatBoostImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__()
-        self.params = params
-        self.model = None
+        super().__init__(log)
 
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
+        _default_params = {
+            "allow_writing_files": False,
+            "verbose": False
+        }
+        if params is not None:
+            self.params = {**params, **_default_params}
         else:
-            self.log = log
+            self.params = _default_params
+
+        self.model = None
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -48,15 +51,8 @@ class CatBoostImplementation(ModelImplementation):
 
 class CustomCatBoostClassImplementation(CatBoostImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__(log)
-        _default_params = {
-            "allow_writing_files": False,
-            "verbose": False
-        }
-        if params is not None:
-            self.params = {**params, **_default_params}
-        else:
-            self.params = _default_params
+        super().__init__(log, **params)
+
         self.model = CatBoostClassifier(**self.params)
 
     def predict_proba(self, input_data):
@@ -76,13 +72,6 @@ class CustomCatBoostClassImplementation(CatBoostImplementation):
 
 class CustomCatBoostRegImplementation(CatBoostImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__(log)
-        _default_params = {
-            "allow_writing_files": False,
-            "verbose": False
-        }
-        if params is not None:
-            self.params = {**params, **_default_params}
-        else:
-            self.params = _default_params
+        super().__init__(log, **params)
+
         self.model = CatBoostRegressor(**self.params)

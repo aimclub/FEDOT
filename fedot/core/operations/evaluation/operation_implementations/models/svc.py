@@ -5,11 +5,12 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.log import Log
 
 
 class CustomSVCImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         if not params:
             self.inner_model = SVC(kernel='linear',
                                    probability=True,

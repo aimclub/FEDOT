@@ -12,6 +12,7 @@ from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
@@ -62,156 +63,41 @@ def classification_dataset_with_redunant_features(
     return input_data
 
 
-def test_log_regression_fit_correct(classification_dataset):
-    data = classification_dataset
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    log_reg = Model(operation_type='logit')
-    _, train_predicted = log_reg.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_random_forest_fit_correct(data_fixture, request):
+def test_classification_models_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    random_forest = Model(operation_type='rf')
-    _, train_predicted = random_forest.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
     roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
+
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+                                                 tags=['ml'])
+
+    for model_name in model_names:
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=train_data)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        roc_on_test = get_roc_auc(valid_data=test_data,
+                                  predicted_data=test_pred)
+        assert roc_on_test >= roc_threshold
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_decision_tree_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    decision_tree = Model(operation_type='dt')
-    _, train_predicted = decision_tree.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_lda_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    lda = Model(operation_type='lda')
-    _, train_predicted = lda.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_lgbmclass_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    chain = Chain(PrimaryNode('lgbm'))
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
-
-    roc_on_train = get_roc_auc(valid_data=test_data,
-                               predicted_data=test_pred)
-
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
-def test_lgbmreg_fit_correct():
-    data = get_synthetic_regression_data(random_state=42)
+def test_regression_models_fit_correct():
+    data = get_synthetic_regression_data(n_samples=1000, random_state=42)
     train_data, test_data = train_test_data_setup(data)
 
-    chain = Chain(PrimaryNode('lgbmreg'))
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
-    rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+                                                 tags=['ml'])
 
-    rmse_threshold = np.std(test_data.target) * 2
-    assert rmse_value_test < rmse_threshold
+    for model_name in model_names:
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=train_data)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_catboost_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    chain = Chain(PrimaryNode('catboost'))
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
-
-    roc_on_train = get_roc_auc(valid_data=test_data,
-                               predicted_data=test_pred)
-
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
-def test_catboostreg_fit_correct():
-    data = get_synthetic_regression_data(random_state=42)
-    train_data, test_data = train_test_data_setup(data)
-
-    chain = Chain(PrimaryNode('catboostreg'))
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
-    rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
-
-    rmse_threshold = np.std(test_data.target)
-    assert rmse_value_test < rmse_threshold
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_qda_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    qda = Model(operation_type='qda')
-    _, train_predicted = qda.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
+        rmse_threshold = np.std(test_data.target) ** 2
+        assert rmse_value_test < rmse_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

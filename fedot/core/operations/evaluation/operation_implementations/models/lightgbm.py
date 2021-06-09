@@ -3,20 +3,28 @@ import lightgbm
 
 from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log
 
 
 class LightGBMImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__()
-        self.params = params
-        self.model = None
+        super().__init__(log)
 
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
+        _default_params = {
+            "num_leaves": 32,
+            "feature_fraction": 0.8,
+            "bagging_fraction": 0.8,
+            "bagging_freq": 10,
+            "learning_rate": 0.03,
+            "n_estimators": 3000,
+            "random_state": 42
+        }
+        if params is not None:
+            self.params = {**params, **_default_params}
         else:
-            self.log = log
+            self.params = _default_params
+
+        self.model = None
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -24,7 +32,8 @@ class LightGBMImplementation(ModelImplementation):
         :param train_data: data to train the model
         """
 
-        raise NotImplementedError()
+        self.model.fit(train_data.features, train_data.target)
+        return self.model
 
     def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
         """ Method for making prediction
@@ -47,30 +56,9 @@ class LightGBMImplementation(ModelImplementation):
 
 class CustomLightGBMClassImplementation(LightGBMImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__(log)
-        _default_params = {
-            "num_leaves": 32,
-            "feature_fraction": 0.8,
-            "bagging_fraction": 0.8,
-            "bagging_freq": 10,
-            "learning_rate": 0.03,
-            "n_estimators": 3000,
-            "random_state": 42
-        }
-        if params is not None:
-            self.params = {**params, **_default_params}
-        else:
-            self.params = _default_params
+        super().__init__(log, **params)
+
         self.model = lightgbm.LGBMClassifier(**self.params)
-
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-
-        self.model.fit(train_data.features, train_data.target)
-        return self.model
 
     def predict_proba(self, input_data):
         """ Method make prediction with probabilities of classes
@@ -89,27 +77,6 @@ class CustomLightGBMClassImplementation(LightGBMImplementation):
 
 class CustomLightGBMRegImplementation(LightGBMImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__(log)
-        _default_params = {
-            "num_leaves": 32,
-            "feature_fraction": 0.8,
-            "bagging_fraction": 0.8,
-            "bagging_freq": 10,
-            "learning_rate": 0.03,
-            "n_estimators": 3000,
-            "random_state": 42
-        }
-        if params is not None:
-            self.params = {**params, **_default_params}
-        else:
-            self.params = _default_params
+        super().__init__(log, **params)
+
         self.model = lightgbm.LGBMRegressor(**self.params)
-
-    def fit(self, train_data):
-        """ Method fit model on a dataset
-
-        :param train_data: data to train the model
-        """
-
-        self.model.fit(train_data.features, train_data.target)
-        return self.model

@@ -133,8 +133,8 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class CustomCNNImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         self.params = {'image_shape': (28, 28, 1),
                        'num_classes': 2,
                        'log': default_log(__name__),

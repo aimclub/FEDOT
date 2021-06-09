@@ -9,12 +9,13 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.log import Log
 
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         self.params = params
         self.arima = None
         self.lmbda = None
@@ -147,8 +148,8 @@ class ARIMAImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         self.params = params
         self.actual_ts_len = None
         self.autoreg = None
