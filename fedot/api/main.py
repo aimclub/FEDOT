@@ -187,9 +187,6 @@ class Fedot:
         :return: the array with prediction values
         """
 
-        if self.composer_dict['current_model'] is None:
-        # TODO use forecast length
-
         if self.current_model is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
@@ -291,80 +288,3 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
-
-
-def _define_data(ml_task: Task,
-                 features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-                 target: Union[str, np.ndarray, pd.Series] = None,
-                 is_predict=False):
-    if type(features) == InputData:
-        # native FEDOT format for input data
-        data = features
-        data.task = ml_task
-    elif type(features) == pd.DataFrame:
-        # pandas format for input data
-        if target is None:
-            target = np.array([])
-
-        if isinstance(target, str) and target in features.columns:
-            target_array = features[target]
-            del features[target]
-        else:
-            target_array = target
-
-        data = array_to_input_data(features_array=np.asarray(features),
-                                   target_array=np.asarray(target_array),
-                                   task=ml_task)
-    elif type(features) == np.ndarray:
-        # numpy format for input data
-        if target is None:
-            target = np.array([])
-
-        if isinstance(target, str):
-            target_array = features[target]
-            del features[target]
-        else:
-            target_array = target
-
-        data = array_to_input_data(features_array=features,
-                                   target_array=target_array,
-                                   task=ml_task)
-    elif type(features) == tuple:
-        data = array_to_input_data(features_array=features[0],
-                                   target_array=features[1],
-                                   task=ml_task)
-    elif type(features) == str:
-        # CSV files as input data, by default - table data
-        if target is None:
-            target = 'target'
-
-        data_type = DataTypesEnum.table
-        if ml_task.task_type == TaskTypesEnum.ts_forecasting:
-            # For time series forecasting format - time series
-            data = InputData.from_csv_time_series(task=ml_task,
-                                                  file_path=features,
-                                                  target_column=target,
-                                                  is_predict=is_predict)
-        else:
-            # Make default features table
-            # CSV files as input data
-            if target is None:
-                target = 'target'
-            data = InputData.from_csv(features, task=ml_task,
-                                      target_columns=target,
-                                      data_type=data_type)
-    elif type(features) == dict:
-        if target is None:
-            target = np.array([])
-        target_array = target
-
-        data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
-
-        # create labels for data sources
-        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
-                       for (data_part_key, data_part) in features.items())
-        data = MultiModalData(sources)
-    else:
-        raise ValueError('Please specify a features as path to csv file or as Numpy array')
-
-    return data

@@ -8,7 +8,7 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
 class Fedot_metrics_helper():
 
     def get_tuner_metrics_mapping(self,
-                                  metric_name: str):
+                                  metric_name):
         tuner_dict = {
             'acc': accuracy_score,
             'roc_auc': roc_auc_score,
@@ -20,7 +20,7 @@ class Fedot_metrics_helper():
             'rmse': mean_squared_error,
         }
 
-        return tuner_dict[metric_name]
+        return tuner_dict.get(metric_name)
 
     def get_problem_metrics(self,
                             problem: str):
