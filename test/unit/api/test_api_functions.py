@@ -1,5 +1,4 @@
-from fedot.api.api_utils import filter_operations_by_preset
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.api.api_utils.api_utils import filter_operations_by_preset
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 
