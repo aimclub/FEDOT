@@ -2,6 +2,8 @@ import datetime
 from typing import Callable, Union, Optional
 
 import numpy as np
+
+from fedot.api.api_utils.metrics import Fedot_metrics_helper
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import (GPChainOptimiserParameters, GPComposerBuilder,
@@ -10,6 +12,7 @@ from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTyp
 from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
 from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
@@ -20,8 +23,7 @@ from deap import tools
 from fedot.core.composer.optimisers.utils.pareto import ParetoFront
 
 
-class Fedot_composer_helper():
-
+class Fedot_composer_helper(Fedot_metrics_helper):
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the chain quality assessment during composition
@@ -36,28 +38,48 @@ class Fedot_composer_helper():
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
             else:
-                metric_id = self.get_composer_metrics_mapping(specific_metric)
+                metric_id = self.get_composer_metrics_mapping(metric_name=specific_metric)
                 if metric_id is None:
                     raise ValueError(f'Incorrect metric {specific_metric}')
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
             metric_function.append(specific_metric_function)
         return metric_function
 
-    def obtain_initial_assumption(self, task: Task) -> Chain:
-        init_chain = None
-        if task.task_type == TaskTypesEnum.ts_forecasting:
-            # Create init chain
-            node_lagged = PrimaryNode('lagged')
-            node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-            init_chain = Chain(node_final)
-        elif task.task_type == TaskTypesEnum.classification:
-            node_lagged = PrimaryNode('scaling')
-            node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
-            init_chain = Chain(node_final)
-        elif task.task_type == TaskTypesEnum.regression:
-            node_lagged = PrimaryNode('scaling')
-            node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-            init_chain = Chain(node_final)
+    def _assumption_by_data(self,
+                            data,
+                            node_from_task) -> Chain:
+
+        if isinstance(data, MultiModalData):
+            node_final = SecondaryNode('ridge', nodes_from=[])
+            for data_source_name in data.keys():
+                last_node_for_sub_chain = \
+                    SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
+                node_final.nodes_from.append(last_node_for_sub_chain)
+        else:
+            node_final = node_from_task
+
+        return node_final
+
+    def _assumption_by_task(self,
+                            task: Task) -> Chain:
+
+        node_lagged = PrimaryNode('scaling')
+        initial_assumption_dict = {TaskTypesEnum.classification: SecondaryNode('xgboost', nodes_from=[node_lagged]),
+                                   TaskTypesEnum.regression: SecondaryNode('ridge', nodes_from=[node_lagged]),
+                                   TaskTypesEnum.ts_forecasting: SecondaryNode('ridge',
+                                                                               nodes_from=[PrimaryNode('lagged')])}
+
+        return initial_assumption_dict[task.task_type]
+
+    def obtain_initial_assumption(self,
+                                  task: Task,
+                                  data) -> Chain:
+
+        # Create init chain
+        node_from_task = self._assumption_by_task(task=task)
+        node_final = self._assumption_by_data(data=data, node_from_task=node_from_task)
+
+        init_chain = Chain(node_final)
         return init_chain
 
     def get_composer_dict(self, composer_dict):
@@ -87,11 +109,11 @@ class Fedot_composer_helper():
 
         return self.current_model, self.best_models, self.history
 
-    def get_gp_composer_builder(self,
-                                task: Task,
+    def get_gp_composer_builder(self, task: Task,
                                 metric_function,
                                 composer_requirements: GPComposerRequirements,
                                 optimizer_parameters: GPChainOptimiserParameters,
+                                data: Union[InputData, MultiModalData],
                                 logger: Log,
                                 initial_chain: Chain = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
@@ -105,7 +127,7 @@ class Fedot_composer_helper():
         if initial_chain is not None:
             init_chain = initial_chain
         else:
-            init_chain = self.obtain_initial_assumption(task)
+            init_chain = self.obtain_initial_assumption(task, data)
 
         if init_chain is not None:
             builder = builder.with_initial_chain(init_chain)
@@ -121,7 +143,10 @@ class Fedot_composer_helper():
             ts_data_operations = get_ts_operations(mode='data_operations',
                                                    tags=["ts_specific"])
             # Remove exog data operation from the list
-            ts_data_operations.remove('exog')
+            try:
+                ts_data_operations.remove('exog')
+            except ValueError:
+                print('Exog operations was deleted from ts_operations')
 
             primary_operations = ts_data_operations
             secondary_operations = available_operations
@@ -131,7 +156,7 @@ class Fedot_composer_helper():
         return primary_operations, secondary_operations
 
     def compose_fedot_model(self,
-                            train_data: InputData,
+                            train_data: [InputData, MultiModalData],
                             task: Task,
                             logger: Log,
                             max_depth: int,
@@ -180,18 +205,16 @@ class Fedot_composer_helper():
                                                           crossover_types=[CrossoverTypesEnum.one_point,
                                                                            CrossoverTypesEnum.subtree])
 
-        # Create GP-based composer
         builder = self.get_gp_composer_builder(task=task,
                                                metric_function=metric_function,
                                                composer_requirements=composer_requirements,
                                                optimizer_parameters=optimizer_parameters,
-                                               logger=logger,
-                                               initial_chain=initial_chain)
+                                               data=train_data,
+                                               logger=logger)
         gp_composer = builder.build()
 
-        logger.message('Model composition started')
+        logger.message('Pipeline composition started')
         chain_gp_composed = gp_composer.compose_chain(data=train_data)
-
         chain_for_return = chain_gp_composed
 
         if isinstance(chain_gp_composed, list):
@@ -232,7 +255,7 @@ class Fedot_composer_helper():
 
         return chain_for_return, best_candidates, history
 
-    def tuner_metric_by_name(self, metric_name: str, train_data: InputData, task: Task, tuner_loss):
+    def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):
         """ Function allow to obtain metric for tuner by its name
 
         :param metric_name: name of metric
@@ -243,6 +266,10 @@ class Fedot_composer_helper():
         :return loss_params: parameters for tuner loss (can be None in some cases)
         """
         loss_params = None
+        if type(metric_name) is not str:
+            tuner_loss = metric_name
+        else:
+            tuner_loss = self.get_tuner_metrics_mapping(metric_name)
         if tuner_loss is None:
             raise ValueError(f'Incorrect tuner metric {tuner_loss}')
 
