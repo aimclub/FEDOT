@@ -239,8 +239,9 @@ def _obtain_initial_assumption(task: Task, data) -> Chain:
         if isinstance(data, MultiModalData):
             node_final = SecondaryNode('ridge', nodes_from=[])
             for data_source_name in data.keys():
-                node_last_model = SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
-                node_final.nodes_from.append(node_last_model)
+                last_node_for_sub_chain = \
+                    SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
+                node_final.nodes_from.append(last_node_for_sub_chain)
         else:
             node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
     elif task.task_type == TaskTypesEnum.classification:

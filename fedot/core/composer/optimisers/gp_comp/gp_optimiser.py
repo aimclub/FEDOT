@@ -137,7 +137,7 @@ class GPChainOptimiser:
 
     def _create_randomized_pop_from_inital_chain(self, initial_chain) -> List[Individual]:
         """
-        Fill first population with mutated variands of the initial_chain
+        Fill first population with mutated variants of the initial_chain
         :param initial_chain: Initial assumption for first population
         :return: list of individuals
         """
