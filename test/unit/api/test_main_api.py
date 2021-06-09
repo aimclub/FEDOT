@@ -6,6 +6,11 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
+from fedot.api.main import Fedot
+from fedot.api.api_utils.data import Fedot_data_helper
+from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData, train_test_data_setup
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.multi_modal_pipeline import (prepare_multi_modal_data)
 from fedot.api.main import Fedot
@@ -22,6 +27,7 @@ from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
+define_data = Fedot_data_helper()
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,
@@ -147,12 +153,12 @@ def test_api_check_data_correct():
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
-    string_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
-                                     features=path_to_train)
-    array_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
-                                    features=x_train)
-    fedot_data_input = _define_data(ml_task=Task(TaskTypesEnum.regression),
-                                    features=train_data)
+    string_data_input = define_data(ml_task=Task(TaskTypesEnum.regression),
+                                    features=path_to_train)
+    array_data_input = define_data(ml_task=Task(TaskTypesEnum.regression),
+                                   features=x_train)
+    fedot_data_input = define_data(ml_task=Task(TaskTypesEnum.regression),
+                                   features=train_data)
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)
