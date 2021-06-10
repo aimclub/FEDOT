@@ -211,7 +211,6 @@ class Chain:
         """
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         max_lead_time = timedelta(minutes=max_lead_time)
         chain_tuner = ChainTuner(chain=self,

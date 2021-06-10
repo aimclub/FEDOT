@@ -8,6 +8,7 @@ from fedot.core.chains.chain import Chain, nodes_with_operation
 from fedot.core.chains.chain_convert import chain_as_nx_graph
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.model import Model
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import \
     OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task
@@ -218,15 +219,15 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: Chain):
 
 def only_ts_specific_operations_are_primary(chain: Chain):
     """ Only time series specific operations could be placed in primary nodes """
+    # TODO refactor to check by data types instead tags
     ts_data_operations = get_ts_operations(mode='data_operations',
                                            tags=["ts_specific"])
 
     # Check only primary nodes
     for node in chain.nodes:
-        if type(node) == PrimaryNode:
-            if node.operation.operation_type not in ts_data_operations:
-                raise ValueError(
-                    f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+        if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
+            raise ValueError(
+                f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
 
     return True
 

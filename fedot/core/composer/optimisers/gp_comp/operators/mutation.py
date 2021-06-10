@@ -58,7 +58,11 @@ def mutation(types: List[MutationTypesEnum], chain_generation_params,
     """ Function apply mutation operator to chain """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
-    mutation_type = choice(types)
+    if random() < 0.5 and MutationTypesEnum.simple in types:
+        # main mutation
+        mutation_type = MutationTypesEnum.simple
+    else:
+        mutation_type = choice(types)
     if will_mutation_be_applied(mutation_prob, mutation_type):
         if mutation_type in mutation_by_type:
             for _ in range(MAX_NUM_OF_ATTEMPTS):
@@ -87,32 +91,41 @@ def simple_mutation(chain: Any, requirements, chain_generation_params, max_depth
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
                                                   node=chain.root_node)
 
-    def replace_node_to_random_recursive(node: Any) -> Any:
+    def replace_node_to_random_recursive(node: Any, node_mutation_probability: float) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
                 secondary_node = chain_generation_params.secondary_node_func(choice(requirements.secondary),
                                                                              nodes_from=node.nodes_from)
                 chain.update_node(node, secondary_node)
             for child in node.nodes_from:
-                replace_node_to_random_recursive(child)
+                replace_node_to_random_recursive(child, node_mutation_probability / 4)
         else:
             if random() < node_mutation_probability:
                 primary_node = chain_generation_params.primary_node_func(operation_type=choice(requirements.primary))
                 chain.update_node(node, primary_node)
 
-    replace_node_to_random_recursive(chain.root_node)
+    replace_node_to_random_recursive(chain.root_node, node_mutation_probability)
 
     return chain
 
 
-def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True) -> Any:
+def _single_add_mutation(chain: Any, requirements, chain_generation_params):
+    """
+    Add new node between two sequential existing modes
+    """
+    node = choice(chain.nodes)
+    if node.nodes_from:
+        new_node = chain_generation_params.secondary_node_func(operation_type=choice(requirements.secondary))
+        chain.operator.actualise_old_node_children(node, new_node)
+        new_node.nodes_from = [node]
+        chain.nodes.append(new_node)
+    return chain
+
+
+def _tree_growth(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True):
     """
     This mutation selects a random node in a tree, generates new subtree, and replaces the selected node's subtree.
-    :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
-    selected random node, if false then previous depth of selected node doesn't affect to new subtree depth,
-    maximal depth of new subtree just should satisfy depth constraint in parent tree
     """
-
     random_layer_in_chain = randint(0, chain.depth - 1)
     node_from_chain = choice(chain.operator.nodes_from_layer(random_layer_in_chain))
     if local_growth:
@@ -132,6 +145,22 @@ def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth
                                    max_depth=max_depth).root_node
     chain.update_subtree(node_from_chain, new_subtree)
     return chain
+
+
+def growth_mutation(chain: Any, requirements, chain_generation_params, max_depth: int, local_growth=True) -> Any:
+    """
+    This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
+    :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
+    selected random node, if false then previous depth of selected node doesn't affect to new subtree depth,
+    maximal depth of new subtree just should satisfy depth constraint in parent tree
+    """
+
+    if random() > 0.5:
+        # simple growth (one node can be added)
+        return _single_add_mutation(chain, requirements, chain_generation_params)
+    else:
+        # advanced growth (several nodes can be added)
+        return _tree_growth(chain, requirements, chain_generation_params, max_depth, local_growth)
 
 
 def reduce_mutation(chain: Any, requirements, chain_generation_params, max_depth: int = None) -> Any:

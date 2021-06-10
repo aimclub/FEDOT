@@ -18,7 +18,7 @@ from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationSt
 from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup, train_test_multi_modal_data_setup
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.cross_validation import cross_validation
@@ -129,7 +129,7 @@ class GPComposer(Composer):
         else:
             self.log.info("Hold out validation for chain composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
-            train_data, test_data = train_test_setup_for_dataset(data, split_ratio)
+            train_data, test_data = train_test_data_setup(data, split_ratio)
             metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:
@@ -291,23 +291,3 @@ class GPComposerBuilder:
         return self._composer
 
 
-def train_test_setup_for_dataset(dataset: Union[InputData, MultiModalData], split_ratio=0.8,
-                                 shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
-                                                              Union[InputData, MultiModalData]]:
-    """ Function for train and test split
-
-    :param dataset: dataset for train and test splitting
-    :param split_ratio: threshold for partitioning
-    :param shuffle_flag: is data needed to be shuffled or not
-
-    :return train_data: data for train
-    :return test_data: data for validation
-    """
-    if isinstance(dataset, InputData):
-        train_data, test_data = train_test_data_setup(dataset, split_ratio, shuffle_flag)
-    elif isinstance(dataset, MultiModalData):
-        train_data, test_data = train_test_multi_modal_data_setup(dataset, split_ratio, shuffle_flag)
-    else:
-        raise ValueError(f'Dataset {type(dataset)} is not supported')
-
-    return train_data, test_data

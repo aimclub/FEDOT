@@ -1,9 +1,12 @@
+from sklearn.model_selection import train_test_split
+
 import os
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+from cases.metocean_forecasting_problem import prepare_input_data
 from fedot.api.main import Fedot, _define_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -183,3 +186,27 @@ def test_multiobj_for_api():
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
     assert model.best_models is not None
+
+
+def test_multivariate_ts():
+    forecast_length = 1
+
+    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test)
+
+    historical_data = {
+        'ws': add_history,  # additional variable
+        'ssh': target_history,  # target variable
+    }
+
+    fedot = Fedot(problem='ts_forecasting', composer_params=composer_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    fedot.fit(features=historical_data, target=target_history)
+    forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
+    assert forecast is not None
