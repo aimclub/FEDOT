@@ -1,4 +1,5 @@
 import warnings
+
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
