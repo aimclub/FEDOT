@@ -35,6 +35,10 @@ class DomainSpecificModelImplementation(ModelImplementation):
 
     def predict(self):
 
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
+
+
+
 
         predicted = self.model.predict()
 

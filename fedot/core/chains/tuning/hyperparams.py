@@ -113,6 +113,12 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
             'd': hp.choice(label, [0, 1]),
             'q': hp.choice(label, [1, 2, 3, 4])
         },
+        'stl_arima': {
+            'p': hp.choice(label, [1, 2, 3, 4, 5, 6]),
+            'd': hp.choice(label, [0, 1]),
+            'q': hp.choice(label, [1, 2, 3, 4]),
+            'period': hp.choice(label, range(1, 365)),
+        },
         'ar': {
             'lag_1': hp.uniform(label, 2, 200),
             'lag_2': hp.uniform(label, 2, 800)
