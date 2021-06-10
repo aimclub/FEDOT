@@ -11,8 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.\
 from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.lightgbm import CustomLightGBMRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.catboost import CustomCatBoostRegImplementation
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
