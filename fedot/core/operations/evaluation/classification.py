@@ -55,9 +55,7 @@ class CustomClassificationStrategy(EvaluationStrategy):
         'qda': QDAImplementation,
         'svc': CustomSVCImplementation,
         'cnn': CustomCNNImplementation,
-        'knn': CustomKnnClassImplementation,
-        'lgbm': CustomLightGBMClassImplementation,
-        'catboost': CustomCatBoostClassImplementation
+        'knn': CustomKnnClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

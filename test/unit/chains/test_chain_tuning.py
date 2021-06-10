@@ -42,8 +42,10 @@ def get_simple_regr_chain():
 def get_complex_regr_chain():
     node_scaling = PrimaryNode(operation_type='scaling')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
+    node_lgbm = SecondaryNode('lgbmreg', nodes_from=[node_scaling])
+    node_catboost = SecondaryNode('catboostreg', nodes_from=[node_scaling])
     node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
+    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear, node_lgbm, node_catboost])
     chain = Chain(final)
 
     return chain
@@ -59,8 +61,10 @@ def get_simple_class_chain():
 def get_complex_class_chain():
     first = PrimaryNode(operation_type='xgboost')
     second = PrimaryNode(operation_type='pca')
+    third = PrimaryNode(operation_type='lgbm')
+    fourth = PrimaryNode(operation_type='catboost')
     final = SecondaryNode(operation_type='logit',
-                          nodes_from=[first, second])
+                          nodes_from=[first, second, third, fourth])
 
     chain = Chain(final)
 

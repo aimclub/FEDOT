@@ -96,9 +96,7 @@ class CustomRegressionStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'knnreg': CustomKnnRegImplementation,
-        'lgbmreg': CustomLightGBMRegImplementation,
-        'catboostreg': CustomCatBoostRegImplementation
+        'knnreg': CustomKnnRegImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

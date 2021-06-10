@@ -13,6 +13,7 @@ from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.log import Log, default_log
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
@@ -68,12 +69,14 @@ def test_classification_models_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     roc_threshold = 0.95
+    logger = default_log('default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.classification,
                                                  tags=['ml'])
 
     for model_name in model_names:
+        logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=train_data)
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
@@ -85,12 +88,14 @@ def test_classification_models_fit_correct(data_fixture, request):
 def test_regression_models_fit_correct():
     data = get_synthetic_regression_data(n_samples=1000, random_state=42)
     train_data, test_data = train_test_data_setup(data)
+    logger = default_log('default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
                                                  tags=['ml'])
 
     for model_name in model_names:
+        logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=train_data)
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)

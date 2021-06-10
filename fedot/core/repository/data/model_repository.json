@@ -105,11 +105,11 @@
 	  "tags": ["boosting"]
 	},
 	"lgbm": {
-	  "meta": "custom_class",
+	  "meta": "sklearn_class",
 	  "tags": ["boosting"]
 	},
 	"catboost": {
-	  "meta": "custom_class",
+	  "meta": "sklearn_class",
 	  "tags": ["boosting"]
 	},
 	"bernb": {
@@ -133,11 +133,11 @@
 	  "tags": ["boosting", "non_multi"]
 	},
 	"lgbmreg": {
-	  "meta": "custom_regr",
+	  "meta": "sklearn_regr",
 	  "tags": ["boosting", "non_multi"]
 	},
 	"catboostreg": {
-	  "meta": "custom_regr",
+	  "meta": "sklearn_regr",
 	  "tags": ["boosting", "non_multi"]
 	},
 	"adareg": {
