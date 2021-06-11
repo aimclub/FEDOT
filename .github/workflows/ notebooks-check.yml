@@ -12,13 +12,10 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
 
 
     steps:
       - uses: actions/checkout@v2
       - name: Run interval
-        uses: Hybrid-Performance-Method/interval@v1
-        with:
-          notebook: notebooks/version_03_1/4_auto_ts_forecasting.ipynb
-          requirements: "fedot==0.3.1"
+        uses: ResearchSoftwareActions/EnsureCleanNotebooksAction@1.1
