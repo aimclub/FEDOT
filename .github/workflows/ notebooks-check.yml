@@ -1,0 +1,24 @@
+name: Notebooks-check
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: [3.8]
+
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run interval
+        uses: Hybrid-Performance-Method/hybrid-interval@v1
+        with:
+          notebook: notebooks/version_03_1/4_auto_ts_forecasting.ipynb
+          requirements: "fedot==0.3.1"
