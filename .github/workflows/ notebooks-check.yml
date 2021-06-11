@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run interval
-        uses: Hybrid-Performance-Method/hybrid-interval@v1
+        uses: Hybrid-Performance-Method/interval@v1
         with:
           notebook: notebooks/version_03_1/4_auto_ts_forecasting.ipynb
           requirements: "fedot==0.3.1"
