@@ -9,20 +9,20 @@
   },
   "lgbm": {
     "num_leaves": 32,
-    "feature_fraction": 0.8,
-    "bagging_fraction": 0.8,
-    "bagging_freq": 10,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
     "learning_rate": 0.03,
     "n_estimators": 3000,
-    "random_state": 42
+    "verbose": -1
   },
   "lgbmreg": {
     "num_leaves": 32,
-    "feature_fraction": 0.8,
-    "bagging_fraction": 0.8,
-    "bagging_freq": 10,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
     "learning_rate": 0.03,
     "n_estimators": 3000,
-    "random_state": 42
+    "verbose": -1
   }
 }
