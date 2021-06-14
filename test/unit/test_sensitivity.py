@@ -209,7 +209,6 @@ def test_node_replacement_analyze_defined_nodes():
     assert isinstance(node_analysis_result, float)
 
 
-# @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_replacement_analyze_random_nodes_default_number():
     # given
     chain, train_data, test_data, node_to_analyze, result_dir = given_data()
