@@ -77,9 +77,9 @@ def get_composite_chain(input_data):
 
 def get_composite_complex_chain(input_data):
     """ Function return complex chain with the following structure
-    lagged -> ridge \
-                     ridge
-    lagged -> ridge  |
+          lagged -> ridge \
+                           ridge
+    lagged_nemo -> ridge  |
     """
 
     node_lagged_1 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
