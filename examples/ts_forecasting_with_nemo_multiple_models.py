@@ -9,7 +9,6 @@ from fedot.core.data.data import InputData
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 
-
 def prepare_data(path_to_file, path_to_exog_file, ts_name, len_forecast=250):
     df = pd.read_csv(path_to_file)
     time_series = np.array(df[ts_name])
@@ -56,45 +55,122 @@ def prepare_data(path_to_file, path_to_exog_file, ts_name, len_forecast=250):
     input_data = np.vstack([train_input, train_input_exog, predict_input, predict_input_exog])
     return input_data, test_data
 
-
-def get_composite_chain(input_data):
+def get_arima_nemo_chain(input_data):
     """ Function return complex chain with the following structure
-        lagged \
-                 ridge
-        exog   |
+        scaling -> arima \
+                          linear
+        nemo -> scaling  |
     """
 
-    node_lagged_1 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
+    node_scaling = PrimaryNode('scaling', node_data={'fit': input_data[0][0],
                                                      'predict': input_data[2][0]})
+
+    node_arima = SecondaryNode('arima', nodes_from=[node_scaling])
 
     node_nemo = PrimaryNode('exog', node_data={'fit': input_data[1][0],
                                                'predict': input_data[3][0]})
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_nemo])
+    node_nemo_scaling = SecondaryNode('scaling', nodes_from=[node_nemo])
+
+    node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo_scaling])
     chain = Chain(node_final)
     return chain
 
 
-def get_composite_complex_chain(input_data):
+def get_STLarima_nemo_chain(input_data):
     """ Function return complex chain with the following structure
-          lagged -> ridge \
-                           ridge
-    lagged_nemo -> ridge  |
+        scaling -> stl_arima \
+                             linear
+            nemo -> scaling  |
+    """
+
+    node_scaling = PrimaryNode('scaling', node_data={'fit': input_data[0][0],
+                                                   'predict': input_data[2][0]})
+
+    node_arima = SecondaryNode('stl_arima', nodes_from=[node_scaling])
+
+    node_nemo = PrimaryNode('exog', node_data={'fit': input_data[1][0],
+                                               'predict': input_data[3][0]})
+
+    node_nemo_scaling = SecondaryNode('scaling', nodes_from=[node_nemo])
+
+    node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo_scaling])
+    chain = Chain(node_final)
+    return chain
+
+
+def get_ridge_nemo_chain(input_data):
+    """ Function return complex chain with the following structure
+        lagged -> ridge \
+                          ridge
+        lagged -> ridge  |      \
+                                 linear
+                          nemo  /
     """
 
     node_lagged_1 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
                                                      'predict': input_data[2][0]})
-    node_lagged_1.custom_params = {'window_size': 30}
 
-    node_ridge1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
 
-    node_nemo = PrimaryNode('lagged', node_data={'fit': input_data[1][0],
-                                                 'predict': input_data[3][0]})
-    node_nemo.custom_params = {'window_size': 30}
+    node_lagged_2 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
+                                                     'predict': input_data[2][0]})
 
-    node_ridge2 = SecondaryNode('ridge', nodes_from=[node_nemo])
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
 
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge1, node_ridge2])
+    node_ridge_3 = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+
+    node_nemo = PrimaryNode('exog', node_data={'fit': input_data[1][0],
+                                               'predict': input_data[3][0]})
+
+    node_final = SecondaryNode('linear', nodes_from=[node_ridge_3, node_nemo])
+    chain = Chain(node_final)
+    return chain
+
+
+def get_arima_chain(input_data):
+    """ Function return complex chain with the following structure
+        scaling -> arima
+    """
+
+    node_scaling = PrimaryNode('scaling', node_data={'fit': input_data[0][0],
+                                                   'predict': input_data[2][0]})
+
+    node_final = SecondaryNode('arima', nodes_from=[node_scaling])
+    chain = Chain(node_final)
+    return chain
+
+
+def get_STLarima_chain(input_data):
+    """ Function return complex chain with the following structure
+        scaling -> stl_arima
+    """
+
+    node_scaling = PrimaryNode('scaling', node_data={'fit': input_data[0][0],
+                                                   'predict': input_data[2][0]})
+
+    node_final = SecondaryNode('stl_arima', nodes_from=[node_scaling])
+    chain = Chain(node_final)
+    return chain
+
+def get_ridge_chain(input_data):
+    """ Function return complex chain with the following structure
+        lagged -> ridge \
+                          ridge
+        lagged -> ridge  |
+    """
+
+    node_lagged_1 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
+                                                     'predict': input_data[2][0]})
+
+    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
+
+    node_lagged_2 = PrimaryNode('lagged', node_data={'fit': input_data[0][0],
+                                                     'predict': input_data[2][0]})
+
+    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
+
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
     chain = Chain(node_final)
     return chain
 
@@ -114,7 +190,11 @@ def run_nemo_based_forecasting(path_to_file, path_to_exog_file, ts_name, len_for
                                       path_to_exog_file=path_to_exog_file,
                                       ts_name=ts_name,
                                       len_forecast=len_forecast)
-    chain = get_composite_chain(c_input)
+
+    """ Arima models """
+
+    # simple arima
+    chain = get_arima_chain(c_input)
     chain.fit_from_scratch()
     predicted_values = chain.predict()
     predicted_values = predicted_values.predict
@@ -123,14 +203,15 @@ def run_nemo_based_forecasting(path_to_file, path_to_exog_file, ts_name, len_for
     test_data = np.ravel(test_data)
 
     if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'nemo as exog node')
+        compare_plot(predicted, test_data, len_forecast, 'arima')
 
     mse_before = mean_squared_error(test_data, predicted, squared=False)
     mae_before = mean_absolute_error(test_data, predicted)
-    print(f'Nemo as exog node RMSE - {mse_before:.4f}')
-    print(f'Nemo as exog node MAE - {mae_before:.4f}\n')
+    print(f'ARIMA RMSE - {mse_before:.4f}')
+    print(f'ARIMA MAE - {mae_before:.4f}\n')
 
-    chain = get_composite_complex_chain(c_input)
+    # arima with nemo ensemble
+    chain = get_arima_nemo_chain(c_input)
     chain.fit_from_scratch()
     predicted_values = chain.predict()
     predicted_values = predicted_values.predict
@@ -139,13 +220,12 @@ def run_nemo_based_forecasting(path_to_file, path_to_exog_file, ts_name, len_for
     test_data = np.ravel(test_data)
 
     if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'nemo as lagged node')
+        compare_plot(predicted, test_data, len_forecast, 'ARIMA with nemo')
 
     mse_before = mean_squared_error(test_data, predicted, squared=False)
     mae_before = mean_absolute_error(test_data, predicted)
-    print(f'Nemo as lagged node RMSE - {mse_before:.4f}')
-    print(f'Nemo as lagged node MAE - {mae_before:.4f}\n')
-
+    print(f'ARIMA with nemo RMSE - {mse_before:.4f}')
+    print(f'ARIMA with nemo MAE - {mae_before:.4f}\n')
 
 if __name__ == '__main__':
     run_nemo_based_forecasting(path_to_file='../cases/data/nemo/sea_surface_height_nemo.csv',
