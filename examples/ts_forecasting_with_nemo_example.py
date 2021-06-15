@@ -148,8 +148,8 @@ def run_nemo_based_forecasting(path_to_file, path_to_exog_file, ts_name, len_for
 
 
 if __name__ == '__main__':
-    run_nemo_based_forecasting(path_to_file='../cases/data/nemo/sea_surface_height_nemo.csv',
-                               path_to_exog_file='../cases/data/nemo/sea_surface_height.csv',
+    run_nemo_based_forecasting(path_to_file='../cases/data/nemo/sea_surface_height.csv',
+                               path_to_exog_file='../cases/data/nemo/sea_surface_height_nemo.csv',
                                ts_name='sea_level',
                                len_forecast=40,
                                is_visualise=True)
