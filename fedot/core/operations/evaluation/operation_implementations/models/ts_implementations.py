@@ -1,11 +1,9 @@
 from typing import Optional
-
 import numpy as np
 from scipy import stats
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.api import STLForecast
-
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
