@@ -341,10 +341,10 @@ def run_single_example(len_forecast=40, is_visualise=True):
     df = pd.read_csv(path_to_exog_file)
     exog_variable = df[ts_name]
 
-    errors = run_nemo_based_forecasting(time_series=time_series,
-                                        exog_variable=exog_variable,
-                                        len_forecast=len_forecast,
-                                        is_visualise=is_visualise)
+    run_nemo_based_forecasting(time_series=time_series,
+                               exog_variable=exog_variable,
+                               len_forecast=len_forecast,
+                               is_visualise=is_visualise)
 
 
 def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxplot_visualize=True, len_forecast=40):
@@ -402,7 +402,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
                                                     'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_MAPE'],
                                                     }, ignore_index=True)
 
-    if out_path != None:
+    if out_path is not None:
         mse_errors_df.to_csv(os.path.join(out_path, 'mse_errors.csv'), index=False)
         mae_errors_df.to_csv(os.path.join(out_path, 'mae_errors.csv'), index=False)
         mape_errors_df.to_csv(os.path.join(out_path, 'mape_errors.csv'), index=False)
@@ -426,8 +426,3 @@ def run_prediction_examples(mode='single'):
 
 if __name__ == '__main__':
     run_prediction_examples(mode='multiple')
-
-
-
-
-
