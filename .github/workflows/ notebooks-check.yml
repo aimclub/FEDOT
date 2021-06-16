@@ -17,7 +17,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Run interval
-        uses: ResearchSoftwareActions/EnsureCleanNotebooksAction@1.1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          disable-checks: outputs,execution_count
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install treon
+      - name: Run treon
+        run: treon notebooks/version_03_1/4_auto_ts_forecasting.ipynb
