@@ -72,7 +72,6 @@ def test_data_merge_in_chain():
     chain.fit_from_scratch(train_input)
     prediction = chain.predict(train_input)
 
-    print(prediction)
     assert prediction is not None
 
 

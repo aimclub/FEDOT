@@ -152,7 +152,7 @@ def test_node_deletion_analyze():
                                                path_to_save=result_dir).analyze(node=node_to_analyze)
 
     # then
-    assert isinstance(node_analysis_result, float)
+    assert isinstance(node_analysis_result, list)
 
 
 def test_node_deletion_sample_method():
@@ -187,8 +187,8 @@ def test_node_deletion_analyze_zero_node_id():
                                                path_to_save=result_dir).analyze(node=chain.root_node)
 
     # then
-    assert isinstance(node_analysis_result, float)
-    assert node_analysis_result == 1.0
+    assert isinstance(node_analysis_result, list)
+    assert node_analysis_result == [1.0]
 
 
 def test_node_replacement_analyze_defined_nodes():
@@ -206,7 +206,7 @@ def test_node_replacement_analyze_defined_nodes():
                                                                      nodes_to_replace_to=[replacing_node])
 
     # then
-    assert isinstance(node_analysis_result, float)
+    assert isinstance(node_analysis_result, list)
 
 
 def test_node_replacement_analyze_random_nodes_default_number():
@@ -222,7 +222,7 @@ def test_node_replacement_analyze_random_nodes_default_number():
          analyze(node=node_to_analyze))
 
     # then
-    assert isinstance(node_analysis_result, float)
+    assert isinstance(node_analysis_result, list)
 
 
 # ------------------------------------------------------------------------------

@@ -70,14 +70,15 @@ class NodeAnalysis:
             self._save_results_to_json(node, chain, results)
 
         node_sa_index = self._get_node_index(train_data, results)
-        node.rating = self._get_node_rating(node_sa_index)
+        if node_sa_index:
+            node.rating = self._get_node_rating(node_sa_index)
 
         return results
 
     @staticmethod
     def _get_node_index(train_data: InputData, results: dict):
         total_index = None
-        if NodeReplaceOperationAnalyze.__name__ and NodeDeletionAnalyze.__name__ in results.keys():
+        if NodeReplaceOperationAnalyze.__name__ in results.keys() and NodeDeletionAnalyze.__name__ in results.keys():
             task = train_data.task.task_type
             app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
             total_operations_number = len(app_models)

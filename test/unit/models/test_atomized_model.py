@@ -115,7 +115,7 @@ def test_save_load_atomized_chain_correctly():
     chain_loaded.load(json_path_load)
 
     assert chain.length == chain_loaded.length
-    assert json_actual == json.dumps(json_expected)
+    assert json_actual == json.dumps(json_expected, indent=4)
 
 
 def test_save_load_fitted_atomized_chain_correctly():
