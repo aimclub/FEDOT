@@ -23,8 +23,6 @@ def make_forecast(chain, train: InputData, predict: InputData,
     """
     Function for predicting values in a time series
 
-    :param chain: Chain object
-
     :return predicted_values: numpy array, forecast of model
     """
 
