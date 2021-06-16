@@ -27,6 +27,7 @@ class Node(ABC):
         self.log = log
         self._fitted_operation = None
         self._operator = NodeOperator(self)
+        self.rating = None
 
         if not log:
             self.log = default_log(__name__)

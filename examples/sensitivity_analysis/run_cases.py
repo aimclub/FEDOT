@@ -69,10 +69,10 @@ if __name__ == '__main__':
     # You can assign any of ChainSensitivityAnalysis, NodesAnalysis, ChainAnalysis to any case
 
     # scoring case
-    # run_class_scoring_case(is_composed=False, sa_class='ChainSensitivityAnalysis')
+    run_class_scoring_case(is_composed=False, sa_class='ChainSensitivityAnalysis')
 
     # kc2 case
-    # run_class_kc2_case(is_composed=False, sa_class='NodesAnalysis')
+    run_class_kc2_case(is_composed=False, sa_class='NodesAnalysis')
 
     # cholesterol case
     run_regr_case(is_composed=False, sa_class='ChainAnalysis')

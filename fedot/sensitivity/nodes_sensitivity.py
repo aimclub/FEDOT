@@ -2,11 +2,12 @@ import json
 from os.path import join
 from typing import Optional, List, Type
 
+import numpy as np
 from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import Node
 from fedot.core.chains.graph_operator import GraphOperator
+from fedot.core.chains.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
@@ -128,7 +129,7 @@ class NodesAnalysis:
     def _extract_result_values(self, results):
         gathered_results = []
         for approach in self.approaches:
-            approach_result = [result[f'{approach.__name__}'] - 1 for result in results.values()]
+            approach_result = [np.mean(result[f'{approach.__name__}']) - 1 for result in results.values()]
             gathered_results.append(approach_result)
 
         return gathered_results

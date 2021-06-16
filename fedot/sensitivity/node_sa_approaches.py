@@ -69,7 +69,44 @@ class NodeAnalysis:
         if is_save:
             self._save_results_to_json(node, chain, results)
 
+        node_sa_index = self._get_node_index(train_data, results)
+        node.rating = self._get_node_rating(node_sa_index)
+
         return results
+
+    @staticmethod
+    def _get_node_index(train_data: InputData, results: dict):
+        total_index = None
+        if NodeReplaceOperationAnalyze.__name__ and NodeDeletionAnalyze.__name__ in results.keys():
+            task = train_data.task.task_type
+            app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
+            total_operations_number = len(app_models)
+
+            replacement_candidates = results[NodeReplaceOperationAnalyze.__name__]
+            candidates_for_replacement_number = len(
+                [candidate for candidate in replacement_candidates if (1 - candidate) < 0])
+
+            replacement_score = candidates_for_replacement_number / total_operations_number
+
+            deletion_score = results[NodeDeletionAnalyze.__name__][0]
+
+            total_index = (deletion_score / abs(deletion_score)) * replacement_score
+
+        return total_index
+
+    @staticmethod
+    def _get_node_rating(total_index: float):
+        rating = None
+        if total_index <= -0.5:
+            rating = 2
+        elif -0.5 < total_index <= 0.0:
+            rating = 1
+        elif 0.0 < total_index <= 0.5:
+            rating = 4
+        elif 0.5 < total_index <= 1:
+            rating = 3
+
+        return rating
 
     def _save_results_to_json(self, node: Node, chain: Chain, results):
         node_id = chain.nodes.index(node)
@@ -110,7 +147,7 @@ class NodeAnalyzeApproach(ABC):
             makedirs(self._path_to_save)
 
     @abstractmethod
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """Creates the difference metric(scorer, index, etc) of the changed
         chain in relation to the original one
 
@@ -148,14 +185,14 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         super().__init__(chain, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
         :param node: Node object to analyze
         :return: the ratio of modified chain score to origin score
         """
         if node is self._chain.root_node:
             # TODO or warning?
-            return 1.0
+            return [1.0]
         else:
             shortened_chain = self.sample(node)
             if shortened_chain:
@@ -164,7 +201,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
             else:
                 loss = 1
 
-            return loss
+            return [loss]
 
     def sample(self, node: Node):
         """
@@ -199,7 +236,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         super().__init__(chain, train_data, test_data, requirements,
                          path_to_save)
 
-    def analyze(self, node: Node, **kwargs) -> Union[List[dict], float]:
+    def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
 
         :param node: Node object to analyze
@@ -221,14 +258,12 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             new_node = sample_chain.nodes[node_id]
             new_nodes_types.append(new_node.operation.operation_type)
 
-        avg_loss = np.mean(loss_values)
-
         if self._requirements.is_visualize:
             self._visualize(x_values=new_nodes_types,
                             y_values=loss_values,
                             node_id=node_id)
 
-        return float(avg_loss)
+        return loss_values
 
     def sample(self, node: Node,
                nodes_to_replace_to: Optional[List[Node]],
