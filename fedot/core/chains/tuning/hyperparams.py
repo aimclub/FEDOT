@@ -159,6 +159,38 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
         'gaussian_filter': {
             'sigma': hp.uniform(label, 1, 5)
         },
+        'lgbm': {
+            'class_weight': hp.choice(label, [None, 'balanced']),
+            'num_leaves':  hp.choice(label, np.arange(2, 256, 8, dtype=int)),
+            'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
+            'colsample_bytree': hp.uniform(label, 0.4, 1),
+            'subsample': hp.uniform(label, 0.4, 1),
+            'lambda_l1': hp.uniform(label, 1e-8, 10.0),
+            'lambda_l2': hp.uniform(label, 1e-8, 10.0),
+        },
+        'lgbmreg': {
+            'num_leaves': hp.choice(label, np.arange(2, 256, 8, dtype=int)),
+            'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
+            'colsample_bytree': hp.uniform(label, 0.4, 1),
+            'subsample': hp.uniform(label, 0.4, 1),
+            'lambda_l1': hp.uniform(label, 1e-8, 10.0),
+            'lambda_l2': hp.uniform(label, 1e-8, 10.0),
+        },
+        'catboost': {
+            'max_depth': hp.choice(label, range(1, 11)),
+            'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
+            'min_data_in_leaf': hp.qloguniform(label, 0, 6, 1),
+            'border_count': hp.randint(label, 2, 255),
+            'l2_leaf_reg': hp.uniform(label, 1e-8, 10.0),
+            'loss_function': hp.choice(label, ['Logloss', 'CrossEntropy']),
+        },
+        'catboostreg': {
+            'max_depth': hp.choice(label, range(1, 11)),
+            'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
+            'min_data_in_leaf': hp.qloguniform(label, 0, 6, 1),
+            'border_count': hp.randint(label, 2, 255),
+            'l2_leaf_reg': hp.uniform(label, 1e-8, 10.0),
+        }
     }
 
     # Get available parameters for current operation

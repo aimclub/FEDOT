@@ -5,12 +5,13 @@ from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
 from fedot.core.operations.evaluation.\
     operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.log import Log
 
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         self.params = params
         self.model = None
 

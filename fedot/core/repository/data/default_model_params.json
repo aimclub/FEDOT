@@ -1,0 +1,28 @@
+{
+  "catboost": {
+    "allow_writing_files": false,
+    "verbose": false
+  },
+  "catboostreg": {
+    "allow_writing_files": false,
+    "verbose": false
+  },
+  "lgbm": {
+    "num_leaves": 32,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 3000,
+    "verbose": -1
+  },
+  "lgbmreg": {
+    "num_leaves": 32,
+    "colsample_bytree": 0.8,
+    "subsample": 0.8,
+    "subsample_freq": 10,
+    "learning_rate": 0.03,
+    "n_estimators": 3000,
+    "verbose": -1
+  }
+}

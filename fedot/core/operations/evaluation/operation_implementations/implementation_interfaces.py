@@ -4,6 +4,7 @@ import numpy as np
 
 from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.log import Log, default_log
 
 
 class DataOperationImplementation(ABC):
@@ -164,8 +165,11 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, log: Log):
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     @abstractmethod
     def fit(self, input_data):

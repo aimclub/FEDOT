@@ -1,5 +1,4 @@
 from fedot.api.api_utils import filter_operations_by_preset
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 
@@ -24,5 +23,5 @@ def test_presets_regression():
     operations_for_light_preset = filter_operations_by_preset(task, 'light')
     operations_for_ultra_light_preset = filter_operations_by_preset(task, 'ultra_light')
 
-    assert len(operations_for_ultra_light_preset) < len(operations_for_light_preset) == len(regr_operations)
+    assert len(operations_for_ultra_light_preset) < len(operations_for_light_preset) <= len(regr_operations)
     assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_ultra_light_preset)
