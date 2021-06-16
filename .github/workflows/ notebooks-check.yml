@@ -24,6 +24,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install treon
-      - name: Run treon
-        run: treon notebooks/version_03_1/4_auto_ts_forecasting.ipynb
+          pip install nbconvert
+      - name: Run nbconvert
+        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
