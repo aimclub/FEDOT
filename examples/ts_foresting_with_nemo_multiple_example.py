@@ -50,7 +50,7 @@ def get_arima_nemo_chain():
         nemo  |
     """
 
-    node_arima = PrimaryNode('lagged')
+    node_arima = PrimaryNode('arima')
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     chain = Chain(node_final)
@@ -187,11 +187,11 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     # arima with nemo ensemble
     chain = get_arima_nemo_chain()
     train_dataset = MultiModalData({
-        'lagged': deepcopy(train_input),
+        'arima': deepcopy(train_input),
         'exog_ts_data_source': deepcopy(train_input_exog)
     })
     predict_dataset = MultiModalData({
-        'lagged': deepcopy(predict_input),
+        'arima': deepcopy(predict_input),
         'exog_ts_data_source': deepcopy(predict_input_exog)
     })
     chain.fit_from_scratch(train_dataset)
