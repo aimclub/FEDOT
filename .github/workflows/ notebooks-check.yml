@@ -27,5 +27,4 @@ jobs:
           pip install nbconvert
           pip install ipykernel
       - name: Run nbconvert
-        run: jupyter kernelspec list
-#        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
+        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
