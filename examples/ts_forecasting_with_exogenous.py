@@ -70,8 +70,10 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     """
 
     df = pd.read_csv(path_to_file)
-    time_series = np.array(df['Level'])
-    exog_variable = np.array(df['Neighboring level'])
+    #time_series = np.array(df['Level'])
+    #exog_variable = np.array(df['Neighboring level'])
+    time_series = np.array(df['real'])
+    exog_variable = np.array(df['nemo'])
 
     # Let's divide our data on train and test samples
     train_data = time_series[:-len_forecast]
@@ -133,5 +135,6 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'notebooks', 'data', 'ts_sea_level.csv')
-    run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True)
+    #data_path = os.path.join(f'{fedot_project_root()}', 'notebooks', 'data', 'ts_sea_level.csv')
+    data_path = os.path.join('C:/Users/yulas/OneDrive/Документы/ITMO/NSS_lab/FEDOT_development/FEDOT/cases/data/nemo/test_nemo.csv')
+    run_exogenous_experiment(path_to_file=data_path, len_forecast=40, with_exog=True)
