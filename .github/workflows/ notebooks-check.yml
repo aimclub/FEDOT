@@ -22,8 +22,19 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install nbconvert
-      - name: Run nbconvert
-        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
+        uses: yaananth/run-notebook@v1
+        env:
+          RUNNER: ${{ toJson(runner) }}
+          SECRETS: ${{ toJson(secrets) }}
+          GITHUB: ${{ toJson(github) }}
+        with:
+          notebook: "notebooks/version_03_1/4_auto_ts_forecasting.ipynb"
+          isReport: False
+          poll: False
+#      - uses: actions/upload-artifact@master
+#        if: always()
+#        with:
+#          name: output
+#          path: ${{ RUNNER.temp }}/nb-runner
+#        env:
+#          RUNNER: ${{ toJson(runner) }}
