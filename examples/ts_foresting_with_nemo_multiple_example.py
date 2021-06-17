@@ -7,6 +7,7 @@ from examples.ts_forecasting_tuning import prepare_input_data
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.multi_modal import MultiModalData
+from copy import deepcopy
 
 
 def prepare_data(time_series, exog_variable, len_forecast=250):
@@ -44,13 +45,13 @@ def get_arima_nemo_chain():
         nemo  |
     """
 
-    node_arima = PrimaryNode('arima')
+    node_arima = PrimaryNode('lagged')
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     chain = Chain(node_final)
     return chain
 
-
+'''
 def get_STLarima_nemo_chain():
     """ Function return complex chain with the following structure
         stl_arima \
@@ -65,6 +66,7 @@ def get_STLarima_nemo_chain():
     chain = Chain(node_final)
     return chain
 
+'''
 
 def get_ridge_nemo_chain():
     """ Function return complex chain with the following structure
@@ -96,7 +98,7 @@ def get_arima_chain():
     chain = Chain(node_final)
     return chain
 
-
+'''
 def get_STLarima_chain():
     """ Function return complex chain with the following structure
         stl_arima
@@ -106,7 +108,7 @@ def get_STLarima_chain():
     node_final.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     chain = Chain(node_final)
     return chain
-
+'''
 
 def get_ridge_chain():
     """ Function return complex chain with the following structure
@@ -153,10 +155,10 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     # simple arima
     chain = get_arima_chain()
     train_dataset = MultiModalData({
-        'arima': train_input,
+        'arima': deepcopy(train_input),
     })
     predict_dataset = MultiModalData({
-        'arima': predict_input,
+        'arima': deepcopy(predict_input),
     })
     chain.fit_from_scratch(train_dataset)
     predicted_values = chain.predict(predict_dataset)
@@ -181,15 +183,15 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     # arima with nemo ensemble
     chain = get_arima_nemo_chain()
     train_dataset = MultiModalData({
-        'arima': train_input,
-        'exog_ts_data_source': train_input_exog
+        'lagged': deepcopy(train_input),
+        'exog_ts_data_source': deepcopy(train_input_exog)
     })
     predict_dataset = MultiModalData({
-        'arima': predict_input,
-        'exog_ts_data_source': predict_input_exog
+        'lagged': deepcopy(predict_input),
+        'exog_ts_data_source': deepcopy(predict_input_exog)
     })
     chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = chain.predict(predict_dataset).predict
 
     predicted = np.ravel(np.array(predicted_values))
     test_data = np.ravel(test_data)
@@ -207,7 +209,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     errors_df['ARIMA_NEMO_MSE'] = mse_before
     errors_df['ARIMA_NEMO_MAE'] = mae_before
     errors_df['ARIMA_NEMO_MAPE'] = mape_before
-
+    '''
     """ STL Arima models """
     # simple stl_arima
     chain = get_STLarima_chain()
@@ -267,20 +269,20 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     errors_df['STL_ARIMA_NEMO_MSE'] = mse_before
     errors_df['STL_ARIMA_NEMO_MAE'] = mae_before
     errors_df['STL_ARIMA_NEMO_MAPE'] = mape_before
-
+    '''
     """ Ridge models """
     # simple ridge
     chain = get_ridge_chain()
     train_dataset = MultiModalData({
-        'lagged/1': train_input,
-        'lagged/2': train_input
+        'lagged/1': deepcopy(train_input),
+        'lagged/2': deepcopy(train_input)
     })
     predict_dataset = MultiModalData({
-        'lagged/1': predict_input,
-        'lagged/2': predict_input
+        'lagged/1': deepcopy(predict_input),
+        'lagged/2': deepcopy(predict_input)
     })
     chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = chain.predict(predict_dataset).predict
 
     predicted = np.ravel(np.array(predicted_values))
     test_data = np.ravel(test_data)
@@ -302,17 +304,17 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     # ridge with nemo ensemble
     chain = get_ridge_nemo_chain()
     train_dataset = MultiModalData({
-        'lagged/1': train_input,
-        'lagged/2': train_input,
-        'exog_ts_data_source': train_input_exog
+        'lagged/1': deepcopy(train_input),
+        'lagged/2': deepcopy(train_input),
+        'exog_ts_data_source': deepcopy(train_input_exog)
     })
     predict_dataset = MultiModalData({
-        'lagged/1': predict_input,
-        'lagged/2': predict_input,
-        'exog_ts_data_source': predict_input_exog
+        'lagged/1': deepcopy(predict_input),
+        'lagged/2': deepcopy(predict_input),
+        'exog_ts_data_source': deepcopy(predict_input_exog)
     })
     chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = chain.predict(predict_dataset).predict
 
     predicted = np.ravel(np.array(predicted_values))
     test_data = np.ravel(test_data)
@@ -440,4 +442,4 @@ def run_prediction_examples(mode='single'):
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='single')
+    run_prediction_examples(mode='multiple')
