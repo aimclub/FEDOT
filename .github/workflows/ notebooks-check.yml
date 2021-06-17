@@ -26,4 +26,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install nbconvert
       - name: Run nbconvert
-        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
+        run: jupyter kernelspec list
+#        run: jupyter nbconvert --to notebook --execute notebooks/version_03_1/4_auto_ts_forecasting.ipynb
