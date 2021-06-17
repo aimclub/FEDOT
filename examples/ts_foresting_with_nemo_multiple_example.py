@@ -98,7 +98,7 @@ def get_arima_chain():
     chain = Chain(node_final)
     return chain
 
-'''
+
 def get_STLarima_chain():
     """ Function return complex chain with the following structure
         stl_arima
@@ -108,7 +108,7 @@ def get_STLarima_chain():
     node_final.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     chain = Chain(node_final)
     return chain
-'''
+
 
 def get_ridge_chain():
     """ Function return complex chain with the following structure
@@ -209,7 +209,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     errors_df['ARIMA_NEMO_MSE'] = mse_before
     errors_df['ARIMA_NEMO_MAE'] = mae_before
     errors_df['ARIMA_NEMO_MAPE'] = mape_before
-    '''
+
     """ STL Arima models """
     # simple stl_arima
     chain = get_STLarima_chain()
@@ -269,7 +269,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     errors_df['STL_ARIMA_NEMO_MSE'] = mse_before
     errors_df['STL_ARIMA_NEMO_MAE'] = mae_before
     errors_df['STL_ARIMA_NEMO_MAPE'] = mape_before
-    '''
+
     """ Ridge models """
     # simple ridge
     chain = get_ridge_chain()
