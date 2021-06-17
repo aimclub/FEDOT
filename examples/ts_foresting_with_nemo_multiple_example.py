@@ -72,6 +72,7 @@ def get_stlarima_nemo_chain():
     return chain
 
 
+
 def get_ridge_nemo_chain():
     """ Function return complex chain with the following structure
         lagged -> ridge \
