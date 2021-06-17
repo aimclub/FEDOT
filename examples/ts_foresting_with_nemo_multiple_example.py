@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
 from examples.ts_forecasting_tuning import prepare_input_data
 from fedot.core.chains.chain import Chain
@@ -9,6 +9,8 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.multi_modal import MultiModalData
 from copy import deepcopy
 
+def mean_absolute_percentage_error(test, predicted):
+    return round(np.mean(np.abs((test-predicted)/test))*100, 4)
 
 def prepare_data(time_series, exog_variable, len_forecast=250):
 
@@ -51,7 +53,7 @@ def get_arima_nemo_chain():
     chain = Chain(node_final)
     return chain
 
-'''
+
 def get_STLarima_nemo_chain():
     """ Function return complex chain with the following structure
         stl_arima \
@@ -66,7 +68,7 @@ def get_STLarima_nemo_chain():
     chain = Chain(node_final)
     return chain
 
-'''
+
 
 def get_ridge_nemo_chain():
     """ Function return complex chain with the following structure
@@ -214,13 +216,13 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     # simple stl_arima
     chain = get_STLarima_chain()
     train_dataset = MultiModalData({
-        'stl_arima': train_input,
+        'stl_arima': deepcopy(train_input),
     })
     predict_dataset = MultiModalData({
-        'stl_arima': predict_input,
+        'stl_arima': deepcopy(predict_input),
     })
     chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = chain.predict(predict_dataset).predict
 
     predicted = np.ravel(np.array(predicted_values))
     test_data = np.ravel(test_data)
@@ -243,15 +245,15 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     chain = get_STLarima_nemo_chain()
 
     train_dataset = MultiModalData({
-        'stl_arima': train_input,
-        'exog_ts_data_source': train_input_exog
+        'stl_arima': deepcopy(train_input),
+        'exog_ts_data_source': deepcopy(train_input_exog)
     })
     predict_dataset = MultiModalData({
-        'stl_arima': predict_input,
-        'exog_ts_data_source': predict_input_exog
+        'stl_arima': deepcopy(predict_input),
+        'exog_ts_data_source': deepcopy(predict_input_exog)
     })
     chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = chain.predict(predict_dataset).predict
 
     predicted = np.ravel(np.array(predicted_values))
     test_data = np.ravel(test_data)
@@ -429,17 +431,17 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
         boxplot_visualize(mae_errors_df, 'MAE')
         boxplot_visualize(mape_errors_df, 'MAPE')
 
-
+#'../cases/data/nemo/',
 def run_prediction_examples(mode='single'):
     if mode == 'single':
         run_single_example(len_forecast=40, is_visualise=True)
     if mode == 'multiple':
         run_multiple_example(path_to_file='../cases/data/nemo/SSH_points_grid.csv',
                              path_to_exog_file='../cases/data/nemo/SSH_nemo_points_grid.csv',
-                             out_path='../cases/data/nemo/',
-                             len_forecast=40,
+                             out_path=None,
+                             len_forecast=30,
                              is_boxplot_visualize=True)
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='multiple')
+    run_prediction_examples(mode='single')

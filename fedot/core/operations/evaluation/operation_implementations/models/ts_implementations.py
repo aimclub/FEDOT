@@ -3,8 +3,8 @@ from typing import Optional
 import numpy as np
 from scipy import stats
 from statsmodels.tsa.ar_model import AutoReg
-from statsmodels.tsa.arima_model import ARIMA
-from statsmodels.tsa.forecasting.stl import STLForecast
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.api import STLForecast
 
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 from fedot.core.operations.evaluation. \
@@ -236,8 +236,8 @@ class AutoRegImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         self.params = params
         self.model = None
         self.lmbda = None
@@ -329,20 +329,3 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
     def get_params(self):
         return self.params
-
-    @staticmethod
-    def _inverse_boxcox(predicted, lmbda):
-        """ Method apply inverse Box-Cox transformation """
-        if lmbda == 0:
-            return np.exp(predicted)
-        else:
-            return np.exp(np.log(lmbda * predicted + 1) / lmbda)
-
-    def _inverse_shift(self, values):
-        """ Method apply inverse shift operation """
-        if self.scope is None:
-            pass
-        else:
-            values = values - self.scope
-
-        return values
