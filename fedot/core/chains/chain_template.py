@@ -170,7 +170,8 @@ class ChainTemplate:
 
     def convert_to_chain(self, chain, path: str = None):
         if path is not None:
-            path = os.path.abspath(os.path.join(os.path.dirname(path), 'fitted_operations'))
+            path = os.path.abspath(os.path.join(os.path.dirname(path)))
+        path = os.path.join(path, 'fitted_operations')
         visited_nodes = {}
         root_template = [op_template for op_template in self.operation_templates if op_template.operation_id == 0][0]
         root_node = self.roll_chain_structure(root_template, visited_nodes, path)
