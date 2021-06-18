@@ -70,7 +70,7 @@ class NodeAnalysis:
             self._save_results_to_json(node, chain, results)
 
         node_sa_index = self._get_node_index(train_data, results)
-        if node_sa_index:
+        if node_sa_index is not None:
             node.rating = self._get_node_rating(node_sa_index)
 
         return results
