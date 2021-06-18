@@ -15,7 +15,7 @@
                 "window_size": 10
             },
             "nodes_from": [],
-            "fitted_operation_path": "fitted_operations\\operation_2.pkl"
+            "fitted_operation_path": "operation_2.pkl"
         },
         {
             "operation_id": 4,
@@ -26,7 +26,7 @@
                 "window_size": 10
             },
             "nodes_from": [],
-            "fitted_operation_path": "fitted_operations\\operation_4.pkl"
+            "fitted_operation_path": "operation_4.pkl"
         },
         {
             "operation_id": 3,
@@ -43,7 +43,7 @@
             "nodes_from": [
                 4
             ],
-            "fitted_operation_path": "fitted_operations\\operation_3.pkl"
+            "fitted_operation_path": "operation_3.pkl"
         },
         {
             "operation_id": 1,
@@ -68,7 +68,7 @@
                 2,
                 3
             ],
-            "fitted_operation_path": "fitted_operations\\operation_1.pkl"
+            "fitted_operation_path": "operation_1.pkl"
         },
         {
             "operation_id": 6,
@@ -79,7 +79,7 @@
                 "window_size": 10
             },
             "nodes_from": [],
-            "fitted_operation_path": "fitted_operations\\operation_6.pkl"
+            "fitted_operation_path": "operation_6.pkl"
         },
         {
             "operation_id": 5,
@@ -96,7 +96,7 @@
             "nodes_from": [
                 6
             ],
-            "fitted_operation_path": "fitted_operations\\operation_5.pkl"
+            "fitted_operation_path": "operation_5.pkl"
         },
         {
             "operation_id": 0,
@@ -125,7 +125,7 @@
                 1,
                 5
             ],
-            "fitted_operation_path": "fitted_operations\\operation_0.pkl"
+            "fitted_operation_path": "operation_0.pkl"
         }
     ]
 }
