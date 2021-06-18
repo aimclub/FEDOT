@@ -234,8 +234,3 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
         raise ValueError(f'Dataset {type(data)} is not supported')
 
     return train_data, test_data
-
-
-def in_sample_split(data: InputData, validation_blocks: int = 3):
-    """ Time series splitting for in-sample forecasting"""
-    pass

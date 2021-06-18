@@ -22,6 +22,7 @@ from fedot.core.optimisers.gp_comp.operators.regularization import Regularizatio
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.validation.cross_validation import cross_validation
+from fedot.core.validation.composer_validation import table_cross_validation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
@@ -112,8 +113,8 @@ class GPComposer(Composer):
         if self.composer_requirements.cv_folds is not None:
             if isinstance(data, MultiModalData):
                 raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-            self.log.info("KFolds cross validation for graph composing was applied.")
-            objective_function_for_pipeline = partial(cross_validation, data,
+            self.log.info("KFolds cross validation for chain composing was applied.")
+            objective_function_for_pipeline = partial(table_cross_validation, data,
                                                       self.composer_requirements.cv_folds, self.metrics)
         else:
             self.log.info("Hold out validation for graph composing was applied.")

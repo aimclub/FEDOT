@@ -5,8 +5,8 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
+from fedot.core.validation.composer_validation import table_cross_validation
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.validation.cross_validation import cross_validation
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

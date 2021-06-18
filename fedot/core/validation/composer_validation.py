@@ -9,8 +9,8 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def cross_validation(reference_data: InputData, cv_folds: int,
-                     metrics: [str, Callable], pipeline: Optional[Pipeline]) -> Tuple[float, ...]:
+def table_cross_validation(reference_data: InputData, cv_folds: int,
+                           metrics: [str, Callable], pipeline: Optional[Pipeline]) -> Tuple[float, ...]:
     """ TODO add description """
     if reference_data.task.task_type in [TaskTypesEnum.ts_forecasting, TaskTypesEnum.clustering]:
         raise NotImplementedError(f"Cross validation for {reference_data.task.task_type} is not implemented.")
