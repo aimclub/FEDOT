@@ -107,7 +107,7 @@ class OperationTemplate(OperationTemplateAbstract):
 
     def _extract_fields_of_fitted_operation(self, node: Node):
         operation_name = f'operation_{str(self.operation_id)}.pkl'
-        self.fitted_operation_path = os.path.join('fitted_operations', operation_name)
+        self.fitted_operation_path = os.path.join(operation_name)
         self.fitted_operation = node.fitted_operation
 
     def convert_to_dict(self) -> dict:
@@ -130,7 +130,7 @@ class OperationTemplate(OperationTemplateAbstract):
         if self.fitted_operation:
             path_fitted_operations = os.path.join(path, 'fitted_operations')
             _check_existing_path(path_fitted_operations)
-            joblib.dump(self.fitted_operation, os.path.join(path, self.fitted_operation_path))
+            joblib.dump(self.fitted_operation, os.path.join(path_fitted_operations, self.fitted_operation_path))
 
     def import_json(self, operation_object: dict):
         required_fields = ['operation_id', 'operation_type', 'params', 'nodes_from']
