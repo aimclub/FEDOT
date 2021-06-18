@@ -43,10 +43,10 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                             iterations=10)
+                                   iterations=10)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                   loss_function=mean_squared_error,
-                                   loss_params={'squared': False})
+                                            loss_function=mean_squared_error,
+                                            loss_params={'squared': False})
 
     print('\nPipeline parameters after tuning')
     for node in pipeline.nodes:
@@ -188,5 +188,5 @@ if __name__ == '__main__':
     time_series = np.array(df['Level'])
 
     run_experiment_with_tuning(time_series,
-                               with_ar_pipeline=True,
+                               with_ar_chain=False,
                                len_forecast=250)

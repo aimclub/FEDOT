@@ -11,6 +11,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 def cross_validation(reference_data: InputData, cv_folds: int,
                      metrics: [str, Callable], pipeline: Optional[Pipeline]) -> Tuple[float, ...]:
+    """ TODO add description """
     if reference_data.task.task_type in [TaskTypesEnum.ts_forecasting, TaskTypesEnum.clustering]:
         raise NotImplementedError(f"Cross validation for {reference_data.task.task_type} is not implemented.")
 
@@ -29,3 +30,8 @@ def cross_validation(reference_data: InputData, cv_folds: int,
     evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
 
     return evaluated_metrics
+
+
+def in_sample_ts_validation():
+    """ In-sample forecasting on three validations blocks is provided """
+    raise NotImplementedError()
