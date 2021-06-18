@@ -30,8 +30,3 @@ def cross_validation(reference_data: InputData, cv_folds: int,
     evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
 
     return evaluated_metrics
-
-
-def in_sample_ts_validation():
-    """ In-sample forecasting on three validations blocks is provided """
-    raise NotImplementedError()

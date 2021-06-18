@@ -48,10 +48,8 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
                                             loss_function=mean_squared_error,
                                             loss_params={'squared': False})
 
-    print('\nPipeline parameters after tuning')
-    for node in pipeline.nodes:
-        print(f' Operation {node.operation}, - {node.custom_params}')
-
+    # Fit chain on the entire train data
+    pipeline.fit_from_scratch(train_input)
     # Predict
     predicted_values = pipeline.predict(predict_input)
     new_predicted_values = predicted_values.predict

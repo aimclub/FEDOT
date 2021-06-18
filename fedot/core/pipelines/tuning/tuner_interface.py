@@ -6,6 +6,8 @@ import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.validation.simple_validation import in_sample_ts_validation, \
+    fit_predict_one_fold
 
 
 class HyperoptTuner(ABC):
@@ -48,30 +50,28 @@ class HyperoptTuner(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def get_metric_value(train_input, predict_input, test_target,
-                         pipeline, loss_function, loss_params):
+    def get_metric_value(data, pipeline, loss_function, loss_params):
         """
         Method calculates metric for algorithm validation
 
-        :param train_input: data for train pipeline
-        :param predict_input: data for prediction
-        :param test_target: target array for validation
-        :param pipeline: pipeline to process
+        :param data: InputData for validation
+        :param pipeline: pipeline to validate
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
 
         :return : value of loss function
         """
 
-        pipeline.fit_from_scratch(train_input)
-
         # Make prediction
-        if train_input.task.task_type == TaskTypesEnum.classification:
-            predicted_labels = pipeline.predict(predict_input)
-            preds = np.array(predicted_labels.predict)
+        if data.task.task_type == TaskTypesEnum.classification:
+            test_target, preds = fit_predict_one_fold(pipeline, data)
+        elif data.task.task_type == TaskTypesEnum.ts_forecasting:
+            # For time series forecasting task in-sample forecasting is provided
+            test_target, preds = in_sample_ts_validation(pipeline, data)
         else:
-            predicted_values = pipeline.predict(predict_input)
-            preds = np.ravel(np.array(predicted_values.predict))
+            test_target, preds = fit_predict_one_fold(pipeline, data)
+            # Convert predictions into one dimensional array
+            preds = np.ravel(np.array(preds))
             test_target = np.ravel(test_target)
 
         # Calculate metric
@@ -81,14 +81,11 @@ class HyperoptTuner(ABC):
             metric = loss_function(test_target, preds, **loss_params)
         return metric
 
-    def init_check(self, train_input, predict_input,
-                   test_target, loss_function, loss_params) -> None:
+    def init_check(self, data, loss_function, loss_params) -> None:
         """
         Method get metric on validation set before start optimization
 
-        :param train_input: data for train pipeline
-        :param predict_input: data for prediction
-        :param test_target: target array for validation
+        :param data: InputData for validation
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
         """
@@ -97,29 +94,22 @@ class HyperoptTuner(ABC):
         # Train pipeline
         self.init_pipeline = deepcopy(self.pipeline)
 
-        self.init_metric = self.get_metric_value(train_input=train_input,
-                                                 predict_input=predict_input,
-                                                 test_target=test_target,
-                                                 pipeline=self.init_pipeline,
+        self.init_metric = self.get_metric_value(data=data,
+                                                 pipeline=self.init_chain,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)
 
-    def final_check(self, train_input, predict_input, test_target,
-                    tuned_pipeline, loss_function, loss_params):
+    def final_check(self, data, tuned_pipeline, loss_function, loss_params):
         """
         Method propose final quality check after optimization process
 
-        :param train_input: data for train pipeline
-        :param predict_input: data for prediction
-        :param test_target: target array for validation
+        :param data: InputData for validation
         :param tuned_pipeline: tuned pipeline
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
         """
 
-        obtained_metric = self.get_metric_value(train_input=train_input,
-                                                predict_input=predict_input,
-                                                test_target=test_target,
+        obtained_metric = self.get_metric_value(data=data,
                                                 pipeline=tuned_pipeline,
                                                 loss_function=loss_function,
                                                 loss_params=loss_params)
@@ -160,12 +150,13 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
 
-    :param target: array with target
+    :param target: target for define what problem is solving (max or min)
     :param loss_function: loss function
     :param loss_params: parameters for loss function
 
     :return : bool value is it good to maximize metric or not
     """
+
     if loss_params is None:
         metric = loss_function(target, target)
     else:
