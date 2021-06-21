@@ -51,7 +51,20 @@ ChainStructureAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Conduct only composite model structure analysis via ``NodesAnalysis``,
-which analyzes nodes separately from each other.
+which analyzes nodes separately from each other. Currently, the
+application of ``NodeDeletionAnalyze`` and ``NodeReplaceModelAnalyze``
+gives node a rating, thus you understand the influence of the component
+on the composite model. The rating corresponds to:
+
+-  Rating 1 - Redundant node (Deletion is recommended)
+
+-  Rating 2 - Uncertain node (Extra analysis is recommended. In other
+   words, it is needed to decide which one of deletion or replacement
+   with the best found operation leads to higher improvement)
+
+-  Rating 3 - Imprecise node (Replacement is recommended)
+
+-  Rating 4 - Precise node (Stay as it is)
 
 .. code-block:: python
 
