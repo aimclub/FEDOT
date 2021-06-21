@@ -71,6 +71,7 @@ class OperationTemplate(OperationTemplateAbstract):
         self.params = None
         self.fitted_operation = None
         self.fitted_operation_path = None
+        self.rating = None
 
         if node:
             self._operation_to_template(node, operation_id, nodes_from)
@@ -81,6 +82,7 @@ class OperationTemplate(OperationTemplateAbstract):
         self.custom_params = node.operation.params
         self.params = self._create_full_params(node)
         self.nodes_from = nodes_from
+        self.rating = node.rating
 
         if _is_node_fitted(node):
             self.operation_name = _extract_operation_name(node)
@@ -119,7 +121,8 @@ class OperationTemplate(OperationTemplateAbstract):
             "custom_params": self.custom_params,
             "params": self.params,
             "nodes_from": self.nodes_from,
-            "fitted_operation_path": self.fitted_operation_path
+            "fitted_operation_path": self.fitted_operation_path,
+            "rating": self.rating,
         }
 
         return operation_object
@@ -146,6 +149,8 @@ class OperationTemplate(OperationTemplateAbstract):
             self.custom_params = operation_object['custom_params']
         if "operation_name" in operation_object:
             self.operation_name = operation_object['operation_name']
+        if "rating" in operation_object:
+            self.rating = operation_object['rating']
 
 
 def _check_existing_path(path: str):

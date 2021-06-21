@@ -86,10 +86,10 @@ class ChainTemplate:
             os.makedirs(absolute_path)
 
         chain_template_dict = self.convert_to_dict()
-        json_data = json.dumps(chain_template_dict)
+        json_data = json.dumps(chain_template_dict, indent=4)
 
         with open(os.path.join(absolute_path, f'{self.unique_chain_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(json.loads(json_data), indent=4))
+            f.write(json_data)
             resulted_path = os.path.join(absolute_path, f'{self.unique_chain_id}.json')
             self.log.message(f"The chain saved in the path: {resulted_path}.")
 
@@ -204,6 +204,7 @@ class ChainTemplate:
             else:
                 node = PrimaryNode(operation_object.operation_type)
             node.operation.params = operation_object.params
+            node.rating = operation_object.rating
 
         if hasattr(operation_object,
                    'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:

@@ -159,7 +159,7 @@ def test_export_chain_to_json_correctly():
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json_actual == json.dumps(json_expected, indent=4)
 
 
 def test_chain_template_to_json_correctly():
@@ -232,7 +232,7 @@ def test_import_json_to_fitted_chain_correctly():
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
-    assert json_actual == json.dumps(json_expected)
+    assert json_actual == json.dumps(json_expected, indent=4)
 
 
 def test_import_json_to_fitted_chain_template_correctly():
