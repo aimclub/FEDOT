@@ -12,7 +12,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeAnalysis
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class NodesAnalysis:

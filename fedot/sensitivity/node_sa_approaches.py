@@ -16,7 +16,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements, ReplacementAnalysisMetaParams
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, ReplacementAnalysisMetaParams
 from fedot.utilities.define_metric_by_task import MetricByTask
 
 

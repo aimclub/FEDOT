@@ -4,7 +4,7 @@ from examples.sensitivity_analysis.dataset_access import get_scoring_data
 from examples.sensitivity_analysis.chains_access import get_three_depth_manual_class_chain
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
@@ -17,7 +17,7 @@ def run_analysis(chain, train_data, test_data):
 
     ChainSensitivityAnalysis(chain=chain, train_data=train_data,
                              test_data=test_data, approaches=approaches,
-                             requirements=sa_requirements, path_to_save=result_path)
+                             requirements=sa_requirements, path_to_save=result_path).analyze()
 
 
 if __name__ == '__main__':

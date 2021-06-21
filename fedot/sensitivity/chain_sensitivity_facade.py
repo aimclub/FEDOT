@@ -8,7 +8,7 @@ from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
 from fedot.sensitivity.chain_sensitivity import ChainAnalysis
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class ChainSensitivityAnalysis:

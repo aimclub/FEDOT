@@ -12,8 +12,8 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem
 from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import analyze_method_by_name, \
     sample_method_by_name
-from fedot.sensitivity.sa_requirementrs import HyperparamsAnalysisMetaParams
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements
+from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class MultiOperationsHPAnalyze:

@@ -17,7 +17,7 @@ from fedot.sensitivity.operations_hp_sensitivity.problem import OneOperationProb
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
 from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import analyze_method_by_name, \
     sample_method_by_name
-from fedot.sensitivity.sa_requirementrs import SensitivityAnalysisRequirements, HyperparamsAnalysisMetaParams
+from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, HyperparamsAnalysisMetaParams
 
 
 class OneOperationHPAnalyze(NodeAnalyzeApproach):
