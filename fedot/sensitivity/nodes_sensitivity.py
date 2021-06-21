@@ -19,8 +19,8 @@ class NodesAnalysis:
     """
     This class is for nodes sensitivity analysis within a Chain .
     It takes nodes and approaches to be applied to chosen nodes.
-    To define which nodes to analyze
-    pass them to nodes_to_analyze or pass True to all_nodes flag.
+    To define which nodes to analyze pass them to nodes_to_analyze filed
+    or all nodes will be analyzed.
 
     :param chain: chain object to analyze
     :param train_data: data used for Chain training
@@ -29,7 +29,6 @@ class NodesAnalysis:
     Default: [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
     :param nodes_to_analyze: nodes to analyze. Default: all nodes
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    Default: False
     :param log: log: Log object to record messages
     """
 

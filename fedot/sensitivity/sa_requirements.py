@@ -13,7 +13,8 @@ ReplacementAnalysisMetaParams = namedtuple('ReplacementAnalysisMetaParams', ['no
 
 class SensitivityAnalysisRequirements:
     """
-    Pass all the requirements needed for SA
+    Use this object to pass all the requirements needed for SA.
+
     :param hyperparams_analyze_method: defines string name of SA method to use. Defaults: 'sobol'
     :param hyperparams_sample_method: defines string name of sampling method to use. Defaults: 'saltelli'
     :param hyperparams_analysis_samples_size: defines the number of shyperparameters samples used in SA
