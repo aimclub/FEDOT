@@ -9,8 +9,11 @@ from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.multi_modal import MultiModalData
 from copy import deepcopy
 
-def mean_absolute_percentage_error(test, predicted):
-    return round(np.mean(np.abs((test-predicted)/test))*100, 4)
+
+def mean_absolute_percentage_error(y_true, y_pred):
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    return round((np.mean(np.abs((y_true - y_pred) / y_true)) * 100), 4)
+
 
 def prepare_data(time_series, exog_variable, len_forecast=250):
 
@@ -54,7 +57,7 @@ def get_arima_nemo_chain():
     return chain
 
 
-def get_STLarima_nemo_chain():
+def get_stlarima_nemo_chain():
     """ Function return complex chain with the following structure
         stl_arima \
                    linear
@@ -67,7 +70,6 @@ def get_STLarima_nemo_chain():
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     chain = Chain(node_final)
     return chain
-
 
 
 def get_ridge_nemo_chain():
@@ -242,7 +244,7 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
     errors_df['STL_ARIMA_MAPE'] = mape_before
 
     # stl_arima with nemo ensemble
-    chain = get_STLarima_nemo_chain()
+    chain = get_stlarima_nemo_chain()
 
     train_dataset = MultiModalData({
         'stl_arima': deepcopy(train_input),
@@ -431,7 +433,7 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
         boxplot_visualize(mae_errors_df, 'MAE')
         boxplot_visualize(mape_errors_df, 'MAPE')
 
-#'../cases/data/nemo/',
+
 def run_prediction_examples(mode='single'):
     if mode == 'single':
         run_single_example(len_forecast=40, is_visualise=True)
@@ -444,4 +446,4 @@ def run_prediction_examples(mode='single'):
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='single')
+    run_prediction_examples(mode='multiple')

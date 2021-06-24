@@ -256,7 +256,6 @@ class STLForecastARIMAImplementation(ModelImplementation):
         self.actual_ts_len = len(source_ts)
         self.sts = source_ts
 
-
         if not self.params:
             # Default data
             self.params = {'p': 2, 'd': 0, 'q': 2, 'period': 365}
