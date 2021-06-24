@@ -6,6 +6,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.chains.chain_ts_wrappers import in_sample_ts_forecast
 from fedot.core.data.data_split import train_test_data_setup
 
+from sklearn.metrics import mean_absolute_error
+
 
 def fit_predict_one_fold(chain, data):
     """ Simple strategy for model evaluation based on one folder check
@@ -54,7 +56,7 @@ def in_sample_ts_validation(chain, data, validation_blocks: int = 3):
     return test_target, predicted_values
 
 
-def ts_cross_validation(chain, data, cv: int = 10):
+def ts_cross_validation(chain, data):
     """ Provide K-fold cross validation for time series with using in-sample
     forecasting on each step (fold)
     """
@@ -65,7 +67,7 @@ def ts_cross_validation(chain, data, cv: int = 10):
     # Estimate appropriate number of splits
     n_splits = _calculate_n_splits(data, horizon)
     # Get numbers of folds for validation
-    folds_to_use = _choose_random_folds(n_splits, cv)
+    folds_to_use = _choose_several_folds(n_splits)
 
     tscv = TimeSeriesSplit(gap=0, n_splits=n_splits,
                            test_size=horizon)
@@ -73,6 +75,7 @@ def ts_cross_validation(chain, data, cv: int = 10):
     i = 0
     actual_values = []
     predicted_values = []
+    metrics = []
     for train_ids, test_ids in tscv.split(data.features):
         if i in folds_to_use:
             actual, pred = perform_ts_validation(chain, data, train_ids, test_ids,
@@ -80,9 +83,17 @@ def ts_cross_validation(chain, data, cv: int = 10):
             # Add actual and predicted values into common holder
             actual_values.extend(list(actual))
             predicted_values.extend(list(pred))
+            metric = mean_absolute_error(actual, pred)
+            print(f'Значение метрики для CV {i} - {metric}')
+            metrics.append(metric)
         i += 1
+
+    print(f' A + B + C = {np.array(metrics).mean()}')
     actual_values = np.ravel(np.array(actual_values))
     predicted_values = np.ravel(np.array(predicted_values))
+    print('------------------------------------------------------------------')
+    print(f'Усредненное значение метрики: {mean_absolute_error(actual_values, predicted_values)}')
+    print('------------------------------------------------------------------')
     return actual_values, predicted_values
 
 
@@ -109,13 +120,15 @@ def _calculate_n_splits(data, horizon: int):
     return n_splits
 
 
-def _choose_random_folds(n_splits, cv: int):
+def _choose_several_folds(n_splits):
     """ Choose ids of several folds for further testing """
 
     # If there not enough folds in time series - take all of them
-    if cv >= n_splits:
+    if n_splits < 3:
         return np.arange(0, n_splits)
     else:
         # Randomly choose subsample of folds
-        fold_ids = [3, n_splits]
-        return np.random.choice(fold_ids, cv)
+        smallest_part = 1
+        medium_part = int(round(n_splits/2))
+        biggest_part = n_splits - 1
+        return np.array([smallest_part, medium_part, biggest_part])
