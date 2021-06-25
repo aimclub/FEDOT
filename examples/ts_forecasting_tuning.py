@@ -43,10 +43,10 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     chain_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                iterations=10)
+                             iterations=10)
     chain = chain_tuner.tune_pipeline(input_data=train_input,
-                                   loss_function=mean_absolute_error,
-                                   loss_params=None)
+                                   loss_function=mean_squared_error,
+                                   loss_params={'squared': False})
 
     # Fit chain on the entire train data
     pipeline.fit_from_scratch(train_input)
@@ -185,6 +185,8 @@ if __name__ == '__main__':
     df = pd.read_csv(data_path)
     time_series = np.array(df['Level'])
 
+    df = pd.read_csv('../cases/data/time_series/metocean.csv')
+    time_series = np.array(df['value'])
     run_experiment_with_tuning(time_series,
                                with_ar_chain=False,
-                               len_forecast=250)
+                               len_forecast=50)

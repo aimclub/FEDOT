@@ -67,7 +67,7 @@ class HyperoptTuner(ABC):
             test_target, preds = fit_predict_one_fold(pipeline, data)
         elif data.task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting task in-sample forecasting is provided
-            test_target, preds = ts_cross_validation(pipeline, data)
+            test_target, preds = in_sample_ts_validation(pipeline, data)
         else:
             test_target, preds = fit_predict_one_fold(pipeline, data)
             # Convert predictions into one dimensional array
@@ -95,7 +95,7 @@ class HyperoptTuner(ABC):
         self.init_pipeline = deepcopy(self.pipeline)
 
         self.init_metric = self.get_metric_value(data=data,
-                                                 pipeline=self.init_chain,
+                                                 pipeline=self.init_pipeline,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)
 
