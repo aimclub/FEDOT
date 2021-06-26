@@ -122,7 +122,7 @@ Jupyter notebooks with tutorials are located in the "notebooks" folder. There yo
 * `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__
 * `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__
 * `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__
-
+* `Kaggle: baseline for Microsoft Stock - Time Series Analysis task <https://www.kaggle.com/dreamlone/microsoft-stocks-price-prediction-automl>`__
 Notebooks are issued with the corresponding release versions. In the "notebooks" folder, you can also find examples for previous releases functionality.
 
 Extended examples:
