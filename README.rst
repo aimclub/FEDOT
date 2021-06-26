@@ -141,11 +141,13 @@ Publications about FEDOT
 We also published several posts and news devoted to the different aspects of the framework:
 
 In English:
+
 - How AutoML helps to create composite AI? - `towardsdatascience.com <https://towardsdatascience.com/how-automl-helps-to-create-composite-ai-f09e05287563>`__
 - AutoML for time series: definitely a good idea? - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
 - Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/en/university_live/achievements/news/10409/>`__
 
 In Russian:
+
 - General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
 - Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
 - Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/ru/university_live/achievements/news/10409/>`__
