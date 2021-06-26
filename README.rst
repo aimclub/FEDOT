@@ -108,7 +108,7 @@ Numpy arrays, pandas data frames, and file paths can be used as sources of input
  model.fit(features=train_data.features, target=train_data.target)
  prediction = model.predict(features=test_data.features)
 
- metrics = auto_model.get_metrics()
+ metrics = model.get_metrics()
 
 For more advanced approaches, please use Examples & Tutorials section.
 
@@ -117,13 +117,18 @@ Examples & Tutorials
 
 Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
 
-* `Intro to AutoML <./notebooks/version_03/1_intro_to_automl.ipynb>`__
-* `Intro to FEDOT functionality <./notebooks/version_03/2_intro_to_fedot.ipynb>`__
-* `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__
-* `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__
-* `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__
+* `Intro to AutoML <./notebooks/latest/1_intro_to_automl.ipynb>`__
+* `Intro to FEDOT functionality <./notebooks/latest/2_intro_to_fedot.ipynb>`__
+* `Intro to time series forecasting with FEDOT <./notebooks/latest/3_intro_ts_forecasting.ipynb>`__
+* `Advanced time series forecasting <./notebooks/latest/4_auto_ts_forecasting.ipynb>`__
+* `Gap-filling in time series and out-of-sample forecasting <./notebooks/latest/5_ts_specific_cases.ipynb>`__
 
-Notebooks are issued with the corresponding release versions. In the "notebooks" folder, you can also find examples for previous releases functionality.
+Notebooks are issued with the corresponding release versions (the default version is 'latest').
+In the "notebooks" folder, you can also find examples for previous releases' functionality.
+
+Also, external examples are available:
+
+* `Kaggle: baseline for Microsoft Stock - Time Series Analysis task <https://www.kaggle.com/dreamlone/microsoft-stocks-price-prediction-automl>`__
 
 Extended examples:
 
@@ -138,10 +143,19 @@ Also, several video tutorials are `available <https://www.youtube.com/playlist?l
 Publications about FEDOT
 ========================
 
-We also published several posts devoted to the different aspects of the framework:
+We also published several posts and news devoted to the different aspects of the framework:
 
-- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__ (in Russian)
-- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__ (in Russian)
+In English:
+
+- How AutoML helps to create composite AI? - `towardsdatascience.com <https://towardsdatascience.com/how-automl-helps-to-create-composite-ai-f09e05287563>`__
+- AutoML for time series: definitely a good idea? - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
+- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/en/university_live/achievements/news/10409/>`__
+
+In Russian:
+
+- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
+- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
+- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/ru/university_live/achievements/news/10409/>`__
 
 Project structure
 =================
