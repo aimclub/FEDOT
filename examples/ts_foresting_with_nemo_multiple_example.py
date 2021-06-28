@@ -16,7 +16,6 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 
 def prepare_data(time_series, exog_variable, len_forecast=250):
-
     time_series = np.array(time_series)
     exog_variable = np.array(exog_variable)
 
@@ -72,7 +71,6 @@ def get_stlarima_nemo_chain():
     return chain
 
 
-
 def get_ridge_nemo_chain():
     """ Function return complex chain with the following structure
         lagged -> ridge \
@@ -104,7 +102,7 @@ def get_arima_chain():
     return chain
 
 
-def get_STLarima_chain():
+def get_stlarima_chain():
     """ Function return complex chain with the following structure
         stl_arima
     """
@@ -145,7 +143,6 @@ def compare_plot(predicted, real, forecast_length, model):
 
 
 def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_visualise=False):
-
     errors_df = {}
 
     (train_input,
@@ -156,187 +153,74 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
                                exog_variable=exog_variable,
                                len_forecast=len_forecast)
 
-    """ Arima models """
-    # simple arima
-    chain = get_arima_chain()
-    train_dataset = MultiModalData({
-        'arima': deepcopy(train_input),
-    })
-    predict_dataset = MultiModalData({
-        'arima': deepcopy(predict_input),
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset)
-    predicted_values = predicted_values.predict
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
+    chains = {'ARIMA': {
+                   'tr_nodes_data': {"arima": deepcopy(train_input)},
+                   'pr_nodes_data': {"arima": deepcopy(predict_input)},
+                   'model': get_arima_chain()
+                   },
+              'STL_ARIMA': {
+                  'tr_nodes_data': {"stl_arima": deepcopy(train_input)},
+                  'pr_nodes_data': {"stl_arima": deepcopy(predict_input)},
+                  'model': get_stlarima_chain()
+                   },
+              'RIDGE':
+                  {'tr_nodes_data': {"lagged/1": deepcopy(train_input), "lagged/2": deepcopy(train_input)},
+                   'pr_nodes_data': {"lagged/1": deepcopy(predict_input), "lagged/2": deepcopy(predict_input)},
+                   'model': get_ridge_chain()
+                   },
+              'ARIMA_NEMO':
+                  {'tr_nodes_data': {"arima": deepcopy(train_input), "exog_ts_data_source": deepcopy(train_input_exog)},
+                   'pr_nodes_data': {"arima": deepcopy(predict_input),
+                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
+                   'model': get_arima_nemo_chain()
+                   },
+              'STL_ARIMA_NEMO':
+                  {'tr_nodes_data': {"stl_arima": deepcopy(train_input),
+                                     "exog_ts_data_source": deepcopy(train_input_exog)},
+                   'pr_nodes_data': {"stl_arima": deepcopy(predict_input),
+                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
+                   'model': get_stlarima_nemo_chain()
+                   },
+              'RIDGE_NEMO':
+                  {'tr_nodes_data': {"lagged/1": deepcopy(train_input),
+                                     "lagged/2": deepcopy(train_input),
+                                     "exog_ts_data_source": deepcopy(train_input_exog)},
+                   'pr_nodes_data': {"lagged/1": deepcopy(predict_input),
+                                     "lagged/2": deepcopy(predict_input),
+                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
+                   'model': get_ridge_nemo_chain()
+                   }
+              }
 
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'ARIMA')
+    def combine_chain(name):
+        chain = chains[name]['model']
+        train_dataset = MultiModalData(chains[name]['tr_nodes_data'])
+        predict_dataset = MultiModalData(chains[name]['pr_nodes_data'])
+        return chain, train_dataset, predict_dataset
 
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'ARIMA MSE - {mse_before:.4f}')
-    print(f'ARIMA MAE - {mae_before:.4f}')
-    print(f'ARIMA MAPE - {mape_before:.4f}\n')
+    for model_name in chains.keys():
+        chain, train_dataset, predict_dataset = combine_chain(model_name)
 
-    errors_df['ARIMA_MSE'] = mse_before
-    errors_df['ARIMA_MAE'] = mae_before
-    errors_df['ARIMA_MAPE'] = mape_before
+        chain.fit_from_scratch(train_dataset)
+        predicted_values = chain.predict(predict_dataset)
+        predicted_values = predicted_values.predict
+        predicted = np.ravel(np.array(predicted_values))
+        test_data = np.ravel(test_data)
 
-    # arima with nemo ensemble
-    chain = get_arima_nemo_chain()
-    train_dataset = MultiModalData({
-        'arima': deepcopy(train_input),
-        'exog_ts_data_source': deepcopy(train_input_exog)
-    })
-    predict_dataset = MultiModalData({
-        'arima': deepcopy(predict_input),
-        'exog_ts_data_source': deepcopy(predict_input_exog)
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset).predict
+        mse_before = mean_squared_error(test_data, predicted, squared=False)
+        mae_before = mean_absolute_error(test_data, predicted)
+        mape_before = mean_absolute_percentage_error(test_data, predicted)
 
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
+        errors_df[model_name + '_MSE'] = mse_before
+        errors_df[model_name + '_MAE'] = mae_before
+        errors_df[model_name + '_MAPE'] = mape_before
 
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'ARIMA with nemo')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'ARIMA with nemo MSE - {mse_before:.4f}')
-    print(f'ARIMA with nemo MAE - {mae_before:.4f}')
-    print(f'ARIMA with nemo MAPE - {mape_before:.4f}\n')
-
-    errors_df['ARIMA_NEMO_MSE'] = mse_before
-    errors_df['ARIMA_NEMO_MAE'] = mae_before
-    errors_df['ARIMA_NEMO_MAPE'] = mape_before
-
-    """ STL Arima models """
-    # simple stl_arima
-    chain = get_STLarima_chain()
-    train_dataset = MultiModalData({
-        'stl_arima': deepcopy(train_input),
-    })
-    predict_dataset = MultiModalData({
-        'stl_arima': deepcopy(predict_input),
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset).predict
-
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
-
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'STL ARIMA')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'STL ARIMA MSE - {mse_before:.4f}')
-    print(f'STL ARIMA MAE - {mae_before:.4f}')
-    print(f'STL ARIMA MAPE - {mape_before:.4f}\n')
-
-    errors_df['STL_ARIMA_MSE'] = mse_before
-    errors_df['STL_ARIMA_MAE'] = mae_before
-    errors_df['STL_ARIMA_MAPE'] = mape_before
-
-    # stl_arima with nemo ensemble
-    chain = get_stlarima_nemo_chain()
-
-    train_dataset = MultiModalData({
-        'stl_arima': deepcopy(train_input),
-        'exog_ts_data_source': deepcopy(train_input_exog)
-    })
-    predict_dataset = MultiModalData({
-        'stl_arima': deepcopy(predict_input),
-        'exog_ts_data_source': deepcopy(predict_input_exog)
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset).predict
-
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
-
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'STL ARIMA with nemo')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'STL ARIMA with nemo MSE - {mse_before:.4f}')
-    print(f'STL ARIMA with nemo MAE - {mae_before:.4f}')
-    print(f'STL ARIMA with nemo MAPE - {mape_before:.4f}\n')
-
-    errors_df['STL_ARIMA_NEMO_MSE'] = mse_before
-    errors_df['STL_ARIMA_NEMO_MAE'] = mae_before
-    errors_df['STL_ARIMA_NEMO_MAPE'] = mape_before
-
-    """ Ridge models """
-    # simple ridge
-    chain = get_ridge_chain()
-    train_dataset = MultiModalData({
-        'lagged/1': deepcopy(train_input),
-        'lagged/2': deepcopy(train_input)
-    })
-    predict_dataset = MultiModalData({
-        'lagged/1': deepcopy(predict_input),
-        'lagged/2': deepcopy(predict_input)
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset).predict
-
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
-
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'ridge')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'ridge MSE - {mse_before:.4f}')
-    print(f'ridge MAE - {mae_before:.4f}')
-    print(f'ridge MAPE - {mape_before:.4f}\n')
-
-    errors_df['RIDGE_MSE'] = mse_before
-    errors_df['RIDGE_MAE'] = mae_before
-    errors_df['RIDGE_MAPE'] = mape_before
-
-    # ridge with nemo ensemble
-    chain = get_ridge_nemo_chain()
-    train_dataset = MultiModalData({
-        'lagged/1': deepcopy(train_input),
-        'lagged/2': deepcopy(train_input),
-        'exog_ts_data_source': deepcopy(train_input_exog)
-    })
-    predict_dataset = MultiModalData({
-        'lagged/1': deepcopy(predict_input),
-        'lagged/2': deepcopy(predict_input),
-        'exog_ts_data_source': deepcopy(predict_input_exog)
-    })
-    chain.fit_from_scratch(train_dataset)
-    predicted_values = chain.predict(predict_dataset).predict
-
-    predicted = np.ravel(np.array(predicted_values))
-    test_data = np.ravel(test_data)
-
-    if is_visualise:
-        compare_plot(predicted, test_data, len_forecast, 'ridge with nemo')
-
-    mse_before = mean_squared_error(test_data, predicted, squared=False)
-    mae_before = mean_absolute_error(test_data, predicted)
-    mape_before = mean_absolute_percentage_error(test_data, predicted)
-    print(f'ridge with nemo MSE - {mse_before:.4f}')
-    print(f'ridge with nemo MAE - {mae_before:.4f}')
-    print(f'ridge with nemo MAPE - {mape_before:.4f}\n')
-
-    errors_df['RIDGE_NEMO_MSE'] = mse_before
-    errors_df['RIDGE_NEMO_MAE'] = mae_before
-    errors_df['RIDGE_NEMO_MAPE'] = mape_before
+        if is_visualise:
+            compare_plot(predicted, test_data, len_forecast, model_name)
+            print(model_name)
+            print(f' MSE - {mse_before:.4f}')
+            print(f' MAE - {mae_before:.4f}')
+            print(f' MAPE - {mape_before:.4f}\n')
 
     return errors_df
 
@@ -369,17 +253,29 @@ def run_single_example(len_forecast=40, is_visualise=True):
                                is_visualise=is_visualise)
 
 
-def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxplot_visualize=True, len_forecast=40):
+def create_errors_df():
+    df = pd.DataFrame(columns=['POINT', 'RIDGE', 'RIDGE_NEMO',
+                               'ARIMA', 'ARIMA_NEMO',
+                               'STL_ARIMA', 'STL_ARIMA_NEMO'])
+    return df
 
-    mse_errors_df = pd.DataFrame(columns=['POINT', 'RIDGE', 'RIDGE_NEMO',
-                                                   'ARIMA', 'ARIMA_NEMO',
-                                                   'STL_ARIMA', 'STL_ARIMA_NEMO'])
-    mae_errors_df = pd.DataFrame(columns=['POINT', 'RIDGE', 'RIDGE_NEMO',
-                                                   'ARIMA', 'ARIMA_NEMO',
-                                                   'STL_ARIMA', 'STL_ARIMA_NEMO'])
-    mape_errors_df = pd.DataFrame(columns=['POINT', 'RIDGE', 'RIDGE_NEMO',
-                                                    'ARIMA', 'ARIMA_NEMO',
-                                                    'STL_ARIMA', 'STL_ARIMA_NEMO'])
+
+def add_data_to_errors_df(df, error_name, point, errors):
+    df = df.append({'POINT': point,
+                    'RIDGE': errors['RIDGE_' + error_name],
+                    'RIDGE_NEMO': errors['RIDGE_NEMO_' + error_name],
+                    'ARIMA': errors['ARIMA_' + error_name],
+                    'ARIMA_NEMO': errors['ARIMA_NEMO_' + error_name],
+                    'STL_ARIMA': errors['STL_ARIMA_' + error_name],
+                    'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_' + error_name],
+                    }, ignore_index=True)
+    return df
+
+
+def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxplot_visualize=True, len_forecast=40):
+    mse_errors_df = create_errors_df()
+    mae_errors_df = create_errors_df()
+    mape_errors_df = create_errors_df()
 
     path_to_file = path_to_file
     path_to_exog_file = path_to_exog_file
@@ -397,32 +293,9 @@ def run_multiple_example(path_to_file, path_to_exog_file, out_path=None, is_boxp
                                                 len_forecast=len_forecast,
                                                 is_visualise=False)
 
-            mse_errors_df = mse_errors_df.append({'POINT': point,
-                                                  'RIDGE': errors['RIDGE_MSE'],
-                                                  'RIDGE_NEMO': errors['RIDGE_NEMO_MSE'],
-                                                  'ARIMA': errors['ARIMA_MSE'],
-                                                  'ARIMA_NEMO': errors['ARIMA_NEMO_MSE'],
-                                                  'STL_ARIMA': errors['STL_ARIMA_MSE'],
-                                                  'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_MSE'],
-                                                  }, ignore_index=True)
-
-            mae_errors_df = mae_errors_df.append({'POINT': point,
-                                                  'RIDGE': errors['RIDGE_MAE'],
-                                                  'RIDGE_NEMO': errors['RIDGE_NEMO_MAE'],
-                                                  'ARIMA': errors['ARIMA_MAE'],
-                                                  'ARIMA_NEMO': errors['ARIMA_NEMO_MAE'],
-                                                  'STL_ARIMA': errors['STL_ARIMA_MAE'],
-                                                  'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_MAE'],
-                                                  }, ignore_index=True)
-
-            mape_errors_df = mape_errors_df.append({'POINT': point,
-                                                    'RIDGE': errors['RIDGE_MAPE'],
-                                                    'RIDGE_NEMO': errors['RIDGE_NEMO_MAPE'],
-                                                    'ARIMA': errors['ARIMA_MAPE'],
-                                                    'ARIMA_NEMO': errors['ARIMA_NEMO_MAPE'],
-                                                    'STL_ARIMA': errors['STL_ARIMA_MAPE'],
-                                                    'STL_ARIMA_NEMO': errors['STL_ARIMA_NEMO_MAPE'],
-                                                    }, ignore_index=True)
+            mse_errors_df = add_data_to_errors_df(mse_errors_df, 'MSE', point, errors)
+            mae_errors_df = add_data_to_errors_df(mae_errors_df, 'MAE', point, errors)
+            mape_errors_df = add_data_to_errors_df(mape_errors_df, 'MAPE', point, errors)
 
     if out_path is not None:
         mse_errors_df.to_csv(os.path.join(out_path, 'mse_errors.csv'), index=False)

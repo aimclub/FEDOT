@@ -1,10 +1,7 @@
-import os
-import timeit
 import warnings
 
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
 from fedot.core.chains.chain import Chain
@@ -51,6 +48,7 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
 
     return train_input, predict_input, task
 
+
 def get_arima_chain():
     """ Function return complex chain with the following structure
         arima
@@ -61,6 +59,7 @@ def get_arima_chain():
 
     chain = Chain(node_final)
     return chain
+
 
 def get_arima_nemo_chain():
     """ Function return complex chain with the following structure
@@ -75,6 +74,7 @@ def get_arima_nemo_chain():
     chain = Chain(node_final)
     return chain
 
+
 def return_working_chain():
     node_lagged_1 = PrimaryNode('lagged/1')
     node_exog = PrimaryNode('exog_ts_data_source')
@@ -82,6 +82,7 @@ def return_working_chain():
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
     chain = Chain(node_final)
     return chain
+
 
 len_forecast = 40
 ts_name = 'sea_level'
@@ -94,21 +95,21 @@ df = pd.read_csv(path_to_exog_file)
 exog_variable = np.array(df[ts_name])
 
 
-    # Let's divide our data on train and test samples
+# Let's divide our data on train and test samples
 train_data = time_series[:-len_forecast]
 test_data = time_series[-len_forecast:]
 
-    # Nemo feature
+# Nemo features
 train_data_exog = exog_variable[:-len_forecast]
 test_data_exog = exog_variable[-len_forecast:]
 
-    # Source time series
+# Source time series
 train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
                                                       train_data_features=train_data,
                                                       train_data_target=train_data,
                                                       test_data_features=train_data)
 
-    # Exogenous time series
+# Exogenous time series
 train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
                                                              train_data_features=train_data_exog,
                                                              train_data_target=train_data,
@@ -158,10 +159,10 @@ mae_before = mean_absolute_error(test_data, predicted)
 mape_before = mean_absolute_percentage_error(test_data, predicted)
 print(f'Lagged with nemo MSE - {mse_before:.4f}')
 print(f'Lagged with nemo MAE - {mae_before:.4f}')
-print(f'Lagged with nemo MAPE - {mape_before:.4f}')
+print(f'Lagged with nemo MAPE - {mape_before:.4f}\n')
 
 
-    # arima with nemo ensemble
+# arima with nemo ensemble
 chain = get_arima_nemo_chain()
 train_dataset = MultiModalData({
         'arima': deepcopy(train_input),
