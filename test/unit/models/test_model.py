@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
 from copy import deepcopy
 
 from test.unit.tasks.test_regression import get_synthetic_regression_data
@@ -120,10 +120,10 @@ def test_ts_models_fit_correct():
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=deepcopy(train_data))
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
-        rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict[0])
+        mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
-        rmse_threshold = np.std(test_data.target) ** 30
-        assert rmse_value_test < rmse_threshold
+        mae_threshold = np.var(test_data.target) * 1.5
+        assert mae_value_test < mae_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
