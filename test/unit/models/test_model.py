@@ -122,7 +122,7 @@ def test_ts_models_fit_correct():
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
-        mae_threshold = np.var(test_data.target) * 1.5
+        mae_threshold = np.var(test_data.target) * 2
         assert mae_value_test < mae_threshold
 
 
