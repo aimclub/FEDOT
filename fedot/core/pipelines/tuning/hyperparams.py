@@ -156,8 +156,9 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
             'degree': hp.choice(label, [2, 3, 4]),
             'interaction_only': hp.choice(label, [True, False])
         },
+        # TODO define new params
         'lagged': {
-            'window_size': hp.uniform(label, 10, 500)
+            'window_size': hp.uniform(label, 10, 300)
         },
         'smoothing': {
             'window_size': hp.uniform(label, 2, 20)

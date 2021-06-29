@@ -86,38 +86,38 @@ def ts_cross_validation(chain, data):
                                                  validation_blocks)
             # TODO удалить блок с визуализацией
             ###################################
-            len_train = len(train_ids)
-            len_test = len(test_ids)
-            if i == 1:
-                label_1, label_2 = 'Actual values', 'Predicted'
-            else:
-                label_1, label_2 = None, None
-            plt.plot(np.arange(0, len_train), data.features[train_ids], c='green', label=label_1)
-            plt.plot(np.arange(len_train, len_train + len_test), actual, c='green')
-            plt.plot(np.arange(len_train, len_train + len_test), pred, c='blue', label=label_2)
+            # len_train = len(train_ids)
+            # len_test = len(test_ids)
+            # if i == 1:
+            #     label_1, label_2 = 'Actual values', 'Predicted'
+            # else:
+            #     label_1, label_2 = None, None
+            # plt.plot(np.arange(0, len_train), data.features[train_ids], c='green', label=label_1)
+            # plt.plot(np.arange(len_train, len_train + len_test), actual, c='green')
+            # plt.plot(np.arange(len_train, len_train + len_test), pred, c='blue', label=label_2)
             ###################################
 
             # Add actual and predicted values into common holder
             actual_values.extend(list(actual))
             predicted_values.extend(list(pred))
             metric = mean_squared_error(actual, pred, squared=False)
-            print(f'Значение метрики для CV {i} - {metric}')
+            # print(f'Значение метрики для CV {i} - {metric}')
             metrics.append(metric)
         i += 1
 
-    print(f' A + B + C = {np.array(metrics).mean()}')
+    # print(f' A + B + C = {np.array(metrics).mean()}')
     actual_values = np.ravel(np.array(actual_values))
     predicted_values = np.ravel(np.array(predicted_values))
-    print('------------------------------------------------------------------')
-    print(f'Усредненное значение метрики: {mean_squared_error(actual_values, predicted_values, squared=False)}')
-    print('------------------------------------------------------------------')
+    # print('------------------------------------------------------------------')
+    # print(f'Усредненное значение метрики: {mean_squared_error(actual_values, predicted_values, squared=False)}')
+    # print('------------------------------------------------------------------')
     # TODO удалить блок с визуализацией
     ###################################
-    plt.grid()
-    plt.legend()
-    metrics = np.array(metrics)
-    plt.title(f'Metric values: {np.round_(metrics, decimals=2)}, mean: {mean_squared_error(actual_values, predicted_values, squared=False):.2f}')
-    plt.close()
+    # plt.grid()
+    # plt.legend()
+    # metrics = np.array(metrics)
+    # plt.title(f'Metric values: {np.round_(metrics, decimals=2)}, mean: {mean_squared_error(actual_values, predicted_values, squared=False):.2f}')
+    # plt.show()
     ###################################
     return actual_values, predicted_values
 
@@ -163,4 +163,4 @@ def _choose_several_folds(n_splits):
         smallest_part = 1
         medium_part = int(round(n_splits/2))
         biggest_part = n_splits - 1
-        return np.array([smallest_part])
+        return np.array([biggest_part - 2, biggest_part - 1, biggest_part])

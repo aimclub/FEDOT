@@ -42,7 +42,7 @@ def get_linear_chain():
 
 def get_non_linear_chain():
     node_lagged = PrimaryNode('lagged')
-    node_final = SecondaryNode('treg', nodes_from=[node_lagged])
+    node_final = SecondaryNode('dtreg', nodes_from=[node_lagged])
     chain = Chain(node_final)
     return chain
 
@@ -138,7 +138,7 @@ def launch(series_name, launches, time_series_type, chain_type, goods, equals, t
 
 
 if __name__ == '__main__':
-    launches = 20
+    launches = 40
 
     time_series_type = []
     chain_type = []
@@ -155,18 +155,18 @@ if __name__ == '__main__':
     ########################
     #     LINEAR CHAIN     #
     ########################
-    time_series_type, chain_type, goods, equals = launch('Sea height', launches,
-                                                         time_series_type, chain_type,
-                                                         goods, equals, time_series, forecast_len=150,
-                                                         validation_blocks=4, linear_chain=True, vis=False)
+    # time_series_type, chain_type, goods, equals = launch('Sea height', launches,
+    #                                                      time_series_type, chain_type,
+    #                                                      goods, equals, time_series, forecast_len=150,
+    #                                                      validation_blocks=4, linear_chain=True, vis=True)
 
     ########################
     #   NON LINEAR CHAIN   #
     ########################
-    time_series_type, chain_type, goods, equals = launch('Sea height', launches,
-                                                         time_series_type, chain_type,
-                                                         goods, equals, time_series, forecast_len=150,
-                                                         validation_blocks=4, linear_chain=False, vis=False)
+    # time_series_type, chain_type, goods, equals = launch('Sea height', launches,
+    #                                                      time_series_type, chain_type,
+    #                                                      goods, equals, time_series, forecast_len=150,
+    #                                                      validation_blocks=4, linear_chain=False, vis=False)
     ###############################
     #   Temperature forecasting   #
     ###############################
@@ -175,14 +175,6 @@ if __name__ == '__main__':
 
     ########################
     #     LINEAR CHAIN     #
-    ########################
-    time_series_type, chain_type, goods, equals = launch('Temp', launches,
-                                                         time_series_type, chain_type,
-                                                         goods, equals, time_series, forecast_len=200,
-                                                         validation_blocks=40, linear_chain=True, vis=False)
-
-    ########################
-    #   NON LINEAR CHAIN   #
     ########################
     time_series_type, chain_type, goods, equals = launch('Temp', launches,
                                                          time_series_type, chain_type,
@@ -198,15 +190,7 @@ if __name__ == '__main__':
     ########################
     #     LINEAR CHAIN     #
     ########################
-    time_series_type, chain_type, goods, equals = launch('Temp', launches,
-                                                         time_series_type, chain_type,
-                                                         goods, equals, time_series, forecast_len=200,
-                                                         validation_blocks=40, linear_chain=True, vis=False)
-
-    ########################
-    #   NON LINEAR CHAIN   #
-    ########################
-    time_series_type, chain_type, goods, equals = launch('Temp', launches,
+    time_series_type, chain_type, goods, equals = launch('Traffic', launches,
                                                          time_series_type, chain_type,
                                                          goods, equals, time_series, forecast_len=200,
                                                          validation_blocks=40, linear_chain=False, vis=False)
