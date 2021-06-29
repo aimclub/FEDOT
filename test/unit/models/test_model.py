@@ -122,7 +122,7 @@ def test_ts_models_fit_correct():
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
-        rmse_threshold = np.std(test_data.target) ** 25
+        rmse_threshold = np.std(test_data.target) ** 30
         assert rmse_value_test < rmse_threshold
 
 
