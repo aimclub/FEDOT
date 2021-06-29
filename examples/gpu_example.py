@@ -1,3 +1,12 @@
+import os
+import sys
+
+curdir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(os.path.join(curdir, '..'))
+ROOT = os.path.abspath(os.curdir)
+sys.path.append(ROOT)
+sys.path.append(os.path.join(ROOT, "fedot"))
+
 import numpy as np
 from sklearn.datasets import load_iris
 
