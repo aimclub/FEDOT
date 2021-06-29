@@ -13,6 +13,7 @@ from examples.fedot_api_example import (run_classification_example, run_classifi
 from examples.multi_modal_chain import run_multi_modal_chain
 from examples.multiclass_prediction import get_model
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
+from examples.ts_foresting_with_nemo_multiple_example import run_multiple_example
 from examples.ts_gapfilling_example import run_gapfilling_example
 from examples.ts_multistep_example import run_multistep_example
 from fedot.core.utils import fedot_project_root
@@ -47,6 +48,17 @@ def test_exogenous_ts_example():
     run_exogenous_experiment(path_to_file=path,
                              len_forecast=50, with_exog=True,
                              with_visualisation=False)
+
+
+def test_nemo_multiple_points_example():
+    project_root_path = str(fedot_project_root())
+    path = os.path.join(project_root_path, 'test/data/SSH_points_grid_simple.csv')
+    exog_path = os.path.join(project_root_path, 'test/data/SSH_nemo_points_grid_simple.csv')
+    run_multiple_example(path_to_file=path,
+                         path_to_exog_file=exog_path,
+                         out_path=None,
+                         len_forecast=30,
+                         is_boxplot_visualize=False)
 
 
 def test_chain_and_history_example():

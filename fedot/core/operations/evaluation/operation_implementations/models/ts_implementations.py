@@ -58,7 +58,7 @@ class ARIMAImplementation(ModelImplementation):
         return self.arima
 
     def predict(self, input_data, is_fit_chain_stage: bool):
-        """ Method for smoothing time series
+        """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain
@@ -174,7 +174,7 @@ class AutoRegImplementation(ModelImplementation):
         return self.autoreg
 
     def predict(self, input_data, is_fit_chain_stage: bool):
-        """ Method for smoothing time series
+        """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain

@@ -21,7 +21,7 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
 
     # Let's divide our data on train and test samples
     train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
+    test_target = time_series[-len_forecast:]
 
     # Nemo feature
     train_data_exog = exog_variable[:-len_forecast]
@@ -39,9 +39,7 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
                                                                  train_data_target=train_data,
                                                                  test_data_features=test_data_exog)
 
-    print(test_data)
-    print(predict_input)
-    return train_input, predict_input, train_input_exog, predict_input_exog, test_data
+    return train_input, predict_input, train_input_exog, predict_input_exog, test_target
 
 
 def get_arima_nemo_chain():
@@ -147,13 +145,10 @@ def compare_plot(predicted, real, forecast_length, model):
 def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_visualise=False):
     errors_df = {}
 
-    (train_input,
-     predict_input,
-     train_input_exog,
-     predict_input_exog,
-     test_data) = prepare_data(time_series=time_series,
-                               exog_variable=exog_variable,
-                               len_forecast=len_forecast)
+    train_input, predict_input, train_input_exog, predict_input_exog, test_data = \
+        prepare_data(time_series=time_series,
+                     exog_variable=exog_variable,
+                     len_forecast=len_forecast)
 
     chains = {'ARIMA': {
         'tr_nodes_data': {"arima": train_input},
