@@ -39,6 +39,8 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
                                                                  train_data_target=train_data,
                                                                  test_data_features=test_data_exog)
 
+    print(test_data)
+    print(predict_input)
     return train_input, predict_input, train_input_exog, predict_input_exog, test_data
 
 
@@ -154,52 +156,59 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
                                len_forecast=len_forecast)
 
     chains = {'ARIMA': {
-                   'tr_nodes_data': {"arima": deepcopy(train_input)},
-                   'pr_nodes_data': {"arima": deepcopy(predict_input)},
-                   'model': get_arima_chain()
-                   },
-              'STL_ARIMA': {
-                  'tr_nodes_data': {"stl_arima": deepcopy(train_input)},
-                  'pr_nodes_data': {"stl_arima": deepcopy(predict_input)},
-                  'model': get_stlarima_chain()
-                   },
-              'RIDGE':
-                  {'tr_nodes_data': {"lagged/1": deepcopy(train_input), "lagged/2": deepcopy(train_input)},
-                   'pr_nodes_data': {"lagged/1": deepcopy(predict_input), "lagged/2": deepcopy(predict_input)},
-                   'model': get_ridge_chain()
-                   },
-              'ARIMA_NEMO':
-                  {'tr_nodes_data': {"arima": deepcopy(train_input), "exog_ts_data_source": deepcopy(train_input_exog)},
-                   'pr_nodes_data': {"arima": deepcopy(predict_input),
-                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
-                   'model': get_arima_nemo_chain()
-                   },
-              'STL_ARIMA_NEMO':
-                  {'tr_nodes_data': {"stl_arima": deepcopy(train_input),
-                                     "exog_ts_data_source": deepcopy(train_input_exog)},
-                   'pr_nodes_data': {"stl_arima": deepcopy(predict_input),
-                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
-                   'model': get_stlarima_nemo_chain()
-                   },
-              'RIDGE_NEMO':
-                  {'tr_nodes_data': {"lagged/1": deepcopy(train_input),
-                                     "lagged/2": deepcopy(train_input),
-                                     "exog_ts_data_source": deepcopy(train_input_exog)},
-                   'pr_nodes_data': {"lagged/1": deepcopy(predict_input),
-                                     "lagged/2": deepcopy(predict_input),
-                                     "exog_ts_data_source": deepcopy(predict_input_exog)},
-                   'model': get_ridge_nemo_chain()
-                   }
-              }
+        'tr_nodes_data': {"arima": train_input},
+        'pr_nodes_data': {"arima": predict_input},
+        'model': get_arima_chain()
+    },
+        'STL_ARIMA': {
+            'tr_nodes_data': {"stl_arima": train_input},
+            'pr_nodes_data': {"stl_arima": predict_input},
+            'model': get_stlarima_chain()
+        },
+        'RIDGE':
+            {'tr_nodes_data': {"lagged/1": train_input, "lagged/2": train_input},
+             'pr_nodes_data': {"lagged/1": predict_input, "lagged/2": predict_input},
+             'model': get_ridge_chain()
+             },
+        'ARIMA_NEMO':
+            {'tr_nodes_data': {"arima": train_input, "exog_ts_data_source": train_input_exog},
+             'pr_nodes_data': {"arima": predict_input,
+                               "exog_ts_data_source": predict_input_exog},
+             'model': get_arima_nemo_chain()
+             },
+        'STL_ARIMA_NEMO':
+            {'tr_nodes_data': {"stl_arima": train_input,
+                               "exog_ts_data_source": train_input_exog},
+             'pr_nodes_data': {"stl_arima": predict_input,
+                               "exog_ts_data_source": predict_input_exog},
+             'model': get_stlarima_nemo_chain()
+             },
+        'RIDGE_NEMO':
+            {'tr_nodes_data': {"lagged/1": train_input,
+                               "lagged/2": train_input,
+                               "exog_ts_data_source": train_input_exog},
+             'pr_nodes_data': {"lagged/1": predict_input,
+                               "lagged/2": predict_input,
+                               "exog_ts_data_source": predict_input_exog},
+             'model': get_ridge_nemo_chain()
+             }
+    }
 
-    def combine_chain(name):
+    def multimodal_data_preparing(name):
         chain = chains[name]['model']
-        train_dataset = MultiModalData(chains[name]['tr_nodes_data'])
-        predict_dataset = MultiModalData(chains[name]['pr_nodes_data'])
+        train_dict = {}
+        predict_dict = {}
+        for key in chains[name]['tr_nodes_data'].keys():
+            train_dict[key] = deepcopy(chains[name]['tr_nodes_data'][key])
+        for key in chains[name]['pr_nodes_data'].keys():
+            predict_dict[key] = deepcopy(chains[name]['pr_nodes_data'][key])
+
+        train_dataset = MultiModalData(train_dict)
+        predict_dataset = MultiModalData(predict_dict)
         return chain, train_dataset, predict_dataset
 
     for model_name in chains.keys():
-        chain, train_dataset, predict_dataset = combine_chain(model_name)
+        chain, train_dataset, predict_dataset = multimodal_data_preparing(model_name)
 
         chain.fit_from_scratch(train_dataset)
         predicted_values = chain.predict(predict_dataset)

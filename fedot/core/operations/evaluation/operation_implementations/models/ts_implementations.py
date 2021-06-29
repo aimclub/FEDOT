@@ -268,7 +268,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         return self.model
 
     def predict(self, input_data, is_fit_chain_stage: bool):
-        """ Method for smoothing time series
+        """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
         :param is_fit_chain_stage: is this fit or predict stage for chain
@@ -282,8 +282,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # For training chain get fitted data
         if is_fit_chain_stage:
             fitted_values = self.model.get_prediction(start=old_idx[0], end=old_idx[-1]).predicted_mean
-
-            diff = int(self.actual_ts_len - len(fitted_values))
+            diff = int(self.actual_ts_len) - len(fitted_values)
             # If first elements skipped
             if diff != 0:
                 # Fill nans with first values
