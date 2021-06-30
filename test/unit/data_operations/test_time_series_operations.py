@@ -1,7 +1,7 @@
 import numpy as np
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -143,12 +143,12 @@ def test_forecast_with_exog():
     node_exog = PrimaryNode('exog_ts_data_source')
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_exog])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    chain.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
+    pipeline.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
                                          'lagged': train_source_ts}))
 
-    forecast = chain.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
+    forecast = pipeline.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
                                                         'lagged': predict_source_ts}))
     prediction = np.ravel(np.array(forecast.predict))
 

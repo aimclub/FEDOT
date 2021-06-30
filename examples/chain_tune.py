@@ -2,9 +2,9 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 
 
@@ -17,8 +17,8 @@ def get_case_train_test_data():
     return train_data, test_data
 
 
-def get_simple_chain():
-    """ Function return simple chain with the following structure:
+def get_simple_pipeline():
+    """ Function return simple pipeline with the following structure:
     xgboost \
              -> logit
       knn   |
@@ -28,17 +28,17 @@ def get_simple_chain():
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def chain_tuning(chain: Chain, train_data: InputData,
+def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
                  test_data: InputData, local_iter: int,
                  tuner_iter_num: int = 30) -> (float, list):
-    """ Function for tuning chain with ChainTuner
+    """ Function for tuning pipeline with PipelineTuner
 
-    :param chain: chain to tune
+    :param pipeline: pipeline to tune
     :param train_data: InputData for train
     :param test_data: InputData for validation
     :param local_iter: amount of tuner launches
@@ -51,16 +51,16 @@ def chain_tuning(chain: Chain, train_data: InputData,
     for iteration in range(local_iter):
         print(f'current local iteration {iteration}')
 
-        # Chain tuning
-        chain_tuner = ChainTuner(chain=chain,
+        # Pipeline tuning
+        pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                  task=train_data.task,
                                  iterations=tuner_iter_num)
-        tuned_chain = chain_tuner.tune_chain(input_data=train_data,
+        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                              loss_function=roc_auc)
 
         # After tuning prediction
-        tuned_chain.fit(train_data)
-        after_tuning_predicted = tuned_chain.predict(test_data)
+        tuned_pipeline.fit(train_data)
+        after_tuning_predicted = tuned_pipeline.predict(test_data)
 
         # Metrics
         aft_tun_roc_auc = roc_auc(y_true=test_data.target,
@@ -74,18 +74,18 @@ def chain_tuning(chain: Chain, train_data: InputData,
 if __name__ == '__main__':
     train_data, test_data = get_case_train_test_data()
 
-    # Chain composition
-    chain = get_simple_chain()
+    # Pipeline composition
+    pipeline = get_simple_pipeline()
 
     # Before tuning prediction
-    chain.fit(train_data, use_fitted=False)
-    before_tuning_predicted = chain.predict(test_data)
+    pipeline.fit(train_data, use_fitted=False)
+    before_tuning_predicted = pipeline.predict(test_data)
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target,
                               y_score=before_tuning_predicted.predict)
 
     local_iter = 5
-    # Chain tuning
-    after_tune_roc_auc, several_iter_scores_test = chain_tuning(chain=chain,
+    # Pipeline tuning
+    after_tune_roc_auc, several_iter_scores_test = pipeline_tuning(pipeline=pipeline,
                                                                 train_data=train_data,
                                                                 test_data=test_data,
                                                                 local_iter=local_iter)

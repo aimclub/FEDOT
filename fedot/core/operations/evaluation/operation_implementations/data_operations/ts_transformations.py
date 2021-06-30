@@ -36,11 +36,11 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for transformation of time series to lagged form
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
 
@@ -52,8 +52,8 @@ class LaggedTransformationImplementation(DataOperationImplementation):
         # Correct window size parameter
         self.check_and_correct_window_size(new_input_data, forecast_length)
 
-        if is_fit_chain_stage:
-            # Transformation for fit stage of the chain
+        if is_fit_pipeline_stage:
+            # Transformation for fit stage of the pipeline
             target = new_input_data.target
             features = np.array(new_input_data.features)
             # Prepare features for training
@@ -70,7 +70,7 @@ class LaggedTransformationImplementation(DataOperationImplementation):
             new_input_data.target = new_target
             new_input_data.idx = new_idx
         else:
-            # Transformation for predict stage of the chain
+            # Transformation for predict stage of the pipeline
             features = np.array(new_input_data.features)
             features_columns = features[-self.window_size:]
             features_columns = features_columns.reshape(1, -1)
@@ -118,11 +118,11 @@ class TsSmoothingImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for smoothing time series
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
 
@@ -157,18 +157,18 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for representing time series as column
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with features as columns
         """
         parameters = input_data.task.task_params
         old_idx = input_data.idx
         forecast_length = parameters.forecast_length
 
-        if is_fit_chain_stage is True:
+        if is_fit_pipeline_stage is True:
             # Transform features in "target-like way"
             _, _, features_columns = _prepare_target(idx=old_idx,
                                                      features_columns=input_data.features,
@@ -184,7 +184,7 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
             input_data.target = new_target
             input_data.idx = new_idx
         else:
-            # Transformation for predict stage of the chain
+            # Transformation for predict stage of the pipeline
             features_columns = np.array(input_data.features)
             features_columns = features_columns.reshape(1, -1)
 
@@ -216,11 +216,11 @@ class GaussianFilterImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for smoothing time series
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
 

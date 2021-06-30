@@ -1,7 +1,7 @@
 Sensitivity Analysis
 ====================
 
-Chain Complete Analysis
+Pipeline Complete Analysis
 -------------------------
 .. automodule:: fedot.sensitivity.chain_sensitivity_facade
    :members:
@@ -9,7 +9,7 @@ Chain Complete Analysis
    :show-inheritance:
 
 
-Chain Structure Analysis
+Pipeline Structure Analysis
 -------------------------
 
 .. automodule:: fedot.sensitivity.nodes_sensitivity
@@ -17,7 +17,7 @@ Chain Structure Analysis
    :undoc-members:
    :show-inheritance:
 
-Chain Non-Structure Analysis
+Pipeline Non-Structure Analysis
 -------------------------
 
 .. automodule:: fedot.sensitivity.chain_sensitivity

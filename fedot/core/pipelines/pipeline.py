@@ -3,21 +3,21 @@ from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
 
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import Node
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
-from fedot.core.optimisers.utils.population_utils import input_data_characteristics
+from fedot.core.optimisers .utils.population_utils import input_data_characteristics
 
-ERROR_PREFIX = 'Invalid chain configuration:'
+ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-class Chain(Graph):
+class Pipeline(Graph):
     """
     Base class used for composite model structure definition
 
@@ -25,7 +25,7 @@ class Chain(Graph):
     :param log: Log object to record messages
 
     .. note::
-        fitted_on_data stores the data which were used in last chain fitting (equals None if chain hasn't been
+        fitted_on_data stores the data which were used in last pipeline fitting (equals None if pipeline hasn't been
         fitted yet)
     """
 
@@ -45,12 +45,12 @@ class Chain(Graph):
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
-        Method used for training the chain without using saved information
+        Method used for training the pipeline without using saved information
 
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.log.info('Fit chain from scratch')
+        self.log.info('Fit pipeline from scratch')
         self.unfit()
         self.fit(input_data, use_fitted=False)
 
@@ -95,7 +95,7 @@ class Chain(Graph):
         p.join(time)
         if p.is_alive():
             p.terminate()
-            raise TimeoutError(f'Chain fitness evaluation time limit is expired')
+            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
 
         self.fitted_on_data = process_state_dict['fitted_on_data']
         self.computation_time = process_state_dict['computation_time']
@@ -106,14 +106,14 @@ class Chain(Graph):
     def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: Manager = None,
              fitted_operations: Manager = None):
         """
-        Run training process in all nodes in chain starting with root.
+        Run training process in all nodes in pipeline starting with root.
 
         :param input_data: data used for operation training
         :param use_fitted_operations: flag defining whether use saved information about previous executions or not,
         default True
-        :param process_state_dict: this dictionary is used for saving required chain parameters (which were changed
+        :param process_state_dict: this dictionary is used for saving required pipeline parameters (which were changed
         inside the process) in a case of operation fit time control (when process created)
-        :param fitted_operations: this list is used for saving fitted operations of chain nodes
+        :param fitted_operations: this list is used for saving fitted operations of pipeline nodes
         """
 
         # InputData was set directly to the primary nodes
@@ -148,7 +148,7 @@ class Chain(Graph):
     def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=True,
             time_constraint: Optional[timedelta] = None):
         """
-        Run training process in all nodes in chain starting with root.
+        Run training process in all nodes in pipeline starting with root.
 
         :param input_data: data used for operation training
         :param use_fitted: flag defining whether use saved information about previous executions or not,
@@ -192,7 +192,7 @@ class Chain(Graph):
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
-        Run the predict process in all nodes in chain starting with root.
+        Run the predict process in all nodes in pipeline starting with root.
 
         :param input_data: data for prediction
         :param output_mode: desired form of output for operations. Available options are:
@@ -218,48 +218,48 @@ class Chain(Graph):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: Callable = None,
                             input_data: Union[InputData, MultiModalData] = None,
-                            iterations=50, max_lead_time: int = 5) -> 'Chain':
+                            iterations=50, max_lead_time: int = 5) -> 'Pipeline':
         """ Tune all hyperparameters of nodes simultaneously via black-box
-            optimization using ChainTuner. For details, see
-        :meth:`~fedot.core.chains.tuning.unified.ChainTuner.tune_chain`
+            optimization using PipelineTuner. For details, see
+        :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
         """
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
 
         max_lead_time = timedelta(minutes=max_lead_time)
-        chain_tuner = ChainTuner(chain=self,
+        pipeline_tuner = PipelineTuner(pipeline=self,
                                  task=copied_input_data.task,
                                  iterations=iterations,
                                  max_lead_time=max_lead_time)
         self.log.info('Start tuning of primary nodes')
-        tuned_chain = chain_tuner.tune_chain(input_data=copied_input_data,
+        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                              loss_function=loss_function,
                                              loss_params=loss_params)
         self.log.info('Tuning was finished')
 
-        return tuned_chain
+        return tuned_pipeline
 
     def save(self, path: str):
         """
-        Save the chain to the json representation with pickled fitted operations.
+        Save the pipeline to the json representation with pickled fitted operations.
 
         :param path to json file with operation
         :return: json containing a composite operation description
         """
         if not self.template:
-            self.template = ChainTemplate(self, self.log)
-        json_object = self.template.export_chain(path)
+            self.template = PipelineTemplate(self, self.log)
+        json_object = self.template.export_pipeline(path)
         return json_object
 
     def load(self, path: str):
         """
-        Load the chain the json representation with pickled fitted operations.
+        Load the pipeline the json representation with pickled fitted operations.
 
         :param path to json file with operation
         """
         self.nodes = []
-        self.template = ChainTemplate(self, self.log)
-        self.template.import_chain(path)
+        self.template = PipelineTemplate(self, self.log)
+        self.template.import_pipeline(path)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -279,7 +279,7 @@ class Chain(Graph):
         root = [node for node in self.nodes
                 if not any(self.operator.node_children(node))]
         if len(root) > 1:
-            raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in chain')
+            raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
@@ -292,22 +292,22 @@ class Chain(Graph):
         return input_data
 
     def print_structure(self):
-        """ Method print information about chain """
-        print('Chain structure:')
+        """ Method print information about pipeline """
+        print('Pipeline structure:')
         print(self.__str__())
         for node in self.nodes:
             print(f'{node.operation.operation_type} - {node.custom_params}')
 
 
-def nodes_with_operation(chain: Chain, operation_name: str) -> list:
+def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     """ The function return list with nodes with the needed operation
 
-    :param chain: chain to process
+    :param pipeline: pipeline to process
     :param operation_name: name of operation to search
     :return : list with nodes, None if there are no nodes
     """
 
     # Check if model has decompose operations
-    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, chain.nodes)
+    appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)

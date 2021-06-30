@@ -7,15 +7,15 @@ to this chain as to the usual Model class of our framework.
 
 **Example of use:**
 
-In order to add another Chain to the Chain as a Model, you need to wrap the
+In order to add another Pipeline to the Pipeline as a Model, you need to wrap the
 chain in the AtomizedModel class and all the functionality will be saved.
 
 .. code-block:: python
 
-    from fedot.core.chains.chain import Chain
+    from fedot.core.chains.chain import Pipeline
     from fedot.core.models.atomized_model import AtomizedModel
 
-    chain = Chain()
-    nested_chain = Chain()
+    chain = Pipeline()
+    nested_chain = Pipeline()
     atomized_model = AtomizedModel(nested_chain)
     chain.add_node(atomized_model)

@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -13,24 +13,24 @@ from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.visualisation.opt_viz import ChainEvolutionVisualiser
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 random.seed(12)
 np.random.seed(12)
 
 
-def results_visualization(history, composed_chains):
-    visualiser = ChainEvolutionVisualiser()
+def results_visualization(history, composed_pipelines):
+    visualiser = PipelineEvolutionVisualiser()
     visualiser.visualise_history(history)
     visualiser.pareto_gif_create(history.archive_history, history.individuals)
     visualiser.boxplots_gif_create(history.individuals)
-    for chain_evo_composed in composed_chains:
-        chain_evo_composed.visualise()
+    for pipeline_evo_composed in composed_pipelines:
+        pipeline_evo_composed.visualise()
 
 
-def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) -> float:
+def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputData) -> float:
     # the execution of the obtained composite models
-    predicted = chain.predict(dataset_to_validate)
+    predicted = pipeline.predict(dataset_to_validate)
     # the quality assessment for the simulation results
     roc_auc_value = roc_auc(y_true=dataset_to_validate.target,
                             y_score=predicted.predict)
@@ -44,10 +44,10 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+    # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
 
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     quality_metric = ClassificationMetricsEnum.ROCAUC
     complexity_metric = ComplexityMetricsEnum.node_num
     metrics = [quality_metric, complexity_metric]
@@ -71,35 +71,35 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # Create GP-based composer
     composer = builder.build()
 
-    # the optimal chain generation by composition - the most time-consuming task
-    chains_evo_composed = composer.compose_chain(data=dataset_to_compose,
+    # the optimal pipeline generation by composition - the most time-consuming task
+    pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
                                                  is_visualise=True)
 
     composer.history.write_composer_history_to_csv()
 
     if is_visualise:
-        results_visualization(composed_chains=chains_evo_composed, history=composer.history)
+        results_visualization(composed_pipelines=pipelines_evo_composed, history=composer.history)
 
-    chains_roc_auc = []
-    for chain_num, chain_evo_composed in enumerate(chains_evo_composed):
+    pipelines_roc_auc = []
+    for pipeline_num, pipeline_evo_composed in enumerate(pipelines_evo_composed):
 
-        chain_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
+        pipeline_evo_composed.fine_tune_primary_nodes(input_data=dataset_to_compose,
                                                    iterations=50)
 
-        chain_evo_composed.fit(input_data=dataset_to_compose)
+        pipeline_evo_composed.fit(input_data=dataset_to_compose)
 
         # the quality assessment for the obtained composite models
-        roc_on_valid_evo_composed = calculate_validation_metric(chain_evo_composed,
+        roc_on_valid_evo_composed = calculate_validation_metric(pipeline_evo_composed,
                                                                 dataset_to_validate)
 
-        chains_roc_auc.append(roc_on_valid_evo_composed)
-        if len(chains_evo_composed) > 1:
-            print(f'Composed ROC AUC of chain {chain_num + 1} is {round(roc_on_valid_evo_composed, 3)}')
+        pipelines_roc_auc.append(roc_on_valid_evo_composed)
+        if len(pipelines_evo_composed) > 1:
+            print(f'Composed ROC AUC of pipeline {pipeline_num + 1} is {round(roc_on_valid_evo_composed, 3)}')
 
         else:
             print(f'Composed ROC AUC is {round(roc_on_valid_evo_composed, 3)}')
 
-    return max(chains_roc_auc)
+    return max(pipelines_roc_auc)
 
 
 if __name__ == '__main__':

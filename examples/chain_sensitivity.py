@@ -1,8 +1,8 @@
 from os import makedirs
 from os.path import exists, join
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -17,7 +17,7 @@ from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
 from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 
 
-def get_three_depth_manual_class_chain():
+def get_three_depth_manual_class_pipeline():
     logit_node_primary = PrimaryNode('logit')
     xgb_node_primary = PrimaryNode('xgboost')
     xgb_node_primary_second = PrimaryNode('xgboost')
@@ -27,12 +27,12 @@ def get_three_depth_manual_class_chain():
 
     knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
-    chain = Chain(knn_root)
+    pipeline = Pipeline(knn_root)
 
-    return chain
+    return pipeline
 
 
-def get_three_depth_manual_regr_chain():
+def get_three_depth_manual_regr_pipeline():
     xgb_primary = PrimaryNode('xgbreg')
     knn_primary = PrimaryNode('knnreg')
 
@@ -41,13 +41,13 @@ def get_three_depth_manual_regr_chain():
 
     knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
 
-    chain = Chain(knnreg_root)
+    pipeline = Pipeline(knnreg_root)
 
-    return chain
+    return pipeline
 
 
-def get_composed_chain(dataset_to_compose, task, metric_function):
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+def get_composed_pipeline(dataset_to_compose, task, metric_function):
+    # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
 
     # the choice and initialisation of the GP search
@@ -68,11 +68,11 @@ def get_composed_chain(dataset_to_compose, task, metric_function):
     # Create GP-based composer
     composer = builder.build()
 
-    # the optimal chain generation by composition - the most time-consuming task
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+    # the optimal pipeline generation by composition - the most time-consuming task
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
                                                 is_visualise=True)
 
-    return chain_evo_composed
+    return pipeline_evo_composed
 
 
 def get_scoring_data():
@@ -109,45 +109,45 @@ def get_cholesterol_data():
     return train, test
 
 
-def chain_by_task(task, metric, data, is_composed):
+def pipeline_by_task(task, metric, data, is_composed):
     if is_composed:
-        chain = get_composed_chain(data, task,
+        pipeline = get_composed_pipeline(data, task,
                                    metric_function=metric)
     else:
         if task.task_type.name == 'classification':
-            chain = get_three_depth_manual_class_chain()
+            pipeline = get_three_depth_manual_class_pipeline()
         else:
-            chain = get_three_depth_manual_regr_chain()
+            pipeline = get_three_depth_manual_regr_pipeline()
 
-    return chain
+    return pipeline
 
 
 def run_analysis_case(train_data: InputData, test_data: InputData,
                       case_name: str, task, metric, is_composed=False, result_path=None):
-    chain = chain_by_task(task=task, metric=metric,
+    pipeline = pipeline_by_task(task=task, metric=metric,
                           data=train_data, is_composed=is_composed)
 
-    chain.fit(train_data)
+    pipeline.fit(train_data)
 
     if not result_path:
         result_path = join(default_fedot_data_dir(), 'sensitivity', f'{case_name}')
         if not exists(result_path):
             makedirs(result_path)
 
-    chain.show(path=result_path)
+    pipeline.show(path=result_path)
 
-    chain_analysis_result = NodesAnalysis(chain=chain, train_data=train_data,
+    pipeline_analysis_result = NodesAnalysis(pipeline=pipeline, train_data=train_data,
                                           test_data=test_data, path_to_save=result_path,
                                           approaches=[NodeDeletionAnalyze,
                                                       NodeReplaceOperationAnalyze]).analyze()
 
-    print(f'chain analysis result {chain_analysis_result}')
+    print(f'pipeline analysis result {pipeline_analysis_result}')
 
 
 def run_class_scoring_case(is_composed: bool, path_to_save=None):
     train_data, test_data = get_scoring_data()
     task = Task(TaskTypesEnum.classification)
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
@@ -165,7 +165,7 @@ def run_class_scoring_case(is_composed: bool, path_to_save=None):
 def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_kc2_data()
     task = Task(TaskTypesEnum.classification)
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC_penalty)
 
     if is_composed:
@@ -183,7 +183,7 @@ def run_class_kc2_case(is_composed: bool = False, path_to_save=None):
 def run_regr_case(is_composed: bool = False, path_to_save=None):
     train_data, test_data = get_cholesterol_data()
     task = Task(TaskTypesEnum.regression)
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
 
     if is_composed:

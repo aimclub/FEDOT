@@ -12,16 +12,16 @@ import pytest
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
-from test.unit.chains.test_chain_comparison import chain_first
-from test.unit.chains.test_chain_tuning import classification_dataset
-from test.unit.dag.test_graph_operator import get_chain
+from test.unit.pipelines.test_pipeline_comparison import pipeline_first
+from test.unit.pipelines.test_pipeline_tuning import classification_dataset
+from test.unit.dag.test_graph_operator import get_pipeline
 
 seed(1)
 np.random.seed(1)
@@ -87,7 +87,7 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     assert final.fitted_operation is not None
 
 
-def test_chain_hierarchy_fit_correct(data_setup):
+def test_pipeline_hierarchy_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
@@ -96,27 +96,27 @@ def test_chain_hierarchy_fit_correct(data_setup):
     third = SecondaryNode(operation_type='logit', nodes_from=[first])
     final = SecondaryNode(operation_type='logit', nodes_from=[second, third])
 
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third, final]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    chain.unfit()
-    train_predicted = chain.fit(input_data=train)
+    pipeline.unfit()
+    train_predicted = pipeline.fit(input_data=train)
 
-    assert chain.root_node.descriptive_id == (
+    assert pipeline.root_node.descriptive_id == (
         '((/n_logit_default_params;)/'
         'n_logit_default_params;;(/'
         'n_logit_default_params;)/'
         'n_logit_default_params;)/'
         'n_logit_default_params')
 
-    assert chain.length == 4
-    assert chain.depth == 3
+    assert pipeline.length == 4
+    assert pipeline.depth == 3
     assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.fitted_operation is not None
 
 
-def test_chain_sequential_fit_correct(data_setup):
+def test_pipeline_sequential_fit_correct(data_setup):
     data = data_setup
     train, _ = train_test_data_setup(data)
 
@@ -125,29 +125,29 @@ def test_chain_sequential_fit_correct(data_setup):
     third = SecondaryNode(operation_type='logit', nodes_from=[second])
     final = SecondaryNode(operation_type='logit', nodes_from=[third])
 
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third, final]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    train_predicted = chain.fit(input_data=train, use_fitted=False)
+    train_predicted = pipeline.fit(input_data=train, use_fitted=False)
 
-    assert chain.root_node.descriptive_id == (
+    assert pipeline.root_node.descriptive_id == (
         '(((/n_logit_default_params;)/'
         'n_logit_default_params;)/'
         'n_logit_default_params;)/'
         'n_logit_default_params')
 
-    assert chain.length == 4
-    assert chain.depth == 4
+    assert pipeline.length == 4
+    assert pipeline.depth == 4
     assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.fitted_operation is not None
 
 
-def test_chain_with_datamodel_fit_correct(data_setup):
+def test_pipeline_with_datamodel_fit_correct(data_setup):
     data = data_setup
     train_data, test_data = train_test_data_setup(data)
 
-    chain = Chain()
+    pipeline = Pipeline()
 
     node_data = PrimaryNode('logit')
     node_first = PrimaryNode('bernb')
@@ -155,12 +155,12 @@ def test_chain_with_datamodel_fit_correct(data_setup):
 
     node_second.nodes_from = [node_first, node_data]
 
-    chain.add_node(node_data)
-    chain.add_node(node_first)
-    chain.add_node(node_second)
+    pipeline.add_node(node_data)
+    pipeline.add_node(node_first)
+    pipeline.add_node(node_second)
 
-    chain.fit(train_data)
-    results = np.asarray(probs_to_labels(chain.predict(test_data).predict))
+    pipeline.fit(train_data)
+    results = np.asarray(probs_to_labels(pipeline.predict(test_data).predict))
 
     assert results.shape == test_data.target.shape
 
@@ -175,9 +175,9 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second, third])
 
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third, final]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
     first = deepcopy(first)
     second = deepcopy(second)
@@ -186,37 +186,37 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     final_shuffled = SecondaryNode(operation_type='xgboost',
                                    nodes_from=[third, first, second])
 
-    chain_shuffled = Chain()
+    pipeline_shuffled = Pipeline()
     # change order of nodes in list
     for node in [final_shuffled, third, first, second]:
-        chain_shuffled.add_node(node)
+        pipeline_shuffled.add_node(node)
 
-    train_predicted = chain.fit(input_data=train)
+    train_predicted = pipeline.fit(input_data=train)
 
-    train_predicted_shuffled = chain_shuffled.fit(input_data=train)
+    train_predicted_shuffled = pipeline_shuffled.fit(input_data=train)
 
     # train results should be invariant
-    assert chain.root_node.descriptive_id == chain_shuffled.root_node.descriptive_id
+    assert pipeline.root_node.descriptive_id == pipeline_shuffled.root_node.descriptive_id
     assert np.equal(train_predicted.predict, train_predicted_shuffled.predict).all()
 
-    test_predicted = chain.predict(input_data=test)
-    test_predicted_shuffled = chain_shuffled.predict(input_data=test)
+    test_predicted = pipeline.predict(input_data=test)
+    test_predicted_shuffled = pipeline_shuffled.predict(input_data=test)
 
     # predict results should be invariant
     assert np.equal(test_predicted.predict, test_predicted_shuffled.predict).all()
 
-    # change parents order for the nodes fitted chain
-    nodes_for_change = chain.nodes[3].nodes_from
-    chain.nodes[3].nodes_from = [nodes_for_change[2], nodes_for_change[0], nodes_for_change[1]]
-    chain.nodes[3].unfit()
-    chain.fit(train)
-    test_predicted_re_shuffled = chain.predict(input_data=test)
+    # change parents order for the nodes fitted pipeline
+    nodes_for_change = pipeline.nodes[3].nodes_from
+    pipeline.nodes[3].nodes_from = [nodes_for_change[2], nodes_for_change[0], nodes_for_change[1]]
+    pipeline.nodes[3].unfit()
+    pipeline.fit(train)
+    test_predicted_re_shuffled = pipeline.predict(input_data=test)
 
     # predict results should be invariant
     assert np.equal(test_predicted.predict, test_predicted_re_shuffled.predict).all()
 
 
-def test_chain_with_custom_params_for_model(data_setup):
+def test_pipeline_with_custom_params_for_model(data_setup):
     data = data_setup
     custom_params = dict(n_neighbors=1,
                          weights='uniform',
@@ -226,23 +226,23 @@ def test_chain_with_custom_params_for_model(data_setup):
     second = PrimaryNode(operation_type='lda')
     final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
 
-    chain = Chain()
-    chain.add_node(final)
-    chain_default_params = deepcopy(chain)
+    pipeline = Pipeline()
+    pipeline.add_node(final)
+    pipeline_default_params = deepcopy(pipeline)
 
-    chain.root_node.custom_params = custom_params
+    pipeline.root_node.custom_params = custom_params
 
-    chain_default_params.fit(data)
-    chain.fit(data)
+    pipeline_default_params.fit(data)
+    pipeline.fit(data)
 
-    custom_params_prediction = chain.predict(data).predict
-    default_params_prediction = chain_default_params.predict(data).predict
+    custom_params_prediction = pipeline.predict(data).predict
+    default_params_prediction = pipeline_default_params.predict(data).predict
 
     assert not np.array_equal(custom_params_prediction, default_params_prediction)
 
 
-def test_chain_with_wrong_data():
-    chain = Chain(PrimaryNode('linear'))
+def test_pipeline_with_wrong_data():
+    pipeline = Pipeline(PrimaryNode('linear'))
     data_seq = np.arange(0, 10)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=10))
@@ -251,56 +251,56 @@ def test_chain_with_wrong_data():
                      data_type=DataTypesEnum.ts, task=task)
 
     with pytest.raises(ValueError):
-        chain.fit(data)
+        pipeline.fit(data)
 
 
-def test_chain_str():
+def test_pipeline_str():
     # given
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second, third])
-    chain = Chain()
-    chain.add_node(final)
+    pipeline = Pipeline()
+    pipeline.add_node(final)
 
-    expected_chain_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
 
     # when
-    actual_chain_description = str(chain)
+    actual_pipeline_description = str(pipeline)
 
     # then
-    assert actual_chain_description == expected_chain_description
+    assert actual_pipeline_description == expected_pipeline_description
 
 
-def test_chain_repr():
+def test_pipeline_repr():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[first, second, third])
-    chain = Chain()
-    chain.add_node(final)
+    pipeline = Pipeline()
+    pipeline.add_node(final)
 
-    expected_chain_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
 
-    assert repr(chain) == expected_chain_description
+    assert repr(pipeline) == expected_pipeline_description
 
 
-def test_update_node_in_chain_correct():
+def test_update_node_in_pipeline_correct():
     first = PrimaryNode(operation_type='logit')
     final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
 
-    chain = Chain()
-    chain.add_node(final)
+    pipeline = Pipeline()
+    pipeline.add_node(final)
     new_node = PrimaryNode('svc')
     replacing_node = SecondaryNode('logit', nodes_from=[new_node])
 
-    chain.update_node(old_node=first, new_node=replacing_node)
+    pipeline.update_node(old_node=first, new_node=replacing_node)
 
-    assert replacing_node in chain.nodes
-    assert new_node in chain.nodes
-    assert first not in chain.nodes
+    assert replacing_node in pipeline.nodes
+    assert new_node in pipeline.nodes
+    assert first not in pipeline.nodes
 
 
 def test_delete_node_with_redirection():
@@ -309,13 +309,13 @@ def test_delete_node_with_redirection():
     third = SecondaryNode(operation_type='knn', nodes_from=[first, second])
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[third])
-    chain = Chain()
-    chain.add_node(final)
+    pipeline = Pipeline()
+    pipeline.add_node(final)
 
-    chain.delete_node(third)
+    pipeline.delete_node(third)
 
-    assert len(chain.nodes) == 3
-    assert first in chain.root_node.nodes_from
+    assert len(pipeline.nodes) == 3
+    assert first in pipeline.root_node.nodes_from
 
 
 def test_delete_primary_node():
@@ -325,75 +325,75 @@ def test_delete_primary_node():
     third = SecondaryNode(operation_type='knn', nodes_from=[first])
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[second, third])
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
     # when
-    chain.delete_node(first)
+    pipeline.delete_node(first)
 
-    new_primary_node = [node for node in chain.nodes if node.operation.operation_type == 'knn'][0]
+    new_primary_node = [node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
 
     # then
-    assert len(chain.nodes) == 3
+    assert len(pipeline.nodes) == 3
     assert isinstance(new_primary_node, PrimaryNode)
 
 
 def test_update_subtree():
     # given
-    chain = get_chain()
+    pipeline = get_pipeline()
     subroot_parent = PrimaryNode('xgboost')
     subroot = SecondaryNode('xgboost', nodes_from=[subroot_parent])
-    node_to_replace = chain.nodes[2]
+    node_to_replace = pipeline.nodes[2]
 
     # when
-    chain.update_subtree(node_to_replace, subroot)
+    pipeline.update_subtree(node_to_replace, subroot)
 
     # then
-    assert chain.nodes[2].operation.operation_type == 'xgboost'
-    assert chain.nodes[3].operation.operation_type == 'xgboost'
+    assert pipeline.nodes[2].operation.operation_type == 'xgboost'
+    assert pipeline.nodes[3].operation.operation_type == 'xgboost'
 
 
 def test_delete_subtree():
     # given
-    chain = get_chain()
-    subroot = chain.nodes[2]
+    pipeline = get_pipeline()
+    subroot = pipeline.nodes[2]
 
     # when
-    chain.delete_subtree(subroot)
+    pipeline.delete_subtree(subroot)
 
     # then
-    assert chain.length == 3
+    assert pipeline.length == 3
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_chain_fit_time_constraint(data_fixture, request):
+def test_pipeline_fit_time_constraint(data_fixture, request):
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-    test_chain_first = chain_first()
+    test_pipeline_first = pipeline_first()
     time_constraint = datetime.timedelta(minutes=0.01)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
     try:
-        predicted_first = test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
+        predicted_first = test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
-        computation_time_first = test_chain_first.computation_time
+        computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
     time_constraint = datetime.timedelta(minutes=0.05)
     process_start_time = time.time()
     try:
-        test_chain_first.fit(input_data=train_data, time_constraint=time_constraint)
+        test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_second_constraint = (time.time() - process_start_time)
-    test_chain_second = chain_first()
-    predicted_second = test_chain_second.fit(input_data=train_data)
-    computation_time_second = test_chain_second.computation_time
+    test_pipeline_second = pipeline_first()
+    predicted_second = test_pipeline_second.fit(input_data=train_data)
+    computation_time_second = test_pipeline_second.computation_time
     assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None
     assert predicted_first is None
@@ -401,55 +401,55 @@ def test_chain_fit_time_constraint(data_fixture, request):
     assert predicted_second is not None
 
 
-def test_chain_fine_tune_all_nodes_correct(classification_dataset):
+def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
     data = classification_dataset
 
     first = PrimaryNode(operation_type='scaling')
     second = PrimaryNode(operation_type='knn')
     final = SecondaryNode(operation_type='dt', nodes_from=[first, second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
     iterations_total, time_limit_minutes = 5, 1
-    tuned_chain = chain.fine_tune_all_nodes(loss_function=roc, input_data=data,
+    tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=roc, input_data=data,
                                             iterations=iterations_total,
                                             max_lead_time=time_limit_minutes)
-    tuned_chain.predict(input_data=data)
+    tuned_pipeline.predict(input_data=data)
 
     is_tuning_finished = True
 
     assert is_tuning_finished
 
 
-def test_chain_copy():
-    chain = Chain(PrimaryNode(operation_type='logit'))
-    chain_copy = copy(chain)
-    assert chain.uid != chain_copy.uid
+def test_pipeline_copy():
+    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
+    pipeline_copy = copy(pipeline)
+    assert pipeline.uid != pipeline_copy.uid
 
 
-def test_chain_deepcopy():
-    chain = Chain(PrimaryNode(operation_type='logit'))
-    chain_copy = deepcopy(chain)
-    assert chain.uid != chain_copy.uid
+def test_pipeline_deepcopy():
+    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
+    pipeline_copy = deepcopy(pipeline)
+    assert pipeline.uid != pipeline_copy.uid
 
 
-def test_chain_structure_print_correct():
-    chain = Chain(PrimaryNode('ridge'))
-    chain.print_structure()
+def test_pipeline_structure_print_correct():
+    pipeline = Pipeline(PrimaryNode('ridge'))
+    pipeline.print_structure()
     is_print_was_correct = True
     assert is_print_was_correct
 
 
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
-def test_chain_unfit(data_fixture, request):
+def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    chain = Chain(PrimaryNode('logit'))
-    chain.fit(data)
-    assert chain.is_fitted
+    pipeline = Pipeline(PrimaryNode('logit'))
+    pipeline.fit(data)
+    assert pipeline.is_fitted
 
-    chain.unfit()
-    assert not chain.is_fitted
-    assert not chain.root_node.fitted_operation
+    pipeline.unfit()
+    assert not pipeline.is_fitted
+    assert not pipeline.root_node.fitted_operation
 
     with pytest.raises(ValueError) as exc:
-        assert chain.predict(data)
+        assert pipeline.predict(data)

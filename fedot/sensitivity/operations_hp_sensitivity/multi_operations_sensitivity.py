@@ -4,7 +4,7 @@ from typing import List, Union, Optional
 
 import numpy as np
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log, Log
@@ -18,12 +18,12 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 class MultiOperationsHPAnalyze:
     """
-    Provides with analysis of all the Chain's operations hyperparameters
+    Provides with analysis of all the Pipeline's operations hyperparameters
     using sample and analyze methods from SALib.
 
-    :param chain: chain object to analyze
-    :param train_data: data used for Chain training
-    :param test_data: data used for Chain validation
+    :param pipeline: pipeline object to analyze
+    :param train_data: data used for Pipeline training
+    :param test_data: data used for Pipeline validation
     :param requirements: extra requirements to define specific details for different approaches.\
     See SensitivityAnalysisRequirements class documentation.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/
@@ -31,10 +31,10 @@ class MultiOperationsHPAnalyze:
     :param log: log: Log object to record messages
     """
 
-    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None):
-        self._chain = chain
+        self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data
         self.problem: Optional[Problem] = None
@@ -45,12 +45,12 @@ class MultiOperationsHPAnalyze:
 
         self.operation_types = None
         self.path_to_save = \
-            join(default_fedot_data_dir(), 'sensitivity', 'chain_sensitivity') if path_to_save is None else path_to_save
+            join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sensitivity') if path_to_save is None else path_to_save
         self.log = default_log(__name__) if log is None else log
 
     def analyze(self) -> dict:
         """
-        Analyze all the hyperparameters af all Chain operations using SA methods.
+        Analyze all the hyperparameters af all Pipeline operations using SA methods.
         Default: Sobol method with Saltelli sample algorithm
 
         :param sample_method: string name of sampling method from SALib
@@ -59,11 +59,11 @@ class MultiOperationsHPAnalyze:
         Default: 100.
         :return: Main and total Sobol indices for every parameter per node.
         """
-        if not self._chain.fitted_on_data:
-            self._chain.fit(self._train_data)
+        if not self._pipeline.fitted_on_data:
+            self._pipeline.fit(self._train_data)
 
         # create problem
-        self.operation_types = [node.operation.operation_type for node in self._chain.nodes]
+        self.operation_types = [node.operation.operation_type for node in self._pipeline.nodes]
         self.problem = MultiOperationsProblem(self.operation_types)
 
         # sample
@@ -80,35 +80,35 @@ class MultiOperationsHPAnalyze:
 
         return converted_to_json_indices
 
-    def sample(self, *args) -> Union[List[Chain], Chain]:
+    def sample(self, *args) -> Union[List[Pipeline], Pipeline]:
         """
         Makes hyperparameters samples
 
         :param args: i.e. sample_size
-        :return List[Chain]: List of Chains with new sampled hyperparameters
+        :return List[Pipeline]: List of Pipelines with new sampled hyperparameters
         """
         sample_size = args[0]
         samples = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
         converted_samples: List[List[dict]] = self.problem.convert_sample_to_dict(samples)
-        sampled_chains: List[Chain] = self._apply_params_to_node(params=converted_samples)
+        sampled_pipelines: List[Pipeline] = self._apply_params_to_node(params=converted_samples)
 
-        return sampled_chains
+        return sampled_pipelines
 
-    def _apply_params_to_node(self, params: List[List[dict]]) -> List[Chain]:
-        sampled_chains: List[Chain] = list()
+    def _apply_params_to_node(self, params: List[List[dict]]) -> List[Pipeline]:
+        sampled_pipelines: List[Pipeline] = list()
         for sample in params:
-            copied_chain = deepcopy(self._chain)
+            copied_pipeline = deepcopy(self._pipeline)
             for node_id, params_per_node in enumerate(sample):
-                copied_chain.nodes[node_id].custom_params = params_per_node
-                sampled_chains.append(copied_chain)
+                copied_pipeline.nodes[node_id].custom_params = params_per_node
+                sampled_pipelines.append(copied_pipeline)
 
-        return sampled_chains
+        return sampled_pipelines
 
-    def _get_response_matrix(self, samples: List[Chain]):
+    def _get_response_matrix(self, samples: List[Pipeline]):
         operation_response_matrix = []
-        for sampled_chain in samples:
-            sampled_chain.fit(self._train_data)
-            prediction = sampled_chain.predict(self._test_data)
+        for sampled_pipeline in samples:
+            sampled_pipeline.fit(self._train_data)
+            prediction = sampled_pipeline.predict(self._test_data)
             mse_metric = MSE().metric(reference=self._test_data,
                                       predicted=prediction)
             operation_response_matrix.append(mse_metric)

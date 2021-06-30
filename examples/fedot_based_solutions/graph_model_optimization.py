@@ -6,7 +6,7 @@ from functools import partial
 import numpy as np
 import pandas as pd
 
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
 from fedot.core.dag.validation_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log

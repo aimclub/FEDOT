@@ -14,7 +14,7 @@ import numpy as np
 from datetime import timedelta
 
 from sklearn.metrics import roc_auc_score as roc_auc
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
@@ -59,7 +59,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     dataset_to_compose = InputData.from_csv(train_file_path, task=task)
 
     # the search of the models provided by the framework
-    # that can be used as nodes in a chain for the selected task
+    # that can be used as nodes in a pipeline for the selected task
     models_repo = OperationTypesRepository()
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
@@ -75,13 +75,13 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     composer = builder.build()
 
     # run the search of best suitable model
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False)
-    chain_evo_composed.fit(input_data=dataset_to_compose)
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
+    pipeline_evo_composed.fit(input_data=dataset_to_compose)
 
-    return chain_evo_composed
+    return pipeline_evo_composed
 
 
-def apply_model_to_data(model: Chain, data_path: str):
+def apply_model_to_data(model: Pipeline, data_path: str):
     df, file_path = create_multi_clf_examples_from_excel(data_path, return_df=True)
     dataset_to_apply = InputData.from_csv(file_path, target_columns=None)
     evo_predicted = model.predict(dataset_to_apply)
@@ -89,7 +89,7 @@ def apply_model_to_data(model: Chain, data_path: str):
     return df
 
 
-def validate_model_quality(model: Chain, data_path: str):
+def validate_model_quality(model: Pipeline, data_path: str):
     dataset_to_validate = InputData.from_csv(data_path)
     predicted_labels = model.predict(dataset_to_validate).predict
 

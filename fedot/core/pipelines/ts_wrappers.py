@@ -1,12 +1,12 @@
 import numpy as np
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
+def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
                               horizon: int = None) -> np.array:
     """
     Method allow make forecast with appropriate forecast length. The previously
@@ -15,7 +15,7 @@ def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
     time series ----------------|
     forecast                    |---|---|---|
 
-    :param chain: Chain for making time series forecasting
+    :param pipeline: Pipeline for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
     :return final_forecast: array with forecast
@@ -27,14 +27,14 @@ def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
     pre_history_ts = np.array(input_data.features)
     source_len = len(pre_history_ts)
 
-    # How many elements to the future chain can produce
+    # How many elements to the future pipeline can produce
     scope_len = task.task_params.forecast_length
     amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
 
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
     for _ in range(0, amount_of_iterations):
-        iter_predict = chain.root_node.predict(input_data=input_data)
+        iter_predict = pipeline.root_node.predict(input_data=input_data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
 
@@ -51,7 +51,7 @@ def out_of_sample_ts_forecast(chain: Chain, input_data: InputData,
     return final_forecast
 
 
-def in_sample_ts_forecast(chain: Chain, input_data: InputData,
+def in_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
                           horizon: int = None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
@@ -60,7 +60,7 @@ def in_sample_ts_forecast(chain: Chain, input_data: InputData,
     time series ----------------|---|---|---|
     forecast                    |---|---|---|
 
-    :param chain: Chain for making time series forecasting
+    :param pipeline: Pipeline for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
     :return final_forecast: array with forecast
@@ -74,7 +74,7 @@ def in_sample_ts_forecast(chain: Chain, input_data: InputData,
     source_len = len(pre_history_ts)
     last_index_pre_history = source_len - 1
 
-    # How many elements to the future chain can produce
+    # How many elements to the future pipeline can produce
     scope_len = task.task_params.forecast_length
     amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
 
@@ -87,7 +87,7 @@ def in_sample_ts_forecast(chain: Chain, input_data: InputData,
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
     for _, border in zip(range(0, amount_of_iterations), intervals):
-        iter_predict = chain.root_node.predict(input_data=data)
+        iter_predict = pipeline.root_node.predict(input_data=data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
 

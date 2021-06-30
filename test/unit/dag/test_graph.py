@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from test.unit.chains.test_chain_tuning import classification_dataset
+from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 
 seed(1)
 np.random.seed(1)
@@ -41,7 +41,7 @@ def test_graph_str():
     assert actual_graph_description == expected_graph_description
 
 
-def test_chain_repr():
+def test_pipeline_repr():
     first = GraphNode(content='n1')
     second = GraphNode(content='n2')
     third = GraphNode(content='n3')
@@ -73,12 +73,12 @@ def test_delete_primary_node():
 
 
 def test_graph_copy():
-    chain = Graph(GraphNode(content='n1'))
-    chain_copy = copy(chain)
-    assert chain.uid != chain_copy.uid
+    pipeline = Graph(GraphNode(content='n1'))
+    pipeline_copy = copy(pipeline)
+    assert pipeline.uid != pipeline_copy.uid
 
 
-def test_chain_deepcopy():
-    chain = Graph(GraphNode(content='n1'))
-    chain_copy = deepcopy(chain)
-    assert chain.uid != chain_copy.uid
+def test_pipeline_deepcopy():
+    pipeline = Graph(GraphNode(content='n1'))
+    pipeline_copy = deepcopy(pipeline)
+    assert pipeline.uid != pipeline_copy.uid

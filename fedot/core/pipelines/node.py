@@ -9,7 +9,7 @@ from fedot.core.operations.operation import Operation
 
 class Node(GraphNode):
     """
-    Base class for Node definition in Chain structure
+    Base class for Node definition in Pipeline structure
 
     :param nodes_from: parent nodes which information comes from
     :param operation_type: str type of the operation defined in operation repository
@@ -83,11 +83,11 @@ class Node(GraphNode):
 
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(data=input_data,
-                                                                          is_fit_chain_stage=True)
+                                                                          is_fit_pipeline_stage=True)
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        data=input_data,
-                                                       is_fit_chain_stage=True)
+                                                       is_fit_pipeline_stage=True)
 
         return operation_predict
 
@@ -101,7 +101,7 @@ class Node(GraphNode):
         operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                    data=input_data,
                                                    output_mode=output_mode,
-                                                   is_fit_chain_stage=False)
+                                                   is_fit_pipeline_stage=False)
         return operation_predict
 
     @property
@@ -197,7 +197,7 @@ class PrimaryNode(Node):
 
 class SecondaryNode(Node):
     """
-    The class defines the interface of Secondary nodes modifying tha data flow in Chain
+    The class defines the interface of Secondary nodes modifying tha data flow in Pipeline
 
     :param operation_type: str type of the operation defined in operation repository
     :param nodes_from: parent nodes where data comes from
@@ -267,14 +267,14 @@ def _combine_parents(parent_nodes: List[Node],
 
     :param parent_nodes: list of parent nodes, from which predictions will
     be combined
-    :param input_data: input data from chain abstraction (source input data)
+    :param input_data: input data from pipeline abstraction (source input data)
     :param parent_operation: name of parent operation (fit or predict)
     :return parent_results: list with OutputData from parent nodes
-    :return target: target for final chain prediction
+    :return target: target for final pipeline prediction
     """
 
     if input_data is not None:
-        # InputData was set to chain
+        # InputData was set to pipeline
         target = input_data.target
     parent_results = []
     for parent in parent_nodes:

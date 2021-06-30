@@ -5,7 +5,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import (Any, List)
 
-from fedot.core.chains.chain_template import ChainTemplate
+from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
@@ -16,43 +16,43 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List[ChainTemplate]
+    parent_objects: List[PipelineTemplate]
 
 
 class OptHistory:
     """
-    Contain history, convert Chain to ChainTemplate, save history to csv
+    Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
     def __init__(self, metrics=None):
         self.metrics = metrics
         self.individuals = []
         self.archive_history = []
-        self.chains_comp_time_history = []
+        self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
         self.parent_operators = []
 
-    def _convert_chain_to_template(self, chain):
-        chain_template = ChainTemplate(chain)
-        return chain_template
+    def _convert_pipeline_to_template(self, pipeline):
+        pipeline_template = PipelineTemplate(pipeline)
+        return pipeline_template
 
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
-        chains_comp_time = []
+        pipelines_comp_time = []
         parent_operators = []
         try:
             for ind in individuals:
-                chain = ind.graph  # was restored outside
+                pipeline = ind.graph  # was restored outside
                 new_ind = deepcopy(ind)
-                new_ind.graph = self._convert_chain_to_template(chain)
+                new_ind.graph = self._convert_pipeline_to_template(pipeline)
                 new_individuals.append(new_ind)
-                if hasattr(chain, 'computation_time'):
-                    chains_comp_time.append(chain.computation_time)
+                if hasattr(pipeline, 'computation_time'):
+                    pipelines_comp_time.append(pipeline.computation_time)
                 else:
-                    chains_comp_time.append(-1)
+                    pipelines_comp_time.append(-1)
                 parent_operators.append(ind.parent_operators)
             self.individuals.append(new_individuals)
-            self.chains_comp_time_history.append(chains_comp_time)
+            self.pipelines_comp_time_history.append(pipelines_comp_time)
         except Exception as ex:
             print(f'Cannot add to history: {ex}')
 
@@ -64,7 +64,7 @@ class OptHistory:
             archive_comp_time = []
             for ind in individuals:
                 new_ind = deepcopy(ind)
-                new_ind.graph = self._convert_chain_to_template(ind.graph)
+                new_ind.graph = self._convert_pipeline_to_template(ind.graph)
                 new_individuals.append(new_ind)
                 archive_comp_time.append(ind.graph.computation_time)
             self.archive_history.append(new_individuals)
@@ -86,7 +86,7 @@ class OptHistory:
                 else:
                     fitness = ind.fitness
                 row = [idx, gen_num, fitness, len(ind.graph.operation_templates), ind.graph.depth,
-                       self.chains_comp_time_history[gen_num][ind_num]]
+                       self.pipelines_comp_time_history[gen_num][ind_num]]
                 self._add_history_to_csv(file, row)
                 idx += 1
 
@@ -109,10 +109,10 @@ class OptHistory:
         if self.is_multi_objective:
             historical_fitness = []
             for objective_num in range(len(self.individuals[0][0].fitness.values)):
-                objective_history = [[chain.fitness.values[objective_num] for chain in pop] for pop in self.individuals]
+                objective_history = [[pipeline.fitness.values[objective_num] for pipeline in pop] for pop in self.individuals]
                 historical_fitness.append(objective_history)
         else:
-            historical_fitness = [[chain.fitness for chain in pop] for pop in self.individuals]
+            historical_fitness = [[pipeline.fitness for pipeline in pop] for pop in self.individuals]
         return historical_fitness
 
     @property
@@ -139,7 +139,7 @@ class OptHistory:
         return all_historical_quality
 
     @property
-    def historical_chains(self):
+    def historical_pipelines(self):
         return [ind.graph for ind in list(itertools.chain(*self.individuals))]
 
     @property

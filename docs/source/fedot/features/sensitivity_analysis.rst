@@ -31,13 +31,13 @@ model via ``ChainSensitivityAnalysis``
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Chain
+     from fedot.core.chains.chain import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeReplaceModelAnalyze
 
-     chain = Chain()
+     chain = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
      approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze, MultiOperationsHPAnalyze]
@@ -68,13 +68,13 @@ on the composite model. The rating corresponds to:
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Chain
+     from fedot.core.chains.chain import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeReplaceModelAnalyze
 
-     chain = Chain()
+     chain = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
      approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
@@ -92,12 +92,12 @@ NodeAnalysis
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Chain
+     from fedot.core.chains.chain import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeAnalysis, NodeReplaceModelAnalyze
 
-     chain = Chain()
+     chain = Pipeline()
      node_id_to_analyze = 2
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')

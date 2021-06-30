@@ -132,4 +132,4 @@ class MultiOperationsProblem(Problem):
 
         return all_operations_new_params
 
-        # Apply new params to nodes in chain in operation sensitivity
+        # Apply new params to nodes in pipeline in operation sensitivity

@@ -57,11 +57,11 @@ class ARIMAImplementation(ModelImplementation):
 
         return self.arima
 
-    def predict(self, input_data, is_fit_chain_stage: bool):
+    def predict(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
         parameters = input_data.task.task_params
@@ -69,8 +69,8 @@ class ARIMAImplementation(ModelImplementation):
         old_idx = input_data.idx
         target = input_data.target
 
-        # For training chain get fitted data
-        if is_fit_chain_stage:
+        # For training pipeline get fitted data
+        if is_fit_pipeline_stage:
             fitted_values = self.arima.fittedvalues
 
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
@@ -173,11 +173,11 @@ class AutoRegImplementation(ModelImplementation):
 
         return self.autoreg
 
-    def predict(self, input_data, is_fit_chain_stage: bool):
+    def predict(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
         parameters = input_data.task.task_params
@@ -185,7 +185,7 @@ class AutoRegImplementation(ModelImplementation):
         old_idx = input_data.idx
         target = input_data.target
 
-        if is_fit_chain_stage:
+        if is_fit_pipeline_stage:
             fitted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
             # First n elements in time series are skipped
             diff = self.actual_ts_len - len(fitted)
@@ -267,11 +267,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
         return self.model
 
-    def predict(self, input_data, is_fit_chain_stage: bool):
+    def predict(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
         parameters = input_data.task.task_params
@@ -279,8 +279,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
         old_idx = input_data.idx
         target = input_data.target
 
-        # For training chain get fitted data
-        if is_fit_chain_stage:
+        # For training pipeline get fitted data
+        if is_fit_pipeline_stage:
             fitted_values = self.model.get_prediction(start=old_idx[0], end=old_idx[-1]).predicted_mean
             diff = int(self.actual_ts_len) - len(fitted_values)
             # If first elements skipped

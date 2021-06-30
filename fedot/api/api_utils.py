@@ -7,8 +7,8 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              roc_auc_score)
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import (GPGraphOptimiserParameters, GPComposerBuilder,
                                                          GPComposerRequirements)
 from fedot.core.data.data import InputData, OutputData
@@ -147,7 +147,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         tuner_metric=None,
                         cv_folds: Optional[int] = None
                         ):
-    """ Function for composing FEDOT chain model """
+    """ Function for composing FEDOT pipeline model """
 
     metric_function = _obtain_metric(task, composer_metric)
 
@@ -191,18 +191,18 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
     gp_composer = builder.build()
 
     logger.message('Pipeline composition started')
-    chain_gp_composed = gp_composer.compose_chain(data=train_data)
+    pipeline_gp_composed = gp_composer.compose_pipeline(data=train_data)
 
-    chain_for_return = chain_gp_composed
+    pipeline_for_return = pipeline_gp_composed
 
-    if isinstance(chain_gp_composed, list):
-        for chain in chain_gp_composed:
-            chain.log = logger
-        chain_for_return = chain_gp_composed[0]
+    if isinstance(pipeline_gp_composed, list):
+        for pipeline in pipeline_gp_composed:
+            pipeline.log = logger
+        pipeline_for_return = pipeline_gp_composed[0]
         best_candidates = gp_composer.optimiser.archive
     else:
-        best_candidates = [chain_gp_composed]
-        chain_gp_composed.log = logger
+        best_candidates = [pipeline_gp_composed]
+        pipeline_gp_composed.log = logger
 
     if with_tuning:
         logger.message('Hyperparameters tuning started')
@@ -221,8 +221,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
         iterations = 20 if learning_time is None else 1000
         learning_time_for_tuning = learning_time / 2
 
-        # Tune all nodes in the chain
-        chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+        # Tune all nodes in the pipeline
+        pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
                                              loss_params=loss_params,
                                              input_data=train_data,
                                              iterations=iterations, max_lead_time=learning_time_for_tuning)
@@ -231,19 +231,19 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
 
     history = gp_composer.optimiser.history
 
-    return chain_for_return, best_candidates, history
+    return pipeline_for_return, best_candidates, history
 
 
-def _obtain_initial_assumption(task: Task, data) -> Chain:
+def _obtain_initial_assumption(task: Task, data) -> Pipeline:
     node_final = None
     if task.task_type == TaskTypesEnum.ts_forecasting:
-        # Create init chain
+        # Create init pipeline
         if isinstance(data, MultiModalData):
             node_final = SecondaryNode('ridge', nodes_from=[])
             for data_source_name in data.keys():
-                last_node_for_sub_chain = \
+                last_node_for_sub_pipeline = \
                     SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
-                node_final.nodes_from.append(last_node_for_sub_chain)
+                node_final.nodes_from.append(last_node_for_sub_pipeline)
         else:
             node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
     elif task.task_type == TaskTypesEnum.classification:
@@ -253,8 +253,8 @@ def _obtain_initial_assumption(task: Task, data) -> Chain:
         node_lagged = PrimaryNode('scaling')
         node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
 
-    init_chain = Chain(node_final)
-    return init_chain
+    init_pipeline = Pipeline(node_final)
+    return init_pipeline
 
 
 def _get_gp_composer_builder(task: Task, metric_function,
@@ -263,17 +263,17 @@ def _get_gp_composer_builder(task: Task, metric_function,
                              data: Union[InputData, MultiModalData],
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary
-    init_chain in it """
+    init_pipeline in it """
 
     builder = GPComposerBuilder(task=task). \
         with_requirements(composer_requirements). \
         with_optimiser_parameters(optimizer_parameters). \
         with_metrics(metric_function).with_logger(logger)
 
-    init_chain = _obtain_initial_assumption(task, data)
+    init_pipeline = _obtain_initial_assumption(task, data)
 
-    if init_chain is not None:
-        builder = builder.with_initial_chain(init_chain)
+    if init_pipeline is not None:
+        builder = builder.with_initial_pipeline(init_pipeline)
 
     return builder
 
@@ -296,7 +296,7 @@ def _divide_operations(available_operations, task):
 
 
 def _obtain_metric(task: Task, composer_metric: Union[str, Callable]):
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     if composer_metric is None:
         composer_metric = MetricByTask(task.task_type).metric_cls.get_value
 

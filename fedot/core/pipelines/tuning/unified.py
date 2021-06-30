@@ -4,28 +4,28 @@ from functools import partial
 import numpy as np
 from hyperopt import fmin, tpe, space_eval
 
-from fedot.core.chains.tuning.hyperparams import get_node_params, convert_params
-from fedot.core.chains.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.pipelines.tuning.hyperparams import get_node_params, convert_params
+from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 
 MAX_METRIC_VALUE = 10e6
 
 
-class ChainTuner(HyperoptTuner):
+class PipelineTuner(HyperoptTuner):
     """
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def __init__(self, chain, task, iterations=100,
+    def __init__(self, pipeline, task, iterations=100,
                  max_lead_time: timedelta = timedelta(minutes=5),
                  log: Log = None):
-        super().__init__(chain, task, iterations, max_lead_time, log)
+        super().__init__(pipeline, task, iterations, max_lead_time, log)
 
-    def tune_chain(self, input_data, loss_function, loss_params=None):
-        """ Function for hyperparameters tuning on the entire chain """
+    def tune_pipeline(self, input_data, loss_function, loss_params=None):
+        """ Function for hyperparameters tuning on the entire pipeline """
 
-        parameters_dict = self._get_parameters_for_tune(self.chain)
+        parameters_dict = self._get_parameters_for_tune(self.pipeline)
 
         # Train test split
         train_input, predict_input = train_test_data_setup(input_data)
@@ -41,7 +41,7 @@ class ChainTuner(HyperoptTuner):
                         loss_function, loss_params)
 
         best = fmin(partial(self._objective,
-                            chain=self.chain,
+                            pipeline=self.pipeline,
                             train_input=train_input,
                             predict_input=predict_input,
                             test_target=test_target,
@@ -54,30 +54,30 @@ class ChainTuner(HyperoptTuner):
 
         best = space_eval(space=parameters_dict, hp_assignment=best)
 
-        tuned_chain = self.set_arg_chain(chain=self.chain,
+        tuned_pipeline = self.set_arg_pipeline(pipeline=self.pipeline,
                                          parameters=best)
 
         # Validation is the optimization do well
-        final_chain = self.final_check(train_input=train_input,
+        final_pipeline = self.final_check(train_input=train_input,
                                        predict_input=predict_input,
                                        test_target=test_target,
-                                       tuned_chain=tuned_chain,
+                                       tuned_pipeline=tuned_pipeline,
                                        loss_function=loss_function,
                                        loss_params=loss_params)
 
-        return final_chain
+        return final_pipeline
 
     @staticmethod
-    def set_arg_chain(chain, parameters):
-        """ Method for parameters setting to a chain
+    def set_arg_pipeline(pipeline, parameters):
+        """ Method for parameters setting to a pipeline
 
-        :param chain: chain to which parameters should ba assigned
+        :param pipeline: pipeline to which parameters should ba assigned
         :param parameters: dictionary with parameters to set
-        :return chain: chain with new hyperparameters in each node
+        :return pipeline: pipeline with new hyperparameters in each node
         """
 
         # Set hyperparameters for every node
-        for node_id, _ in enumerate(chain.nodes):
+        for node_id, _ in enumerate(pipeline.nodes):
             node_params = parameters.get(node_id)
 
             if node_params is not None:
@@ -85,25 +85,25 @@ class ChainTuner(HyperoptTuner):
                 new_params = convert_params(node_params)
 
                 # Update parameters in nodes
-                chain.nodes[node_id].custom_params = new_params
+                pipeline.nodes[node_id].custom_params = new_params
 
-        return chain
+        return pipeline
 
     @staticmethod
-    def _get_parameters_for_tune(chain):
+    def _get_parameters_for_tune(pipeline):
         """
         Function for defining the search space
 
-        :param chain: chain to optimize
+        :param pipeline: pipeline to optimize
         :return parameters_dict: dictionary with operation names and parameters
         """
 
         parameters_dict = {}
-        for node_id, node in enumerate(chain.nodes):
+        for node_id, node in enumerate(pipeline.nodes):
             operation_name = str(node.operation)
 
             # Assign unique prefix for each model hyperparameter
-            # label - number of node in the chain
+            # label - number of node in the pipeline
             node_params = get_node_params(node_id=node_id,
                                           operation_name=operation_name)
 
@@ -111,15 +111,15 @@ class ChainTuner(HyperoptTuner):
 
         return parameters_dict
 
-    def _objective(self, parameters_dict, chain, train_input, predict_input,
+    def _objective(self, parameters_dict, pipeline, train_input, predict_input,
                    test_target, loss_function, loss_params: dict):
         """
         Objective function for minimization / maximization problem
 
         :param parameters_dict: dictionary with operation names and parameters
-        :param chain: chain to optimize
-        :param train_input: input for train chain model
-        :param predict_input: input for test chain model
+        :param pipeline: pipeline to optimize
+        :param train_input: input for train pipeline model
+        :param predict_input: input for test pipeline model
         :param test_target: target for validation
         :param loss_function: loss function to optimize
         :param loss_params: parameters for loss function
@@ -128,13 +128,13 @@ class ChainTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for every node
-        chain = ChainTuner.set_arg_chain(chain=chain, parameters=parameters_dict)
+        pipeline = PipelineTuner.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
         try:
-            metric_value = ChainTuner.get_metric_value(train_input=train_input,
+            metric_value = PipelineTuner.get_metric_value(train_input=train_input,
                                                        predict_input=predict_input,
                                                        test_target=test_target,
-                                                       chain=chain,
+                                                       pipeline=pipeline,
                                                        loss_function=loss_function,
                                                        loss_params=loss_params)
         except Exception:

@@ -1,23 +1,23 @@
 import os
 
 from fedot.api.main import Fedot
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import fedot_project_root
 
 
 def test_parent_operator():
-    chain = Chain(PrimaryNode('linear'))
+    pipeline = Pipeline(PrimaryNode('linear'))
     mutation_type = MutationTypesEnum.simple
 
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_objects=[ChainTemplate(chain)])
+                                          parent_objects=[PipelineTemplate(pipeline)])
 
-    assert operator_for_history.parent_objects[0].unique_chain_id == chain.uid
+    assert operator_for_history.parent_objects[0].unique_pipeline_id == pipeline.uid
     assert operator_for_history.operator_type == 'mutation'
 
 
@@ -31,7 +31,7 @@ def test_operators_in_history():
     assert auto_model.history is not None
     assert len(auto_model.history.parent_operators) == 3
 
-    chains_uids_from_first_gen = [ind.graph.unique_chain_id for ind in auto_model.history.individuals[0]]
+    pipelines_uids_from_first_gen = [ind.graph.unique_pipeline_id for ind in auto_model.history.individuals[0]]
 
     next_gen_id = 1
     ind_id = 1

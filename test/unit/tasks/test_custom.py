@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode

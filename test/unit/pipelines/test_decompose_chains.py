@@ -3,9 +3,9 @@ from itertools import product
 import numpy as np
 
 from examples.classification_with_tuning_example import get_classification_dataset
-from examples.decompose.refinement_forecast_example import get_refinement_chain
-from fedot.core.chains.chain import Chain, nodes_with_operation
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from examples.decompose.refinement_forecast_example import get_refinement_pipeline
+from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -13,8 +13,8 @@ from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
 
-def generate_chain_with_decomposition(primary_operation, secondary_operation):
-    """ The function generates a chain in which there is an operation of
+def generate_pipeline_with_decomposition(primary_operation, secondary_operation):
+    """ The function generates a pipeline in which there is an operation of
     decomposing the target variable into residuals
                      secondary_operation
     primary_operation                       xgboost
@@ -29,12 +29,12 @@ def generate_chain_with_decomposition(primary_operation, secondary_operation):
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    full_chain = Chain(node_xgboost)
-    return full_chain
+    full_pipeline = Pipeline(node_xgboost)
+    return full_pipeline
 
 
-def generate_chain_with_filtering():
-    """ Return 5-level chain with decompose and filtering operations
+def generate_pipeline_with_filtering():
+    """ Return 5-level pipeline with decompose and filtering operations
            logit
     scaling                                 xgboost
            class_decompose -> RANSAC -> rfr
@@ -46,11 +46,11 @@ def generate_chain_with_filtering():
     node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_decompose])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_ransac])
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    full_chain = Chain(node_xgboost)
-    return full_chain
+    full_pipeline = Pipeline(node_xgboost)
+    return full_pipeline
 
 
-def generate_cascade_decompose_chain():
+def generate_cascade_decompose_pipeline():
     """ The function of generating a multi-stage model with many connections
     and solving many problems (regression and classification)
     """
@@ -63,8 +63,8 @@ def generate_cascade_decompose_chain():
     node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_xgboost, node_scaling])
     node_rfr_2 = SecondaryNode('rfr', nodes_from=[node_decompose_new])
     node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_xgboost])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 def get_classification_data(classes_amount: int):
@@ -111,26 +111,26 @@ def test_order_by_data_flow_len_correct():
     list_with_operations = list(product(data_operations, model_operations))
 
     for data_operation, model_operation in list_with_operations:
-        # Generate chain with different operations in the nodes with decomposition
-        chain = generate_chain_with_decomposition(data_operation,
+        # Generate pipeline with different operations in the nodes with decomposition
+        pipeline = generate_pipeline_with_decomposition(data_operation,
                                                   model_operation)
-        chain.fit(input_data)
+        pipeline.fit(input_data)
 
         # Get one node with decompose operation in it
-        decompose_nodes = nodes_with_operation(chain, 'class_decompose')
+        decompose_nodes = nodes_with_operation(pipeline, 'class_decompose')
         decompose_node = decompose_nodes[0]
         # Predict from decompose must be the same as predict from Data parent
         dec_output = decompose_node.predict(input_data)
 
         # Get data parent operation for node
-        data_node = nodes_with_operation(chain, data_operation)[0]
+        data_node = nodes_with_operation(pipeline, data_operation)[0]
         data_output = data_node.predict(input_data)
 
         if tuple(data_output.predict.shape) != tuple(dec_output.predict.shape):
             raise ValueError('Data parent is not identified correctly for the decompose operation')
 
 
-def test_correctness_filter_chain_decomposition():
+def test_correctness_filter_pipeline_decomposition():
     """ The function runs an example of classification task using an outlier
     filtering algorithm (RANSAC) in its structure in the regression branch
     """
@@ -141,13 +141,13 @@ def test_correctness_filter_chain_decomposition():
     train_input.target = np.array(train_input.target) + 2
     predict_input.target = np.array(predict_input.target) + 2
 
-    # Get chain
-    chain = generate_chain_with_filtering()
-    chain.fit(train_input)
-    predicted_output = chain.predict(predict_input)
+    # Get pipeline
+    pipeline = generate_pipeline_with_filtering()
+    pipeline.fit(train_input)
+    predicted_output = pipeline.predict(predict_input)
 
-    is_chain_worked_correctly = True
-    return is_chain_worked_correctly
+    is_pipeline_worked_correctly = True
+    return is_pipeline_worked_correctly
 
 
 def test_multiclass_classification_decomposition():
@@ -158,13 +158,13 @@ def test_multiclass_classification_decomposition():
     train_input.target = np.array(train_input.target) + 1
     predict_input.target = np.array(predict_input.target) + 1
 
-    # Get chain
-    chain = generate_chain_with_decomposition('scaling', 'logit')
-    chain.fit(train_input)
-    predicted_output = chain.predict(predict_input)
+    # Get pipeline
+    pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
+    pipeline.fit(train_input)
+    predicted_output = pipeline.predict(predict_input)
 
-    is_chain_worked_correctly = True
-    return is_chain_worked_correctly
+    is_pipeline_worked_correctly = True
+    return is_pipeline_worked_correctly
 
 
 def test_cascade_classification_decomposition():
@@ -175,17 +175,17 @@ def test_cascade_classification_decomposition():
     train_input.target = np.array(train_input.target) + 3
     predict_input.target = np.array(predict_input.target) + 3
 
-    # Get chain
-    chain = generate_cascade_decompose_chain()
-    chain.fit(train_input)
-    predicted_output = chain.predict(predict_input)
+    # Get pipeline
+    pipeline = generate_cascade_decompose_pipeline()
+    pipeline.fit(train_input)
+    predicted_output = pipeline.predict(predict_input)
 
-    is_chain_worked_correctly = True
-    return is_chain_worked_correctly
+    is_pipeline_worked_correctly = True
+    return is_pipeline_worked_correctly
 
 
 def test_ts_forecasting_decomposition():
-    """ The function checks whether, after the decompose operation, the chain
+    """ The function checks whether, after the decompose operation, the pipeline
     actually models the original target (not decomposed) for the time series
     forecasting task
     """
@@ -195,13 +195,13 @@ def test_ts_forecasting_decomposition():
     train_data.features = train_data.features + 150
     train_data.target = train_data.target + 150
 
-    _, chain_decompose_finish, chain = get_refinement_chain(lagged=10)
+    _, pipeline_decompose_finish, pipeline = get_refinement_pipeline(lagged=10)
 
-    chain.fit(train_data)
-    chain_decompose_finish.fit(train_data)
+    pipeline.fit(train_data)
+    pipeline_decompose_finish.fit(train_data)
 
-    full_output = chain.predict(train_data)
-    decompose_output = chain_decompose_finish.predict(train_data)
+    full_output = pipeline.predict(train_data)
+    decompose_output = pipeline_decompose_finish.predict(train_data)
 
     full_level = np.mean(full_output.predict)
     decompose_level = np.mean(decompose_output.predict)

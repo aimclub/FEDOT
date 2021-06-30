@@ -27,16 +27,16 @@ class FilterImplementation(DataOperationImplementation):
 
         return self.operation
 
-    def transform(self, input_data, is_fit_chain_stage: bool):
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for making prediction
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by rows
         """
 
         features = input_data.features
-        if is_fit_chain_stage:
+        if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
             inner_features = features[mask]

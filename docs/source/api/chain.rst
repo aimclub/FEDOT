@@ -1,4 +1,4 @@
-Chain
+Pipeline
 =====
 
 .. automodule:: fedot.core.chains.chain

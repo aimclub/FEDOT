@@ -1,7 +1,7 @@
 import gc
 from typing import List
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
 
@@ -14,16 +14,16 @@ class Individual:
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
 
-        # TODO remove direct chain reference
-        self.graph = _release_chain_resources(graph) if isinstance(graph, Chain) else graph
+        # TODO remove direct pipeline reference
+        self.graph = _release_pipeline_resources(graph) if isinstance(graph, Pipeline) else graph
 
 
-def _release_chain_resources(chain: Chain):
+def _release_pipeline_resources(pipeline: Pipeline):
     """
     Remove all 'heavy' parts from the graph
-    :param chain: fitted chain
-    :return: chain without fitted models and data
+    :param pipeline: fitted pipeline
+    :return: pipeline without fitted models and data
     """
-    chain.unfit()
+    pipeline.unfit()
     gc.collect()
-    return chain
+    return pipeline

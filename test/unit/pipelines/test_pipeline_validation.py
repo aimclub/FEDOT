@@ -1,20 +1,20 @@
 import pytest
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
-    has_no_conflicts_with_data_flow, is_chain_contains_ts_operations, has_no_data_flow_conflicts_in_ts_chain, \
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
+    has_no_conflicts_with_data_flow, is_pipeline_contains_ts_operations, has_no_data_flow_conflicts_in_ts_pipeline, \
     only_ts_specific_operations_are_primary, has_no_conflicts_in_decompose, has_primary_nodes
 from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_nodes, has_no_self_cycled_nodes, \
     has_no_isolated_components
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.validation import (validate)
 
-CHAIN_ERROR_PREFIX = 'Invalid chain configuration:'
+PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
 GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
 
 
-def valid_chain():
+def valid_pipeline():
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
@@ -23,28 +23,28 @@ def valid_chain():
     last = SecondaryNode(operation_type='logit',
                          nodes_from=[third])
 
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third, last]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    return chain
+    return pipeline
 
 
-def chain_with_cycle():
+def pipeline_with_cycle():
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
     third = SecondaryNode(operation_type='logit',
                           nodes_from=[second, first])
     second.nodes_from.append(third)
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    return chain
+    return pipeline
 
 
-def chain_with_isolated_nodes():
+def pipeline_with_isolated_nodes():
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
@@ -52,54 +52,54 @@ def chain_with_isolated_nodes():
                           nodes_from=[second])
     isolated = SecondaryNode(operation_type='logit',
                              nodes_from=[])
-    chain = Chain()
+    pipeline = Pipeline()
 
     for node in [first, second, third, isolated]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    return chain
+    return pipeline
 
 
-def chain_with_multiple_roots():
+def pipeline_with_multiple_roots():
     first = PrimaryNode(operation_type='logit')
     root_first = SecondaryNode(operation_type='logit',
                                nodes_from=[first])
     root_second = SecondaryNode(operation_type='logit',
                                 nodes_from=[first])
-    chain = Chain()
+    pipeline = Pipeline()
 
     for node in [first, root_first, root_second]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    return chain
+    return pipeline
 
 
-def chain_with_secondary_nodes_only():
+def pipeline_with_secondary_nodes_only():
     first = SecondaryNode(operation_type='logit',
                           nodes_from=[])
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
-    chain = Chain()
-    chain.add_node(first)
-    chain.add_node(second)
+    pipeline = Pipeline()
+    pipeline.add_node(first)
+    pipeline.add_node(second)
 
-    return chain
+    return pipeline
 
 
-def chain_with_self_cycle():
+def pipeline_with_self_cycle():
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
     second.nodes_from.append(second)
 
-    chain = Chain()
-    chain.add_node(first)
-    chain.add_node(second)
+    pipeline = Pipeline()
+    pipeline.add_node(first)
+    pipeline.add_node(second)
 
-    return chain
+    return pipeline
 
 
-def chain_with_isolated_components():
+def pipeline_with_isolated_components():
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit',
                            nodes_from=[first])
@@ -108,57 +108,57 @@ def chain_with_isolated_components():
     fourth = SecondaryNode(operation_type='logit',
                            nodes_from=[third])
 
-    chain = Chain()
+    pipeline = Pipeline()
     for node in [first, second, third, fourth]:
-        chain.add_node(node)
+        pipeline.add_node(node)
 
-    return chain
+    return pipeline
 
 
-def chain_with_incorrect_root_operation():
+def pipeline_with_incorrect_root_operation():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='logit')
     final = SecondaryNode(operation_type='scaling',
                           nodes_from=[first, second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def chain_with_incorrect_task_type():
+def pipeline_with_incorrect_task_type():
     first = PrimaryNode(operation_type='linear')
     second = PrimaryNode(operation_type='linear')
     final = SecondaryNode(operation_type='kmeans',
                           nodes_from=[first, second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain, Task(TaskTypesEnum.classification)
+    return pipeline, Task(TaskTypesEnum.classification)
 
 
-def chain_with_only_data_operations():
+def pipeline_with_only_data_operations():
     first = PrimaryNode(operation_type='one_hot_encoding')
     second = SecondaryNode(operation_type='scaling', nodes_from=[first])
     final = SecondaryNode(operation_type='ransac_lin_reg', nodes_from=[second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def chain_with_incorrect_data_flow():
-    """ When combining the features in the presented chain, a table with 5
+def pipeline_with_incorrect_data_flow():
+    """ When combining the features in the presented pipeline, a table with 5
     columns will turn into a table with 10 columns """
     first = PrimaryNode(operation_type='scaling')
     second = PrimaryNode(operation_type='scaling')
 
     final = SecondaryNode(operation_type='ridge', nodes_from=[first, second])
-    chain = Chain(final)
-    return chain
+    pipeline = Pipeline(final)
+    return pipeline
 
 
-def ts_chain_with_incorrect_data_flow():
+def ts_pipeline_with_incorrect_data_flow():
     """
     Connection lagged -> lagged is incorrect
     Connection ridge -> ar is incorrect also
@@ -180,13 +180,13 @@ def ts_chain_with_incorrect_data_flow():
 
     # Fourth level - root node
     node_final = SecondaryNode('ar', nodes_from=[node_ridge_1, node_ridge_2])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
-def chain_with_incorrect_parent_amount_for_decompose():
-    """ Chain structure:
+def pipeline_with_incorrect_parent_amount_for_decompose():
+    """ Pipeline structure:
            logit
     scaling                        xgboost
            class_decompose -> rfr
@@ -198,12 +198,12 @@ def chain_with_incorrect_parent_amount_for_decompose():
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_scaling])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    chain = Chain(node_xgboost)
-    return chain
+    pipeline = Pipeline(node_xgboost)
+    return pipeline
 
 
-def chain_with_incorrect_parents_position_for_decompose():
-    """ Chain structure:
+def pipeline_with_incorrect_parents_position_for_decompose():
+    """ Pipeline structure:
          scaling
     logit                       xgboost
          class_decompose -> rfr
@@ -214,109 +214,109 @@ def chain_with_incorrect_parents_position_for_decompose():
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
     node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    chain = Chain(node_xgboost)
-    return chain
+    pipeline = Pipeline(node_xgboost)
+    return pipeline
 
 
-def test_chain_with_cycle_raise_exception():
-    chain = chain_with_cycle()
+def test_pipeline_with_cycle_raise_exception():
+    pipeline = pipeline_with_cycle()
     with pytest.raises(Exception) as exc:
-        assert has_no_cycle(chain)
+        assert has_no_cycle(pipeline)
     assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has cycles'
 
 
-def test_chain_without_cycles_correct():
-    chain = valid_chain()
+def test_pipeline_without_cycles_correct():
+    pipeline = valid_pipeline()
 
-    assert has_no_cycle(chain)
+    assert has_no_cycle(pipeline)
 
 
-def test_chain_with_isolated_nodes_raise_exception():
-    chain = chain_with_isolated_nodes()
+def test_pipeline_with_isolated_nodes_raise_exception():
+    pipeline = pipeline_with_isolated_nodes()
     with pytest.raises(ValueError) as exc:
-        assert has_no_isolated_nodes(chain)
+        assert has_no_isolated_nodes(pipeline)
     assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated nodes'
 
 
-def test_multi_root_chain_raise_exception():
-    chain = chain_with_multiple_roots()
+def test_multi_root_pipeline_raise_exception():
+    pipeline = pipeline_with_multiple_roots()
 
     with pytest.raises(Exception) as exc:
-        assert chain.root_node
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} More than 1 root_nodes in chain'
+        assert pipeline.root_node
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} More than 1 root_nodes in pipeline'
 
 
-def test_chain_with_primary_nodes_correct():
-    chain = valid_chain()
-    assert has_primary_nodes(chain)
+def test_pipeline_with_primary_nodes_correct():
+    pipeline = valid_pipeline()
+    assert has_primary_nodes(pipeline)
 
 
-def test_chain_without_primary_nodes_raise_exception():
-    chain = chain_with_secondary_nodes_only()
+def test_pipeline_without_primary_nodes_raise_exception():
+    pipeline = pipeline_with_secondary_nodes_only()
     with pytest.raises(Exception) as exc:
-        assert has_primary_nodes(chain)
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain does not have primary nodes'
+        assert has_primary_nodes(pipeline)
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline does not have primary nodes'
 
 
-def test_chain_with_self_cycled_nodes_raise_exception():
-    chain = chain_with_self_cycle()
+def test_pipeline_with_self_cycled_nodes_raise_exception():
+    pipeline = pipeline_with_self_cycle()
     with pytest.raises(Exception) as exc:
-        assert has_no_self_cycled_nodes(chain)
+        assert has_no_self_cycled_nodes(pipeline)
     assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has self-cycled nodes'
 
 
-def test_chain_validate_correct():
-    chain = valid_chain()
-    validate(chain)
+def test_pipeline_validate_correct():
+    pipeline = valid_pipeline()
+    validate(pipeline)
 
 
-def test_chain_with_isolated_components_raise_exception():
-    chain = chain_with_isolated_components()
+def test_pipeline_with_isolated_components_raise_exception():
+    pipeline = pipeline_with_isolated_components()
     with pytest.raises(Exception) as exc:
-        assert has_no_isolated_components(chain)
+        assert has_no_isolated_components(pipeline)
     assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated components'
 
 
-def test_chain_with_incorrect_task_type_raise_exception():
-    chain, task = chain_with_incorrect_task_type()
+def test_pipeline_with_incorrect_task_type_raise_exception():
+    pipeline, task = pipeline_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:
-        assert has_correct_operation_positions(chain, task)
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain has incorrect operations positions'
+        assert has_correct_operation_positions(pipeline, task)
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect operations positions'
 
 
-def test_chain_without_model_in_root_node():
-    incorrect_chain = chain_with_only_data_operations()
-
-    with pytest.raises(Exception) as exc:
-        assert has_final_operation_as_model(incorrect_chain)
-
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Root operation is not a model'
-
-
-def test_chain_with_incorrect_data_flow():
-    incorrect_chain = chain_with_incorrect_data_flow()
+def test_pipeline_without_model_in_root_node():
+    incorrect_pipeline = pipeline_with_only_data_operations()
 
     with pytest.raises(Exception) as exc:
-        assert has_no_conflicts_with_data_flow(incorrect_chain)
+        assert has_final_operation_as_model(incorrect_pipeline)
 
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain has incorrect subgraph with identical data operations'
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Root operation is not a model'
 
 
-def test_ts_chain_with_incorrect_data_flow():
-    incorrect_chain = ts_chain_with_incorrect_data_flow()
+def test_pipeline_with_incorrect_data_flow():
+    incorrect_pipeline = pipeline_with_incorrect_data_flow()
 
-    if is_chain_contains_ts_operations(incorrect_chain):
+    with pytest.raises(Exception) as exc:
+        assert has_no_conflicts_with_data_flow(incorrect_pipeline)
+
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations'
+
+
+def test_ts_pipeline_with_incorrect_data_flow():
+    incorrect_pipeline = ts_pipeline_with_incorrect_data_flow()
+
+    if is_pipeline_contains_ts_operations(incorrect_pipeline):
         with pytest.raises(Exception) as exc:
-            assert has_no_data_flow_conflicts_in_ts_chain(incorrect_chain)
+            assert has_no_data_flow_conflicts_in_ts_pipeline(incorrect_pipeline)
 
         assert str(exc.value) == \
-               f'{CHAIN_ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
+               f'{PIPELINE_ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination'
     else:
         assert False
 
 
 def test_only_ts_specific_operations_are_primary():
-    """ Incorrect chain
+    """ Incorrect pipeline
     lagged \
              linear -> final forecast
      ridge /
@@ -324,34 +324,34 @@ def test_only_ts_specific_operations_are_primary():
     node_lagged = PrimaryNode('lagged')
     node_ridge = PrimaryNode('ridge')
     node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_ridge])
-    incorrect_chain = Chain(node_final)
+    incorrect_pipeline = Pipeline(node_final)
 
     with pytest.raises(Exception) as exc:
-        assert only_ts_specific_operations_are_primary(incorrect_chain)
+        assert only_ts_specific_operations_are_primary(incorrect_pipeline)
 
     assert str(exc.value) == \
-           f'{CHAIN_ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
+           f'{PIPELINE_ERROR_PREFIX} Pipeline for forecasting has not ts_specific preprocessing in primary nodes'
 
 
 def test_has_two_parents_for_decompose_operations():
-    incorrect_chain = chain_with_incorrect_parent_amount_for_decompose()
+    incorrect_pipeline = pipeline_with_incorrect_parent_amount_for_decompose()
 
     with pytest.raises(Exception) as exc:
-        assert has_no_conflicts_in_decompose(incorrect_chain)
+        assert has_no_conflicts_in_decompose(incorrect_pipeline)
 
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
 
 
 def test_decompose_parents_has_wright_positions():
-    incorrect_chain = chain_with_incorrect_parents_position_for_decompose()
+    incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
 
     with pytest.raises(Exception) as exc:
-        assert has_no_conflicts_in_decompose(incorrect_chain)
+        assert has_no_conflicts_in_decompose(incorrect_pipeline)
 
-    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} For decompose operation Model as first parent is required'
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
 
 
 def custom_validation_test():
-    incorrect_chain = chain_with_incorrect_parents_position_for_decompose()
+    incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
 
-    assert validate(incorrect_chain, rules=[has_no_cycle])
+    assert validate(incorrect_pipeline, rules=[has_no_cycle])

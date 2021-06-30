@@ -3,18 +3,18 @@ from copy import deepcopy
 
 import pytest
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree
 
 
-def chain_first():
+def pipeline_first():
     #    XG
     #  |     \
     # XG     KNN
     # |  \    |  \
     # LR LDA LR  LDA
-    chain = Chain()
+    pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
         [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
@@ -23,15 +23,15 @@ def chain_first():
         for requirement_model in ('logit', 'lda'):
             new_node = PrimaryNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
-            chain.add_node(new_node)
-        chain.add_node(root_node_child)
+            pipeline.add_node(new_node)
+        pipeline.add_node(root_node_child)
         root_of_tree.nodes_from.append(root_node_child)
 
-    chain.add_node(root_of_tree)
-    return chain
+    pipeline.add_node(root_of_tree)
+    return pipeline
 
 
-def chain_second():
+def pipeline_second():
     #      XG
     #   |      \
     #  XG      KNN
@@ -42,48 +42,48 @@ def chain_second():
     new_node = SecondaryNode('xgboost')
     for model_type in ('knn', 'lda'):
         new_node.nodes_from.append(PrimaryNode(model_type))
-    chain = chain_first()
-    chain.update_subtree(chain.root_node.nodes_from[0].nodes_from[1], new_node)
+    pipeline = pipeline_first()
+    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
 
-    return chain
+    return pipeline
 
 
-def chain_third():
+def pipeline_third():
     #      XG
     #   /  |  \
     #  KNN LDA KNN
     root_of_tree = SecondaryNode('xgboost')
     for model_type in ('knn', 'lda', 'knn'):
         root_of_tree.nodes_from.append(PrimaryNode(model_type))
-    chain = Chain()
+    pipeline = Pipeline()
 
     for node in root_of_tree.nodes_from:
-        chain.add_node(node)
-    chain.add_node(root_of_tree)
+        pipeline.add_node(node)
+    pipeline.add_node(root_of_tree)
 
-    return chain
+    return pipeline
 
 
-def chain_fourth():
+def pipeline_fourth():
     #      XG
     #   |  \  \
     #  KNN  XG  KNN
     #      |  \
     #    KNN   KNN
 
-    chain = chain_third()
+    pipeline = pipeline_third()
     new_node = SecondaryNode('xgboost')
     [new_node.nodes_from.append(PrimaryNode('knn')) for _ in range(2)]
-    chain.update_subtree(chain.root_node.nodes_from[1], new_node)
+    pipeline.update_subtree(pipeline.root_node.nodes_from[1], new_node)
 
-    return chain
+    return pipeline
 
 
 @pytest.fixture()
 def equality_cases():
-    pairs = [[chain_first(), chain_first()], [chain_third(), chain_third()], [chain_fourth(), chain_fourth()]]
+    pairs = [[pipeline_first(), pipeline_first()], [pipeline_third(), pipeline_third()], [pipeline_fourth(), pipeline_fourth()]]
 
-    # the following changes don't affect to chains equality:
+    # the following changes don't affect to pipelines equality:
     for node_num, type in enumerate(['knn', 'lda']):
         pairs[1][1].root_node.nodes_from[node_num].operation.operation_type = type
 
@@ -97,29 +97,29 @@ def equality_cases():
 
 @pytest.fixture()
 def non_equality_cases():
-    return list(itertools.combinations([chain_first(), chain_second(), chain_third()], 2))
+    return list(itertools.combinations([pipeline_first(), pipeline_second(), pipeline_third()], 2))
 
 
-@pytest.mark.parametrize('chain_fixture', ['equality_cases'])
-def test_equality_cases(chain_fixture, request):
-    list_chains_pairs = request.getfixturevalue(chain_fixture)
-    for pair in list_chains_pairs:
+@pytest.mark.parametrize('pipeline_fixture', ['equality_cases'])
+def test_equality_cases(pipeline_fixture, request):
+    list_pipelines_pairs = request.getfixturevalue(pipeline_fixture)
+    for pair in list_pipelines_pairs:
         assert pair[0] == pair[1]
         assert pair[1] == pair[0]
 
 
-@pytest.mark.parametrize('chain_fixture', ['non_equality_cases'])
-def test_non_equality_cases(chain_fixture, request):
-    list_chains_pairs = request.getfixturevalue(chain_fixture)
-    for pair in list_chains_pairs:
+@pytest.mark.parametrize('pipeline_fixture', ['non_equality_cases'])
+def test_non_equality_cases(pipeline_fixture, request):
+    list_pipelines_pairs = request.getfixturevalue(pipeline_fixture)
+    for pair in list_pipelines_pairs:
         assert not pair[0] == pair[1]
         assert not pair[1] == pair[0]
 
 
-def test_chains_equivalent_subtree():
-    c_first = chain_first()
-    c_second = chain_second()
-    c_third = chain_third()
+def test_pipelines_equivalent_subtree():
+    c_first = pipeline_first()
+    c_second = pipeline_second()
+    c_third = pipeline_third()
 
     similar_nodes_first_and_second = equivalent_subtree(c_first, c_second)
     assert len(similar_nodes_first_and_second) == 6

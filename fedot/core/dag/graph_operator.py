@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Any, List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
 class GraphOperator:
@@ -61,7 +61,7 @@ class GraphOperator:
 
     def add_node(self, node: GraphNode):
         """
-        Add new node to the Chain
+        Add new node to the Pipeline
 
         :param node: new Node object
         """

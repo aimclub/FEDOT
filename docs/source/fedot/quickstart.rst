@@ -23,14 +23,14 @@ How to create your own composite model in manual way
    dataset_to_train = pd.read_csv(train_file_path)
    dataset_to_validate = pd.read_csv(train_file_path)
 
--  **Step 2**. Create *Chain* instance, create nodes with desired models
+-  **Step 2**. Create *Pipeline* instance, create nodes with desired models
 
 .. code:: python
 
    node_first = PrimaryNode('logit')
    node_second= PrimaryNode('xgboost')
    node_final = SecondaryNode('knn', nodes_from = [node_first, node_second])
-   chain = Chain(node_final)
+   chain = Pipeline(node_final)
 
 -  **Step 3**. Fit the chain using *fit* method.
 

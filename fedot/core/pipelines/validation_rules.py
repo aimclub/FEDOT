@@ -1,35 +1,35 @@
 from typing import Optional
 
-from fedot.core.chains.chain import Chain, nodes_with_operation
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task
 
-ERROR_PREFIX = 'Invalid chain configuration:'
+ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-def has_correct_operation_positions(chain: 'Chain', task: Optional[Task] = None):
+def has_correct_operation_positions(pipeline: 'Pipeline', task: Optional[Task] = None):
     is_root_satisfy_task_type = True
     if task:
-        is_root_satisfy_task_type = task.task_type in chain.root_node.operation.acceptable_task_types
+        is_root_satisfy_task_type = task.task_type in pipeline.root_node.operation.acceptable_task_types
 
     if not is_root_satisfy_task_type:
-        raise ValueError(f'{ERROR_PREFIX} Chain has incorrect operations positions')
+        raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
 
     return True
 
 
-def has_primary_nodes(chain: 'Chain'):
-    if not any(node for node in chain.nodes if isinstance(node, PrimaryNode)):
-        raise ValueError(f'{ERROR_PREFIX} Chain does not have primary nodes')
+def has_primary_nodes(pipeline: 'Pipeline'):
+    if not any(node for node in pipeline.nodes if isinstance(node, PrimaryNode)):
+        raise ValueError(f'{ERROR_PREFIX} Pipeline does not have primary nodes')
     return True
 
 
-def has_final_operation_as_model(chain: 'Chain'):
+def has_final_operation_as_model(pipeline: 'Pipeline'):
     """ Check if the operation in root node is model or not """
-    root_node = chain.root_node
+    root_node = pipeline.root_node
 
     if type(root_node.operation) is not Model:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
@@ -37,13 +37,13 @@ def has_final_operation_as_model(chain: 'Chain'):
     return True
 
 
-def has_no_conflicts_with_data_flow(chain: 'Chain'):
-    """ Check if the chain contains incorrect connections between nodes """
+def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
+    """ Check if the pipeline contains incorrect connections between nodes """
     operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
     forbidden_parents_combination, _ = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         parent_nodes = node.nodes_from
 
         if parent_nodes is not None and len(parent_nodes) > 1:
@@ -56,16 +56,16 @@ def has_no_conflicts_with_data_flow(chain: 'Chain'):
             if len(set(operation_names)) == 1:
                 # And if it is forbidden to combine them
                 if operation_names[0] in forbidden_parents_combination:
-                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations')
+                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with identical data operations')
     return True
 
 
-def has_correct_data_connections(chain: 'Chain'):
-    """ Check if the chain contains incorrect connections between operation for different data types """
+def has_correct_data_connections(pipeline: 'Pipeline'):
+    """ Check if the pipeline contains incorrect connections between operation for different data types """
     operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
     models_repo = OperationTypesRepository(repository_name='model_repository.json')
 
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         parent_nodes = node.nodes_from
 
         if parent_nodes is not None and len(parent_nodes) > 0:
@@ -78,7 +78,7 @@ def has_correct_data_connections(chain: 'Chain'):
                 node_dtypes = set(current_nodes_supported_data_types.input_types)
                 parent_dtypes = set(parent_node_supported_data_types.output_types)
                 if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
-                    raise ValueError(f'{ERROR_PREFIX} Chain has incorrect data connections')
+                    raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect data connections')
 
     return True
 
@@ -90,27 +90,27 @@ def get_supported_data_types(node, operation_repo, models_repo):
     return supported_data_types
 
 
-def is_chain_contains_ts_operations(chain: 'Chain'):
+def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     """ Function checks is the model contains operations for time series
     forecasting """
     # Get time series specific operations with tag "ts_specific"
     ts_operations = get_ts_operations(tags=["ts_specific"], mode='all')
 
-    # List with operations in considering chain
-    operations_in_chain = []
-    for node in chain.nodes:
-        operations_in_chain.append(node.operation.operation_type)
+    # List with operations in considering pipeline
+    operations_in_pipeline = []
+    for node in pipeline.nodes:
+        operations_in_pipeline.append(node.operation.operation_type)
 
-    if len(set(ts_operations) & set(operations_in_chain)) > 0:
+    if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
         return True
     else:
         return False
 
 
-def has_no_data_flow_conflicts_in_ts_chain(chain: 'Chain'):
+def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
-    if not is_chain_contains_ts_operations(chain):
+    if not is_pipeline_contains_ts_operations(pipeline):
         return True
     models = get_ts_operations(mode='models')
     # Preprocessing not only for time series
@@ -139,7 +139,7 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: 'Chain'):
                          'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
                          'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations}
 
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         # Operation name in the current node
         current_operation = node.operation.operation_type
         parent_nodes = node.nodes_from
@@ -156,27 +156,27 @@ def has_no_data_flow_conflicts_in_ts_chain(chain: 'Chain'):
     return True
 
 
-def only_ts_specific_operations_are_primary(chain: 'Chain'):
+def only_ts_specific_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
-    if not is_chain_contains_ts_operations(chain):
+    if not is_pipeline_contains_ts_operations(pipeline):
         return True
 
     # Check only primary nodes
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
             raise ValueError(
-                f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes')
+                f'{ERROR_PREFIX} Pipeline for forecasting has not ts_specific preprocessing in primary nodes')
 
     return True
 
 
-def has_no_conflicts_in_decompose(chain: Chain):
+def has_no_conflicts_in_decompose(pipeline: Pipeline):
     """ The function checks whether the 'class_decompose' or 'decompose'
     operation has two ancestors
     """
 
     for decomposer in ['decompose', 'class_decompose']:
-        decompose_nodes = nodes_with_operation(chain,
+        decompose_nodes = nodes_with_operation(pipeline,
                                                decomposer)
         if len(decompose_nodes) != 0:
             # Launch check decomposers
@@ -188,14 +188,14 @@ def has_no_conflicts_in_decompose(chain: Chain):
 
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
-        raise ValueError(f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination')
+        raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
 
 
 def __check_decompose_parent_position(nodes_to_check: list):
     """ Function check if the data flow before decompose operation is correct
     or not
 
-    :param nodes_to_check: list with decompose nodes in the chain
+    :param nodes_to_check: list with decompose nodes in the pipeline
     """
     for decompose_node in nodes_to_check:
         parents = decompose_node.nodes_from
@@ -208,7 +208,7 @@ def __check_decompose_parent_position(nodes_to_check: list):
 def __check_decomposer_has_two_parents(nodes_to_check: list):
     """ Function check if there are two parent nodes for decompose operation
 
-    :param nodes_to_check: list with decompose nodes in the chain
+    :param nodes_to_check: list with decompose nodes in the pipeline
     """
 
     for decompose_node in nodes_to_check:

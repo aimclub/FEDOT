@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from fedot.core.chains.tuning.timer import TunerTimer
+from fedot.core.pipelines.tuning.timer import TunerTimer
 from fedot.core.optimisers.timer import OptimisationTimer
 
 

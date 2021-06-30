@@ -31,7 +31,7 @@ class Graph:
 
     def add_node(self, new_node: 'GraphNode'):
         """
-        Add new node to the Chain
+        Add new node to the Pipeline
 
         :param new_node: new GraphNode object
         """

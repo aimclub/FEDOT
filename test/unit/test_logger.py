@@ -6,7 +6,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log, LogManager, default_log
 from fedot.core.operations.model import Model
-from test.unit.utilities.test_chain_import_export import create_four_depth_chain
+from test.unit.utilities.test_pipeline_import_export import create_four_depth_pipeline
 
 
 @pytest.fixture()
@@ -60,7 +60,7 @@ def test_logger_write_logs_correctly():
 
     try:
         knn = Model(operation_type='knnreg', log=test_log)
-        model, _ = knn.fit(train_data, is_fit_chain_stage=True)
+        model, _ = knn.fit(train_data, is_fit_pipeline_stage=True)
     except Exception:
         print('Captured error')
 
@@ -75,7 +75,7 @@ def test_logger_write_logs_correctly():
 def test_logger_manager_keeps_loggers_correctly():
     LogManager().clear_cache()
 
-    chain = create_four_depth_chain()
+    pipeline = create_four_depth_pipeline()
     expected_number_of_loggers = 5
 
     file = os.path.join('../data', 'advanced_classification.csv')
@@ -83,7 +83,7 @@ def test_logger_manager_keeps_loggers_correctly():
     data = InputData.from_csv(os.path.join(test_file_path, file))
     train_data, _ = train_test_data_setup(data=data)
 
-    chain.fit(train_data)
+    pipeline.fit(train_data)
 
     actual_number_of_loggers = LogManager().debug['loggers_number']
 

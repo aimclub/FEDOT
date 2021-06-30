@@ -6,7 +6,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -24,7 +24,7 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, chain: Chain, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
         raise NotImplementedError()
 
     @staticmethod
@@ -39,19 +39,19 @@ class QualityMetric:
     default_value = 0
 
     @classmethod
-    def get_value(cls, chain: Chain, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
         metric = cls.default_value
         try:
-            results, reference_data = cls.prepare_data(chain, reference_data)
+            results, reference_data = cls.prepare_data(pipeline, reference_data)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
         return metric
 
     @classmethod
-    def prepare_data(cls, chain: Chain, reference_data: InputData):
+    def prepare_data(cls, pipeline: Pipeline, reference_data: InputData):
         """ Method prepares data for metric evaluation """
-        results = chain.predict(reference_data, output_mode=cls.output_mode)
+        results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
         # Define conditions for target and predictions transforming
         is_regression = reference_data.task.task_type == TaskTypesEnum.regression
@@ -70,7 +70,7 @@ class QualityMetric:
         """ Transform target and predictions by converting them into
         one-dimensional array
 
-        :param results: output from chain
+        :param results: output from pipeline
         :param reference_data: actual data for validation
         """
         # Predictions convert into uni-variate array
@@ -83,9 +83,9 @@ class QualityMetric:
         return results, reference_data
 
     @classmethod
-    def get_value_with_penalty(cls, chain: Chain, reference_data: InputData) -> float:
-        quality_metric = cls.get_value(chain, reference_data)
-        structural_metric = StructuralComplexity.get_value(chain)
+    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+        quality_metric = cls.get_value(pipeline, reference_data)
+        structural_metric = StructuralComplexity.get_value(pipeline)
 
         penalty = abs(structural_metric * quality_metric * cls.max_penalty_part)
         metric_with_penalty = (quality_metric +
@@ -223,19 +223,19 @@ class Silhouette(QualityMetric):
 
 class StructuralComplexity(Metric):
     @classmethod
-    def get_value(cls, chain: Chain, **args) -> float:
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
         norm_constant = 30
-        return (chain.depth ** 2 + chain.length) / norm_constant
+        return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
 class NodeNum(Metric):
     @classmethod
-    def get_value(cls, chain: Chain, **args) -> float:
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
         norm_constant = 10
-        return chain.length / norm_constant
+        return pipeline.length / norm_constant
 
 
 class ComputationTime(Metric):
     @classmethod
-    def get_value(cls, chain: Chain, **args) -> float:
-        return chain.computation_time
+    def get_value(cls, pipeline: Pipeline, **args) -> float:
+        return pipeline.computation_time

@@ -2,9 +2,9 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from examples.ts_gapfilling_example import get_array_with_gaps
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
-from test.unit.tasks.test_forecasting import get_simple_ts_chain
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
 
@@ -26,8 +26,8 @@ def test_gapfilling_inverse_ridge_correct():
     # Find all gap indices in the array
     id_gaps = np.ravel(np.argwhere(arr_with_gaps == -100.0))
 
-    ridge_chain = get_simple_ts_chain(model_root='ridge')
-    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain)
+    ridge_pipeline = get_simple_ts_pipeline(model_root='ridge')
+    gapfiller = ModelGapFiller(gap_value=-100.0, pipeline=ridge_pipeline)
     without_gap = gapfiller.forward_inverse_filling(arr_with_gaps)
 
     # Get only values in the gaps
@@ -45,8 +45,8 @@ def test_gapfilling_forward_ridge_correct():
     # Find all gap indices in the array
     id_gaps = np.ravel(np.argwhere(arr_with_gaps == -100.0))
 
-    ridge_chain = get_simple_ts_chain(model_root='ridge')
-    gapfiller = ModelGapFiller(gap_value=-100.0, chain=ridge_chain)
+    ridge_pipeline = get_simple_ts_pipeline(model_root='ridge')
+    gapfiller = ModelGapFiller(gap_value=-100.0, pipeline=ridge_pipeline)
     without_gap = gapfiller.forward_filling(arr_with_gaps)
 
     # Get only values in the gaps

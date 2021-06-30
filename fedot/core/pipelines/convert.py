@@ -25,20 +25,20 @@ def graph_structure_as_nx_graph(structural_graph: 'Graph'):
     return nx_graph, node_labels
 
 
-def chain_template_as_nx_graph(chain: 'ChainTemplate'):
-    """ Convert chain template into networkx graph object """
+def pipeline_template_as_nx_graph(pipeline: 'PipelineTemplate'):
+    """ Convert pipeline template into networkx graph object """
     graph = nx.DiGraph()
     node_labels = {}
-    for operation in chain.operation_templates:
+    for operation in pipeline.operation_templates:
         unique_id, label = operation.operation_id, operation.operation_type
         node_labels[unique_id] = label
         graph.add_node(unique_id)
 
-    def add_edges(graph, chain):
-        for operation in chain.operation_templates:
+    def add_edges(graph, pipeline):
+        for operation in pipeline.operation_templates:
             if operation.nodes_from is not None:
                 for child in operation.nodes_from:
                     graph.add_edge(child, operation.operation_id)
 
-    add_edges(graph, chain)
+    add_edges(graph, pipeline)
     return graph, node_labels

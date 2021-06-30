@@ -23,11 +23,11 @@ class KNeighborsImplementation(ModelImplementation):
 
         raise NotImplementedError()
 
-    def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """ Method for making prediction
 
         :param input_data: data with features to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         prediction = self.model.predict(input_data.features)
 

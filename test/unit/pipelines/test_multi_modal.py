@@ -1,14 +1,14 @@
 import os
 
-from examples.multi_modal_chain import (prepare_multi_modal_data)
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from examples.multi_modal_pipeline import (prepare_multi_modal_data)
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
-def test_multi_modal_chain():
+def test_multi_modal_pipeline():
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
@@ -45,7 +45,7 @@ def test_multi_modal_chain():
     node_text_clean = SecondaryNode('text_clean', nodes_from=[ds_text])
     text_node = SecondaryNode('tfidf', nodes_from=[node_text_clean])
 
-    chain = Chain(SecondaryNode('logit', nodes_from=[numeric_node, image_node, text_node]))
+    pipeline = Pipeline(SecondaryNode('logit', nodes_from=[numeric_node, image_node, text_node]))
 
     fit_data = MultiModalData({
         'data_source_img': train_img,
@@ -53,7 +53,7 @@ def test_multi_modal_chain():
         'data_source_text': train_text
     })
 
-    chain.fit(fit_data)
-    prediction = chain.predict(fit_data)
+    pipeline.fit(fit_data)
+    prediction = pipeline.predict(fit_data)
 
     assert prediction is not None

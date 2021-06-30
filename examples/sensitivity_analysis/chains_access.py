@@ -1,12 +1,12 @@
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
+from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPPipelineOptimiserParameters
 from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 
-def get_three_depth_manual_class_chain():
+def get_three_depth_manual_class_pipeline():
     logit_node_primary = PrimaryNode('logit')
     xgb_node_primary = PrimaryNode('xgboost')
     xgb_node_primary_second = PrimaryNode('xgboost')
@@ -16,12 +16,12 @@ def get_three_depth_manual_class_chain():
 
     knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
-    chain = Chain(knn_root)
+    pipeline = Pipeline(knn_root)
 
-    return chain
+    return pipeline
 
 
-def get_three_depth_manual_regr_chain():
+def get_three_depth_manual_regr_pipeline():
     xgb_primary = PrimaryNode('xgbreg')
     knn_primary = PrimaryNode('knnreg')
 
@@ -30,13 +30,13 @@ def get_three_depth_manual_regr_chain():
 
     knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
 
-    chain = Chain(knnreg_root)
+    pipeline = Pipeline(knnreg_root)
 
-    return chain
+    return pipeline
 
 
-def get_composed_chain(dataset_to_compose, task, metric_function):
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+def get_composed_pipeline(dataset_to_compose, task, metric_function):
+    # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
 
     # the choice and initialisation of the GP search
@@ -48,7 +48,7 @@ def get_composed_chain(dataset_to_compose, task, metric_function):
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPPipelineOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
@@ -57,21 +57,21 @@ def get_composed_chain(dataset_to_compose, task, metric_function):
     # Create GP-based composer
     composer = builder.build()
 
-    # the optimal chain generation by composition - the most time-consuming task
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose,
+    # the optimal pipeline generation by composition - the most time-consuming task
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
                                                 is_visualise=True)
 
-    return chain_evo_composed
+    return pipeline_evo_composed
 
 
-def chain_by_task(task, metric, data, is_composed):
+def pipeline_by_task(task, metric, data, is_composed):
     if is_composed:
-        chain = get_composed_chain(data, task,
+        pipeline = get_composed_pipeline(data, task,
                                    metric_function=metric)
     else:
         if task.task_type.name == 'classification':
-            chain = get_three_depth_manual_class_chain()
+            pipeline = get_three_depth_manual_class_pipeline()
         else:
-            chain = get_three_depth_manual_regr_chain()
+            pipeline = get_three_depth_manual_regr_pipeline()
 
-    return chain
+    return pipeline

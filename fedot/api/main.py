@@ -8,8 +8,8 @@ from deap import tools
 
 from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, composer_metrics_mapping,
                                  filter_operations_by_preset, save_predict)
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
@@ -176,14 +176,14 @@ class Fedot:
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
             target: Union[str, np.ndarray, pd.Series] = 'target',
-            predefined_model: Union[str, Chain] = None):
+            predefined_model: Union[str, Pipeline] = None):
         """
         Fit the graph with a predefined structure or compose and fit the new graph
 
         :param features: the array with features of train data
         :param target: the array with target values of train data
-        :param predefined_model: the name of the atomic model or Chain instance
-        :return: Chain object
+        :param predefined_model: the name of the atomic model or Pipeline instance
+        :return: Pipeline object
         """
 
         self.target_name = target
@@ -198,10 +198,10 @@ class Fedot:
 
         if predefined_model is not None:
             is_composing_required = False
-            if isinstance(predefined_model, Chain):
+            if isinstance(predefined_model, Pipeline):
                 self.current_model = predefined_model
             elif isinstance(predefined_model, str):
-                self.current_model = Chain(PrimaryNode(predefined_model))
+                self.current_model = Pipeline(PrimaryNode(predefined_model))
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
@@ -301,7 +301,7 @@ class Fedot:
                                       features=pre_history,
                                       is_predict=True)
 
-        self.current_model = Chain(self.current_model.root_node)
+        self.current_model = Pipeline(self.current_model.root_node)
         # TODO add incremental forecast
         self.prediction = self.current_model.predict(self.test_data)
         if len(self.prediction.predict.shape) > 1:

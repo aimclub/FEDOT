@@ -1,7 +1,7 @@
 How to save fitted models and interpreting the chain in JSON format
 ===================================================================
 
-FEDOT works mainly with the *'Chain'* object, which is a chain of models. For more
+FEDOT works mainly with the *'Pipeline'* object, which is a chain of models. For more
 convenient use of the framework, we provide the ability
 to upload and download chains, and their models for further editing, visual
 representation, or data transfer. Here are some simple steps to export 
@@ -13,7 +13,7 @@ and import chain structure.
 Exporting a model chain
 -----------------------
       
-The Chain object has a *'save_chain'* method that takes a single argument,
+The Pipeline object has a *'save_chain'* method that takes a single argument,
 the path to where the JSON object and fitted models will be saved.
 You can specify the path to save files with the folder name:
 
@@ -33,14 +33,14 @@ this way your chain and trained models will be saved in a folder in the followin
 .. code-block:: python
 
     from cases.data.data_utils import get_scoring_case_data_paths
-    from fedot.core.chains.chain import Chain
+    from fedot.core.chains.chain import Pipeline
     from fedot.core.chains.node import PrimaryNode, SecondaryNode
     from fedot.core.data.data import InputData
 
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
-    chain = Chain()
+    chain = Pipeline()
     node_logit = PrimaryNode('logit')
     
     node_lda = PrimaryNode('lda')
@@ -140,10 +140,10 @@ The *'save_chain'* method:
 - parameters for tuning (custom_params),
 - standard model parameters in the framework
 
-Model Chain import
+Model Pipeline import
 ------------------
       
-To import a chain, you need to create an empty *'Chain'* object, or an
+To import a chain, you need to create an empty *'Pipeline'* object, or an
 already used one, but all data will be overwritten during import. The
 *'load_chain'* method takes the path to a file with the JSON extension
 as an argument.
@@ -156,7 +156,7 @@ as an argument.
 
     test_data = InputData.from_csv(test_file_path)
 
-    chain = Chain()
+    chain = Pipeline()
     chain.load_chain("data/Month:Day:Year, Time Period my_chain/my_chain.json")
     predicted_values = chain.predict(test_data).predict
     actual_values = test_data.target

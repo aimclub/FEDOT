@@ -64,10 +64,10 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
-def make_chain_generator(chain):
+def make_pipeline_generator(pipeline):
     visited_nodes = []
 
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         if node not in visited_nodes:
             visited_nodes.append(node)
             yield node

@@ -71,12 +71,12 @@ class EvaluationStrategy:
 
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         Main method to predict the target data.
         :param trained_operation: trained operation object
         :param InputData predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
@@ -187,12 +187,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
         :param trained_operation: operation object
         :param predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()

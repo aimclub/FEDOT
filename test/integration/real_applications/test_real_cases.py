@@ -11,9 +11,9 @@ from cases.multi_modal_rating_prediction import run_multi_modal_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from cases.spam_detection import run_text_problem_from_saved_meta_file
 from cases.time_series_gapfilling_case import run_gapfilling_case
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
 
 random.seed(1)
@@ -63,22 +63,22 @@ def test_gapfilling_problem():
 
 
 def test_river_levels_problem():
-    # Initialise chain for river levels prediction
+    # Initialise pipeline for river levels prediction
     node_encoder = PrimaryNode('one_hot_encoding')
     node_scaling = SecondaryNode('scaling', nodes_from=[node_encoder])
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
     node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
     node_final = SecondaryNode('rfr', nodes_from=[node_ridge, node_lasso])
 
-    init_chain = Chain(node_final)
+    init_pipeline = Pipeline(node_final)
 
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/station_levels.csv')
 
     run_river_experiment(file_path=file_path_train,
-                         chain=init_chain,
+                         pipeline=init_pipeline,
                          iterations=1,
-                         tuner=ChainTuner,
+                         tuner=PipelineTuner,
                          tuner_iterations=10)
 
     is_experiment_finished = True

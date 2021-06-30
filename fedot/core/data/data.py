@@ -82,7 +82,7 @@ class Data:
                                    task=task,
                                    data_type=DataTypesEnum.ts)
         else:
-            # Prepare InputData for train the chain
+            # Prepare InputData for train the pipeline
             input_data = InputData(idx=np.arange(0, len(time_series)),
                                    features=time_series,
                                    target=time_series,

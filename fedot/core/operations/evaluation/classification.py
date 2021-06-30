@@ -21,13 +21,13 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     """ Strategy for applying classification algorithms from Sklearn library """
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Predict method for classification task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
@@ -77,13 +77,13 @@ class CustomClassificationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Predict method for classification task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
@@ -141,17 +141,17 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Transform data
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
         prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
+                                                 is_fit_pipeline_stage)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

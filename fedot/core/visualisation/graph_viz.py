@@ -5,7 +5,7 @@ from typing import Optional
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 
@@ -16,11 +16,11 @@ class GraphVisualiser:
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         self.log = log
 
-    def visualise(self, chain: 'Graph', save_path: Optional[str] = None):
+    def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
         try:
             fig, axs = plt.subplots(figsize=(9, 9))
             fig.suptitle('Current graph')
-            self.draw_single_graph(chain, axs)
+            self.draw_single_graph(pipeline, axs)
             if not save_path:
                 plt.show()
             else:
@@ -31,7 +31,7 @@ class GraphVisualiser:
 
     def draw_single_graph(self, graph: 'Graph', ax=None, title=None,
                           in_graph_converter_function=graph_structure_as_nx_graph):
-        if type(graph).__name__ == 'Chain':
+        if type(graph).__name__ == 'Pipeline':
             pos, node_labels = self._draw_tree(graph, ax, title, in_graph_converter_function)
         else:
             pos, node_labels = self._draw_dag(graph, ax, title, in_graph_converter_function)
@@ -43,7 +43,7 @@ class GraphVisualiser:
         nx_graph, node_labels = in_graph_converter_function(structural_graph=graph)
         word_labels = [str(node) for node in node_labels.values()]
         inv_map = {v: k for k, v in node_labels.items()}
-        if type(graph).__name__ == 'Chain':
+        if type(graph).__name__ == 'Pipeline':
             root = inv_map[graph.root_node]
         else:
             root = 0

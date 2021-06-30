@@ -4,8 +4,8 @@ import os
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
 from examples.ts_forecasting_tuning import prepare_input_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.multi_modal import MultiModalData
 from copy import deepcopy
 
@@ -42,8 +42,8 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
     return train_input, predict_input, train_input_exog, predict_input_exog, test_target
 
 
-def get_arima_nemo_chain():
-    """ Function return complex chain with the following structure
+def get_arima_nemo_pipeline():
+    """ Function return complex pipeline with the following structure
         arima \
                linear
         nemo  |
@@ -52,12 +52,12 @@ def get_arima_nemo_chain():
     node_arima = PrimaryNode('arima')
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_stlarima_nemo_chain():
-    """ Function return complex chain with the following structure
+def get_stlarima_nemo_pipeline():
+    """ Function return complex pipeline with the following structure
         stl_arima \
                    linear
             nemo  |
@@ -67,12 +67,12 @@ def get_stlarima_nemo_chain():
     node_arima.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_ridge_nemo_chain():
-    """ Function return complex chain with the following structure
+def get_ridge_nemo_pipeline():
+    """ Function return complex pipeline with the following structure
         lagged -> ridge \
                           ridge
         lagged -> ridge  |      \
@@ -87,34 +87,34 @@ def get_ridge_nemo_chain():
     node_ridge_3 = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('linear', nodes_from=[node_ridge_3, node_nemo])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_arima_chain():
-    """ Function return complex chain with the following structure
+def get_arima_pipeline():
+    """ Function return complex pipeline with the following structure
         arima
     """
 
     node_final = PrimaryNode('arima')
 
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_stlarima_chain():
-    """ Function return complex chain with the following structure
+def get_stlarima_pipeline():
+    """ Function return complex pipeline with the following structure
         stl_arima
     """
 
     node_final = PrimaryNode('stl_arima')
     node_final.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_ridge_chain():
-    """ Function return complex chain with the following structure
+def get_ridge_pipeline():
+    """ Function return complex pipeline with the following structure
         lagged -> ridge \
                           ridge
         lagged -> ridge  |
@@ -128,8 +128,8 @@ def get_ridge_chain():
     node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
 
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 def compare_plot(predicted, real, forecast_length, model):
@@ -150,33 +150,33 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
                      exog_variable=exog_variable,
                      len_forecast=len_forecast)
 
-    chains = {'ARIMA': {
+    pipelines = {'ARIMA': {
         'tr_nodes_data': {"arima": train_input},
         'pr_nodes_data': {"arima": predict_input},
-        'model': get_arima_chain()
+        'model': get_arima_pipeline()
     },
         'STL_ARIMA': {
             'tr_nodes_data': {"stl_arima": train_input},
             'pr_nodes_data': {"stl_arima": predict_input},
-            'model': get_stlarima_chain()
+            'model': get_stlarima_pipeline()
         },
         'RIDGE':
             {'tr_nodes_data': {"lagged/1": train_input, "lagged/2": train_input},
              'pr_nodes_data': {"lagged/1": predict_input, "lagged/2": predict_input},
-             'model': get_ridge_chain()
+             'model': get_ridge_pipeline()
              },
         'ARIMA_NEMO':
             {'tr_nodes_data': {"arima": train_input, "exog_ts_data_source": train_input_exog},
              'pr_nodes_data': {"arima": predict_input,
                                "exog_ts_data_source": predict_input_exog},
-             'model': get_arima_nemo_chain()
+             'model': get_arima_nemo_pipeline()
              },
         'STL_ARIMA_NEMO':
             {'tr_nodes_data': {"stl_arima": train_input,
                                "exog_ts_data_source": train_input_exog},
              'pr_nodes_data': {"stl_arima": predict_input,
                                "exog_ts_data_source": predict_input_exog},
-             'model': get_stlarima_nemo_chain()
+             'model': get_stlarima_nemo_pipeline()
              },
         'RIDGE_NEMO':
             {'tr_nodes_data': {"lagged/1": train_input,
@@ -185,28 +185,28 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
              'pr_nodes_data': {"lagged/1": predict_input,
                                "lagged/2": predict_input,
                                "exog_ts_data_source": predict_input_exog},
-             'model': get_ridge_nemo_chain()
+             'model': get_ridge_nemo_pipeline()
              }
     }
 
     def multimodal_data_preparing(name):
-        chain = chains[name]['model']
+        pipeline = pipelines[name]['model']
         train_dict = {}
         predict_dict = {}
-        for key in chains[name]['tr_nodes_data'].keys():
-            train_dict[key] = deepcopy(chains[name]['tr_nodes_data'][key])
-        for key in chains[name]['pr_nodes_data'].keys():
-            predict_dict[key] = deepcopy(chains[name]['pr_nodes_data'][key])
+        for key in pipelines[name]['tr_nodes_data'].keys():
+            train_dict[key] = deepcopy(pipelines[name]['tr_nodes_data'][key])
+        for key in pipelines[name]['pr_nodes_data'].keys():
+            predict_dict[key] = deepcopy(pipelines[name]['pr_nodes_data'][key])
 
         train_dataset = MultiModalData(train_dict)
         predict_dataset = MultiModalData(predict_dict)
-        return chain, train_dataset, predict_dataset
+        return pipeline, train_dataset, predict_dataset
 
-    for model_name in chains.keys():
-        chain, train_dataset, predict_dataset = multimodal_data_preparing(model_name)
+    for model_name in pipelines.keys():
+        pipeline, train_dataset, predict_dataset = multimodal_data_preparing(model_name)
 
-        chain.fit_from_scratch(train_dataset)
-        predicted_values = chain.predict(predict_dataset)
+        pipeline.fit_from_scratch(train_dataset)
+        predicted_values = pipeline.predict(predict_dataset)
         predicted_values = predicted_values.predict
         predicted = np.ravel(np.array(predicted_values))
         test_data = np.ravel(test_data)

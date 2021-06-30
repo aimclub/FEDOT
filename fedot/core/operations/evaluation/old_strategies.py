@@ -39,7 +39,7 @@ class KerasForecastingStrategy(EvaluationStrategy):
         return model
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
 
         predicted = predict_lstm(trained_operation, predict_data)
         converted = OutputData(idx=predict_data.idx,
@@ -317,7 +317,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         return benchmark_model
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         predicted = self._model_specific_predict(trained_operation, predict_data)
         # Wrap prediction as features for next level
         converted = OutputData(idx=predict_data.idx,

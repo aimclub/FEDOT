@@ -4,8 +4,8 @@ from datetime import timedelta
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -18,9 +18,9 @@ from test.unit.models.test_model import classification_dataset
 _ = classification_dataset
 
 
-def sample_chain():
-    return Chain(SecondaryNode(operation_type='logit',
-                               nodes_from=[PrimaryNode(operation_type='xgboost'),
+def sample_pipeline():
+    return Pipeline(SecondaryNode(operation_type='logit',
+                                  nodes_from=[PrimaryNode(operation_type='xgboost'),
                                            PrimaryNode(operation_type='scaling')]))
 
 
@@ -33,9 +33,9 @@ def get_data(task):
 
 
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
-    chain = sample_chain()
+    pipeline = sample_pipeline()
 
-    actual_value = cross_validation(chain=chain, reference_data=classification_dataset, cv_folds=10,
+    actual_value = cross_validation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
                                     metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
                                              ClassificationMetricsEnum.accuracy,
                                              ClassificationMetricsEnum.logloss])
@@ -57,7 +57,7 @@ def test_cv_ts_and_cluster_raise():
     composer = builder.build()
 
     with pytest.raises(NotImplementedError):
-        composer.compose_chain(data=dataset_to_compose, is_visualise=False)
+        composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
 
     task = Task(task_type=TaskTypesEnum.clustering)
     dataset_to_compose, dataset_to_validate = get_data(task)
@@ -66,7 +66,7 @@ def test_cv_ts_and_cluster_raise():
     composer = builder.build()
 
     with pytest.raises(NotImplementedError):
-        composer.compose_chain(data=dataset_to_compose, is_visualise=False)
+        composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
 
 
 def test_cv_min_kfolds_raise():
@@ -97,12 +97,12 @@ def test_composer_with_cv_optimization_correct():
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
-    chain_evo_composed = composer.compose_chain(data=dataset_to_compose, is_visualise=False)[0]
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)[0]
 
-    assert isinstance(chain_evo_composed, Chain)
+    assert isinstance(pipeline_evo_composed, Pipeline)
 
-    chain_evo_composed.fit(input_data=dataset_to_compose)
-    predicted = chain_evo_composed.predict(dataset_to_validate)
+    pipeline_evo_composed.fit(input_data=dataset_to_compose)
+    predicted = pipeline_evo_composed.predict(dataset_to_validate)
     roc_on_valid_evo_composed = roc_auc(y_score=predicted.predict, y_true=dataset_to_validate.target)
 
     assert roc_on_valid_evo_composed > 0
@@ -121,6 +121,6 @@ def test_cv_api_correct():
     prediction = model.predict(features=dataset_to_validate)
     metric = model.get_metrics()
 
-    assert isinstance(fedot_model, Chain)
+    assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(dataset_to_validate.target)
     assert metric['f1'] > 0

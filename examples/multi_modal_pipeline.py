@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.dataset_preparation import unpack_archived_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -59,7 +59,7 @@ def prepare_multi_modal_data(files_path, task: Task, images_size=(128, 128), wit
     return train_num, test_num, train_img, test_img, train_text, test_text
 
 
-def generate_initial_chain_and_data(images_size,
+def generate_initial_pipeline_and_data(images_size,
                                     train_num, test_num,
                                     train_img, test_img,
                                     train_text, test_text):
@@ -82,7 +82,7 @@ def generate_initial_chain_and_data(images_size,
     node_text_clean = SecondaryNode('text_clean', nodes_from=[ds_text])
     text_node = SecondaryNode('tfidf', nodes_from=[node_text_clean])
 
-    chain = Chain(SecondaryNode('logit', nodes_from=[numeric_node, image_node, text_node]))
+    pipeline = Pipeline(SecondaryNode('logit', nodes_from=[numeric_node, image_node, text_node]))
 
     fit_data = MultiModalData({
         'data_source_img/1': train_img,
@@ -95,27 +95,27 @@ def generate_initial_chain_and_data(images_size,
         'data_source_text/3': test_text
     })
 
-    return chain, fit_data, predict_data
+    return pipeline, fit_data, predict_data
 
 
-def run_multi_modal_chain(files_path, is_visualise=False):
+def run_multi_modal_pipeline(files_path, is_visualise=False):
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
     train_num, test_num, train_img, test_img, train_text, test_text = \
         prepare_multi_modal_data(files_path, task, images_size)
 
-    chain, fit_data, predict_data = generate_initial_chain_and_data(images_size,
+    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
                                                                     train_num, test_num,
                                                                     train_img, test_img,
                                                                     train_text, test_text)
 
-    chain.fit(input_data=fit_data)
+    pipeline.fit(input_data=fit_data)
 
     if is_visualise:
-        chain.show()
+        pipeline.show()
 
-    prediction = chain.predict(predict_data)
+    prediction = pipeline.predict(predict_data)
 
     err = calculate_validation_metric(prediction, test_num)
 
@@ -125,4 +125,4 @@ def run_multi_modal_chain(files_path, is_visualise=False):
 
 
 if __name__ == '__main__':
-    run_multi_modal_chain(files_path='examples/data/multimodal', is_visualise=True)
+    run_multi_modal_pipeline(files_path='examples/data/multimodal', is_visualise=True)

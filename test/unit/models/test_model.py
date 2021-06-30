@@ -6,8 +6,8 @@ from copy import deepcopy
 
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.data_operation import DataOperation
@@ -81,7 +81,7 @@ def test_classification_models_fit_correct(data_fixture, request):
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=train_data)
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
         assert roc_on_test >= roc_threshold
@@ -100,7 +100,7 @@ def test_regression_models_fit_correct():
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=train_data)
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
         rmse_threshold = np.std(test_data.target) ** 2
@@ -119,7 +119,7 @@ def test_ts_models_fit_correct():
         logger.info(f"Test time series model: {model_name}.")
         model = Model(operation_type=model_name)
         _, train_predicted = model.fit(data=deepcopy(train_data))
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
         mae_threshold = np.var(test_data.target) * 2
@@ -131,10 +131,10 @@ def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     kmeans = Model(operation_type='kmeans')
     _, train_predicted = kmeans.fit(data=scaled_data)
@@ -147,10 +147,10 @@ def test_svc_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     svc = Model(operation_type='svc')
     _, train_predicted = svc.fit(data=scaled_data)
@@ -167,10 +167,10 @@ def test_pca_model_removes_redunant_features_correct():
                                                          n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     pca = DataOperation(operation_type='pca')
     _, train_predicted = pca.fit(data=scaled_data)

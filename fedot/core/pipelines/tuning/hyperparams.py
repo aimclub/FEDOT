@@ -215,9 +215,9 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
 def get_node_params(node_id, operation_name):
     """
     Function for forming dictionary with hyperparameters for considering
-    operation as a part of the whole chain
+    operation as a part of the whole pipeline
 
-    :param node_id: number of node in chain.nodes list
+    :param node_id: number of node in pipeline.nodes list
     :param operation_name: name of operation in the node
 
     :return params_dict: dictionary-like structure with labeled hyperparameters

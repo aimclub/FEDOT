@@ -5,10 +5,10 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.tuning.sequential import SequentialTuner
-from fedot.core.chains.tuning.unified import ChainTuner
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -32,72 +32,72 @@ def classification_dataset():
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
-def get_simple_regr_chain():
+def get_simple_regr_pipeline():
     final = PrimaryNode(operation_type='xgbreg')
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def get_complex_regr_chain():
+def get_complex_regr_pipeline():
     node_scaling = PrimaryNode(operation_type='scaling')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
     node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
     final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def get_simple_class_chain():
+def get_simple_class_pipeline():
     final = PrimaryNode(operation_type='logit')
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
-def get_complex_class_chain():
+def get_complex_class_pipeline():
     first = PrimaryNode(operation_type='xgboost')
     second = PrimaryNode(operation_type='pca')
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    chain = get_complex_class_chain()
+    pipeline = get_complex_class_pipeline()
 
     custom_params = dict(C=10)
 
-    chain.root_node.custom_params = custom_params
-    chain.fit(data)
-    params = chain.root_node.fitted_operation.get_params()
+    pipeline.root_node.custom_params = custom_params
+    pipeline.fit(data)
+    params = pipeline.root_node.fitted_operation.get_params()
 
     assert params['C'] == 10
 
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
-def test_chain_tuner_regression_correct(data_fixture, request):
-    """ Test ChainTuner for chain based on hyperopt library """
+def test_pipeline_tuner_regression_correct(data_fixture, request):
+    """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for regression task
-    chain_simple = get_simple_regr_chain()
-    chain_complex = get_complex_regr_chain()
+    # Pipelines for regression task
+    pipeline_simple = get_simple_regr_pipeline()
+    pipeline_complex = get_complex_regr_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        chain_tuner = ChainTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                  task=train_data.task,
                                  iterations=1)
         # Optimization will be performed on RMSE metric, so loss params are defined
-        tuned_chain = chain_tuner.tune_chain(input_data=train_data,
+        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                              loss_function=mse,
                                              loss_params={'squared': False})
     is_tuning_finished = True
@@ -106,21 +106,21 @@ def test_chain_tuner_regression_correct(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_chain_tuner_classification_correct(data_fixture, request):
-    """ Test ChainTuner for chain based on hyperopt library """
+def test_pipeline_tuner_classification_correct(data_fixture, request):
+    """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for classification task
-    chain_simple = get_simple_class_chain()
-    chain_complex = get_complex_class_chain()
+    # Pipelines for classification task
+    pipeline_simple = get_simple_class_pipeline()
+    pipeline_complex = get_complex_class_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        chain_tuner = ChainTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                  task=train_data.task,
                                  iterations=1)
-        tuned_chain = chain_tuner.tune_chain(input_data=train_data,
+        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                              loss_function=roc)
     is_tuning_finished = True
 
@@ -129,21 +129,21 @@ def test_chain_tuner_classification_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['regression_dataset'])
 def test_sequential_tuner_regression_correct(data_fixture, request):
-    """ Test SequentialTuner for chain based on hyperopt library """
+    """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for regression task
-    chain_simple = get_simple_regr_chain()
-    chain_complex = get_complex_regr_chain()
+    # Pipelines for regression task
+    pipeline_simple = get_simple_regr_pipeline()
+    pipeline_complex = get_complex_regr_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        sequential_tuner = SequentialTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        sequential_tuner = SequentialTuner(pipeline=pipeline,
                                            task=train_data.task,
                                            iterations=1)
         # Optimization will be performed on RMSE metric, so loss params are defined
-        tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
+        tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                   loss_function=mse,
                                                   loss_params={'squared': False})
     is_tuning_finished = True
@@ -153,20 +153,20 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_sequential_tuner_classification_correct(data_fixture, request):
-    """ Test SequentialTuner for chain based on hyperopt library """
+    """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for classification task
-    chain_simple = get_simple_class_chain()
-    chain_complex = get_complex_class_chain()
+    # Pipelines for classification task
+    pipeline_simple = get_simple_class_pipeline()
+    pipeline_complex = get_complex_class_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        sequential_tuner = SequentialTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        sequential_tuner = SequentialTuner(pipeline=pipeline,
                                            task=train_data.task,
                                            iterations=2)
-        tuned_chain = sequential_tuner.tune_chain(input_data=train_data,
+        tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                   loss_function=roc)
     is_tuning_finished = True
 
@@ -179,16 +179,16 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for regression task
-    chain_simple = get_simple_regr_chain()
-    chain_complex = get_complex_regr_chain()
+    # Pipelines for regression task
+    pipeline_simple = get_simple_regr_pipeline()
+    pipeline_complex = get_complex_regr_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        sequential_tuner = SequentialTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        sequential_tuner = SequentialTuner(pipeline=pipeline,
                                            task=train_data.task,
                                            iterations=1)
-        tuned_chain = sequential_tuner.tune_node(input_data=train_data,
+        tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                  node_index=0,
                                                  loss_function=mse)
     is_tuning_finished = True
@@ -202,16 +202,16 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Chains for classification task
-    chain_simple = get_simple_class_chain()
-    chain_complex = get_complex_class_chain()
+    # Pipelines for classification task
+    pipeline_simple = get_simple_class_pipeline()
+    pipeline_complex = get_complex_class_pipeline()
 
-    for chain in [chain_simple, chain_complex]:
-        # Chain tuning
-        sequential_tuner = SequentialTuner(chain=chain,
+    for pipeline in [pipeline_simple, pipeline_complex]:
+        # Pipeline tuning
+        sequential_tuner = SequentialTuner(pipeline=pipeline,
                                            task=train_data.task,
                                            iterations=1)
-        tuned_chain = sequential_tuner.tune_node(input_data=train_data,
+        tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                  node_index=0,
                                                  loss_function=roc)
     is_tuning_finished = True
@@ -219,15 +219,15 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-def test_ts_chain_with_stats_model():
-    """ Tests ChainTuner for time series forecasting task with AR model """
+def test_ts_pipeline_with_stats_model():
+    """ Tests PipelineTuner for time series forecasting task with AR model """
     train_data, test_data = get_synthetic_ts_data_period()
 
-    ar_chain = Chain(PrimaryNode('ar'))
+    ar_pipeline = Pipeline(PrimaryNode('ar'))
 
     # Tune AR model
-    tuner_ar = ChainTuner(chain=ar_chain, task=train_data.task, iterations=5)
-    tuned_ar_chain = tuner_ar.tune_chain(input_data=train_data,
+    tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=5)
+    tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
                                          loss_function=mse)
 
     is_tuning_finished = True
