@@ -1,11 +1,11 @@
 from collections import namedtuple
 from os import makedirs
-from os.path import join, exists
-from typing import Optional, List, Type
+from os.path import exists, join
+from typing import List, Optional, Type
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeDeletionAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
@@ -24,7 +24,8 @@ class MultiTimesAnalyze:
     :param test_data: data used for getting prediction
     :param valid_data: used for modification validation
     :param case_name: used for uniq result directory name
-    :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
+    :param approaches: methods applied to nodes to modify
+        the pipeline or analyze certain operations.\
     Defaults: NodeDeletionAnalyze.
     :param log: log: Log object to record messages
     """
@@ -44,7 +45,8 @@ class MultiTimesAnalyze:
         self.case_name = case_name
         self.path_to_save = \
             join(default_fedot_data_dir(),
-                 'sensitivity', 'mta_analysis', f'{case_name}') if path_to_save is None else path_to_save
+                 'sensitivity', 'mta_analysis', f'{case_name}') \
+                if path_to_save is None else path_to_save
         self.approaches = [NodeDeletionAnalyze] if approaches is None else approaches
         self.log = default_log(__name__) if log is None else log
 
@@ -56,7 +58,8 @@ class MultiTimesAnalyze:
         3. Choose the worst one and delete it
         3. Repeat 1-3 till the condition: no more 'bad' nodes(worst_node_score<=1) or len(Pipeline) < 2
 
-        :param meta_params: limiting params for sensitivity index: MTAMetaParams(delta, worst_node_score)
+        :param meta_params: limiting params for sensitivity index:
+         MTAMetaParams(delta, worst_node_score)
          (defaults: 10e-3, 1.1 correspondingly).
         :param is_visualize: boolean flag for pipeline structure visualization. Default: False
 
@@ -73,7 +76,7 @@ class MultiTimesAnalyze:
             self.log.message('new iteration of MTA deletion analysis')
             iteration_result_path = join(self.path_to_save, f'iter_{iteration_index}')
             pipeline_analysis_result = self._pipeline_analysis(result_path=iteration_result_path,
-                                                         is_visualize=is_visualize)
+                                                               is_visualize=is_visualize)
 
             deletion_scores = [node['NodeDeletionAnalyze'] for node in pipeline_analysis_result.values()]
             worst_node_score = max(deletion_scores)
@@ -103,9 +106,9 @@ class MultiTimesAnalyze:
         self.log.message('Start Pipeline Analysis')
 
         pipeline_analysis_result = NodesAnalysis(pipeline=self.pipeline, train_data=self.train_data,
-                                              test_data=self.test_data,
-                                              path_to_save=result_path,
-                                              approaches=self.approaches).analyze()
+                                                 test_data=self.test_data,
+                                                 path_to_save=result_path,
+                                                 approaches=self.approaches).analyze()
         self.log.message("End Pipeline Analysis")
 
         return pipeline_analysis_result
@@ -115,7 +118,7 @@ class MultiTimesAnalyze:
         self.pipeline.show(path=image_path)
 
     def get_metric(self):
-        self.pipeline.fit(self.train_data, use_cache=False)
+        self.pipeline.fit(self.train_data, use_fitted=False)
         metric = MetricByTask(self.valid_data.task.task_type)
         predicted = self.pipeline.predict(self.valid_data)
         metric_value = metric.get_value(true=self.valid_data,

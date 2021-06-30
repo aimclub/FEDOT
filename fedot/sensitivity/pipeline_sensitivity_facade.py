@@ -1,13 +1,14 @@
-from typing import List, Union, Type
+from typing import List, Type, Union
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
-from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
-from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
+from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity \
+    import MultiOperationsHPAnalyze
+from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
@@ -42,7 +43,7 @@ class PipelineSensitivityAnalysis:
             nodes_analyze_approaches = [approach for approach in approaches
                                         if issubclass(approach, NodeAnalyzeApproach)]
             pipeline_analyze_approaches = [approach for approach in approaches
-                                        if not issubclass(approach, NodeAnalyzeApproach)]
+                                           if not issubclass(approach, NodeAnalyzeApproach)]
         else:
             self.log.message('Approaches for analysis are not given, thus will be set to defaults.')
             nodes_analyze_approaches = None
@@ -57,12 +58,12 @@ class PipelineSensitivityAnalysis:
                                             path_to_save=path_to_save, log=log)
 
         self._pipeline_analyze = PipelineAnalysis(pipeline=pipeline,
-                                            train_data=train_data,
-                                            test_data=test_data,
-                                            approaches=pipeline_analyze_approaches,
-                                            requirements=requirements,
-                                            path_to_save=path_to_save,
-                                            log=log)
+                                                  train_data=train_data,
+                                                  test_data=test_data,
+                                                  approaches=pipeline_analyze_approaches,
+                                                  requirements=requirements,
+                                                  path_to_save=path_to_save,
+                                                  log=log)
 
     def analyze(self):
         """

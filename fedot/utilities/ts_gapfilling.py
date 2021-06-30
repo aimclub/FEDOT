@@ -205,7 +205,6 @@ class ModelGapFiller(SimpleGapFiller):
             weights = []
             # Two predictions are generated for each gap - forward and backward
             for direction_function in [self._forward, self._inverse]:
-
                 weights_list, predicted_list = direction_function(output_data,
                                                                   batch_index,
                                                                   new_gap_list)
@@ -247,7 +246,7 @@ class ModelGapFiller(SimpleGapFiller):
 
             # Pipeline for the task of filling in gaps
             predicted = self.__pipeline_fit_predict(timeseries_train_part,
-                                                 len_gap)
+                                                    len_gap)
 
             # Replace gaps in an array with prediction values
             output_data[gap] = predicted
@@ -274,7 +273,7 @@ class ModelGapFiller(SimpleGapFiller):
         # Adaptive prediction interval length
         len_gap = len(gap)
         predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
-                                                    len_gap)
+                                                       len_gap)
         weights_list = np.arange(len_gap, 0, -1)
         return weights_list, predicted_values
 
@@ -307,7 +306,7 @@ class ModelGapFiller(SimpleGapFiller):
         len_gap = len(gap)
 
         predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
-                                                    len_gap)
+                                                       len_gap)
 
         predicted_values = np.flip(predicted_values)
         weights_list = np.arange(1, (len_gap + 1), 1)

@@ -1,7 +1,8 @@
+import json
+from abc import abstractmethod
 from os.path import join
 from typing import List, Union
-from abc import abstractmethod
-import json
+
 from fedot.core.utils import fedot_project_root
 
 
@@ -18,7 +19,8 @@ class Problem:
     operation_params_with_bounds_by_operation_name = load_params_bounds_file()
 
     INTEGER_PARAMS = ['n_estimators', 'n_neighbors', 'p', 'min_child_weight', 'max_depth', 'n_clusters',
-                      'min_samples_split', 'min_samples_leaf', 'd', 'q', 'lag_1', 'lag_2', 'max_trials', 'max_skips',
+                      'min_samples_split', 'min_samples_leaf', 'd',
+                      'q', 'lag_1', 'lag_2', 'max_trials', 'max_skips',
                       'degree', 'window_size', 'sigma']
 
     def __init__(self, operation_types: Union[List[str], str]):
@@ -56,7 +58,8 @@ class OneOperationProblem(Problem):
 
     def __init__(self, operation_types: Union[List[str], str]):
         super().__init__(operation_types)
-        self.params: dict = self.operation_params_with_bounds_by_operation_name.get(self.operation_types[0])
+        self.params: dict = \
+            self.operation_params_with_bounds_by_operation_name.get(self.operation_types[0])
         self.num_vars: int = len(self.params)
         self.names: List[str] = list(self.params.keys())
         self.bounds: List[list] = list(self.params.values())
@@ -98,8 +101,9 @@ class OneOperationProblem(Problem):
 class MultiOperationsProblem(Problem):
     def __init__(self, operation_types: List[str]):
         super().__init__(operation_types)
-        self.params: List[dict] = [self.operation_params_with_bounds_by_operation_name.get(operation_type)
-                                   for operation_type in self.operation_types]
+        self.params: List[dict] = \
+            [self.operation_params_with_bounds_by_operation_name.get(operation_type)
+             for operation_type in self.operation_types]
         self.num_vars: int = sum([len(operation_params) for operation_params in self.params
                                   if operation_params is not None])
         self.names: List[str] = list()
@@ -120,7 +124,8 @@ class MultiOperationsProblem(Problem):
             border_index = 0
             for _, params_names in self.names_per_node.items():
                 if params_names is not None:
-                    new_params_values_per_operation = sample[border_index:border_index + len(params_names)]
+                    new_params_values_per_operation = \
+                        sample[border_index:border_index + len(params_names)]
                     node_params = dict(zip(params_names, new_params_values_per_operation))
                     new_params_per_operation.append(node_params)
                     border_index += len(params_names)

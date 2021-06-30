@@ -1,19 +1,18 @@
 from copy import deepcopy
 from os.path import join
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem
-from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import analyze_method_by_name, \
-    sample_method_by_name
-from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams
-from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
+from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods \
+    import analyze_method_by_name, sample_method_by_name
+from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
 
 
 class MultiOperationsHPAnalyze:
@@ -45,18 +44,14 @@ class MultiOperationsHPAnalyze:
 
         self.operation_types = None
         self.path_to_save = \
-            join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sensitivity') if path_to_save is None else path_to_save
+            join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sensitivity') \
+                if path_to_save is None else path_to_save
         self.log = default_log(__name__) if log is None else log
 
     def analyze(self) -> dict:
         """
         Analyze all the hyperparameters af all Pipeline operations using SA methods.
         Default: Sobol method with Saltelli sample algorithm
-
-        :param sample_method: string name of sampling method from SALib
-        :param analyze_method: string name of analyzing method from SALib
-        :param sample_size: number of hyperparameters samples needed for analysis.\
-        Default: 100.
         :return: Main and total Sobol indices for every parameter per node.
         """
         if not self._pipeline.fitted_on_data:
