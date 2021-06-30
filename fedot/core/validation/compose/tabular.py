@@ -18,8 +18,8 @@ def table_cross_validation(reference_data: InputData, cv_folds: int,
     :param metrics: name of metric or callable object
     :param chain: Chain for validation
     """
-    if reference_data.task.task_type in [TaskTypesEnum.ts_forecasting, TaskTypesEnum.clustering]:
-        raise NotImplementedError(f"Cross validation for {reference_data.task.task_type} is not implemented.")
+    if reference_data.task.task_type is TaskTypesEnum.clustering:
+        raise NotImplementedError(f"Tabular cross validation for {reference_data.task.task_type} is not supported")
 
     evaluated_metrics = [[] for _ in range(len(metrics))]
 

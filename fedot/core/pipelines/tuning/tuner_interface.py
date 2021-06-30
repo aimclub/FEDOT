@@ -6,8 +6,8 @@ import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.tuner_validation import in_sample_ts_validation, \
-    fit_predict_one_fold, ts_cross_validation
+from fedot.core.validation.tune.time_series import ts_cross_validation
+from fedot.core.validation.tune.simple import fit_predict_one_fold
 
 
 class HyperoptTuner(ABC):
@@ -49,8 +49,7 @@ class HyperoptTuner(ABC):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def get_metric_value(data, pipeline, loss_function, loss_params):
+    def get_metric_value(self, data, pipeline, loss_function, loss_params):
         """
         Method calculates metric for algorithm validation
 
@@ -64,12 +63,12 @@ class HyperoptTuner(ABC):
 
         # Make prediction
         if data.task.task_type == TaskTypesEnum.classification:
-            test_target, preds = fit_predict_one_fold(pipeline, data)
+            test_target, preds = fit_predict_one_fold(data, pipeline)
         elif data.task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting task in-sample forecasting is provided
-            test_target, preds = ts_cross_validation(pipeline, data)
+            test_target, preds = ts_cross_validation(data, pipeline, log=self.log)
         else:
-            test_target, preds = fit_predict_one_fold(pipeline, data)
+            test_target, preds = fit_predict_one_fold(data, pipeline)
             # Convert predictions into one dimensional array
             preds = np.ravel(np.array(preds))
             test_target = np.ravel(test_target)
