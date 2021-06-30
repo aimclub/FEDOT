@@ -53,7 +53,7 @@ class Chain:
                 self.add_node(nodes)
         self.fitted_on_data = {}
 
-    def fit_from_scratch(self, input_data: InputData = None):
+    def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
         Method used for training the chain without using cached information
 

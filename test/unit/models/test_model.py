@@ -1,9 +1,11 @@
 import numpy as np
 import pytest
 from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
+from copy import deepcopy
 
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData, OutputData
@@ -103,6 +105,25 @@ def test_regression_models_fit_correct():
 
         rmse_threshold = np.std(test_data.target) ** 2
         assert rmse_value_test < rmse_threshold
+
+
+def test_ts_models_fit_correct():
+    train_data, test_data = get_synthetic_ts_data_period(forecast_length=30)
+    logger = default_log('default_test_logger')
+
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                                 tags=['time_series'])
+
+    for model_name in model_names:
+        logger.info(f"Test time series model: {model_name}.")
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=deepcopy(train_data))
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_chain_stage=False)
+        mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
+
+        mae_threshold = np.var(test_data.target) * 2
+        assert mae_value_test < mae_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

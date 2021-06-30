@@ -1,4 +1,5 @@
 import warnings
+
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -7,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     import LaggedTransformationImplementation, TsSmoothingImplementation, \
     ExogDataTransformationImplementation, GaussianFilterImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
-    ts_implementations import ARIMAImplementation, AutoRegImplementation
+    ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -24,7 +25,8 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
 
     __operations_by_types = {
         'arima': ARIMAImplementation,
-        'ar': AutoRegImplementation}
+        'ar': AutoRegImplementation,
+        'stl_arima': STLForecastARIMAImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
