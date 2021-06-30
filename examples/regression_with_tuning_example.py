@@ -116,7 +116,6 @@ def run_experiment(chain, tuner):
 
 # Script for testing is chain can process different datasets for regression task
 if __name__ == '__main__':
-
     # Prepare chain
     node_ransac = PrimaryNode('ransac_lin_reg')
     node_scaling = SecondaryNode('scaling', nodes_from=[node_ransac])

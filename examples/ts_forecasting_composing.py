@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -51,7 +51,7 @@ def display_chain_info(chain):
     print('\nObtained chain:')
     for node in chain.nodes:
         print(f'{node.operation.operation_type}, params: {node.custom_params}')
-    depth = int(chain.depth)
+    depth = int(chain.graph_depth)
     print(f'Chain depth {depth}\n')
 
 
@@ -204,12 +204,11 @@ def run_ts_forecasting_problem(forecast_length=50,
         secondary=secondary_operations, max_arity=3,
         max_depth=8, pop_size=10, num_of_generations=15,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=10),
-        allow_single_operations=False)
+        max_lead_time=datetime.timedelta(minutes=10))
 
-    mutation_types = [MutationTypesEnum.parameter_change, MutationTypesEnum.simple,
+    mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
                       MutationTypesEnum.reduce]
-    optimiser_parameters = GPChainOptimiserParameters(mutation_types=mutation_types)
+    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
     builder = GPComposerBuilder(task=task). \
@@ -224,8 +223,7 @@ def run_ts_forecasting_problem(forecast_length=50,
     # Obtained chain visualisation #
     ################################
     if with_visualisation:
-        visualiser = ChainVisualiser()
-        visualiser.visualise(obtained_chain)
+        obtained_chain.show()
 
     preds = fit_predict_for_chain(chain=obtained_chain,
                                   train_input=train_input,

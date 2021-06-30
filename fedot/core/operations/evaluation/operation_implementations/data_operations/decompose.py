@@ -1,10 +1,11 @@
-import numpy as np
-
 from typing import Optional
+
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.evaluation.operation_implementations.\
+
+from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class DecomposerImplementation(DataOperationImplementation):

@@ -1,15 +1,14 @@
-import numpy as np
 from itertools import product
 
-from fedot.core.chains.chain import Chain, nodes_with_operation
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data import InputData
+import numpy as np
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.decompose.refinement_forecast_example import get_refinement_chain
-
+from fedot.core.chains.chain import Chain, nodes_with_operation
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.data.data import InputData
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
@@ -103,7 +102,7 @@ def get_classification_data(classes_amount: int):
 def test_order_by_data_flow_len_correct():
     """ The function checks whether the current version of data flow length
     counters can allow for decompose implementation to determine how the nodes
-    in the chain are located
+    in the graph are located
     """
     input_data = get_iris_data()
 

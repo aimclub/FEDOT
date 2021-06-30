@@ -15,6 +15,8 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from test.unit.models.test_model import classification_dataset
 
+_ = classification_dataset
+
 
 def sample_chain():
     return Chain(SecondaryNode(operation_type='logit',

@@ -14,11 +14,11 @@ from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
     sample_split_ratio_for_tasks
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
@@ -84,8 +84,7 @@ def test_fixed_structure_composer(data_fixture, request):
 
     req = GPComposerRequirements(primary=available_operation_types, secondary=available_operation_types,
                                  pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5,
-                                 allow_single_operations=False)
+                                 crossover_prob=0.4, mutation_prob=0.5)
 
     # Prepare init chain
     first = PrimaryNode(operation_type='xgboost')
@@ -206,7 +205,7 @@ def test_parameter_free_composer_build_chain_correct(data_fixture, request):
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=4,
                                  crossover_prob=0.4, mutation_prob=0.5)
-    opt_params = GPChainOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+    opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         metric_function).with_optimiser_parameters(opt_params)
     gp_composer = builder.build()
@@ -239,7 +238,7 @@ def test_multi_objective_composer(data_fixture, request):
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5)
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type,
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       selection_types=[SelectionTypesEnum.nsga2])
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         metrics).with_optimiser_parameters(optimiser_parameters)
@@ -273,13 +272,13 @@ def test_gp_composer_with_start_depth(data_fixture, request):
                                  max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5, start_depth=2)
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser_parameters(optimiser_parameters)
     composer = builder.build()
     composer.compose_chain(data=dataset_to_compose,
                            is_visualise=True)
-    assert all([ind.chain.depth <= 3 for ind in composer.history.individuals[0]])
+    assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimiser.max_depth == 5
 
 
@@ -292,10 +291,9 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                 max_chain_fit_time=datetime.timedelta(minutes=5),
-                                 allow_single_operations=False)
+                                 max_chain_fit_time=datetime.timedelta(minutes=5))
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser_parameters(optimiser_parameters).with_cache()
     composer = builder.build()

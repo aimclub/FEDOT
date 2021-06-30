@@ -78,15 +78,23 @@ class OperationTemplate(OperationTemplateAbstract):
 
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
         self.operation_id = operation_id
-        self.operation_type = node.operation.operation_type
-        self.custom_params = node.operation.params
-        self.params = self._create_full_params(node)
+        if not isinstance(node.operation, str):
+            # for model-based operations
+            self.operation_type = node.operation.operation_type
+            self.custom_params = node.operation.params
+            self.params = self._create_full_params(node)
+
+            if _is_node_fitted(node):
+                self.operation_name = _extract_operation_name(node)
+                self._extract_fields_of_fitted_operation(node)
+        else:
+            # for custom operations without implementation
+            self.operation_type = 'custom'
+            self.custom_params = {}
+            self.params = {}
+            self.operation_name = node.operation
         self.nodes_from = nodes_from
         self.rating = node.rating
-
-        if _is_node_fitted(node):
-            self.operation_name = _extract_operation_name(node)
-            self._extract_fields_of_fitted_operation(node)
 
     def _create_full_params(self, node: Node) -> dict:
         wrapped_operations = ['base_estimator', 'estimator']

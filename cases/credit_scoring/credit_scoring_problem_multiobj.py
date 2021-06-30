@@ -3,29 +3,29 @@ import random
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 
+from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.composer.visualisation import ChainVisualiser
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.visualisation.opt_viz import ChainEvolutionVisualiser
 
 random.seed(12)
 np.random.seed(12)
 
 
 def results_visualization(history, composed_chains):
-    visualiser = ChainVisualiser()
+    visualiser = ChainEvolutionVisualiser()
     visualiser.visualise_history(history)
     visualiser.pareto_gif_create(history.archive_history, history.individuals)
     visualiser.boxplots_gif_create(history.individuals)
     for chain_evo_composed in composed_chains:
-        visualiser.visualise(chain_evo_composed)
+        chain_evo_composed.visualise()
 
 
 def calculate_validation_metric(chain: Chain, dataset_to_validate: InputData) -> float:
@@ -57,11 +57,11 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time,
-        start_depth=2, allow_single_operations=False)
+        start_depth=2)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type,
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       selection_types=[SelectionTypesEnum.spea2])
 
     # Create builder for composer and set composer params

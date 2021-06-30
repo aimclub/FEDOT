@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 from typing import Optional
+
 import numpy as np
 
 from fedot.core.data.data import OutputData

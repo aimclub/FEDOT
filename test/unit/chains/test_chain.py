@@ -21,7 +21,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from test.unit.chains.test_chain_comparison import chain_first
 from test.unit.chains.test_chain_tuning import classification_dataset
-from test.unit.chains.test_graph_operator import get_chain
+from test.unit.dag.test_graph_operator import get_chain
 
 seed(1)
 np.random.seed(1)
@@ -129,7 +129,7 @@ def test_chain_sequential_fit_correct(data_setup):
     for node in [first, second, third, final]:
         chain.add_node(node)
 
-    train_predicted = chain.fit(input_data=train, use_cache=False)
+    train_predicted = chain.fit(input_data=train, use_fitted=False)
 
     assert chain.root_node.descriptive_id == (
         '(((/n_logit_default_params;)/'
@@ -287,18 +287,20 @@ def test_chain_repr():
     assert repr(chain) == expected_chain_description
 
 
-def test_update_node_in_chain_raise_exception():
+def test_update_node_in_chain_correct():
     first = PrimaryNode(operation_type='logit')
     final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
 
     chain = Chain()
     chain.add_node(final)
-    replacing_node = SecondaryNode('logit')
+    new_node = PrimaryNode('svc')
+    replacing_node = SecondaryNode('logit', nodes_from=[new_node])
 
-    with pytest.raises(ValueError) as exc:
-        chain.update_node(old_node=first, new_node=replacing_node)
+    chain.update_node(old_node=first, new_node=replacing_node)
 
-    assert str(exc.value) == "Can't update PrimaryNode with SecondaryNode"
+    assert replacing_node in chain.nodes
+    assert new_node in chain.nodes
+    assert first not in chain.nodes
 
 
 def test_delete_node_with_redirection():
@@ -323,8 +325,7 @@ def test_delete_primary_node():
     third = SecondaryNode(operation_type='knn', nodes_from=[first])
     final = SecondaryNode(operation_type='xgboost',
                           nodes_from=[second, third])
-    chain = Chain()
-    chain.add_node(final)
+    chain = Chain(final)
 
     # when
     chain.delete_node(first)
@@ -420,13 +421,13 @@ def test_chain_fine_tune_all_nodes_correct(classification_dataset):
     assert is_tuning_finished
 
 
-def test_chain_copy(data_setup):
+def test_chain_copy():
     chain = Chain(PrimaryNode(operation_type='logit'))
     chain_copy = copy(chain)
     assert chain.uid != chain_copy.uid
 
 
-def test_chain_deepcopy(data_setup):
+def test_chain_deepcopy():
     chain = Chain(PrimaryNode(operation_type='logit'))
     chain_copy = deepcopy(chain)
     assert chain.uid != chain_copy.uid
@@ -437,3 +438,18 @@ def test_chain_structure_print_correct():
     chain.print_structure()
     is_print_was_correct = True
     assert is_print_was_correct
+
+
+@pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
+def test_chain_unfit(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    chain = Chain(PrimaryNode('logit'))
+    chain.fit(data)
+    assert chain.is_fitted
+
+    chain.unfit()
+    assert not chain.is_fitted
+    assert not chain.root_node.fitted_operation
+
+    with pytest.raises(ValueError) as exc:
+        assert chain.predict(data)

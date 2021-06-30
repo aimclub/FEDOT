@@ -224,7 +224,7 @@ class ModelGapFiller(SimpleGapFiller):
 
     def forward_filling(self, input_data):
         """
-        Method fills in the gaps in the input array using chain with only
+        Method fills in the gaps in the input array using graph with only
         forward direction (i.e. time series forecasting)
 
         :param input_data: data with gaps to filling in the gaps in it

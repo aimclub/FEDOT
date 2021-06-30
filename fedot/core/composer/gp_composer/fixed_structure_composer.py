@@ -7,9 +7,9 @@ from typing import (
 from fedot.core.chains.chain import Chain
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerBuilder
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.tasks import Task
 
 
@@ -37,7 +37,7 @@ class FixedStructureComposerBuilder(GPComposerBuilder):
     def __init__(self, task: Task):
         super().__init__(task=task)
         self._composer = FixedStructureComposer()
-        fixed_structure_optimiser_parameters = GPChainOptimiserParameters(mutation_types=[MutationTypesEnum.simple])
+        fixed_structure_optimiser_parameters = GPGraphOptimiserParameters(mutation_types=[MutationTypesEnum.simple])
         self.optimiser_parameters = fixed_structure_optimiser_parameters
 
     def set_default_composer_params(self):

@@ -6,8 +6,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.graph_operator import GraphOperator
 from fedot.core.chains.node import Node
+from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir

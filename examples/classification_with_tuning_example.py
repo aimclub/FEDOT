@@ -2,13 +2,13 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.chains.chain import Chain
+from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.tuning.unified import ChainTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import classification_dataset
-from fedot.core.chains.tuning.unified import ChainTuner
 
 np.random.seed(2020)
 
@@ -133,7 +133,6 @@ def run_classification_tuning_experiment(chain, tuner=None):
 
 # Script for testing is chain can process different datasets for classification
 if __name__ == '__main__':
-
     # Prepare chain
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])

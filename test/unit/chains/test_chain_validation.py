@@ -1,19 +1,17 @@
 import pytest
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import (has_correct_operation_positions, has_no_cycle,
-                                                has_no_isolated_components, has_no_isolated_nodes,
-                                                has_no_self_cycled_nodes, has_primary_nodes,
-                                                validate, has_final_operation_as_model,
-                                                has_no_conflicts_with_data_flow,
-                                                is_chain_contains_ts_operations,
-                                                has_no_data_flow_conflicts_in_ts_chain,
-                                                has_no_conflicts_in_decompose,
-                                                only_ts_specific_operations_are_primary)
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.chains.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
+    has_no_conflicts_with_data_flow, is_chain_contains_ts_operations, has_no_data_flow_conflicts_in_ts_chain, \
+    only_ts_specific_operations_are_primary, has_no_conflicts_in_decompose, has_primary_nodes
+from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_nodes, has_no_self_cycled_nodes, \
+    has_no_isolated_components
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.validation.validation import (validate)
 
-ERROR_PREFIX = 'Invalid chain configuration:'
+CHAIN_ERROR_PREFIX = 'Invalid chain configuration:'
+GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
 
 
 def valid_chain():
@@ -224,7 +222,7 @@ def test_chain_with_cycle_raise_exception():
     chain = chain_with_cycle()
     with pytest.raises(Exception) as exc:
         assert has_no_cycle(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has cycles'
+    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has cycles'
 
 
 def test_chain_without_cycles_correct():
@@ -237,7 +235,7 @@ def test_chain_with_isolated_nodes_raise_exception():
     chain = chain_with_isolated_nodes()
     with pytest.raises(ValueError) as exc:
         assert has_no_isolated_nodes(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated nodes'
+    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated nodes'
 
 
 def test_multi_root_chain_raise_exception():
@@ -245,7 +243,7 @@ def test_multi_root_chain_raise_exception():
 
     with pytest.raises(Exception) as exc:
         assert chain.root_node
-    assert str(exc.value) == f'{ERROR_PREFIX} More than 1 root_nodes in chain'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} More than 1 root_nodes in chain'
 
 
 def test_chain_with_primary_nodes_correct():
@@ -257,14 +255,14 @@ def test_chain_without_primary_nodes_raise_exception():
     chain = chain_with_secondary_nodes_only()
     with pytest.raises(Exception) as exc:
         assert has_primary_nodes(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain does not have primary nodes'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain does not have primary nodes'
 
 
 def test_chain_with_self_cycled_nodes_raise_exception():
     chain = chain_with_self_cycle()
     with pytest.raises(Exception) as exc:
         assert has_no_self_cycled_nodes(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has self-cycled nodes'
+    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has self-cycled nodes'
 
 
 def test_chain_validate_correct():
@@ -276,14 +274,14 @@ def test_chain_with_isolated_components_raise_exception():
     chain = chain_with_isolated_components()
     with pytest.raises(Exception) as exc:
         assert has_no_isolated_components(chain)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has isolated components'
+    assert str(exc.value) == f'{GRAPH_ERROR_PREFIX} Graph has isolated components'
 
 
 def test_chain_with_incorrect_task_type_raise_exception():
     chain, task = chain_with_incorrect_task_type()
     with pytest.raises(Exception) as exc:
         assert has_correct_operation_positions(chain, task)
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect operations positions'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain has incorrect operations positions'
 
 
 def test_chain_without_model_in_root_node():
@@ -292,7 +290,7 @@ def test_chain_without_model_in_root_node():
     with pytest.raises(Exception) as exc:
         assert has_final_operation_as_model(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Root operation is not a model'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Root operation is not a model'
 
 
 def test_chain_with_incorrect_data_flow():
@@ -301,7 +299,7 @@ def test_chain_with_incorrect_data_flow():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_with_data_flow(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with identical data operations'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Chain has incorrect subgraph with identical data operations'
 
 
 def test_ts_chain_with_incorrect_data_flow():
@@ -311,7 +309,8 @@ def test_ts_chain_with_incorrect_data_flow():
         with pytest.raises(Exception) as exc:
             assert has_no_data_flow_conflicts_in_ts_chain(incorrect_chain)
 
-        assert str(exc.value) == f'{ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
+        assert str(exc.value) == \
+               f'{CHAIN_ERROR_PREFIX} Chain has incorrect subgraph with wrong parent nodes combination'
     else:
         assert False
 
@@ -330,7 +329,8 @@ def test_only_ts_specific_operations_are_primary():
     with pytest.raises(Exception) as exc:
         assert only_ts_specific_operations_are_primary(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
+    assert str(exc.value) == \
+           f'{CHAIN_ERROR_PREFIX} Chain for forecasting has not ts_specific preprocessing in primary nodes'
 
 
 def test_has_two_parents_for_decompose_operations():
@@ -339,7 +339,7 @@ def test_has_two_parents_for_decompose_operations():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} Two parents for decompose node were expected, but 1 were given'
 
 
 def test_decompose_parents_has_wright_positions():
@@ -348,4 +348,10 @@ def test_decompose_parents_has_wright_positions():
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_chain)
 
-    assert str(exc.value) == f'{ERROR_PREFIX} For decompose operation Model as first parent is required'
+    assert str(exc.value) == f'{CHAIN_ERROR_PREFIX} For decompose operation Model as first parent is required'
+
+
+def custom_validation_test():
+    incorrect_chain = chain_with_incorrect_parents_position_for_decompose()
+
+    assert validate(incorrect_chain, rules=[has_no_cycle])

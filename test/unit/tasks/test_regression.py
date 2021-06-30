@@ -11,6 +11,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.composer.test_quality_metrics import multi_target_data_setup
 
+_ = multi_target_data_setup
+
 
 def get_simple_composer_params() -> dict:
     params = {'max_depth': 2,

@@ -10,11 +10,11 @@ from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, compo
                                  filter_operations_by_preset, save_predict)
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode
-from fedot.core.composer.optimisers.utils.pareto import ParetoFront
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
+from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
@@ -55,8 +55,8 @@ class Fedot:
     :param learning_time: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
-            'max_depth' - max depth of the chain
-            'max_arity' - max arity of the chain
+            'max_depth' - max depth of the pipeline
+            'max_arity' - max arity of the pipeline nodes
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
             'learning_time':- composing time (minutes)
@@ -178,7 +178,7 @@ class Fedot:
             target: Union[str, np.ndarray, pd.Series] = 'target',
             predefined_model: Union[str, Chain] = None):
         """
-        Fit the chain with a predefined structure or compose and fit the new chain
+        Fit the graph with a predefined structure or compose and fit the new graph
 
         :param features: the array with features of train data
         :param target: the array with target values of train data
@@ -313,7 +313,7 @@ class Fedot:
 
     def load(self, path):
         """
-        Load saved chain from disk
+        Load saved graph from disk
 
         :param path to json file with model
         """
@@ -321,7 +321,7 @@ class Fedot:
 
     def plot_prediction(self):
         """
-        Plot the prediction obtained from chain
+        Plot the prediction obtained from graph
         """
         if self.prediction is not None:
             if self.problem.task_type == TaskTypesEnum.ts_forecasting:
@@ -337,7 +337,7 @@ class Fedot:
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
-        Get quality metrics for the fitted chain
+        Get quality metrics for the fitted graph
 
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics

@@ -1,5 +1,4 @@
 import warnings
-
 from typing import Optional
 
 from sklearn.cluster import KMeans as SklearnKmeans

@@ -3,29 +3,30 @@ import platform
 from dataclasses import dataclass
 from functools import partial
 from multiprocessing import set_start_method
-from typing import (Any, Callable, List, Optional, Tuple, Union)
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from deap import tools
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import validate
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiser, GPChainOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
-from fedot.core.composer.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.composer.optimisers.gp_comp.param_free_gp_optimiser import GPChainParameterFreeOptimiser
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.cross_validation import cross_validation
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
+    GraphGenerationParams
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
-    RegressionMetricsEnum, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
+                                                              MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.validation.validation import validate
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -58,20 +59,6 @@ class GPComposerRequirements(ComposerRequirements):
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
-
-
-@dataclass
-class ChainGenerationParams:
-    """
-    This dataclass is for defining the parameters using in chain generation process
-
-    :param primary_node_func: the function for primary node generation
-    :param secondary_node_func: the function for secondary node generation
-    :param chain_class: class for the chain object
-    """
-    primary_node_func: Callable = PrimaryNode
-    secondary_node_func: Callable = SecondaryNode
-    chain_class: Callable = Chain
 
 
 class GPComposer(Composer):
@@ -110,7 +97,7 @@ class GPComposer(Composer):
         :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
         :return best_chain: obtained result after composing: one chain for single-objective optimization;
-            For the multi-objective case, the list of the chain is returned.
+            For the multi-objective case, the list of the graph is returned.
             In the list, the chains are ordered by the descending of primary metric (the first is the best)
         """
 
@@ -118,19 +105,19 @@ class GPComposer(Composer):
             set_multiprocess_start_method()
 
         if not self.optimiser:
-            raise AttributeError(f'Optimiser for chain composition is not defined')
+            raise AttributeError(f'Optimiser for graph composition is not defined')
 
         if self.composer_requirements.cv_folds is not None:
             if isinstance(data, MultiModalData):
                 raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-            self.log.info("KFolds cross validation for chain composing was applied.")
-            metric_function_for_nodes = partial(cross_validation, data,
-                                                self.composer_requirements.cv_folds, self.metrics)
+            self.log.info("KFolds cross validation for graph composing was applied.")
+            objective_function_for_chain = partial(cross_validation, data,
+                                                   self.composer_requirements.cv_folds, self.metrics)
         else:
-            self.log.info("Hold out validation for chain composing was applied.")
+            self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
             train_data, test_data = train_test_data_setup(data, split_ratio)
-            metric_function_for_nodes = partial(self.composer_metric, self.metrics, train_data, test_data)
+            objective_function_for_chain = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:
             self.cache.clear()
@@ -138,7 +125,7 @@ class GPComposer(Composer):
             self.cache.clear(tmp_only=True)
             self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
-        best_chain = self.optimiser.optimise(metric_function_for_nodes,
+        best_chain = self.optimiser.optimise(objective_function_for_chain,
                                              on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
@@ -202,7 +189,7 @@ class GPComposer(Composer):
 class GPComposerBuilder:
     def __init__(self, task: Task):
         self._composer = GPComposer()
-        self.optimiser_parameters = GPChainOptimiserParameters()
+        self.optimiser_parameters = GPGraphOptimiserParameters()
         self.task = task
         self.set_default_composer_params()
 
@@ -221,7 +208,7 @@ class GPComposerBuilder:
             secondary_model = False
         return secondary_model
 
-    def with_optimiser_parameters(self, optimiser_parameters: GPChainOptimiserParameters):
+    def with_optimiser_parameters(self, optimiser_parameters: GPGraphOptimiserParameters):
         self.optimiser_parameters = optimiser_parameters
         return self
 
@@ -267,11 +254,11 @@ class GPComposerBuilder:
             self._composer.metrics = [metric_function]
 
     def build(self) -> Composer:
-        optimiser_type = GPChainOptimiser
+        optimiser_type = GPGraphOptimiser
         if self.optimiser_parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
-            optimiser_type = GPChainParameterFreeOptimiser
+            optimiser_type = GPGraphParameterFreeOptimiser
 
-        chain_generation_params = ChainGenerationParams()
+        graph_generation_params = GraphGenerationParams()
 
         archive_type = None
         if len(self._composer.metrics) > 1:
@@ -280,9 +267,14 @@ class GPComposerBuilder:
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
             self.optimiser_parameters.multi_objective = True
 
-        optimiser = optimiser_type(initial_chain=self._composer.initial_chain,
+        if self.optimiser_parameters.mutation_types is None:
+            self.optimiser_parameters.mutation_types = [MutationTypesEnum.local_growth, MutationTypesEnum.simple,
+                                                        MutationTypesEnum.reduce, MutationTypesEnum.growth,
+                                                        parameter_change_mutation]
+
+        optimiser = optimiser_type(initial_graph=self._composer.initial_chain,
                                    requirements=self._composer.composer_requirements,
-                                   chain_generation_params=chain_generation_params,
+                                   graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,
                                    archive_type=archive_type, metrics=self._composer.metrics)
 

@@ -1,12 +1,13 @@
 import os
+
 import numpy as np
 
+from examples.regression_with_tuning_example import get_regression_dataset
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
-from examples.regression_with_tuning_example import get_regression_dataset
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def get_chain():

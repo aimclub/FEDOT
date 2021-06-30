@@ -3,7 +3,8 @@ from typing import Optional
 
 from sklearn.linear_model import RANSACRegressor, LinearRegression
 from sklearn.tree import DecisionTreeRegressor
-from fedot.core.operations.evaluation.operation_implementations.\
+
+from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 
 

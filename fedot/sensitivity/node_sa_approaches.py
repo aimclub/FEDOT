@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import validate
+from fedot.core.validation.validation import validate
 from fedot.core.chains.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
@@ -18,6 +18,8 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, ReplacementAnalysisMetaParams
 from fedot.utilities.define_metric_by_task import MetricByTask
+from fedot.core.validation.validation import validate
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
 class NodeAnalysis:
@@ -150,7 +152,7 @@ class NodeAnalyzeApproach(ABC):
     @abstractmethod
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """Creates the difference metric(scorer, index, etc) of the changed
-        chain in relation to the original one
+        graph in relation to the original one
 
         :param node: the sequence number of the node as in DFS result
         """
@@ -172,7 +174,7 @@ class NodeAnalyzeApproach(ABC):
         return changed_chain_metric / self._origin_metric
 
     def _get_metric_value(self, chain: Chain, metric: MetricByTask) -> float:
-        chain.fit(self._train_data, use_cache=False)
+        chain.fit(self._train_data, use_fitted=False)
         predicted = chain.predict(self._test_data)
         metric_value = metric.get_value(true=self._test_data,
                                         predicted=predicted)
@@ -188,8 +190,13 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
+<<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
         :return: the ratio of modified chain score to origin score
+=======
+        :param node_id: the sequence number of the node as in DFS result
+        :return: the ratio of modified graph score to origin score
+>>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
         if node is self._chain.root_node:
             # TODO or warning?
@@ -240,9 +247,17 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
 
+<<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
 
         :return: the ratio of modified chain score to origin score
+=======
+        :param node_id:the sequence number of the node as in DFS result
+        :param nodes_to_replace_to: nodes provided for old_node replacement
+        :param number_of_random_operations: number of replacement operations, \
+        if nodes_to_replace_to not provided
+        :return: the ratio of modified graph score to origin score
+>>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
         requirements: ReplacementAnalysisMetaParams = self._requirements.replacement_meta
         node_id = self._chain.nodes.index(node)

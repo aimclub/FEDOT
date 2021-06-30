@@ -5,17 +5,18 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
                              roc_auc_score)
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import (GPChainOptimiserParameters, GPComposerBuilder,
+from fedot.core.composer.gp_composer.gp_composer import (GPGraphOptimiserParameters, GPComposerBuilder,
                                                          GPComposerRequirements)
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
@@ -169,11 +170,10 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
                                max_lead_time=datetime.timedelta(minutes=learning_time_for_composing),
-                               allow_single_operations=False,
                                cv_folds=cv_folds)
 
-    optimizer_parameters = GPChainOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
-                                                      mutation_types=[MutationTypesEnum.parameter_change,
+    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+                                                      mutation_types=[parameter_change_mutation,
                                                                       MutationTypesEnum.simple,
                                                                       MutationTypesEnum.reduce,
                                                                       MutationTypesEnum.growth,
@@ -259,7 +259,7 @@ def _obtain_initial_assumption(task: Task, data) -> Chain:
 
 def _get_gp_composer_builder(task: Task, metric_function,
                              composer_requirements: GPComposerRequirements,
-                             optimizer_parameters: GPChainOptimiserParameters,
+                             optimizer_parameters: GPGraphOptimiserParameters,
                              data: Union[InputData, MultiModalData],
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary

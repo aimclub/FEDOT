@@ -1,23 +1,22 @@
-from fedot.core.chains.chain import Chain
 from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.composing_history import ComposingHistory
-from fedot.core.composer.optimisers.gp_comp.individual import Individual
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
 
 def create_individual():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
+    first = OptNode(content='logit')
+    second = OptNode(content='lda')
+    final = OptNode(content='knn', nodes_from=[first, second])
 
-    indiviual = Individual(chain=Chain(final))
+    indiviual = Individual(graph=OptGraph(final))
     indiviual.fitness = 1
     return indiviual
 
 
 def generate_history(generations_quantity, pop_size):
-    history = ComposingHistory()
+    history = OptHistory()
     for _ in range(generations_quantity):
         new_pop = []
         for _ in range(pop_size):
@@ -43,7 +42,7 @@ def test_convert_chain_to_chain_template():
     history = generate_history(generations_quantity, pop_size)
     for gen in range(generations_quantity):
         for ind in range(pop_size):
-            assert type(history.individuals[gen][ind].chain) == ChainTemplate
+            assert type(history.individuals[gen][ind].graph) == ChainTemplate
 
 
 def test_prepare_for_visualisation():

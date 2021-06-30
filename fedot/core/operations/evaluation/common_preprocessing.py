@@ -1,12 +1,11 @@
 import warnings
-
 from typing import Optional
 
-from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    sklearn_transformations import PCAImplementation, PolyFeaturesImplementation, OneHotEncodingImplementation, \
-    ScalingImplementation, NormalizationImplementation, KernelPCAImplementation, ImputationImplementation
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.data_operations. \
+    sklearn_transformations import PCAImplementation, PolyFeaturesImplementation, OneHotEncodingImplementation, \
+    ScalingImplementation, NormalizationImplementation, KernelPCAImplementation, ImputationImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

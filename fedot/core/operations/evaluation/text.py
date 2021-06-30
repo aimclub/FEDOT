@@ -1,13 +1,12 @@
 import warnings
+from typing import Optional
 
 import numpy as np
-
-from typing import Optional
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.\
+from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.text_preprocessing import TextCleanImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
