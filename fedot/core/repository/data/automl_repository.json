@@ -103,6 +103,14 @@
 	  "meta": "sklearn_class",
 	  "tags": ["boosting"]
 	},
+	"lgbm": {
+	  "meta": "sklearn_class",
+	  "tags": ["boosting"]
+	},
+	"catboost": {
+	  "meta": "sklearn_class",
+	  "tags": ["boosting"]
+	},
 	"bernb": {
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian"]
@@ -120,6 +128,14 @@
 	  "tags": ["simple", "linear", "interpretable"]
 	},
 	"xgbreg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["boosting", "non_multi"]
+	},
+	"lgbmreg": {
+	  "meta": "sklearn_regr",
+	  "tags": ["boosting", "non_multi"]
+	},
+	"catboostreg": {
 	  "meta": "sklearn_regr",
 	  "tags": ["boosting", "non_multi"]
 	},
