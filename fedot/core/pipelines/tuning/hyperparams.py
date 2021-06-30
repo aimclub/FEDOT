@@ -1,5 +1,5 @@
 import numpy as np
-from hyperopt import hp, fmin, tpe, space_eval
+from hyperopt import fmin, hp, space_eval, tpe
 
 
 def get_operation_parameter_range(operation_name: str, parameter_name: str = None,
@@ -167,7 +167,7 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
         },
         'lgbm': {
             'class_weight': hp.choice(label, [None, 'balanced']),
-            'num_leaves':  hp.choice(label, np.arange(2, 256, 8, dtype=int)),
+            'num_leaves': hp.choice(label, np.arange(2, 256, 8, dtype=int)),
             'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
             'colsample_bytree': hp.uniform(label, 0.4, 1),
             'subsample': hp.uniform(label, 0.4, 1),

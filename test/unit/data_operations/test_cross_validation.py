@@ -21,7 +21,7 @@ _ = classification_dataset
 def sample_pipeline():
     return Pipeline(SecondaryNode(operation_type='logit',
                                   nodes_from=[PrimaryNode(operation_type='xgboost'),
-                                           PrimaryNode(operation_type='scaling')]))
+                                              PrimaryNode(operation_type='scaling')]))
 
 
 def get_data(task):

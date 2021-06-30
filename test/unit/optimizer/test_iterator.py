@@ -1,4 +1,4 @@
-from fedot.core.gp_comp.iterator import fibonacci_sequence, SequenceIterator
+from fedot.core.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 
 
 def test_iterator_without_constraints():

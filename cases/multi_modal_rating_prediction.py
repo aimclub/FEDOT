@@ -18,9 +18,9 @@ def run_multi_modal_case(files_path, is_visualise=False):
                                                                                                images_size)
 
     pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
-                                                                    train_num, test_num,
-                                                                    train_img, test_img,
-                                                                    train_text, test_text)
+                                                                          train_num, test_num,
+                                                                          train_img, test_img,
+                                                                          train_text, test_text)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
@@ -51,7 +51,7 @@ def run_multi_modal_case(files_path, is_visualise=False):
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
-                                                is_visualise=True)
+                                                      is_visualise=True)
 
     pipeline_evo_composed.fit(input_data=fit_data)
 

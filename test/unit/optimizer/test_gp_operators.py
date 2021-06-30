@@ -122,12 +122,12 @@ def test_crossover():
     log = default_log(__name__)
     crossover_types = [CrossoverTypesEnum.none]
     new_pipelines = crossover(crossover_types, pipeline_example_first, pipeline_example_second, max_depth=3, log=log,
-                           crossover_prob=1)
+                              crossover_prob=1)
     assert new_pipelines[0] == pipeline_example_first
     assert new_pipelines[1] == pipeline_example_second
     crossover_types = [CrossoverTypesEnum.subtree]
     new_pipelines = crossover(crossover_types, pipeline_example_first, pipeline_example_second, max_depth=3, log=log,
-                           crossover_prob=0)
+                              crossover_prob=0)
     assert new_pipelines[0] == pipeline_example_first
     assert new_pipelines[1] == pipeline_example_second
 

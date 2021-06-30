@@ -20,7 +20,7 @@ def rand_population_gener_and_eval(pop_size=4):
                                           secondary=models_set, max_depth=1)
     pipeline_gener_params = GraphGenerationParams()
     random_pipeline_function = partial(random_graph, params=pipeline_gener_params,
-                                    requirements=requirements)
+                                       requirements=requirements)
     population = [Individual(random_pipeline_function()) for _ in range(pop_size)]
     # evaluation
     for ind in population:

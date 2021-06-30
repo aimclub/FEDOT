@@ -1,6 +1,6 @@
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 def get_pipeline():
@@ -54,7 +54,7 @@ def test_actualise_old_node_children():
 
     # when
     pipeline.operator.actualise_old_node_children(old_node=selected_node,
-                                               new_node=new_node)
+                                                  new_node=new_node)
     updated_parent = pipeline.nodes[1]
 
     # then

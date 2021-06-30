@@ -1,6 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Union
-from typing import TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph_operator import GraphOperator

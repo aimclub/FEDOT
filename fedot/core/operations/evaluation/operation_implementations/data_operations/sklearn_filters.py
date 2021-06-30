@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Optional
 
-from sklearn.linear_model import RANSACRegressor, LinearRegression
+from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.tree import DecisionTreeRegressor
 
 from fedot.core.operations.evaluation.operation_implementations. \

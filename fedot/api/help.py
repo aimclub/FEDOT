@@ -1,5 +1,5 @@
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.pipelines.tuning.hyperparams import get_operation_parameter_range
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 

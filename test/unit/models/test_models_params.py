@@ -1,11 +1,11 @@
 import numpy as np
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synth_dataset_generator import regression_dataset, classification_dataset
+from fedot.utilities.synth_dataset_generator import classification_dataset, regression_dataset
 
 
 def get_knn_reg_pipeline(k_neighbors):

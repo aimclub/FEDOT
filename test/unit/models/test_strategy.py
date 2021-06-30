@@ -1,8 +1,9 @@
+from sklearn.feature_extraction.text import TfidfVectorizer
+
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.text import SkLearnTextVectorizeStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-from sklearn.feature_extraction.text import TfidfVectorizer
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def test_vectorize_tfidf_strategy():

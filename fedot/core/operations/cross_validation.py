@@ -1,10 +1,10 @@
-from typing import Callable, Tuple, Optional
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_cv_generator
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 

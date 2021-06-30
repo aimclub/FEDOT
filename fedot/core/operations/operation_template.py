@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 
 import joblib
 
-from fedot.core.pipelines.node import Node
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
 
 
 class OperationTemplateAbstract(ABC):

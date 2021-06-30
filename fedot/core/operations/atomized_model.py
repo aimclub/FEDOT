@@ -11,6 +11,7 @@ from fedot.core.utils import make_pipeline_generator
 
 class AtomizedModel(Operation):
     """ Class which replace Operation class for AtomizedModel object """
+
     def __init__(self, pipeline: 'Pipeline'):
         if not pipeline.root_node:
             raise ValueError(f'AtomizedModel could not create instance of empty Pipeline.')

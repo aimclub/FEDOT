@@ -76,7 +76,8 @@ class GPComposer(Composer):
                  initial_pipeline: Optional[Pipeline] = None,
                  logger: Log = None):
 
-        super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_pipeline=initial_pipeline)
+        super().__init__(metrics=metrics, composer_requirements=composer_requirements,
+                         initial_pipeline=initial_pipeline)
 
         self.cache = OperationsCache()
 
@@ -89,8 +90,9 @@ class GPComposer(Composer):
         else:
             self.log = logger
 
-    def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False, is_tune: bool = False,
-                      on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
+    def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
+                         is_tune: bool = False,
+                         on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
         """ Function for optimal pipeline structure searching
         :param data: InputData for pipeline composing
         :param is_visualise: is it needed to visualise
@@ -112,7 +114,7 @@ class GPComposer(Composer):
                 raise NotImplementedError('Cross-validation is not supported for multi-modal data')
             self.log.info("KFolds cross validation for graph composing was applied.")
             objective_function_for_pipeline = partial(cross_validation, data,
-                                                   self.composer_requirements.cv_folds, self.metrics)
+                                                      self.composer_requirements.cv_folds, self.metrics)
         else:
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
@@ -126,7 +128,7 @@ class GPComposer(Composer):
             self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
         best_pipeline = self.optimiser.optimise(objective_function_for_pipeline,
-                                             on_next_iteration_callback=on_next_iteration_callback)
+                                                on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
         self.cache.clear()
@@ -152,7 +154,7 @@ class GPComposer(Composer):
             if not pipeline.is_fitted:
                 self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
                 pipeline.fit(input_data=train_data,
-                          time_constraint=self.composer_requirements.max_pipeline_fit_time)
+                             time_constraint=self.composer_requirements.max_pipeline_fit_time)
                 try:
                     self.cache.save_pipeline(pipeline)
                 except Exception as ex:
@@ -281,5 +283,3 @@ class GPComposerBuilder:
         self._composer.optimiser = optimiser
 
         return self._composer
-
-

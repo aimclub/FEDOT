@@ -39,7 +39,7 @@ class SequentialTuner(HyperoptTuner):
 
         # Calculate amount of iterations we can apply per node
         nodes_amount = len(self.pipeline.nodes)
-        iterations_per_node = round(self.iterations/nodes_amount)
+        iterations_per_node = round(self.iterations / nodes_amount)
         iterations_per_node = int(iterations_per_node)
         if iterations_per_node == 0:
             iterations_per_node = 1
@@ -74,11 +74,11 @@ class SequentialTuner(HyperoptTuner):
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(train_input=train_input,
-                                       predict_input=predict_input,
-                                       test_target=test_target,
-                                       tuned_pipeline=self.pipeline,
-                                       loss_function=loss_function,
-                                       loss_params=loss_params)
+                                          predict_input=predict_input,
+                                          test_target=test_target,
+                                          tuned_pipeline=self.pipeline,
+                                          loss_function=loss_function,
+                                          loss_params=loss_params)
 
         return final_pipeline
 
@@ -120,11 +120,11 @@ class SequentialTuner(HyperoptTuner):
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(train_input=train_input,
-                                       predict_input=predict_input,
-                                       test_target=test_target,
-                                       tuned_pipeline=self.pipeline,
-                                       loss_function=loss_function,
-                                       loss_params=loss_params)
+                                          predict_input=predict_input,
+                                          test_target=test_target,
+                                          tuned_pipeline=self.pipeline,
+                                          loss_function=loss_function,
+                                          loss_params=loss_params)
 
         return final_pipeline
 
@@ -133,7 +133,7 @@ class SequentialTuner(HyperoptTuner):
 
         if self.inverse_node_order is True:
             # From source data to output
-            nodes_ids = range(nodes_amount-1, -1, -1)
+            nodes_ids = range(nodes_amount - 1, -1, -1)
         else:
             # From output to source data
             nodes_ids = range(0, nodes_amount)
@@ -175,8 +175,8 @@ class SequentialTuner(HyperoptTuner):
 
         # Set best params for this node in the pipeline
         self.pipeline = self.set_arg_node(pipeline=self.pipeline,
-                                       node_id=node_id,
-                                       node_params=best_parameters)
+                                          node_id=node_id,
+                                          node_params=best_parameters)
         return self.pipeline
 
     @staticmethod
@@ -215,8 +215,8 @@ class SequentialTuner(HyperoptTuner):
 
         # Set hyperparameters for node
         pipeline = SequentialTuner.set_arg_node(pipeline=pipeline,
-                                             node_id=node_id,
-                                             node_params=node_params)
+                                                node_id=node_id,
+                                                node_params=node_params)
 
         try:
             metric_value = SequentialTuner.get_metric_value(train_input=train_input,

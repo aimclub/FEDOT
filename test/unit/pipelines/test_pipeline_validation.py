@@ -1,12 +1,12 @@
 import pytest
 
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_components, has_no_isolated_nodes, \
+    has_no_self_cycled_nodes
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
-    has_no_conflicts_with_data_flow, is_pipeline_contains_ts_operations, has_no_data_flow_conflicts_in_ts_pipeline, \
-    only_ts_specific_operations_are_primary, has_no_conflicts_in_decompose, has_primary_nodes
-from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_nodes, has_no_self_cycled_nodes, \
-    has_no_isolated_components
+    has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
+    has_primary_nodes, is_pipeline_contains_ts_operations, only_ts_specific_operations_are_primary
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.validation import (validate)
 

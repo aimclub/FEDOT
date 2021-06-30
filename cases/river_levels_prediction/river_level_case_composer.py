@@ -97,8 +97,8 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)
-        builder = GPComposerBuilder(task=data.task).\
-            with_requirements(composer_requirements).\
+        builder = GPComposerBuilder(task=data.task). \
+            with_requirements(composer_requirements). \
             with_metrics(metric_function).with_initial_pipeline(init_pipeline)
         composer = builder.build()
 
@@ -108,8 +108,8 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
         obtained_models, depth = get_pipeline_info(pipeline=obtained_pipeline)
 
         preds = fit_predict_for_pipeline(pipeline=obtained_pipeline,
-                                      train_input=train_input,
-                                      predict_input=predict_input)
+                                         train_input=train_input,
+                                         predict_input=predict_input)
 
         mse_value = mean_squared_error(y_data_test, preds, squared=False)
         mae_value = mean_absolute_error(y_data_test, preds)
@@ -120,13 +120,13 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
         if tuner is not None:
             print(f'Start tuning process ...')
             pipeline_tuner = tuner(pipeline=obtained_pipeline, task=data.task,
-                                iterations=100)
+                                   iterations=100)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                 loss_function=mean_absolute_error)
+                                                          loss_function=mean_absolute_error)
 
             preds_tuned = fit_predict_for_pipeline(pipeline=tuned_pipeline,
-                                                train_input=train_input,
-                                                predict_input=predict_input)
+                                                   train_input=train_input,
+                                                   predict_input=predict_input)
 
             mse_value = mean_squared_error(y_data_test, preds_tuned, squared=False)
             mae_value = mean_absolute_error(y_data_test, preds_tuned)

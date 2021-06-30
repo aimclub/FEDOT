@@ -113,7 +113,7 @@ def test_order_by_data_flow_len_correct():
     for data_operation, model_operation in list_with_operations:
         # Generate pipeline with different operations in the nodes with decomposition
         pipeline = generate_pipeline_with_decomposition(data_operation,
-                                                  model_operation)
+                                                        model_operation)
         pipeline.fit(input_data)
 
         # Get one node with decompose operation in it

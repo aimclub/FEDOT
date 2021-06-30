@@ -8,13 +8,13 @@ from deap import tools
 
 from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, composer_metrics_mapping,
                                  filter_operations_by_preset, save_predict)
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.optimisers.utils.pareto import ParetoFront
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams

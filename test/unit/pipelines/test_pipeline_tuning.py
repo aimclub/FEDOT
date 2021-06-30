@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
 
@@ -94,12 +94,12 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     for pipeline in [pipeline_simple, pipeline_complex]:
         # Pipeline tuning
         pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                 task=train_data.task,
-                                 iterations=1)
+                                       task=train_data.task,
+                                       iterations=1)
         # Optimization will be performed on RMSE metric, so loss params are defined
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                             loss_function=mse,
-                                             loss_params={'squared': False})
+                                                      loss_function=mse,
+                                                      loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -118,10 +118,10 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
     for pipeline in [pipeline_simple, pipeline_complex]:
         # Pipeline tuning
         pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                 task=train_data.task,
-                                 iterations=1)
+                                       task=train_data.task,
+                                       iterations=1)
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                             loss_function=roc)
+                                                      loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -144,8 +144,8 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
                                            iterations=1)
         # Optimization will be performed on RMSE metric, so loss params are defined
         tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                  loss_function=mse,
-                                                  loss_params={'squared': False})
+                                                        loss_function=mse,
+                                                        loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -167,7 +167,7 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
                                            task=train_data.task,
                                            iterations=2)
         tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                  loss_function=roc)
+                                                        loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -189,8 +189,8 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
                                            task=train_data.task,
                                            iterations=1)
         tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                 node_index=0,
-                                                 loss_function=mse)
+                                                    node_index=0,
+                                                    loss_function=mse)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -212,8 +212,8 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
                                            task=train_data.task,
                                            iterations=1)
         tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                 node_index=0,
-                                                 loss_function=roc)
+                                                    node_index=0,
+                                                    loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -228,7 +228,7 @@ def test_ts_pipeline_with_stats_model():
     # Tune AR model
     tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=5)
     tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                         loss_function=mse)
+                                               loss_function=mse)
 
     is_tuning_finished = True
 

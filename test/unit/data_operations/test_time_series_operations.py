@@ -1,11 +1,11 @@
 import numpy as np
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     _prepare_target, _ts_to_table
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -146,10 +146,10 @@ def test_forecast_with_exog():
     pipeline = Pipeline(node_final)
 
     pipeline.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
-                                         'lagged': train_source_ts}))
+                                            'lagged': train_source_ts}))
 
     forecast = pipeline.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
-                                                        'lagged': predict_source_ts}))
+                                                           'lagged': predict_source_ts}))
     prediction = np.ravel(np.array(forecast.predict))
 
     assert tuple(prediction) == tuple(ts_test)

@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
 from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_synthetic_ts_data_period
 
 

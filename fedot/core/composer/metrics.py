@@ -6,8 +6,8 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 
 

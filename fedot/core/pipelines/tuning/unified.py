@@ -55,15 +55,15 @@ class PipelineTuner(HyperoptTuner):
         best = space_eval(space=parameters_dict, hp_assignment=best)
 
         tuned_pipeline = self.set_arg_pipeline(pipeline=self.pipeline,
-                                         parameters=best)
+                                               parameters=best)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(train_input=train_input,
-                                       predict_input=predict_input,
-                                       test_target=test_target,
-                                       tuned_pipeline=tuned_pipeline,
-                                       loss_function=loss_function,
-                                       loss_params=loss_params)
+                                          predict_input=predict_input,
+                                          test_target=test_target,
+                                          tuned_pipeline=tuned_pipeline,
+                                          loss_function=loss_function,
+                                          loss_params=loss_params)
 
         return final_pipeline
 
@@ -132,11 +132,11 @@ class PipelineTuner(HyperoptTuner):
 
         try:
             metric_value = PipelineTuner.get_metric_value(train_input=train_input,
-                                                       predict_input=predict_input,
-                                                       test_target=test_target,
-                                                       pipeline=pipeline,
-                                                       loss_function=loss_function,
-                                                       loss_params=loss_params)
+                                                          predict_input=predict_input,
+                                                          test_target=test_target,
+                                                          pipeline=pipeline,
+                                                          loss_function=loss_function,
+                                                          loss_params=loss_params)
         except Exception:
             if self.is_need_to_maximize is True:
                 metric_value = -MAX_METRIC_VALUE

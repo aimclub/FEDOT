@@ -1,7 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Any, Callable, List, Union
-from typing import TYPE_CHECKING
+from typing import Any, Callable, List, TYPE_CHECKING, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log

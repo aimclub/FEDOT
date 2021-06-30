@@ -1,7 +1,7 @@
-from typing import Tuple, Iterator, Union
+from typing import Iterator, Tuple, Union
 
 import numpy as np
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import KFold, train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData

@@ -1,9 +1,9 @@
 import gc
 from typing import List
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
+from fedot.core.pipelines.pipeline import Pipeline
 
 ERROR_PREFIX = 'Invalid graph configuration:'
 

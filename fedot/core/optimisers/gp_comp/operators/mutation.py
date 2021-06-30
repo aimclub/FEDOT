@@ -1,15 +1,14 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random
-from typing import Any, Callable, Union
-from typing import TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.dag.graph import List
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.graph import OptNode, OptGraph
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
 

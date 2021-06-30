@@ -1,12 +1,11 @@
 import numpy as np
 
 from examples.regression_with_tuning_example import get_regression_dataset
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
-from fedot.core.data.data import OutputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

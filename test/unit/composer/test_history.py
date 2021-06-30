@@ -1,11 +1,11 @@
 import os
 
 from fedot.api.main import Fedot
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import ParentOperator
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.utils import fedot_project_root
 
 

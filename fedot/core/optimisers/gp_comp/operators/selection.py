@@ -1,7 +1,6 @@
 import math
 from random import choice, randint
-from typing import (Any, List)
-from typing import TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING
 
 from deap import tools
 

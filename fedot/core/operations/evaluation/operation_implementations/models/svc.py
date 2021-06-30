@@ -4,9 +4,9 @@ import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
+from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log
 
 
 class CustomSVCImplementation(ModelImplementation):

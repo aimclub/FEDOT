@@ -1,10 +1,10 @@
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast, in_sample_ts_forecast
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 

@@ -3,9 +3,9 @@ from copy import deepcopy
 
 import pytest
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 def pipeline_first():
@@ -81,7 +81,8 @@ def pipeline_fourth():
 
 @pytest.fixture()
 def equality_cases():
-    pairs = [[pipeline_first(), pipeline_first()], [pipeline_third(), pipeline_third()], [pipeline_fourth(), pipeline_fourth()]]
+    pairs = [[pipeline_first(), pipeline_first()], [pipeline_third(), pipeline_third()],
+             [pipeline_fourth(), pipeline_fourth()]]
 
     # the following changes don't affect to pipelines equality:
     for node_num, type in enumerate(['knn', 'lda']):

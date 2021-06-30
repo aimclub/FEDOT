@@ -2,10 +2,8 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from examples.ts_gapfilling_example import get_array_with_gaps
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 from fedot.utilities.ts_gapfilling import ModelGapFiller
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 
 
 def test_get_array_with_gaps():

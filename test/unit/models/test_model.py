@@ -1,21 +1,22 @@
+from copy import deepcopy
+
 import numpy as np
 import pytest
 from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
-from copy import deepcopy
+from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
 
-from test.unit.tasks.test_regression import get_synthetic_regression_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.log import Log, default_log
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:

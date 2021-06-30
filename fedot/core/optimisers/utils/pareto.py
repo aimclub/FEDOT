@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 from deap.tools import ParetoFront as DeapParetoFront
 
@@ -12,5 +12,5 @@ class ParetoFront(DeapParetoFront):
 
     def show(self):
         PipelineEvolutionVisualiser().visualise_pareto(archive=self.items, show=True,
-                                                    objectives_numbers=(1, 0),
-                                                    objectives_names=self.objective_names[::-1])
+                                                       objectives_numbers=(1, 0),
+                                                       objectives_names=self.objective_names[::-1])

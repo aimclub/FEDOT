@@ -1,8 +1,8 @@
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.template import PipelineTemplate
 
 
 def create_individual():

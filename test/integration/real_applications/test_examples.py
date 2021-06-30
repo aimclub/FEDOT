@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from examples.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
-from examples.pipeline_log import run_log_example
-from examples.pipeline_tune import pipeline_tuning, get_case_train_test_data, get_simple_pipeline
 from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
                                         run_ts_forecasting_example)
 from examples.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.multiclass_prediction import get_model
+from examples.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
+from examples.pipeline_log import run_log_example
+from examples.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
 from examples.ts_foresting_with_nemo_multiple_example import run_multiple_example
 from examples.ts_gapfilling_example import run_gapfilling_example
@@ -80,10 +80,10 @@ def test_pipeline_tuning_example():
 
     # Pipeline tuning
     after_tune_roc_auc, _ = pipeline_tuning(pipeline=pipeline,
-                                         train_data=train_data,
-                                         test_data=test_data,
-                                         local_iter=1,
-                                         tuner_iter_num=2)
+                                            train_data=train_data,
+                                            test_data=test_data,
+                                            local_iter=1,
+                                            tuner_iter_num=2)
 
 
 def test_multistep_example():

@@ -6,12 +6,12 @@ from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.image_classification_problem import run_image_classification_problem
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.keras import create_deep_cnn, fit_cnn, \
-    predict_cnn, CustomCNNImplementation, check_input_array
+from fedot.core.operations.evaluation.operation_implementations.models.keras import CustomCNNImplementation, \
+    check_input_array, create_deep_cnn, fit_cnn, predict_cnn
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features

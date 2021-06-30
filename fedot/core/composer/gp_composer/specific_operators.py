@@ -1,8 +1,8 @@
 from random import random
 from typing import Any
 
-from fedot.core.pipelines.tuning.hyperparams import get_new_operation_params
 from fedot.core.optimisers.gp_comp.operators.mutation import get_mutation_prob
+from fedot.core.pipelines.tuning.hyperparams import get_new_operation_params
 
 
 def parameter_change_mutation(pipeline: Any, requirements, **kwargs) -> Any:

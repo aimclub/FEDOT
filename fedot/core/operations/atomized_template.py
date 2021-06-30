@@ -1,8 +1,8 @@
 import os
 from typing import Tuple
 
-from fedot.core.pipelines.node import Node
 from fedot.core.operations.operation_template import OperationTemplateAbstract, _check_existing_path
+from fedot.core.pipelines.node import Node
 
 
 class AtomizedModelTemplate(OperationTemplateAbstract):

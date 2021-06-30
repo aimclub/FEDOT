@@ -1,10 +1,9 @@
+from fedot.core.data.data import OutputData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.data.data import OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
 from test.unit.data.test_data_merge import generate_outputs
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 

@@ -61,7 +61,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
             pipeline_tuner = tuner(pipeline=current_pipeline, task=data.task,
                                    iterations=tuner_iterations, timeout=timedelta(seconds=30))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                 loss_function=mean_absolute_error)
+                                                          loss_function=mean_absolute_error)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
@@ -77,7 +77,6 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
 
 
 if __name__ == '__main__':
-
     node_encoder = PrimaryNode('one_hot_encoding')
     node_scaling = SecondaryNode('scaling', nodes_from=[node_encoder])
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])

@@ -4,18 +4,18 @@ from unittest.mock import patch
 import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
-from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
 from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
+from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity import OneOperationHPAnalyze
-from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
+from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
+from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 from test.unit.utilities.test_pipeline_import_export import create_func_delete_files
 
@@ -70,16 +70,16 @@ def test_pipeline_structure_analyze_init_log_defined():
 
     # when
     pipeline_analyzer = NodesAnalysis(pipeline=pipeline,
-                                   train_data=train_data,
-                                   test_data=test_data,
-                                   approaches=approaches,
-                                   nodes_to_analyze=[nodes_to_analyze],
-                                   log=test_log_object)
+                                      train_data=train_data,
+                                      test_data=test_data,
+                                      approaches=approaches,
+                                      nodes_to_analyze=[nodes_to_analyze],
+                                      log=test_log_object)
 
     assert isinstance(pipeline_analyzer, NodesAnalysis)
 
 
-def  test_pipeline_structure_analyze_analyze():
+def test_pipeline_structure_analyze_analyze():
     # given
     pipeline, train_data, test_data, _, result_dir = given_data()
     approaches = [NodeDeletionAnalyze]
@@ -272,11 +272,11 @@ def test_pipeline_sensitivity_facade_init():
 
     # when
     sensitivity_facade = PipelineSensitivityAnalysis(pipeline=pipeline,
-                                                  train_data=train_data,
-                                                  test_data=test_data,
-                                                  nodes_to_analyze=[node_to_analyze],
-                                                  path_to_save=result_dir,
-                                                  log=test_log_object)
+                                                     train_data=train_data,
+                                                     test_data=test_data,
+                                                     nodes_to_analyze=[node_to_analyze],
+                                                     path_to_save=result_dir,
+                                                     log=test_log_object)
     # then
     assert type(sensitivity_facade) is PipelineSensitivityAnalysis
 
@@ -288,10 +288,10 @@ def test_pipeline_sensitivity_facade_analyze(analyze_method):
 
     # when
     sensitivity_analyze_result = PipelineSensitivityAnalysis(pipeline=pipeline,
-                                                          train_data=train_data,
-                                                          test_data=test_data,
-                                                          nodes_to_analyze=[node_to_analyze],
-                                                          path_to_save=result_dir).analyze()
+                                                             train_data=train_data,
+                                                             test_data=test_data,
+                                                             nodes_to_analyze=[node_to_analyze],
+                                                             path_to_save=result_dir).analyze()
 
     # then
     assert sensitivity_analyze_result is None
@@ -309,11 +309,11 @@ def test_pipeline_non_structure_analyze_init():
 
     # when
     non_structure_analyzer = PipelineAnalysis(pipeline=pipeline,
-                                           train_data=train_data,
-                                           test_data=test_data,
-                                           approaches=approaches,
-                                           path_to_save=result_dir,
-                                           log=test_log_object)
+                                              train_data=train_data,
+                                              test_data=test_data,
+                                              approaches=approaches,
+                                              path_to_save=result_dir,
+                                              log=test_log_object)
 
     # then
     assert type(non_structure_analyzer) is PipelineAnalysis
@@ -329,10 +329,10 @@ def test_pipeline_analysis_analyze(analyze_method):
 
     # when
     non_structure_analyze_result = PipelineAnalysis(pipeline=pipeline,
-                                                 train_data=train_data,
-                                                 test_data=test_data,
-                                                 requirements=requirements,
-                                                 path_to_save=result_dir).analyze()
+                                                    train_data=train_data,
+                                                    test_data=test_data,
+                                                    requirements=requirements,
+                                                    path_to_save=result_dir).analyze()
 
     # then
     assert type(non_structure_analyze_result) is list

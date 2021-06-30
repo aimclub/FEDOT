@@ -1,8 +1,8 @@
 from typing import Optional
 
-from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.operations.model import Model
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task

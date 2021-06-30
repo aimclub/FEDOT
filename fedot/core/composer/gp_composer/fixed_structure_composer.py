@@ -4,12 +4,12 @@ from typing import (
     Optional,
 )
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task
 
 
@@ -29,7 +29,7 @@ class FixedStructureComposer(GPComposer):
                          initial_pipeline=initial_pipeline)
 
     def compose_pipeline(self, data: InputData, is_visualise: bool = False,
-                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Pipeline:
+                         is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Pipeline:
         return super().compose_pipeline(data, is_visualise, is_tune, on_next_iteration_callback)
 
 

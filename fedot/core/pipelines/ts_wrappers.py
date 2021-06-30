@@ -1,7 +1,7 @@
 import numpy as np
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -92,7 +92,7 @@ def in_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
         final_forecast.append(iter_predict)
 
         # Add prediction to the historical data - update it
-        pre_history_ts = time_series[:border+1]
+        pre_history_ts = time_series[:border + 1]
 
         # Prepare InputData for next iteration
         data = _update_input(pre_history_ts, scope_len, task)

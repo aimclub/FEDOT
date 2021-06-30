@@ -1,7 +1,7 @@
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.operations.operation import Operation
-from fedot.core.operations.model import Model
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.model import Model
+from fedot.core.operations.operation import Operation
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
 class OperationFactory:

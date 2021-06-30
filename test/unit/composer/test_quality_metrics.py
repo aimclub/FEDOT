@@ -5,12 +5,12 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.metrics import QualityMetric
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.composer.metrics import QualityMetric
 from fedot.core.repository.quality_metrics_repository import \
     (ClassificationMetricsEnum,
      ComplexityMetricsEnum,

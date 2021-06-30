@@ -57,9 +57,9 @@ def test_random_composer(data_fixture, request):
     random_composer = RandomSearchComposer(iter_num=1)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
     pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose,
-                                                          initial_pipeline=None,
-                                                          composer_requirements=req,
-                                                          metrics=metric_function)
+                                                                initial_pipeline=None,
+                                                                composer_requirements=req,
+                                                                metrics=metric_function)
     pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)
 
     predicted_random_composed = pipeline_random_composed.predict(dataset_to_validate)
@@ -277,7 +277,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
         quality_metric).with_optimiser_parameters(optimiser_parameters)
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose,
-                           is_visualise=True)
+                              is_visualise=True)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimiser.max_depth == 5
 

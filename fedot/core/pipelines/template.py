@@ -7,10 +7,10 @@ from uuid import uuid4
 
 import joblib
 
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
+from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import atomized_model_type
 
 
@@ -186,8 +186,8 @@ class PipelineTemplate:
         pipeline.add_node(root_node)
 
     def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
-                                                      'AtomizedModelTemplate'],
-                             visited_nodes: dict, path: str = None):
+                                                         'AtomizedModelTemplate'],
+                                visited_nodes: dict, path: str = None):
         """
         The function recursively traverses all disjoint operations
         and connects the operations in a pipeline.

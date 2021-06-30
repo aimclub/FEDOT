@@ -5,11 +5,11 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -168,7 +168,7 @@ def test_cache_actuality_after_model_change(data_setup):
     cache.save_pipeline(pipeline)
     new_node = SecondaryNode(operation_type='logit')
     pipeline.update_node(old_node=pipeline.root_node.nodes_from[0],
-                      new_node=new_node)
+                         new_node=new_node)
 
     root_parent_first = pipeline.root_node.nodes_from[0]
 
@@ -193,7 +193,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     cache.save_pipeline(Pipeline(other_pipeline.root_node.nodes_from[0]))
 
     pipeline.update_subtree(pipeline.root_node.nodes_from[0],
-                         other_pipeline.root_node.nodes_from[0])
+                            other_pipeline.root_node.nodes_from[0])
 
     nodes_with_actual_cache = [node for node in pipeline.nodes if node not in [pipeline.root_node]]
 
@@ -213,7 +213,7 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     cache.save_pipeline(pipeline)
     other_pipeline.fit(input_data=train)
     pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[0],
-                         other_pipeline.root_node.nodes_from[0])
+                            other_pipeline.root_node.nodes_from[0])
     cache.save_pipeline(Pipeline(other_pipeline.root_node.nodes_from[0]))
     root_parent_first = pipeline.root_node.nodes_from[0]
 
@@ -239,7 +239,7 @@ def test_cache_historical_state_using(data_setup):
 
     # change child node to new one
     pipeline.update_node(old_node=old_node,
-                      new_node=new_node)
+                         new_node=new_node)
     # cache is not actual
     assert not cache.get(pipeline.root_node)
     # fit modified pipeline
@@ -250,7 +250,7 @@ def test_cache_historical_state_using(data_setup):
 
     # change node back
     pipeline.update_node(old_node=pipeline.root_node.nodes_from[0],
-                      new_node=old_node)
+                         new_node=old_node)
     # cache is actual without new fitting,
     # because the cached model was saved after first fit
     assert cache.get(pipeline.root_node)

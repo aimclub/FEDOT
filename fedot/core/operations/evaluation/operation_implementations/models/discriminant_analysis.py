@@ -4,9 +4,9 @@ import numpy as np
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
 
+from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log
 
 
 class DiscriminantAnalysisImplementation(ModelImplementation):

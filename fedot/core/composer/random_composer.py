@@ -5,10 +5,10 @@ from typing import (Any, Callable, List, Optional)
 
 from numpy import random
 
-from fedot.core.pipelines.pipeline import Pipeline, Node
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer:
@@ -16,9 +16,9 @@ class RandomSearchComposer:
         self.__iter_num = iter_num
 
     def compose_pipeline(self, data: InputData,
-                      initial_pipeline: Optional[Pipeline],
-                      composer_requirements: ComposerRequirements,
-                      metrics: Optional[Callable]) -> Pipeline:
+                         initial_pipeline: Optional[Pipeline],
+                         composer_requirements: ComposerRequirements,
+                         metrics: Optional[Callable]) -> Pipeline:
         # TODO: fix this later?
         train_data = data
         test_data = data

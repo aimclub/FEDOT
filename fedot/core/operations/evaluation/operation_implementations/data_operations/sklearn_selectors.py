@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import EncodedInvariantImplementation

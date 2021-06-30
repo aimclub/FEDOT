@@ -3,10 +3,10 @@ import os
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.dataset_preparation import unpack_archived_data
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 def execute_pipeline_for_text_problem(train_data, test_data):
