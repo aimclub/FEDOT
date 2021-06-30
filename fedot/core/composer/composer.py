@@ -1,11 +1,11 @@
 import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import (Union, List, Optional)
+from typing import (List, Optional, Union)
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
 
 
@@ -16,7 +16,7 @@ class ComposerRequirements:
 
     :attribute primary: List of operation types (str) for Primary Nodes
     :attribute secondary: List of operation types (str) for Secondary Nodes
-    :attribute max_lead_time: max time in minutes available for composition process
+    :attribute timeout: max time in minutes available for composition process
     :attribute max_depth: max depth of the result pipeline
     :attribute max_pipeline_fit_time: time constraint for operation fitting (minutes)
     :attribute max_arity: maximal number of parent for node
@@ -25,7 +25,7 @@ class ComposerRequirements:
     """
     primary: List[str]
     secondary: List[str]
-    max_lead_time: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
+    timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     max_depth: int = 3
     max_arity: int = 2

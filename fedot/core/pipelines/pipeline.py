@@ -3,16 +3,16 @@ from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
 
-from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.pipelines.node import Node
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
-from fedot.core.optimisers .utils.population_utils import input_data_characteristics
+from fedot.core.optimisers.utils.population_utils import input_data_characteristics
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -218,7 +218,7 @@ class Pipeline(Graph):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: Callable = None,
                             input_data: Union[InputData, MultiModalData] = None,
-                            iterations=50, max_lead_time: int = 5) -> 'Pipeline':
+                            iterations=50, timeout: int = 5) -> 'Pipeline':
         """ Tune all hyperparameters of nodes simultaneously via black-box
             optimization using PipelineTuner. For details, see
         :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
@@ -226,11 +226,11 @@ class Pipeline(Graph):
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
 
-        max_lead_time = timedelta(minutes=max_lead_time)
+        timeout = timedelta(minutes=timeout)
         pipeline_tuner = PipelineTuner(pipeline=self,
-                                 task=copied_input_data.task,
-                                 iterations=iterations,
-                                 max_lead_time=max_lead_time)
+                                       task=copied_input_data.task,
+                                       iterations=iterations,
+                                       timeout=timeout)
         self.log.info('Start tuning of primary nodes')
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                              loss_function=loss_function,

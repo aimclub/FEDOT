@@ -4,11 +4,11 @@ import pytest
 from sklearn.metrics import mean_squared_error
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
-from test.unit.utilities.test_pipeline_import_export import create_func_delete_files, create_correct_path
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -180,7 +180,7 @@ def test_fine_tune_atomized_model_correct():
     fine_tuned_atomized_model = atm_model.fine_tune(loss_function=mean_squared_error,
                                                     input_data=train_data,
                                                     iterations=5,
-                                                    max_lead_time=1)
+                                                    timeout=1)
     dummy_atomized_model.fit(train_data)
 
     after_tuning_output = fine_tuned_atomized_model.predict(None, data=test_data)

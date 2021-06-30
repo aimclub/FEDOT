@@ -18,12 +18,12 @@ class HyperoptTuner(ABC):
     """
 
     def __init__(self, pipeline, task, iterations=100,
-                 max_lead_time: timedelta = timedelta(minutes=5),
+                 timeout: timedelta = timedelta(minutes=5),
                  log: Log = None):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
-        self.max_seconds = int(max_lead_time.seconds)
+        self.max_seconds = int(timeout.seconds)
         self.init_pipeline = None
         self.init_metric = None
         self.is_need_to_maximize = None

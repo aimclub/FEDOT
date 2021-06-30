@@ -1,8 +1,7 @@
 import datetime
 
-from examples.multi_modal_pipeline import prepare_multi_modal_data, \
-    generate_initial_pipeline_and_data, \
-    calculate_validation_metric
+from examples.multi_modal_pipeline import calculate_validation_metric, generate_initial_pipeline_and_data, \
+    prepare_multi_modal_data
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -33,7 +32,7 @@ def run_multi_modal_case(files_path, is_visualise=False):
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=2))
+        crossover_prob=0.8, mutation_prob=0.8, timeout=datetime.timedelta(minutes=2))
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free

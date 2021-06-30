@@ -5,11 +5,11 @@ import random
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -30,7 +30,7 @@ def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputDa
 
 
 def run_credit_scoring_problem(train_file_path, test_file_path,
-                               max_lead_time: datetime.timedelta = datetime.timedelta(minutes=5),
+                               timeout: datetime.timedelta = datetime.timedelta(minutes=5),
                                is_visualise=False,
                                with_tuning=False,
                                cache_path=None):
@@ -48,7 +48,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=max_lead_time)
+        crossover_prob=0.8, mutation_prob=0.8, timeout=timeout)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free
@@ -67,13 +67,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
-                                                is_visualise=True)
+                                                      is_visualise=True)
 
     if with_tuning:
         pipeline_evo_composed.fine_tune_all_nodes(loss_function=roc_auc,
-                                               loss_params=None,
-                                               input_data=dataset_to_compose,
-                                               iterations=20)
+                                                  loss_params=None,
+                                                  input_data=dataset_to_compose,
+                                                  iterations=20)
 
     pipeline_evo_composed.fit(input_data=dataset_to_compose)
 

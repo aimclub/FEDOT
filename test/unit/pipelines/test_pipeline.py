@@ -12,16 +12,16 @@ import pytest
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
+from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.pipelines.test_pipeline_tuning import classification_dataset
-from test.unit.dag.test_graph_operator import get_pipeline
 
 seed(1)
 np.random.seed(1)
@@ -412,8 +412,8 @@ def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
 
     iterations_total, time_limit_minutes = 5, 1
     tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=roc, input_data=data,
-                                            iterations=iterations_total,
-                                            max_lead_time=time_limit_minutes)
+                                                  iterations=iterations_total,
+                                                  timeout=time_limit_minutes)
     tuned_pipeline.predict(input_data=data)
 
     is_tuning_finished = True

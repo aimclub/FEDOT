@@ -5,11 +5,11 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -59,7 +59,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         if tuner is not None:
             print(f'Start tuning process ...')
             pipeline_tuner = tuner(pipeline=current_pipeline, task=data.task,
-                                iterations=tuner_iterations, max_lead_time=timedelta(seconds=30))
+                                   iterations=tuner_iterations, timeout=timedelta(seconds=30))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                                  loss_function=mean_absolute_error)
 

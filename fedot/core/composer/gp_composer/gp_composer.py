@@ -7,7 +7,6 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 from deap import tools
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
@@ -22,6 +21,7 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
@@ -131,7 +131,7 @@ class GPComposer(Composer):
         self.log.info('GP composition finished')
         self.cache.clear()
         if is_tune:
-            self.tune_pipeline(best_pipeline, data, self.composer_requirements.max_lead_time)
+            self.tune_pipeline(best_pipeline, data, self.composer_requirements.timeout)
         return best_pipeline
 
     def composer_metric(self, metrics,

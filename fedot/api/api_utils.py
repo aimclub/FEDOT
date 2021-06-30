@@ -5,18 +5,18 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
                              roc_auc_score)
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import (GPGraphOptimiserParameters, GPComposerBuilder,
-                                                         GPComposerRequirements)
+from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
+                                                         GPGraphOptimiserParameters)
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
@@ -169,7 +169,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                max_depth=max_depth,
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
-                               max_lead_time=datetime.timedelta(minutes=learning_time_for_composing),
+                               timeout=datetime.timedelta(minutes=learning_time_for_composing),
                                cv_folds=cv_folds)
 
     optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
@@ -223,9 +223,9 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
 
         # Tune all nodes in the pipeline
         pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                             loss_params=loss_params,
-                                             input_data=train_data,
-                                             iterations=iterations, max_lead_time=learning_time_for_tuning)
+                                                loss_params=loss_params,
+                                                input_data=train_data,
+                                                iterations=iterations, timeout=learning_time_for_tuning)
 
     logger.message('Model composition finished')
 

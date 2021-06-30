@@ -6,16 +6,16 @@ from functools import partial
 import numpy as np
 import pandas as pd
 
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
 from fedot.core.dag.validation_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GPGraphOptimiser, \
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
     GeneticSchemeTypesEnum, GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import fedot_project_root
 
 random.seed(1)
@@ -67,7 +67,7 @@ def custom_mutation(graph: OptGraph, **kwargs):
     return graph
 
 
-def run_custom_example(max_lead_time: datetime.timedelta = datetime.timedelta(minutes=0.2)):
+def run_custom_example(timeout: datetime.timedelta = datetime.timedelta(minutes=0.2)):
     data = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'custom_encoded.csv'))
     nodes_types = ['V1', 'V2', 'V3',
                    'V4', 'V5', 'V6',
@@ -81,7 +81,7 @@ def run_custom_example(max_lead_time: datetime.timedelta = datetime.timedelta(mi
         primary=nodes_types,
         secondary=nodes_types, max_arity=10,
         max_depth=10, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9, max_lead_time=max_lead_time)
+        crossover_prob=0.8, mutation_prob=0.9, timeout=timeout)
 
     optimiser_parameters = GPGraphOptimiserParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,

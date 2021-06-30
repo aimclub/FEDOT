@@ -4,8 +4,6 @@ from functools import partial
 
 from deap import tools
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, \
     GPComposerRequirements, sample_split_ratio_for_tasks
 from fedot.core.data.data import InputData
@@ -18,11 +16,14 @@ from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, pipeline_third
+from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
+    pipeline_third
 
 
 def pipeline_example():
@@ -79,8 +80,8 @@ def test_evaluate_individuals():
                                                   sample_split_ratio_for_tasks[dataset_to_compose.task.task_type])
     metric_function_for_nodes = partial(composer.composer_metric, composer.metrics, train_data, test_data)
     population = [Individual(c) for c in [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]]
-    max_lead_time = datetime.timedelta(minutes=0.001)
-    with OptimisationTimer(max_lead_time=max_lead_time) as t:
+    timeout = datetime.timedelta(minutes=0.001)
+    with OptimisationTimer(timeout=timeout) as t:
         evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
                              graph_generation_params=GraphGenerationParams(),
                              is_multi_objective=False, timer=t)
@@ -88,8 +89,8 @@ def test_evaluate_individuals():
     assert population[0].fitness is not None
 
     population = [Individual(c) for c in [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]]
-    max_lead_time = datetime.timedelta(minutes=5)
-    with OptimisationTimer(max_lead_time=max_lead_time) as t:
+    timeout = datetime.timedelta(minutes=5)
+    with OptimisationTimer(timeout=timeout) as t:
         evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
                              graph_generation_params=GraphGenerationParams(),
                              is_multi_objective=False, timer=t)

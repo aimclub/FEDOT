@@ -2,12 +2,12 @@ from datetime import timedelta
 from functools import partial
 
 import numpy as np
-from hyperopt import fmin, tpe, space_eval
+from hyperopt import fmin, space_eval, tpe
 
-from fedot.core.pipelines.tuning.hyperparams import get_node_params, convert_params
-from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
+from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
+from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 MAX_METRIC_VALUE = 10e6
 
@@ -18,9 +18,9 @@ class PipelineTuner(HyperoptTuner):
     """
 
     def __init__(self, pipeline, task, iterations=100,
-                 max_lead_time: timedelta = timedelta(minutes=5),
+                 timeout: timedelta = timedelta(minutes=5),
                  log: Log = None):
-        super().__init__(pipeline, task, iterations, max_lead_time, log)
+        super().__init__(pipeline, task, iterations, timeout, log)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None):
         """ Function for hyperparameters tuning on the entire pipeline """

@@ -67,7 +67,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     composer_requirements = GPComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
-        max_lead_time=cur_lead_time)
+        timeout=cur_lead_time)
 
     # Create the genetic programming-based composer, that allow to find
     # the optimal structure of the composite model

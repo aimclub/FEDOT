@@ -11,8 +11,8 @@ from cases.multi_modal_rating_prediction import run_multi_modal_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from cases.spam_detection import run_text_problem_from_saved_meta_file
 from cases.time_series_gapfilling_case import run_gapfilling_case
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
 
@@ -27,7 +27,7 @@ def test_credit_scoring_problem():
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, max_lead_time=timedelta(minutes=0.1))
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=timedelta(minutes=0.1))
     assert roc_auc_test > 0.5
 
 

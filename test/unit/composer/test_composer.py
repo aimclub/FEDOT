@@ -8,8 +8,6 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
@@ -19,6 +17,8 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
@@ -166,7 +166,7 @@ def test_composition_time(data_fixture, request):
         secondary=models_impl, max_arity=2,
         max_depth=2,
         pop_size=2, num_of_generations=5, crossover_prob=0.9,
-        mutation_prob=0.9, max_lead_time=datetime.timedelta(minutes=0.000001))
+        mutation_prob=0.9, timeout=datetime.timedelta(minutes=0.000001))
 
     builder = GPComposerBuilder(task).with_requirements(req_terminated_evolution).with_metrics(metric_function)
 

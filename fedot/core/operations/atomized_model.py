@@ -1,11 +1,11 @@
-from uuid import uuid4
 from typing import Callable
+from uuid import uuid4
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation import Operation
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
-    atomized_model_meta_tags, atomized_model_type
+    atomized_model_type
 from fedot.core.utils import make_pipeline_generator
 
 
@@ -36,13 +36,13 @@ class AtomizedModel(Operation):
     def fine_tune(self, loss_function: Callable,
                   loss_params: Callable = None,
                   input_data: InputData = None, iterations: int = 50,
-                  max_lead_time: int = 5):
+                  timeout: int = 5):
         """ Method for tuning hyperparameters """
         tuned_pipeline = self.pipeline.fine_tune_all_nodes(loss_function=loss_function,
-                                                     loss_params=loss_params,
-                                                     input_data=input_data,
-                                                     iterations=iterations,
-                                                     max_lead_time=max_lead_time)
+                                                           loss_params=loss_params,
+                                                           input_data=input_data,
+                                                           iterations=iterations,
+                                                           timeout=timeout)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)
         return tuned_atomized_model
 

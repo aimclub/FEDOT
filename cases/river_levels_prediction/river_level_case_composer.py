@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -93,7 +93,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
             secondary=available_secondary_operations, max_arity=3,
             max_depth=8, pop_size=10, num_of_generations=5,
             crossover_prob=0.8, mutation_prob=0.8,
-            max_lead_time=datetime.timedelta(minutes=5))
+            timeout=datetime.timedelta(minutes=5))
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)

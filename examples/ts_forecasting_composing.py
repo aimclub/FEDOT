@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -204,7 +204,7 @@ def run_ts_forecasting_problem(forecast_length=50,
         secondary=secondary_operations, max_arity=3,
         max_depth=8, pop_size=10, num_of_generations=15,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=10))
+        timeout=datetime.timedelta(minutes=10))
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
                       MutationTypesEnum.reduce]
