@@ -233,8 +233,8 @@ class Pipeline(Graph):
                                        timeout=timeout)
         self.log.info('Start tuning of primary nodes')
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
-                                             loss_function=loss_function,
-                                             loss_params=loss_params)
+                                                      loss_function=loss_function,
+                                                      loss_params=loss_params)
         self.log.info('Tuning was finished')
 
         return tuned_pipeline

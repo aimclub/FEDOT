@@ -2,8 +2,8 @@ import os
 
 import numpy as np
 
-from examples.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
 from examples.sensitivity_analysis.dataset_access import get_scoring_data
+from examples.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis

@@ -1,8 +1,8 @@
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPPipelineOptimiserParameters
-from fedot.core.composer.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 
 
@@ -44,11 +44,11 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8, allow_single_operations=False)
+        crossover_prob=0.8, mutation_prob=0.8)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPPipelineOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
@@ -59,7 +59,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
-                                                is_visualise=True)
+                                                      is_visualise=True)
 
     return pipeline_evo_composed
 
@@ -67,7 +67,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
 def pipeline_by_task(task, metric, data, is_composed):
     if is_composed:
         pipeline = get_composed_pipeline(data, task,
-                                   metric_function=metric)
+                                         metric_function=metric)
     else:
         if task.task_type.name == 'classification':
             pipeline = get_three_depth_manual_class_pipeline()

@@ -9,9 +9,9 @@ analysis of composite models includes structure analysis and sensitivity analysi
 
 Structural Analysis means structure modification of some sort like Node deletion,
 replacement or anything else(see `NodeAnalyzeApproach`_). Within FEDOT, you can apply such an analysis
-to the model by using `ChainAnalysis`_ or `NodeAnalysis`_. The difference is:
+to the model by using `PipelineAnalysis`_ or `NodeAnalysis`_. The difference is:
 
-* ``ChainAnalysis`` allows you to apply several approaches to several (all or defined) Nodes;
+* ``PipelineAnalysis`` allows you to apply several approaches to several (all or defined) Nodes;
 
 * ``NodeAnalysis`` allows you to apply several approaches to one Node;
 
@@ -22,32 +22,32 @@ Currently you may analyze hyperparameters of the certain node or all nodes toget
 analysis is that some hyperparameters may be dobbled due to components duplication, but have different influence.
 
 
-ChainSensitivityAnalysis
+PipelineSensitivityAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FEDOT allows you to apply all the available SA approaches to all (or certain) the components of the composite
-model via ``ChainSensitivityAnalysis``
+model via ``PipelineSensitivityAnalysis``
 
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Pipeline
+     from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
-     from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
+     from fedot.sensitivity.pipeline_sensitivity import PipelineStructureAnalyze
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeReplaceModelAnalyze
 
-     chain = Pipeline()
+     pipeline = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
      approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze, MultiOperationsHPAnalyze]
 
-     ChainSensitivityAnalysis(chain=chain, train_data=train_data,
+     PipelineSensitivityAnalysis(pipeline=pipeline, train_data=train_data,
                              test_data=test_data, approaches=approaches,
                              requirements=sa_requirements, path_to_save=result_path).analyze()
 
 
-ChainStructureAnalysis
+PipelineStructureAnalysis
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Conduct only composite model structure analysis via ``NodesAnalysis``,
@@ -68,17 +68,17 @@ on the composite model. The rating corresponds to:
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Pipeline
+     from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
-     from fedot.sensitivity.chain_sensitivity import ChainStructureAnalyze
+     from fedot.sensitivity.pipeline_sensitivity import PipelineStructureAnalyze
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeReplaceModelAnalyze
 
-     chain = Pipeline()
+     pipeline = Pipeline()
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
      approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze]
-     analysis_result = NodesAnalysis(chain=chain,
+     analysis_result = NodesAnalysis(pipeline=pipeline,
                                      train_data=train_data,
                                      test_data=test_data,
                                      approaches=nodes_analyze_approaches,
@@ -92,19 +92,19 @@ NodeAnalysis
 
 .. code-block:: python
 
-     from fedot.core.chains.chain import Pipeline
+     from fedot.core.pipelines.pipeline import Pipeline
      from fedot.core.data.data import InputData
      from fedot.sensitivity.node_sensitivity import \
      NodeDeletionAnalyze, NodeAnalysis, NodeReplaceModelAnalyze
 
-     chain = Pipeline()
+     pipeline = Pipeline()
      node_id_to_analyze = 2
      train_data = InputData.from_csv('train_file.csv')
      test_data = InputData.from_csv('test_file.csv')
      approaches = [NodeDeletionAnalyze, NodeReplaceModelAnalyze, OneOperationHPAnalyze]
 
      node_result = NodeAnalysis(approaches=approaches). \
-                analyze(chain=self.chain, node_id=node_id_to_analyze,
+                analyze(pipeline=self.pipeline, node_id=node_id_to_analyze,
                         train_data=self.train_data,
                         test_data=self.test_data)
 
@@ -145,7 +145,7 @@ Result file example:
 
 Result visualization example:
 
-What if to delete or replace every node in the chain
+What if to delete or replace every node in the pipeline
 
 |DeletionAnalysis| |ReplacementAnalysis|
 
@@ -163,6 +163,6 @@ What if to replace original model(in red) to the certain one
    :width: 45%
 
 
-.. _ChainAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.chain_sensitivity.ChainAnalysis
+.. _PipelineAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.pipeline_sensitivity.PipelineAnalysis
 .. _NodeAnalysis: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.node_sensitivity.NodeAnalysis
 .. _NodeAnalyzeApproach: https://fedot.readthedocs.io/en/latest/api/sensitivity.html#fedot.sensitivity.node_sensitivity.NodeAnalyzeApproach

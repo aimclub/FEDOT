@@ -45,8 +45,8 @@ class OperationTypesRepository:
         file = os.path.join('data', repository_name)
         repo_path = os.path.join(repo_folder_path, file)
         self._repo = self._initialise_repo(repo_path)
-
         self._tags_excluded_by_default = ['non-default', 'expensive']
+        self.repository_name = repository_name
 
     def __enter__(self):
         return self

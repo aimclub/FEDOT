@@ -8179,7 +8179,7 @@ with SA. All very neat.
 
 > SA in itself does nothing really. You need a frontend (procmail, amavis,
 etc)
-> at some point in the  mail delivery chain that can hand over the message
+> at some point in the  mail delivery pipeline that can hand over the message
 > to SA and do whatever other processing you want.
 
 I thought that SA rated a message with a certain score, then did a certain
@@ -10492,7 +10492,7 @@ nah, they've always been this way.
 > peoples face and shout them down when you disagree with them.
 
 culture changing, yeh.  'those who fail to learn from history..'
-what does it tell you when a market chain is named 'bread and circus'
+what does it tell you when a market pipeline is named 'bread and circus'
 and no-one twigs?
 -- 
 #ken	P-)}
@@ -12188,7 +12188,7 @@ ____X-Been____There: news@jabber.org
 	-- A well-known Linux kernel hacker.
 --------------------------------------------------------------------------
 William Stearns (wstearns@pobox.com).  Mason, Buildkernel, named2hosts, 
-and ipfwadm2ipchains are at:                        http://www.stearns.org
+and ipfwadm2ippipelines are at:                        http://www.stearns.org
 --------------------------------------------------------------------------
 
 
@@ -21876,8 +21876,8 @@ my dad would have to come in and do it, but I just
 rode to the next bank down the street (laughs)."" 
 Surprisingly, the boy did not have any reason to be 
 afraid. The reporting news team examined and 
-investigated the so-called ""chain-letter"" the boy was 
-sending out and found that it was not a chain-letter 
+investigated the so-called ""pipeline-letter"" the boy was
+sending out and found that it was not a pipeline-letter
 at all. In fact, it was completely legal according to 
 US Postal and Lottery Laws, Title 18, Section 1302 and 
 1341, or Title 18, Section 3005 in the US code, also 
@@ -38502,7 +38502,7 @@ On Mon, 7 Oct 2002, Jesse Keating wrote:
 > # DMA... although there probably is since Red Hat decided to default
 > # disabling it a few releases back :-/
 > 
-> When I worked as a PC repair tech for a Computer store chain, I did
+> When I worked as a PC repair tech for a Computer store pipeline, I did
 > run across quite a few DVD drives that would lock up if DMA was
 > enabled.  It's more of a chipset/drive problem than a Drive by itself.
 

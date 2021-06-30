@@ -5,8 +5,8 @@ from typing import Optional
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
@@ -40,7 +40,7 @@ class GraphVisualiser:
 
     def _draw_tree(self, graph: 'Graph', ax=None, title=None,
                    in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(structural_graph=graph)
+        nx_graph, node_labels = in_graph_converter_function(graph)
         word_labels = [str(node) for node in node_labels.values()]
         inv_map = {v: k for k, v in node_labels.items()}
         if type(graph).__name__ == 'Pipeline':
@@ -61,7 +61,7 @@ class GraphVisualiser:
 
     def _draw_dag(self, graph: 'Graph', ax=None, title=None,
                   in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(structural_graph=graph)
+        nx_graph, node_labels = in_graph_converter_function(graph)
         word_labels = [str(node) for node in node_labels.values()]
 
         pos = nx.circular_layout(nx_graph)

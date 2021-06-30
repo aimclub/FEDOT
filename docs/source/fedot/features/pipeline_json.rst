@@ -1,28 +1,28 @@
-How to save fitted models and interpreting the chain in JSON format
+How to save fitted models and interpreting the pipeline in JSON format
 ===================================================================
 
-FEDOT works mainly with the *'Pipeline'* object, which is a chain of models. For more
+FEDOT works mainly with the *'Pipeline'* object, which is a pipeline of models. For more
 convenient use of the framework, we provide the ability
-to upload and download chains, and their models for further editing, visual
+to upload and download pipelines, and their models for further editing, visual
 representation, or data transfer. Here are some simple steps to export 
-and import chain structure.
+and import pipeline structure.
 
-.. figure::  ../img/img_utilities/chain_json.png
+.. figure::  ../img/img_utilities/pipeline_json.png
    :align:   center
 
-Exporting a model chain
+Exporting a model pipeline
 -----------------------
       
-The Pipeline object has a *'save_chain'* method that takes a single argument,
+The Pipeline object has a *'save_pipeline'* method that takes a single argument,
 the path to where the JSON object and fitted models will be saved.
 You can specify the path to save files with the folder name:
 
-- /home/user/project/model/my_chain,
+- /home/user/project/model/my_pipeline,
 
-this way your chain and trained models will be saved in a folder in the following hierarchy:
+this way your pipeline and trained models will be saved in a folder in the following hierarchy:
 
-- /home/user/project/model/my_chain:
-    - my_chain.json
+- /home/user/project/model/my_pipeline:
+    - my_pipeline.json
     - fitted_models:
         - model_0.pkl
         - model_2.pkl
@@ -33,14 +33,14 @@ this way your chain and trained models will be saved in a folder in the followin
 .. code-block:: python
 
     from cases.data.data_utils import get_scoring_case_data_paths
-    from fedot.core.chains.chain import Pipeline
-    from fedot.core.chains.node import PrimaryNode, SecondaryNode
+    from fedot.core.pipelines.pipeline import Pipeline
+    from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
     from fedot.core.data.data import InputData
 
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
 
-    chain = Pipeline()
+    pipeline = Pipeline()
     node_logit = PrimaryNode('logit')
     
     node_lda = PrimaryNode('lda')
@@ -52,23 +52,23 @@ this way your chain and trained models will be saved in a folder in the followin
     node_knn_second.custom_params = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_logit, node_lda, node_xgboost]
     
-    chain.add_node(node_knn_second)
-    chain.fit(train_data)
+    pipeline.add_node(node_knn_second)
+    pipeline.fit(train_data)
     
-    chain.save_chain("data/my_chain")
+    pipeline.save_pipeline("data/my_pipeline")
 
-The *'save_chain'* method:
+The *'save_pipeline'* method:
 
-1. saves the chain's fitted models to path ``test/data/my_chain/fitted_models``,
-2. saves JSON object in the file ``test/data/my_chain/my_chain.json``,
+1. saves the pipeline's fitted models to path ``test/data/my_pipeline/fitted_models``,
+2. saves JSON object in the file ``test/data/my_pipeline/my_pipeline.json``,
 3. returns a JSON-like-object
 
 .. code-block:: json
 
-    "data/Month:Day:Year, Time Period my_chain/my_chain.json"
+    "data/Month:Day:Year, Time Period my_pipeline/my_pipeline.json"
 
     {
-        "total_chain_models": {
+        "total_pipeline_models": {
             "logit": 1,
             "lda": 1,
             "xgboost": 1,
@@ -143,9 +143,9 @@ The *'save_chain'* method:
 Model Pipeline import
 ------------------
       
-To import a chain, you need to create an empty *'Pipeline'* object, or an
+To import a pipeline, you need to create an empty *'Pipeline'* object, or an
 already used one, but all data will be overwritten during import. The
-*'load_chain'* method takes the path to a file with the JSON extension
+*'load_pipeline'* method takes the path to a file with the JSON extension
 as an argument.
 
 **Example of using a model:**
@@ -156,15 +156,15 @@ as an argument.
 
     test_data = InputData.from_csv(test_file_path)
 
-    chain = Pipeline()
-    chain.load_chain("data/Month:Day:Year, Time Period my_chain/my_chain.json")
-    predicted_values = chain.predict(test_data).predict
+    pipeline = Pipeline()
+    pipeline.load_pipeline("data/Month:Day:Year, Time Period my_pipeline/my_pipeline.json")
+    predicted_values = pipeline.predict(test_data).predict
     actual_values = test_data.target
 
     mean_squared_error(predicted_values, actual_values)
  
 **NOTE:** Required fields for loading the model are: **'model_id'**, **'model_type'**, **'preprocessor'**,
 **'params'**, **'nodes_from'**. The consequence is that you can
-create an unusual chain.
+create an unusual pipeline.
 
 Now you can upload models, share them, and edit them in a convenient JSON format.

@@ -4,9 +4,9 @@ import numpy as np
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.decompose.refinement_forecast_example import get_refinement_pipeline
-from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_classification import get_iris_data

@@ -3,7 +3,7 @@ Sensitivity Analysis
 
 Pipeline Complete Analysis
 -------------------------
-.. automodule:: fedot.sensitivity.chain_sensitivity_facade
+.. automodule:: fedot.sensitivity.pipeline_sensitivity_facade
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Pipeline Structure Analysis
 Pipeline Non-Structure Analysis
 -------------------------
 
-.. automodule:: fedot.sensitivity.chain_sensitivity
+.. automodule:: fedot.sensitivity.pipeline_sensitivity
    :members:
    :undoc-members:
    :show-inheritance:

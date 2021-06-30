@@ -1,7 +1,7 @@
 Pipeline
 =====
 
-.. automodule:: fedot.core.chains.chain
+.. automodule:: fedot.core.pipelines.pipeline
    :members:
    :undoc-members:
    :show-inheritance:

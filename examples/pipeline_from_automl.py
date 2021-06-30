@@ -3,14 +3,14 @@ from datetime import timedelta
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 
 
-# TODO refactor is required
+# TODO not working now - add switch to other repository.json
 def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
-                          max_run_time: timedelta = timedelta(minutes=10)):
+                             max_run_time: timedelta = timedelta(minutes=10)):
     """ Function run pipeline with Auto ML models in nodes
 
     :param train_file_path: path to the csv file with data for train

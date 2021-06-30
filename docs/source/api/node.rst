@@ -1,7 +1,7 @@
 GraphNode
 ====
 
-.. automodule:: fedot.core.chains.node
+.. automodule:: fedot.core.pipelines.node
    :members:
    :undoc-members:
    :show-inheritance:

@@ -147,7 +147,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         tuner_metric=None,
                         cv_folds: Optional[int] = None
                         ):
-    """ Function for composing FEDOT pipeline model """
+    """ Function for composing FEDOT pipeline """
 
     metric_function = _obtain_metric(task, composer_metric)
 
