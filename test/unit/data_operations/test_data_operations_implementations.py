@@ -192,7 +192,7 @@ def test_nan_absence_after_imputation_implementation_fit_and_transform():
     assert np.sum(np.isnan(output_data.predict)) == 0
 
 
-def test_nan_absence_after_pipeline_tuning():
+def test_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
     model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
@@ -226,7 +226,7 @@ def test_inf_absence_after_imputation_implementation_fit_and_transform():
     assert np.sum(np.isinf(output_data.predict)) == 0
 
 
-def test_inf_absence_after_pipeline_tuning():
+def test_inf_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
     model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)

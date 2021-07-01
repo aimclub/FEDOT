@@ -138,6 +138,11 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     # Get acceptable task types for operation
     operation_info = operations_repo.operation_info_by_id(operation_type)
+
+    if operation_info is None:
+        raise ValueError(f'{operation_type} is not implemented '
+                         f'in {operations_repo.repository_name}')
+
     acceptable_task_types = operation_info.task_type
 
     # If the operation can't be used directly for the task type from data
