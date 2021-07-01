@@ -35,15 +35,6 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def fit_transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Method apply transform operation on a dataset
-
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def get_params(self):
         """ Method return parameters, which can be optimized for particular
         operation

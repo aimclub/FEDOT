@@ -190,12 +190,12 @@ def test_nan_absence_after_imputation_implementation_fit_and_transform():
 
 
 def test_nan_absence_after_pipeline_tuning():
-    train_input = get_nan_inf_data()
+    train_input, predict_input, y_test = get_small_regression_dataset()
+    train_input.features[0][0] = np.nan
 
-    tags = ['simple', 'linear', 'non_linear', 'dimensionality_transforming']
-    model_names, _ = OperationTypesRepository().operations_with_tag(tags=tags)
-
-    for data_operation in model_names:
+    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
+                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
+                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -225,12 +225,12 @@ def test_inf_absence_after_imputation_implementation_fit_and_transform():
 
 
 def test_inf_absence_after_pipeline_tuning():
-    train_input = get_nan_inf_data()
+    train_input, predict_input, y_test = get_small_regression_dataset()
+    train_input.features[0][0] = np.inf
 
-    tags = ['simple', 'linear', 'non_linear', 'dimensionality_transforming']
-    model_names, _ = OperationTypesRepository().operations_with_tag(tags=tags)
-
-    for data_operation in model_names:
+    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
+                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
+                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
