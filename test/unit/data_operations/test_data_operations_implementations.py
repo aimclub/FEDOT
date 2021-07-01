@@ -191,7 +191,7 @@ def test_nan_absence_after_imputation_implementation_fit_and_transform():
     assert np.sum(np.isnan(output_data.predict)) == 0
 
 
-def test_nan_absence_after_nodes_tuning():
+def test_nan_absence_after_pipeline_tuning():
     train_input = get_nan_inf_data()
 
     for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
@@ -228,7 +228,7 @@ def test_inf_absence_after_imputation_implementation_fit_and_transform():
     assert np.sum(np.isinf(output_data.predict)) == 0
 
 
-def test_inf_absence_after_nodes_tuning():
+def test_inf_absence_after_pipeline_tuning():
     train_input = get_nan_inf_data()
 
     for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
