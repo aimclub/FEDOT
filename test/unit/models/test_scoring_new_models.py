@@ -1,66 +1,21 @@
 import datetime
 import numpy as np
-import pytest
 
-# Dataclass for wrapping arrays into it
-from fedot.core.data.data import InputData
-
-# Tasks to solve
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-# Type of the input data
-from fedot.core.repository.dataset_types import DataTypesEnum
-
-# Repository with operations in the FEDOT
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-
-# Chain of the FEDOT
-from fedot.core.chains.chain import Chain
-
-# Evolutionary algorithm classes
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.utilities.synth_dataset_generator import classification_dataset
-from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
-
 from fedot.core.chains.chain import Chain
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.operations.data_operation import DataOperation
-from fedot.core.operations.model import Model
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import default_log
-from fedot.core.operations.model import Model
-from fedot.core.data.data import InputData, OutputData
-
-
-def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
-    n_classes = valid_data.num_classes
-    if n_classes > 2:
-        additional_params = {'multi_class': 'ovo', 'average': 'macro'}
-    else:
-        additional_params = {}
-
-    try:
-        roc_on_train = round(roc_auc(valid_data.target,
-                                     predicted_data.predict,
-                                     **additional_params), 3)
-    except Exception as ex:
-        print(ex)
-        roc_on_train = 0.5
-
-    return roc_on_train
+from fedot.core.data.data import InputData
+from sklearn.metrics import roc_auc_score as roc_auc
 
 
 def test_classification_models_fit_correct():
-    # Generate numpy arrays with features and target
     features_options = {'informative': 6, 'redundant': 0,
                         'repeated': 0, 'clusters_per_class': 1}
     x_data, y_data = classification_dataset(samples_amount=2500,
@@ -68,26 +23,15 @@ def test_classification_models_fit_correct():
                                             classes_amount=2,
                                             features_options=features_options)
 
-    print(f'Features table shape: {x_data.shape}, type: {type(x_data)}')
-    print(f'Target vector: {y_data.shape}, type: {type(y_data)}')
-
-    # Define classification task
     task = Task(TaskTypesEnum.classification)
-
-    # Prepare data to train the model
     input_data = InputData(idx=np.arange(0, len(x_data)), features=x_data,
                            target=y_data, task=task,
                            data_type=DataTypesEnum.table)
 
-    # The search of the models provided by the framework that can be used as nodes in a chain for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
-    print(available_model_types)
 
-    # The choice of the metric for the chain quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-
-    # The choice and initialisation of the GP search
-    max_lead_time = datetime.timedelta(minutes=3)
+    max_lead_time = datetime.timedelta(minutes=10)
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types,
@@ -98,30 +42,24 @@ def test_classification_models_fit_correct():
         mutation_prob=0.8,
         max_lead_time=max_lead_time)
 
-    node_logit = PrimaryNode('logit')
-    node_scaling = PrimaryNode('scaling')
-    node_xg = SecondaryNode('xgboost', nodes_from=[node_logit, node_scaling])
-    chain_xg = Chain(node_xg)
-
-    node_ctb = SecondaryNode('catboost', nodes_from=[node_logit, node_scaling])
-    chain_ctb = Chain(node_ctb)
-
-    node_lgbm = SecondaryNode('lgbm', nodes_from=[node_logit, node_scaling])
-    chain_lgbm = Chain(node_lgbm)
-
     xg_metrics = []
     ctb_metrics = []
     lgbm_metrics = []
 
-    for chn, a in zip([chain_xg, chain_ctb, chain_lgbm], [xg_metrics, ctb_metrics, lgbm_metrics]):
-        for i in range(3):
+    for chain_type, a in zip(['catboost', 'xgboost', 'lgbm'], [ctb_metrics, xg_metrics, lgbm_metrics]):
+        for i in range(10):
+            node_logit = PrimaryNode('logit')
+            node_scaling = PrimaryNode('scaling')
+            node_custom = SecondaryNode(chain_type, nodes_from=[node_logit, node_scaling])
+            chain = Chain(node_custom)
+
             # GP optimiser parameters choice
             scheme_type = GeneticSchemeTypesEnum.parameter_free
-            optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+            optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
             # Create builder for composer and set composer params
             builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-                metric_function).with_optimiser_parameters(optimiser_parameters).with_initial_chain(chn)
+                metric_function).with_optimiser_parameters(optimiser_parameters).with_initial_chain(chain)
 
             # Create GP-based composer
             composer = builder.build()
@@ -136,4 +74,19 @@ def test_classification_models_fit_correct():
             print(f'ROC AUC score on training sample: {roc_auc(y_data, prediction.predict):.3f}')
             a.append(roc_auc(y_data, prediction.predict))
 
-    print(xg_metrics, ctb_metrics, lgbm_metrics)
+    # ALL EXPERIMENT COST 300 MINUTES OR 5 HOURS.
+    # MORE TAKE TAKE MODELS TUNING THEN COMPOSING.
+    # CATBOOST AND LGBM SHOW BETTER RESULT FOR THIS CASE
+    # 2500 objects and 6 features in dataset, classification problem, ROC-AUC optimisation metric
+
+    # XGBOOST: [0.9648406970603768, 0.9604855099134275, 0.9603379686674882, 0.985633006065936, 0.9669519455224277,
+    # 0.976354562509481, 0.9805950211574883, 0.9836142277148695, 0.9849071675592433, 0.9913533047734444]
+    # MEAN: 0.9755073410944182
+
+    # LGBM: [0.9690518430908732, 0.9922380005171253, 0.9748829428013343, 0.9722555591612788, 0.986118818611421,
+    # 0.9815135205023775, 0.9783022931760299, 0.9861245792344899, 0.9580716250269629, 0.9687066953161654]
+    # MEAN: 0.9767265877438056
+
+    # CATBOOST: [1.0, 0.9847768723147844, 0.9849608733746307, 0.9672662195143027, 0.9799325495045544,
+    # 0.9688132668429417, 0.9752040380687576, 0.9636856722423097, 0.9717255818389318, 0.9736928346169922]
+    # MEAN: 0.9770057908318204
