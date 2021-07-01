@@ -74,10 +74,16 @@ def experiment_ctb_lgbm_xgb():
             print(f'ROC AUC score on training sample: {roc_auc(y_data, prediction.predict):.3f}')
             a.append(roc_auc(y_data, prediction.predict))
 
+    # INITIAL MODELS WERE CREATED: LOGIT    SCALING
+    #                                   \  |
+    #                            XGB or LGBM or CATB
+    # AFTER COMPOSING AND TUNING MODELS
+
+    # 2500 objects and 6 features in dataset, classification problem, ROC-AUC optimisation metric.
+
     # ALL EXPERIMENT COST 300 MINUTES OR 5 HOURS.
-    # MORE TAKE TAKE MODELS TUNING THEN COMPOSING.
-    # CATBOOST AND LGBM SHOW BETTER RESULT FOR THIS CASE
-    # 2500 objects and 6 features in dataset, classification problem, ROC-AUC optimisation metric
+    # MORE TAKE MODELS TUNING(90% of all time) THEN COMPOSING (10% of all time).
+    # CATBOOST AND LGBM SHOW BETTER RESULT FOR THIS CASE.
 
     # XGBOOST: [0.9648406970603768, 0.9604855099134275, 0.9603379686674882, 0.985633006065936, 0.9669519455224277,
     # 0.976354562509481, 0.9805950211574883, 0.9836142277148695, 0.9849071675592433, 0.9913533047734444]
