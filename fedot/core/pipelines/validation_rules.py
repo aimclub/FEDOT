@@ -1,12 +1,12 @@
 from typing import Optional
 
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
 from fedot.core.repository.tasks import Task
-from fedot.core.operations.atomized_model import AtomizedModel
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -76,8 +76,13 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
                 parent_node_supported_data_types = \
                     get_supported_data_types(parent_node, operation_repo, models_repo)
 
+                if current_nodes_supported_data_types is None:
+                    # case for atomic model
+                    return True
+
                 node_dtypes = set(current_nodes_supported_data_types.input_types)
-                parent_dtypes = set(parent_node_supported_data_types.output_types)
+                parent_dtypes = set(parent_node_supported_data_types.output_types) \
+                    if parent_node_supported_data_types else node_dtypes
                 if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
                     raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect data connections')
 

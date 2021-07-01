@@ -3,9 +3,9 @@ from copy import deepcopy
 import pandas as pd
 
 from fedot.api.main import Fedot
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 
 
@@ -36,7 +36,7 @@ def run_additional_learning_example():
     non_atomized_model = deepcopy(prev_model)
 
     train_data = train_data.head(5000)
-    learning_time = 5
+    learning_time = 1
 
     auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='light', learning_time=learning_time,
                                      composer_params={'initial_chain': atomized_model}, verbose_level=2)
