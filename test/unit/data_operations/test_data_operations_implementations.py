@@ -111,9 +111,9 @@ def get_nan_inf_data():
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
-                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
+    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -129,8 +129,9 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'rfe_lin_class', 'rfe_non_lin_class']:
+    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.classification)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -160,7 +161,9 @@ def test_ts_forecasting_lagged_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    for smoothing_operation in ['smoothing', 'gaussian_filter']:
+    model_names, _ = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+
+    for smoothing_operation in model_names:
         node_smoothing = PrimaryNode(smoothing_operation)
         node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
         node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
@@ -190,12 +193,11 @@ def test_nan_absence_after_imputation_implementation_fit_and_transform():
 
 
 def test_nan_absence_after_pipeline_tuning():
-    train_input, predict_input, y_test = get_small_regression_dataset()
-    train_input.features[0][0] = np.nan
+    train_input = get_nan_inf_data()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
-                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
+    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -225,12 +227,11 @@ def test_inf_absence_after_imputation_implementation_fit_and_transform():
 
 
 def test_inf_absence_after_pipeline_tuning():
-    train_input, predict_input, y_test = get_small_regression_dataset()
-    train_input.features[0][0] = np.inf
+    train_input = get_nan_inf_data()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
-                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
+    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
