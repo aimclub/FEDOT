@@ -81,8 +81,6 @@ class Operation:
         """
         self._init(data.task)
 
-        self.log.warn('NaN / Inf filling')
-
         if 'imputation' not in self.operation_type:
             data = _fill_remaining_gaps(data, self.operation_type)
 

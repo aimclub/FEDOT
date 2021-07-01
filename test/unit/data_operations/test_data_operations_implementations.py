@@ -10,6 +10,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 np.random.seed(2021)
 
@@ -174,7 +175,6 @@ def test_ts_forecasting_smoothing_data_operation():
 
 def test_nan_absence_after_imputation_implementation_fit_transform():
     input_data = get_nan_inf_data()
-
     output_data = ImputationImplementation().fit_transform(input_data)
 
     assert np.sum(np.isnan(output_data.predict)) == 0
@@ -182,11 +182,9 @@ def test_nan_absence_after_imputation_implementation_fit_transform():
 
 def test_nan_absence_after_imputation_implementation_fit_and_transform():
     input_data = get_nan_inf_data()
-
-    ii = ImputationImplementation()
-    ii.fit(input_data)
-
-    output_data = ii.transform(input_data)
+    imputer = ImputationImplementation()
+    imputer.fit(input_data)
+    output_data = imputer.transform(input_data)
 
     assert np.sum(np.isnan(output_data.predict)) == 0
 
@@ -194,9 +192,10 @@ def test_nan_absence_after_imputation_implementation_fit_and_transform():
 def test_nan_absence_after_pipeline_tuning():
     train_input = get_nan_inf_data()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
-                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
+    tags = ['simple', 'linear', 'non_linear', 'dimensionality_transforming']
+    model_names, _ = OperationTypesRepository().operations_with_tag(tags=tags)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -211,7 +210,6 @@ def test_nan_absence_after_pipeline_tuning():
 
 def test_inf_absence_after_imputation_implementation_fit_transform():
     input_data = get_nan_inf_data()
-
     output_data = ImputationImplementation().fit_transform(input_data)
 
     assert np.sum(np.isinf(output_data.predict)) == 0
@@ -219,11 +217,9 @@ def test_inf_absence_after_imputation_implementation_fit_transform():
 
 def test_inf_absence_after_imputation_implementation_fit_and_transform():
     input_data = get_nan_inf_data()
-
-    ii = ImputationImplementation()
-    ii.fit(input_data)
-
-    output_data = ii.transform(input_data)
+    imputer = ImputationImplementation()
+    imputer.fit(input_data)
+    output_data = imputer.transform(input_data)
 
     assert np.sum(np.isinf(output_data.predict)) == 0
 
@@ -231,9 +227,10 @@ def test_inf_absence_after_imputation_implementation_fit_and_transform():
 def test_inf_absence_after_pipeline_tuning():
     train_input = get_nan_inf_data()
 
-    for data_operation in ['kernel_pca', 'pca', 'scaling', 'normalization',
-                           'poly_features', 'ransac_lin_reg', 'ransac_non_lin_reg',
-                           'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
+    tags = ['simple', 'linear', 'non_linear', 'dimensionality_transforming']
+    model_names, _ = OperationTypesRepository().operations_with_tag(tags=tags)
+
+    for data_operation in model_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
