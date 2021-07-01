@@ -1,3 +1,4 @@
+import warnings
 from copy import deepcopy
 from random import choice, randint
 from typing import (Any, Callable, List, Tuple)
@@ -5,7 +6,7 @@ from typing import (Any, Callable, List, Tuple)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-import warnings
+
 max_iters = 1000
 
 

@@ -6,10 +6,10 @@ from sklearn.model_selection import train_test_split
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from fedot.api.main import Fedot, _define_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
@@ -70,7 +70,7 @@ def test_api_predict_correct(task_type: str = 'classification'):
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
 
-    assert isinstance(fedot_model, Chain)
+    assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
 
@@ -96,13 +96,13 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     model = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
-    # Define chain for prediction
+    # Define pipeline for prediction
     node_lagged = PrimaryNode('lagged')
-    chain = Chain(SecondaryNode('linear', nodes_from=[node_lagged]))
+    pipeline = Pipeline(SecondaryNode('linear', nodes_from=[node_lagged]))
 
     model.fit(features=train_data.features,
               target=train_data.target,
-              predefined_model=chain)
+              predefined_model=pipeline)
     ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 

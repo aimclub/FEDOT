@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fedot.core.chains.node import Node
+from fedot.core.pipelines.node import Node
 from collections import namedtuple
 
 HyperparamsAnalysisMetaParams = namedtuple('HyperparamsAnalysisMetaParams', ['analyze_method',

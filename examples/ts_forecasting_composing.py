@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -22,9 +22,9 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 warnings.filterwarnings('ignore')
 
 
-def get_source_chain():
+def get_source_pipeline():
     """
-    Return chain with the following structure:
+    Return pipeline with the following structure:
     lagged - ridge \
                     -> ridge
     lagged - ridge /
@@ -40,19 +40,19 @@ def get_source_chain():
 
     # Third level - root node
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
-def display_chain_info(chain):
-    """ Function print info about chain """
+def display_pipeline_info(pipeline):
+    """ Function print info about pipeline """
 
-    print('\nObtained chain:')
-    for node in chain.nodes:
+    print('\nObtained pipeline:')
+    for node in pipeline.nodes:
         print(f'{node.operation.operation_type}, params: {node.custom_params}')
-    depth = int(chain.graph_depth)
-    print(f'Chain depth {depth}\n')
+    depth = int(pipeline.graph_depth)
+    print(f'Pipeline depth {depth}\n')
 
 
 def get_available_operations():
@@ -143,20 +143,20 @@ def prepare_train_test_input(train_part, len_forecast):
     return train_input, predict_input, task
 
 
-def fit_predict_for_chain(chain, train_input, predict_input):
+def fit_predict_for_pipeline(pipeline, train_input, predict_input):
     """ Function apply fit and predict operations
 
-    :param chain: chain to process
+    :param pipeline: pipeline to process
     :param train_input: InputData for fit
     :param predict_input: InputData for predict
 
-    :return preds: prediction of the chain
+    :return preds: prediction of the pipeline
     """
     # Fit it
-    chain.fit_from_scratch(train_input)
+    pipeline.fit_from_scratch(train_input)
 
     # Predict
-    predicted_values = chain.predict(predict_input)
+    predicted_values = pipeline.predict(predict_input)
     # Convert to one dimensional array
     preds = np.ravel(np.array(predicted_values.predict))
 
@@ -183,11 +183,11 @@ def run_ts_forecasting_problem(forecast_length=50,
     train_input, predict_input, task = prepare_train_test_input(train_part,
                                                                 forecast_length)
 
-    # Get chain with pre-defined structure
-    init_chain = get_source_chain()
+    # Get pipeline with pre-defined structure
+    init_pipeline = get_source_pipeline()
 
     # Init check
-    preds = fit_predict_for_chain(chain=init_chain,
+    preds = fit_predict_for_pipeline(pipeline=init_pipeline,
                                   train_input=train_input,
                                   predict_input=predict_input)
     display_validation_metric(predicted=preds,
@@ -204,7 +204,7 @@ def run_ts_forecasting_problem(forecast_length=50,
         secondary=secondary_operations, max_arity=3,
         max_depth=8, pop_size=10, num_of_generations=15,
         crossover_prob=0.8, mutation_prob=0.8,
-        max_lead_time=datetime.timedelta(minutes=10))
+        timeout=datetime.timedelta(minutes=10))
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
                       MutationTypesEnum.reduce]
@@ -214,18 +214,18 @@ def run_ts_forecasting_problem(forecast_length=50,
     builder = GPComposerBuilder(task=task). \
         with_optimiser_parameters(optimiser_parameters).\
         with_requirements(composer_requirements).\
-        with_metrics(metric_function).with_initial_chain(init_chain)
+        with_metrics(metric_function).with_initial_pipeline(init_pipeline)
     composer = builder.build()
 
-    obtained_chain = composer.compose_chain(data=train_input, is_visualise=False)
+    obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
 
     ################################
-    # Obtained chain visualisation #
+    # Obtained pipeline visualisation #
     ################################
     if with_visualisation:
-        obtained_chain.show()
+        obtained_pipeline.show()
 
-    preds = fit_predict_for_chain(chain=obtained_chain,
+    preds = fit_predict_for_pipeline(pipeline=obtained_pipeline,
                                   train_input=train_input,
                                   predict_input=predict_input)
 
@@ -234,7 +234,7 @@ def run_ts_forecasting_problem(forecast_length=50,
                               actual_values=time_series,
                               is_visualise=with_visualisation)
 
-    display_chain_info(obtained_chain)
+    display_pipeline_info(obtained_pipeline)
 
 
 if __name__ == '__main__':

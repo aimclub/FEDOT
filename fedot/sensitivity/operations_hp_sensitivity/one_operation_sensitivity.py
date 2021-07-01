@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log, Log
 from fedot.core.operations.operation_template import extract_operation_params
@@ -23,10 +23,10 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, H
 class OneOperationHPAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None):
-        super().__init__(chain, train_data, test_data, path_to_save)
+        super().__init__(pipeline, train_data, test_data, path_to_save)
 
         requirements = SensitivityAnalysisRequirements() if requirements is None else requirements
         self.requirements: HyperparamsAnalysisMetaParams = requirements.hp_analysis_meta
@@ -44,9 +44,9 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
     def analyze(self, node: Node,
                 is_dispersion_analysis: bool = False) -> Union[dict, float]:
 
-        # check whether the chain is fitted
-        if not self._chain.fitted_on_data:
-            self._chain.fit(self._train_data)
+        # check whether the pipeline is fitted
+        if not self._pipeline.fitted_on_data:
+            self._pipeline.fit(self._train_data)
 
         # create problem
         self.operation_type = node.operation.operation_type
@@ -67,7 +67,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         return converted_to_json_indices
 
-    def sample(self, *args) -> Union[List[Chain], Chain]:
+    def sample(self, *args) -> Union[List[Pipeline], Pipeline]:
         """
 
         :param args:
@@ -77,26 +77,26 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         samples: List[np.array] = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
 
         converted_samples: List[dict] = self.problem.convert_sample_to_dict(samples)
-        sampled_chains: List[Chain] = self._apply_params_to_node(params=converted_samples,
-                                                                 node=node)
+        sampled_pipelines: List[Pipeline] = self._apply_params_to_node(params=converted_samples,
+                                                                    node=node)
 
-        return sampled_chains
+        return sampled_pipelines
 
-    def _apply_params_to_node(self, params: List[dict], node: Node) -> List[Chain]:
-        sampled_chains: List[Chain] = list()
+    def _apply_params_to_node(self, params: List[dict], node: Node) -> List[Pipeline]:
+        sampled_pipelines: List[Pipeline] = list()
         for sample in params:
-            copied_chain = deepcopy(self._chain)
-            node_id = self._chain.nodes.index(node)
-            copied_chain.nodes[node_id].custom_params = sample
-            sampled_chains.append(copied_chain)
+            copied_pipeline = deepcopy(self._pipeline)
+            node_id = self._pipeline.nodes.index(node)
+            copied_pipeline.nodes[node_id].custom_params = sample
+            sampled_pipelines.append(copied_pipeline)
 
-        return sampled_chains
+        return sampled_pipelines
 
-    def _get_response_matrix(self, samples: List[Chain]):
+    def _get_response_matrix(self, samples: List[Pipeline]):
         operation_response_matrix = []
-        for sampled_chain in samples:
-            sampled_chain.fit(self._train_data)
-            prediction = sampled_chain.predict(self._test_data)
+        for sampled_pipeline in samples:
+            sampled_pipeline.fit(self._train_data)
+            prediction = sampled_pipeline.predict(self._test_data)
             mse_metric = mean_squared_error(y_true=self._test_data.target,
                                             y_pred=prediction.predict)
             operation_response_matrix.append(mse_metric)
@@ -124,11 +124,11 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         # default values of param & loss
         param_name = list(params[0].keys())[0]
         default_param_value = extract_operation_params(node).get(param_name)
-        chains_with_applied_params = self._apply_params_to_node(params, node)
+        pipelines_with_applied_params = self._apply_params_to_node(params, node)
 
         # percentage ratio
         samples = (samples - default_param_value) / default_param_value
-        response_matrix = self._get_response_matrix(chains_with_applied_params)
+        response_matrix = self._get_response_matrix(pipelines_with_applied_params)
         response_matrix = (response_matrix - np.mean(response_matrix)) / \
                           (max(response_matrix) - min(response_matrix))
 

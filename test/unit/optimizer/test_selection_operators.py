@@ -18,10 +18,10 @@ def rand_population_gener_and_eval(pop_size=4):
     models_set = ['knn', 'logit', 'rf']
     requirements = GPComposerRequirements(primary=models_set,
                                           secondary=models_set, max_depth=1)
-    chain_gener_params = GraphGenerationParams()
-    random_chain_function = partial(random_graph, params=chain_gener_params,
-                                    requirements=requirements)
-    population = [Individual(random_chain_function()) for _ in range(pop_size)]
+    pipeline_gener_params = GraphGenerationParams()
+    random_pipeline_function = partial(random_graph, params=pipeline_gener_params,
+                                       requirements=requirements)
+    population = [Individual(random_pipeline_function()) for _ in range(pop_size)]
     # evaluation
     for ind in population:
         ind.fitness = obj_function()

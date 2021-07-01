@@ -4,12 +4,12 @@ from typing import (
     Optional,
 )
 
-from fedot.core.chains.chain import Chain
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task
 
 
@@ -24,13 +24,13 @@ class GPComposerRequirements(ComposerRequirements):
 class FixedStructureComposer(GPComposer):
     def __init__(self, optimiser=None, metrics: Optional[Callable] = None,
                  composer_requirements: GPComposerRequirements = None,
-                 initial_chain: Optional[Chain] = None):
+                 initial_pipeline: Optional[Pipeline] = None):
         super().__init__(optimiser=optimiser, metrics=metrics, composer_requirements=composer_requirements,
-                         initial_chain=initial_chain)
+                         initial_pipeline=initial_pipeline)
 
-    def compose_chain(self, data: InputData, is_visualise: bool = False,
-                      is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Chain:
-        return super().compose_chain(data, is_visualise, is_tune, on_next_iteration_callback)
+    def compose_pipeline(self, data: InputData, is_visualise: bool = False,
+                         is_tune: bool = False, on_next_iteration_callback: Optional[Callable] = None) -> Pipeline:
+        return super().compose_pipeline(data, is_visualise, is_tune, on_next_iteration_callback)
 
 
 class FixedStructureComposerBuilder(GPComposerBuilder):

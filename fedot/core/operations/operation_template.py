@@ -3,15 +3,15 @@ from abc import ABC, abstractmethod
 
 import joblib
 
-from fedot.core.chains.node import Node
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
 
 
 class OperationTemplateAbstract(ABC):
     """
     Base class used for create different types of operation ("atomized_operation"
     or others like ("knn", "xgboost")).
-    Atomized_operation is chain which can be used like general operation.
+    Atomized_operation is pipeline which can be used like general operation.
     """
 
     def __init__(self, log: Log = None):
@@ -29,7 +29,7 @@ class OperationTemplateAbstract(ABC):
         """
         Preprocessing for local fields
         :param node: current node
-        :param operation_id: operation id in chain
+        :param operation_id: operation id in pipeline
         :param nodes_from: parents operation's id
         """
 

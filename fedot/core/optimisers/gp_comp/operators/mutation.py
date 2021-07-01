@@ -1,15 +1,14 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random
-from typing import Any, Callable, Union
-from typing import TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.dag.graph import List
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.graph import OptNode, OptGraph
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
 
@@ -95,14 +94,16 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
         elif mutation_type != MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
-        log.debug('Number of mutation attempts exceeded. Please check composer requirements for correctness.')
+        log.debug('Number of mutation attempts exceeded. '
+                  'Please check composer requirements for correctness.')
     return deepcopy(ind)
 
 
 def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     """
     This type of mutation is passed over all nodes of the tree started from the root node and changes
-    nodes’ operations with probability - 'node mutation probability' which is initialised inside the function
+    nodes’ operations with probability - 'node mutation probability'
+    which is initialised inside the function
     """
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
@@ -111,7 +112,8 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                secondary_node = OptNode(content=choice(requirements.secondary), nodes_from=node.nodes_from)
+                secondary_node = OptNode(content=choice(requirements.secondary),
+                                         nodes_from=node.nodes_from)
                 graph.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
@@ -125,58 +127,62 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     return graph
 
 
-def _single_add_mutation(chain: Any, requirements, chain_generation_params):
+def _single_add_mutation(pipeline: Any, requirements, pipeline_generation_params):
     """
     Add new node between two sequential existing modes
     """
-    node = choice(chain.nodes)
+    node = choice(pipeline.nodes)
     if node.nodes_from:
         new_node = OptNode(content=choice(requirements.secondary))
-        chain.operator.actualise_old_node_children(node, new_node)
+        pipeline.operator.actualise_old_node_children(node, new_node)
         new_node.nodes_from = [node]
-        chain.nodes.append(new_node)
-    return chain
+        pipeline.nodes.append(new_node)
+    return pipeline
 
 
-def _tree_growth(chain: Any, requirements, params, max_depth: int, local_growth=True):
+def _tree_growth(pipeline: Any, requirements, params, max_depth: int, local_growth=True):
     """
-    This mutation selects a random node in a tree, generates new subtree, and replaces the selected node's subtree.
+    This mutation selects a random node in a tree, generates new subtree,
+    and replaces the selected node's subtree.
     """
-    random_layer_in_chain = randint(0, chain.depth - 1)
-    node_from_chain = choice(chain.operator.nodes_from_layer(random_layer_in_chain))
+    random_layer_in_pipeline = randint(0, pipeline.depth - 1)
+    node_from_pipeline = choice(pipeline.operator.nodes_from_layer(random_layer_in_pipeline))
     if local_growth:
-        is_primary_node_selected = (not node_from_chain.nodes_from) or (
-                node_from_chain.nodes_from and node_from_chain != chain.root_node and randint(0, 1))
+        is_primary_node_selected = (not node_from_pipeline.nodes_from) or (
+                node_from_pipeline.nodes_from and
+                node_from_pipeline != pipeline.root_node
+                and randint(0, 1))
     else:
-        is_primary_node_selected = randint(0, 1) and \
-                                   not chain.operator.distance_to_root_level(node_from_chain) < max_depth
+        is_primary_node_selected = \
+            randint(0, 1) and \
+            not pipeline.operator.distance_to_root_level(node_from_pipeline) < max_depth
     if is_primary_node_selected:
         new_subtree = OptNode(content=choice(requirements.primary))
     else:
         if local_growth:
-            max_depth = node_from_chain.distance_to_primary_level
+            max_depth = node_from_pipeline.distance_to_primary_level
         else:
-            max_depth = max_depth - chain.operator.distance_to_root_level(node_from_chain)
+            max_depth = max_depth - pipeline.operator.distance_to_root_level(node_from_pipeline)
         new_subtree = random_graph(params=params, requirements=requirements,
                                    max_depth=max_depth).root_node
-    chain.update_subtree(node_from_chain, new_subtree)
-    return chain
+    pipeline.update_subtree(node_from_pipeline, new_subtree)
+    return pipeline
 
 
-def growth_mutation(chain: Any, requirements, params, max_depth: int, local_growth=True) -> Any:
+def growth_mutation(pipeline: Any, requirements, params, max_depth: int, local_growth=True) -> Any:
     """
     This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
     :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
-    selected random node, if false then previous depth of selected node doesn't affect to new subtree depth,
-    maximal depth of new subtree just should satisfy depth constraint in parent tree
+    selected random node, if false then previous depth of selected node doesn't affect to
+    new subtree depth, maximal depth of new subtree just should satisfy depth constraint in parent tree
     """
 
     if random() > 0.5:
         # simple growth (one node can be added)
-        return _single_add_mutation(chain, requirements, params)
+        return _single_add_mutation(pipeline, requirements, params)
     else:
         # advanced growth (several nodes can be added)
-        return _tree_growth(chain, requirements, params, max_depth, local_growth)
+        return _tree_growth(pipeline, requirements, params, max_depth, local_growth)
 
 
 def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:

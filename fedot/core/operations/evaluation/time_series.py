@@ -1,12 +1,11 @@
 import warnings
-
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations \
-    import LaggedTransformationImplementation, TsSmoothingImplementation, \
-    ExogDataTransformationImplementation, GaussianFilterImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
+    ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
+    TsSmoothingImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation
 
@@ -49,18 +48,18 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
         return model
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
         prediction = trained_operation.predict(predict_data,
-                                               is_fit_chain_stage)
+                                               is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
@@ -110,18 +109,18 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
         return transformation_operation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
         prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
+                                                 is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted

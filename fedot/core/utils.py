@@ -1,6 +1,7 @@
 import os
 from enum import Enum
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -64,10 +65,10 @@ def ensure_directory_exists(dir_names: list):
         os.mkdir(dataset_dir)
 
 
-def make_chain_generator(chain):
+def make_pipeline_generator(pipeline):
     visited_nodes = []
 
-    for node in chain.nodes:
+    for node in pipeline.nodes:
         if node not in visited_nodes:
             visited_nodes.append(node)
             yield node

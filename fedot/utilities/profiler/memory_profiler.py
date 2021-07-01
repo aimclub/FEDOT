@@ -5,7 +5,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.composer import Composer
 
 
@@ -42,7 +42,7 @@ class MemoryProfiler:
             os.mkdir(self.folder)
 
         if roots is None:
-            roots = [Chain, Composer]
+            roots = [Pipeline, Composer]
 
         # Create the plot of the memory time dependence.
         self._create_memory_plot(function, args, kwargs)

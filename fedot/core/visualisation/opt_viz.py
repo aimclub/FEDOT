@@ -14,13 +14,13 @@ from deap import tools
 from imageio import get_writer, imread
 from matplotlib import pyplot as plt
 
-from fedot.core.chains.chain_convert import chain_template_as_nx_graph
+from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.log import Log, default_log
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
-class ChainEvolutionVisualiser:
+class PipelineEvolutionVisualiser:
 
     def __init__(self, log: Log = default_log(__name__)):
         default_data_dir = default_fedot_data_dir()
@@ -28,37 +28,37 @@ class ChainEvolutionVisualiser:
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
         self.log = log
-        self.chains_imgs = []
+        self.pipelines_imgs = []
         self.convergence_imgs = []
-        self.best_chains_imgs = []
+        self.best_pipelines_imgs = []
         self.merged_imgs = []
         self.graph_visualizer = GraphVisualiser(log=log)
 
-    def _visualise_chains(self, chains, fitnesses):
+    def _visualise_pipelines(self, pipelines, fitnesses):
         fitnesses = deepcopy(fitnesses)
-        last_best_chain = chains[0]
+        last_best_pipeline = pipelines[0]
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
-        for ch_id, chain in enumerate(chains):
-            self.graph_visualizer.draw_single_graph(chain,
+        for ch_id, pipeline in enumerate(pipelines):
+            self.graph_visualizer.draw_single_graph(pipeline,
                                                     title='Current graph',
-                                                    in_graph_converter_function=chain_template_as_nx_graph)
+                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
-            self.chains_imgs.append(img)
+            self.pipelines_imgs.append(img)
             plt.clf()
             if fitnesses[ch_id] > prev_fit:
                 fitnesses[ch_id] = prev_fit
             else:
-                last_best_chain = chain
+                last_best_pipeline = pipeline
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self.graph_visualizer.draw_single_graph(last_best_chain,
+            self.graph_visualizer.draw_single_graph(last_best_pipeline,
                                                     title=f'Best graph after {round(ch_id)} evals',
-                                                    in_graph_converter_function=chain_template_as_nx_graph)
+                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
-            self.best_chains_imgs.append(img)
+            self.best_pipelines_imgs.append(img)
             plt.clf()
         plt.close('all')
 
@@ -92,7 +92,7 @@ class ChainEvolutionVisualiser:
         try:
             self._clean(with_gif=True)
             all_historical_fitness = history.all_historical_quality
-            self._visualise_chains(history.historical_chains, all_historical_fitness)
+            self._visualise_pipelines(history.historical_pipelines, all_historical_fitness)
             self._visualise_convergence(all_historical_fitness)
             self._merge_images()
             self._combine_gifs()
@@ -101,9 +101,9 @@ class ChainEvolutionVisualiser:
             self.log.error(f'Visualisation failed with {ex}')
 
     def _merge_images(self):
-        for i in range(1, len(self.chains_imgs)):
-            im1 = self.chains_imgs[i]
-            im2 = self.best_chains_imgs[i]
+        for i in range(1, len(self.pipelines_imgs)):
+            im1 = self.pipelines_imgs[i]
+            im2 = self.best_pipelines_imgs[i]
             im3 = self.convergence_imgs[i]
             imgs = (im1, im2, im3)
             merged = np.concatenate(imgs, axis=1)

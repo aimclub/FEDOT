@@ -169,11 +169,11 @@ class CustomCNNImplementation(ModelImplementation):
                              optimizer_params=self.params['optimizer_parameters'], logger=self.params['log'])
         return self.model
 
-    def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """ Method make prediction with labels of classes
 
         :param input_data: data with features to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
 
         return predict_cnn(trained_model=self.model, predict_data=input_data,

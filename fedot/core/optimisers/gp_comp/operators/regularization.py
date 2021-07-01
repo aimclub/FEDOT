@@ -1,6 +1,5 @@
 from copy import deepcopy
-from typing import (Any, Callable, List, Optional)
-from typing import TYPE_CHECKING
+from typing import Any, Callable, List, Optional, TYPE_CHECKING
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals

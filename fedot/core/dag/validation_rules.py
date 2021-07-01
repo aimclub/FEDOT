@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
 import networkx as nx
-from networkx import simple_cycles, isolates
+from networkx import isolates, simple_cycles
 
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
-from fedot.core.chains.node import SecondaryNode
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.node import SecondaryNode
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph import Graph

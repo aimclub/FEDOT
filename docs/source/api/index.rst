@@ -9,7 +9,7 @@ API
    composer
    graph
    graph_node
-   chain
+   pipeline
    node
    operation
    eval_strategy

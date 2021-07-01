@@ -2,15 +2,14 @@ from random import seed
 
 import numpy as np
 import pytest
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from statsmodels.tsa.arima_process import ArmaProcess
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast, \
-    in_sample_ts_forecast
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
@@ -46,7 +45,7 @@ def get_synthetic_ts_data_period(n_steps=1000, forecast_length=5):
     return train_test_data_setup(data)
 
 
-def get_multiscale_chain():
+def get_multiscale_pipeline():
     # First branch
     node_lagged_1 = PrimaryNode('lagged')
     node_lagged_1.custom_params = {'window_size': 20}
@@ -61,35 +60,35 @@ def get_multiscale_chain():
 
     node_final = SecondaryNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
 
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
-def get_simple_ts_chain(model_root: str = 'ridge', window_size: int = 20):
+def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': window_size}
     node_root = SecondaryNode(model_root, nodes_from=[node_lagged])
 
-    chain = Chain(node_root)
+    pipeline = Pipeline(node_root)
 
-    return chain
+    return pipeline
 
 
-def get_statsmodels_chain():
+def get_statsmodels_pipeline():
     node_ar = PrimaryNode('ar')
     node_ar.custom_params = {'lag_1': 20, 'lag_2': 100}
-    chain = Chain(node_ar)
-    return chain
+    pipeline = Pipeline(node_ar)
+    return pipeline
 
 
-def test_arima_chain_fit_correct():
+def test_arima_pipeline_fit_correct():
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
 
-    chain = get_statsmodels_chain()
+    pipeline = get_statsmodels_pipeline()
 
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
+    pipeline.fit(input_data=train_data)
+    test_pred = pipeline.predict(input_data=test_data)
 
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
@@ -102,13 +101,13 @@ def test_arima_chain_fit_correct():
     assert rmse_test < rmse_threshold
 
 
-def test_simple_chain_forecast_correct():
+def test_simple_pipeline_forecast_correct():
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
 
-    chain = get_simple_ts_chain()
+    pipeline = get_simple_ts_pipeline()
 
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
+    pipeline.fit(input_data=train_data)
+    test_pred = pipeline.predict(input_data=test_data)
 
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
@@ -120,13 +119,13 @@ def test_simple_chain_forecast_correct():
     assert rmse_test < rmse_threshold
 
 
-def test_regression_multiscale_chain_forecast_correct():
+def test_regression_multiscale_pipeline_forecast_correct():
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
 
-    chain = get_multiscale_chain()
+    pipeline = get_multiscale_pipeline()
 
-    chain.fit(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
+    pipeline.fit(input_data=train_data)
+    test_pred = pipeline.predict(input_data=test_data)
 
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
@@ -139,7 +138,7 @@ def test_regression_multiscale_chain_forecast_correct():
     assert rmse_test < rmse_threshold
 
 
-def test_ts_single_chain_model_without_multiotput_support():
+def test_ts_single_pipeline_model_without_multiotput_support():
     time_series = generate_synthetic_data(20)
     len_forecast = 2
     train_part = time_series[:-len_forecast]
@@ -166,15 +165,15 @@ def test_ts_single_chain_model_without_multiotput_support():
                           data_type=DataTypesEnum.ts)
 
     for model_id in ['xgbreg', 'gbr', 'adareg', 'svr', 'sgdr']:
-        chain = get_simple_ts_chain(model_root=model_id, window_size=2)
+        pipeline = get_simple_ts_pipeline(model_root=model_id, window_size=2)
 
         # making predictions for the missing part in the time series
-        chain.fit_from_scratch(train_data)
-        predicted_values = chain.predict(test_data)
-        chain_forecast = np.ravel(np.array(predicted_values.predict))
+        pipeline.fit_from_scratch(train_data)
+        predicted_values = pipeline.predict(test_data)
+        pipeline_forecast = np.ravel(np.array(predicted_values.predict))
 
         test_part = np.ravel(np.array(test_part))
-        mae = mean_absolute_error(test_part, chain_forecast)
+        mae = mean_absolute_error(test_part, pipeline_forecast)
         assert mae < 50
 
 
@@ -188,13 +187,13 @@ def test_multistep_out_of_sample_forecasting():
     horizon = 12
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
 
-    chain = get_multiscale_chain()
+    pipeline = get_multiscale_pipeline()
 
-    # Fit chain to make forecasts 5 elements above
-    chain.fit(input_data=train_data)
+    # Fit pipeline to make forecasts 5 elements above
+    pipeline.fit(input_data=train_data)
 
     # Make prediction for 12 elements
-    predicted = out_of_sample_ts_forecast(chain=chain,
+    predicted = out_of_sample_ts_forecast(pipeline=pipeline,
                                           input_data=test_data,
                                           horizon=horizon)
 
@@ -205,13 +204,13 @@ def test_multistep_in_sample_forecasting():
     horizon = 12
     train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
 
-    chain = get_multiscale_chain()
+    pipeline = get_multiscale_pipeline()
 
-    # Fit chain to make forecasts 5 elements above
-    chain.fit(input_data=train_data)
+    # Fit pipeline to make forecasts 5 elements above
+    pipeline.fit(input_data=train_data)
 
     # Make prediction for 12 elements
-    predicted = in_sample_ts_forecast(chain=chain,
+    predicted = in_sample_ts_forecast(pipeline=pipeline,
                                       input_data=test_data,
                                       horizon=horizon)
 

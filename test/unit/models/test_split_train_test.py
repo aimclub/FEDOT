@@ -5,10 +5,10 @@ import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -19,14 +19,14 @@ N_FEATURES = 10
 CORRECT_MODEL_AUC_THR = 0.25
 
 
-def generate_chain() -> Chain:
-    chain = Chain(PrimaryNode('logit'))
-    return chain
+def generate_pipeline() -> Pipeline:
+    pipeline = Pipeline(PrimaryNode('logit'))
+    return pipeline
 
 
-def get_roc_auc_value(chain: Chain, train_data: InputData, test_data: InputData) -> (float, float):
-    train_pred = chain.predict(input_data=train_data)
-    test_pred = chain.predict(input_data=test_data)
+def get_roc_auc_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
+    train_pred = pipeline.predict(input_data=train_data)
+    test_pred = pipeline.predict(input_data=test_data)
     roc_auc_value_test = roc_auc(y_true=test_data.target, y_score=test_pred.predict)
     roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_pred.predict)
 
@@ -59,11 +59,11 @@ def test_model_fit_and_predict_correctly():
     """Checks whether the model fits and predict correctly on the synthetic dataset"""
     data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
 
-    chain = generate_chain()
+    pipeline = generate_pipeline()
     train_data, test_data = train_test_data_setup(data)
 
-    chain.fit(input_data=train_data)
-    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    pipeline.fit(input_data=train_data)
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(pipeline, train_data, test_data)
     train_auc_thr = get_auc_threshold(roc_auc_value_train)
     test_auc_thr = get_auc_threshold(roc_auc_value_test)
 
@@ -79,9 +79,9 @@ def test_model_fit_correctly_but_predict_incorrectly():
     test_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=2)
     test_data.features = deepcopy(train_data.features)
 
-    chain = generate_chain()
-    chain.fit(input_data=train_data)
-    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    pipeline = generate_pipeline()
+    pipeline.fit(input_data=train_data)
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(pipeline, train_data, test_data)
     train_auc_thr = get_auc_threshold(roc_auc_value_train)
     test_auc_thr = get_auc_threshold(roc_auc_value_test)
 
@@ -96,9 +96,9 @@ def test_model_fit_correctly_but_random_predictions_on_test():
     train_data = get_synthetic_input_data(N_SAMPLES, N_FEATURES, random_state=1)
     test_data = get_random_target_data(train_data)
 
-    chain = generate_chain()
-    chain.fit(input_data=train_data)
-    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    pipeline = generate_pipeline()
+    pipeline.fit(input_data=train_data)
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(pipeline, train_data, test_data)
     train_auc_thr = get_auc_threshold(roc_auc_value_train)
     test_auc_thr = get_auc_threshold(roc_auc_value_test)
 
@@ -115,9 +115,9 @@ def test_model_predictions_on_train_test_random():
 
     train_data, test_data = train_test_data_setup(data)
 
-    chain = generate_chain()
-    chain.fit(input_data=train_data)
-    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(chain, train_data, test_data)
+    pipeline = generate_pipeline()
+    pipeline.fit(input_data=train_data)
+    roc_auc_value_train, roc_auc_value_test = get_roc_auc_value(pipeline, train_data, test_data)
     train_auc_thr = get_auc_threshold(roc_auc_value_train)
     test_auc_thr = get_auc_threshold(roc_auc_value_test)
 

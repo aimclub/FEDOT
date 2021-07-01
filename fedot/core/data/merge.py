@@ -249,7 +249,7 @@ class TaskTargetMerger:
         main_ids = np.ravel(np.argwhere(t_flags == 'True'))
         tasks = np.array(tasks)
 
-        # Is there is chain predict stage without target at all
+        # Is there is pipeline predict stage without target at all
         if targets[0] is None:
             target = None
             is_main_target = True

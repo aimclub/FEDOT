@@ -7,7 +7,6 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 from deap import tools
 
-from fedot.core.chains.chain import Chain
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
@@ -22,6 +21,7 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
@@ -67,16 +67,17 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in GPComposerBuilder
     :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process
-    :param initial_chain: defines the initial state of the population. If None then initial population is random.
+    :param initial_pipeline: defines the initial state of the population. If None then initial population is random.
     """
 
     def __init__(self, optimiser=None,
                  composer_requirements: Optional[GPComposerRequirements] = None,
                  metrics: Union[List[MetricsEnum], MetricsEnum] = None,
-                 initial_chain: Optional[Chain] = None,
+                 initial_pipeline: Optional[Pipeline] = None,
                  logger: Log = None):
 
-        super().__init__(metrics=metrics, composer_requirements=composer_requirements, initial_chain=initial_chain)
+        super().__init__(metrics=metrics, composer_requirements=composer_requirements,
+                         initial_pipeline=initial_pipeline)
 
         self.cache = OperationsCache()
 
@@ -89,19 +90,20 @@ class GPComposer(Composer):
         else:
             self.log = logger
 
-    def compose_chain(self, data: Union[InputData, MultiModalData], is_visualise: bool = False, is_tune: bool = False,
-                      on_next_iteration_callback: Optional[Callable] = None) -> Union[Chain, List[Chain]]:
-        """ Function for optimal chain structure searching
-        :param data: InputData for chain composing
+    def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
+                         is_tune: bool = False,
+                         on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
+        """ Function for optimal pipeline structure searching
+        :param data: InputData for pipeline composing
         :param is_visualise: is it needed to visualise
-        :param is_tune: is it needed to tune chain after composing TODO integrate new tuner
+        :param is_tune: is it needed to tune pipeline after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO add description
-        :return best_chain: obtained result after composing: one chain for single-objective optimization;
+        :return best_pipeline: obtained result after composing: one pipeline for single-objective optimization;
             For the multi-objective case, the list of the graph is returned.
-            In the list, the chains are ordered by the descending of primary metric (the first is the best)
+            In the list, the pipelines are ordered by the descending of primary metric (the first is the best)
         """
 
-        if self.composer_requirements.max_chain_fit_time:
+        if self.composer_requirements.max_pipeline_fit_time:
             set_multiprocess_start_method()
 
         if not self.optimiser:
@@ -111,13 +113,13 @@ class GPComposer(Composer):
             if isinstance(data, MultiModalData):
                 raise NotImplementedError('Cross-validation is not supported for multi-modal data')
             self.log.info("KFolds cross validation for graph composing was applied.")
-            objective_function_for_chain = partial(cross_validation, data,
-                                                   self.composer_requirements.cv_folds, self.metrics)
+            objective_function_for_pipeline = partial(cross_validation, data,
+                                                      self.composer_requirements.cv_folds, self.metrics)
         else:
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
             train_data, test_data = train_test_data_setup(data, split_ratio)
-            objective_function_for_chain = partial(self.composer_metric, self.metrics, train_data, test_data)
+            objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:
             self.cache.clear()
@@ -125,36 +127,36 @@ class GPComposer(Composer):
             self.cache.clear(tmp_only=True)
             self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
-        best_chain = self.optimiser.optimise(objective_function_for_chain,
-                                             on_next_iteration_callback=on_next_iteration_callback)
+        best_pipeline = self.optimiser.optimise(objective_function_for_pipeline,
+                                                on_next_iteration_callback=on_next_iteration_callback)
 
         self.log.info('GP composition finished')
         self.cache.clear()
         if is_tune:
-            self.tune_chain(best_chain, data, self.composer_requirements.max_lead_time)
-        return best_chain
+            self.tune_pipeline(best_pipeline, data, self.composer_requirements.timeout)
+        return best_pipeline
 
     def composer_metric(self, metrics,
                         train_data: Union[InputData, MultiModalData],
                         test_data: Union[InputData, MultiModalData],
-                        chain: Chain) -> Optional[Tuple[Any]]:
+                        pipeline: Pipeline) -> Optional[Tuple[Any]]:
         try:
-            validate(chain)
-            chain.log = self.log
+            validate(pipeline)
+            pipeline.log = self.log
 
             if type(metrics) is not list:
                 metrics = [metrics]
 
             if self.cache is not None:
                 # TODO improve cache
-                chain.fit_from_cache(self.cache)
+                pipeline.fit_from_cache(self.cache)
 
-            if not chain.is_fitted:
-                self.log.debug(f'Chain {chain.root_node.descriptive_id} fit started')
-                chain.fit(input_data=train_data,
-                          time_constraint=self.composer_requirements.max_chain_fit_time)
+            if not pipeline.is_fitted:
+                self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
+                pipeline.fit(input_data=train_data,
+                             time_constraint=self.composer_requirements.max_pipeline_fit_time)
                 try:
-                    self.cache.save_chain(chain)
+                    self.cache.save_pipeline(pipeline)
                 except Exception as ex:
                     self.log.info(f'Cache can not be saved: {ex}. Continue.')
 
@@ -164,21 +166,21 @@ class GPComposer(Composer):
                     metric_func = metric
                 else:
                     metric_func = MetricsRepository().metric_by_id(metric)
-                evaluated_metrics = evaluated_metrics + (metric_func(chain, reference_data=test_data),)
+                evaluated_metrics = evaluated_metrics + (metric_func(pipeline, reference_data=test_data),)
 
-            self.log.debug(f'Chain {chain.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
+            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
 
             # enforce memory cleaning
-            chain.unfit()
+            pipeline.unfit()
             gc.collect()
         except Exception as ex:
-            self.log.info(f'Chain assessment warning: {ex}. Continue.')
+            self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
             evaluated_metrics = None
 
         return evaluated_metrics
 
     @staticmethod
-    def tune_chain(chain: Chain, data: InputData, time_limit):
+    def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
         raise NotImplementedError()
 
     @property
@@ -224,8 +226,8 @@ class GPComposerBuilder:
         self._composer.metrics = metrics
         return self
 
-    def with_initial_chain(self, initial_chain: Optional[Chain]):
-        self._composer.initial_chain = initial_chain
+    def with_initial_pipeline(self, initial_pipeline: Optional[Pipeline]):
+        self._composer.initial_pipeline = initial_pipeline
         return self
 
     def with_logger(self, logger):
@@ -272,7 +274,7 @@ class GPComposerBuilder:
                                                         MutationTypesEnum.reduce, MutationTypesEnum.growth,
                                                         parameter_change_mutation]
 
-        optimiser = optimiser_type(initial_graph=self._composer.initial_chain,
+        optimiser = optimiser_type(initial_graph=self._composer.initial_pipeline,
                                    requirements=self._composer.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,
@@ -281,5 +283,3 @@ class GPComposerBuilder:
         self._composer.optimiser = optimiser
 
         return self._composer
-
-

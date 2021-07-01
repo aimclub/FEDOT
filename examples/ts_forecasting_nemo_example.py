@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 
@@ -49,20 +49,20 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def get_arima_chain():
-    """ Function return complex chain with the following structure
+def get_arima_pipeline():
+    """ Function return complex pipeline with the following structure
         arima
     """
 
     node_1 = PrimaryNode('arima')
     node_final = SecondaryNode('linear', nodes_from=[node_1])
 
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_arima_nemo_chain():
-    """ Function return complex chain with the following structure
+def get_arima_nemo_pipeline():
+    """ Function return complex pipeline with the following structure
         arima \
                linear
         nemo  |
@@ -71,17 +71,17 @@ def get_arima_nemo_chain():
     node_arima = PrimaryNode('arima')
     node_nemo = PrimaryNode('exog_ts_data_source')
     node_final = SecondaryNode('ridge', nodes_from=[node_arima, node_nemo])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def return_working_chain():
+def return_working_pipeline():
     node_lagged_1 = PrimaryNode('lagged/1')
     node_exog = PrimaryNode('exog_ts_data_source')
 
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 len_forecast = 40
@@ -115,15 +115,15 @@ train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_fo
                                                              train_data_target=train_data,
                                                              test_data_features=test_data_exog)
 
-chain = get_arima_chain()
+pipeline = get_arima_pipeline()
 train_dataset = MultiModalData({
         'arima': deepcopy(train_input),
     })
 predict_dataset = MultiModalData({
         'arima': deepcopy(predict_input),
     })
-chain.fit_from_scratch(train_dataset)
-predicted_values = chain.predict(predict_dataset)
+pipeline.fit_from_scratch(train_dataset)
+predicted_values = pipeline.predict(predict_dataset)
 predicted_values = predicted_values.predict
 
 predicted = np.ravel(np.array(predicted_values))
@@ -138,7 +138,7 @@ print(f'ARIMA MAPE - {mape_before:.4f}\n')
 
 
 # arima with nemo ensemble
-chain = return_working_chain()
+pipeline = return_working_pipeline()
 train_dataset = MultiModalData({
         'lagged/1': deepcopy(train_input),
         'exog_ts_data_source': deepcopy(train_input_exog)
@@ -147,8 +147,8 @@ predict_dataset = MultiModalData({
         'lagged/1': deepcopy(predict_input),
         'exog_ts_data_source': deepcopy(predict_input_exog)
     })
-chain.fit_from_scratch(train_dataset)
-predicted_values = chain.predict(predict_dataset).predict
+pipeline.fit_from_scratch(train_dataset)
+predicted_values = pipeline.predict(predict_dataset).predict
 
 predicted = np.ravel(np.array(predicted_values))
 test_data = np.ravel(np.array(test_data))
@@ -163,7 +163,7 @@ print(f'Lagged with nemo MAPE - {mape_before:.4f}\n')
 
 
 # arima with nemo ensemble
-chain = get_arima_nemo_chain()
+pipeline = get_arima_nemo_pipeline()
 train_dataset = MultiModalData({
         'arima': deepcopy(train_input),
         'exog_ts_data_source': deepcopy(train_input_exog)
@@ -172,8 +172,8 @@ predict_dataset = MultiModalData({
         'arima': deepcopy(predict_input),
         'exog_ts_data_source': deepcopy(predict_input_exog)
     })
-chain.fit_from_scratch(train_dataset)
-predicted_values = chain.predict(predict_dataset).predict
+pipeline.fit_from_scratch(train_dataset)
+predicted_values = pipeline.predict(predict_dataset).predict
 
 predicted = np.ravel(np.array(predicted_values))
 test_data = np.ravel(np.array(test_data))

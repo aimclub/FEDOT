@@ -3,9 +3,9 @@ import numpy as np
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.regression_with_tuning_example import get_regression_dataset
 from examples.ts_gapfilling_example import generate_synthetic_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -100,11 +100,11 @@ def test_regression_data_operations():
                            'rfe_lin_reg', 'rfe_non_lin_reg', 'simple_imputation']:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
-        chain = Chain(node_final)
+        pipeline = Pipeline(node_final)
 
-        # Fit and predict for chain
-        chain.fit_from_scratch(train_input)
-        predicted_output = chain.predict(predict_input)
+        # Fit and predict for pipeline
+        pipeline.fit_from_scratch(train_input)
+        predicted_output = pipeline.predict(predict_input)
         predicted = predicted_output.predict
 
         assert len(predicted) == len(y_test)
@@ -117,11 +117,11 @@ def test_classification_data_operations():
                            'poly_features', 'rfe_lin_class', 'rfe_non_lin_class']:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
-        chain = Chain(node_final)
+        pipeline = Pipeline(node_final)
 
-        # Fit and predict for chain
-        chain.fit_from_scratch(train_input)
-        predicted_output = chain.predict(predict_input)
+        # Fit and predict for pipeline
+        pipeline.fit_from_scratch(train_input)
+        predicted_output = pipeline.predict(predict_input)
         predicted = predicted_output.predict
 
         assert len(predicted) == len(y_test)
@@ -132,10 +132,10 @@ def test_ts_forecasting_lagged_data_operation():
 
     node_lagged = PrimaryNode('lagged')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    chain = Chain(node_ridge)
+    pipeline = Pipeline(node_ridge)
 
-    chain.fit_from_scratch(train_input)
-    predicted_output = chain.predict(predict_input)
+    pipeline.fit_from_scratch(train_input)
+    predicted_output = pipeline.predict(predict_input)
     predicted = np.ravel(predicted_output.predict)
 
     assert len(predicted) == len(np.ravel(y_test))
@@ -148,10 +148,10 @@ def test_ts_forecasting_smoothing_data_operation():
         node_smoothing = PrimaryNode(smoothing_operation)
         node_lagged = SecondaryNode('lagged', nodes_from=[node_smoothing])
         node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-        chain = Chain(node_ridge)
+        pipeline = Pipeline(node_ridge)
 
-        chain.fit_from_scratch(train_input)
-        predicted_output = chain.predict(predict_input)
+        pipeline.fit_from_scratch(train_input)
+        predicted_output = pipeline.predict(predict_input)
         predicted = np.ravel(predicted_output.predict)
 
         assert len(predicted) == len(np.ravel(y_test))

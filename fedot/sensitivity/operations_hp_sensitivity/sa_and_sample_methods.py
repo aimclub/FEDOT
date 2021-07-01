@@ -3,11 +3,11 @@ from typing import List
 from SALib.analyze.sobol import analyze as sobol_analyze
 from SALib.sample import saltelli
 
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
 import numpy as np
 
 
-def sobol_method(problem: dict, samples: List[Chain], operation_response) -> dict:
+def sobol_method(problem: dict, samples: List[Pipeline], operation_response) -> dict:
     indices = sobol_analyze(problem, operation_response, print_to_console=False)
 
     return indices

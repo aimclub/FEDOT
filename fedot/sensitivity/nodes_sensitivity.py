@@ -5,8 +5,8 @@ from typing import Optional, List, Type
 import numpy as np
 from matplotlib import pyplot as plt
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import Node
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
@@ -17,28 +17,28 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 class NodesAnalysis:
     """
-    This class is for nodes sensitivity analysis within a Chain .
+    This class is for nodes sensitivity analysis within a Pipeline .
     It takes nodes and approaches to be applied to chosen nodes.
     To define which nodes to analyze pass them to nodes_to_analyze filed
     or all nodes will be analyzed.
 
-    :param chain: chain object to analyze
-    :param train_data: data used for Chain training
-    :param test_data: data used for Chain validation
-    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    :param pipeline: pipeline object to analyze
+    :param train_data: data used for Pipeline training
+    :param test_data: data used for Pipeline validation
+    :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
     :param nodes_to_analyze: nodes to analyze. Default: all nodes
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param log: log: Log object to record messages
     """
 
-    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None,
                  nodes_to_analyze: List[Node] = None):
 
-        self.chain = chain
+        self.pipeline = pipeline
         self.train_data = train_data
         self.test_data = test_data
         self.approaches = approaches
@@ -51,7 +51,7 @@ class NodesAnalysis:
 
         if not nodes_to_analyze:
             self.log.message('Nodes to analyze are not defined. All nodes will be analyzed.')
-            self.nodes_to_analyze = self.chain.nodes
+            self.nodes_to_analyze = self.pipeline.nodes
         else:
             self.nodes_to_analyze = nodes_to_analyze
 
@@ -68,18 +68,18 @@ class NodesAnalysis:
             node_result = NodeAnalysis(approaches=self.approaches,
                                        approaches_requirements=self.requirements,
                                        path_to_save=self.path_to_save). \
-                analyze(chain=self.chain, node=node,
+                analyze(pipeline=self.pipeline, node=node,
                         train_data=self.train_data,
                         test_data=self.test_data)
             operation_types.append(node.operation.operation_type)
 
-            nodes_results[f'id = {self.chain.nodes.index(node)}, ' \
+            nodes_results[f'id = {self.pipeline.nodes.index(node)}, ' \
                           f'operation = {node.operation.operation_type}'] = node_result
 
         if self.requirements.is_visualize:
             self._visualize_result_per_approach(nodes_results, operation_types)
 
-        if len(self.nodes_to_analyze) == len(self.chain.nodes):
+        if len(self.nodes_to_analyze) == len(self.pipeline.nodes):
             self._visualize_degree_correlation(nodes_results)
 
         if self.requirements.is_save:
@@ -91,7 +91,7 @@ class NodesAnalysis:
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(result, indent=4))
 
-        self.log.message(f'Chain Sensitivity Analysis results were saved to {result_file}')
+        self.log.message(f'Pipeline Sensitivity Analysis results were saved to {result_file}')
 
     def _visualize_result_per_approach(self, results: dict, types: list):
         gathered_results = self._extract_result_values(results)
@@ -105,16 +105,16 @@ class NodesAnalysis:
             ax.set_xticks(range(len(results)))
             ax.set_xticklabels(types, rotation=45)
             plt.xlabel('iteration')
-            plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
+            plt.ylabel('quality (changed_pipeline_metric/original_metric) - 1')
 
             file_path = join(self.path_to_save,
                              f'{self.approaches[index].__name__}.jpg')
 
             plt.savefig(file_path)
-            self.log.message(f'Chain Sensitivity Analysis visualized results were saved to {file_path}')
+            self.log.message(f'Pipeline Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
-        nodes_degrees = GraphOperator(self.chain).get_nodes_degrees()
+        nodes_degrees = GraphOperator(self.pipeline).get_nodes_degrees()
         gathered_results = self._extract_result_values(results)
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))

@@ -49,7 +49,7 @@ def run_regression_example():
     return prediction
 
 
-def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
+def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True):
     train_data_path = f'{fedot_project_root()}/notebooks/data/salaries.csv'
 
     target = pd.read_csv(train_data_path)['target']
@@ -62,9 +62,9 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     model = Fedot(problem='ts_forecasting', task_params=task_parameters)
 
     # run AutoML model design in the same way
-    chain = model.fit(features=train_data_path, target='target')
-    if with_chain_vis:
-        chain.show()
+    pipeline = model.fit(features=train_data_path, target='target')
+    if with_pipeline_vis:
+        pipeline.show()
 
     # use model to obtain forecast
     forecast = model.predict(features=train_data_path)

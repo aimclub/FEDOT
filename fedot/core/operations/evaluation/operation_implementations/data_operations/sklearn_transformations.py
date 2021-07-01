@@ -36,12 +36,12 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         return self.pca
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
         Method for transformation tabular data using PCA
 
         :param input_data: data with features, target and ids for PCA applying
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
 
@@ -140,13 +140,13 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return self.encoder
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
         The method that transforms the categorical features in the original
         dataset, but does not affect the rest features
 
         :param input_data: data with features, target and ids for transformation
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
 
@@ -306,12 +306,12 @@ class ImputationImplementation(DataOperationImplementation):
         self.imputer.fit(input_data.features)
         return self.imputer
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """
         Method for transformation tabular data using SimpleImputer
 
         :param input_data: data with features
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
         transformed_features = self.imputer.transform(input_data.features)

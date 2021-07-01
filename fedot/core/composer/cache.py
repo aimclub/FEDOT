@@ -24,8 +24,8 @@ class OperationsCache:
             _save_cache_for_node(self.db_path, node.descriptive_id,
                                  CachedState(node.fitted_operation))
 
-    def save_chain(self, chain):
-        for node in chain.nodes:
+    def save_pipeline(self, pipeline):
+        for node in pipeline.nodes:
             _save_cache_for_node(self.db_path, node.descriptive_id,
                                  CachedState(node.fitted_operation))
 

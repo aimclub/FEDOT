@@ -1,8 +1,8 @@
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 from deap.tools import ParetoFront as DeapParetoFront
 
-from fedot.core.visualisation.opt_viz import ChainEvolutionVisualiser
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
 class ParetoFront(DeapParetoFront):
@@ -11,6 +11,6 @@ class ParetoFront(DeapParetoFront):
         super(ParetoFront, self).__init__(*args, **kwargs)
 
     def show(self):
-        ChainEvolutionVisualiser().visualise_pareto(archive=self.items, show=True,
-                                                    objectives_numbers=(1, 0),
-                                                    objectives_names=self.objective_names[::-1])
+        PipelineEvolutionVisualiser().visualise_pareto(archive=self.items, show=True,
+                                                       objectives_numbers=(1, 0),
+                                                       objectives_names=self.objective_names[::-1])

@@ -2,19 +2,16 @@ import random
 
 import numpy as np
 
-from fedot.core.chains.chain_convert import graph_structure_as_nx_graph
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.validation_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import (
-    GPGraphOptimiser,
-    GPGraphOptimiserParameters,
-    GeneticSchemeTypesEnum)
-from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
+    GeneticSchemeTypesEnum, GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 random.seed(1)
 np.random.seed(1)

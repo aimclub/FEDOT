@@ -1,6 +1,5 @@
 from copy import copy
-from typing import List
-from typing import TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode

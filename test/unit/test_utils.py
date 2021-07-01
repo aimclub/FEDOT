@@ -3,8 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from fedot.core.utils import default_fedot_data_dir, \
-    labels_to_dummy_probs, split_data, save_file_to_csv, fedot_project_root
+
+from fedot.core.utils import default_fedot_data_dir, fedot_project_root, labels_to_dummy_probs, save_file_to_csv, \
+    split_data
 
 
 def test_default_fedot_data_dir():

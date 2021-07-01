@@ -7,24 +7,21 @@ from os.path import exists, join
 from typing import List, Optional, Type, Union
 
 import matplotlib.pyplot as plt
-import numpy as np
 
-from fedot.core.chains.chain import Chain
-from fedot.core.validation.validation import validate
-from fedot.core.chains.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, ReplacementAnalysisMetaParams
-from fedot.utilities.define_metric_by_task import MetricByTask
 from fedot.core.validation.validation import validate
-from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from fedot.sensitivity.sa_requirements import ReplacementAnalysisMetaParams, SensitivityAnalysisRequirements
+from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class NodeAnalysis:
     """
-    :param approaches: methods applied to nodes to modify the chain or analyze certain operations.\
+    :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param log: log: Log object to record messages
@@ -43,7 +40,7 @@ class NodeAnalysis:
         self.approaches_requirements = \
             SensitivityAnalysisRequirements() if approaches_requirements is None else approaches_requirements
 
-    def analyze(self, chain: Chain, node: Node,
+    def analyze(self, pipeline: Pipeline, node: Node,
                 train_data: InputData, test_data: InputData,
                 is_save: bool = False) -> dict:
 
@@ -51,17 +48,17 @@ class NodeAnalysis:
         Method runs Node analysis within defined approaches
 
         :param is_save: whether the certain node analysis result is needed to ba saved
-        :param chain: Chain containing the analyzed Node
-        :param node: Node object to analyze in Chain
-        :param train_data: data used for Chain training
-        :param test_data: data used for Chain validation
+        :param pipeline: Pipeline containing the analyzed Node
+        :param node: Node object to analyze in Pipeline
+        :param train_data: data used for Pipeline training
+        :param test_data: data used for Pipeline validation
         :return: dict with Node analysis result per approach
         """
 
         results = dict()
         for approach in self.approaches:
             results[f'{approach.__name__}'] = \
-                approach(chain=chain,
+                approach(pipeline=pipeline,
                          train_data=train_data,
                          test_data=test_data,
                          requirements=self.approaches_requirements,
@@ -69,7 +66,7 @@ class NodeAnalysis:
 
         # TODO remove conflict with requirements.is_save
         if is_save:
-            self._save_results_to_json(node, chain, results)
+            self._save_results_to_json(node, pipeline, results)
 
         node_sa_index = self._get_node_index(train_data, results)
         if node_sa_index is not None:
@@ -111,8 +108,8 @@ class NodeAnalysis:
 
         return rating
 
-    def _save_results_to_json(self, node: Node, chain: Chain, results):
-        node_id = chain.nodes.index(node)
+    def _save_results_to_json(self, node: Node, pipeline: Pipeline, results):
+        node_id = pipeline.nodes.index(node)
         node_type = node.operation.operation_type
         result_file = join(self.path_to_save, f'{node_id}{node_type}_sa_results.json')
         with open(result_file, 'w', encoding='utf-8') as file:
@@ -125,17 +122,17 @@ class NodeAnalyzeApproach(ABC):
     """
     Base class for analysis approach.
 
-    :param chain: Chain containing the analyzed Node
-    :param train_data: data used for Chain training
-    :param test_data: data used for Chain validation
+    :param pipeline: Pipeline containing the analyzed Node
+    :param train_data: data used for Pipeline training
+    :param test_data: data used for Pipeline validation
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
     :param log: log: Log object to record messages
     """
 
-    def __init__(self, chain: Chain, train_data, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None, log: Log = None):
-        self._chain = chain
+        self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data
         self._origin_metric = None
@@ -159,23 +156,23 @@ class NodeAnalyzeApproach(ABC):
         pass
 
     @abstractmethod
-    def sample(self, *args) -> Union[List[Chain], Chain]:
-        """Changes the chain according to the approach"""
+    def sample(self, *args) -> Union[List[Pipeline], Pipeline]:
+        """Changes the pipeline according to the approach"""
         pass
 
-    def _compare_with_origin_by_metric(self, changed_chain: Chain) -> float:
+    def _compare_with_origin_by_metric(self, changed_pipeline: Pipeline) -> float:
         metric = MetricByTask(self._train_data.task.task_type)
 
         if not self._origin_metric:
-            self._origin_metric = self._get_metric_value(chain=self._chain, metric=metric)
+            self._origin_metric = self._get_metric_value(pipeline=self._pipeline, metric=metric)
 
-        changed_chain_metric = self._get_metric_value(chain=changed_chain, metric=metric)
+        changed_pipeline_metric = self._get_metric_value(pipeline=changed_pipeline, metric=metric)
 
-        return changed_chain_metric / self._origin_metric
+        return changed_pipeline_metric / self._origin_metric
 
-    def _get_metric_value(self, chain: Chain, metric: MetricByTask) -> float:
-        chain.fit(self._train_data, use_fitted=False)
-        predicted = chain.predict(self._test_data)
+    def _get_metric_value(self, pipeline: Pipeline, metric: MetricByTask) -> float:
+        pipeline.fit(self._train_data, use_fitted=False)
+        predicted = pipeline.predict(self._test_data)
         metric_value = metric.get_value(true=self._test_data,
                                         predicted=predicted)
 
@@ -183,29 +180,29 @@ class NodeAnalyzeApproach(ABC):
 
 
 class NodeDeletionAnalyze(NodeAnalyzeApproach):
-    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
-        super().__init__(chain, train_data, test_data, requirements,
+        super().__init__(pipeline, train_data, test_data, requirements,
                          path_to_save)
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
 <<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
-        :return: the ratio of modified chain score to origin score
+        :return: the ratio of modified pipeline score to origin score
 =======
         :param node_id: the sequence number of the node as in DFS result
         :return: the ratio of modified graph score to origin score
 >>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
-        if node is self._chain.root_node:
+        if node is self._pipeline.root_node:
             # TODO or warning?
             return [1.0]
         else:
-            shortened_chain = self.sample(node)
-            if shortened_chain:
-                loss = self._compare_with_origin_by_metric(shortened_chain)
-                del shortened_chain
+            shortened_pipeline = self.sample(node)
+            if shortened_pipeline:
+                loss = self._compare_with_origin_by_metric(shortened_pipeline)
+                del shortened_pipeline
             else:
                 loss = 1
 
@@ -214,20 +211,20 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
     def sample(self, node: Node):
         """
 
-        :param node: Node object to delete from Chain object
-        :return: Chain object without node
+        :param node: Node object to delete from Pipeline object
+        :return: Pipeline object without node
         """
-        chain_sample = deepcopy(self._chain)
-        node_index_to_delete = self._chain.nodes.index(node)
-        node_to_delete = chain_sample.nodes[node_index_to_delete]
-        chain_sample.delete_node(node_to_delete)
+        pipeline_sample = deepcopy(self._pipeline)
+        node_index_to_delete = self._pipeline.nodes.index(node)
+        node_to_delete = pipeline_sample.nodes[node_index_to_delete]
+        pipeline_sample.delete_node(node_to_delete)
         try:
-            validate(chain_sample)
+            validate(pipeline_sample)
         except ValueError as ex:
             self.log.message(f'Can not delete node. Deletion of this node leads to {ex}')
             return None
 
-        return chain_sample
+        return pipeline_sample
 
     def __str__(self):
         return 'NodeDeletionAnalyze'
@@ -239,9 +236,9 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
     and evaluate the score difference
     """
 
-    def __init__(self, chain: Chain, train_data: InputData, test_data: InputData,
+    def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
-        super().__init__(chain, train_data, test_data, requirements,
+        super().__init__(pipeline, train_data, test_data, requirements,
                          path_to_save)
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
@@ -250,7 +247,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 <<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
 
-        :return: the ratio of modified chain score to origin score
+        :return: the ratio of modified pipeline score to origin score
 =======
         :param node_id:the sequence number of the node as in DFS result
         :param nodes_to_replace_to: nodes provided for old_node replacement
@@ -260,18 +257,18 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 >>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
         requirements: ReplacementAnalysisMetaParams = self._requirements.replacement_meta
-        node_id = self._chain.nodes.index(node)
+        node_id = self._pipeline.nodes.index(node)
         samples = self.sample(node=node,
                               nodes_to_replace_to=requirements.nodes_to_replace_to,
                               number_of_random_operations=requirements.number_of_random_operations)
 
         loss_values = []
         new_nodes_types = []
-        for sample_chain in samples:
-            loss_per_sample = self._compare_with_origin_by_metric(sample_chain)
+        for sample_pipeline in samples:
+            loss_per_sample = self._compare_with_origin_by_metric(sample_pipeline)
             loss_values.append(loss_per_sample)
 
-            new_node = sample_chain.nodes[node_id]
+            new_node = sample_pipeline.nodes[node_id]
             new_nodes_types.append(new_node.operation.operation_type)
 
         if self._requirements.is_visualize:
@@ -283,14 +280,14 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
     def sample(self, node: Node,
                nodes_to_replace_to: Optional[List[Node]],
-               number_of_random_operations: Optional[int] = None) -> Union[List[Chain], Chain]:
+               number_of_random_operations: Optional[int] = None) -> Union[List[Pipeline], Pipeline]:
         """
 
         :param node: Node object to replace
         :param nodes_to_replace_to: nodes provided for old_node replacement
         :param number_of_random_operations: number of replacement operations, \
         if nodes_to_replace_to not provided
-        :return: Sequence of Chain objects with new operations instead of old one.
+        :return: Sequence of Pipeline objects with new operations instead of old one.
         """
 
         if not nodes_to_replace_to:
@@ -300,12 +297,12 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
         samples = list()
         for replacing_node in nodes_to_replace_to:
-            sample_chain = deepcopy(self._chain)
-            replaced_node_index = self._chain.nodes.index(node)
-            replaced_node = sample_chain.nodes[replaced_node_index]
-            sample_chain.update_node(old_node=replaced_node,
-                                     new_node=replacing_node)
-            samples.append(sample_chain)
+            sample_pipeline = deepcopy(self._pipeline)
+            replaced_node_index = self._pipeline.nodes.index(node)
+            replaced_node = sample_pipeline.nodes[replaced_node_index]
+            sample_pipeline.update_node(old_node=replaced_node,
+                                        new_node=replacing_node)
+            samples.append(sample_pipeline)
 
         return samples
 
@@ -333,7 +330,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
     def _visualize(self, x_values, y_values: list, node_id: int):
         data = zip(x_values, [(y - 1) for y in y_values])  # 3
-        original_operation_type = self._chain.nodes[node_id].operation.operation_type
+        original_operation_type = self._pipeline.nodes[node_id].operation.operation_type
 
         sorted_data = sorted(data, key=lambda tup: tup[1])
         x_values = [x[0] for x in sorted_data]
@@ -345,13 +342,13 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         ax.hlines(1, -1, len(x_values) + 1, linestyle='--')
         ax.set_xticklabels(x_values, rotation=45)
         plt.xlabel('iteration')
-        plt.ylabel('quality (changed_chain_metric/original_metric) - 1')
+        plt.ylabel('quality (changed_pipeline_metric/original_metric) - 1')
 
         if original_operation_type in x_values:
             original_operation_index = x_values.index(original_operation_type)
             plt.gca().get_xticklabels()[original_operation_index].set_color('red')
 
-        file_name = f'{self._chain.nodes[node_id].operation.operation_type}_id_{node_id}_replacement.jpg'
+        file_name = f'{self._pipeline.nodes[node_id].operation.operation_type}_id_{node_id}_replacement.jpg'
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
         self.log.message(f'NodeReplacementAnalysis for '

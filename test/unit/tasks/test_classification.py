@@ -6,37 +6,37 @@ from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.image_classification_problem import run_image_classification_problem
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.keras import create_deep_cnn, fit_cnn, \
-    predict_cnn, CustomCNNImplementation, check_input_array
+from fedot.core.operations.evaluation.operation_implementations.models.keras import CustomCNNImplementation, \
+    check_input_array, create_deep_cnn, fit_cnn, predict_cnn
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features
 
 
-def chain_simple() -> Chain:
+def pipeline_simple() -> Pipeline:
     node_scaling = PrimaryNode('scaling')
     node_svc = SecondaryNode('svc', nodes_from=[node_scaling])
     node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
     node_final = SecondaryNode('rf', nodes_from=[node_svc, node_lda])
 
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
-def chain_with_pca() -> Chain:
+def pipeline_with_pca() -> Pipeline:
     node_scaling = PrimaryNode('scaling')
     node_pca = SecondaryNode('pca', nodes_from=[node_scaling])
     node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
     node_final = SecondaryNode('rf', nodes_from=[node_pca, node_lda])
 
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
 def get_iris_data() -> InputData:
@@ -85,13 +85,13 @@ def get_image_classification_data(composite_flag: bool = True):
     return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 
-def test_multiclassification_chain_fit_correct():
+def test_multiclassification_pipeline_fit_correct():
     data = get_iris_data()
-    chain = chain_simple()
+    pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
-    chain.fit(input_data=train_data)
-    results = chain.predict(input_data=test_data)
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data)
 
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
@@ -101,18 +101,18 @@ def test_multiclassification_chain_fit_correct():
     assert roc_auc_on_test > 0.95
 
 
-def test_classification_with_pca_chain_fit_correct():
+def test_classification_with_pca_pipeline_fit_correct():
     data = classification_dataset_with_redunant_features()
-    chain_pca = chain_with_pca()
-    chain = chain_simple()
+    pipeline_pca = pipeline_with_pca()
+    pipeline = pipeline_simple()
 
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
-    chain.fit(input_data=train_data)
-    chain_pca.fit(input_data=train_data)
+    pipeline.fit(input_data=train_data)
+    pipeline_pca.fit(input_data=train_data)
 
-    results = chain.predict(input_data=test_data)
-    results_pca = chain_pca.predict(input_data=test_data)
+    results = pipeline.predict(input_data=test_data)
+    results_pca = pipeline_pca.predict(input_data=test_data)
 
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
@@ -129,12 +129,12 @@ def test_classification_with_pca_chain_fit_correct():
 
 def test_output_mode_labels():
     data = get_iris_data()
-    chain = chain_simple()
+    pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
-    chain.fit(input_data=train_data)
-    results = chain.predict(input_data=test_data, output_mode='labels')
-    results_probs = chain.predict(input_data=test_data)
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data, output_mode='labels')
+    results_probs = pipeline.predict(input_data=test_data)
 
     assert len(results.predict) == len(test_data.target)
     assert set(results.predict) == {0, 1, 2}
@@ -144,13 +144,13 @@ def test_output_mode_labels():
 
 def test_output_mode_full_probs():
     data = get_binary_classification_data()
-    chain = chain_simple()
+    pipeline = pipeline_simple()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
-    chain.fit(input_data=train_data)
-    results = chain.predict(input_data=test_data, output_mode='full_probs')
-    results_default = chain.predict(input_data=test_data)
-    results_probs = chain.predict(input_data=test_data, output_mode='probs')
+    pipeline.fit(input_data=train_data)
+    results = pipeline.predict(input_data=test_data, output_mode='full_probs')
+    results_default = pipeline.predict(input_data=test_data)
+    results_probs = pipeline.predict(input_data=test_data, output_mode='probs')
 
     assert not np.array_equal(results_probs.predict, results.predict)
     assert np.array_equal(results_probs.predict, results_default.predict)

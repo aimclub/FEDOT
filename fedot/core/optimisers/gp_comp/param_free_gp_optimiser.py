@@ -67,7 +67,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
-        with OptimisationTimer(max_lead_time=self.requirements.max_lead_time, log=self.log) as t:
+        with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
             self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:

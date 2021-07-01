@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from typing import Any, Type
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import PrimaryNode, SecondaryNode, Node
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
 from fedot.core.optimisers.graph import OptGraph, OptNode
 
 
@@ -48,14 +48,14 @@ class DirectAdapter(BaseOptimizationAdapter):
         return self.restore(opt_graph)
 
 
-class ChainAdapter(BaseOptimizationAdapter):
+class PipelineAdapter(BaseOptimizationAdapter):
     def __init__(self, log=None):
         """
-        Optimization adapter for Chain class
+        Optimization adapter for Pipeline class
         """
-        super().__init__(base_graph_class=Chain, base_node_class=Node, log=log)
+        super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
-    def adapt(self, adaptee: Chain):
+    def adapt(self, adaptee: Pipeline):
         opt_nodes = []
         for node in adaptee.nodes:
             node.__class__ = OptNode
@@ -66,7 +66,7 @@ class ChainAdapter(BaseOptimizationAdapter):
 
     def restore(self, opt_graph: OptGraph):
         # TODO improve transformation
-        chain_nodes = []
+        pipeline_nodes = []
         for node in opt_graph.nodes:
             if node.nodes_from is None:
                 node.__class__ = PrimaryNode
@@ -76,11 +76,11 @@ class ChainAdapter(BaseOptimizationAdapter):
                 node.__init__(nodes_from=node.nodes_from,
                               operation_type=node.operation)
 
-            chain_nodes.append(node)
-        chain = Chain(chain_nodes)
-        chain.uid = opt_graph.uid
-        return chain
+            pipeline_nodes.append(node)
+        pipeline = Pipeline(pipeline_nodes)
+        pipeline.uid = opt_graph.uid
+        return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph):
-        chain = self.restore(opt_graph)
-        return ChainTemplate(chain)
+        pipeline = self.restore(opt_graph)
+        return PipelineTemplate(pipeline)

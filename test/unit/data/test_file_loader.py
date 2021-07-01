@@ -1,7 +1,7 @@
 import os
 import pathlib
 import shutil
-from os.path import join, abspath, basename
+from os.path import abspath, basename, join
 
 import pytest
 

@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
 
@@ -76,13 +76,13 @@ def run_gapfilling_example():
     # Get synthetic time series
     gap_data, real_data = get_array_with_gaps()
 
-    # Filling in gaps using chain from FEDOT
+    # Filling in gaps using pipeline from FEDOT
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': 100}
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    ridge_chain = Chain(node_ridge)
+    ridge_pipeline = Pipeline(node_ridge)
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain)
+                                     pipeline=ridge_pipeline)
     without_gap_arr_ridge = \
         ridge_gapfiller.forward_inverse_filling(gap_data)
 

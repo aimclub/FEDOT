@@ -4,20 +4,20 @@ from unittest.mock import patch
 import pytest
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
-from fedot.sensitivity.chain_sensitivity_facade import ChainSensitivityAnalysis
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
 from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeDeletionAnalyze, NodeReplaceOperationAnalyze
-from fedot.sensitivity.chain_sensitivity import ChainAnalysis
+from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
 from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity import OneOperationHPAnalyze
-from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
+from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
+from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
-from test.unit.utilities.test_chain_import_export import create_func_delete_files
+from test.unit.utilities.test_pipeline_import_export import create_func_delete_files
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -36,56 +36,56 @@ def scoring_dataset():
     return train_data, test_data
 
 
-def get_chain():
+def get_pipeline():
     knn_node = PrimaryNode('knn')
     lda_node = PrimaryNode('qda')
     xgb_node = PrimaryNode('xgboost')
 
     final = SecondaryNode('xgboost', nodes_from=[knn_node, lda_node, xgb_node])
 
-    chain = Chain(final)
+    pipeline = Pipeline(final)
 
-    return chain
+    return pipeline
 
 
 def given_data():
-    chain = get_chain()
+    pipeline = get_pipeline()
     train_data, test_data = scoring_dataset()
     node_index = 2
     result_path = 'sa_test_result_path'
     if not os.path.exists(result_path):
         os.mkdir(result_path)
 
-    return chain, train_data, test_data, chain.nodes[node_index], result_path
+    return pipeline, train_data, test_data, pipeline.nodes[node_index], result_path
 
 
 # ------------------------------------------------------------------------------
-# ChainStructureAnalysis
+# PipelineStructureAnalysis
 
-def test_chain_structure_analyze_init_log_defined():
+def test_pipeline_structure_analyze_init_log_defined():
     # given
-    chain, train_data, test_data, nodes_to_analyze, _ = given_data()
+    pipeline, train_data, test_data, nodes_to_analyze, _ = given_data()
     approaches = [NodeDeletionAnalyze]
-    test_log_object = default_log('test_log_chain_sa')
+    test_log_object = default_log('test_log_pipeline_sa')
 
     # when
-    chain_analyzer = NodesAnalysis(chain=chain,
-                                   train_data=train_data,
-                                   test_data=test_data,
-                                   approaches=approaches,
-                                   nodes_to_analyze=[nodes_to_analyze],
-                                   log=test_log_object)
+    pipeline_analyzer = NodesAnalysis(pipeline=pipeline,
+                                      train_data=train_data,
+                                      test_data=test_data,
+                                      approaches=approaches,
+                                      nodes_to_analyze=[nodes_to_analyze],
+                                      log=test_log_object)
 
-    assert isinstance(chain_analyzer, NodesAnalysis)
+    assert isinstance(pipeline_analyzer, NodesAnalysis)
 
 
-def test_chain_structure_analyze_analyze():
+def test_pipeline_structure_analyze_analyze():
     # given
-    chain, train_data, test_data, _, result_dir = given_data()
+    pipeline, train_data, test_data, _, result_dir = given_data()
     approaches = [NodeDeletionAnalyze]
 
     # when
-    result = NodesAnalysis(chain=chain,
+    result = NodesAnalysis(pipeline=pipeline,
                            train_data=train_data,
                            test_data=test_data,
                            approaches=approaches,
@@ -126,11 +126,11 @@ def test_node_analysis_init_defined_approaches_and_log():
 # @pytest.mark.skip('Works for more than 10 minutes - TODO improve it')
 def test_node_analysis_analyze():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     node_analysis_result: dict = NodeAnalysis(path_to_save=result_dir). \
-        analyze(chain=chain,
+        analyze(pipeline=pipeline,
                 node=node_to_analyze,
                 train_data=train_data,
                 test_data=test_data)
@@ -143,10 +143,10 @@ def test_node_analysis_analyze():
 
 def test_node_deletion_analyze():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
-    node_analysis_result = NodeDeletionAnalyze(chain=chain,
+    node_analysis_result = NodeDeletionAnalyze(pipeline=pipeline,
                                                train_data=train_data,
                                                test_data=test_data,
                                                path_to_save=result_dir).analyze(node=node_to_analyze)
@@ -164,13 +164,13 @@ def test_node_deletion_sample_method():
     secondary_first = SecondaryNode('lda', nodes_from=[central])
     secondary_second = SecondaryNode('lda', nodes_from=[central])
     root = SecondaryNode('logit', nodes_from=[secondary_first, secondary_second])
-    chain_with_multiple_children = Chain(nodes=root)
+    pipeline_with_multiple_children = Pipeline(nodes=root)
 
     # when
-    result = NodeDeletionAnalyze(chain=chain_with_multiple_children,
+    result = NodeDeletionAnalyze(pipeline=pipeline_with_multiple_children,
                                  train_data=train_data,
                                  test_data=test_data,
-                                 path_to_save=result_dir).sample(chain_with_multiple_children.nodes[2])
+                                 path_to_save=result_dir).sample(pipeline_with_multiple_children.nodes[2])
 
     # then
     assert result is None
@@ -178,13 +178,13 @@ def test_node_deletion_sample_method():
 
 def test_node_deletion_analyze_zero_node_id():
     # given
-    chain, train_data, test_data, _, result_dir = given_data()
+    pipeline, train_data, test_data, _, result_dir = given_data()
 
     # when
-    node_analysis_result = NodeDeletionAnalyze(chain=chain,
+    node_analysis_result = NodeDeletionAnalyze(pipeline=pipeline,
                                                train_data=train_data,
                                                test_data=test_data,
-                                               path_to_save=result_dir).analyze(node=chain.root_node)
+                                               path_to_save=result_dir).analyze(node=pipeline.root_node)
 
     # then
     assert isinstance(node_analysis_result, list)
@@ -193,13 +193,13 @@ def test_node_deletion_analyze_zero_node_id():
 
 def test_node_replacement_analyze_defined_nodes():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     replacing_node = PrimaryNode('lda')
 
     # when
     node_analysis_result = \
-        NodeReplaceOperationAnalyze(chain=chain,
+        NodeReplaceOperationAnalyze(pipeline=pipeline,
                                     train_data=train_data,
                                     test_data=test_data,
                                     path_to_save=result_dir).analyze(node=node_to_analyze,
@@ -211,11 +211,11 @@ def test_node_replacement_analyze_defined_nodes():
 
 def test_node_replacement_analyze_random_nodes_default_number():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
     node_analysis_result = \
-        (NodeReplaceOperationAnalyze(chain=chain,
+        (NodeReplaceOperationAnalyze(pipeline=pipeline,
                                      train_data=train_data,
                                      test_data=test_data,
                                      path_to_save=result_dir).
@@ -231,12 +231,12 @@ def test_node_replacement_analyze_random_nodes_default_number():
 
 def test_one_operation_analyze_analyze():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     requirements = SensitivityAnalysisRequirements(hyperparams_analysis_samples_size=1)
 
     # when
-    result = OneOperationHPAnalyze(chain=chain, train_data=train_data, requirements=requirements,
+    result = OneOperationHPAnalyze(pipeline=pipeline, train_data=train_data, requirements=requirements,
                                    test_data=test_data, path_to_save=result_dir). \
         analyze(node=node_to_analyze)
 
@@ -250,10 +250,10 @@ def test_one_operation_analyze_analyze():
        return_value=[{'key': 'value'}])
 def test_multi_operations_analyze_analyze(analyze_method):
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    pipeline, train_data, test_data, node_index, result_dir = given_data()
 
     # when
-    result = MultiOperationsHPAnalyze(chain=chain,
+    result = MultiOperationsHPAnalyze(pipeline=pipeline,
                                       train_data=train_data,
                                       test_data=test_data, path_to_save=result_dir).analyze(sample_size=1)
 
@@ -265,33 +265,33 @@ def test_multi_operations_analyze_analyze(analyze_method):
 # ------------------------------------------------------------------------------
 # SA Facade
 
-def test_chain_sensitivity_facade_init():
+def test_pipeline_sensitivity_facade_init():
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
-    test_log_object = default_log('test_log_chain_sa')
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
+    test_log_object = default_log('test_log_pipeline_sa')
 
     # when
-    sensitivity_facade = ChainSensitivityAnalysis(chain=chain,
-                                                  train_data=train_data,
-                                                  test_data=test_data,
-                                                  nodes_to_analyze=[node_to_analyze],
-                                                  path_to_save=result_dir,
-                                                  log=test_log_object)
+    sensitivity_facade = PipelineSensitivityAnalysis(pipeline=pipeline,
+                                                     train_data=train_data,
+                                                     test_data=test_data,
+                                                     nodes_to_analyze=[node_to_analyze],
+                                                     path_to_save=result_dir,
+                                                     log=test_log_object)
     # then
-    assert type(sensitivity_facade) is ChainSensitivityAnalysis
+    assert type(sensitivity_facade) is PipelineSensitivityAnalysis
 
 
-@patch('fedot.sensitivity.chain_sensitivity_facade.ChainSensitivityAnalysis.analyze', return_value=None)
-def test_chain_sensitivity_facade_analyze(analyze_method):
+@patch('fedot.sensitivity.pipeline_sensitivity_facade.PipelineSensitivityAnalysis.analyze', return_value=None)
+def test_pipeline_sensitivity_facade_analyze(analyze_method):
     # given
-    chain, train_data, test_data, node_to_analyze, result_dir = given_data()
+    pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
 
     # when
-    sensitivity_analyze_result = ChainSensitivityAnalysis(chain=chain,
-                                                          train_data=train_data,
-                                                          test_data=test_data,
-                                                          nodes_to_analyze=[node_to_analyze],
-                                                          path_to_save=result_dir).analyze()
+    sensitivity_analyze_result = PipelineSensitivityAnalysis(pipeline=pipeline,
+                                                             train_data=train_data,
+                                                             test_data=test_data,
+                                                             nodes_to_analyze=[node_to_analyze],
+                                                             path_to_save=result_dir).analyze()
 
     # then
     assert sensitivity_analyze_result is None
@@ -301,38 +301,38 @@ def test_chain_sensitivity_facade_analyze(analyze_method):
 # ------------------------------------------------------------------------------
 # SA Non-structural analysis
 
-def test_chain_non_structure_analyze_init():
+def test_pipeline_non_structure_analyze_init():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    pipeline, train_data, test_data, node_index, result_dir = given_data()
     approaches = [MultiOperationsHPAnalyze]
-    test_log_object = default_log('test_log_chain_sa')
+    test_log_object = default_log('test_log_pipeline_sa')
 
     # when
-    non_structure_analyzer = ChainAnalysis(chain=chain,
-                                           train_data=train_data,
-                                           test_data=test_data,
-                                           approaches=approaches,
-                                           path_to_save=result_dir,
-                                           log=test_log_object)
+    non_structure_analyzer = PipelineAnalysis(pipeline=pipeline,
+                                              train_data=train_data,
+                                              test_data=test_data,
+                                              approaches=approaches,
+                                              path_to_save=result_dir,
+                                              log=test_log_object)
 
     # then
-    assert type(non_structure_analyzer) is ChainAnalysis
+    assert type(non_structure_analyzer) is PipelineAnalysis
 
 
-@patch('fedot.sensitivity.chain_sensitivity.ChainAnalysis.analyze',
+@patch('fedot.sensitivity.pipeline_sensitivity.PipelineAnalysis.analyze',
        return_value=[{'key': 'value'}])
-def test_chain_analysis_analyze(analyze_method):
+def test_pipeline_analysis_analyze(analyze_method):
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    pipeline, train_data, test_data, node_index, result_dir = given_data()
 
     requirements = SensitivityAnalysisRequirements(hyperparams_analysis_samples_size=1)
 
     # when
-    non_structure_analyze_result = ChainAnalysis(chain=chain,
-                                                 train_data=train_data,
-                                                 test_data=test_data,
-                                                 requirements=requirements,
-                                                 path_to_save=result_dir).analyze()
+    non_structure_analyze_result = PipelineAnalysis(pipeline=pipeline,
+                                                    train_data=train_data,
+                                                    test_data=test_data,
+                                                    requirements=requirements,
+                                                    path_to_save=result_dir).analyze()
 
     # then
     assert type(non_structure_analyze_result) is list
@@ -340,16 +340,16 @@ def test_chain_analysis_analyze(analyze_method):
 
 
 # ------------------------------------------------------------------------------
-# Multi-Times-Analysis for Chain size decrease
+# Multi-Times-Analysis for Pipeline size decrease
 
 def test_multi_times_analyze_init_defined_approaches():
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    pipeline, train_data, test_data, node_index, result_dir = given_data()
     approaches = [NodeDeletionAnalyze]
     test_data, valid_data = train_test_data_setup(test_data, split_ratio=0.5)
 
     # when
-    analyzer = MultiTimesAnalyze(chain=chain,
+    analyzer = MultiTimesAnalyze(pipeline=pipeline,
                                  train_data=train_data,
                                  test_data=test_data,
                                  valid_data=valid_data,
@@ -365,11 +365,11 @@ def test_multi_times_analyze_init_defined_approaches():
        return_value=1.0)
 def test_multi_times_analyze_analyze(analyze_method):
     # given
-    chain, train_data, test_data, node_index, result_dir = given_data()
+    pipeline, train_data, test_data, node_index, result_dir = given_data()
     test_data, valid_data = train_test_data_setup(test_data, split_ratio=0.5)
 
     # when
-    analyze_result = MultiTimesAnalyze(chain=chain,
+    analyze_result = MultiTimesAnalyze(pipeline=pipeline,
                                        train_data=train_data,
                                        test_data=test_data,
                                        valid_data=valid_data,

@@ -1,8 +1,7 @@
 import datetime
 
-from examples.multi_modal_chain import prepare_multi_modal_data, \
-    generate_initial_chain_and_data, \
-    calculate_validation_metric
+from examples.multi_modal_pipeline import calculate_validation_metric, generate_initial_pipeline_and_data, \
+    prepare_multi_modal_data
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -18,22 +17,22 @@ def run_multi_modal_case(files_path, is_visualise=False):
     train_num, test_num, train_img, test_img, train_text, test_text = prepare_multi_modal_data(files_path, task,
                                                                                                images_size)
 
-    chain, fit_data, predict_data = generate_initial_chain_and_data(images_size,
-                                                                    train_num, test_num,
-                                                                    train_img, test_img,
-                                                                    train_text, test_text)
+    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
+                                                                          train_num, test_num,
+                                                                          train_img, test_img,
+                                                                          train_text, test_text)
 
-    # the search of the models provided by the framework that can be used as nodes in a chain for the selected task
+    # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='models')
 
-    # the choice of the metric for the chain quality assessment during composition
+    # the choice of the metric for the pipeline quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.8, max_lead_time=datetime.timedelta(minutes=2))
+        crossover_prob=0.8, mutation_prob=0.8, timeout=datetime.timedelta(minutes=2))
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free
@@ -45,21 +44,21 @@ def run_multi_modal_case(files_path, is_visualise=False):
     # the multi modal template (with data sources) is passed as inital assumption for composer
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function).with_optimiser_parameters(optimiser_parameters).with_logger(logger=logger). \
-        with_initial_chain(chain).with_cache('multi_modal_opt.cache')
+        with_initial_pipeline(pipeline).with_cache('multi_modal_opt.cache')
 
     # Create GP-based composer
     composer = builder.build()
 
-    # the optimal chain generation by composition - the most time-consuming task
-    chain_evo_composed = composer.compose_chain(data=fit_data,
-                                                is_visualise=True)
+    # the optimal pipeline generation by composition - the most time-consuming task
+    pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
+                                                      is_visualise=True)
 
-    chain_evo_composed.fit(input_data=fit_data)
+    pipeline_evo_composed.fit(input_data=fit_data)
 
     if is_visualise:
-        chain_evo_composed.show()
+        pipeline_evo_composed.show()
 
-    prediction = chain_evo_composed.predict(predict_data)
+    prediction = pipeline_evo_composed.predict(predict_data)
 
     err = calculate_validation_metric(prediction, test_num)
 

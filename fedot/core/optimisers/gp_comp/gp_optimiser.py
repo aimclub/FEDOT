@@ -8,7 +8,7 @@ import numpy as np
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter, ChainAdapter
+from fedot.core.optimisers.adapters import BaseOptimizationAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, \
     duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -129,7 +129,7 @@ class GPGraphOptimiser:
         if initial_graph:
             if type(initial_graph) != list:
                 initial_graph = graph_generation_params.adapter.adapt(initial_graph)
-                self.population = self._create_randomized_pop_from_inital_chain(initial_graph)
+                self.population = self._create_randomized_pop_from_inital_pipeline(initial_graph)
             else:
                 self.population = \
                     [Individual(graph=graph_generation_params.adapter.adapt(o))
@@ -137,17 +137,17 @@ class GPGraphOptimiser:
 
         self.history = OptHistory(metrics)
 
-    def _create_randomized_pop_from_inital_chain(self, initial_chain) -> List[Individual]:
+    def _create_randomized_pop_from_inital_pipeline(self, initial_pipeline) -> List[Individual]:
         """
-        Fill first population with mutated variants of the initial_chain
-        :param initial_chain: Initial assumption for first population
+        Fill first population with mutated variants of the initial_pipeline
+        :param initial_pipeline: Initial assumption for first population
         :return: list of individuals
         """
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
         randomized_pop = ([mutation(types=self.parameters.mutation_types,
                                     params=self.graph_generation_params,
-                                    ind=Individual(deepcopy(initial_chain)), requirements=initial_req,
+                                    ind=Individual(deepcopy(initial_pipeline)), requirements=initial_req,
                                     max_depth=self.max_depth, log=self.log,
                                     add_to_history=False)
                            for _ in range(self.requirements.pop_size)])
@@ -163,7 +163,7 @@ class GPGraphOptimiser:
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
-        with OptimisationTimer(log=self.log, max_lead_time=self.requirements.max_lead_time) as t:
+        with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
             self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
@@ -392,5 +392,5 @@ class GraphGenerationParams:
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: set of constraints
     """
-    adapter: BaseOptimizationAdapter = ChainAdapter()
+    adapter: BaseOptimizationAdapter = PipelineAdapter()
     rules_for_constraint: Optional[List[Callable]] = None

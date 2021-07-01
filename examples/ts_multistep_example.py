@@ -6,15 +6,15 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from examples.ts_forecasting_tuning import prepare_input_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_ts_wrappers import out_of_sample_ts_forecast
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def get_chain():
+def get_pipeline():
     node_lagged_1 = PrimaryNode('lagged')
     node_lagged_1.custom_params = {'window_size': 120}
     node_lagged_2 = PrimaryNode('lagged')
@@ -23,9 +23,9 @@ def get_chain():
     node_first = SecondaryNode('ridge', nodes_from=[node_lagged_1])
     node_second = SecondaryNode('dtreg', nodes_from=[node_lagged_2])
     node_final = SecondaryNode('ridge', nodes_from=[node_first, node_second])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
 def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
@@ -47,18 +47,18 @@ def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
                                                           train_data_target=train_data,
                                                           test_data_features=train_data)
 
-    # Get chain with several models
-    chain = get_chain()
+    # Get pipeline with several models
+    pipeline = get_pipeline()
 
     # Fit it
     start_time = timeit.default_timer()
-    chain.fit_from_scratch(train_input)
+    pipeline.fit_from_scratch(train_input)
     amount_of_seconds = timeit.default_timer() - start_time
 
-    print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
+    print(f'\nIt takes {amount_of_seconds:.2f} seconds to train pipeline\n')
 
     # Make forecast
-    predicted = out_of_sample_ts_forecast(chain=chain,
+    predicted = out_of_sample_ts_forecast(pipeline=pipeline,
                                           input_data=predict_input,
                                           horizon=future_steps)
 

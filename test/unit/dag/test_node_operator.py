@@ -1,4 +1,4 @@
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 
 
 def get_nodes():

@@ -4,8 +4,6 @@ from functools import partial
 
 from deap import tools
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, \
     GPComposerRequirements, sample_split_ratio_for_tasks
 from fedot.core.data.data import InputData
@@ -18,20 +16,23 @@ from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.chains.test_node_cache import chain_fifth, chain_first, chain_fourth, chain_second, chain_third
+from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
+    pipeline_third
 
 
-def chain_example():
+def pipeline_example():
     #    XG
     #  |     \
     # XG     KNN
     # |  \    |  \
     # LR LDA LR  LDA
-    chain = Chain()
+    pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
         [SecondaryNode(model) for model in ('xgboost', 'xgboost',
@@ -41,18 +42,18 @@ def chain_example():
         for requirement_model in ('logit', 'lda'):
             new_node = PrimaryNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
-            chain.add_node(new_node)
-        chain.add_node(root_node_child)
+            pipeline.add_node(new_node)
+        pipeline.add_node(root_node_child)
         root_of_tree.nodes_from.append(root_node_child)
 
-    chain.add_node(root_of_tree)
-    return chain
+    pipeline.add_node(root_of_tree)
+    return pipeline
 
 
 def test_nodes_from_height():
-    chain = chain_example()
-    found_nodes = chain.operator.nodes_from_layer(1)
-    true_nodes = [node for node in chain.root_node.nodes_from]
+    pipeline = pipeline_example()
+    found_nodes = pipeline.operator.nodes_from_layer(1)
+    true_nodes = [node for node in pipeline.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])
 
@@ -78,18 +79,18 @@ def test_evaluate_individuals():
     train_data, test_data = train_test_data_setup(dataset_to_compose,
                                                   sample_split_ratio_for_tasks[dataset_to_compose.task.task_type])
     metric_function_for_nodes = partial(composer.composer_metric, composer.metrics, train_data, test_data)
-    population = [Individual(c) for c in [chain_first(), chain_second(), chain_third(), chain_fourth()]]
-    max_lead_time = datetime.timedelta(minutes=0.001)
-    with OptimisationTimer(max_lead_time=max_lead_time) as t:
+    population = [Individual(c) for c in [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]]
+    timeout = datetime.timedelta(minutes=0.001)
+    with OptimisationTimer(timeout=timeout) as t:
         evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
                              graph_generation_params=GraphGenerationParams(),
                              is_multi_objective=False, timer=t)
     assert len(population) == 1
     assert population[0].fitness is not None
 
-    population = [Individual(c) for c in [chain_first(), chain_second(), chain_third(), chain_fourth()]]
-    max_lead_time = datetime.timedelta(minutes=5)
-    with OptimisationTimer(max_lead_time=max_lead_time) as t:
+    population = [Individual(c) for c in [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]]
+    timeout = datetime.timedelta(minutes=5)
+    with OptimisationTimer(timeout=timeout) as t:
         evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
                              graph_generation_params=GraphGenerationParams(),
                              is_multi_objective=False, timer=t)
@@ -99,8 +100,8 @@ def test_evaluate_individuals():
 
 def test_filter_duplicates():
     archive = tools.ParetoFront()
-    archive_items = [chain_first(), chain_second(), chain_third()]
-    population = [Individual(c) for c in [chain_first(), chain_second(), chain_third(), chain_fourth()]]
+    archive_items = [pipeline_first(), pipeline_second(), pipeline_third()]
+    population = [Individual(c) for c in [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]]
     archive_items_fitness = ((-0.80001, 0.25), (-0.7, 0.1), (-0.9, 0.7))
     population_fitness = ((-0.8, 0.25), (-0.59, 0.25), (-0.9, 0.7), (-0.7, 0.1))
     weights = tuple([-1 for _ in range(len(population_fitness[0]))])
@@ -116,23 +117,23 @@ def test_filter_duplicates():
 
 
 def test_crossover():
-    chain_example_first = chain_first()
-    chain_example_second = chain_second()
+    pipeline_example_first = pipeline_first()
+    pipeline_example_second = pipeline_second()
     log = default_log(__name__)
     crossover_types = [CrossoverTypesEnum.none]
-    new_chains = crossover(crossover_types, chain_example_first, chain_example_second, max_depth=3, log=log,
-                           crossover_prob=1)
-    assert new_chains[0] == chain_example_first
-    assert new_chains[1] == chain_example_second
+    new_pipelines = crossover(crossover_types, pipeline_example_first, pipeline_example_second, max_depth=3, log=log,
+                              crossover_prob=1)
+    assert new_pipelines[0] == pipeline_example_first
+    assert new_pipelines[1] == pipeline_example_second
     crossover_types = [CrossoverTypesEnum.subtree]
-    new_chains = crossover(crossover_types, chain_example_first, chain_example_second, max_depth=3, log=log,
-                           crossover_prob=0)
-    assert new_chains[0] == chain_example_first
-    assert new_chains[1] == chain_example_second
+    new_pipelines = crossover(crossover_types, pipeline_example_first, pipeline_example_second, max_depth=3, log=log,
+                              crossover_prob=0)
+    assert new_pipelines[0] == pipeline_example_first
+    assert new_pipelines[1] == pipeline_example_second
 
 
 def test_mutation():
-    chain = chain_first()
+    pipeline = pipeline_first()
     mutation_types = [MutationTypesEnum.none]
     log = default_log(__name__)
     graph_gener_params = GraphGenerationParams()
@@ -141,13 +142,13 @@ def test_mutation():
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
     composer_requirements = GPComposerRequirements(primary=primary_model_types,
                                                    secondary=secondary_model_types, mutation_prob=1)
-    new_chain = mutation(mutation_types, graph_gener_params, chain, composer_requirements, log=log, max_depth=3)
-    assert new_chain == chain
+    new_pipeline = mutation(mutation_types, graph_gener_params, pipeline, composer_requirements, log=log, max_depth=3)
+    assert new_pipeline == pipeline
     mutation_types = [MutationTypesEnum.growth]
     composer_requirements = GPComposerRequirements(primary=primary_model_types,
                                                    secondary=secondary_model_types, mutation_prob=0)
-    new_chain = mutation(mutation_types, graph_gener_params, chain, composer_requirements, log=log, max_depth=3)
-    assert new_chain == chain
-    chain = chain_fifth()
-    new_chain = mutation(mutation_types, graph_gener_params, chain, composer_requirements, log=log, max_depth=3)
-    assert new_chain == chain
+    new_pipeline = mutation(mutation_types, graph_gener_params, pipeline, composer_requirements, log=log, max_depth=3)
+    assert new_pipeline == pipeline
+    pipeline = pipeline_fifth()
+    new_pipeline = mutation(mutation_types, graph_gener_params, pipeline, composer_requirements, log=log, max_depth=3)
+    assert new_pipeline == pipeline

@@ -43,10 +43,10 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
                   learning_time=5, verbose_level=4)
-    chain = fedot.fit(features=historical_data, target=ssh_history)
+    pipeline = fedot.fit(features=historical_data, target=ssh_history)
     fedot.forecast(historical_data, forecast_length=forecast_length)
     if is_visualise:
-        chain.show()
+        pipeline.show()
         fedot.plot_prediction()
     metrics = fedot.get_metrics(target=ssh_obs)
     print(metrics)

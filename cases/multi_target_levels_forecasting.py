@@ -75,7 +75,7 @@ def run_multi_output_case(path, vis=False):
     multi-output regression task
 
     :param path: path to the file with table
-    :param vis: is it needed to visualise chain and predictions
+    :param vis: is it needed to visualise pipeline and predictions
     """
     target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
 
