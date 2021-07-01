@@ -15,7 +15,7 @@ from fedot.core.data.data import InputData
 from sklearn.metrics import roc_auc_score as roc_auc
 
 
-def test_classification_models_fit_correct():
+def experiment_ctb_lgbm_xgb():
     features_options = {'informative': 6, 'redundant': 0,
                         'repeated': 0, 'clusters_per_class': 1}
     x_data, y_data = classification_dataset(samples_amount=2500,
