@@ -1,11 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 from typing import Optional
 
 import numpy as np
 
 from fedot.core.data.data import OutputData
-from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.log import Log, default_log
 
 
 class DataOperationImplementation(ABC):
@@ -26,11 +26,20 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+        """ Method apply fit_transform operation on a dataset
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_chain_stage: is this fit or predict stage for chain
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def fit_transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """ Method apply transform operation on a dataset
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         """
         raise NotImplementedError()
 
@@ -87,12 +96,12 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         return self.operation
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
         """
         The method that transforms the source features using "operation"
 
         :param input_data: tabular data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         :return output_data: output data with transformed features table
         """
 
@@ -181,11 +190,11 @@ class ModelImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data, is_fit_chain_stage: Optional[bool]):
         """ Method make prediction
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :param is_fit_chain_stage: is this fit or predict stage for chain
         """
         raise NotImplementedError()
 
