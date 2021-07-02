@@ -176,57 +176,25 @@ def test_ts_forecasting_smoothing_data_operation():
         assert len(predicted) == len(np.ravel(y_test))
 
 
-def test_nan_absence_after_imputation_implementation_fit_transform():
-    input_data = get_nan_inf_data()
-    output_data = ImputationImplementation().fit_transform(input_data)
-
-    assert np.sum(np.isnan(output_data.predict)) == 0
-
-
-def test_nan_absence_after_imputation_implementation_fit_and_transform():
-    input_data = get_nan_inf_data()
-    imputer = ImputationImplementation()
-    imputer.fit(input_data)
-    output_data = imputer.transform(input_data)
-
-    assert np.sum(np.isnan(output_data.predict)) == 0
-
-
-def test_nan_absence_after_pipeline_fitting_from_scratch():
-    train_input = get_nan_inf_data()
-
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
-
-    for data_operation in model_names:
-        node_data_operation = PrimaryNode(data_operation)
-        node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
-        pipeline = Pipeline(node_final)
-
-        # Fit and predict for pipeline
-        pipeline.fit_from_scratch(train_input)
-        predicted_output = pipeline.predict(train_input)
-        predicted = predicted_output.predict
-
-        assert np.sum(np.isnan(predicted)) == 0
-
-
-def test_inf_absence_after_imputation_implementation_fit_transform():
+def test_inf_and_nan_absence_after_imputation_implementation_fit_transform():
     input_data = get_nan_inf_data()
     output_data = ImputationImplementation().fit_transform(input_data)
 
     assert np.sum(np.isinf(output_data.predict)) == 0
+    assert np.sum(np.isnan(output_data.predict)) == 0
 
 
-def test_inf_absence_after_imputation_implementation_fit_and_transform():
+def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform():
     input_data = get_nan_inf_data()
     imputer = ImputationImplementation()
     imputer.fit(input_data)
     output_data = imputer.transform(input_data)
 
     assert np.sum(np.isinf(output_data.predict)) == 0
+    assert np.sum(np.isnan(output_data.predict)) == 0
 
 
-def test_inf_absence_after_pipeline_fitting_from_scratch():
+def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
     model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
@@ -242,3 +210,4 @@ def test_inf_absence_after_pipeline_fitting_from_scratch():
         predicted = predicted_output.predict
 
         assert np.sum(np.isinf(predicted)) == 0
+        assert np.sum(np.isnan(predicted)) == 0
