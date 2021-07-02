@@ -142,11 +142,11 @@ class GPComposer(Composer):
         task = data.task.task_type
         if task is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
-            self.log.info("Time series cross validation for chain composing was applied.")
+            self.log.info("Time series cross validation for pipeline composing was applied.")
             metric_function_for_nodes = partial(ts_cross_validation, data,
                                                 self.composer_requirements.cv_folds, self.metrics)
         else:
-            self.log.info("KFolds cross validation for chain composing was applied.")
+            self.log.info("KFolds cross validation for pipeline composing was applied.")
             metric_function_for_nodes = partial(table_cross_validation, data,
                                                 self.composer_requirements.cv_folds, self.metrics)
 
