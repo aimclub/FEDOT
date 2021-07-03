@@ -3,7 +3,7 @@ from sklearn.impute import SimpleImputer
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import OneHotEncodingImplementation
+    sklearn_transformations import OneHotEncodingImplementation, ImputationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -175,7 +175,7 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
 
         # Apply most_frequent or mean filling strategy
         if len(categorical_ids) == 0:
-            data.features = SimpleImputer().fit_transform(features)
+            data.features = ImputationImplementation().fit_transform(data).predict
         else:
-            data.features = SimpleImputer(strategy='most_frequent').fit_transform(features)
+            data.features = ImputationImplementation(strategy='most_frequent').fit_transform(data).predict
     return data
