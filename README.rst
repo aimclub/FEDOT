@@ -148,7 +148,8 @@ We also published several posts and news devoted to the different aspects of the
 In English:
 
 - How AutoML helps to create composite AI? - `towardsdatascience.com <https://towardsdatascience.com/how-automl-helps-to-create-composite-ai-f09e05287563>`__
-- AutoML for time series: definitely a good idea? - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
+- AutoML for time series: definitely a good idea - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
+- AutoML for time series: advanced approaches with FEDOT framework - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-advanced-approaches-with-fedot-framework-4f9d8ea3382c>`__
 - Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/en/university_live/achievements/news/10409/>`__
 
 In Russian:
@@ -221,6 +222,12 @@ Supported by
 Citation
 ========
 
+@article{nikitin2021automated,
+  title={Automated Evolutionary Approach for the Design of Composite Machine Learning Pipelines},
+  author={Nikitin, Nikolay O and Vychuzhanin, Pavel and Sarafanov, Mikhail and Polonskaia, Iana S and Revin, Ilia and Barabanova, Irina V and Maximov, Gleb and Kalyuzhnaya, Anna V and Boukhanovsky, Alexander},
+  journal={arXiv preprint arXiv:2106.15397},
+  year={2021}}
+
 @article{nikitin2020structural,
  title={Structural Evolutionary Learning for Composite Classification Models},
  author={Nikitin, Nikolay O and Polonskaia, Iana S and Vychuzhanin, Pavel and Barabanova, Irina V and Kalyuzhnaya, Anna V},
@@ -236,6 +243,8 @@ Citation
  booktitle={Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion},
  pages={43--44},
  year={2020}}
+
+Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutionary-multi-modal-AutoML-with-FEDOT-framework>`_.
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
    :target: https://fedot.readthedocs.io/en/latest/
