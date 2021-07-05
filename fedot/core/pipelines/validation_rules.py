@@ -1,5 +1,6 @@
 from typing import Optional
 
+from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
@@ -31,7 +32,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
     """ Check if the operation in root node is model or not """
     root_node = pipeline.root_node
 
-    if type(root_node.operation) is not Model:
+    if type(root_node.operation) is not Model and type(root_node.operation) is not AtomizedModel:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
     return True
@@ -75,8 +76,13 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
                 parent_node_supported_data_types = \
                     get_supported_data_types(parent_node, operation_repo, models_repo)
 
+                if current_nodes_supported_data_types is None:
+                    # case for atomic model
+                    return True
+
                 node_dtypes = set(current_nodes_supported_data_types.input_types)
-                parent_dtypes = set(parent_node_supported_data_types.output_types)
+                parent_dtypes = set(parent_node_supported_data_types.output_types) \
+                    if parent_node_supported_data_types else node_dtypes
                 if len(set.intersection(node_dtypes, parent_dtypes)) == 0:
                     raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect data connections')
 

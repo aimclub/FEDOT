@@ -204,7 +204,7 @@ class Pipeline(Graph):
         """
 
         if not self.is_fitted:
-            ex = 'Trained operation is not actual or empty'
+            ex = 'Pipeline is not fitted yet'
             self.log.error(ex)
             raise ValueError(ex)
 
