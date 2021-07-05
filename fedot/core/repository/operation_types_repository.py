@@ -3,6 +3,7 @@ import os
 import warnings
 from dataclasses import dataclass
 from typing import Any, List, Optional
+from collections import defaultdict
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -39,11 +40,7 @@ class OperationTypesRepository:
     _repo = None
 
     def __init__(self, repository_name: str = 'model_repository.json'):
-        # Path till current file with script
-        repo_folder_path = str(os.path.dirname(__file__))
-        # Path till repository file
-        file = os.path.join('data', repository_name)
-        repo_path = os.path.join(repo_folder_path, file)
+        repo_path = create_repository_path(repository_name)
         self._repo = self._initialise_repo(repo_path)
         self._tags_excluded_by_default = ['non-default', 'expensive']
         self.repository_name = repository_name
@@ -61,8 +58,7 @@ class OperationTypesRepository:
         :return operations_list: list with OperationMetaInfo for every operation
         from json repository
         """
-        with open(repo_path) as repository_json_file:
-            repository_json = json.load(repository_json_file)
+        repository_json = load_repository(repo_path)
 
         metadata_json = repository_json['metadata']
         operations_json = repository_json['operations']
@@ -298,3 +294,35 @@ def _operation_name_without_postfix(operation_id):
         return operation_id.split('/')[0]
     else:
         return operation_id
+
+
+def load_repository(repo_path: str) -> dict:
+    # Loads the repository for various cases and loads the necessary additional data "base_repository.json".
+    with open(repo_path) as repository_json_file:
+        repository_json = json.load(repository_json_file)
+
+    if repo_path.endswith('model_repository.json') or repo_path.endswith('automl_repository.json'):
+        base_repository_json_file = create_repository_path('base_repository.json')
+
+        with open(base_repository_json_file) as repository_json_file:
+            base_repository_json = json.load(repository_json_file)
+
+        merged_dict = defaultdict(dict)
+
+        merged_dict.update(base_repository_json)
+        for key, nested_dict in repository_json.items():
+            merged_dict[key].update(nested_dict)
+
+        repository_json = dict(merged_dict)
+
+    return repository_json
+
+
+def create_repository_path(repository_name: str) -> str:
+    # Path till repository file
+    file = os.path.join('data', repository_name)
+    # Path till current file with script
+    repo_folder_path = str(os.path.dirname(__file__))
+    repo_path = os.path.join(repo_folder_path, file)
+
+    return repo_path
