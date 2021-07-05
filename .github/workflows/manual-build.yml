@@ -6,7 +6,7 @@ on:
 jobs:
   integration_test:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 20
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8]
@@ -29,4 +29,4 @@ jobs:
           pip install pytest-cov
       - name: Test with pytest
         run: |
-          pytest -s
+          pytest --cov=fedot -s test/integration

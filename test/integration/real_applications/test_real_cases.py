@@ -40,8 +40,10 @@ def test_metocean_forecasting_problem():
 
     rmse = run_metocean_forecasting_problem(full_path_train,
                                             full_path_test,
-                                            forecast_length=2)
-    assert rmse < 50
+                                            forecast_length=2,
+                                            learning_time=0.1)
+    print(rmse)
+    assert rmse['rmse'] < 500
 
 
 def test_gapfilling_problem():
@@ -98,4 +100,4 @@ def test_spam_detection_problem():
 def test_multi_modal_case():
     """ Simple launch of  multi modal case """
     # Classification task based on text data
-    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True)
+    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True, learning_time=timedelta(seconds=1))
