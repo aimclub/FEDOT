@@ -87,7 +87,7 @@ def test_fixed_structure_composer(data_fixture, request):
                                  crossover_prob=0.4, mutation_prob=0.5)
 
     # Prepare init pipeline
-    first = PrimaryNode(operation_type='xgboost')
+    first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='scaling')
     final = SecondaryNode(operation_type='logit', nodes_from=[first, second])
     reference_pipeline = Pipeline(final)

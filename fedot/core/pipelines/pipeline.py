@@ -11,9 +11,10 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
-from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.tasks import TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -236,6 +237,7 @@ class Pipeline(Graph):
                                        iterations=iterations,
                                        timeout=timeout)
         self.log.info('Start tuning of primary nodes')
+
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                                       loss_function=loss_function,
                                                       loss_params=loss_params,
@@ -290,10 +292,12 @@ class Pipeline(Graph):
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
-            for node in self.nodes:
+            for node in [n for n in self.nodes if isinstance(n, PrimaryNode)]:
                 if node.operation.operation_type in input_data.keys():
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
+                else:
+                    raise ValueError(f'No data for primary node {node}')
             return None
         return input_data
 

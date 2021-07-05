@@ -196,6 +196,17 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
     return True
 
 
+def has_correct_data_sources(pipeline: Pipeline):
+    """ Checks that data sources and other nodes are not mixed
+    """
+
+    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if isinstance(n, PrimaryNode)]
+
+    if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
+        raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
+    return True
+
+
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')

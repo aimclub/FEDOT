@@ -5,8 +5,8 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.split import tabular_cv_generator
 from fedot.core.validation.compose.metric_estimation import metric_evaluation
+from fedot.core.validation.split import tabular_cv_generator
 
 
 def table_metric_calculation(reference_data: InputData, cv_folds: int,
@@ -32,6 +32,8 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
                                                   test_data, metrics,
                                                   evaluated_metrics)
         evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
+        log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
+
     except Exception as ex:
         log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
         evaluated_metrics = None

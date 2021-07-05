@@ -4,11 +4,11 @@ from typing import (Any, List, Optional, Tuple)
 import numpy as np
 from deap import tools
 
-from fedot.core.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
     num_of_parents_in_crossover
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
@@ -61,8 +61,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        if self.population is None:
-            self.population = self._make_population(self.requirements.pop_size)
+        self._init_population()
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')

@@ -194,6 +194,7 @@ class OperationTypesRepository:
         return [m.id for m in operations_info], operations_info
 
     def suitable_operation(self, task_type: TaskTypesEnum = None,
+                           data_type: TaskTypesEnum = None,
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None):
         """ Method returns operations from repository for desired task and / or
@@ -208,8 +209,8 @@ class OperationTypesRepository:
         if not forbidden_tags:
             forbidden_tags = []
 
-        for excluded_default_tag in self._tags_excluded_by_default:
-            if not tags or excluded_default_tag not in tags:
+        if not tags:
+            for excluded_default_tag in self._tags_excluded_by_default:
                 # Forbidden tags by default
                 forbidden_tags.append(excluded_default_tag)
 
@@ -223,6 +224,10 @@ class OperationTypesRepository:
                                (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
                                (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
                                                                                          False))]
+
+        if data_type:
+            operations_info = [o for o in operations_info if data_type in o.input_types]
+
         return [m.id for m in operations_info], operations_info
 
     @property
@@ -260,7 +265,7 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Task, mode='all', tags=None, forbidden_tags=None, ):
+def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None, ):
     """ Function returns aliases of operations.
 
     :param task: task to solve
@@ -274,17 +279,18 @@ def get_operations_for_task(task: Task, mode='all', tags=None, forbidden_tags=No
 
     :return : list with operation aliases
     """
+    task_type = task.task_type if task else None
     if mode != 'all':
         model_types, _ = OperationTypesRepository(mode). \
-            suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+            suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         return model_types
     elif mode == 'all':
         # Get models from repository
         model_types, _ = OperationTypesRepository('model') \
-            .suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         # Get data operations
         data_operation_types, _ = OperationTypesRepository('data_operation') \
-            .suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')

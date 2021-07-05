@@ -11,8 +11,8 @@ class GraphNode:
     :param content: str type of the content in node
     """
 
-    def __init__(self, nodes_from: Optional[List['GraphNode']] = None,
-                 content: Any = ''):
+    def __init__(self, content: Any = '',
+                 nodes_from: Optional[List['GraphNode']] = None):
         self.nodes_from = nodes_from
         self.content = content
         self._operator = NodeOperator(self)

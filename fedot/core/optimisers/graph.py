@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
@@ -9,29 +9,45 @@ from fedot.core.log import Log, default_log
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
+def node_ops_adaptation(func):
+    def _adapt(adapter, node: Any):
+        if not isinstance(node, OptNode):
+            return adapter.adapt(node)
+        return node
+
+    def _decorator(self, *args, **kwargs):
+        func_result = func(self, *args, **kwargs)
+        self.nodes = [_adapt(self._node_adapter, node) for node in self.nodes]
+        return func_result
+
+    return _decorator
+
+
 class OptNode:
     """
-    Class for node definition in the node of stricture for optimization
+    Class for node definition in optimization graph (OptGraph)
 
-    :param nodes_from: parent nodes
     :param content: alias of the content in node
+    :param nodes_from: parent nodes
     """
 
-    def __init__(self, nodes_from: Optional[List['OptNode']] = None,
-                 content: str = '', log: Optional[Log] = None):
+    def __init__(self, content: str = '',
+                 nodes_from: Optional[List['OptNode']] = None,
+                 log: Optional[Log] = None
+                 ):
         self.log = log
         if not log:
             self.log = default_log(__name__)
         else:
             self.log = log
 
-        self.nodes_from = nodes_from
+        self.nodes_from = nodes_from if nodes_from is not None else []
         self.content = content
         self._operator = NodeOperator(self)
 
     @property
     def _node_adapter(self):
-        return NodeAdapter()
+        return NodeOperatorAdapter()
 
     def __str__(self):
         return str(self.content)
@@ -81,8 +97,9 @@ class OptGraph:
 
     @property
     def _node_adapter(self):
-        return NodeAdapter()
+        return NodeOperatorAdapter()
 
+    @node_ops_adaptation
     def add_node(self, new_node: OptNode):
         """
         Add new node to the OptGraph
@@ -91,6 +108,7 @@ class OptGraph:
         """
         self.operator.add_node(self._node_adapter.restore(new_node))
 
+    @node_ops_adaptation
     def update_node(self, old_node: OptNode, new_node: OptNode):
         """
         Replace old_node with new one.
@@ -102,6 +120,7 @@ class OptGraph:
         self.operator.update_node(self._node_adapter.restore(old_node),
                                   self._node_adapter.restore(new_node))
 
+    @node_ops_adaptation
     def update_subtree(self, old_subroot: OptNode, new_subroot: OptNode):
         """
         Replace the subtrees with old and new nodes as subroots
@@ -112,6 +131,7 @@ class OptGraph:
         self.operator.update_subtree(self._node_adapter.restore(old_subroot),
                                      self._node_adapter.restore(new_subroot))
 
+    @node_ops_adaptation
     def delete_node(self, node: OptNode):
         """
         Delete chosen node redirecting all its parents to the child.
@@ -121,6 +141,7 @@ class OptGraph:
 
         self.operator.delete_node(self._node_adapter.restore(node))
 
+    @node_ops_adaptation
     def delete_subtree(self, subroot: OptNode):
         """
         Delete the subtree with node as subroot.
@@ -136,7 +157,7 @@ class OptGraph:
         return self.operator.is_graph_equal(other)
 
     def __str__(self):
-        return self.operator.graph_desciption()
+        return self.operator.graph_description()
 
     def __repr__(self):
         return self.__str__()
@@ -171,9 +192,9 @@ class OptGraph:
         return result
 
 
-class NodeAdapter:
+class NodeOperatorAdapter:
     def adapt(self, adaptee) -> OptNode:
-        adaptee.__class = OptNode
+        adaptee.__class__ = OptNode
         return adaptee
 
     def restore(self, node) -> GraphNode:

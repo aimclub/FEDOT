@@ -4,7 +4,6 @@ import networkx as nx
 from networkx import isolates, simple_cycles
 
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.pipelines.node import SecondaryNode
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph import Graph
@@ -35,7 +34,7 @@ def has_no_isolated_nodes(graph: 'Graph'):
 
 
 def has_no_self_cycled_nodes(graph: 'Graph'):
-    if any([node for node in graph.nodes if isinstance(node, SecondaryNode) and node in node.nodes_from]):
+    if any([node for node in graph.nodes if node.nodes_from and node in node.nodes_from]):
         raise ValueError(f'{ERROR_PREFIX} Graph has self-cycled nodes')
     return True
 
@@ -48,3 +47,7 @@ def has_no_isolated_components(graph: 'Graph'):
     if not nx.is_connected(ud_nx_graph):
         raise ValueError(f'{ERROR_PREFIX} Graph has isolated components')
     return True
+
+
+DEFAULT_DAG_RULES = [has_one_root, has_no_cycle, has_no_isolated_components,
+                     has_no_self_cycled_nodes, has_no_isolated_nodes]

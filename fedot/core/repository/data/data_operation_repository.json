@@ -127,8 +127,8 @@
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
-			"meta": "custom_preprocessing",
-			"tags": ["simple", "imputation"]
+		  "meta": "custom_preprocessing",
+		  "tags": ["simple", "imputation", "non-default"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
@@ -210,12 +210,12 @@
 			"tags": []
 		},
 		"decompose": {
-			"meta": "regression_preprocessing",
-			"tags": ["non-default"]
+		  "meta": "regression_preprocessing",
+		  "tags": ["non-default", "decompose"]
 		},
 		"class_decompose": {
-			"meta": "classification_preprocessing",
-			"tags": ["non-default"]
+		  "meta": "classification_preprocessing",
+		  "tags": ["non-default", "decompose"]
 		}
 	}
 }
