@@ -1,5 +1,5 @@
 {
-  "base_repository": "fedot/core/repository/data/base_repository.json",
+  "base_repository": "model_repository.json",
   "metadata": {
 	"automl": {
       "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks",
