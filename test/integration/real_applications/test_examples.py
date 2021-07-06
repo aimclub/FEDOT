@@ -52,8 +52,8 @@ def test_exogenous_ts_example():
 
 def test_nemo_multiple_points_example():
     project_root_path = str(fedot_project_root())
-    path = os.path.join(project_root_path, 'test/data/SSH_points_grid_simple.csv')
-    exog_path = os.path.join(project_root_path, 'test/data/SSH_nemo_points_grid_simple.csv')
+    path = os.path.join(project_root_path, 'test/data/ssh_points_grid_simple.csv')
+    exog_path = os.path.join(project_root_path, 'test/data/ssh_nemo_points_grid_simple.csv')
     run_multiple_example(path_to_file=path,
                          path_to_exog_file=exog_path,
                          out_path=None,
@@ -100,13 +100,13 @@ def test_multistep_example():
 
 
 def test_api_example():
-    prediction = run_classification_example()
+    prediction = run_classification_example(learning_time=1)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(with_plot=False, with_pipeline_vis=False)
+    forecast = run_ts_forecasting_example(with_plot=False, with_pipeline_vis=False, learning_time=1)
     assert forecast is not None
 
-    pareto = run_classification_multiobj_example()
+    pareto = run_classification_multiobj_example(learning_time=1)
     assert pareto is not None
 
 
