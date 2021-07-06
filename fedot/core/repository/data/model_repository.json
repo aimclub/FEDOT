@@ -1,24 +1,5 @@
 {
-  "metadata": {
-    "custom_regr": {
-      "accepted_node_types": [
-        "any"
-      ],
-      "description": "Implementations of the custom regression models",
-      "forbidden_node_types": "[]",
-      "input_type": "[DataTypesEnum.table]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.regression",
-        "CustomRegressionStrategy"
-      ],
-      "tags": [
-        "ml",
-        "custom"
-      ],
-      "tasks": "[TaskTypesEnum.regression]"
-    }
-  },
+  "base_repository": "base_repository.json",
   "operations": {
     "cnn": {
       "meta": "custom_class",

@@ -301,8 +301,8 @@ def load_repository(repo_path: str) -> dict:
     with open(repo_path) as repository_json_file:
         repository_json = json.load(repository_json_file)
 
-    if repo_path.endswith('model_repository.json') or repo_path.endswith('automl_repository.json'):
-        base_repository_json_file = create_repository_path('base_repository.json')
+    if 'base_repository' in repository_json:
+        base_repository_json_file = create_repository_path(repository_json['base_repository'])
 
         with open(base_repository_json_file) as repository_json_file:
             base_repository_json = json.load(repository_json_file)
@@ -311,7 +311,10 @@ def load_repository(repo_path: str) -> dict:
 
         merged_dict.update(base_repository_json)
         for key, nested_dict in repository_json.items():
-            merged_dict[key].update(nested_dict)
+            if key not in merged_dict:
+                merged_dict[key] = nested_dict
+            else:
+                merged_dict[key].update(nested_dict)
 
         repository_json = dict(merged_dict)
 
