@@ -86,7 +86,7 @@ def run_fedot_ridge(folder_to_save, files_list,
 
 # Run the single-model chain example
 folder_to_save = '../data/fedot_ridge'
-files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv']
+files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv', 'microsoft_stock.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = '../data/reports/fedot_ridge_report.csv'
 
