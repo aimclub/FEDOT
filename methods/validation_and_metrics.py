@@ -1,29 +1,6 @@
-from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error, mean_absolute_percentage_error
 from matplotlib import pyplot as plt
 import numpy as np
-
-
-def mean_absolute_percentage_error(y_true, y_pred):
-    """
-    Calculate metric - Mean Absolute Percentage Error (MAPE)
-
-    :param y_true: actual values
-    :param y_pred: predicted values
-
-    :return : MAPE value
-    """
-    y_true = np.ravel(y_true)
-    y_pred = np.ravel(y_pred)
-
-    # The formula below has a drawback-if there is at least one value of 0.0 in the y_true array,
-    # then by the formula np. mean(np. abs((y_true - y_pred) / y_true)) * 100 we get inf, so
-
-    zero_indexes = np.argwhere(y_true == 0.0)
-    for index in zero_indexes:
-        # 0 values are replaced with very small ones
-        y_true[index] = 0.01
-    value = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
-    return value
 
 
 def validate(parameter, mask, data, withoutgap_arr, gap_value=-100.0, vis=False):

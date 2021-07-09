@@ -1,4 +1,4 @@
-from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error, mean_absolute_percentage_error
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 from matplotlib import pyplot as plt
 
 import pandas as pd
@@ -13,15 +13,15 @@ if __name__ == '__main__':
     folder = 'poly'
 
     # Массивы с пропусками
-    main_hour = pd.read_csv('data/microsoft_stock.csv')
+    main_hour = pd.read_csv('data/tsla.csv')
     main_day = pd.read_csv('data/Sea_10_240.csv')
 
     # Заполненные разными методами временные ряды
-    hour_fedot = pd.read_csv('data/fedot_ridge/microsoft_stock.csv')
+    hour_fedot = pd.read_csv('data/fedot_ridge/tsla.csv')
     day_fedot = pd.read_csv('data/fedot_ridge_inverse/Sea_10_240.csv')
 
     # Полнимомиальная аппроксимация
-    hour_poly = pd.read_csv(f'data/{folder}/microsoft_stock.csv')
+    hour_poly = pd.read_csv(f'data/{folder}/tsla.csv')
     day_poly = pd.read_csv(f'data/{folder}/Sea_10_240.csv')
 
     # Части временного ряда, которые были пропусками

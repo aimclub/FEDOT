@@ -8,7 +8,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis = False):
+def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis=False,
+                  column='Height', sep=','):
     """
     Function for generating gaps of a given duration in the selected places
 
@@ -22,12 +23,13 @@ def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis = False):
     :param vis: bool, is visualization required or not
     """
 
-    dataframe = pd.read_csv(csv_file)
+    dataframe = pd.read_csv(csv_file, sep=sep)
     dataframe['Date'] = pd.to_datetime(dataframe['Date'])
+    dataframe = dataframe.sort_values(by=['Date'])
 
     print(f'Total length of time series {len(dataframe)}')
 
-    sea_level = np.array(dataframe['Height'])
+    sea_level = np.array(dataframe[column])
     keys = list(gap_dict.keys())
     for key in keys:
         gap_size = gap_dict.get(key)
@@ -38,7 +40,7 @@ def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis = False):
 
     if vis:
         masked_array = np.ma.masked_where(sea_level == -100.0, sea_level)
-        plt.plot(dataframe['Date'], dataframe['Height'], c='blue', alpha=0.3)
+        plt.plot(dataframe['Date'], dataframe[column], c='blue', alpha=0.3)
         plt.plot(dataframe['Date'], masked_array, c='blue')
         plt.xlabel('Date', fontsize=13)
         plt.grid()
@@ -51,23 +53,3 @@ def generate_gaps(csv_file, gap_dict, gap_value, column_name, vis = False):
           f'and ratio {(len(gap_ids)/len(dataframe))*100:.2f}\n')
 
     dataframe.to_csv(csv_file, index=False)
-
-
-csv_file = 'data/Traffic.csv'
-# 30%
-generate_gaps(csv_file=csv_file,
-              gap_dict={550: 150,
-                        1000: 140,
-                        1600: 360,
-                        2500: 620,
-                        4050: 420,
-                        5400: 200},
-              gap_value=-100.0,
-              column_name='gap',
-              vis=True)
-
-generate_gaps(csv_file=csv_file,
-              gap_dict={2500: 1500},
-              gap_value=-100.0,
-              column_name='gap_center',
-              vis=True)

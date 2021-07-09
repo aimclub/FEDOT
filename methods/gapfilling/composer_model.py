@@ -1,21 +1,26 @@
-import datetime
-
 import os
-import pandas as pd
+import datetime
+import warnings
+
 import numpy as np
-from fedot.utilities.ts_gapfilling import SimpleGapFiller
-from methods.validation_and_metrics import *
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
+import pandas as pd
+
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.visualisation import ComposerVisualiser
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.data.data import InputData
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import project_root
+from fedot.utilities.ts_gapfilling import SimpleGapFiller
+from examples.ts_forecasting_composing import get_source_pipeline
+from methods.validation_and_metrics import validate
+warnings.filterwarnings('ignore')
 
 
 class ComposerGapFiller(SimpleGapFiller):
@@ -24,13 +29,11 @@ class ComposerGapFiller(SimpleGapFiller):
 
     :param gap_value: value, which mask gap elements in array
     :param chain: TsForecastingChain object for filling in the gaps
-    :param max_window_size: window length
     """
 
-    def __init__(self, gap_value, chain, max_window_size: int = 50):
+    def __init__(self, gap_value, chain):
         super().__init__(gap_value)
         self.chain = chain
-        self.max_window_size = max_window_size
 
     def forward_inverse_filling(self, input_data):
         """
@@ -174,55 +177,46 @@ class ComposerGapFiller(SimpleGapFiller):
         """
 
         task = Task(TaskTypesEnum.ts_forecasting,
-                    TsForecastingParams(forecast_length=len_gap,
-                                        max_window_size=self.max_window_size,
-                                        return_all_steps=False,
-                                        make_future_prediction=True))
+                    TsForecastingParams(forecast_length=len_gap))
 
-        input_data = InputData(idx=np.arange(0, len(timeseries_train)),
-                               features=None,
-                               target=timeseries_train,
-                               task=task,
-                               data_type=DataTypesEnum.ts)
+        # Prepare data for train and predict
+        input_train = InputData(idx=np.arange(0, len(timeseries_train)),
+                                features=timeseries_train, target=timeseries_train,
+                                task=task, data_type=DataTypesEnum.ts)
 
-        available_model_types_primary = ['linear', 'ridge', 'lasso',
-                                         'dtreg', 'knnreg']
+        start_forecast = len(timeseries_train)
+        end_forecast = start_forecast + len_gap
+        input_predict = InputData(idx=np.arange(start_forecast, end_forecast),
+                                  features=timeseries_train, target=None,
+                                  task=task, data_type=DataTypesEnum.ts)
 
-        available_model_types_secondary = ['linear', 'ridge', 'lasso', 'rfr',
-                                           'dtreg', 'knnreg', 'svr']
+        primary_operations = ['linear', 'ridge', 'lasso', 'dtreg', 'knnreg']
+
+        secondary_operations = ['linear', 'ridge', 'lasso', 'rfr', 'dtreg',
+                                'knnreg', 'svr']
 
         composer_requirements = GPComposerRequirements(
-            primary=available_model_types_primary,
-            secondary=available_model_types_secondary, max_arity=5,
-            max_depth=2, pop_size=10, num_of_generations=10,
+            primary=primary_operations,
+            secondary=secondary_operations, max_arity=3,
+            max_depth=8, pop_size=10, num_of_generations=2,
             crossover_prob=0.8, mutation_prob=0.8,
-            max_lead_time=datetime.timedelta(minutes=10),
-            add_single_model_chains=True)
+            timeout=datetime.timedelta(minutes=10))
 
-        metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-        builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(metric_function).with_initial_chain(self.chain)
+        mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
+                          MutationTypesEnum.reduce]
+        optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
+
+        metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
+        builder = GPComposerBuilder(task=task). \
+            with_optimiser_parameters(optimiser_parameters). \
+            with_requirements(composer_requirements). \
+            with_metrics(metric_function).with_initial_pipeline(self.chain)
         composer = builder.build()
 
-        obtained_chain = composer.compose_chain(data=input_data,
-                                                is_visualise=False)
+        obtained_pipeline = composer.compose_pipeline(data=input_train, is_visualise=False)
+        obtained_pipeline.print_structure()
 
-        # Making predictions for the missing part in the time series
-        obtained_chain.__class__ = TsForecastingChain
-        obtained_chain.fit_from_scratch(input_data)
-
-        print('\nObtained chain')
-        for node in obtained_chain.nodes:
-            print(str(node))
-
-        # "Test data" for making prediction for a specific length
-        test_data = InputData(idx=np.arange(0, len_gap),
-                              features=None,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.ts)
-
-        predicted_values = obtained_chain.forecast(initial_data=input_data,
-                                                   supplementary_data=test_data).predict
+        predicted_values = obtained_pipeline.predict(input_predict)
         return predicted_values
 
 
@@ -260,24 +254,10 @@ def run_fedot_composer(folder_to_save, files_list,
             print(f'File - {file}, column with gaps - {column_with_gap}')
             array_with_gaps = np.array(data[column_with_gap])
 
-            # Gap-filling algorithm
-            chain = TsForecastingChain()
-            node_1_first = PrimaryNode('ridge')
-            node_1_second = PrimaryNode('ridge')
-
-            node_2_first = SecondaryNode('linear', nodes_from=[node_1_first])
-            node_2_second = SecondaryNode('linear', nodes_from=[node_1_second])
-            node_final = SecondaryNode('svr', nodes_from=[node_2_first,
-                                                          node_2_second])
-            chain.add_node(node_final)
-
-            print('Init chain')
-            for node in chain.nodes:
-                print(str(node))
-
+            # Initial assumption
+            init_pipeline = get_source_pipeline()
             gapfiller = ComposerGapFiller(gap_value=-100.0,
-                                          chain=chain,
-                                          max_window_size=50)
+                                          chain=init_pipeline)
             withoutgap_arr = gapfiller.forward_filling(array_with_gaps)
 
             # Impute time series with new one

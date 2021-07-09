@@ -82,7 +82,7 @@ def run_batch_poly(folder_to_save, files_list,
 
 # Run the batch poly approximation example
 folder_to_save = '../data/batch_poly'
-files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv', 'microsoft_stock.csv']
+files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv', 'tsla.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = '../data/reports/batch_poly_report.csv'
 

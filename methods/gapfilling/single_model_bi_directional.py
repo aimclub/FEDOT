@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
-from fedot.core.chains.node import PrimaryNode
-from fedot.core.chains.ts_chain import TsForecastingChain
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from methods.validation_and_metrics import *
 
 from pylab import rcParams
@@ -13,7 +13,7 @@ from fedot.utilities.ts_gapfilling import ModelGapFiller
 
 def run_fedot_ridge(folder_to_save, files_list,
                     columns_with_gap, file_with_results,
-                    vis = False):
+                    vis=False, window_size=20):
     """
     The function starts the algorithm of gap-filling
 
@@ -46,10 +46,13 @@ def run_fedot_ridge(folder_to_save, files_list,
             array_with_gaps = np.array(data[column_with_gap])
 
             # Gap-filling algorithm
-            ridge_chain = TsForecastingChain(PrimaryNode('ridge'))
+            node_lagged = PrimaryNode('lagged')
+            node_lagged.custom_params = {'window_size': window_size}
+            node_ridge = SecondaryNode('dtreg', nodes_from=[node_lagged])
+            ridge_chain = Pipeline(node_ridge)
+
             gapfiller = ModelGapFiller(gap_value=-100.0,
-                                       chain=ridge_chain,
-                                       max_window_size=100)
+                                       pipeline=ridge_chain)
             withoutgap_arr = gapfiller.forward_inverse_filling(array_with_gaps)
 
             # Impute time series with new one
@@ -87,9 +90,10 @@ def run_fedot_ridge(folder_to_save, files_list,
 # Run the single-model chain example
 folder_to_save = '../data/fedot_ridge_inverse'
 files_list = ['Synthetic.csv', 'Sea_hour.csv', 'Sea_10_240.csv', 'Temperature.csv', 'Traffic.csv', 'microsoft_stock.csv']
+files_list = ['oil.csv']
 columns_with_gap = ['gap', 'gap_center']
 file_with_results = '../data/reports/fedot_ridge_inverse_report.csv'
 
 if __name__ == '__main__':
     run_fedot_ridge(folder_to_save, files_list,
-                    columns_with_gap, file_with_results, vis=False)
+                    columns_with_gap, file_with_results, vis=True, window_size=50)
