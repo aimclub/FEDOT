@@ -88,6 +88,20 @@ def test_classification_models_fit_correct(data_fixture, request):
         assert roc_on_test >= roc_threshold
 
 
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_catboost_verbosity(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+    roc_threshold = 0.95
+
+    model = Model(operation_type='catboost')
+    _, train_predicted = model.fit(data=train_data)
+    test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+    roc_on_test = get_roc_auc(valid_data=test_data,
+                              predicted_data=test_pred)
+    assert roc_on_test >= roc_threshold
+
+
 def test_regression_models_fit_correct():
     data = get_synthetic_regression_data(n_samples=1000, random_state=42)
     train_data, test_data = train_test_data_setup(data)

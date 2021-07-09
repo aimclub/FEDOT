@@ -19,7 +19,6 @@ from xgboost import XGBClassifier, XGBRegressor
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -147,8 +146,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         self.operation_id = operation_type
-        if params is None:
-            params = _get_default_params(operation_type)
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -226,8 +223,3 @@ def convert_to_multivariate_model(sklearn_model, train_data: InputData):
     sklearn_model = multiout_func(sklearn_model)
     sklearn_model.fit(train_data.features, train_data.target)
     return sklearn_model
-
-
-def _get_default_params(model_name: str):
-    with DefaultModelParamsRepository() as default_params_repo:
-        return default_params_repo.get_default_params_for_model(model_name)

@@ -1,5 +1,3 @@
-from sklearn.impute import SimpleImputer
-
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
@@ -7,6 +5,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -26,7 +25,10 @@ class Operation:
 
         self._eval_strategy = None
         self.operations_repo = None
-        self.params = DEFAULT_PARAMS_STUB
+
+        self.params = _get_default_params(operation_type)
+        if not self.params:
+            self.params = DEFAULT_PARAMS_STUB
 
         if not log:
             self.log = default_log(__name__)
@@ -179,3 +181,8 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
         else:
             data.features = ImputationImplementation(strategy='most_frequent').fit_transform(data).predict
     return data
+
+
+def _get_default_params(model_name: str):
+    with DefaultModelParamsRepository() as default_params_repo:
+        return default_params_repo.get_default_params_for_model(model_name)
