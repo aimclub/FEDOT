@@ -6,7 +6,7 @@ import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.tune.time_series import ts_cross_validation
+from fedot.core.validation.ts_validation import ts_cross_validation_tuning
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 
 
@@ -66,7 +66,7 @@ class HyperoptTuner(ABC):
             test_target, preds = fit_predict_one_fold(data, pipeline)
         elif data.task.task_type == TaskTypesEnum.ts_forecasting:
             # For time series forecasting task in-sample forecasting is provided
-            test_target, preds = ts_cross_validation(data, pipeline, log=self.log)
+            test_target, preds = ts_cross_validation_tuning(data, pipeline, log=self.log)
         else:
             test_target, preds = fit_predict_one_fold(data, pipeline)
             # Convert predictions into one dimensional array

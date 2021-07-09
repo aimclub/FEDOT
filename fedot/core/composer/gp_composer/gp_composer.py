@@ -24,7 +24,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.validation.cross_validation import cross_validation
 from fedot.core.validation.composer_validation import table_cross_validation
 from fedot.core.validation.compose.tabular import table_cross_validation
-from fedot.core.validation.compose.time_series import ts_cross_validation
+from fedot.core.validation.compose.time_series import ts_metric_calculation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
@@ -143,7 +143,7 @@ class GPComposer(Composer):
         if task is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
-            metric_function_for_nodes = partial(ts_cross_validation, data,
+            metric_function_for_nodes = partial(ts_metric_calculation, data,
                                                 self.composer_requirements.cv_folds, self.metrics)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")

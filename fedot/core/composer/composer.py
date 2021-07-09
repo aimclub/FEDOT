@@ -39,8 +39,8 @@ class ComposerRequirements:
             raise ValueError(f'invalid max_arity value')
         if self.min_arity < 0:
             raise ValueError(f'invalid min_arity value')
-        if self.cv_folds is not None and self.cv_folds <= 2:
-            raise ValueError(f'Number of folds for KFold cross validation must be 3 or more.')
+        if self.cv_folds is not None and self.cv_folds <= 1:
+            raise ValueError(f'Number of folds for KFold cross validation must be 2 or more.')
 
 
 class Composer(ABC):

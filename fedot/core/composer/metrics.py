@@ -9,6 +9,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.validation.ts_validation import in_sample_composer_validation
 
 
 def from_maximised_metric(metric_func):
@@ -25,6 +26,7 @@ class Metric:
     @classmethod
     @abstractmethod
     def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+        """ Get metrics values based on pipeline and InputData for validation """
         raise NotImplementedError()
 
     @staticmethod
@@ -105,6 +107,28 @@ class RMSE(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_squared_error(y_true=reference.target,
                                   y_pred=predicted.predict, squared=False)
+
+
+class ForecastingRMSE(QualityMetric):
+    """ A class for evaluating metrics using specific time series forecasting
+    methods (e.g. "in-sample forecasting")
+    """
+    default_value = sys.maxsize
+
+    @classmethod
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+        metric = cls.default_value
+        try:
+            # Perform time series in-sample validation
+            target, prediction = in_sample_composer_validation(pipeline, reference_data)
+            metric = cls.metric(target, prediction)
+        except Exception as ex:
+            print(f'Metric evaluation error: {ex}')
+        return metric
+
+    @staticmethod
+    def metric(target, prediction) -> float:
+        return mean_squared_error(y_true=target, y_pred=prediction, squared=False)
 
 
 class MSE(QualityMetric):

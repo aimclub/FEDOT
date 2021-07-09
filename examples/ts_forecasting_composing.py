@@ -204,7 +204,7 @@ def run_ts_forecasting_problem(forecast_length=50,
                       MutationTypesEnum.reduce]
     optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.ForecastingRMSE)
     builder = GPComposerBuilder(task=task). \
         with_optimiser_parameters(optimiser_parameters).\
         with_requirements(composer_requirements).\

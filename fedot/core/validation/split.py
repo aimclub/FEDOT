@@ -33,18 +33,28 @@ class TsSplit(TimeSeriesSplit):
         data_for_split = np.array(input_data.target)
 
         # Get numbers of folds for validation
-        folds_to_use = _choose_several_folds(self.param['n_splits'], folds)
+        folds_to_use = _choose_several_folds(self.params['n_splits'], folds)
 
         i = 0
-        for train_ids, test_ids in super(**self.params).split(data_for_split):
+        for train_ids, test_ids in super().split(data_for_split):
             if i in folds_to_use:
                 # Return train part by ids
-                features, target = _ts_data_by_index(train_ids, test_ids, input_data)
-                validation_data = InputData(idx=range(0, len(target)),
-                                            features=features, target=target,
+                train_features, train_target = _ts_data_by_index(train_ids, train_ids, input_data)
+                train_data = InputData(idx=range(0, len(train_target)),
+                                       features=train_features, target=train_target,
+                                       task=input_data.task,
+                                       data_type=input_data.data_type)
+
+                # Unit all ids for "in-sample validation"
+                all_ids = np.hstack((train_ids, test_ids))
+                # In-sample validation dataset
+                val_features, val_target = _ts_data_by_index(all_ids, all_ids, input_data)
+                validation_data = InputData(idx=range(0, len(val_target)),
+                                            features=val_features, target=val_target,
                                             task=input_data.task,
                                             data_type=input_data.data_type)
-                yield validation_data, None
+
+                yield train_data, validation_data
             i += 1
 
 
@@ -114,10 +124,8 @@ def _table_data_by_index(index, values: InputData):
 
 
 def _ts_data_by_index(train_ids, test_ids, data):
-    ids_for_validation = np.hstack((train_ids, test_ids))
-    # Crop features and target
-    features = data.features[ids_for_validation]
-    target = data.target[ids_for_validation]
+    features = data.features[train_ids]
+    target = data.target[test_ids]
 
     return features, target
 
