@@ -24,7 +24,11 @@ def table_cross_validation(reference_data: InputData, cv_folds: int,
     evaluated_metrics = [[] for _ in range(len(metrics))]
 
     for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
-        pipeline.fit(train_data)
+        # Exception will be handled at the next level (metric evaluation)
+        try:
+            pipeline.fit(train_data)
+        except Exception:
+            pass
 
         for index, metric in enumerate(metrics):
             if callable(metric):

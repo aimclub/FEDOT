@@ -9,7 +9,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.ts_validation import in_sample_composer_validation
+from fedot.core.validation.ts_validation import composer_in_sample_validation
 
 
 def from_maximised_metric(metric_func):
@@ -120,7 +120,7 @@ class ForecastingRMSE(QualityMetric):
         metric = cls.default_value
         try:
             # Perform time series in-sample validation
-            target, prediction = in_sample_composer_validation(pipeline, reference_data)
+            target, prediction = composer_in_sample_validation(pipeline, reference_data)
             metric = cls.metric(target, prediction)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')

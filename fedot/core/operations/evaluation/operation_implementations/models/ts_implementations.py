@@ -1,4 +1,5 @@
 from typing import Optional
+from copy import copy
 
 import numpy as np
 from scipy import stats
@@ -66,6 +67,7 @@ class ARIMAImplementation(ModelImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
+        input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
@@ -182,6 +184,7 @@ class AutoRegImplementation(ModelImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
+        input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx

@@ -17,7 +17,11 @@ def ts_metric_calculation(reference_data: InputData, cv_folds: int = 3,
     evaluated_metrics = [[] for _ in range(len(metrics))]
 
     for train_data, test_data in ts_cv_generator(reference_data, chain.log, cv_folds):
-        chain.fit(train_data)
+        # Exception will be handled at the next level (metric evaluation)
+        try:
+            chain.fit(train_data)
+        except Exception as ex:
+            pass
 
         for index, metric in enumerate(metrics):
             if callable(metric):

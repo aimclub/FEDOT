@@ -28,7 +28,7 @@ def _in_sample_ts_validation(chain, data, validation_blocks):
     test_target = np.ravel(data.target[-horizon:])
 
     # InputData for train
-    train_input = InputData(idx=range(0, len(y_train_part)), features=x_train_part,
+    train_input = InputData(idx=np.arange(0, len(y_train_part)), features=x_train_part,
                             target=y_train_part, task=data.task,
                             data_type=DataTypesEnum.ts,
                             supplementary_data=data.supplementary_data)
@@ -98,19 +98,24 @@ def perform_ts_validation(chain, data, train_ids, test_ids, validation_blocks):
     # Generate new InputData
     features_crop = data.features[ids_for_validation]
     target_crop = data.target[ids_for_validation]
-    updated_input = InputData(idx=range(0, len(target_crop)), features=features_crop,
+    updated_input = InputData(idx=np.arange(0, len(target_crop)), features=features_crop,
                               target=target_crop, task=data.task, data_type=DataTypesEnum.ts)
 
     test_target, predicted_values = _in_sample_ts_validation(chain, updated_input, validation_blocks)
     return test_target, predicted_values
 
 
-def in_sample_composer_validation(chain, data, validation_blocks=3):
+def composer_in_sample_validation(chain, data):
+    """ Performs in-sample pipeline validation for time series prediction """
+
+    # Get number of validation blocks per
+    validation_blocks = data.supplementary_data.validation_blocks
     horizon = data.task.task_params.forecast_length * validation_blocks
+
     predicted_values = in_sample_ts_forecast(chain=chain,
                                              input_data=data,
                                              horizon=horizon)
 
-    # Clip actu
+    # Clip actual data by the forecast horizon length
     actual_values = data.target[-horizon:]
     return actual_values, predicted_values
