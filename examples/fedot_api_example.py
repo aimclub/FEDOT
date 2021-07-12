@@ -51,7 +51,7 @@ def run_regression_example():
 
 
 def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, learning_time=None):
-    train_data_path = f'{fedot_project_root()}/notebooks/data/salaries.csv'
+    train_data_path = f'{fedot_project_root()}/examples/data/salaries.csv'
 
     target = pd.read_csv(train_data_path)['target']
 

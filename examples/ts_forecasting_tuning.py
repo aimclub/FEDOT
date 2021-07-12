@@ -183,7 +183,7 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'notebooks', 'data', 'ts_sea_level.csv')
+    data_path = os.path.join(f'{fedot_project_root()}', 'examples', 'data', 'ts_sea_level.csv')
     df = pd.read_csv(data_path)
     time_series = np.array(df['Level'])
 

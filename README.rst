@@ -115,16 +115,15 @@ For more advanced approaches, please use Examples & Tutorials section.
 Examples & Tutorials
 ====================
 
-Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
+Jupyter notebooks with tutorials are located in the [examples repository](https://github.com/ITMO-NSS-team/fedot-examples). There you can find the following guides:
 
-* `Intro to AutoML <./notebooks/latest/1_intro_to_automl.ipynb>`__
-* `Intro to FEDOT functionality <./notebooks/latest/2_intro_to_fedot.ipynb>`__
-* `Intro to time series forecasting with FEDOT <./notebooks/latest/3_intro_ts_forecasting.ipynb>`__
-* `Advanced time series forecasting <./notebooks/latest/4_auto_ts_forecasting.ipynb>`__
-* `Gap-filling in time series and out-of-sample forecasting <./notebooks/latest/5_ts_specific_cases.ipynb>`__
+* `Intro to AutoML <https://github.com/ITMO-NSS-team/fedot-examples/notebooks/latest/1_intro_to_automl.ipynb>`__
+* `Intro to FEDOT functionality <https://github.com/ITMO-NSS-team/fedot-examples/notebooks/latest/2_intro_to_fedot.ipynb>`__
+* `Intro to time series forecasting with FEDOT <https://github.com/ITMO-NSS-team/fedot-examples/notebooks/latest/3_intro_ts_forecasting.ipynb>`__
+* `Advanced time series forecasting <https://github.com/ITMO-NSS-team/fedot-examples/notebooks/latest/4_auto_ts_forecasting.ipynb>`__
+* `Gap-filling in time series and out-of-sample forecasting <https://github.com/ITMO-NSS-team/fedot-examples/notebooks/latest/5_ts_specific_cases.ipynb>`__
 
 Notebooks are issued with the corresponding release versions (the default version is 'latest').
-In the "notebooks" folder, you can also find examples for previous releases' functionality.
 
 Also, external examples are available:
 
