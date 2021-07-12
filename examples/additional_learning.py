@@ -22,7 +22,7 @@ def run_additional_learning_example():
 
     auto_model = Fedot(problem=problem, seed=42, preset='light', learning_time=5,
                        composer_params={'initial_chain':
-                                            Pipeline(SecondaryNode('logit', nodes_from=[PrimaryNode('scaling')]))})
+                                        Pipeline(SecondaryNode('logit', nodes_from=[PrimaryNode('scaling')]))})
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))
     print('auto_model', auto_model.get_metrics(target=deepcopy(test_data_target)))
