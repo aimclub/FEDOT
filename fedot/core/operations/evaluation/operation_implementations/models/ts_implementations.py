@@ -28,7 +28,6 @@ class ARIMAImplementation(ModelImplementation):
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
-        # TODO for some configuration of p,d,q got ValueError
 
     def fit(self, input_data):
         """ Class fit arima model on data
