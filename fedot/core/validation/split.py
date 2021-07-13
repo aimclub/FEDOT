@@ -42,7 +42,7 @@ class TsSplit(TimeSeriesSplit):
         input_data.supplementary_data.validation_blocks = self.validation_blocks
 
         # Get numbers of folds for validation
-        folds_to_use = _choose_several_folds(self.params['n_splits'], folds)
+        folds_to_use = choose_several_folds(self.params['n_splits'], folds)
 
         i = 0
         for train_ids, test_ids in super().split(data_for_split):
@@ -115,19 +115,18 @@ def ts_cv_generator(data, log, folds: int, validation_blocks: int = 3) -> Iterat
     # Forecast horizon for each fold
     horizon = data.task.task_params.forecast_length * validation_blocks
 
-    # Estimate appropriate number of splits
-    n_splits = _calculate_n_splits(data, horizon)
-
     try:
         tscv = TsSplit(gap=0, validation_blocks=validation_blocks,
-                       n_splits=n_splits, test_size=horizon)
+                       n_splits=folds, test_size=horizon)
+        for train_data, test_data in tscv.input_split(data, folds):
+            yield train_data, test_data
     except ValueError:
-        log.info('Time series length too small for cross validation. Perform one fold validation')
+        log.info(f'Time series length too small for cross validation with {folds}. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
-        tscv = OneFoldSplit()
-
-    for train_data, test_data in tscv.input_split(data, folds):
-        yield train_data, test_data
+        one_fold_split = OneFoldSplit()
+        data.supplementary_data.validation_blocks = None
+        for train_data, test_data in one_fold_split.input_split(data, folds):
+            yield train_data, test_data
 
 
 def _table_data_by_index(index, values: InputData):
@@ -144,18 +143,7 @@ def _ts_data_by_index(train_ids, test_ids, data):
     return features, target
 
 
-def _calculate_n_splits(data, horizon: int):
-    """ Calculated number of splits which will not lead to the errors
-    for time series cross validation
-    """
-
-    n_splits = len(data.features) // horizon
-    # Remove one split to allow algorithm get more data for train
-    n_splits = n_splits - 1
-    return n_splits
-
-
-def _choose_several_folds(n_splits, folds):
+def choose_several_folds(n_splits, folds):
     """ Choose ids of several folds for further testing for time
     series cross validation
 

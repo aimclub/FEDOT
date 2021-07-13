@@ -7,6 +7,7 @@ from hyperopt import fmin, space_eval, tpe
 from fedot.core.log import Log
 from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.repository.tasks import TaskTypesEnum
 
 MAX_METRIC_VALUE = 10e6
 
@@ -21,10 +22,14 @@ class PipelineTuner(HyperoptTuner):
                  log: Log = None):
         super().__init__(pipeline, task, iterations, timeout, log)
 
-    def tune_pipeline(self, input_data, loss_function, loss_params=None):
-        """ Function for hyperparameters tuning on the entire pipeline """
+    def tune_chain(self, input_data, loss_function, loss_params=None,
+                   cv_folds: int = None):
+        """ Function for hyperparameters tuning on the entire chain """
 
-        parameters_dict = self._get_parameters_for_tune(self.pipeline)
+        # Define folds for cross validation
+        self.cv_folds = cv_folds
+
+        parameters_dict = self._get_parameters_for_tune(self.chain)
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,

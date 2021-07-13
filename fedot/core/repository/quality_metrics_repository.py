@@ -3,7 +3,7 @@ from typing import Callable
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
                                          RMSE, ROCAUC, Silhouette, StructuralComplexity,
-                                         ForecastingRMSE)
+                                         ForecastingRMSE, ForecastingMAE)
 from fedot.core.utils import ComparableEnum as Enum
 
 
@@ -45,6 +45,7 @@ class RegressionMetricsEnum(QualityMetricsEnum):
 
     # time series metrics
     ForecastingRMSE = 'ts_rmse'
+    ForecastingMAE = 'ts_mae'
 
 
 class MetricsRepository:
@@ -68,6 +69,7 @@ class MetricsRepository:
 
         # time series forecasting
         RegressionMetricsEnum.ForecastingRMSE: ForecastingRMSE.get_value,
+        RegressionMetricsEnum.ForecastingMAE: ForecastingMAE.get_value,
 
         # clustering
         ClusteringMetricsEnum.silhouette: Silhouette.get_value,

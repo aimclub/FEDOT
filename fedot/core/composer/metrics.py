@@ -9,7 +9,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.ts_validation import composer_in_sample_validation
+from fedot.core.pipelines.pipeline_ts_wrappers import in_sample_ts_forecast
 
 
 def from_maximised_metric(metric_func):
@@ -109,9 +109,9 @@ class RMSE(QualityMetric):
                                   y_pred=predicted.predict, squared=False)
 
 
-class ForecastingRMSE(QualityMetric):
+class ForecastingMetric(QualityMetric):
     """ A class for evaluating metrics using specific time series forecasting
-    methods (e.g. "in-sample forecasting")
+    validation methods (e.g. "in-sample forecasting")
     """
     default_value = sys.maxsize
 
@@ -119,8 +119,14 @@ class ForecastingRMSE(QualityMetric):
     def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
         metric = cls.default_value
         try:
-            # Perform time series in-sample validation
-            target, prediction = composer_in_sample_validation(pipeline, reference_data)
+            if reference_data.supplementary_data.validation_blocks is None:
+                # Time series classical hold-out validation
+                output_pred = pipeline.predict(reference_data)
+                prediction = np.ravel(output_pred.predict)
+                target = reference_data.target
+            else:
+                # Perform time series in-sample validation
+                target, prediction = cls.in_sample_validation(pipeline, reference_data)
             metric = cls.metric(target, prediction)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
@@ -128,7 +134,37 @@ class ForecastingRMSE(QualityMetric):
 
     @staticmethod
     def metric(target, prediction) -> float:
+        raise NotImplementedError()
+
+    @staticmethod
+    def in_sample_validation(chain, data):
+        """ Performs in-sample pipeline validation for time series prediction """
+
+        # Get number of validation blocks per each fold
+        validation_blocks = data.supplementary_data.validation_blocks
+        horizon = data.task.task_params.forecast_length * validation_blocks
+
+        predicted_values = in_sample_ts_forecast(chain=chain,
+                                                 input_data=data,
+                                                 horizon=horizon)
+
+        # Clip actual data by the forecast horizon length
+        actual_values = data.target[-horizon:]
+        return actual_values, predicted_values
+
+
+class ForecastingRMSE(ForecastingMetric):
+
+    @staticmethod
+    def metric(target, prediction) -> float:
         return mean_squared_error(y_true=target, y_pred=prediction, squared=False)
+
+
+class ForecastingMAE(ForecastingMetric):
+
+    @staticmethod
+    def metric(target, prediction) -> float:
+        return mean_absolute_error(y_true=target, y_pred=prediction)
 
 
 class MSE(QualityMetric):

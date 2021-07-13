@@ -6,7 +6,7 @@ import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.ts_validation import ts_cross_validation_tuning
+from fedot.core.validation.tune.time_series import cross_validation_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 
 
@@ -29,6 +29,7 @@ class HyperoptTuner(ABC):
         self.init_pipeline = None
         self.init_metric = None
         self.is_need_to_maximize = None
+        self.cv_folds = None
 
         if not log:
             self.log = default_log(__name__)
@@ -36,7 +37,8 @@ class HyperoptTuner(ABC):
             self.log = log
 
     @abstractmethod
-    def tune_pipeline(self, input_data, loss_function, loss_params=None):
+    def tune_chain(self, input_data, loss_function, loss_params=None,
+                   cv_folds: int = None):
         """
         Function for hyperparameters tuning on the pipeline
 
@@ -45,7 +47,8 @@ class HyperoptTuner(ABC):
         such function should take vector with true values as first values and
         predicted array as the second
         :param loss_params: dictionary with parameters for loss function
-        :return fitted_pipeline: pipeline with optimized hyperparameters
+        :param cv_folds: number of folds for cross validation
+        :return fitted_pipeline: chain with optimized hyperparameters
         """
         raise NotImplementedError()
 
@@ -61,17 +64,10 @@ class HyperoptTuner(ABC):
         :return : value of loss function
         """
 
-        # Make prediction
-        if data.task.task_type == TaskTypesEnum.classification:
-            test_target, preds = fit_predict_one_fold(data, pipeline)
-        elif data.task.task_type == TaskTypesEnum.ts_forecasting:
-            # For time series forecasting task in-sample forecasting is provided
-            test_target, preds = ts_cross_validation_tuning(data, pipeline, log=self.log)
+        if self.cv_folds is None:
+            preds, test_target = self._one_fold_validation(data, pipeline)
         else:
-            test_target, preds = fit_predict_one_fold(data, pipeline)
-            # Convert predictions into one dimensional array
-            preds = np.ravel(np.array(preds))
-            test_target = np.ravel(test_target)
+            preds, test_target = self._cross_validation(data, pipeline)
 
         # Calculate metric
         if loss_params is None:
@@ -143,6 +139,32 @@ class HyperoptTuner(ABC):
                 self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
                               f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
+
+    @staticmethod
+    def _one_fold_validation(data, chain):
+        """ Perform simple (hold-out) validation """
+
+        if data.task.task_type == TaskTypesEnum.classification:
+            test_target, preds = fit_predict_one_fold(data, chain)
+        else:
+            # For regression and time series forecasting
+            test_target, preds = fit_predict_one_fold(data, chain)
+            # Convert predictions into one dimensional array
+            preds = np.ravel(np.array(preds))
+            test_target = np.ravel(test_target)
+
+        return preds, test_target
+
+    def _cross_validation(self, data, chain):
+        """ Perform cross validation for metric evaluation """
+
+        if data.task.task_type is not TaskTypesEnum.ts_forecasting:
+            raise NotImplementedError(f'For {data.task.task_type} task cross validation not supported')
+
+        # For time series forecasting task in-sample forecasting is provided
+        preds, test_target = cross_validation_predictions(chain, data, log=self.log,
+                                                          cv_folds=self.cv_folds)
+        return test_target, preds
 
 
 def _greater_is_better(target, loss_function, loss_params) -> bool:

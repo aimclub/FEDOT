@@ -21,8 +21,11 @@ class SequentialTuner(HyperoptTuner):
         super().__init__(pipeline, task, iterations, timeout, log)
         self.inverse_node_order = inverse_node_order
 
-    def tune_pipeline(self, input_data, loss_function, loss_params=None):
+    def tune_chain(self, input_data, loss_function, loss_params=None,
+                   cv_folds: int = None):
         """ Method for hyperparameters sequential tuning """
+        # Define folds for cross validation
+        self.cv_folds = cv_folds
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
@@ -44,9 +47,9 @@ class SequentialTuner(HyperoptTuner):
         seconds_per_node = int(seconds_per_node)
 
         # Tuning performed sequentially for every node - so get ids of nodes
-        nodes_ids = self.get_nodes_order(nodes_amount=nodes_amount)
+        nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
         for node_id in nodes_ids:
-            node = self.pipeline.nodes[node_id]
+            node = self.chain.nodes[node_id]
             operation_name = str(node.operation)
 
             # Get node's parameters to optimize
@@ -73,9 +76,10 @@ class SequentialTuner(HyperoptTuner):
 
         return final_pipeline
 
-    def tune_node(self, input_data, loss_function, node_index, loss_params=None):
+    def tune_node(self, input_data, loss_function, node_index, loss_params=None,
+                  cv_folds: int = None):
         """ Method for hyperparameters tuning for particular node"""
-
+        self.cv_folds = cv_folds
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)
@@ -104,28 +108,21 @@ class SequentialTuner(HyperoptTuner):
                                 loss_params=loss_params)
 
         # Validation is the optimization do well
-        final_chain = self.final_check(data=input_data,
+        final_pipeline = self.final_check(data=input_data,
                                        tuned_chain=self.chain,
                                        loss_function=loss_function,
                                        loss_params=loss_params)
-        final_pipeline = self.final_check(train_input=train_input,
-                                          predict_input=predict_input,
-                                          test_target=test_target,
-                                          tuned_pipeline=self.pipeline,
-                                          loss_function=loss_function,
-                                          loss_params=loss_params)
-
         return final_pipeline
 
-    def get_nodes_order(self, nodes_amount):
-        """ Method returns list with indices of nodes in the pipeline """
+    def get_nodes_order(self, nodes_number):
+        """ Method returns list with indices of nodes in the chain """
 
         if self.inverse_node_order is True:
             # From source data to output
-            nodes_ids = range(nodes_amount - 1, -1, -1)
+            nodes_ids = range(nodes_number - 1, -1, -1)
         else:
             # From output to source data
-            nodes_ids = range(0, nodes_amount)
+            nodes_ids = range(0, nodes_number)
 
         return nodes_ids
 
@@ -134,9 +131,8 @@ class SequentialTuner(HyperoptTuner):
         """
         Method for node optimization
 
-        :param node_id: id of the current node in the chain
-        :param data: InputData for validation
         :param node_id: id of the current node in the pipeline
+        :param data: InputData for validation
         :param node_params: dictionary with parameters for node
         :param iterations_per_node: amount of iterations to produce
         :param seconds_per_node: amount of seconds to produce

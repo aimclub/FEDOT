@@ -20,7 +20,7 @@ def ts_metric_calculation(reference_data: InputData, cv_folds: int = 3,
         # Exception will be handled at the next level (metric evaluation)
         try:
             chain.fit(train_data)
-        except Exception as ex:
+        except Exception:
             pass
 
         for index, metric in enumerate(metrics):
