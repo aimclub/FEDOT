@@ -79,6 +79,7 @@ class ARIMAImplementation(ModelImplementation):
         # For training pipeline get fitted data
         if is_fit_pipeline_stage:
             fitted_values = self.arima.fittedvalues
+
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
                                                  lambda_param=self.lambda_param)
             # Undo shift operation
@@ -158,6 +159,7 @@ class ARIMAImplementation(ModelImplementation):
             pass
         else:
             values = values - self.scope
+
         return values
 
 
