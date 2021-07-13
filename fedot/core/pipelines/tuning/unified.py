@@ -2,7 +2,7 @@ from datetime import timedelta
 from functools import partial
 
 import numpy as np
-from hyperopt import fmin, space_eval, tpe
+from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.log import Log
 from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
@@ -121,7 +121,7 @@ class PipelineTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for every node
-        pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
+        chain = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
         try:
             metric_value = self.get_metric_value(data=data,

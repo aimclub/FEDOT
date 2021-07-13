@@ -19,7 +19,7 @@ warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
+def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_folds):
     """
     Function for predicting values in a time series
 
@@ -43,11 +43,11 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     chain_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                             iterations=500)
-    chain = chain_tuner.tune_pipeline(input_data=train_input,
+                             iterations=10)
+    chain = chain_tuner.tune_chain(input_data=train_input,
                                    loss_function=mean_squared_error,
                                    loss_params={'squared': False},
-                                   cv_folds=2)
+                                   cv_folds=cv_folds)
 
     # Fit chain on the entire train data
     pipeline.fit_from_scratch(train_input)
@@ -131,7 +131,8 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast=250):
+def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast=250,
+                               cv_folds=None):
     """ Function with example how time series forecasting can be made
 
     :param time_series: time series for prediction
@@ -156,7 +157,8 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
         pipeline = get_complex_pipeline()
 
     old_predicted, new_predicted = make_forecast_with_tuning(pipeline, train_input,
-                                                             predict_input, task)
+                                                             predict_input, task,
+                                                             cv_folds)
 
     old_predicted = np.ravel(np.array(old_predicted))
     new_predicted = np.ravel(np.array(new_predicted))
@@ -189,5 +191,6 @@ if __name__ == '__main__':
     df = pd.read_csv('../cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_experiment_with_tuning(time_series,
-                               with_ar_chain=False,
-                               len_forecast=100)
+                               with_ar_pipeline=False,
+                               len_forecast=50,
+                               cv_folds=50)

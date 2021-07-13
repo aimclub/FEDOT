@@ -192,15 +192,14 @@ class SequentialTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for node
-        pipeline = self.set_arg_node(pipeline=pipeline,
-                                     node_id=node_id,
-                                     node_params=node_params)
+        chain = self.set_arg_node(pipeline=pipeline, node_id=node_id,
+                                  node_params=node_params)
 
         try:
             metric_value = self.get_metric_value(data=data,
-                                                            chain=chain,
-                                                            loss_function=loss_function,
-                                                            loss_params=loss_params)
+                                                 pipeline=pipeline,
+                                                 loss_function=loss_function,
+                                                 loss_params=loss_params)
         except Exception:
             if self.is_need_to_maximize is True:
                 metric_value = -999999.0
