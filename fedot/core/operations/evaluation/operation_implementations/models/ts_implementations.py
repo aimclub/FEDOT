@@ -3,6 +3,7 @@ from copy import copy
 
 import numpy as np
 from scipy import stats
+from scipy.special import inv_boxcox, boxcox
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
@@ -12,6 +13,9 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
+
+from fedot.utilities.ts_gapfilling import SimpleGapFiller
+gf = SimpleGapFiller()
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -46,7 +50,8 @@ class ARIMAImplementation(ModelImplementation):
             self.scope = abs(min_value) + 1
             source_ts = source_ts + self.scope
 
-        transformed_ts, self.lmbda = stats.boxcox(source_ts)
+        _, self.lmbda = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lmbda)
 
         if not self.params:
             # Default data
@@ -76,7 +81,6 @@ class ARIMAImplementation(ModelImplementation):
         # For training pipeline get fitted data
         if is_fit_pipeline_stage:
             fitted_values = self.arima.fittedvalues
-
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
                                                  lmbda=self.lmbda)
             # Undo shift operation
@@ -110,6 +114,7 @@ class ARIMAImplementation(ModelImplementation):
             end_id = old_idx[-1]
             predicted = self.arima.predict(start=start_id,
                                            end=end_id)
+
             predicted = self._inverse_boxcox(predicted=predicted,
                                              lmbda=self.lmbda)
 
@@ -137,7 +142,17 @@ class ARIMAImplementation(ModelImplementation):
         if lmbda == 0:
             return np.exp(predicted)
         else:
-            return np.exp(np.log(lmbda * predicted + 1) / lmbda)
+            res = inv_boxcox(predicted, lmbda)
+            res[0] = np.nan
+            nan_ind = np.argwhere(np.isnan(res))
+            res[nan_ind] = -100.0
+            if 0 in nan_ind:
+                res[0] = np.mean(res)
+            if int(len(res) - 1) in nan_ind:
+                res[int(len(res) - 1)] = np.mean(res)
+            else:
+                res = gf.linear_interpolation(res)
+            return res
 
     def _inverse_shift(self, values):
         """ Method apply inverse shift operation """
@@ -145,7 +160,6 @@ class ARIMAImplementation(ModelImplementation):
             pass
         else:
             values = values - self.scope
-
         return values
 
 
@@ -158,7 +172,7 @@ class AutoRegImplementation(ModelImplementation):
         self.autoreg = None
 
     def fit(self, input_data):
-        """ Class fit arima model on data
+        """ Class fit ar model on data
 
         :param input_data: data with features, target and ids to process
         """
