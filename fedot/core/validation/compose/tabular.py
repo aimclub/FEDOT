@@ -16,7 +16,7 @@ def table_cross_validation(reference_data: InputData, cv_folds: int,
     :param reference_data:
     :param cv_folds: number of folds to split data
     :param metrics: name of metric or callable object
-    :param chain: Chain for validation
+    :param pipeline: Pipeline for validation
     """
     if reference_data.task.task_type is TaskTypesEnum.clustering:
         raise NotImplementedError(f"Tabular cross validation for {reference_data.task.task_type} is not supported")

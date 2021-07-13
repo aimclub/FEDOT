@@ -137,14 +137,14 @@ class ForecastingMetric(QualityMetric):
         raise NotImplementedError()
 
     @staticmethod
-    def in_sample_validation(chain, data):
+    def in_sample_validation(pipeline, data):
         """ Performs in-sample pipeline validation for time series prediction """
 
         # Get number of validation blocks per each fold
         validation_blocks = data.supplementary_data.validation_blocks
         horizon = data.task.task_params.forecast_length * validation_blocks
 
-        predicted_values = in_sample_ts_forecast(chain=chain,
+        predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
                                                  horizon=horizon)
 

@@ -22,14 +22,14 @@ class PipelineTuner(HyperoptTuner):
                  log: Log = None):
         super().__init__(pipeline, task, iterations, timeout, log)
 
-    def tune_chain(self, input_data, loss_function, loss_params=None,
-                   cv_folds: int = None):
-        """ Function for hyperparameters tuning on the entire chain """
+    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+                      cv_folds: int = None):
+        """ Function for hyperparameters tuning on the entire pipeline """
 
         # Define folds for cross validation
         self.cv_folds = cv_folds
 
-        parameters_dict = self._get_parameters_for_tune(self.chain)
+        parameters_dict = self._get_parameters_for_tune(self.pipeline)
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
@@ -40,7 +40,7 @@ class PipelineTuner(HyperoptTuner):
         self.init_check(input_data, loss_function, loss_params)
 
         best = fmin(partial(self._objective,
-                            chain=self.pipeline,
+                            pipeline=self.pipeline,
                             data=input_data,
                             loss_function=loss_function,
                             loss_params=loss_params),
@@ -121,7 +121,7 @@ class PipelineTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for every node
-        chain = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
+        pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
         try:
             metric_value = self.get_metric_value(data=data,

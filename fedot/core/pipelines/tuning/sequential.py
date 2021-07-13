@@ -21,8 +21,8 @@ class SequentialTuner(HyperoptTuner):
         super().__init__(pipeline, task, iterations, timeout, log)
         self.inverse_node_order = inverse_node_order
 
-    def tune_chain(self, input_data, loss_function, loss_params=None,
-                   cv_folds: int = None):
+    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+                      cv_folds: int = None):
         """ Method for hyperparameters sequential tuning """
         # Define folds for cross validation
         self.cv_folds = cv_folds
@@ -49,7 +49,7 @@ class SequentialTuner(HyperoptTuner):
         # Tuning performed sequentially for every node - so get ids of nodes
         nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
         for node_id in nodes_ids:
-            node = self.chain.nodes[node_id]
+            node = self.pipeline.nodes[node_id]
             operation_name = str(node.operation)
 
             # Get node's parameters to optimize
@@ -70,7 +70,7 @@ class SequentialTuner(HyperoptTuner):
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
-                                          tuned_chain=self.pipeline,
+                                          tuned_pipeline=self.pipeline,
                                           loss_function=loss_function,
                                           loss_params=loss_params)
 
@@ -109,13 +109,13 @@ class SequentialTuner(HyperoptTuner):
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
-                                       tuned_chain=self.chain,
-                                       loss_function=loss_function,
-                                       loss_params=loss_params)
+                                          tuned_pipeline=self.pipeline,
+                                          loss_function=loss_function,
+                                          loss_params=loss_params)
         return final_pipeline
 
     def get_nodes_order(self, nodes_number):
-        """ Method returns list with indices of nodes in the chain """
+        """ Method returns list with indices of nodes in the pipeline """
 
         if self.inverse_node_order is True:
             # From source data to output
@@ -192,8 +192,8 @@ class SequentialTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for node
-        chain = self.set_arg_node(pipeline=pipeline, node_id=node_id,
-                                  node_params=node_params)
+        pipeline = self.set_arg_node(pipeline=pipeline, node_id=node_id,
+                                     node_params=node_params)
 
         try:
             metric_value = self.get_metric_value(data=data,

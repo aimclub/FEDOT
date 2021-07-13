@@ -37,8 +37,8 @@ class HyperoptTuner(ABC):
             self.log = log
 
     @abstractmethod
-    def tune_chain(self, input_data, loss_function, loss_params=None,
-                   cv_folds: int = None):
+    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+                      cv_folds: int = None):
         """
         Function for hyperparameters tuning on the pipeline
 
@@ -48,7 +48,7 @@ class HyperoptTuner(ABC):
         predicted array as the second
         :param loss_params: dictionary with parameters for loss function
         :param cv_folds: number of folds for cross validation
-        :return fitted_pipeline: chain with optimized hyperparameters
+        :return fitted_pipeline: pipeline with optimized hyperparameters
         """
         raise NotImplementedError()
 
@@ -141,28 +141,28 @@ class HyperoptTuner(ABC):
                 return self.init_pipeline
 
     @staticmethod
-    def _one_fold_validation(data, chain):
+    def _one_fold_validation(data, pipeline):
         """ Perform simple (hold-out) validation """
 
         if data.task.task_type == TaskTypesEnum.classification:
-            test_target, preds = fit_predict_one_fold(data, chain)
+            test_target, preds = fit_predict_one_fold(data, pipeline)
         else:
             # For regression and time series forecasting
-            test_target, preds = fit_predict_one_fold(data, chain)
+            test_target, preds = fit_predict_one_fold(data, pipeline)
             # Convert predictions into one dimensional array
             preds = np.ravel(np.array(preds))
             test_target = np.ravel(test_target)
 
         return preds, test_target
 
-    def _cross_validation(self, data, chain):
+    def _cross_validation(self, data, pipeline):
         """ Perform cross validation for metric evaluation """
 
         if data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise NotImplementedError(f'For {data.task.task_type} task cross validation not supported')
 
         # For time series forecasting task in-sample forecasting is provided
-        preds, test_target = cross_validation_predictions(chain, data, log=self.log,
+        preds, test_target = cross_validation_predictions(pipeline, data, log=self.log,
                                                           cv_folds=self.cv_folds)
         return test_target, preds
 

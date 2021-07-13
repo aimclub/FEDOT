@@ -42,14 +42,14 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_fol
     predicted_values = pipeline.predict(predict_input)
     old_predicted_values = predicted_values.predict
 
-    chain_tuner = PipelineTuner(pipeline=pipeline, task=task,
+    pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
                              iterations=10)
-    chain = chain_tuner.tune_chain(input_data=train_input,
+    pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                    loss_function=mean_squared_error,
                                    loss_params={'squared': False},
                                    cv_folds=cv_folds)
 
-    # Fit chain on the entire train data
+    # Fit pipeline on the entire train data
     pipeline.fit_from_scratch(train_input)
     # Predict
     predicted_values = pipeline.predict(predict_input)

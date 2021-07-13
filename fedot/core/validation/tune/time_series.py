@@ -1,11 +1,11 @@
 import numpy as np
 
-from fedot.core.chains.chain_ts_wrappers import in_sample_ts_forecast
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.data.data import InputData
 from fedot.core.validation.split import ts_cv_generator
 
 
-def cross_validation_predictions(chain, reference_data: InputData, log, cv_folds: int):
+def cross_validation_predictions(pipeline, reference_data: InputData, log, cv_folds: int):
     """ Provide K-fold cross validation for time series with using in-sample
     forecasting on each step (fold)
     """
@@ -16,8 +16,8 @@ def cross_validation_predictions(chain, reference_data: InputData, log, cv_folds
     for train_data, test_data in ts_cv_generator(reference_data, log, cv_folds):
         if test_data.supplementary_data.validation_blocks is None:
             # One fold validation
-            chain.fit_from_scratch(train_data)
-            output_pred = chain.predict(test_data)
+            pipeline.fit_from_scratch(train_data)
+            output_pred = pipeline.predict(test_data)
             predictions = output_pred.predict
             targets = output_pred.target
             break
@@ -26,9 +26,9 @@ def cross_validation_predictions(chain, reference_data: InputData, log, cv_folds
             validation_blocks = test_data.supplementary_data.validation_blocks
             horizon = test_data.task.task_params.forecast_length * validation_blocks
 
-            chain.fit_from_scratch(train_data)
+            pipeline.fit_from_scratch(train_data)
 
-            predicted_values = in_sample_ts_forecast(chain=chain,
+            predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                      input_data=test_data,
                                                      horizon=horizon)
             # Clip actual data by the forecast horizon length
