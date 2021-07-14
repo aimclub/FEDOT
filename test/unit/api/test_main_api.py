@@ -51,7 +51,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
         threshold = 0.95
     elif task_type == 'clustering':
-        data = get_synthetic_input_data(n_samples=10000)
+        data = get_synthetic_input_data(n_samples=1000)
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':

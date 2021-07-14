@@ -3,10 +3,8 @@ from datetime import timedelta
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
 from fedot.core.validation.compose.tabular import table_cross_validation
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -86,7 +84,7 @@ def test_composer_with_cv_optimization_correct():
     composer_requirements = GPComposerRequirements(primary=available_model_types,
                                                    secondary=available_model_types,
                                                    timeout=timedelta(minutes=1),
-                                                   num_of_generations=3, cv_folds=3)
+                                                   num_of_generations=2, cv_folds=3)
 
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()

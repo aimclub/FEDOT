@@ -20,7 +20,7 @@ def get_simple_composer_params() -> dict:
               'pop_size': 2,
               'num_of_generations': 2,
               'learning_time': 1,
-              'preset': 'light'}
+              'preset': 'ultra_light'}
     return params
 
 
@@ -33,7 +33,7 @@ def generate_pipeline() -> Pipeline:
     return pipeline
 
 
-def get_synthetic_regression_data(n_samples=10000, n_features=10, random_state=None) -> InputData:
+def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
     synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],

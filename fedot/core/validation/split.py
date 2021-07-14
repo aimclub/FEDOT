@@ -41,32 +41,26 @@ class TsSplit(TimeSeriesSplit):
         # Set appropriate validation_blocks number in supplementary info
         input_data.supplementary_data.validation_blocks = self.validation_blocks
 
-        # Get numbers of folds for validation
-        folds_to_use = choose_several_folds(self.params['n_splits'], folds)
-
-        i = 0
         for train_ids, test_ids in super().split(data_for_split):
-            if i in folds_to_use:
-                # Return train part by ids
-                train_features, train_target = _ts_data_by_index(train_ids, train_ids, input_data)
-                train_data = InputData(idx=np.arange(0, len(train_target)),
-                                       features=train_features, target=train_target,
-                                       task=input_data.task,
-                                       data_type=input_data.data_type,
-                                       supplementary_data=input_data.supplementary_data)
+            # Return train part by ids
+            train_features, train_target = _ts_data_by_index(train_ids, train_ids, input_data)
+            train_data = InputData(idx=np.arange(0, len(train_target)),
+                                   features=train_features, target=train_target,
+                                   task=input_data.task,
+                                   data_type=input_data.data_type,
+                                   supplementary_data=input_data.supplementary_data)
 
-                # Unit all ids for "in-sample validation"
-                all_ids = np.hstack((train_ids, test_ids))
-                # In-sample validation dataset
-                val_features, val_target = _ts_data_by_index(all_ids, all_ids, input_data)
-                validation_data = InputData(idx=np.arange(0, len(val_target)),
-                                            features=val_features, target=val_target,
-                                            task=input_data.task,
-                                            data_type=input_data.data_type,
-                                            supplementary_data=input_data.supplementary_data)
+            # Unit all ids for "in-sample validation"
+            all_ids = np.hstack((train_ids, test_ids))
+            # In-sample validation dataset
+            val_features, val_target = _ts_data_by_index(all_ids, all_ids, input_data)
+            validation_data = InputData(idx=np.arange(0, len(val_target)),
+                                        features=val_features, target=val_target,
+                                        task=input_data.task,
+                                        data_type=input_data.data_type,
+                                        supplementary_data=input_data.supplementary_data)
 
-                yield train_data, validation_data
-            i += 1
+            yield train_data, validation_data
 
 
 def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
@@ -143,26 +137,3 @@ def _ts_data_by_index(train_ids, test_ids, data):
     target = data.target[test_ids]
 
     return features, target
-
-
-def choose_several_folds(n_splits, folds):
-    """ Choose ids of several folds for further testing for time
-    series cross validation
-
-    :param n_splits: number of all splits
-    :param folds: number of splits to use
-    """
-
-    # If there not enough folds in time series - take all of them
-    if n_splits < folds:
-        return np.arange(0, n_splits)
-    else:
-        # Choose last folds for validation
-        # Start with biggest part (last fold)
-        current_biggest_part = n_splits - 1
-        parts_list = [current_biggest_part]
-
-        for fold_id in range(len(parts_list)):
-            current_biggest_part -= 1
-            parts_list.append(current_biggest_part)
-        return np.array(parts_list)
