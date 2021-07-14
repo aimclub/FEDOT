@@ -13,7 +13,7 @@ def table_cross_validation(reference_data: InputData, cv_folds: int,
                            metrics: [str, Callable], pipeline: Optional[Pipeline]) -> Tuple[float, ...]:
     """ Perform cross validation on tabular data for regression and classification tasks
 
-    :param reference_data:
+    :param reference_data: InputData for validation
     :param cv_folds: number of folds to split data
     :param metrics: name of metric or callable object
     :param pipeline: Pipeline for validation

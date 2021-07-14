@@ -21,15 +21,13 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.cross_validation import cross_validation
-from fedot.core.validation.composer_validation import table_cross_validation
 from fedot.core.validation.compose.tabular import table_cross_validation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.validation import validate
+from fedot.core.pipelines.validation import validate
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -113,7 +111,7 @@ class GPComposer(Composer):
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
         if self.composer_requirements.cv_folds is not None:
-            metric_function_for_nodes = self._cv_validation_metric_build(data)
+            objective_function_for_pipeline = self._cv_validation_metric_build(data)
         else:
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
@@ -139,8 +137,8 @@ class GPComposer(Composer):
         """ Prepare function for metric evaluation based on task """
         if isinstance(data, MultiModalData):
             raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-        task = data.task.task_type
-        if task is TaskTypesEnum.ts_forecasting:
+        task_type = data.task.task_type
+        if task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
             metric_function_for_nodes = partial(ts_metric_calculation, data,

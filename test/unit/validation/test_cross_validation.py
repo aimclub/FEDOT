@@ -47,23 +47,15 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
 
 
 def test_cv_ts_and_cluster_raise():
-    task = Task(task_type=TaskTypesEnum.ts_forecasting)
-    dataset_to_compose, dataset_to_validate = get_data(task)
-    models_repo = OperationTypesRepository()
-    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
-    composer_requirements = GPComposerRequirements(primary=available_model_types,
-                                                   secondary=available_model_types,
-                                                   cv_folds=4)
-    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
-    composer = builder.build()
-
-    with pytest.raises(NotImplementedError):
-        composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
-
     task = Task(task_type=TaskTypesEnum.clustering)
     dataset_to_compose, dataset_to_validate = get_data(task)
     metric_function = ClusteringMetricsEnum.silhouette
+
+    operations_repo = OperationTypesRepository()
+    available_model_types, _ = operations_repo.suitable_operation(task_type=task.task_type)
+    composer_requirements = GPComposerRequirements(primary=available_model_types,
+                                                   secondary=available_model_types,
+                                                   cv_folds=4)
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
@@ -77,7 +69,7 @@ def test_cv_min_kfolds_raise():
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     with pytest.raises(ValueError):
-        GPComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=2)
+        GPComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
 
 
 def test_composer_with_cv_optimization_correct():

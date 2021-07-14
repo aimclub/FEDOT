@@ -13,7 +13,6 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
@@ -43,11 +42,11 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_fol
     old_predicted_values = predicted_values.predict
 
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                             iterations=10)
+                                   iterations=10)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                   loss_function=mean_squared_error,
-                                   loss_params={'squared': False},
-                                   cv_folds=cv_folds)
+                                            loss_function=mean_squared_error,
+                                            loss_params={'squared': False},
+                                            cv_folds=cv_folds)
 
     # Fit pipeline on the entire train data
     pipeline.fit_from_scratch(train_input)
@@ -99,7 +98,7 @@ def get_ar_pipeline():
 
 def prepare_input_data(len_forecast, train_data_features, train_data_target,
                        test_data_features):
-    """ Function return prepared data for fit and predict
+    """ Return prepared data for fit and predict
 
     :param len_forecast: forecast length
     :param train_data_features: time series which can be used as predictors for train
@@ -184,13 +183,9 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'examples', 'data', 'ts_sea_level.csv')
-    df = pd.read_csv(data_path)
-    time_series = np.array(df['Level'])
-
     df = pd.read_csv('../cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_experiment_with_tuning(time_series,
                                with_ar_pipeline=False,
                                len_forecast=50,
-                               cv_folds=50)
+                               cv_folds=2)

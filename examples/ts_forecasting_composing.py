@@ -181,8 +181,8 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     # Init check
     preds = fit_predict_for_pipeline(pipeline=init_pipeline,
-                                  train_input=train_input,
-                                  predict_input=predict_input)
+                                     train_input=train_input,
+                                     predict_input=predict_input)
     display_validation_metric(predicted=preds,
                               real=test_part,
                               actual_values=time_series,
@@ -220,8 +220,8 @@ def run_ts_forecasting_problem(forecast_length=50,
         obtained_pipeline.show()
 
     preds = fit_predict_for_pipeline(pipeline=obtained_pipeline,
-                                  train_input=train_input,
-                                  predict_input=predict_input)
+                                     train_input=train_input,
+                                     predict_input=predict_input)
 
     display_validation_metric(predicted=preds,
                               real=test_part,

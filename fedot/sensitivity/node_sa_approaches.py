@@ -14,7 +14,7 @@ from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.core.validation.validation import validate
+from fedot.core.pipelines.validation import validate
 from fedot.sensitivity.sa_requirements import ReplacementAnalysisMetaParams, SensitivityAnalysisRequirements
 from fedot.utilities.define_metric_by_task import MetricByTask
 

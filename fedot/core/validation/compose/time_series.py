@@ -12,6 +12,11 @@ def ts_metric_calculation(reference_data: InputData, cv_folds: int = 3,
                           pipeline: Optional = None) -> Tuple[float, ...]:
     """ Determine metric value for time series forecasting pipeline based
     on data for validation
+
+    :param reference_data: InputData for validation
+    :param cv_folds: number of folds to split data
+    :param metrics: name of metric or callable object
+    :param pipeline: Pipeline for validation
     """
 
     evaluated_metrics = [[] for _ in range(len(metrics))]

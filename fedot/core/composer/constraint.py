@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.validation.validation import validate
+from fedot.core.pipelines.validation import validate
 
 
 def constraint_function(graph: OptGraph,

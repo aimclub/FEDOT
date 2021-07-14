@@ -121,7 +121,7 @@ def ts_cv_generator(data, log, folds: int, validation_blocks: int = 3) -> Iterat
         for train_data, test_data in tscv.input_split(data, folds):
             yield train_data, test_data
     except ValueError:
-        log.info(f'Time series length too small for cross validation with {folds}. Perform one fold validation')
+        log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
         one_fold_split = OneFoldSplit()
         data.supplementary_data.validation_blocks = None
@@ -130,6 +130,7 @@ def ts_cv_generator(data, log, folds: int, validation_blocks: int = 3) -> Iterat
 
 
 def _table_data_by_index(index, values: InputData):
+    """ Allow to get tabular data by indexes of elements """
     features = values.features[index, :]
     target = np.take(values.target, index)
 
@@ -137,6 +138,7 @@ def _table_data_by_index(index, values: InputData):
 
 
 def _ts_data_by_index(train_ids, test_ids, data):
+    """ Allow to get time series data by indexes of elements """
     features = data.features[train_ids]
     target = data.target[test_ids]
 
