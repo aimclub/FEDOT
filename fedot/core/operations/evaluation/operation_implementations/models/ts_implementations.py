@@ -15,7 +15,6 @@ from fedot.core.operations.evaluation. \
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
-gf = SimpleGapFiller()
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -24,7 +23,7 @@ class ARIMAImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.arima = None
-        self.lmbda = None
+        self.lambda_param = None
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
@@ -49,8 +48,8 @@ class ARIMAImplementation(ModelImplementation):
             self.scope = abs(min_value) + 1
             source_ts = source_ts + self.scope
 
-        _, self.lmbda = stats.boxcox(source_ts)
-        transformed_ts = boxcox(source_ts, self.lmbda)
+        _, self.lambda_param = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lambda_param)
 
         if not self.params:
             # Default data
@@ -81,7 +80,7 @@ class ARIMAImplementation(ModelImplementation):
         if is_fit_pipeline_stage:
             fitted_values = self.arima.fittedvalues
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
-                                                 lmbda=self.lmbda)
+                                                 lambda_param=self.lambda_param)
             # Undo shift operation
             fitted_values = self._inverse_shift(fitted_values)
 
@@ -115,7 +114,7 @@ class ARIMAImplementation(ModelImplementation):
                                            end=end_id)
 
             predicted = self._inverse_boxcox(predicted=predicted,
-                                             lmbda=self.lmbda)
+                                             lambda_param=self.lambda_param)
 
             # Undo shift operation
             predict = self._inverse_shift(predicted)
@@ -136,20 +135,20 @@ class ARIMAImplementation(ModelImplementation):
         return self.params
 
     @staticmethod
-    def _inverse_boxcox(predicted, lmbda):
+    def _inverse_boxcox(predicted, lambda_param):
         """ Method apply inverse Box-Cox transformation """
-        if lmbda == 0:
+        if lambda_param == 0:
             return np.exp(predicted)
         else:
-            res = inv_boxcox(predicted, lmbda)
-            res[0] = np.nan
+            res = inv_boxcox(predicted, lambda_param)
             nan_ind = np.argwhere(np.isnan(res))
             res[nan_ind] = -100.0
             if 0 in nan_ind:
                 res[0] = np.mean(res)
             if int(len(res) - 1) in nan_ind:
                 res[int(len(res) - 1)] = np.mean(res)
-            else:
+            if len(np.ravel(np.argwhere(np.isnan(res)))) != 0:
+                gf = SimpleGapFiller()
                 res = gf.linear_interpolation(res)
             return res
 
@@ -256,7 +255,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.model = None
-        self.lmbda = None
+        self.lambda_param = None
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
