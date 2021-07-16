@@ -13,7 +13,7 @@ def cross_validation_predictions(pipeline, reference_data: InputData, log, cv_fo
     # Place where predictions and actual values will be loaded
     predictions = []
     targets = []
-    for train_data, test_data in ts_cv_generator(reference_data, log, cv_folds):
+    for train_data, test_data in ts_cv_generator(reference_data, cv_folds, log):
         if test_data.supplementary_data.validation_blocks is None:
             # One fold validation
             pipeline.fit_from_scratch(train_data)
