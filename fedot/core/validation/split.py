@@ -98,12 +98,12 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
         yield train_data, test_data
 
 
-def ts_cv_generator(data, log, folds: int, validation_blocks: int = 3) -> Iterator[Tuple[InputData, InputData]]:
+def ts_cv_generator(data, folds: int, log, validation_blocks: int = 3) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type
-    :param log: log object
     :param folds: number of folds
+    :param log: log object
     :param validation_blocks: number of validation block per each fold
     """
     # Forecast horizon for each fold

@@ -234,4 +234,4 @@ def run_ts_forecasting_problem(forecast_length=50,
 if __name__ == '__main__':
     run_ts_forecasting_problem(forecast_length=100,
                                with_visualisation=True,
-                               cv_folds=None)
+                               cv_folds=2)
