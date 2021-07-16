@@ -107,12 +107,12 @@ def test_arima_inverse_box_cox_correct():
     input_ts_len = len(ts)
     arima = ARIMAImplementation()
 
-    _, arima.lambda_param = stats.boxcox(ts)
+    _, arima.lambda_value = stats.boxcox(ts)
 
     nan_inds = np.random.randint(1, 999, size=10)
     nan_inds = np.append(nan_inds, [0, int(len(ts) - 1)])
     ts[nan_inds] = -10
-    ts = arima._inverse_boxcox(ts, arima.lambda_param)
+    ts = arima._inverse_boxcox(ts, arima.lambda_value)
 
     assert len(np.ravel(np.argwhere(np.isnan(ts)))) == 0
     assert input_ts_len == len(ts)

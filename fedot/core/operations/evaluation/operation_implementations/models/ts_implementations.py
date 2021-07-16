@@ -23,7 +23,7 @@ class ARIMAImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.arima = None
-        self.lambda_param = None
+        self.lambda_value = None
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
@@ -48,8 +48,8 @@ class ARIMAImplementation(ModelImplementation):
             self.scope = abs(min_value) + 1
             source_ts = source_ts + self.scope
 
-        _, self.lambda_param = stats.boxcox(source_ts)
-        transformed_ts = boxcox(source_ts, self.lambda_param)
+        _, self.lambda_value = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lambda_value)
 
         if not self.params:
             # Default data
@@ -81,7 +81,7 @@ class ARIMAImplementation(ModelImplementation):
             fitted_values = self.arima.fittedvalues
 
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
-                                                 lambda_param=self.lambda_param)
+                                                 lambda_param=self.lambda_value)
             # Undo shift operation
             fitted_values = self._inverse_shift(fitted_values)
 
@@ -115,7 +115,7 @@ class ARIMAImplementation(ModelImplementation):
                                            end=end_id)
 
             predicted = self._inverse_boxcox(predicted=predicted,
-                                             lambda_param=self.lambda_param)
+                                             lambda_param=self.lambda_value)
 
             # Undo shift operation
             predict = self._inverse_shift(predicted)
