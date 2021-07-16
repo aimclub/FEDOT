@@ -3,6 +3,7 @@ from random import seed
 import numpy as np
 import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from scipy import stats
 from statsmodels.tsa.arima_process import ArmaProcess
 
 from fedot.core.data.data import InputData
@@ -13,7 +14,7 @@ from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sampl
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
-
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
 np.random.seed(42)
 seed(42)
 
@@ -99,6 +100,22 @@ def test_arima_pipeline_fit_correct():
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target)
 
     assert rmse_test < rmse_threshold
+
+
+def test_arima_inverse_box_cox_correct():
+    ts = np.random.uniform(0, 100, 1000)
+    input_ts_len = len(ts)
+    arima = ARIMAImplementation()
+
+    _, arima.lambda_param = stats.boxcox(ts)
+
+    nan_inds = np.random.randint(1, 999, size=10)
+    nan_inds = np.append(nan_inds, [0, int(len(ts) - 1)])
+    ts[nan_inds] = -10
+    ts = arima._inverse_boxcox(ts, arima.lambda_param)
+
+    assert len(np.ravel(np.argwhere(np.isnan(ts)))) == 0
+    assert input_ts_len == len(ts)
 
 
 def test_simple_pipeline_forecast_correct():

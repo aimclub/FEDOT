@@ -135,22 +135,13 @@ class ARIMAImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
-    @staticmethod
-    def _inverse_boxcox(predicted, lambda_param):
+    def _inverse_boxcox(self, predicted, lambda_param):
         """ Method apply inverse Box-Cox transformation """
         if lambda_param == 0:
             return np.exp(predicted)
         else:
             res = inv_boxcox(predicted, lambda_param)
-            nan_ind = np.argwhere(np.isnan(res))
-            res[nan_ind] = -100.0
-            if 0 in nan_ind:
-                res[0] = np.mean(res)
-            if int(len(res) - 1) in nan_ind:
-                res[int(len(res) - 1)] = np.mean(res)
-            if len(np.ravel(np.argwhere(np.isnan(res)))) != 0:
-                gf = SimpleGapFiller()
-                res = gf.linear_interpolation(res)
+            res = self._filling_gaps(res)
             return res
 
     def _inverse_shift(self, values):
@@ -161,6 +152,24 @@ class ARIMAImplementation(ModelImplementation):
             values = values - self.scope
 
         return values
+
+    @staticmethod
+    def _filling_gaps(res):
+        nan_ind = np.argwhere(np.isnan(res))
+        res[nan_ind] = -100.0
+
+        # Gaps in first and last elements fills with mean value
+        if 0 in nan_ind:
+            res[0] = np.mean(res)
+        if int(len(res) - 1) in nan_ind:
+            res[int(len(res) - 1)] = np.mean(res)
+
+        # Gaps in center of timeseries fills with linear interpolation
+        if len(np.ravel(np.argwhere(np.isnan(res)))) != 0:
+            gf = SimpleGapFiller()
+            res = gf.linear_interpolation(res)
+
+        return res
 
 
 class AutoRegImplementation(ModelImplementation):
