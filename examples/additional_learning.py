@@ -46,7 +46,7 @@ def run_additional_learning_example():
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
     auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='light', learning_time=learning_time,
-                                  composer_params={'initial_pipeline': non_atomized_model}, verbose_level=2)
+                                     composer_params={'initial_pipeline': non_atomized_model}, verbose_level=2)
     auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
     auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))
     auto_model_from_pipeline.current_model.show()
