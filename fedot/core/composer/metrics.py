@@ -7,6 +7,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
@@ -44,7 +45,12 @@ class QualityMetric:
     def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
         metric = cls.default_value
         try:
-            results, reference_data = cls.prepare_data(pipeline, reference_data)
+            if reference_data.supplementary_data.validation_blocks is None:
+                # Time series classical hold-out validation
+                results, reference_data = cls.prepare_data(pipeline, reference_data)
+            else:
+                # Perform time series in-sample validation
+                reference_data, results = cls._in_sample_validation(pipeline, reference_data)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
@@ -95,49 +101,7 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    @abstractmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
-
-
-class RMSE(QualityMetric):
-    default_value = sys.maxsize
-
-    @staticmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        return mean_squared_error(y_true=reference.target,
-                                  y_pred=predicted.predict, squared=False)
-
-
-class ForecastingMetric(QualityMetric):
-    """ A class for evaluating metrics using specific time series forecasting
-    validation methods (e.g. "in-sample forecasting")
-    """
-    default_value = sys.maxsize
-
-    @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
-        metric = cls.default_value
-        try:
-            if reference_data.supplementary_data.validation_blocks is None:
-                # Time series classical hold-out validation
-                output_pred = pipeline.predict(reference_data)
-                prediction = np.ravel(output_pred.predict)
-                target = reference_data.target
-            else:
-                # Perform time series in-sample validation
-                target, prediction = cls.in_sample_validation(pipeline, reference_data)
-            metric = cls.metric(target, prediction)
-        except Exception as ex:
-            print(f'Metric evaluation error: {ex}')
-        return metric
-
-    @staticmethod
-    def metric(target, prediction) -> float:
-        raise NotImplementedError()
-
-    @staticmethod
-    def in_sample_validation(pipeline, data):
+    def _in_sample_validation(pipeline, data):
         """ Performs in-sample pipeline validation for time series prediction """
 
         # Get number of validation blocks per each fold
@@ -150,21 +114,29 @@ class ForecastingMetric(QualityMetric):
 
         # Clip actual data by the forecast horizon length
         actual_values = data.target[-horizon:]
-        return actual_values, predicted_values
 
+        # Wrap target and prediction arrays into OutputData and InputData
+        results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,
+                             predict=predicted_values, task=data.task, target=predicted_values,
+                             data_type=DataTypesEnum.ts)
+        reference_data = InputData(idx=np.arange(0, len(actual_values)), features=actual_values,
+                                   task=data.task, target=actual_values, data_type=DataTypesEnum.ts)
 
-class ForecastingRMSE(ForecastingMetric):
-
-    @staticmethod
-    def metric(target, prediction) -> float:
-        return mean_squared_error(y_true=target, y_pred=prediction, squared=False)
-
-
-class ForecastingMAE(ForecastingMetric):
+        return reference_data, results
 
     @staticmethod
-    def metric(target, prediction) -> float:
-        return mean_absolute_error(y_true=target, y_pred=prediction)
+    @abstractmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        raise NotImplementedError()
+
+
+class RMSE(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return mean_squared_error(y_true=reference.target,
+                                  y_pred=predicted.predict, squared=False)
 
 
 class MSE(QualityMetric):

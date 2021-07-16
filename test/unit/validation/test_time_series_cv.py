@@ -104,7 +104,7 @@ def test_composer_cv_correct():
         cv_folds=folds)
 
     init_pipeline = get_simple_ts_pipeline()
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.ForecastingRMSE)
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = GPComposerBuilder(task=time_series.task). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipeline(init_pipeline)
