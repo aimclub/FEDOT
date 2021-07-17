@@ -5,7 +5,8 @@ from fedot.core.data.data import InputData
 from fedot.core.validation.split import ts_cv_generator
 
 
-def cross_validation_predictions(pipeline, reference_data: InputData, log, cv_folds: int):
+def cross_validation_predictions(pipeline, reference_data: InputData, log,
+                                 cv_folds: int, validation_blocks=None):
     """ Provide K-fold cross validation for time series with using in-sample
     forecasting on each step (fold)
     """
@@ -13,8 +14,8 @@ def cross_validation_predictions(pipeline, reference_data: InputData, log, cv_fo
     # Place where predictions and actual values will be loaded
     predictions = []
     targets = []
-    for train_data, test_data in ts_cv_generator(reference_data, cv_folds, log):
-        if test_data.supplementary_data.validation_blocks is None:
+    for train_data, test_data, vb_number in ts_cv_generator(reference_data, cv_folds, validation_blocks, log):
+        if vb_number is None:
             # One fold validation
             pipeline.fit_from_scratch(train_data)
             output_pred = pipeline.predict(test_data)
@@ -23,8 +24,7 @@ def cross_validation_predictions(pipeline, reference_data: InputData, log, cv_fo
             break
         else:
             # Cross validation: get number of validation blocks per each fold
-            validation_blocks = test_data.supplementary_data.validation_blocks
-            horizon = test_data.task.task_params.forecast_length * validation_blocks
+            horizon = test_data.task.task_params.forecast_length * vb_number
 
             pipeline.fit_from_scratch(train_data)
 

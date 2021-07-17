@@ -22,11 +22,11 @@ class SequentialTuner(HyperoptTuner):
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None):
+                      cv_folds: int = None, validation_blocks: int = None):
         """ Method for hyperparameters sequential tuning """
         # Define folds for cross validation
         self.cv_folds = cv_folds
-
+        self.validation_blocks = validation_blocks
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)
@@ -77,9 +77,10 @@ class SequentialTuner(HyperoptTuner):
         return final_pipeline
 
     def tune_node(self, input_data, loss_function, node_index, loss_params=None,
-                  cv_folds: int = None):
+                  cv_folds: int = None, validation_blocks: int = None):
         """ Method for hyperparameters tuning for particular node"""
         self.cv_folds = cv_folds
+        self.validation_blocks = validation_blocks
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)

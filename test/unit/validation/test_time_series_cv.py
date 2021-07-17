@@ -16,7 +16,8 @@ from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period, get_s
 
 def configure_experiment():
     """ Generates a time series of 100 elements. The prediction is performed
-    for five elements """
+    for five elements ahead
+    """
     # Default number of validation blocks
     validation_blocks = 3
     forecast_len = 5
@@ -43,7 +44,7 @@ def test_ts_cv_generator_correct():
     validation_horizon = validation_elements_per_fold * folds
 
     i = 0
-    for train_data, test_data in ts_cv_generator(time_series, folds, log, validation_blocks):
+    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
         train_len = len(train_data.idx)
         assert train_len == ts_len - validation_horizon
         validation_horizon -= validation_elements_per_fold
@@ -62,7 +63,7 @@ def test_cv_folds_too_large_correct():
     log, forecast_len, validation_blocks, time_series = configure_experiment()
 
     i = 0
-    for train_data, test_data in ts_cv_generator(time_series, folds, log, validation_blocks):
+    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
         i += 1
         assert len(train_data.idx) == 95
     assert i == 1
@@ -101,7 +102,8 @@ def test_composer_cv_correct():
         max_depth=3, pop_size=2, num_of_generations=2,
         crossover_prob=0.8, mutation_prob=0.8,
         timeout=datetime.timedelta(seconds=5),
-        cv_folds=folds)
+        cv_folds=folds,
+        validation_blocks=validation_blocks)
 
     init_pipeline = get_simple_ts_pipeline()
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)

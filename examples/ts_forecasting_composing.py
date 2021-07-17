@@ -195,10 +195,10 @@ def run_ts_forecasting_problem(forecast_length=50,
     composer_requirements = GPComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=10,
+        max_depth=8, pop_size=10, num_of_generations=2,
         crossover_prob=0.8, mutation_prob=0.8,
         timeout=datetime.timedelta(minutes=10),
-        cv_folds=cv_folds)
+        cv_folds=cv_folds, validation_blocks=3)
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
                       MutationTypesEnum.reduce]

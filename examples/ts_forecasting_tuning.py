@@ -1,4 +1,3 @@
-import os
 import timeit
 import warnings
 
@@ -26,6 +25,7 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_fol
     :param train_input: InputData for fit
     :param predict_input: InputData for predict
     :param task: Ts_forecasting task
+    :param cv_folds: number of folds for validation
 
     :return predicted_values: numpy array, forecast of model
     """
@@ -46,7 +46,8 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_fol
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_squared_error,
                                             loss_params={'squared': False},
-                                            cv_folds=cv_folds)
+                                            cv_folds=cv_folds,
+                                            validation_blocks=3)
 
     # Fit pipeline on the entire train data
     pipeline.fit_from_scratch(train_input)

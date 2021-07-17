@@ -30,6 +30,7 @@ class HyperoptTuner(ABC):
         self.init_metric = None
         self.is_need_to_maximize = None
         self.cv_folds = None
+        self.validation_blocks = 3
 
         if not log:
             self.log = default_log(__name__)
@@ -160,10 +161,14 @@ class HyperoptTuner(ABC):
 
         if data.task.task_type is not TaskTypesEnum.ts_forecasting:
             raise NotImplementedError(f'For {data.task.task_type} task cross validation not supported')
+        if self.validation_blocks is None:
+            self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
+            self.validation_blocks = 3
 
         # For time series forecasting task in-sample forecasting is provided
         preds, test_target = cross_validation_predictions(pipeline, data, log=self.log,
-                                                          cv_folds=self.cv_folds)
+                                                          cv_folds=self.cv_folds,
+                                                          validation_blocks=self.validation_blocks)
         return test_target, preds
 
 

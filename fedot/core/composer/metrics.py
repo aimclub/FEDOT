@@ -26,7 +26,8 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+                  validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
         raise NotImplementedError()
 
@@ -42,15 +43,16 @@ class QualityMetric:
     default_value = 0
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+                  validation_blocks: int = None) -> float:
         metric = cls.default_value
         try:
-            if reference_data.supplementary_data.validation_blocks is None:
+            if validation_blocks is None:
                 # Time series classical hold-out validation
                 results, reference_data = cls.prepare_data(pipeline, reference_data)
             else:
                 # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_validation(pipeline, reference_data)
+                reference_data, results = cls._in_sample_validation(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
@@ -91,7 +93,8 @@ class QualityMetric:
         return results, reference_data
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
+                               validation_blocks: int = None) -> float:
         quality_metric = cls.get_value(pipeline, reference_data)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
@@ -101,11 +104,10 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_validation(pipeline, data):
+    def _in_sample_validation(pipeline, data, validation_blocks):
         """ Performs in-sample pipeline validation for time series prediction """
 
         # Get number of validation blocks per each fold
-        validation_blocks = data.supplementary_data.validation_blocks
         horizon = data.task.task_params.forecast_length * validation_blocks
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,

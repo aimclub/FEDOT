@@ -16,8 +16,6 @@ class SupplementaryData:
     data_flow_length: int = 0
     # Masked features for data
     features_mask: Optional[dict] = None
-    # Number of validation blocks for "in-sample time series validation"
-    validation_blocks: Optional[int] = None
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)

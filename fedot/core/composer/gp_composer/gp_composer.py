@@ -47,12 +47,13 @@ class GPComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
-    :param pop_size: population size
-    :param num_of_generations: maximal number of evolutionary algorithm generations
-    :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
-    :param mutation_prob: mutation probability
-    :param mutation_strength: strength of mutation in tree (using in certain mutation types)
-    :param start_depth: start value of tree depth
+    :attribute pop_size: population size
+    :attribute num_of_generations: maximal number of evolutionary algorithm generations
+    :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
+    :attribute mutation_prob: mutation probability
+    :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :attribute start_depth: start value of tree depth
+    :attribute validation_blocks: number of validation blocks for time series validation
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -60,6 +61,7 @@ class GPComposerRequirements(ComposerRequirements):
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
+    validation_blocks: int = None
 
 
 class GPComposer(Composer):
@@ -141,12 +143,18 @@ class GPComposer(Composer):
         if task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
+            if self.composer_requirements.validation_blocks is None:
+                self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
+                self.composer_requirements.validation_blocks = 3
             metric_function_for_nodes = partial(ts_metric_calculation, data,
-                                                self.composer_requirements.cv_folds, self.metrics)
+                                                self.composer_requirements.cv_folds,
+                                                self.composer_requirements.validation_blocks,
+                                                self.metrics)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
             metric_function_for_nodes = partial(table_cross_validation, data,
-                                                self.composer_requirements.cv_folds, self.metrics)
+                                                self.composer_requirements.cv_folds,
+                                                self.metrics)
 
         return metric_function_for_nodes
 

@@ -146,6 +146,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         with_tuning=False,
                         tuner_metric=None,
                         cv_folds: Optional[int] = None,
+                        validation_blocks: int = None,
                         initial_pipeline=None
                         ):
     """ Function for composing FEDOT pipeline """
@@ -171,7 +172,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
                                timeout=datetime.timedelta(minutes=learning_time_for_composing),
-                               cv_folds=cv_folds)
+                               cv_folds=cv_folds,
+                               validation_blocks=validation_blocks)
 
     optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
                                                       mutation_types=[parameter_change_mutation,

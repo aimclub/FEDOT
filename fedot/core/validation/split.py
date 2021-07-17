@@ -14,7 +14,7 @@ class OneFoldSplit:
         pass
 
     @staticmethod
-    def input_split(input_data: InputData, folds: Optional[int] = None):
+    def input_split(input_data: InputData):
         # Train test split
         train_input, test_input = train_test_data_setup(input_data)
 
@@ -29,17 +29,14 @@ class TsSplit(TimeSeriesSplit):
         self.validation_blocks = validation_blocks
         self.params = params
 
-    def input_split(self, input_data: InputData, folds: int = None) -> Iterator[Tuple[InputData, InputData]]:
+    def input_split(self, input_data: InputData) -> Iterator[Tuple[InputData, InputData]]:
         """ Splitting into datasets for train and validation using
         "in-sample forecasting" algorithm
 
         :param input_data: InputData for splitting
-        :param folds: number of folds, which will be used for validation
         """
         # Transform InputData into numpy array
         data_for_split = np.array(input_data.target)
-        # Set appropriate validation_blocks number in supplementary info
-        input_data.supplementary_data.validation_blocks = self.validation_blocks
 
         for train_ids, test_ids in super().split(data_for_split):
             # Return train part by ids
@@ -98,13 +95,13 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
         yield train_data, test_data
 
 
-def ts_cv_generator(data, folds: int, log, validation_blocks: int = 3) -> Iterator[Tuple[InputData, InputData]]:
+def ts_cv_generator(data, folds: int, validation_blocks: int, log) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type
     :param folds: number of folds
-    :param log: log object
     :param validation_blocks: number of validation block per each fold
+    :param log: log object
     """
     # Forecast horizon for each fold
     horizon = data.task.task_params.forecast_length * validation_blocks
@@ -112,15 +109,16 @@ def ts_cv_generator(data, folds: int, log, validation_blocks: int = 3) -> Iterat
     try:
         tscv = TsSplit(gap=0, validation_blocks=validation_blocks,
                        n_splits=folds, test_size=horizon)
-        for train_data, test_data in tscv.input_split(data, folds):
-            yield train_data, test_data
+        for train_data, test_data in tscv.input_split(data):
+            yield train_data, test_data, validation_blocks
     except ValueError:
         log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
         one_fold_split = OneFoldSplit()
-        data.supplementary_data.validation_blocks = None
-        for train_data, test_data in one_fold_split.input_split(data, folds):
-            yield train_data, test_data
+        for train_data, test_data in one_fold_split.input_split(data):
+            # Number of validation blocks become 'None'
+            vb_number = None
+            yield train_data, test_data, vb_number
 
 
 def _table_data_by_index(index, values: InputData):
