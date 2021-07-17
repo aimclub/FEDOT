@@ -226,10 +226,14 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
         learning_time_for_tuning = learning_time / 2
 
         # Tune all nodes in the pipeline
-        pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                loss_params=loss_params,
-                                                input_data=train_data,
-                                                iterations=iterations, timeout=learning_time_for_tuning)
+        vb_number = composer_requirements.validation_blocks
+        pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                      loss_params=loss_params,
+                                                                      input_data=train_data,
+                                                                      iterations=iterations,
+                                                                      timeout=learning_time_for_tuning,
+                                                                      cv_folds=composer_requirements.cv_folds,
+                                                                      validation_blocks=vb_number)
 
     logger.message('Model composition finished')
 
