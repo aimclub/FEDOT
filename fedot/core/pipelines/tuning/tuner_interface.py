@@ -30,7 +30,7 @@ class HyperoptTuner(ABC):
         self.init_metric = None
         self.is_need_to_maximize = None
         self.cv_folds = None
-        self.validation_blocks = 3
+        self.validation_blocks = None
 
         if not log:
             self.log = default_log(__name__)
@@ -39,7 +39,7 @@ class HyperoptTuner(ABC):
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None):
+                      cv_folds: int = None, validation_blocks: int = None):
         """
         Function for hyperparameters tuning on the pipeline
 
@@ -49,6 +49,7 @@ class HyperoptTuner(ABC):
         predicted array as the second
         :param loss_params: dictionary with parameters for loss function
         :param cv_folds: number of folds for cross validation
+        :param validation_blocks: number of validation blocks for time series forecasting
         :return fitted_pipeline: pipeline with optimized hyperparameters
         """
         raise NotImplementedError()

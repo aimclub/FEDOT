@@ -2,6 +2,7 @@ import datetime
 
 from sklearn.metrics import mean_absolute_error
 
+from fedot.api.main import Fedot
 from fedot.core.log import default_log
 from fedot.core.validation.split import ts_cv_generator
 from fedot.core.composer.gp_composer.gp_composer import \
@@ -9,6 +10,7 @@ from fedot.core.composer.gp_composer.gp_composer import \
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.tasks import TsForecastingParams
 
 from examples.ts_forecasting_composing import get_available_operations
 from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period, get_simple_ts_pipeline
@@ -82,7 +84,8 @@ def test_tuner_cv_correct():
                                                 loss_params=None,
                                                 input_data=time_series,
                                                 iterations=1, timeout=1,
-                                                cv_folds=folds)
+                                                cv_folds=folds,
+                                                validation_blocks=validation_blocks)
     is_tune_succeeded = True
     assert is_tune_succeeded
 
@@ -114,3 +117,25 @@ def test_composer_cv_correct():
 
     obtained_pipeline = composer.compose_pipeline(data=time_series, is_visualise=False)
     assert isinstance(obtained_pipeline, Pipeline)
+
+
+def test_api_cv_correct():
+    """ Checks if the composer works correctly when using cross validation for
+    time series through api """
+    folds = 2
+    _, forecast_len, validation_blocks, time_series = configure_experiment()
+    composer_params = {'max_depth': 1,
+                       'max_arity': 2,
+                       'learning_time': 0.05,
+                       'preset': 'ultra_light',
+                       'cv_folds': folds,
+                       'validation_blocks': validation_blocks}
+    task_parameters = TsForecastingParams(forecast_length=forecast_len)
+
+    model = Fedot(problem='ts_forecasting',
+                  composer_params=composer_params,
+                  task_params=task_parameters,
+                  verbose_level=2)
+    fedot_model = model.fit(features=time_series)
+    is_succeeded = True
+    assert is_succeeded
