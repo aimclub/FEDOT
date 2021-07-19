@@ -48,8 +48,8 @@ class QualityMetric:
         metric = cls.default_value
         try:
             if validation_blocks is None:
-                # Time series classical hold-out validation
-                results, reference_data = cls.prepare_data(pipeline, reference_data)
+                # Time series or regression classical hold-out validation
+                results, reference_data = cls._simple_validation(pipeline, reference_data)
             else:
                 # Perform time series in-sample validation
                 reference_data, results = cls._in_sample_validation(pipeline, reference_data, validation_blocks)
@@ -59,8 +59,8 @@ class QualityMetric:
         return metric
 
     @classmethod
-    def prepare_data(cls, pipeline: Pipeline, reference_data: InputData):
-        """ Method prepares data for metric evaluation """
+    def _simple_validation(cls, pipeline: Pipeline, reference_data: InputData):
+        """ Method prepares data for metric evaluation and perform simple validation """
         results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
         # Define conditions for target and predictions transforming
