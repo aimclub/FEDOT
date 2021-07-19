@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 
 
-class OneFoldSplit:
+class OneFoldInputDataSplit:
     """ Perform one fold split (hold out) for InputData structures """
 
     def __init__(self):
@@ -21,8 +21,21 @@ class OneFoldSplit:
         yield train_input, test_input
 
 
-class TsSplit(TimeSeriesSplit):
-    """ Perform time series splitting for cross validation """
+class TsInputDataSplit(TimeSeriesSplit):
+    """ Perform time series splitting for cross validation on InputData structures.
+    The difference between TimeSeriesSplit (sklearn) and TsInputDataSplit can be
+    demonstrated by an example:
+    The time series [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] must be splitted into 3
+    parts, where the size of each fold for validation will be 2 elements.
+    TimeSeriesSplit (return indices)
+        train - [0, 1, 2, 3] test - [4, 5]
+        train - [0, 1, 2, 3, 4, 5] test - [6, 7]
+        train - [0, 1, 2, 3, 4, 5, 6, 7] test - [8, 9]
+    TsInputDataSplit (return values of time series)
+        train - [1, 2, 3, 4] test - [1, 2, 3, 4, 5, 6]
+        train - [1, 2, 3, 4, 5, 6] test - [1, 2, 3, 4, 5, 6, 7, 8]
+        train - [1, 2, 3, 4, 5, 6, 7, 8] test - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    """
 
     def __init__(self, validation_blocks: int, **params):
         super().__init__(**params)
@@ -107,14 +120,14 @@ def ts_cv_generator(data, folds: int, validation_blocks: int, log) -> Iterator[T
     horizon = data.task.task_params.forecast_length * validation_blocks
 
     try:
-        tscv = TsSplit(gap=0, validation_blocks=validation_blocks,
-                       n_splits=folds, test_size=horizon)
+        tscv = TsInputDataSplit(gap=0, validation_blocks=validation_blocks,
+                                n_splits=folds, test_size=horizon)
         for train_data, test_data in tscv.input_split(data):
             yield train_data, test_data, validation_blocks
     except ValueError:
         log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
-        one_fold_split = OneFoldSplit()
+        one_fold_split = OneFoldInputDataSplit()
         for train_data, test_data in one_fold_split.input_split(data):
             # Number of validation blocks become 'None'
             vb_number = None
