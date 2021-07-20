@@ -20,5 +20,6 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
             metric_func = metric
         else:
             metric_func = MetricsRepository().metric_by_id(metric)
-        evaluated_metrics[index] += [metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)]
+        metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
+        evaluated_metrics[index].extend([metric_value])
     return evaluated_metrics

@@ -12,7 +12,7 @@ from fedot.core.log import default_log
 
 def table_cross_validation(reference_data: InputData, cv_folds: int,
                            metrics: [str, Callable], pipeline: Optional[Pipeline],
-                           log=None) -> Tuple[float, ...]:
+                           log=None) -> [Tuple[float, ...], None]:
     """ Perform cross validation on tabular data for regression and classification tasks
 
     :param reference_data: InputData for validation
@@ -30,7 +30,7 @@ def table_cross_validation(reference_data: InputData, cv_folds: int,
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]
         for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
-            # Update information about metrics
+            # Calculate metric value for every fold of data
             evaluated_metrics = metric_evaluation(pipeline, train_data,
                                                   test_data, metrics,
                                                   evaluated_metrics)

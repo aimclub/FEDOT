@@ -11,7 +11,7 @@ from fedot.core.log import default_log
 def ts_metric_calculation(reference_data: InputData, cv_folds: int,
                           validation_blocks: int,
                           metrics: [str, Callable] = None,
-                          pipeline: Optional = None, log=None) -> Tuple[float, ...]:
+                          pipeline: Optional = None, log=None) -> [Tuple[float, ...], None]:
     """ Determine metric value for time series forecasting pipeline based
     on data for validation
 
@@ -29,7 +29,7 @@ def ts_metric_calculation(reference_data: InputData, cv_folds: int,
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]
         for train_data, test_data, vb_number in ts_cv_generator(reference_data, cv_folds, validation_blocks, log):
-            # Update information about metrics
+            # Calculate metric value for every fold of data
             evaluated_metrics = metric_evaluation(pipeline, train_data,
                                                   test_data, metrics,
                                                   evaluated_metrics,
