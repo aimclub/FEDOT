@@ -49,17 +49,17 @@ class QualityMetric:
         try:
             if validation_blocks is None:
                 # Time series or regression classical hold-out validation
-                results, reference_data = cls._simple_validation(pipeline, reference_data)
+                results, reference_data = cls._simple_prediction(pipeline, reference_data)
             else:
                 # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_validation(pipeline, reference_data, validation_blocks)
+                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
         return metric
 
     @classmethod
-    def _simple_validation(cls, pipeline: Pipeline, reference_data: InputData):
+    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData):
         """ Method prepares data for metric evaluation and perform simple validation """
         results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
@@ -104,7 +104,7 @@ class QualityMetric:
         return metric_with_penalty
 
     @staticmethod
-    def _in_sample_validation(pipeline, data, validation_blocks):
+    def _in_sample_prediction(pipeline, data, validation_blocks):
         """ Performs in-sample pipeline validation for time series prediction """
 
         # Get number of validation blocks per each fold

@@ -21,7 +21,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.compose.tabular import table_cross_validation
+from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
@@ -149,12 +149,14 @@ class GPComposer(Composer):
             metric_function_for_nodes = partial(ts_metric_calculation, data,
                                                 self.composer_requirements.cv_folds,
                                                 self.composer_requirements.validation_blocks,
-                                                self.metrics)
+                                                self.metrics,
+                                                log=self.log)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            metric_function_for_nodes = partial(table_cross_validation, data,
+            metric_function_for_nodes = partial(table_metric_calculation, data,
                                                 self.composer_requirements.cv_folds,
-                                                self.metrics)
+                                                self.metrics,
+                                                log=self.log)
 
         return metric_function_for_nodes
 

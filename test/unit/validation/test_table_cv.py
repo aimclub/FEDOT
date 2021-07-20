@@ -4,7 +4,8 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
-from fedot.core.validation.compose.tabular import table_cross_validation
+from fedot.core.log import default_log
+from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -34,11 +35,13 @@ def get_data(task):
 
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
+    log = default_log(__name__)
 
-    actual_value = table_cross_validation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
-                                          metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
-                                                   ClassificationMetricsEnum.accuracy,
-                                                   ClassificationMetricsEnum.logloss])
+    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
+                                            metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
+                                                     ClassificationMetricsEnum.accuracy,
+                                                     ClassificationMetricsEnum.logloss],
+                                            log=log)
     all_metrics_correct = all(list(map(lambda x: 0 < abs(x) <= 1, actual_value)))
 
     assert all_metrics_correct
