@@ -103,6 +103,7 @@ def test_arima_pipeline_fit_correct():
 
 
 def test_arima_inverse_box_cox_correct():
+    """Tests if negative values after box-cox transformation are correct (not nan) after inverse box-cox"""
     ts = np.random.uniform(0, 100, 1000)
     input_ts_len = len(ts)
     arima = ARIMAImplementation()
