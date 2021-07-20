@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "rapids_gpu_class": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.gpu.classification",
+        "CuMLClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "rapids",
+        "cuML",
+        "gpu"
+      ],
+      "description": "GPU-specific implementations of the classification models from cuML framework"
+    }
+  },
+  "operations": {
+    "logit": {
+      "meta": "rapids_gpu_class",
+      "tags": [
+        "simple",
+        "linear",
+        "interpretable"
+      ]
+    },
+    "rf": {
+      "meta": "rapids_gpu_class"
+    },
+    "lasso": {
+      "meta": "rapids_gpu_class"
+    },
+    "svc": {
+      "meta": "rapids_gpu_class",
+      "tags": [
+        "no_prob",
+        "expensive"
+      ]
+    },
+    "kmeans": {
+      "meta": "rapids_gpu_class"
+    }
+  }
+}

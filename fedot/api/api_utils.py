@@ -132,7 +132,7 @@ def filter_operations_by_preset(task, preset: str):
         available_operations = [_ for _ in available_operations if _ in included_operations]
 
     if preset == 'gpu':
-        repository = OperationTypesRepository('gpu_models.json')
+        repository = OperationTypesRepository('gpu_models_repository.json')
         available_operations = repository.suitable_operation(task_type=task.task_type)
     return available_operations
 

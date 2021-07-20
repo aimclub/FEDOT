@@ -1,4 +1,12 @@
 from datetime import datetime
+import os
+import sys
+
+curdir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(os.path.join(curdir, '..'))
+ROOT = os.path.abspath(os.curdir)
+sys.path.append(ROOT)
+sys.path.append(os.path.join(ROOT, "fedot"))
 
 from cuml.svm import SVC as gpu_svc
 from sklearn.datasets import make_moons
@@ -22,8 +30,8 @@ def run_cpu_svc(n_samples, X, y):
 
 
 if __name__ == '__main__':
-    n_samples = [10000, 100000, 200000, 300000, 400000, 500000]
+    n_samples = [10000, 100000, 200000, 300000]
     for sample in n_samples:
         X, y = make_moons(n_samples=sample, shuffle=True, noise=0.1, random_state=137)
-        # run_gpu_svc(sample, X, y)
+        run_gpu_svc(sample, X, y)
         run_cpu_svc(sample, X, y)

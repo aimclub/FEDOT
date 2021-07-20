@@ -7,6 +7,7 @@ from cuml import KMeans
 from cuml import Ridge, LogisticRegression, Lasso
 from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
 from cuml.svm import SVC
+import datetime
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
@@ -45,10 +46,10 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :return: trained cuML operation
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        # if self.params_for_fit:
-        #    operation_implementation = self.operation_impl(**self.params_for_fit)
-        # else:
-        operation_implementation = self.operation_impl()
+        if self.params_for_fit:
+           operation_implementation = self.operation_impl(**self.params_for_fit)
+        else:
+            operation_implementation = self.operation_impl()
 
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
@@ -56,8 +57,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
-        # features = cudf.DataFrame(train_data.features.astype('float32'))
-        # target = cudf.Series(train_data.target.flatten().astype('float32'))
+        features = cudf.DataFrame(train_data.features.astype('float32'))
+        target = cudf.Series(train_data.target.flatten().astype('float32'))
 
         if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
             raise NotImplementedError('Not supported for GPU yet')
@@ -65,8 +66,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             # operation_implementation = convert_to_multivariate_model(operation_implementation,
             #                                                         train_data)
         else:
-            # operation_implementation.fit(features, target)
-            operation_implementation.fit(train_data.features, train_data.target)
+            operation_implementation.fit(features, target)
         return operation_implementation
 
     def _convert_to_operation(self, operation_type: str):

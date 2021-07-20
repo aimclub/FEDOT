@@ -1,9 +1,9 @@
 import json
 import os
 import warnings
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
-from collections import defaultdict
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -37,34 +37,15 @@ class OperationMetaInfo:
 class OperationTypesRepository:
     """ Class for connecting models and data operations with json files with
     its descriptions and metadata"""
-    _repo = None
-    default_model_repository_name = 'model_repository.json'
+    __repository_dict__ = {}
 
     def __init__(self, repository_name: str = 'model_repository.json'):
-        is_custom_model_repo_name = repository_name != OperationTypesRepository.default_model_repository_name and \
-                                    repository_name != 'data_operation_repository.json'
-        # TODO refactor
-        if OperationTypesRepository._repo is None or is_custom_model_repo_name:
-            # global update of repo
-            # Path till current file with script
-            repo_folder_path = str(os.path.dirname(__file__))
-            # Path till repository file
-            file = os.path.join('data', repository_name)
-            repo_path = os.path.join(repo_folder_path, file)
-            OperationTypesRepository._repo = self._initialise_repo(repo_path)
-            self._repo = OperationTypesRepository._repo
-        elif repository_name == 'data_operation_repository.json':
-            # local update
-            # Path till current file with script
-            repo_folder_path = str(os.path.dirname(__file__))
-            # Path till repository file
-            file = os.path.join('data', repository_name)
-            repo_path = os.path.join(repo_folder_path, file)
-            self._repo = self._initialise_repo(repo_path)
-        else:
-            self._repo = OperationTypesRepository._repo
         self._tags_excluded_by_default = ['non-default', 'expensive']
         self.repository_name = repository_name
+        if repository_name not in OperationTypesRepository.__repository_dict__.keys():
+            repo_path = create_repository_path(repository_name)
+            OperationTypesRepository.__repository_dict__[repository_name] = self._initialise_repo(repo_path)
+        self._repo = OperationTypesRepository.__repository_dict__[repository_name]
 
     def __enter__(self):
         return self
