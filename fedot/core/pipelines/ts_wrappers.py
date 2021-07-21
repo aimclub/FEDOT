@@ -1,12 +1,11 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
+def out_of_sample_ts_forecast(pipeline, input_data: InputData,
                               horizon: int = None) -> np.array:
     """
     Method allow make forecast with appropriate forecast length. The previously
@@ -29,11 +28,11 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
 
     # How many elements to the future pipeline can produce
     scope_len = task.task_params.forecast_length
-    amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
+    number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
 
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
-    for _ in range(0, amount_of_iterations):
+    for _ in range(0, number_of_iterations):
         iter_predict = pipeline.root_node.predict(input_data=input_data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
@@ -51,7 +50,7 @@ def out_of_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
     return final_forecast
 
 
-def in_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
+def in_sample_ts_forecast(pipeline, input_data: InputData,
                           horizon: int = None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
@@ -76,17 +75,17 @@ def in_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
 
     # How many elements to the future pipeline can produce
     scope_len = task.task_params.forecast_length
-    amount_of_iterations = _calculate_amount_of_steps(scope_len, horizon)
+    number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
 
     # Calculate intervals
     intervals = _calculate_intervals(last_index_pre_history,
-                                     amount_of_iterations,
+                                     number_of_iterations,
                                      scope_len)
 
     data = _update_input(pre_history_ts, scope_len, task)
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
-    for _, border in zip(range(0, amount_of_iterations), intervals):
+    for _, border in zip(range(0, number_of_iterations), intervals):
         iter_predict = pipeline.root_node.predict(input_data=data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
         final_forecast.append(iter_predict)
@@ -104,7 +103,7 @@ def in_sample_ts_forecast(pipeline: Pipeline, input_data: InputData,
     return final_forecast
 
 
-def _calculate_amount_of_steps(scope_len, horizon):
+def _calculate_number_of_steps(scope_len, horizon):
     """ Method return amount of iterations which must be done for multistep
     time series forecasting
 

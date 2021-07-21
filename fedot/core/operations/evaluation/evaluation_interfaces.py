@@ -167,7 +167,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
-        if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
+
+        # Multi-output task
+        is_multi_target = len(train_data.target.shape) > 1
+        if is_model_not_support_multi and is_multi_target:
             # Manually wrap the regressor into multi-output model
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)

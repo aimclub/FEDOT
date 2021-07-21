@@ -7,8 +7,10 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 
 
 def from_maximised_metric(metric_func):
@@ -24,7 +26,9 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+                  validation_blocks: int) -> float:
+        """ Get metrics values based on pipeline and InputData for validation """
         raise NotImplementedError()
 
     @staticmethod
@@ -39,18 +43,24 @@ class QualityMetric:
     default_value = 0
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+                  validation_blocks: int = None) -> float:
         metric = cls.default_value
         try:
-            results, reference_data = cls.prepare_data(pipeline, reference_data)
+            if validation_blocks is None:
+                # Time series or regression classical hold-out validation
+                results, reference_data = cls._simple_prediction(pipeline, reference_data)
+            else:
+                # Perform time series in-sample validation
+                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
         return metric
 
     @classmethod
-    def prepare_data(cls, pipeline: Pipeline, reference_data: InputData):
-        """ Method prepares data for metric evaluation """
+    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData):
+        """ Method prepares data for metric evaluation and perform simple validation """
         results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
         # Define conditions for target and predictions transforming
@@ -83,7 +93,8 @@ class QualityMetric:
         return results, reference_data
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData) -> float:
+    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
+                               validation_blocks: int = None) -> float:
         quality_metric = cls.get_value(pipeline, reference_data)
         structural_metric = StructuralComplexity.get_value(pipeline)
 
@@ -91,6 +102,29 @@ class QualityMetric:
         metric_with_penalty = (quality_metric +
                                min(penalty, abs(quality_metric * cls.max_penalty_part)))
         return metric_with_penalty
+
+    @staticmethod
+    def _in_sample_prediction(pipeline, data, validation_blocks):
+        """ Performs in-sample pipeline validation for time series prediction """
+
+        # Get number of validation blocks per each fold
+        horizon = data.task.task_params.forecast_length * validation_blocks
+
+        predicted_values = in_sample_ts_forecast(pipeline=pipeline,
+                                                 input_data=data,
+                                                 horizon=horizon)
+
+        # Clip actual data by the forecast horizon length
+        actual_values = data.target[-horizon:]
+
+        # Wrap target and prediction arrays into OutputData and InputData
+        results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,
+                             predict=predicted_values, task=data.task, target=predicted_values,
+                             data_type=DataTypesEnum.ts)
+        reference_data = InputData(idx=np.arange(0, len(actual_values)), features=actual_values,
+                                   task=data.task, target=actual_values, data_type=DataTypesEnum.ts)
+
+        return reference_data, results
 
     @staticmethod
     @abstractmethod

@@ -8,7 +8,7 @@ from fedot.core.pipelines.validation_rules import has_correct_operation_position
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
     has_primary_nodes, is_pipeline_contains_ts_operations, only_ts_specific_operations_are_primary
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.validation import (validate)
+from fedot.core.pipelines.validation import (validate)
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
 GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'

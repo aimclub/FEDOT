@@ -1,4 +1,3 @@
-import os
 import timeit
 import warnings
 
@@ -13,13 +12,12 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
+def make_forecast_with_tuning(pipeline, train_input, predict_input, task, cv_folds):
     """
     Function for predicting values in a time series
 
@@ -27,6 +25,7 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
     :param train_input: InputData for fit
     :param predict_input: InputData for predict
     :param task: Ts_forecasting task
+    :param cv_folds: number of folds for validation
 
     :return predicted_values: numpy array, forecast of model
     """
@@ -43,15 +42,15 @@ def make_forecast_with_tuning(pipeline, train_input, predict_input, task):
     old_predicted_values = predicted_values.predict
 
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                             iterations=10)
+                                   iterations=10)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                   loss_function=mean_squared_error,
-                                   loss_params={'squared': False})
+                                            loss_function=mean_squared_error,
+                                            loss_params={'squared': False},
+                                            cv_folds=cv_folds,
+                                            validation_blocks=3)
 
-    print('\nPipeline parameters after tuning')
-    for node in pipeline.nodes:
-        print(f' Operation {node.operation}, - {node.custom_params}')
-
+    # Fit pipeline on the entire train data
+    pipeline.fit_from_scratch(train_input)
     # Predict
     predicted_values = pipeline.predict(predict_input)
     new_predicted_values = predicted_values.predict
@@ -100,7 +99,7 @@ def get_ar_pipeline():
 
 def prepare_input_data(len_forecast, train_data_features, train_data_target,
                        test_data_features):
-    """ Function return prepared data for fit and predict
+    """ Return prepared data for fit and predict
 
     :param len_forecast: forecast length
     :param train_data_features: time series which can be used as predictors for train
@@ -132,7 +131,8 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
     return train_input, predict_input, task
 
 
-def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast=250):
+def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast=250,
+                               cv_folds=None):
     """ Function with example how time series forecasting can be made
 
     :param time_series: time series for prediction
@@ -157,7 +157,8 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
         pipeline = get_complex_pipeline()
 
     old_predicted, new_predicted = make_forecast_with_tuning(pipeline, train_input,
-                                                             predict_input, task)
+                                                             predict_input, task,
+                                                             cv_folds)
 
     old_predicted = np.ravel(np.array(old_predicted))
     new_predicted = np.ravel(np.array(new_predicted))
@@ -183,10 +184,9 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'examples', 'data', 'ts_sea_level.csv')
-    df = pd.read_csv(data_path)
-    time_series = np.array(df['Level'])
-
+    df = pd.read_csv('../cases/data/time_series/metocean.csv')
+    time_series = np.array(df['value'])
     run_experiment_with_tuning(time_series,
-                               with_ar_pipeline=True,
-                               len_forecast=250)
+                               with_ar_pipeline=False,
+                               len_forecast=50,
+                               cv_folds=2)

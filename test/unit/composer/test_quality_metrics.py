@@ -101,6 +101,6 @@ def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
 
     source_shape = test.target.shape
     # Get converted data
-    results, new_test = QualityMetric().prepare_data(simple_pipeline, test)
+    results, new_test = QualityMetric()._simple_prediction(simple_pipeline, test)
     number_elements = len(new_test.target)
     assert source_shape[0] * source_shape[1] == number_elements

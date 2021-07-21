@@ -9,7 +9,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def prepare_input_data(forecast_length):
+def prepare_input_data(forecast_length, horizon):
     ts = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
                    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 101])
 
@@ -17,14 +17,16 @@ def prepare_input_data(forecast_length):
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
-    train_input = InputData(idx=np.arange(0, len(ts)),
-                            features=ts,
-                            target=ts,
+    # To avoid data leak
+    ts_train = ts[:-horizon]
+    train_input = InputData(idx=np.arange(0, len(ts_train)),
+                            features=ts_train,
+                            target=ts_train,
                             task=task,
                             data_type=DataTypesEnum.ts)
 
-    start_forecast = len(ts)
-    end_forecast = start_forecast + 2
+    start_forecast = len(ts_train)
+    end_forecast = start_forecast + forecast_length
     predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
                               features=ts,
                               target=None,
@@ -48,7 +50,7 @@ def get_simple_short_lagged_pipeline():
 def test_out_of_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
-    train_input, predict_input = prepare_input_data(simple_length)
+    train_input, predict_input = prepare_input_data(simple_length, multi_length)
 
     pipeline = get_simple_short_lagged_pipeline()
     pipeline.fit(train_input)
@@ -69,7 +71,7 @@ def test_out_of_sample_ts_forecast_correct():
 def test_in_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
-    train_input, predict_input = prepare_input_data(simple_length)
+    train_input, predict_input = prepare_input_data(simple_length, multi_length)
 
     pipeline = get_simple_short_lagged_pipeline()
     pipeline.fit(train_input)

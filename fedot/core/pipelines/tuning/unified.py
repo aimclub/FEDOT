@@ -2,12 +2,12 @@ from datetime import timedelta
 from functools import partial
 
 import numpy as np
-from hyperopt import fmin, space_eval, tpe
+from hyperopt import fmin, tpe, space_eval
 
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.repository.tasks import TaskTypesEnum
 
 MAX_METRIC_VALUE = 10e6
 
@@ -22,29 +22,26 @@ class PipelineTuner(HyperoptTuner):
                  log: Log = None):
         super().__init__(pipeline, task, iterations, timeout, log)
 
-    def tune_pipeline(self, input_data, loss_function, loss_params=None):
+    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+                      cv_folds: int = None, validation_blocks: int = None):
         """ Function for hyperparameters tuning on the entire pipeline """
+
+        # Define folds for cross validation
+        self.cv_folds = cv_folds
 
         parameters_dict = self._get_parameters_for_tune(self.pipeline)
 
-        # Train test split
-        train_input, predict_input = train_test_data_setup(input_data)
-        test_target = np.array(predict_input.target)
-
-        is_need_to_maximize = _greater_is_better(target=test_target,
+        is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
                                                  loss_params=loss_params)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
-        self.init_check(train_input, predict_input, test_target,
-                        loss_function, loss_params)
+        self.init_check(input_data, loss_function, loss_params)
 
         best = fmin(partial(self._objective,
                             pipeline=self.pipeline,
-                            train_input=train_input,
-                            predict_input=predict_input,
-                            test_target=test_target,
+                            data=input_data,
                             loss_function=loss_function,
                             loss_params=loss_params),
                     parameters_dict,
@@ -58,9 +55,7 @@ class PipelineTuner(HyperoptTuner):
                                                parameters=best)
 
         # Validation is the optimization do well
-        final_pipeline = self.final_check(train_input=train_input,
-                                          predict_input=predict_input,
-                                          test_target=test_target,
+        final_pipeline = self.final_check(data=input_data,
                                           tuned_pipeline=tuned_pipeline,
                                           loss_function=loss_function,
                                           loss_params=loss_params)
@@ -111,16 +106,14 @@ class PipelineTuner(HyperoptTuner):
 
         return parameters_dict
 
-    def _objective(self, parameters_dict, pipeline, train_input, predict_input,
-                   test_target, loss_function, loss_params: dict):
+    def _objective(self, parameters_dict, pipeline, data, loss_function,
+                   loss_params: dict):
         """
         Objective function for minimization / maximization problem
 
         :param parameters_dict: dictionary with operation names and parameters
         :param pipeline: pipeline to optimize
-        :param train_input: input for train pipeline model
-        :param predict_input: input for test pipeline model
-        :param test_target: target for validation
+        :param data: InputData for model train and validation
         :param loss_function: loss function to optimize
         :param loss_params: parameters for loss function
 
@@ -128,15 +121,13 @@ class PipelineTuner(HyperoptTuner):
         """
 
         # Set hyperparameters for every node
-        pipeline = PipelineTuner.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
+        pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
         try:
-            metric_value = PipelineTuner.get_metric_value(train_input=train_input,
-                                                          predict_input=predict_input,
-                                                          test_target=test_target,
-                                                          pipeline=pipeline,
-                                                          loss_function=loss_function,
-                                                          loss_params=loss_params)
+            metric_value = self.get_metric_value(data=data,
+                                                 pipeline=pipeline,
+                                                 loss_function=loss_function,
+                                                 loss_params=loss_params)
         except Exception:
             if self.is_need_to_maximize is True:
                 metric_value = -MAX_METRIC_VALUE

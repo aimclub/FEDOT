@@ -218,7 +218,9 @@ class Pipeline(Graph):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: Callable = None,
                             input_data: Union[InputData, MultiModalData] = None,
-                            iterations=50, timeout: int = 5) -> 'Pipeline':
+                            iterations=50, timeout: int = 5,
+                            cv_folds: int = None,
+                            validation_blocks: int = 3) -> 'Pipeline':
         """ Tune all hyperparameters of nodes simultaneously via black-box
             optimization using PipelineTuner. For details, see
         :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
@@ -234,7 +236,9 @@ class Pipeline(Graph):
         self.log.info('Start tuning of primary nodes')
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                                       loss_function=loss_function,
-                                                      loss_params=loss_params)
+                                                      loss_params=loss_params,
+                                                      cv_folds=cv_folds,
+                                                      validation_blocks=validation_blocks)
         self.log.info('Tuning was finished')
 
         return tuned_pipeline

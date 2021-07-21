@@ -21,7 +21,7 @@ def run_additional_learning_example():
     problem = 'classification'
 
     auto_model = Fedot(problem=problem, seed=42, preset='light', learning_time=5,
-                       composer_params={'initial_chain':
+                       composer_params={'initial_pipeline':
                                         Pipeline(SecondaryNode('logit', nodes_from=[PrimaryNode('scaling')]))})
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))
@@ -39,18 +39,18 @@ def run_additional_learning_example():
     learning_time = 1
 
     auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='light', learning_time=learning_time,
-                                     composer_params={'initial_chain': atomized_model}, verbose_level=2)
+                                     composer_params={'initial_pipeline': atomized_model}, verbose_level=2)
     auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
     auto_model_from_atomized.predict_proba(features=deepcopy(test_data))
     auto_model_from_atomized.current_model.show()
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
-    auto_model_from_chain = Fedot(problem=problem, seed=42, preset='light', learning_time=learning_time,
-                                  composer_params={'initial_chain': non_atomized_model}, verbose_level=2)
-    auto_model_from_chain.fit(features=deepcopy(train_data), target='target')
-    auto_model_from_chain.predict_proba(features=deepcopy(test_data))
-    auto_model_from_chain.current_model.show()
-    print('auto_model_from_chain', auto_model_from_chain.get_metrics(deepcopy(test_data_target)))
+    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='light', learning_time=learning_time,
+                                     composer_params={'initial_pipeline': non_atomized_model}, verbose_level=2)
+    auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
+    auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))
+    auto_model_from_pipeline.current_model.show()
+    print('auto_model_from_pipeline', auto_model_from_pipeline.get_metrics(deepcopy(test_data_target)))
 
 
 if __name__ == '__main__':

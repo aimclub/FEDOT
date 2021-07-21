@@ -146,7 +146,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         with_tuning=False,
                         tuner_metric=None,
                         cv_folds: Optional[int] = None,
-                        initial_chain=None
+                        validation_blocks: int = None,
+                        initial_pipeline=None
                         ):
     """ Function for composing FEDOT pipeline """
 
@@ -171,7 +172,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
                                timeout=datetime.timedelta(minutes=learning_time_for_composing),
-                               cv_folds=cv_folds)
+                               cv_folds=cv_folds,
+                               validation_blocks=validation_blocks)
 
     optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
                                                       mutation_types=[parameter_change_mutation,
@@ -188,7 +190,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                        composer_requirements=composer_requirements,
                                        optimizer_parameters=optimizer_parameters,
                                        data=train_data,
-                                       initial_chain=initial_chain,
+                                       initial_pipeline=initial_pipeline,
                                        logger=logger)
     gp_composer = builder.build()
 
@@ -224,10 +226,14 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
         learning_time_for_tuning = learning_time / 2
 
         # Tune all nodes in the pipeline
-        pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                loss_params=loss_params,
-                                                input_data=train_data,
-                                                iterations=iterations, timeout=learning_time_for_tuning)
+        vb_number = composer_requirements.validation_blocks
+        pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                      loss_params=loss_params,
+                                                                      input_data=train_data,
+                                                                      iterations=iterations,
+                                                                      timeout=learning_time_for_tuning,
+                                                                      cv_folds=composer_requirements.cv_folds,
+                                                                      validation_blocks=vb_number)
 
     logger.message('Model composition finished')
 
@@ -263,7 +269,7 @@ def _get_gp_composer_builder(task: Task, metric_function,
                              composer_requirements: GPComposerRequirements,
                              optimizer_parameters: GPGraphOptimiserParameters,
                              data: Union[InputData, MultiModalData],
-                             initial_chain: Pipeline,
+                             initial_pipeline: Pipeline,
                              logger: Log):
     """ Return GPComposerBuilder with parameters and if it is necessary
     init_pipeline in it """
@@ -273,7 +279,7 @@ def _get_gp_composer_builder(task: Task, metric_function,
         with_optimiser_parameters(optimizer_parameters). \
         with_metrics(metric_function).with_logger(logger)
 
-    init_pipeline = _obtain_initial_assumption(task, data) if not initial_chain else initial_chain
+    init_pipeline = _obtain_initial_assumption(task, data) if not initial_pipeline else initial_pipeline
 
     if init_pipeline is not None:
         builder = builder.with_initial_pipeline(init_pipeline)

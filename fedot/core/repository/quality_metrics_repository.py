@@ -52,6 +52,7 @@ class MetricsRepository:
         ClassificationMetricsEnum.precision: Precision.get_value,
         ClassificationMetricsEnum.accuracy: Accuracy.get_value,
         ClassificationMetricsEnum.logloss: Logloss.get_value,
+
         # regression
         RegressionMetricsEnum.MAE: MAE.get_value,
         RegressionMetricsEnum.MSE: MSE.get_value,
@@ -63,6 +64,7 @@ class MetricsRepository:
 
         # clustering
         ClusteringMetricsEnum.silhouette: Silhouette.get_value,
+
         # structural
         ComplexityMetricsEnum.structural: StructuralComplexity.get_value,
         ComplexityMetricsEnum.node_num: NodeNum.get_value,

@@ -45,16 +45,6 @@ def get_source_pipeline():
     return pipeline
 
 
-def display_pipeline_info(pipeline):
-    """ Function print info about pipeline """
-
-    print('\nObtained pipeline:')
-    for node in pipeline.nodes:
-        print(f'{node.operation.operation_type}, params: {node.custom_params}')
-    depth = int(pipeline.graph_depth)
-    print(f'Pipeline depth {depth}\n')
-
-
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
     primary_operations = ['lagged', 'smoothing', 'gaussian_filter', 'ar']
@@ -164,11 +154,14 @@ def fit_predict_for_pipeline(pipeline, train_input, predict_input):
 
 
 def run_ts_forecasting_problem(forecast_length=50,
-                               with_visualisation=True) -> None:
+                               with_visualisation=True,
+                               cv_folds=None) -> None:
     """ Function launch time series task with composing
 
     :param forecast_length: length of the forecast
     :param with_visualisation: is it needed to show the plots
+    :param cv_folds: is it needed apply cross validation and what number
+    of folds to use
     """
     file_path = '../cases/data/metocean/metocean_data_test.csv'
 
@@ -188,8 +181,8 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     # Init check
     preds = fit_predict_for_pipeline(pipeline=init_pipeline,
-                                  train_input=train_input,
-                                  predict_input=predict_input)
+                                     train_input=train_input,
+                                     predict_input=predict_input)
     display_validation_metric(predicted=preds,
                               real=test_part,
                               actual_values=time_series,
@@ -202,15 +195,16 @@ def run_ts_forecasting_problem(forecast_length=50,
     composer_requirements = GPComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=15,
+        max_depth=8, pop_size=10, num_of_generations=10,
         crossover_prob=0.8, mutation_prob=0.8,
-        timeout=datetime.timedelta(minutes=10))
+        timeout=datetime.timedelta(minutes=10),
+        cv_folds=cv_folds, validation_blocks=3)
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
                       MutationTypesEnum.reduce]
     optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = GPComposerBuilder(task=task). \
         with_optimiser_parameters(optimiser_parameters).\
         with_requirements(composer_requirements).\
@@ -219,24 +213,25 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
 
-    ################################
+    ###################################
     # Obtained pipeline visualisation #
-    ################################
+    ###################################
     if with_visualisation:
         obtained_pipeline.show()
 
     preds = fit_predict_for_pipeline(pipeline=obtained_pipeline,
-                                  train_input=train_input,
-                                  predict_input=predict_input)
+                                     train_input=train_input,
+                                     predict_input=predict_input)
 
     display_validation_metric(predicted=preds,
                               real=test_part,
                               actual_values=time_series,
                               is_visualise=with_visualisation)
 
-    display_pipeline_info(obtained_pipeline)
+    obtained_pipeline.print_structure()
 
 
 if __name__ == '__main__':
     run_ts_forecasting_problem(forecast_length=100,
-                               with_visualisation=True)
+                               with_visualisation=True,
+                               cv_folds=2)

@@ -14,7 +14,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.cross_validation import cross_validation
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
     GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
@@ -22,11 +21,13 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.validation.compose.tabular import table_metric_calculation
+from fedot.core.validation.compose.time_series import ts_metric_calculation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.validation import validate
+from fedot.core.pipelines.validation import validate
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -46,12 +47,13 @@ class GPComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
-    :param pop_size: population size
-    :param num_of_generations: maximal number of evolutionary algorithm generations
-    :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
-    :param mutation_prob: mutation probability
-    :param mutation_strength: strength of mutation in tree (using in certain mutation types)
-    :param start_depth: start value of tree depth
+    :attribute pop_size: population size
+    :attribute num_of_generations: maximal number of evolutionary algorithm generations
+    :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
+    :attribute mutation_prob: mutation probability
+    :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :attribute start_depth: start value of tree depth
+    :attribute validation_blocks: number of validation blocks for time series validation
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -59,6 +61,7 @@ class GPComposerRequirements(ComposerRequirements):
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
+    validation_blocks: int = None
 
 
 class GPComposer(Composer):
@@ -110,11 +113,7 @@ class GPComposer(Composer):
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
         if self.composer_requirements.cv_folds is not None:
-            if isinstance(data, MultiModalData):
-                raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-            self.log.info("KFolds cross validation for graph composing was applied.")
-            objective_function_for_pipeline = partial(cross_validation, data,
-                                                      self.composer_requirements.cv_folds, self.metrics)
+            objective_function_for_pipeline = self._cv_validation_metric_build(data)
         else:
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
@@ -135,6 +134,31 @@ class GPComposer(Composer):
         if is_tune:
             self.tune_pipeline(best_pipeline, data, self.composer_requirements.timeout)
         return best_pipeline
+
+    def _cv_validation_metric_build(self, data):
+        """ Prepare function for metric evaluation based on task """
+        if isinstance(data, MultiModalData):
+            raise NotImplementedError('Cross-validation is not supported for multi-modal data')
+        task_type = data.task.task_type
+        if task_type is TaskTypesEnum.ts_forecasting:
+            # Perform time series cross validation
+            self.log.info("Time series cross validation for pipeline composing was applied.")
+            if self.composer_requirements.validation_blocks is None:
+                self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
+                self.composer_requirements.validation_blocks = 3
+            metric_function_for_nodes = partial(ts_metric_calculation, data,
+                                                self.composer_requirements.cv_folds,
+                                                self.composer_requirements.validation_blocks,
+                                                self.metrics,
+                                                log=self.log)
+        else:
+            self.log.info("KFolds cross validation for pipeline composing was applied.")
+            metric_function_for_nodes = partial(table_metric_calculation, data,
+                                                self.composer_requirements.cv_folds,
+                                                self.metrics,
+                                                log=self.log)
+
+        return metric_function_for_nodes
 
     def composer_metric(self, metrics,
                         train_data: Union[InputData, MultiModalData],
