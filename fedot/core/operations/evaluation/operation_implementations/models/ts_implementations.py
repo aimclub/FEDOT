@@ -3,6 +3,7 @@ from copy import copy
 
 import numpy as np
 from scipy import stats
+from scipy.special import inv_boxcox, boxcox
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
@@ -13,6 +14,8 @@ from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
+from fedot.utilities.ts_gapfilling import SimpleGapFiller
+
 
 class ARIMAImplementation(ModelImplementation):
 
@@ -20,11 +23,10 @@ class ARIMAImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.arima = None
-        self.lmbda = None
+        self.lambda_value = None
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
-        # TODO for some configuration of p,d,q got ValueError
 
     def fit(self, input_data):
         """ Class fit arima model on data
@@ -46,7 +48,8 @@ class ARIMAImplementation(ModelImplementation):
             self.scope = abs(min_value) + 1
             source_ts = source_ts + self.scope
 
-        transformed_ts, self.lmbda = stats.boxcox(source_ts)
+        _, self.lambda_value = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lambda_value)
 
         if not self.params:
             # Default data
@@ -78,7 +81,7 @@ class ARIMAImplementation(ModelImplementation):
             fitted_values = self.arima.fittedvalues
 
             fitted_values = self._inverse_boxcox(predicted=fitted_values,
-                                                 lmbda=self.lmbda)
+                                                 lambda_param=self.lambda_value)
             # Undo shift operation
             fitted_values = self._inverse_shift(fitted_values)
 
@@ -110,8 +113,9 @@ class ARIMAImplementation(ModelImplementation):
             end_id = old_idx[-1]
             predicted = self.arima.predict(start=start_id,
                                            end=end_id)
+
             predicted = self._inverse_boxcox(predicted=predicted,
-                                             lmbda=self.lmbda)
+                                             lambda_param=self.lambda_value)
 
             # Undo shift operation
             predict = self._inverse_shift(predicted)
@@ -131,13 +135,14 @@ class ARIMAImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
-    @staticmethod
-    def _inverse_boxcox(predicted, lmbda):
+    def _inverse_boxcox(self, predicted, lambda_param):
         """ Method apply inverse Box-Cox transformation """
-        if lmbda == 0:
+        if lambda_param == 0:
             return np.exp(predicted)
         else:
-            return np.exp(np.log(lmbda * predicted + 1) / lmbda)
+            res = inv_boxcox(predicted, lambda_param)
+            res = self._filling_gaps(res)
+            return res
 
     def _inverse_shift(self, values):
         """ Method apply inverse shift operation """
@@ -147,6 +152,24 @@ class ARIMAImplementation(ModelImplementation):
             values = values - self.scope
 
         return values
+
+    @staticmethod
+    def _filling_gaps(res):
+        nan_ind = np.argwhere(np.isnan(res))
+        res[nan_ind] = -100.0
+
+        # Gaps in first and last elements fills with mean value
+        if 0 in nan_ind:
+            res[0] = np.mean(res)
+        if int(len(res) - 1) in nan_ind:
+            res[int(len(res) - 1)] = np.mean(res)
+
+        # Gaps in center of timeseries fills with linear interpolation
+        if len(np.ravel(np.argwhere(np.isnan(res)))) != 0:
+            gf = SimpleGapFiller()
+            res = gf.linear_interpolation(res)
+
+        return res
 
 
 class AutoRegImplementation(ModelImplementation):
@@ -158,7 +181,7 @@ class AutoRegImplementation(ModelImplementation):
         self.autoreg = None
 
     def fit(self, input_data):
-        """ Class fit arima model on data
+        """ Class fit ar model on data
 
         :param input_data: data with features, target and ids to process
         """
@@ -243,7 +266,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.model = None
-        self.lmbda = None
+        self.lambda_param = None
         self.scope = None
         self.actual_ts_len = None
         self.sts = None
