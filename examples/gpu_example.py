@@ -2,6 +2,8 @@ import os
 import sys
 from datetime import datetime
 
+from typing import Tuple
+
 curdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(os.path.join(curdir, '..'))
 ROOT = os.path.abspath(os.curdir)
@@ -35,6 +37,7 @@ def get_synthetic_input_data(n_samples=10000, n_features=10, random_state=None) 
 
 
 def run_small_gpu_example():
+    print('Run small gpu example')
     synthetic_data = load_iris()
     features = np.asarray(synthetic_data.data).astype(np.float32)
     features_test = np.asarray(synthetic_data.data).astype(np.float32)
@@ -43,29 +46,18 @@ def run_small_gpu_example():
     problem = 'classification'
 
     baseline_model = Fedot(problem=problem, preset='gpu')
-    baseline_model.fit(features=features_test, target=target, predefined_model='svc')
+    svc_node_with_custom_params = PrimaryNode('svc')
+    svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10, gamma=1, cache_size=2000, probability=True)
+
+    baseline_model.fit(features=features_test, target=target, predefined_model=Pipeline(svc_node_with_custom_params))
 
     baseline_model.predict(features=features)
     print(baseline_model.get_metrics())
 
 
-def run_large_gpu_example(n_samples, mode: str = None):
-    # scoring
-    # train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    # test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-
-    # synthetic
-    # train_data = get_synthetic_input_data(10000)
-    # test_data = get_synthetic_input_data(1000)
-
+def run_large_gpu_example(train_data, test_data, n_samples, mode: str = None):
+    print(f'run large gpu example with {n_samples}')
     problem = 'classification'
-    # toy moon dataset
-    features, target = make_moons(n_samples=n_samples, shuffle=True, noise=0.1, random_state=137)
-
-    train_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                           idx=len(features), data_type=DataTypesEnum.table)
-    test_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                          idx=len(features), data_type=DataTypesEnum.table)
 
     if mode == 'gpu':
         baseline_model = Fedot(problem=problem, preset='gpu')
@@ -81,23 +73,9 @@ def run_large_gpu_example(n_samples, mode: str = None):
     print(baseline_model.get_metrics())
 
 
-def run_large_gpu_example_with_preset(n_samples=None, mode: str = None):
-    # synthetic
-    # train_data = get_synthetic_input_data(10000)
-    # test_data = get_synthetic_input_data(1000)
-
-    # scoring
-    # train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    # test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-
-    # toy moon dataset
+def run_large_gpu_example_with_preset(train_data, test_data, n_samples=None, mode: str = None):
+    print(f'run large gpu example with preset and {n_samples}')
     problem = 'classification'
-    features, target = make_moons(n_samples=n_samples, shuffle=True, noise=0.1, random_state=137)
-
-    train_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                           idx=len(features), data_type=DataTypesEnum.table)
-    test_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                          idx=len(features), data_type=DataTypesEnum.table)
 
     if mode == 'gpu':
         baseline_model = Fedot(problem=problem, preset='gpu')
@@ -105,7 +83,7 @@ def run_large_gpu_example_with_preset(n_samples=None, mode: str = None):
         baseline_model = Fedot(problem=problem)
     svc_node_with_custom_params = PrimaryNode('svc')
     svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10, gamma=1, cache_size=2000, probability=True)
-    preset_pipeline = Pipeline(nodes=[svc_node_with_custom_params], tag='gpu')
+    preset_pipeline = Pipeline(nodes=[svc_node_with_custom_params])
 
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
@@ -115,15 +93,10 @@ def run_large_gpu_example_with_preset(n_samples=None, mode: str = None):
     print(baseline_model.get_metrics())
 
 
-def run_extended_preset_gpu_axample(n_samples=None, mode: str = None):
-    # toy moon dataset
+def run_pipeline_preset_gpu_example(train_data: InputData, test_data: InputData,
+                                    n_samples=None, mode: str = None):
+    print(f'run pipeline gpu example with {n_samples}')
     problem = 'classification'
-    features, target = make_moons(n_samples=n_samples, shuffle=True, noise=0.1, random_state=137)
-
-    train_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                           idx=np.array(range(len(features))), data_type=DataTypesEnum.table)
-    test_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
-                          idx=np.array(range(len(features))), data_type=DataTypesEnum.table)
 
     if mode == 'gpu':
         baseline_model = Fedot(problem=problem, preset='gpu')
@@ -137,10 +110,9 @@ def run_extended_preset_gpu_axample(n_samples=None, mode: str = None):
 
     rf_node = SecondaryNode('rf', nodes_from=[svc_node_with_custom_params, logit_node])
 
-    preset_pipeline = Pipeline(rf_node, tag='gpu')
+    preset_pipeline = Pipeline(rf_node)
 
     start = datetime.now()
-    print('START FIT')
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
     print(f'Completed {n_samples} with custom params in: {datetime.now() - start}')
 
@@ -148,12 +120,40 @@ def run_extended_preset_gpu_axample(n_samples=None, mode: str = None):
     print(baseline_model.get_metrics())
 
 
-def run_wit_time_profiler(function):
+def run_wit_time_profiler(function, train_data, test_data):
     # pass
     profiler = TimeProfiler()
     path = os.path.join(os.path.expanduser("~"), f'time_profiler_{sample}')
-    function(n_samples=sample, mode='gpu')
+    function(n_samples=sample, mode='gpu', train_data=train_data, test_data=test_data)
     profiler.profile(path=path, node_percent=0.5, edge_percent=0.1, open_web=True)
+
+
+def get_make_moons_data(n_samples) -> Tuple[InputData, InputData]:
+    features, target = make_moons(n_samples=n_samples, shuffle=True, noise=0.1, random_state=137)
+
+    train_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
+                           idx=np.array(range(len(features))), data_type=DataTypesEnum.table)
+    test_data = InputData(features=features, target=target, task=Task(task_type=TaskTypesEnum.classification),
+                          idx=np.array(range(len(features))), data_type=DataTypesEnum.table)
+
+    return train_data, test_data
+
+
+def get_scoring_data() -> Tuple[InputData, InputData]:
+    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+
+    train_data = InputData.from_csv(train_data_path)
+    test_data = InputData.from_csv(test_data_path)
+
+    return train_data, test_data
+
+
+def get_synthetic_data() -> Tuple[InputData, InputData]:
+    train_data = get_synthetic_input_data(10000)
+    test_data = get_synthetic_input_data(1000)
+
+    return train_data, test_data
 
 
 if __name__ == '__main__':
@@ -161,6 +161,9 @@ if __name__ == '__main__':
 
     run_small_gpu_example()
     for sample in n_samples:
-        run_large_gpu_example_with_preset(sample, mode='gpu')
-        run_extended_preset_gpu_axample(mode='gpu', n_samples=sample)
-        run_wit_time_profiler(run_extended_preset_gpu_axample)
+        train_data, test_data = get_make_moons_data(sample)
+        run_large_gpu_example_with_preset(train_data=train_data, test_data=test_data,
+                                          n_samples=sample, mode='gpu')
+        # run_pipeline_preset_gpu_example(train_data=train_data, test_data=test_data,
+        #                                 mode='gpu', n_samples=sample)
+        # run_wit_time_profiler(run_pipeline_preset_gpu_example, train_data, test_data)

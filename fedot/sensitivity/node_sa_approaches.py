@@ -312,7 +312,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         # Get models
         app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
         # Get data operations for such task
-        app_data_operations, _ = OperationTypesRepository('data_operation_repository.json').suitable_operation(
+        app_data_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
             task_type=task)
 
         # Unit two lists

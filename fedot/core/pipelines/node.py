@@ -74,15 +74,12 @@ class Node(GraphNode):
     def unfit(self):
         self.fitted_operation = None
 
-    def fit(self, input_data: InputData, **kwargs) -> OutputData:
+    def fit(self, input_data: InputData) -> OutputData:
         """
         Run training process in the node
 
         :param input_data: data used for operation training
         """
-        repo_tag = kwargs.get('repo_tag')
-        if repo_tag:
-            OperationFactory.define_repository_by_tag(self.operation, repo_tag)
 
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(data=input_data,
@@ -155,7 +152,7 @@ class PrimaryNode(Node):
             input_data = self.node_data
         else:
             self.node_data = input_data
-        return super().fit(input_data, **kwargs)
+        return super().fit(input_data)
 
     def unfit(self):
         self.fitted_operation = None
@@ -221,9 +218,9 @@ class SecondaryNode(Node):
         """
         self.log.ext_debug(f'Trying to fit secondary node with operation: {self.operation}')
 
-        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit', **kwargs)
+        secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
 
-        return super().fit(input_data=secondary_input, **kwargs)
+        return super().fit(input_data=secondary_input)
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
@@ -240,7 +237,7 @@ class SecondaryNode(Node):
         return super().predict(input_data=secondary_input, output_mode=output_mode)
 
     def _input_from_parents(self, input_data: InputData,
-                            parent_operation: str, **kwargs) -> InputData:
+                            parent_operation: str) -> InputData:
         if len(self.nodes_from) == 0:
             raise ValueError()
 
@@ -249,7 +246,7 @@ class SecondaryNode(Node):
         parent_nodes = self._nodes_from_with_fixed_order()
 
         parent_results, target = _combine_parents(parent_nodes, input_data,
-                                                  parent_operation, **kwargs)
+                                                  parent_operation)
 
         secondary_input = InputData.from_predictions(outputs=parent_results)
 
@@ -264,7 +261,7 @@ class SecondaryNode(Node):
 
 def _combine_parents(parent_nodes: List[Node],
                      input_data: InputData,
-                     parent_operation: str, **kwargs):
+                     parent_operation: str):
     """
     Method for combining predictions from parent node or nodes
 
@@ -285,7 +282,7 @@ def _combine_parents(parent_nodes: List[Node],
             prediction = parent.predict(input_data=input_data)
             parent_results.append(prediction)
         elif parent_operation == 'fit':
-            prediction = parent.fit(input_data=input_data, **kwargs)
+            prediction = parent.fit(input_data=input_data)
             parent_results.append(prediction)
         else:
             raise NotImplementedError()

@@ -1,10 +1,7 @@
-import os
-
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.utils import fedot_project_root
 
 
 class OperationFactory:
@@ -47,7 +44,7 @@ class OperationFactory:
         """
 
         # Get available models from model_repository.json file
-        operations_repo = OperationTypesRepository('data_operation_repository.json')
+        operations_repo = OperationTypesRepository('data_operation')
         models = operations_repo.operations
 
         # If there is a such model in the list
@@ -57,25 +54,3 @@ class OperationFactory:
         else:
             operation_type = 'model'
         return operation_type
-
-    @staticmethod
-    def get_repository(repo_tag):
-        """
-        Uses the fedot/core/repository/data directory
-        to extract the correct repository by uniq substring - repo_tag
-
-        :param repo_tag: uniq substring in repository filename
-        :return: filename of repository
-        """
-        repositories_path = os.path.abspath(os.path.join(fedot_project_root(), 'fedot', 'core', 'repository', 'data'))
-        repositories = [file_name for file_name in os.listdir(repositories_path)
-                        if os.path.splitext(file_name)[1] == '.json' and 'repository' in file_name]
-        correct_repo_by_tag = [file_name for file_name in repositories if repo_tag in file_name][0]
-
-        return correct_repo_by_tag
-
-    @classmethod
-    def define_repository_by_tag(cls, operation: Model, tag: str = None):
-        if isinstance(operation, Model):
-            repository_name = OperationFactory.get_repository(repo_tag=tag)
-            operation.operations_repo = OperationTypesRepository(repository_name=repository_name)

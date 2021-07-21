@@ -40,7 +40,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
 
 def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between nodes """
-    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    operation_repo = OperationTypesRepository(operation_type='data_operation')
     forbidden_parents_combination, _ = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
@@ -63,8 +63,8 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
 
 def has_correct_data_connections(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
-    models_repo = OperationTypesRepository(repository_name='model_repository.json')
+    operation_repo = OperationTypesRepository(operation_type='data_operation')
+    models_repo = OperationTypesRepository(operation_type='data_operation')
 
     for node in pipeline.nodes:
         parent_nodes = node.nodes_from

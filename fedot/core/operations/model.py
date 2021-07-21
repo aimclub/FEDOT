@@ -14,4 +14,4 @@ class Model(Operation):
 
     def __init__(self, operation_type: str, log: Log = None):
         super().__init__(operation_type=operation_type, log=log)
-        self.operations_repo = OperationTypesRepository(repository_name='model_repository.json')
+        self.operations_repo = OperationTypesRepository('model')

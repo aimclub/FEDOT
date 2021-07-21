@@ -1,6 +1,5 @@
 from copy import copy
 
-import datetime
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
@@ -33,12 +32,11 @@ class Pipeline(Graph):
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = None, tag: str = None):
+                 log: Log = None):
 
         self.computation_time = None
         self.template = None
         self.fitted_on_data = {}
-        self.tag = tag
 
         self.log = log
         if not log:
@@ -136,7 +134,7 @@ class Pipeline(Graph):
             computation_time_update = not use_fitted_operations or not self.root_node.fitted_operation or \
                                       self.computation_time is None
 
-            train_predicted = self.root_node.fit(input_data=input_data, repo_tag=self.tag)
+            train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
 

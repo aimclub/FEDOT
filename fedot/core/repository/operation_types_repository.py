@@ -34,18 +34,63 @@ class OperationMetaInfo:
         return self.supported_strategies
 
 
+def run_once(function):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return function(*args, **kwargs)
+
+    wrapper.has_run = False
+    return wrapper
+
+
 class OperationTypesRepository:
     """ Class for connecting models and data operations with json files with
     its descriptions and metadata"""
-    __repository_dict__ = {}
 
-    def __init__(self, repository_name: str = 'model_repository.json'):
+    __initialized_repositories__ = {}
+
+    __repository_dict__ = {
+        'model': {'file': 'model_repository.json', 'initialized_repo': None},
+        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None}
+    }
+
+    def __init__(self, operation_type: str = 'model'):
         self._tags_excluded_by_default = ['non-default', 'expensive']
-        self.repository_name = repository_name
-        if repository_name not in OperationTypesRepository.__repository_dict__.keys():
-            repo_path = create_repository_path(repository_name)
-            OperationTypesRepository.__repository_dict__[repository_name] = self._initialise_repo(repo_path)
-        self._repo = OperationTypesRepository.__repository_dict__[repository_name]
+        OperationTypesRepository.init_default_repositories()
+        self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
+        self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+
+    @classmethod
+    @run_once
+    def init_default_repositories(cls):
+        # default model repo
+        default_model_repo_file = cls.__repository_dict__['model']['file']
+        model_repo_path = create_repository_path(default_model_repo_file)
+        cls.__initialized_repositories__[default_model_repo_file] = cls._initialise_repo(model_repo_path)
+        cls.__repository_dict__['model']['initialized_repo'] = \
+            cls.__initialized_repositories__[default_model_repo_file]
+
+        # default data_operation repo
+        default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
+        data_operation_repo_path = create_repository_path(default_data_operation_repo_file)
+        cls.__initialized_repositories__[default_data_operation_repo_file] = \
+            cls._initialise_repo(data_operation_repo_path)
+        cls.__repository_dict__['data_operation']['initialized_repo'] = \
+            cls.__initialized_repositories__[default_data_operation_repo_file]
+
+    @classmethod
+    def assign_repo(cls, operation_type: str, repo_file: str):
+        if operation_type not in ['model', 'data_operation']:
+            raise Warning(f'The {operation_type} is not supported. The model type will be set')
+
+        repo_path = create_repository_path(repo_file)
+        if repo_file not in cls.__initialized_repositories__.keys():
+            cls.__initialized_repositories__[repo_file] = cls._initialise_repo(repo_path)
+        cls.__repository_dict__[operation_type]['file'] = repo_file
+        cls.__repository_dict__[operation_type]['initialized_repo'] = cls.__initialized_repositories__[repo_file]
+
+        return OperationTypesRepository(operation_type)
 
     def __enter__(self):
         return self
@@ -53,7 +98,13 @@ class OperationTypesRepository:
     def __exit__(self, type, value, traceback):
         self.repo_path = None
 
-    def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
+    def __repr__(self):
+        description = {'name': self.repository_name,
+                       'repo': self._repo}
+        return f"{description}"
+
+    @classmethod
+    def _initialise_repo(cls, repo_path: str) -> List[OperationMetaInfo]:
         """ Method parse JSON repository with operations descriptions and
         wrapped information into OperationMetaInfo, then put it into the list
 
@@ -82,7 +133,7 @@ class OperationTypesRepository:
                 else eval_field_str(metadata['output_type'])
 
             # Get available strategies for obtained metadata
-            supported_strategies = self.get_strategies_by_metadata(metadata)
+            supported_strategies = OperationTypesRepository.get_strategies_by_metadata(metadata)
 
             accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
             forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
@@ -232,10 +283,10 @@ def get_operations_for_task(task: Task, mode='all'):
     """
 
     # Get models from repository
-    model_types, _ = OperationTypesRepository('model_repository.json') \
+    model_types, _ = OperationTypesRepository('model') \
         .suitable_operation(task.task_type)
     # Get data operations
-    data_operation_types, _ = OperationTypesRepository('data_operation_repository.json') \
+    data_operation_types, _ = OperationTypesRepository('data_operation') \
         .suitable_operation(task.task_type)
 
     # Unit two lists
@@ -262,7 +313,7 @@ def get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
     models, _ = models_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
                                                tags=tags, forbidden_tags=forbidden_tags)
 
-    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
     data_operations, _ = data_operations_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
                                                                  tags=tags, forbidden_tags=forbidden_tags)
 
