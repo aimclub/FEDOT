@@ -66,18 +66,11 @@ class OperationTypesRepository:
     def init_default_repositories(cls):
         # default model repo
         default_model_repo_file = cls.__repository_dict__['model']['file']
-        model_repo_path = create_repository_path(default_model_repo_file)
-        cls.__initialized_repositories__[default_model_repo_file] = cls._initialise_repo(model_repo_path)
-        cls.__repository_dict__['model']['initialized_repo'] = \
-            cls.__initialized_repositories__[default_model_repo_file]
+        cls.assign_repo('model', default_model_repo_file)
 
         # default data_operation repo
         default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
-        data_operation_repo_path = create_repository_path(default_data_operation_repo_file)
-        cls.__initialized_repositories__[default_data_operation_repo_file] = \
-            cls._initialise_repo(data_operation_repo_path)
-        cls.__repository_dict__['data_operation']['initialized_repo'] = \
-            cls.__initialized_repositories__[default_data_operation_repo_file]
+        cls.assign_repo('data_operation', default_data_operation_repo_file)
 
     @classmethod
     def assign_repo(cls, operation_type: str, repo_file: str):
@@ -99,9 +92,7 @@ class OperationTypesRepository:
         self.repo_path = None
 
     def __repr__(self):
-        description = {'name': self.repository_name,
-                       'repo': self._repo}
-        return f"{description}"
+        return f"{self.__class__.__name__} for {self.repository_name}"
 
     @classmethod
     def _initialise_repo(cls, repo_path: str) -> List[OperationMetaInfo]:

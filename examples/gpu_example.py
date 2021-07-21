@@ -64,11 +64,9 @@ def run_large_gpu_example(train_data, test_data, n_samples, mode: str = None):
     else:
         baseline_model = Fedot(problem=problem)
     start = datetime.now()
-    # baseline_model.fit(features=train_data_path, target='target', predefined_model='logit')
     baseline_model.fit(features=train_data, target='target', predefined_model='svc')
 
     print(f'Completed {n_samples} in: {datetime.now() - start}')
-    # baseline_model.predict(features=test_data_path)
     baseline_model.predict(features=test_data)
     print(baseline_model.get_metrics())
 
@@ -83,7 +81,7 @@ def run_large_gpu_example_with_preset(train_data, test_data, n_samples=None, mod
         baseline_model = Fedot(problem=problem)
     svc_node_with_custom_params = PrimaryNode('svc')
     svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10, gamma=1, cache_size=2000, probability=True)
-    preset_pipeline = Pipeline(nodes=[svc_node_with_custom_params])
+    preset_pipeline = Pipeline(svc_node_with_custom_params)
 
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
@@ -164,6 +162,6 @@ if __name__ == '__main__':
         train_data, test_data = get_make_moons_data(sample)
         run_large_gpu_example_with_preset(train_data=train_data, test_data=test_data,
                                           n_samples=sample, mode='gpu')
-        # run_pipeline_preset_gpu_example(train_data=train_data, test_data=test_data,
-        #                                 mode='gpu', n_samples=sample)
-        # run_wit_time_profiler(run_pipeline_preset_gpu_example, train_data, test_data)
+        run_pipeline_preset_gpu_example(train_data=train_data, test_data=test_data,
+                                        mode='gpu', n_samples=sample)
+        run_wit_time_profiler(run_pipeline_preset_gpu_example, train_data, test_data)

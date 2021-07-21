@@ -7,15 +7,14 @@ from cuml import KMeans
 from cuml import Ridge, LogisticRegression, Lasso
 from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
 from cuml.svm import SVC
-import datetime
 
-from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
+class CuMLEvaluationStrategy(EvaluationStrategy):
     """
     This class defines the certain operation implementation for the GPU-based CuML operations
     defined in operation repository
@@ -62,12 +61,21 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
 
         if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
             raise NotImplementedError('Not supported for GPU yet')
-            # Manually wrap the regressor into multi-output model
-            # operation_implementation = convert_to_multivariate_model(operation_implementation,
-            #                                                         train_data)
+            # TODO Manually wrap the regressor into multi-output model
         else:
             operation_implementation.fit(features, target)
         return operation_implementation
+
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_pipeline_stage: bool) -> OutputData:
+        """
+        This method used for prediction of the target data.
+        :param trained_operation: operation object
+        :param predict_data: data to predict
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return OutputData: passed data with new predicted target
+        """
+        raise NotImplementedError()
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
