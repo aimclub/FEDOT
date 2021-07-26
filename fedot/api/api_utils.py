@@ -291,7 +291,7 @@ def _divide_operations(available_operations, task):
 
     if task.task_type == TaskTypesEnum.ts_forecasting:
         ts_data_operations = get_operations_for_task(task=task,
-                                                     mode='data_operations',
+                                                     mode='data_operation',
                                                      tags=["ts_specific"])
         # Remove exog data operation from the list
         ts_data_operations.remove('exog_ts_data_source')

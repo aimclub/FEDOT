@@ -100,7 +100,8 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     """ Function checks is the model contains operations for time series
     forecasting """
     # Get time series specific operations with tag "ts_specific"
-    ts_operations = get_ts_operations(tags=["ts_specific"], mode='all')
+    ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
+                                            tags=["ts_specific"], mode='all')
 
     # List with operations in considering pipeline
     operations_in_pipeline = []
@@ -122,10 +123,10 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
-                                                     mode='data_operations',
+                                                     mode='data_operation',
                                                      forbidden_tags=["ts_specific"])
     ts_data_operations = get_operations_for_task(task=task,
-                                                 mode='data_operations',
+                                                 mode='data_operation',
                                                  tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')

@@ -87,8 +87,8 @@ def operations_for_task(task_name: str):
     appropriate_models, _ = models_repo.suitable_operation(task_type=task)
     appropriate_data_operations, _ = data_operations_repo.suitable_operation(task_type=task)
 
-    dict_with_operations = {'models': appropriate_models,
-                            'data operations': appropriate_data_operations}
+    dict_with_operations = {'model': appropriate_models,
+                            'data operation': appropriate_data_operations}
 
     return dict_with_operations
 
