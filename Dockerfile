@@ -1,10 +1,13 @@
-# This dockerfile is for running FEDOT on GPU
-FROM nvcr.io/nvidia/rapidsai/rapidsai:21.06-cuda11.2-base-ubuntu18.04
+# This the base image for running FEDOT in container
+FROM python:3.8
 
 RUN mkdir -p /home/FEDOT
 COPY . /home/FEDOT
 
+WORKDIR /home/FEDOT
+
 RUN apt-get update
 RUN apt-get install -y wget
+RUN /usr/local/bin/python -m pip install --upgrade pip
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
