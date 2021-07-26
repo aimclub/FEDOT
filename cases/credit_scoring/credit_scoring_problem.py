@@ -39,7 +39,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     dataset_to_validate = InputData.from_csv(test_file_path, task=task)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='models')
+    available_model_types = get_operations_for_task(task=task, mode='model')
 
     # the choice of the metric for the pipeline quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty

@@ -3,18 +3,20 @@ from typing import Optional
 
 import cudf
 import cuml
-from cuml import KMeans
-from cuml import Ridge, LogisticRegression, Lasso
+from cuml import KMeans, Ridge, LogisticRegression, Lasso
 from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
 from cuml.svm import SVC
+from cuml.neighbors import KNeighborsClassifier as CuMlknn
+from cuml import LinearRegression as CuMlLinReg, CuMlSGD, \
+    MultinomialNB as CuMlMultinomialNB
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-class CuMLEvaluationStrategy(EvaluationStrategy):
+class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
     """
     This class defines the certain operation implementation for the GPU-based CuML operations
     defined in operation repository
@@ -26,10 +28,15 @@ class CuMLEvaluationStrategy(EvaluationStrategy):
         'ridge': Ridge,
         'lasso': Lasso,
         'logit': LogisticRegression,
+        'linreg': CuMlLinReg,
         'rf': RandomForestClassifier,
         'rfr': RandomForestRegressor,
         'kmeans': KMeans,
         'svc': SVC,
+        'knn': CuMlknn,
+        'sgd': CuMlSGD,
+        'multinb': CuMlMultinomialNB,
+
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

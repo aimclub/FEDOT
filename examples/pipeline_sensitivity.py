@@ -48,7 +48,7 @@ def get_three_depth_manual_regr_pipeline():
 
 def get_composed_pipeline(dataset_to_compose, task, metric_function):
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='models')
+    available_model_types = get_operations_for_task(task=task, mode='model')
 
     # the choice and initialisation of the GP search
     composer_requirements = GPComposerRequirements(

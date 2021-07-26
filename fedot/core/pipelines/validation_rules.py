@@ -5,8 +5,8 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
-from fedot.core.repository.tasks import Task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -116,14 +116,17 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
+    task = Task(TaskTypesEnum.ts_forecasting)
     if not is_pipeline_contains_ts_operations(pipeline):
         return True
-    models = get_ts_operations(mode='models')
+    models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
-    non_ts_data_operations = get_ts_operations(mode='data_operations',
-                                               forbidden_tags=["ts_specific"])
-    ts_data_operations = get_ts_operations(mode='data_operations',
-                                           tags=["ts_specific"])
+    non_ts_data_operations = get_operations_for_task(task=task,
+                                                     mode='data_operations',
+                                                     forbidden_tags=["ts_specific"])
+    ts_data_operations = get_operations_for_task(task=task,
+                                                 mode='data_operations',
+                                                 tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')
     ts_data_operations.remove('exog_ts_data_source')

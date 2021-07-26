@@ -260,62 +260,32 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Task, mode='all'):
-    """ Function returns aliases of operations. Simplify OperationTypesRepository
-    logic, but there are no ability to use tags for filtering
+def get_operations_for_task(task: Task, mode='all', tags=None, forbidden_tags=None, ):
+    """ Function returns aliases of operations.
 
     :param task: task to solve
     :param mode: mode to return operations
         The possible parameters are:
             'all' - return list with all operations
-            'models' - return only list with models
-            'data_operations' - return only list with data_operations
-    :return : list with operation aliases
-    """
-
-    # Get models from repository
-    model_types, _ = OperationTypesRepository('model') \
-        .suitable_operation(task.task_type)
-    # Get data operations
-    data_operation_types, _ = OperationTypesRepository('data_operation') \
-        .suitable_operation(task.task_type)
-
-    # Unit two lists
-    available_operations = model_types + data_operation_types
-
-    if mode == 'all':
-        return available_operations
-    elif mode == 'models':
-        return model_types
-    elif mode == 'data_operations':
-        return data_operation_types
-    else:
-        raise ValueError(f'For "{mode}" there are no operations')
-
-
-def get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
-    """ Function returns operations names for time series forecasting task
-
+            'model' - return only list with models
+            'data_operation' - return only list with data_operations
     :param tags: tags for grabbing when filtering
     :param forbidden_tags: tags for skipping when filtering
-    :param mode: available modes 'models', 'data_operations' and 'all'
+
+    :return : list with operation aliases
     """
-    models_repo = OperationTypesRepository()
-    models, _ = models_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                               tags=tags, forbidden_tags=forbidden_tags)
-
-    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
-    data_operations, _ = data_operations_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                                 tags=tags, forbidden_tags=forbidden_tags)
-
-    if mode == 'models':
-        return models
-    elif mode == 'data_operations':
-        return data_operations
+    if mode != 'all':
+        model_types, _ = OperationTypesRepository(mode). \
+            suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+        return model_types
     elif mode == 'all':
-        # Unit two lists
-        ts_operations = models + data_operations
-        return ts_operations
+        # Get models from repository
+        model_types, _ = OperationTypesRepository('model') \
+            .suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+        # Get data operations
+        data_operation_types, _ = OperationTypesRepository('data_operation') \
+            .suitable_operation(task.task_type, tags=tags, forbidden_tags=forbidden_tags)
+        return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
 

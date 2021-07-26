@@ -23,7 +23,7 @@ def run_multi_modal_case(files_path, is_visualise=False, learning_time=datetime.
                                                                           train_text, test_text)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='models')
+    available_model_types = get_operations_for_task(task=task, mode='model')
 
     # the choice of the metric for the pipeline quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty

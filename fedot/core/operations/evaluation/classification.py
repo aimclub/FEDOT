@@ -30,17 +30,9 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
-        n_classes = len(trained_operation.classes_)
-        if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data.features)
-        elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data.features)
-            if n_classes < 2:
-                raise NotImplementedError()
-            elif n_classes == 2 and self.output_mode != 'full_probs':
-                prediction = prediction[:, 1]
-        else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        prediction = self._sklearn_compatible_prediction(trained_operation=trained_operation,
+                                                         features=predict_data.features)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

@@ -201,6 +201,21 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     def implementation_info(self) -> str:
         return str(self._convert_to_operation(self.operation_type))
 
+    def _sklearn_compatible_prediction(self, trained_operation, features):
+        n_classes = len(trained_operation.classes_)
+        if self.output_mode == 'labels':
+            prediction = trained_operation.predict(features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_operation.predict_proba(features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        return prediction
+
 
 def convert_to_multivariate_model(sklearn_model, train_data: InputData):
     """

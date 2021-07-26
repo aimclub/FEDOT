@@ -18,7 +18,7 @@ from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
 
-def run_one_model_gpu_example(train_data, test_data, mode: str = None):
+def run_one_model_with_specific_evaluation_mod(train_data, test_data, mode: str = None):
     """
     Runs the example with one model svc.
 
@@ -47,8 +47,8 @@ def run_one_model_gpu_example(train_data, test_data, mode: str = None):
     print(baseline_model.get_metrics())
 
 
-def run_pipeline_gpu_example(train_data: InputData, test_data: InputData,
-                             mode: str = None):
+def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data: InputData,
+                                               mode: str = None):
     """
     Runs the example with 3-node pipeline.
 
@@ -93,7 +93,7 @@ def get_scoring_data() -> Tuple[InputData, InputData]:
 if __name__ == '__main__':
     train_data, test_data = get_scoring_data()
 
-    run_one_model_gpu_example(train_data=train_data, test_data=test_data,
-                              mode='gpu')
-    run_pipeline_gpu_example(train_data=train_data, test_data=test_data,
-                             mode='gpu')
+    run_one_model_with_specific_evaluation_mod(train_data=train_data, test_data=test_data,
+                                               mode='gpu')
+    run_pipeline_with_specific_evaluation_mode(train_data=train_data, test_data=test_data,
+                                               mode='gpu')
