@@ -228,7 +228,7 @@ def test_ts_pipeline_with_stats_model():
     # Tune AR model
     tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3)
     tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                                   loss_function=mse)
+                                               loss_function=mse)
 
     is_tuning_finished = True
 
