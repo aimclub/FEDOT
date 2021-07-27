@@ -5,7 +5,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
-    TsSmoothingImplementation
+    TsSmoothingImplementation, SparseLaggedTransformationImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation
 
@@ -84,6 +84,7 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
 
     __operations_by_types = {
         'lagged': LaggedTransformationImplementation,
+        'sparse_lagged': SparseLaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,
         'exog_ts_data_source': ExogDataTransformationImplementation,
         'gaussian_filter': GaussianFilterImplementation}

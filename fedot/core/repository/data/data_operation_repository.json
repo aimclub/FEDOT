@@ -182,6 +182,14 @@
 				"ts_specific"
 			]
 		},
+		"sparse_lagged": {
+			"meta": "custom_time_series_transformation",
+			"tags": [
+				"affects_target",
+				"dimensionality_transforming",
+				"ts_specific"
+			]
+		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
 			"tags": [
