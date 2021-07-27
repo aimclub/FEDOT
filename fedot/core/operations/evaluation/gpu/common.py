@@ -3,10 +3,12 @@ from typing import Optional
 
 import cudf
 import cuml
-from cuml import KMeans, Ridge, LogisticRegression, Lasso
+from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
+    MBSGDClassifier, MBSGDRegressor, CD
 from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
 from cuml.svm import SVC
-from cuml.neighbors import KNeighborsClassifier as CuMlknn
+from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
+    KNeighborsRegressor as CuMlknnRegressor
 from cuml import LinearRegression as CuMlLinReg, CuMlSGD, \
     MultinomialNB as CuMlMultinomialNB
 
@@ -28,14 +30,19 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         'ridge': Ridge,
         'lasso': Lasso,
         'logit': LogisticRegression,
-        'linreg': CuMlLinReg,
+        'linear': CuMlLinReg,
         'rf': RandomForestClassifier,
         'rfr': RandomForestRegressor,
-        'kmeans': KMeans,
         'svc': SVC,
-        'knn': CuMlknn,
+        'knn': CuMlknnClassifier,
+        'knnreg': CuMlknnRegressor,
         'sgd': CuMlSGD,
         'multinb': CuMlMultinomialNB,
+        'elasticnet': ElasticNet,
+        'mbsgdclass': MBSGDClassifier,
+        'mbsgdcregr': MBSGDRegressor,
+        'cd': CD
+
 
     }
 
