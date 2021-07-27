@@ -1,20 +1,10 @@
-import os
-import sys
 from datetime import datetime
-
 from typing import Tuple
 
-curdir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(os.path.join(curdir, '..'))
-ROOT = os.path.abspath(os.curdir)
-sys.path.append(ROOT)
-sys.path.append(os.path.join(ROOT, "fedot"))
-
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-
 from fedot.api.main import Fedot
+from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 
 

@@ -1,13 +1,13 @@
 # This the base image for running FEDOT in container
-FROM python:3.8
-
-RUN mkdir -p /home/FEDOT
-COPY . /home/FEDOT
+FROM ubuntu:20.04
 
 WORKDIR /home/FEDOT
+COPY . /home/FEDOT
 
 RUN apt-get update
-RUN apt-get install -y wget
-RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN apt-get install -y python3.8 python3-pip
+RUN pip3 install pip==19.3.1
 
-RUN pip3 install -r requirements.txt
+ENV PYTHONPATH /home/FEDOT
+
+RUN pip install --trusted-host pypi.python.org -r requirements.txt

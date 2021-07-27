@@ -53,7 +53,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-           operation_implementation = self.operation_impl(**self.params_for_fit)
+            operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
 
