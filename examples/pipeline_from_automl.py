@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
@@ -24,7 +25,6 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
 
     testing_target = test_data.target
 
-    pipeline = Pipeline()
     node_scaling = PrimaryNode('scaling')
     node_tpot = PrimaryNode('tpot')
 
@@ -32,7 +32,8 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
 
     node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
     node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])
-    pipeline.add_node(node_rf)
+    OperationTypesRepository.assign_repo('model', 'automl_repository.json')
+    pipeline = Pipeline(node_rf)
 
     pipeline.fit(train_data)
     results = pipeline.predict(test_data)

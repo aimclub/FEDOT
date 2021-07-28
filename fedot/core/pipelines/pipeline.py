@@ -1,4 +1,5 @@
 from copy import copy
+
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
@@ -23,6 +24,7 @@ class Pipeline(Graph):
 
     :param nodes: Node object(s)
     :param log: Log object to record messages
+    :param tag: uniq part of the repository filename
 
     .. note::
         fitted_on_data stores the data which were used in last pipeline fitting (equals None if pipeline hasn't been

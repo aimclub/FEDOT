@@ -221,7 +221,7 @@ class GPComposerBuilder:
 
     def can_be_secondary_requirement(self, operation):
         models_repo = OperationTypesRepository()
-        data_operations_repo = OperationTypesRepository('data_operation_repository.json')
+        data_operations_repo = OperationTypesRepository(operation_type='data_operation')
 
         operation_name = models_repo.operation_info_by_id(operation)
         if operation_name is None:

@@ -18,7 +18,8 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
@@ -106,7 +107,7 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 
-def filter_operations_by_preset(task, preset: str):
+def filter_operations_by_preset(task: Task, preset: str):
     """ Function filter operations by preset, remove "heavy" operations and save
     appropriate ones
     """
@@ -117,7 +118,7 @@ def filter_operations_by_preset(task, preset: str):
 
     # Get data operations and models
     available_operations = get_operations_for_task(task, mode='all')
-    available_data_operation = get_operations_for_task(task, mode='data_operations')
+    available_data_operation = get_operations_for_task(task, mode='data_operation')
 
     # Exclude "heavy" operations if necessary
     if preset in excluded_models_dict.keys():
@@ -130,6 +131,10 @@ def filter_operations_by_preset(task, preset: str):
         included_operations = light_models + available_data_operation
         available_operations = [_ for _ in available_operations if _ in included_operations]
 
+    if preset == 'gpu':
+        # OperationTypesRepository.assign_repo('model', 'gpu_models_repository.json')
+        repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
+        available_operations = repository.suitable_operation(task_type=task.task_type)
     return available_operations
 
 
@@ -154,7 +159,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
     metric_function = _obtain_metric(task, composer_metric)
 
     if available_operations is None:
-        available_operations = get_operations_for_task(task, mode='models')
+        available_operations = get_operations_for_task(task, mode='model')
 
     logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
                    f'Set of candidate models: {available_operations}. Composing time limit: {learning_time} min')
@@ -291,8 +296,9 @@ def _divide_operations(available_operations, task):
     """ Function divide operations for primary and secondary """
 
     if task.task_type == TaskTypesEnum.ts_forecasting:
-        ts_data_operations = get_ts_operations(mode='data_operations',
-                                               tags=["ts_specific"])
+        ts_data_operations = get_operations_for_task(task=task,
+                                                     mode='data_operation',
+                                                     tags=["ts_specific"])
         # Remove exog data operation from the list
         ts_data_operations.remove('exog_ts_data_source')
 

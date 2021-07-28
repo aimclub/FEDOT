@@ -14,7 +14,7 @@ class DataOperation(Operation):
 
     def __init__(self, operation_type: str, log: Log = None):
         super().__init__(operation_type, log)
-        self.operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+        self.operations_repo = OperationTypesRepository('data_operation')
 
     @property
     def metadata(self) -> OperationMetaInfo:

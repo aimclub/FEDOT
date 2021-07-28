@@ -11,7 +11,7 @@ def print_models_info(task_name):
 
     task = _get_task_by_name(task_name)
 
-    repository = OperationTypesRepository(repository_name='model_repository.json')
+    repository = OperationTypesRepository(operation_type='model')
 
     # Filter operations
     repository_operations_list = _filter_operations_by_type(repository, task)
@@ -32,7 +32,7 @@ def print_data_operations_info(task_name):
 
     task = _get_task_by_name(task_name)
 
-    repository = OperationTypesRepository(repository_name='data_operation_repository.json')
+    repository = OperationTypesRepository(operation_type='data_operation')
     # Filter operations
     repository_operations_list = _filter_operations_by_type(repository, task)
     for operation in repository_operations_list:
@@ -82,13 +82,13 @@ def operations_for_task(task_name: str):
 
     # Get models and data operations
     models_repo = OperationTypesRepository()
-    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    data_operations_repo = OperationTypesRepository(operation_type='data_operation')
 
     appropriate_models, _ = models_repo.suitable_operation(task_type=task)
     appropriate_data_operations, _ = data_operations_repo.suitable_operation(task_type=task)
 
-    dict_with_operations = {'models': appropriate_models,
-                            'data operations': appropriate_data_operations}
+    dict_with_operations = {'model': appropriate_models,
+                            'data operation': appropriate_data_operations}
 
     return dict_with_operations
 

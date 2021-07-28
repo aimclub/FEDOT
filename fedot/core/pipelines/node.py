@@ -140,7 +140,7 @@ class PrimaryNode(Node):
             # Was the data passed directly to the node or not
             self.direct_set = True
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
         Fit the operation located in the primary node
 
@@ -210,7 +210,7 @@ class SecondaryNode(Node):
             nodes_from = []
         super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
         Fit the operation located in the secondary node
 
