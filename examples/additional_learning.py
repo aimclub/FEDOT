@@ -21,10 +21,10 @@ def run_additional_learning_example():
     problem = 'classification'
 
     auto_model = Fedot(problem=problem, seed=42, preset='light', timeout=5,
-                       composer_params=
-                       {'initial_pipeline': Pipeline(SecondaryNode('logit',
-                                                                   nodes_from=[
-                                                                       PrimaryNode('scaling')]))})
+                       composer_params={'initial_pipeline': Pipeline(
+                           SecondaryNode('logit',
+                                         nodes_from=[
+                                             PrimaryNode('scaling')]))})
 
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))
