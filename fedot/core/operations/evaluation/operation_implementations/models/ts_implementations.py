@@ -19,7 +19,7 @@ from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params):
         super().__init__(log)
         self.params = params
         self.arima = None
@@ -51,10 +51,7 @@ class ARIMAImplementation(ModelImplementation):
         _, self.lambda_value = stats.boxcox(source_ts)
         transformed_ts = boxcox(source_ts, self.lambda_value)
 
-        if not self.params:
-            # Default data
-            self.params = {'p': 2, 'd': 0, 'q': 2}
-
+        # Set parameters
         p = int(self.params.get('p'))
         d = int(self.params.get('d'))
         q = int(self.params.get('q'))
@@ -174,7 +171,7 @@ class ARIMAImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params):
         super().__init__(log)
         self.params = params
         self.actual_ts_len = None
@@ -188,11 +185,6 @@ class AutoRegImplementation(ModelImplementation):
 
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
-
-        if not self.params:
-            # Default data
-            self.params = {'lag_1': 12, 'lag_2': 60}
-
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))
         params = {'lags': [lag_1, lag_2]}

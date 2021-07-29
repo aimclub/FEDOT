@@ -14,7 +14,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 composer_params = {'max_depth': 1,
@@ -55,8 +55,8 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
-        threshold = np.str(test_data.target)
+        train_data, test_data = get_ts_data(forecast_length=5)
+        threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
     return train_data, test_data, threshold
@@ -76,8 +76,8 @@ def test_api_predict_correct(task_type: str = 'classification'):
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
-    # The forecast length must be equal to 12
-    forecast_length = 12
+    # The forecast length must be equal to 5
+    forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', composer_params=composer_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
@@ -91,7 +91,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 
 
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
-    forecast_length = 10
+    forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length))

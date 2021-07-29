@@ -10,7 +10,7 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
-from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -312,7 +312,7 @@ def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
 
 
 def test_data_model_types_forecasting_pipeline_fit():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=10)
+    train_data, test_data = get_ts_data(forecast_length=10)
 
     pipeline = get_multiscale_pipeline()
     pipeline.fit(train_data)

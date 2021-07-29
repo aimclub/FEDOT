@@ -1,10 +1,11 @@
+import os
 from random import seed
 
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
-from statsmodels.tsa.arima_process import ArmaProcess
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -15,6 +16,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
+from fedot.core.utils import fedot_project_root
 np.random.seed(42)
 seed(42)
 
@@ -24,23 +26,24 @@ def _max_rmse_threshold_by_std(values, is_strict=True):
     return np.std(values) * tolerance_coeff
 
 
-def get_synthetic_ts_data_period(n_steps=1000, forecast_length=5):
-    simulated_data = ArmaProcess().generate_sample(nsample=n_steps)
-    x1 = np.arange(0, n_steps)
-    x2 = np.arange(0, n_steps) + 1
+def get_ts_data(n_steps=80, forecast_length=5):
+    """ Prepare data from csv file with time series and take needed number of
+    elements
 
-    simulated_data = simulated_data + x1 * 0.0005 - x2 * 0.0001
+    :param n_steps: number of elements in time series to take
+    :param forecast_length: the length of forecast
+    """
+    project_root_path = str(fedot_project_root())
+    file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
+    df = pd.read_csv(file_path)
 
-    periodicity = np.sin(x1 / 50)
-
-    simulated_data = simulated_data + periodicity
-
+    time_series = np.array(df['sea_height'])[:n_steps]
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
-    data = InputData(idx=np.arange(0, n_steps),
-                     features=simulated_data,
-                     target=simulated_data,
+    data = InputData(idx=np.arange(0, len(time_series)),
+                     features=time_series,
+                     target=time_series,
                      task=task,
                      data_type=DataTypesEnum.ts)
     return train_test_data_setup(data)
@@ -84,7 +87,7 @@ def get_statsmodels_pipeline():
 
 
 def test_arima_pipeline_fit_correct():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
+    train_data, test_data = get_ts_data(n_steps=300, forecast_length=5)
 
     pipeline = get_statsmodels_pipeline()
 
@@ -120,7 +123,7 @@ def test_arima_inverse_box_cox_correct():
 
 
 def test_simple_pipeline_forecast_correct():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+    train_data, test_data = get_ts_data(forecast_length=5)
 
     pipeline = get_simple_ts_pipeline()
 
@@ -138,7 +141,7 @@ def test_simple_pipeline_forecast_correct():
 
 
 def test_regression_multiscale_pipeline_forecast_correct():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+    train_data, test_data = get_ts_data(forecast_length=5)
 
     pipeline = get_multiscale_pipeline()
 
@@ -197,13 +200,13 @@ def test_ts_single_pipeline_model_without_multiotput_support():
 
 def test_exception_if_incorrect_forecast_length():
     with pytest.raises(ValueError) as exc:
-        _, _ = get_synthetic_ts_data_period(forecast_length=0)
+        _, _ = get_ts_data(forecast_length=0)
     assert str(exc.value) == f'Forecast length should be more then 0'
 
 
 def test_multistep_out_of_sample_forecasting():
     horizon = 12
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+    train_data, test_data = get_ts_data(forecast_length=5)
 
     pipeline = get_multiscale_pipeline()
 
@@ -220,7 +223,7 @@ def test_multistep_out_of_sample_forecasting():
 
 def test_multistep_in_sample_forecasting():
     horizon = 12
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=5)
+    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
 
     pipeline = get_multiscale_pipeline()
 
