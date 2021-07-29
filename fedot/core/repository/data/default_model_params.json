@@ -24,5 +24,14 @@
     "learning_rate": 0.03,
     "n_estimators": 3000,
     "verbose": -1
+  },
+  "ar": {
+    "lag_1": 7,
+    "lag_2": 12
+  },
+  "arima": {
+    "p": 2,
+    "d": 0,
+    "q": 2
   }
 }
