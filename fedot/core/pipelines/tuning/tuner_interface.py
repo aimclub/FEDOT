@@ -79,7 +79,8 @@ class HyperoptTuner(ABC):
                 metric_value = loss_function(test_target, preds)
             else:
                 metric_value = loss_function(test_target, preds, **loss_params)
-        except Exception:
+        except Exception as ex:
+            self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
             metric_value = self._default_metric_value
 
