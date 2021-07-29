@@ -22,14 +22,17 @@ from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForec
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
-def default_evo_params():
+def default_evo_params(problem):
     """ Dictionary with default parameters for composer """
-    params = {'max_depth': 2,
-              'max_arity': 3,
+    params = {'max_depth': 3,
+              'max_arity': 4,
               'pop_size': 20,
               'num_of_generations': 20,
-              'learning_time': 2,
+              'timeout': 2,
               'preset': 'light_tun'}
+
+    if problem in ['classification', 'regression']:
+        params['cv_folds'] = 3
     return params
 
 
@@ -52,14 +55,14 @@ class Fedot:
         - ts_forecasting
         - clustering
     :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
-    :param learning_time: time for model design (in minutes)
+    :param timeout: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
             'max_arity' - max arity of the pipeline nodes
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
-            'learning_time':- composing time (minutes)
+            'timeout':- composing time (minutes)
             'available_operations' - list of model names to use
             'with_tuning' - allow huperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
@@ -74,7 +77,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 learning_time: Optional[float] = None,
+                 timeout: Optional[float] = None,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 1):
@@ -88,7 +91,7 @@ class Fedot:
         self.task_params = task_params
 
         # model to use
-        self.current_model = None
+        self.current_pipeline = None
 
         # best models for multi-objective case
         self.best_models = None
@@ -106,9 +109,9 @@ class Fedot:
         self.log = default_log('FEDOT logger', verbose_level=verbose_level)
 
         if self.composer_params is None:
-            self.composer_params = default_evo_params()
+            self.composer_params = default_evo_params(self.problem)
         else:
-            self.composer_params = {**default_evo_params(), **self.composer_params}
+            self.composer_params = {**default_evo_params(self.problem), **self.composer_params}
 
         self.metric_to_compose = None
         if 'metric' in self.composer_params:
@@ -116,8 +119,8 @@ class Fedot:
             del self.composer_params['metric']
             self.metric_to_compose = self.composer_params['composer_metric']
 
-        if learning_time is not None:
-            self.composer_params['learning_time'] = learning_time
+        if timeout is not None:
+            self.composer_params['timeout'] = timeout
             self.composer_params['num_of_generations'] = 10000  # num of generation is limited by time now
 
         if self.problem == 'ts_forecasting' and task_params is None:
@@ -156,15 +159,15 @@ class Fedot:
     def _obtain_model(self, is_composing_required: bool = True):
         execution_params = self._get_params()
         if is_composing_required:
-            self.current_model, self.best_models, self.history = compose_fedot_model(**execution_params)
+            self.current_pipeline, self.best_models, self.history = compose_fedot_model(**execution_params)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
             self.best_models.objective_names = self.metric_to_compose
 
-        self.current_model.fit_from_scratch(self.train_data)
+        self.current_pipeline.fit_from_scratch(self.train_data)
 
-        return self.current_model
+        return self.current_pipeline
 
     def clean(self):
         """
@@ -172,7 +175,7 @@ class Fedot:
         """
         self.prediction = None
         self.prediction_labels = None
-        self.current_model = None
+        self.current_pipeline = None
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -194,15 +197,15 @@ class Fedot:
                                        is_predict=False)
 
         is_composing_required = True
-        if self.current_model is not None:
+        if self.current_pipeline is not None:
             is_composing_required = False
 
         if predefined_model is not None:
             is_composing_required = False
             if isinstance(predefined_model, Pipeline):
-                self.current_model = predefined_model
+                self.current_pipeline = predefined_model
             elif isinstance(predefined_model, str):
-                self.current_model = Pipeline(PrimaryNode(predefined_model))
+                self.current_pipeline = Pipeline(PrimaryNode(predefined_model))
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
@@ -218,24 +221,24 @@ class Fedot:
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
         """
-        if self.current_model is None:
+        if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         self.test_data = _define_data(ml_task=self.problem, target=self.target_name,
                                       features=features, is_predict=True)
 
         if self.problem.task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
-            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
+            self.prediction_labels = self.current_pipeline.predict(self.test_data, output_mode='labels')
+            self.prediction = self.current_pipeline.predict(self.test_data, output_mode='probs')
             output_prediction = self.prediction
         elif self.problem.task_type == TaskTypesEnum.ts_forecasting:
             # Convert forecast into one-dimensional array
-            self.prediction = self.current_model.predict(self.test_data)
+            self.prediction = self.current_pipeline.predict(self.test_data)
             forecast = np.ravel(np.array(self.prediction.predict))
             self.prediction.predict = forecast
             output_prediction = self.prediction
         else:
-            self.prediction = self.current_model.predict(self.test_data)
+            self.prediction = self.current_pipeline.predict(self.test_data)
             output_prediction = self.prediction
 
         if save_predictions:
@@ -255,7 +258,7 @@ class Fedot:
         :return: the array with prediction values
         """
 
-        if self.current_model is None:
+        if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.problem.task_type == TaskTypesEnum.classification:
@@ -264,8 +267,8 @@ class Fedot:
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
-            self.prediction = self.current_model.predict(self.test_data, output_mode=mode)
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
+            self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
+            self.prediction_labels = self.current_pipeline.predict(self.test_data, output_mode='labels')
 
             if save_predictions:
                 save_predict(self.prediction)
@@ -289,7 +292,7 @@ class Fedot:
 
         # TODO use forecast length
 
-        if self.current_model is None:
+        if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.problem.task_type != TaskTypesEnum.ts_forecasting:
@@ -302,9 +305,9 @@ class Fedot:
                                       features=pre_history,
                                       is_predict=True)
 
-        self.current_model = Pipeline(self.current_model.root_node)
+        self.current_pipeline = Pipeline(self.current_pipeline.root_node)
         # TODO add incremental forecast
-        self.prediction = self.current_model.predict(self.test_data)
+        self.prediction = self.current_pipeline.predict(self.test_data)
         if len(self.prediction.predict.shape) > 1:
             self.prediction.predict = np.squeeze(self.prediction.predict)
 
@@ -318,7 +321,7 @@ class Fedot:
 
         :param path to json file with model
         """
-        self.current_model.load(path)
+        self.current_pipeline.load(path)
 
     def plot_prediction(self):
         """

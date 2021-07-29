@@ -6,9 +6,10 @@ from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
 
+from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter, PipelineAdapter
+from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, \
     duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -86,7 +87,7 @@ class GPGraphOptimiser:
     Base class of evolutionary graph optimiser
 
     :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: composer requirements
+    :param requirements: optimizer requirements
     :param graph_generation_params: parameters for new graph generation
     :param metrics: quality metrics
     :param parameters: parameters of graph optimiser
@@ -125,16 +126,7 @@ class GPGraphOptimiser:
             self.requirements.pop_size = 10
 
         self.population = None
-
-        if initial_graph:
-            if type(initial_graph) != list:
-                initial_graph = graph_generation_params.adapter.adapt(initial_graph)
-                self.population = self._create_randomized_pop_from_inital_pipeline(initial_graph)
-            else:
-                self.population = \
-                    [Individual(graph=graph_generation_params.adapter.adapt(o))
-                     for o in initial_graph]
-
+        self.initial_graph = initial_graph
         self.history = OptHistory(metrics)
 
     def _create_randomized_pop_from_inital_pipeline(self, initial_pipeline) -> List[Individual]:
@@ -153,13 +145,26 @@ class GPGraphOptimiser:
                            for _ in range(self.requirements.pop_size)])
         return randomized_pop
 
+    def _init_population(self):
+        if self.initial_graph:
+            if type(self.initial_graph) != list:
+                initial_graph = self.graph_generation_params.adapter.adapt(self.initial_graph)
+                self.population = self._create_randomized_pop_from_inital_pipeline(initial_graph)
+            else:
+                self.population = \
+                    [Individual(graph=self.graph_generation_params.adapter.adapt(o))
+                     for o in self.initial_graph]
+
+        if self.population is None:
+            self.population = self._make_population(self.requirements.pop_size)
+        return self.population
+
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        if self.population is None:
-            self.population = self._make_population(self.requirements.pop_size)
+        self._init_population()
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
@@ -392,5 +397,6 @@ class GraphGenerationParams:
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: set of constraints
     """
-    adapter: BaseOptimizationAdapter = PipelineAdapter()
+    adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Optional[List[Callable]] = None
+    advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()

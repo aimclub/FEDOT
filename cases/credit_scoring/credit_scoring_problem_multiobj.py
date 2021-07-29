@@ -25,7 +25,7 @@ def results_visualization(history, composed_pipelines):
     visualiser.pareto_gif_create(history.archive_history, history.individuals)
     visualiser.boxplots_gif_create(history.individuals)
     for pipeline_evo_composed in composed_pipelines:
-        pipeline_evo_composed.visualise()
+        pipeline_evo_composed.show()
 
 
 def calculate_validation_metric(pipeline: Pipeline, dataset_to_validate: InputData) -> float:

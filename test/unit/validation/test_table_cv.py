@@ -106,7 +106,7 @@ def test_composer_with_cv_optimization_correct():
 def test_cv_api_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'learning_time': 0.0001,
+                       'timeout': 0.0001,
                        'preset': 'ultra_light',
                        'cv_folds': 10}
     task = Task(task_type=TaskTypesEnum.classification)

@@ -2,18 +2,18 @@ import datetime
 
 from sklearn.metrics import mean_absolute_error
 
+from examples.ts_forecasting_composing import get_available_operations
 from fedot.api.main import Fedot
-from fedot.core.log import default_log
-from fedot.core.validation.split import ts_cv_generator
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
+from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
-
-from examples.ts_forecasting_composing import get_available_operations
-from test.unit.tasks.test_forecasting import get_ts_data, get_simple_ts_pipeline
+from fedot.core.validation.split import ts_cv_generator
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
+from test.unit.tasks.test_forecasting import get_ts_data
 
 
 def configure_experiment():
@@ -126,7 +126,7 @@ def test_api_cv_correct():
     _, forecast_len, validation_blocks, time_series = configure_experiment()
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'learning_time': 0.05,
+                       'timeout': 0.05,
                        'preset': 'ultra_light',
                        'cv_folds': folds,
                        'validation_blocks': validation_blocks}

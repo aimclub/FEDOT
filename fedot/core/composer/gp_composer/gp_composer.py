@@ -7,27 +7,30 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 from deap import tools
 
+from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
     GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, single_add_mutation, \
+    single_change_mutation, single_drop_mutation, single_edge_mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.compose.tabular import table_metric_calculation
-from fedot.core.validation.compose.time_series import ts_metric_calculation
+from fedot.core.pipelines.validation import validate
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.pipelines.validation import validate
+from fedot.core.validation.compose.tabular import table_metric_calculation
+from fedot.core.validation.compose.time_series import ts_metric_calculation
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -105,6 +108,8 @@ class GPComposer(Composer):
             For the multi-objective case, the list of the graph is returned.
             In the list, the pipelines are ordered by the descending of primary metric (the first is the best)
         """
+
+        self.optimiser.graph_generation_params.advisor.task = data.task
 
         if self.composer_requirements.max_pipeline_fit_time:
             set_multiprocess_start_method()
@@ -284,7 +289,8 @@ class GPComposerBuilder:
         if self.optimiser_parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
             optimiser_type = GPGraphParameterFreeOptimiser
 
-        graph_generation_params = GraphGenerationParams()
+        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self._composer.log),
+                                                        advisor=PipelineChangeAdvisor())
 
         archive_type = None
         if len(self._composer.metrics) > 1:
@@ -294,9 +300,10 @@ class GPComposerBuilder:
             self.optimiser_parameters.multi_objective = True
 
         if self.optimiser_parameters.mutation_types is None:
-            self.optimiser_parameters.mutation_types = [MutationTypesEnum.local_growth, MutationTypesEnum.simple,
-                                                        MutationTypesEnum.reduce, MutationTypesEnum.growth,
-                                                        parameter_change_mutation]
+            self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,
+                                                        single_edge_mutation, single_change_mutation,
+                                                        single_drop_mutation,
+                                                        single_add_mutation]
 
         optimiser = optimiser_type(initial_graph=self._composer.initial_pipeline,
                                    requirements=self._composer.composer_requirements,

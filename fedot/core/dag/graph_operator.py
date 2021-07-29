@@ -148,7 +148,7 @@ class GraphOperator:
         else:
             return self._graph.root_node.descriptive_id == other_graph.root_node.descriptive_id
 
-    def graph_desciption(self) -> str:
+    def graph_description(self) -> str:
         return str({
             'depth': self._graph.depth,
             'length': self._graph.length,

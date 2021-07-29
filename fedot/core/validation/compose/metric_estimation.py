@@ -13,7 +13,7 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
     :param evaluated_metrics: list with metrics values
     :param vb_number: number of validation blocks
     """
-    pipeline.fit(train_data)
+    pipeline.fit_from_scratch(train_data)
 
     for index, metric in enumerate(metrics):
         if callable(metric):
