@@ -1,15 +1,11 @@
 from datetime import timedelta
 from functools import partial
 
-import numpy as np
 from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.log import Log
 from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
-from fedot.core.repository.tasks import TaskTypesEnum
-
-MAX_METRIC_VALUE = 10e6
 
 
 class PipelineTuner(HyperoptTuner):
@@ -123,18 +119,8 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
-        try:
-            metric_value = self.get_metric_value(data=data,
-                                                 pipeline=pipeline,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params)
-        except Exception:
-            if self.is_need_to_maximize is True:
-                metric_value = -MAX_METRIC_VALUE
-            else:
-                metric_value = MAX_METRIC_VALUE
-
-        if self.is_need_to_maximize is True:
-            return -metric_value
-        else:
-            return metric_value
+        metric_value = self.get_metric_value(data=data,
+                                             pipeline=pipeline,
+                                             loss_function=loss_function,
+                                             loss_params=loss_params)
+        return metric_value

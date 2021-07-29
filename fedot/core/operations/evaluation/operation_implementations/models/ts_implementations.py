@@ -191,7 +191,7 @@ class AutoRegImplementation(ModelImplementation):
 
         if not self.params:
             # Default data
-            self.params = {'lag_1': 12, 'lag_2': 60}
+            self.params = {'lag_1': 7, 'lag_2': 12}
 
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))

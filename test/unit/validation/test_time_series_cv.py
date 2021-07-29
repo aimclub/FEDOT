@@ -13,7 +13,7 @@ from fedot.core.repository.quality_metrics_repository import \
 from fedot.core.repository.tasks import TsForecastingParams
 
 from examples.ts_forecasting_composing import get_available_operations
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period, get_simple_ts_pipeline
+from test.unit.tasks.test_forecasting import get_ts_data, get_simple_ts_pipeline
 
 
 def configure_experiment():
@@ -24,7 +24,7 @@ def configure_experiment():
     validation_blocks = 3
     forecast_len = 5
 
-    time_series, _ = get_synthetic_ts_data_period(n_steps=105, forecast_length=forecast_len)
+    time_series, _ = get_ts_data(n_steps=105, forecast_length=forecast_len)
     log = default_log(__name__)
 
     return log, forecast_len, validation_blocks, time_series

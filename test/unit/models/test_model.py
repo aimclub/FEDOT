@@ -15,7 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -109,7 +109,7 @@ def test_regression_models_fit_correct():
 
 
 def test_ts_models_fit_correct():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=30)
+    train_data, test_data = get_ts_data(forecast_length=5)
     logger = default_log('default_test_logger')
 
     with OperationTypesRepository() as repo:

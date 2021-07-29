@@ -9,6 +9,8 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.tune.time_series import cross_validation_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 
+MAX_METRIC_VALUE = 10e6
+
 
 class HyperoptTuner(ABC):
     """
@@ -66,17 +68,25 @@ class HyperoptTuner(ABC):
         :return : value of loss function
         """
 
-        if self.cv_folds is None:
-            preds, test_target = self._one_fold_validation(data, pipeline)
-        else:
-            preds, test_target = self._cross_validation(data, pipeline)
+        try:
+            if self.cv_folds is None:
+                preds, test_target = self._one_fold_validation(data, pipeline)
+            else:
+                preds, test_target = self._cross_validation(data, pipeline)
 
-        # Calculate metric
-        if loss_params is None:
-            metric = loss_function(test_target, preds)
+            # Calculate metric
+            if loss_params is None:
+                metric_value = loss_function(test_target, preds)
+            else:
+                metric_value = loss_function(test_target, preds, **loss_params)
+        except Exception:
+            # Return default metric: too small (for maximization) or too big (for minimization)
+            metric_value = self._default_metric_value
+
+        if self.is_need_to_maximize is True:
+            return -metric_value
         else:
-            metric = loss_function(test_target, preds, **loss_params)
-        return metric
+            return metric_value
 
     def init_check(self, data, loss_function, loss_params) -> None:
         """
@@ -171,6 +181,13 @@ class HyperoptTuner(ABC):
                                                           cv_folds=self.cv_folds,
                                                           validation_blocks=self.validation_blocks)
         return test_target, preds
+
+    @property
+    def _default_metric_value(self):
+        if self.is_need_to_maximize is True:
+            return -MAX_METRIC_VALUE
+        else:
+            return MAX_METRIC_VALUE
 
 
 def _greater_is_better(target, loss_function, loss_params) -> bool:
