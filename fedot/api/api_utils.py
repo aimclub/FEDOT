@@ -8,12 +8,14 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
                                                          GPGraphOptimiserParameters)
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData, OutputData, data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import single_add_mutation, single_change_mutation, \
+    single_drop_mutation, single_edge_mutation
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -177,11 +179,10 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                timeout=datetime.timedelta(minutes=timeout_for_composing))
     # optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
     optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
-                                                      mutation_types=[MutationTypesEnum.parameter_change,
-                                                                      MutationTypesEnum.simple,
-                                                                      MutationTypesEnum.reduce,
-                                                                      MutationTypesEnum.growth,
-                                                                      MutationTypesEnum.local_growth],
+                                                      mutation_types=[boosting_mutation, parameter_change_mutation,
+                                                                      single_edge_mutation, single_change_mutation,
+                                                                      single_drop_mutation,
+                                                                      single_add_mutation],
                                                       crossover_types=[CrossoverTypesEnum.one_point,
                                                                        CrossoverTypesEnum.subtree])
 

@@ -114,7 +114,7 @@ class PipelineTemplate:
     def convert_to_dict(self, root_node: Node = None) -> dict:
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
         json_object = {
-            "total_pipeline_operations": self.total_pipeline_operations,
+            "total_pipeline_operations": list(self.total_pipeline_operations),
             "depth": self.depth,
             "nodes": json_nodes,
         }
@@ -152,19 +152,7 @@ class PipelineTemplate:
 
         return path_to_save
 
-    # def import_pipeline(self, path: str):
-    #    self._check_path_correct(path)
-    #
-    #    with open(path) as json_file:
-    #        json_object_pipeline = json.load(json_file)
-    #        self.log.message(f"The pipeline was imported from the path: {path}.")
-
-    #    self._extract_operations(json_object_pipeline, path)
-    #    self.convert_to_pipeline(self.link_to_empty_pipeline, path)
-    #    self.depth = self.link_to_empty_pipeline.depth
-
-    def import_chain(self, source: Union[str, dict], dict_fitted_operations: dict = None):
-        json_object_pipeline = None
+    def import_pipeline(self, source: Union[str, dict], dict_fitted_operations: dict = None):
         path = None
 
         if type(source) is str:
@@ -245,7 +233,7 @@ class PipelineTemplate:
                 node = SecondaryNode(operation_object.operation_type)
             else:
                 node = PrimaryNode(operation_object.operation_type)
-            node.operation.params = operation_object.params
+            node.operation.params = operation_object.custom_params
             node.rating = operation_object.rating
 
         if hasattr(operation_object,

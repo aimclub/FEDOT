@@ -1,23 +1,20 @@
 from copy import copy
-
-import numpy as np
 from datetime import timedelta
 from multiprocessing import Manager, Process
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+    DataOperationImplementation, ImputationImplementation, OneHotEncodingImplementation
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.data.data import data_has_categorical_features, data_has_missing_values
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -270,7 +267,7 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str = None):
+    def save(self, path: str = None) -> Tuple[dict, dict]:
         """
         Save the pipeline to the json representation with pickled fitted operations.
 
@@ -286,7 +283,8 @@ class Pipeline(Graph):
         """
         Load the pipeline the json representation with pickled fitted operations.
 
-        :param path to json file with operation
+        :param source path to json file with operation
+        :param dict_fitted_operations dictionary of the fitted operations
         """
         self.nodes = []
         self.template = PipelineTemplate(self, self.log)

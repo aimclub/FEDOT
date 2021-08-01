@@ -153,7 +153,7 @@ def create_four_depth_pipeline():
 
 def test_export_pipeline_to_json_correctly():
     pipeline = create_pipeline()
-    json_actual = pipeline.save('test_export_pipeline_to_json_correctly')
+    json_actual, _ = pipeline.save('test_export_pipeline_to_json_correctly')
 
     json_path_load = create_correct_path('test_pipeline_convert_to_json')
     with open(json_path_load, 'r') as json_file:
@@ -167,7 +167,7 @@ def test_pipeline_template_to_json_correctly():
 
     pipeline = create_pipeline()
     pipeline_template = PipelineTemplate(pipeline)
-    json_actual = pipeline_template.convert_to_dict()
+    json_actual = pipeline_template.convert_to_dict(root_node=pipeline.root_node)
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -199,10 +199,10 @@ def test_import_json_to_pipeline_correctly():
 
     pipeline = Pipeline()
     pipeline.load(json_path_load)
-    json_actual = pipeline.save('test_import_json_to_pipeline_correctly_1')
+    json_actual, _ = pipeline.save('test_import_json_to_pipeline_correctly_1')
 
     pipeline_expected = create_pipeline()
-    json_expected = pipeline_expected.save('test_import_json_to_pipeline_correctly_2')
+    json_expected, _ = pipeline_expected.save('test_import_json_to_pipeline_correctly_2')
 
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
@@ -227,7 +227,7 @@ def test_import_json_to_fitted_pipeline_correctly():
 
     pipeline = Pipeline()
     pipeline.load(json_path_load)
-    json_actual = pipeline.save('test_import_json_to_fitted_pipeline_correctly')
+    json_actual, _ = pipeline.save('test_import_json_to_fitted_pipeline_correctly')
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -241,7 +241,7 @@ def test_import_json_to_fitted_pipeline_template_correctly():
     pipeline = Pipeline()
     pipeline_template = PipelineTemplate(pipeline)
     pipeline_template.import_pipeline(json_path_load)
-    json_actual = pipeline_template.convert_to_dict()
+    json_actual = pipeline_template.convert_to_dict(pipeline.root_node)
 
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
@@ -272,7 +272,7 @@ def test_export_import_for_one_pipeline_object_correctly():
     and the last command will rewrite the pipeline object correctly.
     """
     pipeline_fitted = create_fitted_pipeline()
-    json_first = pipeline_fitted.save('test_export_import_for_one_pipeline_object_correctly_2')
+    json_first, _ = pipeline_fitted.save('test_export_import_for_one_pipeline_object_correctly_2')
 
     pipeline_fitted_after = create_pipeline()
     pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_1')
@@ -280,7 +280,7 @@ def test_export_import_for_one_pipeline_object_correctly():
     json_path_load_2 = create_correct_path('test_export_import_for_one_pipeline_object_correctly_2')
     pipeline_fitted_after.load(json_path_load_2)
 
-    json_second = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3')
+    json_second, _ = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3')
 
     assert json_first == json_second
 

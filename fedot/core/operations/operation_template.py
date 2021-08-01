@@ -157,13 +157,13 @@ class OperationTemplate(OperationTemplateAbstract):
         self.operation_type = operation_object['operation_type']
         self.params = operation_object['params']
         self.nodes_from = operation_object['nodes_from']
-        if "fitted_operation_path" in operation_object:
+        if 'fitted_operation_path' in operation_object:
             self.fitted_operation_path = operation_object['fitted_operation_path']
-        if "custom_params" in operation_object:
+        if 'custom_params' in operation_object:
             self.custom_params = operation_object['custom_params']
-        if "operation_name" in operation_object:
+        if 'operation_name' in operation_object:
             self.operation_name = operation_object['operation_name']
-        if "rating" in operation_object:
+        if 'rating' in operation_object:
             self.rating = operation_object['rating']
 
 
