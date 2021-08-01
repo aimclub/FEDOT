@@ -177,8 +177,13 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                cv_folds=cv_folds,
                                validation_blocks=validation_blocks,
                                timeout=datetime.timedelta(minutes=timeout_for_composing))
-    # optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
-    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+
+    genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+
+    if 'steady_state' in 'preset':
+        genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
+    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
                                                       mutation_types=[boosting_mutation, parameter_change_mutation,
                                                                       single_edge_mutation, single_change_mutation,
                                                                       single_drop_mutation,
