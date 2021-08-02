@@ -105,14 +105,8 @@ class LaggedImplementation(DataOperationImplementation):
 class SparseLaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of sparse lagged transformation for time series forecasting"""
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
-
-        # Default parameters
-        self.window_size = 10
-        self.n_components = None
-        self.gain_tolerance = 0.1
-        self.sparse_transform = True
 
         if params:
             if 'window_size' in params.keys():
@@ -133,20 +127,11 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
 class LaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
 
-        if not params:
-            # Default parameters
-            self.window_size = 10
-        else:
+        if params:
             self.window_size = int(round(params.get('window_size')))
-
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def get_params(self):
         return {'window_size': self.window_size}
@@ -363,7 +348,6 @@ def _sparse_matrix(features_columns, n_components=None, gain_tolerance=0.1):
     if n_components >= features_columns.shape[0]:
         n_components = features_columns.shape[0]-1
     log_info = f'Initial approximation of number of components set as {n_components}'
-
 
     # Forming the first value of explained variance
     exp_var, components = _get_svd(features_columns, n_components)

@@ -25,6 +25,18 @@
     "n_estimators": 3000,
     "verbose": -1
   },
+  "lagged": {
+    "window_size": 10,
+    "n_components": null,
+    "gain_tolerance": 0.1,
+    "sparse_transform": false
+  },
+  "sparse_lagged": {
+    "window_size": 10,
+    "n_components": null,
+    "gain_tolerance": 0.1,
+    "sparse_transform": true
+  },
   "ar": {
     "lag_1": 7,
     "lag_2": 12
