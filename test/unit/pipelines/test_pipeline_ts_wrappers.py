@@ -47,17 +47,6 @@ def get_simple_short_lagged_pipeline():
     return pipeline
 
 
-def get_simple_short_sparse_lagged_pipeline():
-    # Create simple pipeline for forecasting
-    node_lagged = PrimaryNode('sparse_lagged')
-    # Use 6 elements in time series as predictors
-    node_lagged.custom_params = {'window_size': 6}
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
-    pipeline = Pipeline(node_final)
-
-    return pipeline
-
-
 def test_out_of_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
@@ -84,21 +73,18 @@ def test_in_sample_ts_forecast_correct():
     multi_length = 10
     train_input, predict_input = prepare_input_data(simple_length, multi_length)
 
-    pipelines = [get_simple_short_sparse_lagged_pipeline(), get_simple_short_lagged_pipeline()]
+    pipeline = get_simple_short_lagged_pipeline()
+    pipeline.fit(train_input)
 
-    for pipeline in pipelines:
-        pipeline.fit(train_input)
+    multi_predicted = in_sample_ts_forecast(pipeline=pipeline,
+                                            input_data=predict_input,
+                                            horizon=multi_length)
 
-        multi_predicted = in_sample_ts_forecast(pipeline=pipeline,
-                                                input_data=predict_input,
-                                                horizon=multi_length)
+    # Take validation part of time series
+    time_series = np.array(train_input.features)
+    validation_part = time_series[-multi_length:]
 
-        # Take validation part of time series
-        time_series = np.array(train_input.features)
-        validation_part = time_series[-multi_length:]
-
-        metric = mean_absolute_error(validation_part, multi_predicted)
-
+    metric = mean_absolute_error(validation_part, multi_predicted)
     is_forecast_correct = True
 
     assert is_forecast_correct
