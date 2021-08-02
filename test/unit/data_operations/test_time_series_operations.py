@@ -163,6 +163,7 @@ def test_forecast_with_sparse_lagged():
 
     assert is_forecasted
 
+
 def test_forecast_with_exog():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
