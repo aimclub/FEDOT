@@ -1,13 +1,18 @@
+import os
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-import os
+from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-import matplotlib.pyplot as plt
-from examples.time_series.ts_forecasting_tuning import prepare_input_data
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from copy import deepcopy
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 
 
 def mean_absolute_percentage_error(y_true, y_pred):
@@ -19,27 +24,26 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
     time_series = np.array(time_series)
     exog_variable = np.array(exog_variable)
 
-    # Let's divide our data on train and test samples
-    train_data = time_series[:-len_forecast]
-    test_target = time_series[-len_forecast:]
-
-    # Nemo feature
-    train_data_exog = exog_variable[:-len_forecast]
-    test_data_exog = exog_variable[-len_forecast:]
-
-    # Source time series
-    train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
-                                                          train_data_features=train_data,
-                                                          train_data_target=train_data,
-                                                          test_data_features=train_data)
+    train_input, predict_input = train_test_data_setup(
+        InputData(idx=range(len(time_series)),
+                  features=time_series,
+                  target=time_series,
+                  task=Task(TaskTypesEnum.ts_forecasting,
+                            TsForecastingParams(
+                                forecast_length=len_forecast)),
+                  data_type=DataTypesEnum.ts))
 
     # Exogenous time series
-    train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
-                                                                 train_data_features=train_data_exog,
-                                                                 train_data_target=train_data,
-                                                                 test_data_features=test_data_exog)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(
+                    forecast_length=len_forecast))
 
-    return train_input, predict_input, train_input_exog, predict_input_exog, test_target
+    predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
+                                   features=exog_variable, target=time_series,
+                                   task=task, data_type=DataTypesEnum.ts)
+    train_input_exog, _ = train_test_data_setup(predict_input_exog)
+
+    return train_input, predict_input, train_input_exog, predict_input_exog, predict_input.target
 
 
 def get_arima_nemo_pipeline():

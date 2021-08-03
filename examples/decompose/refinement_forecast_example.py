@@ -5,12 +5,13 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.time_series.ts_forecasting_tuning import prepare_input_data
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
@@ -83,26 +84,10 @@ def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.a
 
 
 def display_metrics(test_part, predicted_values, pipeline_name):
-    mse = mean_squared_error(test_part, predicted_values, squared=False)
-    mae = mean_absolute_error(test_part, predicted_values)
+    mse = mean_squared_error(test_part.target, predicted_values, squared=False)
+    mae = mean_absolute_error(test_part.target, predicted_values)
     print(f'RMSE {pipeline_name} - {mse:.4f}')
     print(f'MAE {pipeline_name} - {mae:.4f}\n')
-
-
-def time_series_into_input(len_forecast, train_part, time_series):
-    """ Function wrap univariate time series into InputData """
-    train_input, _, task = prepare_input_data(len_forecast=len_forecast,
-                                              train_data_features=train_part,
-                                              train_data_target=train_part,
-                                              test_data_features=train_part)
-    # Create data for validation
-    predict_input = InputData(idx=range(0, len(time_series)),
-                              features=time_series,
-                              target=time_series,
-                              task=task,
-                              data_type=DataTypesEnum.ts)
-
-    return train_input, predict_input
 
 
 def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
@@ -120,26 +105,29 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     df = pd.read_csv(path_to_file)
     time_series = np.array(df['value'])
     # 3 folds for validation
-    horizon = len_forecast*validation_blocks
-    train_part = time_series[:-horizon]
-    test_part = time_series[-horizon:]
+    horizon = len_forecast * validation_blocks
 
     # Get pipeline with decomposing operation
     pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline = get_refinement_pipeline(lagged)
     # Get simple pipeline without decomposing operation
     simple_pipeline = get_non_refinement_pipeline(lagged)
 
-    train_input, predict_input = time_series_into_input(len_forecast,
-                                                        train_part,
-                                                        time_series)
+    train_input, predict_input = train_test_data_setup(
+        InputData(idx=range(len(time_series)),
+                  features=time_series,
+                  target=time_series,
+                  task=Task(TaskTypesEnum.ts_forecasting,
+                            TsForecastingParams(
+                                forecast_length=horizon)),
+                  data_type=DataTypesEnum.ts))
 
     # Forecast of pipeline with decomposition
     predicted_values = in_sample_fit_predict(pipeline, train_input,
                                              predict_input, horizon)
-    display_metrics(test_part, predicted_values, pipeline_name='with decomposition')
+    display_metrics(predict_input, predicted_values, pipeline_name='with decomposition')
 
     # Range for visualisation
-    ids_for_test = range(len(train_part), len(time_series))
+    ids_for_test = range(len(train_input.target), len(time_series))
     plt.plot(time_series, label='Actual time series')
     plt.plot(ids_for_test, predicted_values, label='With decomposition')
 
@@ -157,12 +145,12 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
         predicted_simple = in_sample_fit_predict(simple_pipeline, train_input,
                                                  predict_input, horizon)
         plt.plot(ids_for_test, predicted_simple, label='Non decomposition')
-        display_metrics(test_part, predicted_simple, pipeline_name='without decomposition')
+        display_metrics(predict_input, predicted_simple, pipeline_name='without decomposition')
 
-    i = len(train_part)
+    i = len(train_input.target)
     for _ in range(0, validation_blocks):
         deviation = np.std(predicted_values)
-        plt.plot([i, i], [min(predicted_values)-deviation, max(predicted_values)+deviation],
+        plt.plot([i, i], [min(predicted_values) - deviation, max(predicted_values) + deviation],
                  c='black', linewidth=1)
         i += len_forecast
 

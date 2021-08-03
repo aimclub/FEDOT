@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
-                                        run_ts_forecasting_example)
+from examples.fedot_api_example import (run_ts_forecasting_example, run_classification_multiobj_example,
+                                        run_classification_example)
 from examples.interpretable.api_explain import run_api_explain_example
 from examples.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.multiclass_prediction import get_model

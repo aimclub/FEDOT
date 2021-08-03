@@ -19,8 +19,7 @@ from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
     GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, single_add_mutation, \
-    single_change_mutation, single_drop_mutation, single_edge_mutation, MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
@@ -31,6 +30,7 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
+from fedot.remote.remote_evaluator import init_data_for_remote_execution, RemoteEvaluator
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -131,6 +131,10 @@ class GPComposer(Composer):
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
             train_data, test_data = train_test_data_setup(data, split_ratio)
+
+            if RemoteEvaluator().use_remote:
+                init_data_for_remote_execution(train_data)
+
             objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:

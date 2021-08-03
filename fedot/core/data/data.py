@@ -10,7 +10,6 @@ from PIL import Image
 
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.merge import DataMerger
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -55,7 +54,9 @@ class Data:
         # Get indices of the DataFrame
         data_array = np.array(data_frame).T
         idx = data_array[0]
-
+        if isinstance(idx[0], float) and idx[0] == round(idx[0]):
+            # if float indices is unnecessary
+            idx = [str(round(i)) for i in idx]
         if type(target_columns) is list:
             features, target = process_multiple_columns(target_columns, data_frame)
         else:
@@ -70,8 +71,15 @@ class Data:
                              delimiter=',',
                              is_predict=False,
                              target_column: Optional[str] = ''):
-        data_frame = pd.read_csv(file_path, sep=delimiter)
-        time_series = np.array(data_frame[target_column])
+        df = pd.read_csv(file_path, sep=delimiter)
+
+        idx = get_indices_from_file(df, file_path)
+
+        if target_column is not None:
+            time_series = np.array(df[target_column])
+        else:
+            time_series = np.array(df[df.columns[-1]])
+
         if is_predict:
             # Prepare data for prediction
             len_forecast = task.task_params.forecast_length
@@ -85,7 +93,7 @@ class Data:
                                    data_type=DataTypesEnum.ts)
         else:
             # Prepare InputData for train the pipeline
-            input_data = InputData(idx=np.arange(0, len(time_series)),
+            input_data = InputData(idx=idx,
                                    features=time_series,
                                    target=time_series,
                                    task=task,
@@ -235,7 +243,7 @@ class InputData(Data):
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, supplementary_data=updated_info)
 
-    def subset(self, start: int, end: int):
+    def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
             raise ValueError('Incorrect boundaries for subset')
         new_features = None
@@ -244,13 +252,32 @@ class InputData(Data):
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
 
+    def subset_indices(self, selected_idx: List):
+        """
+        Get subset from InputData to extract all items with specified indices
+        :param selected_idx: list of indices for extraction
+        :return:
+        """
+        idx_list = [str(i) for i in self.idx]
+
+        # extractions of row number for each existing index from selected_idx
+        row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
+                    if str(selected_ind) in idx_list]
+        new_features = None
+
+        if self.features is not None:
+            new_features = self.features[row_nums]
+        return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
+                         target=self.target[row_nums], task=self.task, data_type=self.data_type)
+
     def shuffle(self):
         """
         Shuffles features and target if possible
         """
         if self.data_type == DataTypesEnum.table:
             shuffled_ind = np.random.permutation(len(self.features))
-            idx, features, target = self.idx[shuffled_ind], self.features[shuffled_ind], self.target[shuffled_ind]
+            idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
+                shuffled_ind]
             self.idx = idx
             self.features = features
             self.target = target
@@ -318,7 +345,7 @@ def process_multiple_columns(target_columns, data_frame):
     return features, targets
 
 
-def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> bool:
+def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> bool:
     """ Check data for categorical columns. Also check, if some numerical column
     has unique values less then MAX_UNIQ_VAL, then convert this column to string.
 
@@ -328,7 +355,7 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
 
     data_has_categorical_columns = False
 
-    if isinstance(data, MultiModalData):
+    if not isinstance(data, InputData):
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_table'):
                 data_has_categorical_columns = _has_data_categorical(values)
@@ -338,10 +365,10 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
     return data_has_categorical_columns
 
 
-def data_has_missing_values(data: Union[InputData, MultiModalData]) -> bool:
+def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
     """ Check data for missing values."""
 
-    if isinstance(data, MultiModalData):
+    if not isinstance(data, InputData):
         for data_source_name, values in data.items():
             if data_type_is_table(values):
                 return pd.DataFrame(values.features).isna().sum().sum() > 0
@@ -420,3 +447,31 @@ def _has_data_categorical(data: InputData) -> bool:
 def _is_values_categorical(values: List):
     # Check if any value in list has 'string' type
     return any(list(map(lambda x: isinstance(x, str), values)))
+
+
+def get_indices_from_file(data_frame, file_path):
+    if 'datetime' in data_frame.columns:
+        df = pd.read_csv(file_path,
+                         parse_dates=['datetime'])
+        idx = [str(d) for d in df['datetime']]
+        return idx
+    return np.arange(0, len(data_frame))
+
+
+def array_to_input_data(features_array: np.array,
+                        target_array: np.array,
+                        idx: Optional[np.array] = None,
+                        task: Task = Task(TaskTypesEnum.classification)):
+    data_type = autodetect_data_type(task)
+
+    if idx is None:
+        idx = np.arange(len(features_array))
+
+    return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
+
+
+def autodetect_data_type(task: Task) -> DataTypesEnum:
+    if task.task_type == TaskTypesEnum.ts_forecasting:
+        return DataTypesEnum.ts
+    else:
+        return DataTypesEnum.table
