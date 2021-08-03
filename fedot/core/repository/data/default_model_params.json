@@ -26,10 +26,7 @@
     "verbose": -1
   },
   "lagged": {
-    "window_size": 10,
-    "n_components": null,
-    "gain_tolerance": 0.1,
-    "sparse_transform": false
+    "window_size": 10
   },
   "sparse_lagged": {
     "window_size": 10,

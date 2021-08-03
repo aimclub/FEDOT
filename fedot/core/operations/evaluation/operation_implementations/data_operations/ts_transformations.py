@@ -10,6 +10,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.data import InputData
 
 
 class LaggedImplementation(DataOperationImplementation):
@@ -64,10 +65,7 @@ class LaggedImplementation(DataOperationImplementation):
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
-                features_columns, log_info = _sparse_matrix(features_columns,
-                                                            self.n_components,
-                                                            self.gain_tolerance)
-                self.log.info(log_info)
+                features_columns = _sparse_matrix(self.log, features_columns, self.n_components, self.gain_tolerance)
             # Transform target
             new_idx, features_columns, new_target = _prepare_target(idx=new_idx,
                                                                     features_columns=features_columns,
@@ -86,10 +84,7 @@ class LaggedImplementation(DataOperationImplementation):
                                                          window_size=self.window_size)
 
                 # Extracting the last row from sparse matrix
-                features_columns, log_info = _sparse_matrix(features_columns,
-                                                            self.n_components,
-                                                            self.gain_tolerance)
-                self.log.info(log_info)
+                features_columns = _sparse_matrix(self.log, features_columns, self.n_components, self.gain_tolerance)
                 features_columns = features_columns[-1]
 
             if not self.sparse_transform:
@@ -156,7 +151,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
         """ Method for smoothing time series
 
         :param input_data: data with features, target and ids to process
@@ -254,7 +249,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
         """ Method for smoothing time series
 
         :param input_data: data with features, target and ids to process
@@ -278,11 +273,11 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
-def _check_and_correct_window_size(time_series, window_size, forecast_length):
+def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int):
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
-    :param input_data: time series for transformation
+    :param time_series: time series for transformation
     :param window_size: size of sliding window, which defines lag
     :param forecast_length: forecast length
     """
@@ -299,7 +294,7 @@ def _check_and_correct_window_size(time_series, window_size, forecast_length):
     return log_message, window_size
 
 
-def _ts_to_table(idx, time_series, window_size):
+def _ts_to_table(idx, time_series: np.array, window_size: int):
     """ Method convert time series to lagged form.
 
     :param idx: the indices of the time series to convert
@@ -331,7 +326,7 @@ def _ts_to_table(idx, time_series, window_size):
     return updated_idx, features_columns
 
 
-def _sparse_matrix(features_columns, n_components=None, gain_tolerance=0.1):
+def _sparse_matrix(logger, features_columns: np.array, n_components=None, gain_tolerance=0.1):
     """ Method convert time series to lagged form.
 
         :param features_columns: matrix to sparse
@@ -348,7 +343,7 @@ def _sparse_matrix(features_columns, n_components=None, gain_tolerance=0.1):
         n_components = int(features_columns.shape[1] / 2)
     if n_components >= features_columns.shape[0]:
         n_components = features_columns.shape[0]-1
-    log_info = f'Initial approximation of number of components set as {n_components}'
+    logger.info(f'Initial approximation of number of components set as {n_components}')
 
     # Forming the first value of explained variance
     exp_var, components = _get_svd(features_columns, n_components)
@@ -365,10 +360,10 @@ def _sparse_matrix(features_columns, n_components=None, gain_tolerance=0.1):
         if var_gain >= gain_tolerance:
             break
 
-    return components, log_info
+    return components
 
 
-def _get_svd(features_columns, n_components):
+def _get_svd(features_columns: np.array, n_components: int):
     """ Method converts the matrix to sparse form
 
     :param features_columns: matrix to sparse
@@ -385,7 +380,7 @@ def _get_svd(features_columns, n_components):
     return exp_var, components
 
 
-def _prepare_target(idx, features_columns, target, forecast_length):
+def _prepare_target(idx, features_columns: np.array, target, forecast_length: int):
     """ Method convert time series to lagged form. Transformation applied
     only for generating target table (time series considering as multi-target
     regression task).
