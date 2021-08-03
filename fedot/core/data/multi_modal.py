@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -41,3 +41,13 @@ class MultiModalData(dict):
     def shuffle(self):
         # TODO implement multi-modal shuffle
         pass
+
+    def subset_range(self, start: int, end: int):
+        for key in self.keys():
+            self[key] = self[key].subset_range(start, end)
+        return self
+
+    def subset_list(self, selected_idx: List):
+        for key in self.keys():
+            self[key] = self[key].subset_list(selected_idx)
+        return self

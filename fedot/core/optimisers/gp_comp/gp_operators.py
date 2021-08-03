@@ -1,12 +1,13 @@
 import warnings
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, Callable, List, Tuple)
+from typing import (Any, Callable, List, Tuple, Union)
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.remote.remote_fit import ComputationalSetup
 
 MAX_ITERS = 1000
 
@@ -113,9 +114,20 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                          is_multi_objective: bool, timer=None):
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
+
+    fitter = ComputationalSetup()
+    pre_evaluated_objects = []
+    if fitter.is_remote:
+        print('Remote fit used')
+        restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
+        pre_evaluated_objects = fitter.fit(restored_graphs)
+
     evaluated_individuals = []
-    for ind in reversed_set:
-        ind.fitness = calculate_objective(ind.graph, objective_function,
+    for ind_num, ind in enumerate(reversed_set):
+        graph = ind.graph
+        if len(pre_evaluated_objects) > 0:
+            graph = pre_evaluated_objects[ind_num]
+        ind.fitness = calculate_objective(graph, objective_function,
                                           is_multi_objective, graph_generation_params)
         if ind.fitness is not None:
             num_of_successful_evals += 1
@@ -128,11 +140,13 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     return evaluated_individuals
 
 
-def calculate_objective(graph: OptGraph, objective_function: Callable, is_multi_objective: bool,
+def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable, is_multi_objective: bool,
                         graph_generation_params) -> Any:
-    # Transform OptGraph into Pipeline
-    pipeline = graph_generation_params.adapter.restore(graph)
-    calculated_fitness = objective_function(pipeline)
+    if isinstance(graph, OptGraph):
+        converted_object = graph_generation_params.adapter.restore(graph)
+    else:
+        converted_object = graph
+    calculated_fitness = objective_function(converted_object)
     if calculated_fitness is None:
         return None
     else:

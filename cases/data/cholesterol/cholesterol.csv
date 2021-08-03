@@ -1,4 +1,4 @@
-"age","sex","cp","trestbps","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal","num","chol"
+age,sex,cp,trestbps,fbs,restecg,thalach,exang,oldpeak,slope,ca,thal,num,target
 63,1,1,145,1,2,150,0,2.3,3,0,6,0,233
 67,1,4,160,0,2,108,1,1.5,2,3,3,2,286
 67,1,4,120,0,2,129,1,2.6,2,2,7,1,229

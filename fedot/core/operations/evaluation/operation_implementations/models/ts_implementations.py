@@ -1,28 +1,26 @@
-from typing import Optional
 from copy import copy
+from typing import Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
 from scipy import stats
 from scipy.special import inv_boxcox, boxcox
+from sklearn.preprocessing import StandardScaler
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
+from torch.utils.data import DataLoader, TensorDataset
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
-
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     ts_to_table, prepare_target
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
-
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
-from sklearn.preprocessing import StandardScaler
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -445,7 +443,8 @@ class CLSTMImplementation(ModelImplementation):
                                                 time_series=input_data_new.features,
                                                 window_size=self.window_size)
 
-            final_idx, features_columns, final_target = prepare_target(idx=new_idx,
+            final_idx, features_columns, final_target = prepare_target(all_idx=old_idx,
+                                                                       idx=new_idx,
                                                                        features_columns=lagged_table,
                                                                        target=input_data_new.target,
                                                                        forecast_length=forecast_length)
@@ -545,7 +544,8 @@ class CLSTMImplementation(ModelImplementation):
                                             time_series=features_scaled,
                                             window_size=self.window_size)
 
-        final_idx, features_columns, final_target = prepare_target(idx=new_idx,
+        final_idx, features_columns, final_target = prepare_target(all_idx=input_data.idx,
+                                                                   idx=new_idx,
                                                                    features_columns=lagged_table,
                                                                    target=target_scaled,
                                                                    forecast_length=forecast_length)

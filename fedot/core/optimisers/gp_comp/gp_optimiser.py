@@ -303,15 +303,16 @@ class GPGraphOptimiser:
             self.max_depth += 1
 
     def get_best_individual(self, individuals: List[Any], equivalents_from_current_pop=True) -> Any:
-        best_ind = min(individuals, key=lambda ind: ind.fitness)
+        inds_to_analyze = [ind for ind in individuals if ind.fitness is not None]
+        best_ind = min(inds_to_analyze, key=lambda ind: ind.fitness)
         if equivalents_from_current_pop:
             equivalents = self.simpler_equivalents_of_best_ind(best_ind)
         else:
-            equivalents = self.simpler_equivalents_of_best_ind(best_ind, individuals)
+            equivalents = self.simpler_equivalents_of_best_ind(best_ind, inds_to_analyze)
 
         if equivalents:
             best_candidate_id = min(equivalents, key=equivalents.get)
-            best_ind = individuals[best_candidate_id]
+            best_ind = inds_to_analyze[best_candidate_id]
         return best_ind
 
     def simpler_equivalents_of_best_ind(self, best_ind: Any, inds: List[Any] = None) -> dict:

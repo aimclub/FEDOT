@@ -2,12 +2,9 @@ import math
 from random import choice, randint
 from typing import Any, List, TYPE_CHECKING
 
-from typing import (Any, List)
-from copy import copy
 from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
 
 if TYPE_CHECKING:
@@ -70,7 +67,8 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
     chosen = []
     for _ in range(pop_size):
         group = random_selection(individuals, group_size)
-        best = min(group, key=lambda ind: ind.fitness)
+        non_empty_group = [g for g in group if g.fitness is not None]
+        best = min(non_empty_group, key=lambda ind: ind.fitness)
         chosen.append(best)
     return chosen
 

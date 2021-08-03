@@ -2,13 +2,13 @@ import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     prepare_target, ts_to_table, _sparse_matrix
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.log import default_log
 
 window_size = 4
 forecast_length = 4
@@ -80,8 +80,8 @@ def test_ts_to_lagged_table():
     train_input, _, _ = synthetic_univariate_ts()
 
     new_idx, lagged_table = ts_to_table(idx=train_input.idx,
-                                         time_series=train_input.features,
-                                         window_size=window_size)
+                                        time_series=train_input.features,
+                                        window_size=window_size)
 
     correct_lagged_table = ((0., 10., 20., 30.),
                             (10., 20., 30., 40.),
@@ -103,10 +103,11 @@ def test_ts_to_lagged_table():
     assert new_idx_as_tuple == correct_new_idx
 
     # Second step - processing for correct the target
-    final_idx, features_columns, final_target = prepare_target(idx=new_idx,
-                                                                features_columns=lagged_table,
-                                                                target=train_input.target,
-                                                                forecast_length=forecast_length)
+    final_idx, features_columns, final_target = prepare_target(all_idx=train_input.idx,
+                                                               idx=new_idx,
+                                                               features_columns=lagged_table,
+                                                               target=train_input.target,
+                                                               forecast_length=forecast_length)
     correct_final_idx = (4, 5, 6, 7, 8, 9, 10)
     correct_features_columns = ((0., 10., 20., 30.),
                                 (10., 20., 30., 40.),
@@ -138,13 +139,13 @@ def test_sparse_matrix():
     # Create lagged matrix for sparse
     train_input, _, _ = synthetic_univariate_ts()
     _, lagged_table = ts_to_table(idx=train_input.idx,
-                                   time_series=train_input.features,
-                                   window_size=window_size)
+                                  time_series=train_input.features,
+                                  window_size=window_size)
     features_columns = _sparse_matrix(log, lagged_table)
 
     # assert if sparse matrix features less than half or less than another dimension
     assert features_columns.shape[0] == lagged_table.shape[0]
-    assert features_columns.shape[1] <= lagged_table.shape[1]/2 or features_columns.shape[1] < lagged_table.shape[0]
+    assert features_columns.shape[1] <= lagged_table.shape[1] / 2 or features_columns.shape[1] < lagged_table.shape[0]
 
 
 def test_forecast_with_sparse_lagged():
