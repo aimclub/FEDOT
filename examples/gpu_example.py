@@ -35,6 +35,29 @@ def get_pipeline():
     return preset_pipeline
 
 
+def get_pipeline():
+    svc_node_with_custom_params = PrimaryNode('svc')
+    svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10,
+                                                     gamma=1, cache_size=2000,
+                                                     probability=True)
+
+    svc_primary_node = PrimaryNode('svc')
+    svc_primary_node.custom_params = dict(probability=True)
+
+    knn_primary_node = PrimaryNode('knn')
+    logit_secondary_node = SecondaryNode('logit', nodes_from=[svc_primary_node])
+
+    knn_secondary_node = SecondaryNode('knn', nodes_from=[knn_primary_node, logit_secondary_node])
+
+    logit_secondary_node = SecondaryNode('logit')
+
+    rf_node = SecondaryNode('rf', nodes_from=[logit_secondary_node, knn_secondary_node])
+
+    preset_pipeline = Pipeline(rf_node)
+
+    return preset_pipeline
+
+
 def run_one_model_with_specific_evaluation_mod(train_data, test_data, mode: str = None):
     """
     Runs the example with one model svc.
@@ -64,7 +87,7 @@ def run_one_model_with_specific_evaluation_mod(train_data, test_data, mode: str 
     print(baseline_model.get_metrics())
 
 
-def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data: InputData,
+def run_pipeline_with_specific_evaluation_mode(train_data: InputData,
                                                mode: str = None):
     """
     Runs the example with 3-node pipeline.
@@ -81,19 +104,10 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
 
     preset_pipeline = get_pipeline()
 
-    n_times = None
-
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
     finish = datetime.now() - start
     print(f'Completed in: {finish}')
-    if n_times:
-        total_time = float(f'{finish.seconds}.{finish.microseconds}')
-        n_times.append(total_time)
-
-    baseline_model.predict(features=test_data)
-    print(baseline_model.get_metrics())
-    return n_times
 
 
 def get_scoring_data() -> Tuple[InputData, InputData]:
@@ -120,10 +134,10 @@ def make_moons_input_data(samples):
 
 
 if __name__ == '__main__':
-    train_data, test_data = get_scoring_data()
+    train_data, _ = get_scoring_data()
 
-    run_one_model_with_specific_evaluation_mod(train_data=train_data, test_data=test_data,
+    run_one_model_with_specific_evaluation_mod(train_data=train_data,
                                                mode='gpu')
 
-    run_pipeline_with_specific_evaluation_mode(train_data=train_data, test_data=test_data,
+    run_pipeline_with_specific_evaluation_mode(train_data=train_data,
                                                mode='gpu')
