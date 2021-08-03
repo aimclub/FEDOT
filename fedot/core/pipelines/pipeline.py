@@ -14,7 +14,10 @@ from fedot.core.optimisers.utils.population_utils import input_data_characterist
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.data.data import data_has_categorical_features
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import\
+    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -38,6 +41,7 @@ class Pipeline(Graph):
         self.computation_time = None
         self.template = None
         self.fitted_on_data = {}
+        self.encoders = []
 
         self.log = log
         if not log:
@@ -161,6 +165,9 @@ class Pipeline(Graph):
         if not use_fitted:
             self.unfit()
 
+        if input_data.data_type == DataTypesEnum.table and data_has_categorical_features(input_data):
+            self.encoders = _preprocess_categorical_features(input_data)
+
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
@@ -210,6 +217,9 @@ class Pipeline(Graph):
             ex = 'Pipeline is not fitted yet'
             self.log.error(ex)
             raise ValueError(ex)
+
+        if self.encoders:
+            _encode_data_for_prediction(input_data, self.encoders)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
@@ -321,3 +331,38 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
+
+
+def _encode_data_for_prediction(data: Union[InputData, MultiModalData], encoders: List[DataOperationImplementation]):
+    if isinstance(data, InputData):
+        for encoder in encoders:
+            transformed = encoder.transform(data)
+            data.features = transformed
+    elif isinstance(data, MultiModalData):
+        for data_source_name, values, encoder in zip(data.keys(), data.values(), encoders):
+            transformed = encoder.transform(values)
+            data.data_source_name = transformed
+
+
+def _preprocess_categorical_features(data: Union[InputData, MultiModalData]) -> List[DataOperationImplementation]:
+    encoders = []
+    if isinstance(data, InputData):
+        transformed, encoder = _create_encoder(data)
+        encoders.append(encoder)
+        data.features = transformed
+    elif isinstance(data, MultiModalData):
+        for data_source_name, values in data.items():
+            transformed, encoder = _create_encoder(values)
+            encoders.append(encoder)
+            data.data_source_name = transformed
+
+    return encoders
+
+
+def _create_encoder(data: InputData):
+    encoder = OneHotEncodingImplementation()
+    encoder.fit(data)
+    transformed = encoder.transform(data, True)
+    transformed_missed = ImputationImplementation().fit_transform(transformed).predict
+
+    return transformed_missed, encoder

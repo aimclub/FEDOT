@@ -13,7 +13,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.log import default_log
 from fedot.core.optimisers.utils.pareto import ParetoFront
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
@@ -205,7 +205,9 @@ class Fedot:
             if isinstance(predefined_model, Pipeline):
                 self.current_pipeline = predefined_model
             elif isinstance(predefined_model, str):
-                self.current_pipeline = Pipeline(PrimaryNode(predefined_model))
+                categorical_preprocessing = PrimaryNode('one_hot_encoding')
+                model = SecondaryNode(predefined_model, nodes_from=[categorical_preprocessing])
+                self.current_pipeline = Pipeline(model)
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 

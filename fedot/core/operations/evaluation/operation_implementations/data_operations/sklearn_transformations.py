@@ -5,6 +5,7 @@ from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
 
+from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 
@@ -118,7 +119,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.categorical_ids = None
         self.non_categorical_ids = None
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical
         features
 
@@ -137,8 +138,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         else:
             categorical_features = np.array(features[:, categorical_ids])
             self.encoder.fit(categorical_features)
-
-        return self.encoder
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """

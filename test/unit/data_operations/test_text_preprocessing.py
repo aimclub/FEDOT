@@ -15,7 +15,7 @@ def test_clean_text_preprocessing():
         'Is this the first document?',
     ]
 
-    input_data = InputData(features=test_text,
+    input_data = InputData(features=np.array(test_text),
                            target=[0, 1, 1, 0],
                            idx=np.arange(0, len(test_text)),
                            task=Task(TaskTypesEnum.classification),

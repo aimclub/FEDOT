@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, List
 
 import numpy as np
 import pandas as pd
@@ -17,11 +17,12 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from fedot.core.data.data import data_has_categorical_features
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -243,25 +244,64 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
     return pipeline_for_return, best_candidates, history
 
 
-def _obtain_initial_assumption(task: Task, data) -> Pipeline:
+def _build_initial_assumption(task: Task, data: Union[InputData, MultiModalData]):
     node_final = None
-    if task.task_type == TaskTypesEnum.ts_forecasting:
-        # Create init pipeline
-        if isinstance(data, MultiModalData):
-            node_final = SecondaryNode('ridge', nodes_from=[])
-            for data_source_name in data.keys():
-                last_node_for_sub_pipeline = \
-                    SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
-                node_final.nodes_from.append(last_node_for_sub_pipeline)
-        else:
-            node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
-    elif task.task_type == TaskTypesEnum.classification:
-        node_primary = PrimaryNode('scaling')
-        node_final = SecondaryNode('xgboost', nodes_from=[node_primary])
-    elif task.task_type == TaskTypesEnum.regression:
-        node_lagged = PrimaryNode('scaling')
-        node_final = SecondaryNode('xgbreg', nodes_from=[node_lagged])
+    has_categorical_features = data_has_categorical_features(data)
 
+    if isinstance(data, MultiModalData):
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            node_final = SecondaryNode('ridge', nodes_from=[])
+            for data_source_name, values in data.items():
+                if data_source_name.startswith('data_source_ts'):
+                    node_primary = PrimaryNode(data_source_name)
+                    node_lagged = SecondaryNode('lagged', [node_primary])
+                    node_last = SecondaryNode('ridge', [node_lagged])
+                    node_final.nodes_from.append(node_last)
+        elif task.task_type == TaskTypesEnum.classification:
+            node_final = SecondaryNode('xgboost', nodes_from=[])
+            node_final.nodes_from = _create_first_nodes_multimodal(data, has_categorical_features)
+        elif task.task_type == TaskTypesEnum.regression:
+            node_final = SecondaryNode('xgbreg', nodes_from=[])
+            node_final.nodes_from = _create_first_nodes_multimodal(data, has_categorical_features)
+    elif isinstance(data, InputData):
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            node_final = SecondaryNode('ridge', [PrimaryNode('lagged')])
+        else:
+            if has_categorical_features:
+                node_encoding = PrimaryNode('one_hot_encoding')
+                node_primary = SecondaryNode('scaling', [node_encoding])
+            else:
+                node_primary = PrimaryNode('scaling')
+            if task.task_type == TaskTypesEnum.classification:
+                node_final = SecondaryNode('xgboost', nodes_from=[node_primary])
+            elif task.task_type == TaskTypesEnum.regression:
+                node_final = SecondaryNode('xgbreg', nodes_from=[node_primary])
+            else:
+                raise NotImplementedError(f"Don't have initial chain for task type: {task.task_type}")
+    else:
+        raise NotImplementedError(f"Don't handle {type(data)}")
+
+    return node_final
+
+
+def _create_first_nodes_multimodal(data: MultiModalData, has_categorical: bool) -> List[SecondaryNode]:
+    nodes_from = []
+
+    for data_source_name, values in data.items():
+        node_primary = PrimaryNode(data_source_name)
+        if data_source_name.startswith('data_source_table') and has_categorical:
+            node_encoder = SecondaryNode('one_hot_encoding', [node_primary])
+            node_scaling = SecondaryNode('scaling', [node_encoder])
+        else:
+            node_scaling = SecondaryNode('scaling', [node_primary])
+        node_last = SecondaryNode('ridge', [node_scaling])
+        nodes_from.append(node_last)
+
+    return nodes_from
+
+
+def _obtain_initial_assumption(task: Task, data: Union[InputData, MultiModalData]) -> Pipeline:
+    node_final = _build_initial_assumption(task, data)
     init_pipeline = Pipeline(node_final)
     return init_pipeline
 
