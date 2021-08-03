@@ -11,5 +11,3 @@ RUN apt-get update
 RUN apt-get install -y wget
 
 ENV PYTHONPATH /home/FEDOT
-
-RUN pip install -r requirements.txt
