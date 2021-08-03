@@ -79,7 +79,7 @@ class Graph:
         return self.operator.is_graph_equal(other)
 
     def __str__(self):
-        return self.operator.graph_desciption()
+        return self.operator.graph_description()
 
     def __repr__(self):
         return self.__str__()

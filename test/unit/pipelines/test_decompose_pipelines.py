@@ -10,7 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 
 
 def generate_pipeline_with_decomposition(primary_operation, secondary_operation):
@@ -190,7 +190,7 @@ def test_ts_forecasting_decomposition():
     forecasting task
     """
     # Generate synthetic data for time series forecasting
-    train_data, _ = get_synthetic_ts_data_period(forecast_length=5)
+    train_data, _ = get_ts_data(forecast_length=5)
     # Distort original values
     train_data.features = train_data.features + 150
     train_data.target = train_data.target + 150

@@ -10,7 +10,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-def run_multi_modal_case(files_path, is_visualise=False, learning_time=datetime.timedelta(minutes=2)):
+def run_multi_modal_case(files_path, is_visualise=False, timeout=datetime.timedelta(minutes=2)):
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
@@ -23,7 +23,7 @@ def run_multi_modal_case(files_path, is_visualise=False, learning_time=datetime.
                                                                           train_text, test_text)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
-    available_model_types = get_operations_for_task(task=task, mode='models')
+    available_model_types = get_operations_for_task(task=task, mode='model')
 
     # the choice of the metric for the pipeline quality assessment during composition
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
@@ -32,7 +32,7 @@ def run_multi_modal_case(files_path, is_visualise=False, learning_time=datetime.
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.8, timeout=learning_time)
+        crossover_prob=0.8, mutation_prob=0.8, timeout=timeout)
 
     # GP optimiser parameters choice
     scheme_type = GeneticSchemeTypesEnum.parameter_free

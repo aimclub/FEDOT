@@ -37,7 +37,7 @@ class Node(GraphNode):
             operation_factory = OperationFactory(operation_name=operation_type)
             operation = operation_factory.get_operation()
 
-        super().__init__(nodes_from, content=operation)
+        super().__init__(content=operation, nodes_from=nodes_from)
 
         if not log:
             self.log = default_log(__name__)
@@ -140,7 +140,7 @@ class PrimaryNode(Node):
             # Was the data passed directly to the node or not
             self.direct_set = True
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
         Fit the operation located in the primary node
 
@@ -210,7 +210,7 @@ class SecondaryNode(Node):
             nodes_from = []
         super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
-    def fit(self, input_data: InputData) -> OutputData:
+    def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
         Fit the operation located in the secondary node
 
@@ -239,7 +239,7 @@ class SecondaryNode(Node):
     def _input_from_parents(self, input_data: InputData,
                             parent_operation: str) -> InputData:
         if len(self.nodes_from) == 0:
-            raise ValueError()
+            raise ValueError('No parent nodes found')
 
         self.log.ext_debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
 

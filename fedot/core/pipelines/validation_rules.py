@@ -5,8 +5,8 @@ from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_ts_operations
-from fedot.core.repository.tasks import Task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -40,7 +40,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
 
 def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between nodes """
-    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
+    operation_repo = OperationTypesRepository(operation_type='data_operation')
     forbidden_parents_combination, _ = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
@@ -63,8 +63,8 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
 
 def has_correct_data_connections(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    operation_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
-    models_repo = OperationTypesRepository(repository_name='model_repository.json')
+    operation_repo = OperationTypesRepository(operation_type='data_operation')
+    models_repo = OperationTypesRepository(operation_type='model')
 
     for node in pipeline.nodes:
         parent_nodes = node.nodes_from
@@ -100,7 +100,8 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     """ Function checks is the model contains operations for time series
     forecasting """
     # Get time series specific operations with tag "ts_specific"
-    ts_operations = get_ts_operations(tags=["ts_specific"], mode='all')
+    ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
+                                            tags=["ts_specific"], mode='all')
 
     # List with operations in considering pipeline
     operations_in_pipeline = []
@@ -116,14 +117,17 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
+    task = Task(TaskTypesEnum.ts_forecasting)
     if not is_pipeline_contains_ts_operations(pipeline):
         return True
-    models = get_ts_operations(mode='models')
+    models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
-    non_ts_data_operations = get_ts_operations(mode='data_operations',
-                                               forbidden_tags=["ts_specific"])
-    ts_data_operations = get_ts_operations(mode='data_operations',
-                                           tags=["ts_specific"])
+    non_ts_data_operations = get_operations_for_task(task=task,
+                                                     mode='data_operation',
+                                                     forbidden_tags=["ts_specific"])
+    ts_data_operations = get_operations_for_task(task=task,
+                                                 mode='data_operation',
+                                                 tags=["ts_specific"])
     # Remove lagged transformation
     ts_data_operations.remove('lagged')
     ts_data_operations.remove('exog_ts_data_source')
@@ -189,6 +193,17 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
             __check_decomposer_has_two_parents(nodes_to_check=decompose_nodes)
             __check_decompose_parent_position(nodes_to_check=decompose_nodes)
 
+    return True
+
+
+def has_correct_data_sources(pipeline: Pipeline):
+    """ Checks that data sources and other nodes are not mixed
+    """
+
+    is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if isinstance(n, PrimaryNode)]
+
+    if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
+        raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
     return True
 
 

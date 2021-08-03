@@ -8,17 +8,15 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
                                                          GPGraphOptimiserParameters)
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
@@ -106,18 +104,16 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 
-def filter_operations_by_preset(task, preset: str):
+def filter_operations_by_preset(task: Task, preset: str):
     """ Function filter operations by preset, remove "heavy" operations and save
     appropriate ones
     """
-    excluded_models_dict = {'light': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean', 'catboost',
-                                      'lgbm', 'lgbmreg', 'catboostreg'],
-                            'light_tun': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean', 'catboost',
-                                          'catboostreg', 'lgbm', 'lgbmreg']}
+    excluded_models_dict = {'light': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean'],
+                            'light_tun': ['mlp', 'svc', 'arima', 'exog_ts_data_source', 'text_clean']}
 
     # Get data operations and models
     available_operations = get_operations_for_task(task, mode='all')
-    available_data_operation = get_operations_for_task(task, mode='data_operations')
+    available_data_operation = get_operations_for_task(task, mode='data_operation')
 
     # Exclude "heavy" operations if necessary
     if preset in excluded_models_dict.keys():
@@ -130,6 +126,10 @@ def filter_operations_by_preset(task, preset: str):
         included_operations = light_models + available_data_operation
         available_operations = [_ for _ in available_operations if _ in included_operations]
 
+    if preset == 'gpu':
+        # OperationTypesRepository.assign_repo('model', 'gpu_models_repository.json')
+        repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
+        available_operations = repository.suitable_operation(task_type=task.task_type)
     return available_operations
 
 
@@ -142,7 +142,7 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         num_of_generations: int,
                         available_operations: list = None,
                         composer_metric=None,
-                        learning_time: float = 5,
+                        timeout: float = 5,
                         with_tuning=False,
                         tuner_metric=None,
                         cv_folds: Optional[int] = None,
@@ -154,15 +154,15 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
     metric_function = _obtain_metric(task, composer_metric)
 
     if available_operations is None:
-        available_operations = get_operations_for_task(task, mode='models')
+        available_operations = get_operations_for_task(task, mode='model')
 
     logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
-                   f'Set of candidate models: {available_operations}. Composing time limit: {learning_time} min')
+                   f'Set of candidate models: {available_operations}. Composing time limit: {timeout} min')
 
     primary_operations, secondary_operations = _divide_operations(available_operations,
                                                                   task)
 
-    learning_time_for_composing = learning_time / 2 if with_tuning else learning_time
+    timeout_for_composing = timeout / 2 if with_tuning else timeout
     # the choice and initialisation of the GP composer
     composer_requirements = \
         GPComposerRequirements(primary=primary_operations,
@@ -171,18 +171,11 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                max_depth=max_depth,
                                pop_size=pop_size,
                                num_of_generations=num_of_generations,
-                               timeout=datetime.timedelta(minutes=learning_time_for_composing),
                                cv_folds=cv_folds,
-                               validation_blocks=validation_blocks)
+                               validation_blocks=validation_blocks,
+                               timeout=datetime.timedelta(minutes=timeout_for_composing))
 
-    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
-                                                      mutation_types=[parameter_change_mutation,
-                                                                      MutationTypesEnum.simple,
-                                                                      MutationTypesEnum.reduce,
-                                                                      MutationTypesEnum.growth,
-                                                                      MutationTypesEnum.local_growth],
-                                                      crossover_types=[CrossoverTypesEnum.one_point,
-                                                                       CrossoverTypesEnum.subtree])
+    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
 
     # Create GP-based composer
     builder = _get_gp_composer_builder(task=task,
@@ -222,17 +215,24 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                                            train_data=train_data,
                                                            task=task)
 
-        iterations = 20 if learning_time is None else 1000
-        learning_time_for_tuning = learning_time / 2
+        iterations = 20 if timeout is None else 1000
+        timeout_for_tuning = timeout / 2
 
         # Tune all nodes in the pipeline
+
         vb_number = composer_requirements.validation_blocks
+        folds = composer_requirements.cv_folds
+        if train_data.task.task_type != TaskTypesEnum.ts_forecasting:
+            # TODO remove after implementation of CV for class/regr
+            logger.warn('Cross-validation is not supported for tuning of ts-forecasting pipeline: '
+                        'hold-out validation used instead')
+            folds = None
         pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
                                                                       loss_params=loss_params,
                                                                       input_data=train_data,
                                                                       iterations=iterations,
-                                                                      timeout=learning_time_for_tuning,
-                                                                      cv_folds=composer_requirements.cv_folds,
+                                                                      timeout=timeout_for_tuning,
+                                                                      cv_folds=folds,
                                                                       validation_blocks=vb_number)
 
     logger.message('Model composition finished')
@@ -255,11 +255,11 @@ def _obtain_initial_assumption(task: Task, data) -> Pipeline:
         else:
             node_final = SecondaryNode('ridge', nodes_from=[PrimaryNode('lagged')])
     elif task.task_type == TaskTypesEnum.classification:
-        node_lagged = PrimaryNode('scaling')
-        node_final = SecondaryNode('xgboost', nodes_from=[node_lagged])
+        node_primary = PrimaryNode('scaling')
+        node_final = SecondaryNode('xgboost', nodes_from=[node_primary])
     elif task.task_type == TaskTypesEnum.regression:
         node_lagged = PrimaryNode('scaling')
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+        node_final = SecondaryNode('xgbreg', nodes_from=[node_lagged])
 
     init_pipeline = Pipeline(node_final)
     return init_pipeline
@@ -291,8 +291,9 @@ def _divide_operations(available_operations, task):
     """ Function divide operations for primary and secondary """
 
     if task.task_type == TaskTypesEnum.ts_forecasting:
-        ts_data_operations = get_ts_operations(mode='data_operations',
-                                               tags=["ts_specific"])
+        ts_data_operations = get_operations_for_task(task=task,
+                                                     mode='data_operation',
+                                                     tags=["ts_specific"])
         # Remove exog data operation from the list
         ts_data_operations.remove('exog_ts_data_source')
 

@@ -19,7 +19,7 @@ def get_simple_composer_params() -> dict:
               'max_arity': 3,
               'pop_size': 2,
               'num_of_generations': 2,
-              'learning_time': 1,
+              'timeout': 1,
               'preset': 'ultra_light'}
     return params
 

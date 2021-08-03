@@ -1,0 +1,1 @@
+conda create -n rapids-0.19 -c rapidsai -c nvidia -c conda-forge rapids-blazing=0.19 python=3.8 cudatoolkit=11.0

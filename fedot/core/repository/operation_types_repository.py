@@ -1,9 +1,9 @@
 import json
 import os
 import warnings
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
-from collections import defaultdict
 
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -34,16 +34,56 @@ class OperationMetaInfo:
         return self.supported_strategies
 
 
+def run_once(function):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return function(*args, **kwargs)
+
+    wrapper.has_run = False
+    return wrapper
+
+
 class OperationTypesRepository:
     """ Class for connecting models and data operations with json files with
     its descriptions and metadata"""
-    _repo = None
 
-    def __init__(self, repository_name: str = 'model_repository.json'):
-        repo_path = create_repository_path(repository_name)
-        self._repo = self._initialise_repo(repo_path)
+    __initialized_repositories__ = {}
+
+    __repository_dict__ = {
+        'model': {'file': 'model_repository.json', 'initialized_repo': None},
+        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None}
+    }
+
+    def __init__(self, operation_type: str = 'model'):
         self._tags_excluded_by_default = ['non-default', 'expensive']
-        self.repository_name = repository_name
+        OperationTypesRepository.init_default_repositories()
+        self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
+        self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+
+    @classmethod
+    @run_once
+    def init_default_repositories(cls):
+        # default model repo
+        default_model_repo_file = cls.__repository_dict__['model']['file']
+        cls.assign_repo('model', default_model_repo_file)
+
+        # default data_operation repo
+        default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
+        cls.assign_repo('data_operation', default_data_operation_repo_file)
+
+    @classmethod
+    def assign_repo(cls, operation_type: str, repo_file: str):
+        if operation_type not in ['model', 'data_operation']:
+            raise Warning(f'The {operation_type} is not supported. The model type will be set')
+
+        repo_path = create_repository_path(repo_file)
+        if repo_file not in cls.__initialized_repositories__.keys():
+            cls.__initialized_repositories__[repo_file] = cls._initialise_repo(repo_path)
+        cls.__repository_dict__[operation_type]['file'] = repo_file
+        cls.__repository_dict__[operation_type]['initialized_repo'] = cls.__initialized_repositories__[repo_file]
+
+        return OperationTypesRepository(operation_type)
 
     def __enter__(self):
         return self
@@ -51,7 +91,11 @@ class OperationTypesRepository:
     def __exit__(self, type, value, traceback):
         self.repo_path = None
 
-    def _initialise_repo(self, repo_path: str) -> List[OperationMetaInfo]:
+    def __repr__(self):
+        return f"{self.__class__.__name__} for {self.repository_name}"
+
+    @classmethod
+    def _initialise_repo(cls, repo_path: str) -> List[OperationMetaInfo]:
         """ Method parse JSON repository with operations descriptions and
         wrapped information into OperationMetaInfo, then put it into the list
 
@@ -80,7 +124,7 @@ class OperationTypesRepository:
                 else eval_field_str(metadata['output_type'])
 
             # Get available strategies for obtained metadata
-            supported_strategies = self.get_strategies_by_metadata(metadata)
+            supported_strategies = OperationTypesRepository.get_strategies_by_metadata(metadata)
 
             accepted_node_types = read_field(metadata, 'accepted_node_types', ['any'])
             forbidden_node_types = read_field(metadata, 'forbidden_node_types', [])
@@ -150,6 +194,7 @@ class OperationTypesRepository:
         return [m.id for m in operations_info], operations_info
 
     def suitable_operation(self, task_type: TaskTypesEnum = None,
+                           data_type: TaskTypesEnum = None,
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None):
         """ Method returns operations from repository for desired task and / or
@@ -164,8 +209,8 @@ class OperationTypesRepository:
         if not forbidden_tags:
             forbidden_tags = []
 
-        for excluded_default_tag in self._tags_excluded_by_default:
-            if not tags or excluded_default_tag not in tags:
+        if not tags:
+            for excluded_default_tag in self._tags_excluded_by_default:
                 # Forbidden tags by default
                 forbidden_tags.append(excluded_default_tag)
 
@@ -179,6 +224,10 @@ class OperationTypesRepository:
                                (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
                                (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
                                                                                          False))]
+
+        if data_type:
+            operations_info = [o for o in operations_info if data_type in o.input_types]
+
         return [m.id for m in operations_info], operations_info
 
     @property
@@ -216,62 +265,33 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Task, mode='all'):
-    """ Function returns aliases of operations. Simplify OperationTypesRepository
-    logic, but there are no ability to use tags for filtering
+def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None, ):
+    """ Function returns aliases of operations.
 
     :param task: task to solve
     :param mode: mode to return operations
         The possible parameters are:
             'all' - return list with all operations
-            'models' - return only list with models
-            'data_operations' - return only list with data_operations
-    :return : list with operation aliases
-    """
-
-    # Get models from repository
-    model_types, _ = OperationTypesRepository('model_repository.json') \
-        .suitable_operation(task.task_type)
-    # Get data operations
-    data_operation_types, _ = OperationTypesRepository('data_operation_repository.json') \
-        .suitable_operation(task.task_type)
-
-    # Unit two lists
-    available_operations = model_types + data_operation_types
-
-    if mode == 'all':
-        return available_operations
-    elif mode == 'models':
-        return model_types
-    elif mode == 'data_operations':
-        return data_operation_types
-    else:
-        raise ValueError(f'For "{mode}" there are no operations')
-
-
-def get_ts_operations(tags=None, forbidden_tags=None, mode='all'):
-    """ Function returns operations names for time series forecasting task
-
+            'model' - return only list with models
+            'data_operation' - return only list with data_operations
     :param tags: tags for grabbing when filtering
     :param forbidden_tags: tags for skipping when filtering
-    :param mode: available modes 'models', 'data_operations' and 'all'
+
+    :return : list with operation aliases
     """
-    models_repo = OperationTypesRepository()
-    models, _ = models_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                               tags=tags, forbidden_tags=forbidden_tags)
-
-    data_operations_repo = OperationTypesRepository(repository_name='data_operation_repository.json')
-    data_operations, _ = data_operations_repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                                 tags=tags, forbidden_tags=forbidden_tags)
-
-    if mode == 'models':
-        return models
-    elif mode == 'data_operations':
-        return data_operations
+    task_type = task.task_type if task else None
+    if mode != 'all':
+        model_types, _ = OperationTypesRepository(mode). \
+            suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        return model_types
     elif mode == 'all':
-        # Unit two lists
-        ts_operations = models + data_operations
-        return ts_operations
+        # Get models from repository
+        model_types, _ = OperationTypesRepository('model') \
+            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        # Get data operations
+        data_operation_types, _ = OperationTypesRepository('data_operation') \
+            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
 

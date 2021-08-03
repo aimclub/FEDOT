@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import (List, Optional, Union)
 
+from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.pipeline import Pipeline
@@ -31,6 +32,7 @@ class ComposerRequirements:
     max_arity: int = 2
     min_arity: int = 2
     cv_folds: Optional[int] = None
+    advisor: Optional[PipelineChangeAdvisor] = PipelineChangeAdvisor()
 
     def __post_init__(self):
         if self.max_depth < 0:

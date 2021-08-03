@@ -1,10 +1,11 @@
 from copy import deepcopy
 from functools import partial
-from random import choice, randint, random
-from typing import Any, Callable, TYPE_CHECKING, Union
+from random import choice, randint, random, sample
+from typing import Any, Callable, List, TYPE_CHECKING, Union
+
+import numpy as np
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.dag.graph import List
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 
 MAX_NUM_OF_ATTEMPTS = 100
+MAX_MUT_CYCLES = 5
+STATIC_MUTATION_PROBABILITY = 0.7
 
 
 class MutationTypesEnum(Enum):
@@ -23,6 +26,11 @@ class MutationTypesEnum(Enum):
     growth = 'growth'
     local_growth = 'local_growth'
     reduce = 'reduce'
+    single_add = 'single_add',
+    single_change = 'single_change',
+    single_drop = 'single_drop',
+    single_edge = 'single_edge'
+
     none = 'none'
 
 
@@ -49,8 +57,59 @@ def get_mutation_prob(mut_id, node):
     return mutation_prob
 
 
-def will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
+def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
     return not (random() > mutation_prob or mutation_type == MutationTypesEnum.none)
+
+
+def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List[Union[MutationTypesEnum, Callable]],
+                               num_mut: int, requirements, params: 'GraphGenerationParams', max_depth: int):
+    """
+    Apply mutation in several iterations with specific adaptation of each graph
+    """
+
+    is_static_mutation_type = random() < STATIC_MUTATION_PROBABILITY
+    static_mutation_type = choice(types)
+    mutation_names = []
+    for _ in range(num_mut):
+        mutation_type = static_mutation_type \
+            if is_static_mutation_type else choice(types)
+        is_custom_mutation = isinstance(mutation_type, Callable)
+
+        if is_custom_mutation:
+            new_graph = params.adapter.restore(new_graph)
+
+        new_graph = _apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
+                                    mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
+                                    requirements=requirements, params=params, max_depth=max_depth)
+        mutation_names.append(str(mutation_type))
+
+        if not isinstance(new_graph, OptGraph):
+            new_graph = params.adapter.adapt(new_graph)
+
+        if is_custom_mutation:
+            # custom mutation occurs once
+            break
+    return new_graph, mutation_names
+
+
+def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable],
+                    is_custom_mutation: bool, requirements, params: 'GraphGenerationParams', max_depth: int):
+    """
+      Apply mutation for adapted graph
+      """
+    if _will_mutation_be_applied(mutation_prob, mutation_type):
+        if mutation_type in mutation_by_type or is_custom_mutation:
+            if is_custom_mutation:
+                mutation_func = mutation_type
+            else:
+                mutation_func = mutation_by_type[mutation_type]
+            new_graph = mutation_func(new_graph, requirements=requirements,
+                                      params=params,
+                                      max_depth=max_depth)
+        elif mutation_type != MutationTypesEnum.none:
+            raise ValueError(f'Required mutation type is not found: {mutation_type}')
+
+    return new_graph
 
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
@@ -59,43 +118,30 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
     """ Function apply mutation operator to graph """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
-    mutation_type = choice(types)
-    is_custom_mutation = isinstance(mutation_type, Callable)
-    if will_mutation_be_applied(mutation_prob, mutation_type):
-        if mutation_type in mutation_by_type or is_custom_mutation:
-            for _ in range(MAX_NUM_OF_ATTEMPTS):
-                if is_custom_mutation:
-                    mutation_func = mutation_type
-                else:
-                    mutation_func = mutation_by_type[mutation_type]
 
-                input_obj = deepcopy(ind.graph)
-                is_custom_operator = isinstance(input_obj, OptGraph)
-                if is_custom_operator:
-                    input_obj = params.adapter.restore(input_obj)
+    for _ in range(MAX_NUM_OF_ATTEMPTS):
+        new_graph = deepcopy(ind.graph)
+        num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
-                new_graph = mutation_func(input_obj, requirements=requirements,
-                                          params=params,
-                                          max_depth=max_depth)
+        new_graph, mutation_names = _adapt_and_apply_mutations(new_graph=new_graph, mutation_prob=mutation_prob,
+                                                               types=types, num_mut=num_mut,
+                                                               requirements=requirements, params=params,
+                                                               max_depth=max_depth)
 
-                if is_custom_operator:
-                    new_graph = params.adapter.adapt(new_graph)
+        is_correct_graph = constraint_function(new_graph, params)
+        if is_correct_graph:
+            new_individual = Individual(new_graph)
+            if add_to_history:
+                for mutation_name in mutation_names:
+                    new_individual.parent_operators.append(
+                        ParentOperator(operator_type='mutation',
+                                       operator_name=str(mutation_name),
+                                       parent_objects=[params.adapter.restore_as_template(ind.graph)]))
+            return new_individual
 
-                is_correct_graph = constraint_function(new_graph,
-                                                       params)
-                if is_correct_graph:
-                    new_individual = Individual(new_graph)
-                    if add_to_history:
-                        new_individual.parent_operators.append(
-                            ParentOperator(operator_type='mutation',
-                                           operator_name=str(mutation_type),
-                                           parent_objects=[params.adapter.restore_as_template(ind.graph)]))
-                    return new_individual
+    log.debug('Number of mutation attempts exceeded. '
+              'Please check composer requirements for correctness.')
 
-        elif mutation_type != MutationTypesEnum.none:
-            raise ValueError(f'Required mutation type is not found: {mutation_type}')
-        log.debug('Number of mutation attempts exceeded. '
-                  'Please check composer requirements for correctness.')
     return deepcopy(ind)
 
 
@@ -127,49 +173,154 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     return graph
 
 
-def _single_add_mutation(pipeline: Any, requirements, pipeline_generation_params):
+def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
+    old_graph = deepcopy(graph)
+
+    for _ in range(MAX_NUM_OF_ATTEMPTS):
+        if len(graph.nodes) < 2 or graph.depth > max_depth:
+            return graph
+
+        source_node, target_node = sample(graph.nodes, 2)
+
+        nodes_not_cycling = (target_node.descriptive_id not in
+                             [n.descriptive_id for n in source_node.ordered_subnodes_hierarchy()])
+        if nodes_not_cycling:
+            graph.operator.connect_nodes(source_node, target_node)
+            break
+
+    if graph.depth > max_depth:
+        return old_graph
+    return graph
+
+
+def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
+    # add between node and parent
+    candidates = params.advisor.propose_parent(str(node_to_mutate.content),
+                                               [str(n.content) for n in node_to_mutate.nodes_from],
+                                               requirements.secondary)
+    if len(candidates) == 0:
+        return graph
+    new_node = OptNode(content=choice(candidates))
+    new_node.nodes_from = node_to_mutate.nodes_from
+    node_to_mutate.nodes_from = [new_node]
+    graph.nodes.append(new_node)
+    return graph
+
+
+def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
+    # add as separate parent
+    candidates = params.advisor.propose_parent(str(node_to_mutate.content), None,
+                                               requirements.primary)
+    if len(candidates) == 0:
+        return graph
+    for iter_num in range(randint(1, 3)):
+        if iter_num == len(candidates):
+            break
+        new_node = OptNode(content=choice(candidates))
+        if node_to_mutate.nodes_from:
+            node_to_mutate.nodes_from.append(new_node)
+        else:
+            node_to_mutate.nodes_from = [new_node]
+        graph.nodes.append(new_node)
+    return graph
+
+
+def _add_as_child(graph: Any, requirements, params, node_to_mutate):
+    # add as child
+    new_node = OptNode(content=choice(requirements.secondary))
+    new_node.nodes_from = [node_to_mutate]
+    graph.operator.actualise_old_node_children(node_to_mutate, new_node)
+    graph.nodes.append(new_node)
+    return graph
+
+
+def single_add_mutation(graph: Any, requirements, params, max_depth, *args, **kwargs):
     """
     Add new node between two sequential existing modes
     """
-    node = choice(pipeline.nodes)
-    if node.nodes_from:
-        new_node = OptNode(content=choice(requirements.secondary))
-        pipeline.operator.actualise_old_node_children(node, new_node)
-        new_node.nodes_from = [node]
-        pipeline.nodes.append(new_node)
-    return pipeline
+
+    if graph.depth >= max_depth:
+        # add mutation is not possible
+        return graph
+
+    node_to_mutate = choice(graph.nodes)
+
+    single_add_strategies = [_add_as_child, _add_separate_parent_node]
+    if node_to_mutate.nodes_from:
+        single_add_strategies.append(_add_intermediate_node)
+    strategy = choice(single_add_strategies)
+
+    result = strategy(graph, requirements, params, node_to_mutate)
+    return result
 
 
-def _tree_growth(pipeline: Any, requirements, params, max_depth: int, local_growth=True):
+def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
+    """
+    Add new node between two sequential existing modes
+    """
+    node = choice(graph.nodes)
+    nodes_from = node.nodes_from
+    candidates = requirements.secondary if node.nodes_from else requirements.primary
+    if params.advisor:
+        candidates = params.advisor.propose_change(current_operation_id=str(node.content),
+                                                   possible_operations=candidates)
+
+    if len(candidates) == 0:
+        return graph
+
+    node_new = OptNode(content=choice(candidates))
+    node_new.nodes_from = nodes_from
+    graph.nodes = [node_new if n == node else n for n in graph.nodes]
+    graph.operator.actualise_old_node_children(node, node_new)
+    return graph
+
+
+def single_drop_mutation(graph: Any, *args, **kwargs):
+    """
+    Add new node between two sequential existing modes
+    """
+    node_to_del = choice(graph.nodes)
+    graph.delete_node(node_to_del)
+    if node_to_del.nodes_from:
+        childs = graph.operator.node_children(node_to_del)
+        for child in childs:
+            if child.nodes_from:
+                child.nodes_from.extend(node_to_del.nodes_from)
+            else:
+                child.nodes_from = node_to_del.nodes_from
+    return graph
+
+
+def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=True):
     """
     This mutation selects a random node in a tree, generates new subtree,
     and replaces the selected node's subtree.
     """
-    random_layer_in_pipeline = randint(0, pipeline.depth - 1)
-    node_from_pipeline = choice(pipeline.operator.nodes_from_layer(random_layer_in_pipeline))
+    random_layer_in_graph = randint(0, graph.depth - 1)
+    node_from_graph = choice(graph.operator.nodes_from_layer(random_layer_in_graph))
     if local_growth:
-        is_primary_node_selected = (not node_from_pipeline.nodes_from) or (
-                node_from_pipeline.nodes_from and
-                node_from_pipeline != pipeline.root_node
+        is_primary_node_selected = (not node_from_graph.nodes_from) or (
+                node_from_graph.nodes_from and
+                node_from_graph != graph.root_node
                 and randint(0, 1))
     else:
         is_primary_node_selected = \
             randint(0, 1) and \
-            not pipeline.operator.distance_to_root_level(node_from_pipeline) < max_depth
+            not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
         new_subtree = OptNode(content=choice(requirements.primary))
     else:
         if local_growth:
-            max_depth = node_from_pipeline.distance_to_primary_level
+            max_depth = node_from_graph.distance_to_primary_level
         else:
-            max_depth = max_depth - pipeline.operator.distance_to_root_level(node_from_pipeline)
+            max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
         new_subtree = random_graph(params=params, requirements=requirements,
                                    max_depth=max_depth).root_node
-    pipeline.update_subtree(node_from_pipeline, new_subtree)
-    return pipeline
+    graph.update_subtree(node_from_graph, new_subtree)
+    return graph
 
 
-def growth_mutation(pipeline: Any, requirements, params, max_depth: int, local_growth=True) -> Any:
+def growth_mutation(graph: Any, requirements, params, max_depth: int, local_growth=True) -> Any:
     """
     This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
     :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
@@ -179,10 +330,10 @@ def growth_mutation(pipeline: Any, requirements, params, max_depth: int, local_g
 
     if random() > 0.5:
         # simple growth (one node can be added)
-        return _single_add_mutation(pipeline, requirements, params)
+        return single_add_mutation(graph, requirements, params, max_depth)
     else:
         # advanced growth (several nodes can be added)
-        return _tree_growth(pipeline, requirements, params, max_depth, local_growth)
+        return _tree_growth(graph, requirements, params, max_depth, local_growth)
 
 
 def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:
@@ -204,12 +355,14 @@ def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:
     return graph
 
 
-# TODO move to composer
-
-
 mutation_by_type = {
     MutationTypesEnum.simple: simple_mutation,
     MutationTypesEnum.growth: partial(growth_mutation, local_growth=False),
     MutationTypesEnum.local_growth: partial(growth_mutation, local_growth=True),
     MutationTypesEnum.reduce: reduce_mutation,
+    MutationTypesEnum.single_add: single_add_mutation,
+    MutationTypesEnum.single_edge: single_edge_mutation,
+    MutationTypesEnum.single_drop: single_drop_mutation,
+    MutationTypesEnum.single_change: single_change_mutation,
+
 }

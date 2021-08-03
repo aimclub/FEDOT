@@ -12,7 +12,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
@@ -221,12 +221,12 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
 
 def test_ts_pipeline_with_stats_model():
     """ Tests PipelineTuner for time series forecasting task with AR model """
-    train_data, test_data = get_synthetic_ts_data_period()
+    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
 
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
     # Tune AR model
-    tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=5)
+    tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3)
     tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
                                                loss_function=mse)
 

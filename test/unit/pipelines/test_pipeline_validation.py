@@ -4,11 +4,12 @@ from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_compon
     has_no_self_cycled_nodes
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.validation import (validate)
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
-    has_primary_nodes, is_pipeline_contains_ts_operations, only_ts_specific_operations_are_primary
+    has_primary_nodes, is_pipeline_contains_ts_operations, only_ts_specific_operations_are_primary, \
+    has_correct_data_sources
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.pipelines.validation import (validate)
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
 GRAPH_ERROR_PREFIX = 'Invalid graph configuration:'
@@ -218,6 +219,20 @@ def pipeline_with_incorrect_parents_position_for_decompose():
     return pipeline
 
 
+def pipeline_with_correct_data_sources():
+    node_first = PrimaryNode('data_source/1')
+    node_second = PrimaryNode('data_source/2')
+    pipeline = Pipeline(SecondaryNode('linear', [node_first, node_second]))
+    return pipeline
+
+
+def pipeline_with_incorrect_data_sources():
+    node_first = PrimaryNode('data_source/1')
+    node_second = PrimaryNode('scaling')
+    pipeline = Pipeline(SecondaryNode('linear', [node_first, node_second]))
+    return pipeline
+
+
 def test_pipeline_with_cycle_raise_exception():
     pipeline = pipeline_with_cycle()
     with pytest.raises(Exception) as exc:
@@ -349,6 +364,18 @@ def test_decompose_parents_has_wright_positions():
         assert has_no_conflicts_in_decompose(incorrect_pipeline)
 
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
+
+
+def test_data_sources_validation():
+    incorrect_pipeline = pipeline_with_incorrect_data_sources()
+
+    with pytest.raises(ValueError) as exc:
+        has_correct_data_sources(incorrect_pipeline)
+
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Data sources are mixed with other primary nodes'
+
+    correct_pipeline = pipeline_with_correct_data_sources()
+    assert has_correct_data_sources(correct_pipeline)
 
 
 def custom_validation_test():

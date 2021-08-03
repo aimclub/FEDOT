@@ -1,0 +1,123 @@
+{
+  "metadata": {
+    "rapids_gpu_class": {
+      "tasks": "[TaskTypesEnum.classification]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.gpu.classification",
+        "CuMLClassificationStrategy"
+      ],
+      "tags": [
+        "ml",
+        "rapids",
+        "cuML",
+        "gpu"
+      ],
+      "description": "GPU-specific implementations of the classification models from cuML framework"
+    },
+    "rapids_gpu_regr": {
+      "tasks": "[TaskTypesEnum.regression]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.gpu.regression",
+        "CuMLRegressionStrategy"
+      ],
+      "tags": [
+        "ml",
+        "rapids",
+        "cuML",
+        "gpu"
+      ],
+      "description": "GPU-specific implementations of the regression models from cuML framework"
+    },
+    "rapids_gpu_clust": {
+      "tasks": "[TaskTypesEnum.clustering]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of the clustering models from scikit-learn framework",
+      "forbidden_node_types": "[]",
+      "strategies": [
+        "fedot.core.operations.evaluation.gpu.clustering",
+        "CumlClusteringStrategy"
+      ],
+      "tags": [
+        "ml",
+        "rapids",
+        "cuML",
+        "gpu"
+      ]
+    }
+  },
+  "operations": {
+    "logit": {
+      "meta": "rapids_gpu_class",
+      "tags": [
+        "simple",
+        "linear",
+        "interpretable"
+      ]
+    },
+    "rf": {
+      "meta": "rapids_gpu_class"
+    },
+    "lasso": {
+      "meta": "rapids_gpu_regr"
+    },
+    "svc": {
+      "meta": "rapids_gpu_class",
+      "tags": [
+        "no_prob",
+        "expensive"
+      ]
+    },
+    "kmeans": {
+      "meta": "rapids_gpu_clust"
+    },
+    "linear": {
+      "meta": "rapids_gpu_regr"
+    },
+    "ridge": {
+      "meta": "rapids_gpu_regr"
+    },
+    "rfr": {
+      "meta": "rapids_gpu_regr"
+    },
+    "knn": {
+      "meta": "rapids_gpu_class"
+    },
+    "knnreg": {
+      "meta": "rapids_gpu_regr"
+    },
+    "sgd": {
+      "meta": "rapids_gpu_class"
+    },
+    "multinb": {
+      "meta": "rapids_gpu_class"
+    },
+    "elasticnet": {
+      "meta": "rapids_gpu_regr"
+    },
+    "minibatchsgd": {
+      "meta": "rapids_gpu_class"
+    },
+    "mbsgdcregr": {
+      "meta": "rapids_gpu_regr"
+    },
+    "cd": {
+      "meta": "rapids_gpu_class"
+    }
+  }
+}

@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from sklearn.datasets import make_classification
 from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
+from sklearn.preprocessing import MinMaxScaler
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -15,7 +16,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -46,7 +47,7 @@ def classification_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
+    data = InputData(features=MinMaxScaler().fit_transform(x), target=classes, idx=np.arange(0, len(x)),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
 
@@ -76,6 +77,7 @@ def test_classification_models_fit_correct(data_fixture, request):
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+                                                 data_type=data.data_type,
                                                  tags=['ml'])
 
     for model_name in model_names:
@@ -85,7 +87,10 @@ def test_classification_models_fit_correct(data_fixture, request):
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
-        assert roc_on_test >= roc_threshold
+        if model_name not in ['bernb', 'multinb']:
+            assert roc_on_test >= roc_threshold
+        else:
+            assert roc_on_test >= 0.5
 
 
 def test_regression_models_fit_correct():
@@ -109,7 +114,7 @@ def test_regression_models_fit_correct():
 
 
 def test_ts_models_fit_correct():
-    train_data, test_data = get_synthetic_ts_data_period(forecast_length=30)
+    train_data, test_data = get_ts_data(forecast_length=5)
     logger = default_log('default_test_logger')
 
     with OperationTypesRepository() as repo:
