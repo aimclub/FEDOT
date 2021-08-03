@@ -9,7 +9,7 @@ from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
 from cuml.svm import SVC
 from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
     KNeighborsRegressor as CuMlknnRegressor
-from cuml import LinearRegression as CuMlLinReg, CuMlSGD, \
+from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
     MultinomialNB as CuMlMultinomialNB
 
 from fedot.core.data.data import InputData, OutputData
