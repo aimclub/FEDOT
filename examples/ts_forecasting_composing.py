@@ -1,5 +1,6 @@
 import datetime
 import warnings
+import statistics
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,8 +32,8 @@ def get_source_pipeline():
     """
 
     # First level
-    node_lagged_1 = PrimaryNode('lagged')
-    node_lagged_2 = PrimaryNode('lagged')
+    node_lagged_1 = PrimaryNode('sparse_lagged')
+    node_lagged_2 = PrimaryNode('sparse_lagged')
 
     # Second level
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
@@ -47,8 +48,8 @@ def get_source_pipeline():
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing', 'gaussian_filter', 'ar']
-    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
+    primary_operations = ['lagged', 'sparse_lagged', 'smoothing', 'gaussian_filter', 'ar']
+    secondary_operations = ['lagged', 'sparse_lagged', 'ridge', 'lasso', 'knnreg', 'linear',
                             'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
     return primary_operations, secondary_operations
 
@@ -232,6 +233,13 @@ def run_ts_forecasting_problem(forecast_length=50,
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_problem(forecast_length=100,
-                               with_visualisation=True,
-                               cv_folds=2)
+    time_list = []
+    for i in range(10):
+        start_time = datetime.datetime.now()
+        run_ts_forecasting_problem(forecast_length=100,
+                                   with_visualisation=True,
+                                   cv_folds=2)
+        diff_time = datetime.datetime.now() - start_time
+        time_list.append(diff_time.total_seconds() / 60.0)
+    print(time_list)
+    print(f"Mean time of sparse lagged composing: {statistics.mean(time_list)}")

@@ -82,8 +82,6 @@ class LaggedImplementation(DataOperationImplementation):
                 new_idx, features_columns = _ts_to_table(idx=old_idx,
                                                          time_series=features,
                                                          window_size=self.window_size)
-
-                # Extracting the last row from sparse matrix
                 features_columns = _sparse_matrix(self.log, features_columns, self.n_components, self.gain_tolerance)
                 features_columns = features_columns[-1]
 
@@ -103,13 +101,14 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        self.sparse_transform = True
 
         if params:
             if 'window_size' in params.keys():
                 self.window_size = int(round(params.get('window_size')))
                 if self.window_size < 6:
                     self.window_size = 6
-            if 'n_components' in params.keys():
+            if 'n_components' in params.keys() and params.get('n_components') is not None:
                 self.n_components = int(round(params.get('n_components')))
             if 'gain_tolerance' in params.keys():
                 self.gain_tolerance = params.get('gain_tolerance')
@@ -326,7 +325,7 @@ def _ts_to_table(idx, time_series: np.array, window_size: int):
     return updated_idx, features_columns
 
 
-def _sparse_matrix(logger, features_columns: np.array, n_components=None, gain_tolerance=0.1):
+def _sparse_matrix(logger, features_columns: np.array, n_components_perc=None, gain_tolerance=0.1):
     """ Method convert time series to lagged form.
 
         :param features_columns: matrix to sparse
@@ -338,9 +337,12 @@ def _sparse_matrix(logger, features_columns: np.array, n_components=None, gain_t
         :return components: reduced dimension matrix, its shape depends on the number of components which includes
                             the threshold of explained variance gain
         """
+    if not n_components_perc:
+        n_components_perc = 0.5
+    n_components = int(features_columns.shape[1]*n_components_perc)
     # Getting the initial approximation of number of components
     if not n_components:
-        n_components = int(features_columns.shape[1] / 2)
+        n_components = int(features_columns.shape[1]*n_components_perc)
     if n_components >= features_columns.shape[0]:
         n_components = features_columns.shape[0]-1
     logger.info(f'Initial approximation of number of components set as {n_components}')
@@ -350,16 +352,15 @@ def _sparse_matrix(logger, features_columns: np.array, n_components=None, gain_t
     var_list = [exp_var]
 
     # Forming the list of perspective number of components
-    iter = np.arange(n_components-1)[::-1]
+    #iter = np.arange(n_components+1)[1:][::-1]
 
-    # Checking the gain of explained variance depending on number of components
-    for i in iter:
-        exp_var, components = _get_svd(features_columns, i)
-        var_list.append(exp_var)
-        var_gain = var_list[0] - exp_var
-        if var_gain >= gain_tolerance:
-            break
-
+    # Checking the gain of explained variance depending on number of components - цикл замедляет работу ужасно
+    #for i in iter:
+        #exp_var, components = _get_svd(features_columns, i)
+        #var_list.append(exp_var)
+        #var_gain = var_list[0] - exp_var
+        #if var_gain >= gain_tolerance:
+            #break
     return components
 
 
