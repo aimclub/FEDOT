@@ -15,7 +15,7 @@ from fedot.core.data.data import InputData
 
 class LaggedImplementation(DataOperationImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params):
         super().__init__()
 
         self.window_size = None
@@ -96,7 +96,7 @@ class LaggedImplementation(DataOperationImplementation):
 class SparseLaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of sparse lagged transformation for time series forecasting"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
         self.sparse_transform = True
 
@@ -115,11 +115,10 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
 class LaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
-        if params:
-            self.window_size = int(round(params.get('window_size')))
+        self.window_size = int(round(params.get('window_size')))
 
     def get_params(self):
         return {'window_size': self.window_size}
@@ -127,14 +126,14 @@ class LaggedTransformationImplementation(LaggedImplementation):
 
 class TsSmoothingImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
         if not params:
             # Default parameters
             self.window_size = 10
         else:
-            self.window_size = int(round(params.get('window_size')))
+            self.window_size = round(params.get('window_size'))
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -172,7 +171,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
 class ExogDataTransformationImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
     def fit(self, input_data):
@@ -225,7 +224,7 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
 class GaussianFilterImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
         if not params:
@@ -342,8 +341,7 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
 
         # Forming the first value of explained variance
         components = _get_svd(features_columns, n_components)
-
-    if not use_svd:
+    else:
         step = int(1/n_components_perc)
         indeces_to_stay = np.arange(1, features_columns.shape[1], step)
         components = np.take(features_columns, indeces_to_stay, 1)
