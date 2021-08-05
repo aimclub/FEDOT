@@ -200,8 +200,7 @@ def run_ts_forecasting_problem(forecast_length=50,
         timeout=datetime.timedelta(minutes=10),
         cv_folds=cv_folds, validation_blocks=3)
 
-    mutation_types = [parameter_change_mutation, MutationTypesEnum.simple,
-                      MutationTypesEnum.reduce]
+    mutation_types = [parameter_change_mutation]
     optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)

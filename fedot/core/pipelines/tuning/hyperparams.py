@@ -1,5 +1,72 @@
+import random
 import numpy as np
-from hyperopt import fmin, hp, space_eval, tpe
+from hyperopt import hp
+from hyperopt.pyll.stochastic import sample as hp_sample
+
+
+class ParametersChanger:
+    """
+    Class for the hyperparameters changing in the operation
+    """
+
+    def __init__(self, operation_name, current_params):
+        self.operation_name = operation_name
+        self.current_params = current_params
+
+    def new_params_dict(self, params_list):
+        """ Change values of hyperparameters by different ways
+
+        :param params_list: list with hyperparameters names
+        """
+
+        _change_by_name = {'window_size': self._incremental_change}
+
+        params_dict = {}
+        for parameter_name in params_list:
+            # Get current value of the parameter
+            current_value = self._get_current_parameter_value(parameter_name)
+
+            # Perform parameter value change using appropriate function
+            change_function = _change_by_name.get(parameter_name)
+            if change_function is not None:
+                func = change_function
+            else:
+                # Default changes perform with random choice
+                func = self._random_change
+
+            param_value = func(self.operation_name, parameter_name, current_value)
+            params_dict.update({parameter_name: param_value})
+
+        return params_dict
+
+    def _get_current_parameter_value(self, parameter_name):
+        if isinstance(self.current_params, str):
+            # TODO 'default_params' - need to process
+            current_value = None
+        else:
+            # Dictionary with parameters
+            current_value = self.current_params[parameter_name]
+
+        return current_value
+
+    @staticmethod
+    def _random_change(operation_name: str, parameter_name: str, current_value=None):
+        """ Randomly selects a parameter value from a specified range """
+
+        space = get_operation_parameter_range(operation_name=operation_name,
+                                              parameter_name=parameter_name,
+                                              label=parameter_name)
+        # Randomly choose new value
+        new_value = hp_sample(space)
+        return {parameter_name: new_value}
+
+    @staticmethod
+    def _incremental_change(operation_name: str, parameter_name: str, current_value=None):
+        """ Next to the current value, the normally distributed new value is set aside """
+        # TODO add the ability to limit the boundaries of the params ranges
+        sigma = current_value * 0.3
+        new_value = random.normalvariate(current_value, sigma)
+        return {parameter_name: new_value}
 
 
 def get_operation_parameter_range(operation_name: str, parameter_name: str = None,
@@ -272,15 +339,12 @@ def convert_params(params):
     return new_params
 
 
-def get_new_operation_params(operation_name):
+def get_new_operation_params(operation_name, current_params):
     """ Function return a dictionary with new
 
     :param operation_name: name of operation to get hyperparameters for
+    :param current_params: current parameters value
     """
-
-    # Function to imitate objective
-    def fake_objective(fake_params):
-        return 0
 
     # Get available parameters for operation
     params_list = get_operation_parameter_range(operation_name)
@@ -288,20 +352,8 @@ def get_new_operation_params(operation_name):
     if params_list is None:
         params_dict = None
     else:
-        params_dict = {}
-        for parameter_name in params_list:
-            # Get
-            space = get_operation_parameter_range(operation_name=operation_name,
-                                                  parameter_name=parameter_name,
-                                                  label=parameter_name)
-            # Get parameters values for chosen parameter
-            small_dict = {parameter_name: space}
-            best = fmin(fake_objective,
-                        small_dict,
-                        algo=tpe.suggest,
-                        max_evals=1,
-                        show_progressbar=False)
-            best = space_eval(space=small_dict, hp_assignment=best)
-            params_dict.update(best)
+        # Get new values for all parameters
+        param_changer = ParametersChanger(operation_name, current_params)
+        params_dict = param_changer.new_params_dict(params_list)
 
     return params_dict
