@@ -12,3 +12,6 @@ class Individual:
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
         self.graph = graph
+
+    def __eq__(self, other):
+        return self.graph == other.graph
