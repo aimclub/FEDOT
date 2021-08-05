@@ -11,6 +11,13 @@ discuss it.
 Make sure to familiarize yourself with the project layout before making
 any major contributions.
 
+Instructions
+-----------------
+
+Below is a presentation to help you take your first steps to become a FEDOT contributor.
+
+* :download:`I want to implement a custom operation in FEDOT <files/custom_operation_guide.pdf>`
+
 How to contribute
 -----------------
 
