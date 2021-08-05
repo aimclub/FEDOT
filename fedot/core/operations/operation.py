@@ -179,7 +179,7 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
         if len(categorical_ids) == 0:
             data.features = ImputationImplementation().fit_transform(data).predict
         else:
-            data.features = ImputationImplementation(strategy='most_frequent').fit_transform(data).predict
+            data.features = ImputationImplementation(**{'strategy': 'most_frequent'}).fit_transform(data).predict
     return data
 
 
