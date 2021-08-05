@@ -19,7 +19,8 @@ class ParametersChanger:
         :param params_list: list with hyperparameters names
         """
 
-        _change_by_name = {'window_size': self._incremental_change}
+        _change_by_name = {'lagged': {'window_size': self._incremental_change},
+                           'sparse_lagged': {'window_size': self._incremental_change}}
 
         params_dict = {}
         for parameter_name in params_list:
@@ -27,15 +28,15 @@ class ParametersChanger:
             current_value = self._get_current_parameter_value(parameter_name)
 
             # Perform parameter value change using appropriate function
-            change_function = _change_by_name.get(parameter_name)
-            if change_function is not None:
-                func = change_function
+            operation_dict = _change_by_name.get(self.operation_name)
+            if operation_dict is not None:
+                func = operation_dict.get(parameter_name)
             else:
                 # Default changes perform with random choice
                 func = self._random_change
 
             param_value = func(self.operation_name, parameter_name, current_value)
-            params_dict.update({parameter_name: param_value})
+            params_dict.update({self.operation_name: param_value})
 
         return params_dict
 
