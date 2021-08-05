@@ -16,7 +16,10 @@ Instructions
 
 Below is a presentation to help you take your first steps to become a FEDOT contributor.
 
-* :download:`I want to implement a custom operation in FEDOT <files/custom_operation_guide.pdf>`
+.. only:: builder_html or readthedocs
+
+   :download:`Want to implement a custom operation in FEDOT <files/custom_operation_guide.pdf>`
+
 
 How to contribute
 -----------------
