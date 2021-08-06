@@ -305,7 +305,7 @@ def process_multiple_columns(target_columns, data_frame):
     return features, targets
 
 
-def data_has_categorical_features(data: Union[InputData, MultiModalData]):
+def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> bool:
     """ Check data for categorical columns. Also check, if some numerical column
     has unique values less then MAX_UNIQ_VAL, then convert this column to string.
 
@@ -335,25 +335,33 @@ def _integer_to_categorical(data: InputData) -> bool:
 
     if isinstance(data.features, list) or len(data.features.shape) == 1:
         col_value = data.features
-        data_features, data_has_categorical_columns = _convert_integer_to_categorical(col_value)
-        data.features = data_features
+        transformed_features = _convert_categorical_int_to_str(col_value)
+        data.features = transformed_features
+
+        data_has_categorical_columns = _is_values_categorical(transformed_features)
     else:
         num_columns = data.features.shape[1]
         for col_index in range(num_columns):
             col_value = data.features[:, col_index]
-            data_features, data_has_categorical_columns = _convert_integer_to_categorical(col_value)
-            data.features[:, col_index] = data_features
+            transformed_features = _convert_categorical_int_to_str(col_value)
+            data.features[:, col_index] = transformed_features
+
+            if not data_has_categorical_columns:
+                data_has_categorical_columns = _is_values_categorical(transformed_features)
 
     return data_has_categorical_columns
 
 
-def _convert_integer_to_categorical(values):
-    data_has_categorical_columns = False
-
+def _is_values_categorical(values):
     if isinstance(values[0], str):
-        data_has_categorical_columns = True
-    elif isinstance(values[0], int):
+        return True
+    return False
+
+
+def _convert_categorical_int_to_str(values):
+    if isinstance(values[0], int):
         uniq_val_in_col = len(np.unique(values))
         if uniq_val_in_col <= MAX_UNIQ_VAL:
-            return list(map(str, values))
-    return values, data_has_categorical_columns
+            values = list(map(str, values))
+
+    return values

@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from cases.metocean_forecasting_problem import prepare_input_data
+from examples.multi_modal_pipeline import (prepare_multi_modal_data)
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.api.main import Fedot, _define_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -62,25 +64,32 @@ def get_dataset(task_type: str):
     return train_data, test_data, threshold
 
 
-def load_data(n_rows=500):
-    dataset_path = 'test/data/classification_with_categorical.csv'
-    full_path = os.path.join(str(fedot_project_root()), dataset_path)
-    data = pd.read_csv(full_path)
-
-    # Convert data into numpy arrays
-    features = np.array(data, dtype=str)
-    target = np.array(data)[:, -1]
-
-    return features, target
-
-
-def load_categorical_data():
+def load_categorical_unimodal():
     dataset_path = 'test/data/classification_with_categorical.csv'
     full_path = os.path.join(str(fedot_project_root()), dataset_path)
     data = InputData.from_csv(full_path)
     train_data, test_data = train_test_data_setup(data)
 
     return train_data, test_data
+
+
+def load_categorical_multidata():
+    task = Task(TaskTypesEnum.classification)
+    images_size = (128, 128)
+
+    files_path = os.path.join('test', 'data', 'multi_modal')
+    path = os.path.join(str(fedot_project_root()), files_path)
+
+    train_num, _, train_img, _, train_text, _ = \
+        prepare_multi_modal_data(path, task, images_size, with_split=False)
+
+    fit_data = MultiModalData({
+        'data_source_img': train_img,
+        'data_source_table': train_num,
+        'data_source_text': train_text
+    })
+
+    return fit_data
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
@@ -231,42 +240,23 @@ def test_multivariate_ts():
     assert forecast is not None
 
 
-def test_categorical_preprocessing():
-    features, target = load_data()
-
-    auto_model = Fedot(problem='classification', composer_params=composer_params)
-    auto_model.fit(features=features, target=target)
-    prediction = auto_model.predict(features=features)
-    prediction_proba = auto_model.predict_proba(features=features)
-    auto_metrics = auto_model.get_metrics()
-
-    print(prediction, prediction_proba, auto_metrics)
-
-
-def test_categorical_preprocessing_error():
-    train_data, test_data = load_categorical_data()
+def test_categorical_preprocessing_unidata():
+    train_data, test_data = load_categorical_unimodal()
 
     auto_model = Fedot(problem='classification', composer_params=composer_params)
     auto_model.fit(features=train_data)
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
-    auto_metrics = auto_model.get_metrics()
 
-    print(prediction, prediction_proba, auto_metrics)
+    assert prediction is not None
 
 
-def test_not_delete_target_from_train():
-    file_path_train = 'test/data/simple_regression_train.csv'
-    file_path_test = 'test/data/simple_regression_test.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+def test_categorical_preprocessing_unidata_predefined():
+    train_data, test_data = load_categorical_unimodal()
 
-    train = pd.read_csv(full_path_train)
-    columns_before = train.columns
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data, predefined_model='rf')
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
 
-    targen_name_column = 'target'
-    baseline_model = Fedot(problem='classification', composer_params=composer_params)
-    baseline_model.fit(features=train, target=targen_name_column)
-
-    columns_after = train.columns
-    assert list(columns_before) == list(columns_after)
+    assert prediction is not None
