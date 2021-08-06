@@ -36,7 +36,7 @@ class ParametersChanger:
                 func = self._random_change
 
             param_value = func(self.operation_name, parameter_name, current_value)
-            params_dict.update({self.operation_name: param_value})
+            params_dict.update(param_value)
 
         return params_dict
 
