@@ -340,7 +340,5 @@ def test_mutation_lagged_param_change_correct():
     max_border = incr_current_params.get('window_size') + (5 * est_sigma)
     for _ in range(0, 10):
         new_params = get_new_operation_params(incr_operation_name, incr_current_params)
-        new_value = new_params.get(incr_operation_name)['window_size']
-
-        print(new_value)
+        new_value = new_params['window_size']
         assert min_border < new_value < max_border
