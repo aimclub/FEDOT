@@ -165,8 +165,8 @@ class Pipeline(Graph):
         if not use_fitted:
             self.unfit()
 
-        if input_data.data_type == DataTypesEnum.table and data_has_categorical_features(input_data):
-            self.encoders = _preprocess_categorical_features(input_data)
+        if _data_type_is_table(input_data) and data_has_categorical_features(input_data):
+            self.encoders = _encode_data_for_fit(input_data)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
@@ -218,7 +218,7 @@ class Pipeline(Graph):
             self.log.error(ex)
             raise ValueError(ex)
 
-        if self.encoders:
+        if self.encoders and _data_type_is_table(input_data) and data_has_categorical_features(input_data):
             _encode_data_for_prediction(input_data, self.encoders)
 
         # Make copy of the input data to avoid performing inplace operations
@@ -333,24 +333,33 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     return list(appropriate_nodes)
 
 
-def _encode_data_for_prediction(data: Union[InputData, MultiModalData], encoders: List[DataOperationImplementation]):
+def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
+                                encoders: Union[List[DataOperationImplementation], DataOperationImplementation]):
     if isinstance(data, InputData):
-        for encoder in encoders:
-            transformed = encoder.transform(data)
-            data.features = transformed
+        transformed = encoders.transform(data, True).predict
+        data.features = transformed
     elif isinstance(data, MultiModalData):
         for data_source_name, values, encoder in zip(data.keys(), data.values(), encoders):
-            transformed = encoder.transform(values)
+            transformed = encoder.transform(values, True).predict
             data.data_source_name = transformed
 
 
-def _preprocess_categorical_features(data: Union[InputData, MultiModalData]) -> List[DataOperationImplementation]:
-    encoders = []
+def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
+        Union[List[DataOperationImplementation], DataOperationImplementation]:
+    """ Encode categorical features to numerical. In additional,
+    save encoders to use later for prediction data.
+
+    :param data: data to transform
+    :return encoders: operation preprocessing categorical features or list of it
+    """
+
+    encoders = None
     if isinstance(data, InputData):
         transformed, encoder = _create_encoder(data)
-        encoders.append(encoder)
+        encoders = encoder
         data.features = transformed
     elif isinstance(data, MultiModalData):
+        encoders = []
         for data_source_name, values in data.items():
             transformed, encoder = _create_encoder(values)
             encoders.append(encoder)
@@ -360,9 +369,23 @@ def _preprocess_categorical_features(data: Union[InputData, MultiModalData]) -> 
 
 
 def _create_encoder(data: InputData):
+    """ Create encoder and preprocess categorical features.
+
+    :param data: data to preprocess
+    :return tuple(array, OneHotEncodingImplementation): tuple of transformed and encoder
+    """
+
     encoder = OneHotEncodingImplementation()
     encoder.fit(data)
-    transformed = encoder.transform(data, True)
+    output_data = encoder.transform(data, True)
+    transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
+                            target=output_data.target, task=output_data.task, idx=output_data.idx)
     transformed_missed = ImputationImplementation().fit_transform(transformed).predict
 
     return transformed_missed, encoder
+
+
+def _data_type_is_table(data) -> bool:
+    if isinstance(data, MultiModalData):
+        return any(datatype == DataTypesEnum.table for datatype in data.data_type)
+    return data.data_type == DataTypesEnum.table

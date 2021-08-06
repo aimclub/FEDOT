@@ -306,42 +306,54 @@ def process_multiple_columns(target_columns, data_frame):
 
 
 def data_has_categorical_features(data: Union[InputData, MultiModalData]):
-    # Has data categorical features. Also check, if some numerical column has unique
-    # values less then MAX_UNIQ_VAL, then convert this column to string.
+    """ Check data for categorical columns. Also check, if some numerical column
+    has unique values less then MAX_UNIQ_VAL, then convert this column to string.
+
+    :param data: Union[InputData, MultiModalData]
+    :return data_has_categorical_columns: bool, whether data has categorical columns or not
+    """
     data_has_categorical_columns = False
 
     if isinstance(data, MultiModalData):
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_table'):
-                data_has_categorical_columns = _change_to_categorical(values)
+                data_has_categorical_columns = _integer_to_categorical(values)
     else:
-        data_has_categorical_columns = _change_to_categorical(data)
+        data_has_categorical_columns = _integer_to_categorical(data)
 
     return data_has_categorical_columns
 
 
-def _change_to_categorical(data: InputData):
+def _integer_to_categorical(data: InputData) -> bool:
+    """ If some numerical column has unique values less then
+    MAX_UNIQ_VAL, then convert this column to string.
+
+    :param data: InputData
+    :return data_has_categorical_columns: bool, whether data has categorical columns or not
+    """
     data_has_categorical_columns = False
 
     if isinstance(data.features, list) or len(data.features.shape) == 1:
         col_value = data.features
-        if isinstance(col_value[0], str):
-            data_has_categorical_columns = True
-
-        if isinstance(col_value, int):
-            uniq_val_in_col = len(np.unique(col_value))
-            if uniq_val_in_col <= MAX_UNIQ_VAL:
-                data.features = list(map(str, data.features))
+        data_features, data_has_categorical_columns = _convert_integer_to_categorical(col_value)
+        data.features = data_features
     else:
         num_columns = data.features.shape[1]
         for col_index in range(num_columns):
             col_value = data.features[:, col_index]
-
-            if not data_has_categorical_columns and isinstance(col_value[0], str):
-                data_has_categorical_columns = True
-
-                uniq_val_in_col = len(np.unique(col_value))
-                if uniq_val_in_col <= MAX_UNIQ_VAL:
-                    data.features[:, col_index] = list(map(str, data.features[:, col_index]))
+            data_features, data_has_categorical_columns = _convert_integer_to_categorical(col_value)
+            data.features[:, col_index] = data_features
 
     return data_has_categorical_columns
+
+
+def _convert_integer_to_categorical(values):
+    data_has_categorical_columns = False
+
+    if isinstance(values[0], str):
+        data_has_categorical_columns = True
+    elif isinstance(values[0], int):
+        uniq_val_in_col = len(np.unique(values))
+        if uniq_val_in_col <= MAX_UNIQ_VAL:
+            return list(map(str, values))
+    return values, data_has_categorical_columns

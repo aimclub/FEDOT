@@ -62,6 +62,27 @@ def get_dataset(task_type: str):
     return train_data, test_data, threshold
 
 
+def load_data(n_rows=500):
+    dataset_path = 'test/data/classification_with_categorical.csv'
+    full_path = os.path.join(str(fedot_project_root()), dataset_path)
+    data = pd.read_csv(full_path)
+
+    # Convert data into numpy arrays
+    features = np.array(data, dtype=str)
+    target = np.array(data)[:, -1]
+
+    return features, target
+
+
+def load_categorical_data():
+    dataset_path = 'test/data/classification_with_categorical.csv'
+    full_path = os.path.join(str(fedot_project_root()), dataset_path)
+    data = InputData.from_csv(full_path)
+    train_data, test_data = train_test_data_setup(data)
+
+    return train_data, test_data
+
+
 def test_api_predict_correct(task_type: str = 'classification'):
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem=task_type,
@@ -208,3 +229,44 @@ def test_multivariate_ts():
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
     assert forecast is not None
+
+
+def test_categorical_preprocessing():
+    features, target = load_data()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=features, target=target)
+    prediction = auto_model.predict(features=features)
+    prediction_proba = auto_model.predict_proba(features=features)
+    auto_metrics = auto_model.get_metrics()
+
+    print(prediction, prediction_proba, auto_metrics)
+
+
+def test_categorical_preprocessing_error():
+    train_data, test_data = load_categorical_data()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+    auto_metrics = auto_model.get_metrics()
+
+    print(prediction, prediction_proba, auto_metrics)
+
+
+def test_not_delete_target_from_train():
+    file_path_train = 'test/data/simple_regression_train.csv'
+    file_path_test = 'test/data/simple_regression_test.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    train = pd.read_csv(full_path_train)
+    columns_before = train.columns
+
+    targen_name_column = 'target'
+    baseline_model = Fedot(problem='classification', composer_params=composer_params)
+    baseline_model.fit(features=train, target=targen_name_column)
+
+    columns_after = train.columns
+    assert list(columns_before) == list(columns_after)

@@ -204,7 +204,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         # For every column in table make check for first element
         for column_id in range(0, columns_amount):
             column = features[:, column_id] if columns_amount > 1 else features
-            if type(column[0]) == str:
+            if isinstance(column[0], str):
                 categorical_ids.append(column_id)
             else:
                 non_categorical_ids.append(column_id)

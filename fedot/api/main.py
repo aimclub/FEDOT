@@ -206,7 +206,8 @@ class Fedot:
                 self.current_pipeline = predefined_model
             elif isinstance(predefined_model, str):
                 categorical_preprocessing = PrimaryNode('one_hot_encoding')
-                model = SecondaryNode(predefined_model, nodes_from=[categorical_preprocessing])
+                scaling_preprocessing = SecondaryNode('scaling', nodes_from=[categorical_preprocessing])
+                model = SecondaryNode(predefined_model, nodes_from=[scaling_preprocessing])
                 self.current_pipeline = Pipeline(model)
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
@@ -403,7 +404,7 @@ def _define_data(ml_task: Task,
 
         if isinstance(target, str) and target in features.columns:
             target_array = features[target]
-            del features[target]
+            features = features.drop(columns=[target], axis=1)
         else:
             target_array = target
 
@@ -417,7 +418,7 @@ def _define_data(ml_task: Task,
 
         if isinstance(target, str):
             target_array = features[target]
-            del features[target]
+            features = features.drop(columns=[target], axis=1)
         else:
             target_array = target
 
