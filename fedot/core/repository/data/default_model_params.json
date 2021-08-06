@@ -30,8 +30,7 @@
   },
   "sparse_lagged": {
     "window_size": 10,
-    "n_components": null,
-    "gain_tolerance": 0.1,
+    "n_components": 0.5,
     "sparse_transform": true
   },
   "ar": {

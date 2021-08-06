@@ -10,19 +10,24 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-
+from sklearn.metrics import mean_absolute_error
 warnings.filterwarnings('ignore')
 
 
 def get_pipeline(first_node='lagged'):
     """
         Return pipeline with the following structure:
-        lagged/sparse_lagged - ridge
+
+        lagged/sparse_lagged - dtreg \
+                                        rfr
+        lagged/sparse_lagged - dtreg /
     """
 
-    node_lagged = PrimaryNode(first_node)
-    node_final = SecondaryNode('dtreg', nodes_from=[node_lagged])
+    node_lagged_1 = PrimaryNode(first_node)
+    node_lagged_2 = PrimaryNode(first_node)
+    node_dtreg_1 = SecondaryNode('dtreg', nodes_from=[node_lagged_1])
+    node_dtreg_2 = SecondaryNode('dtreg', nodes_from=[node_lagged_2])
+    node_final = SecondaryNode('rfr', nodes_from=[node_dtreg_1, node_dtreg_2])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -39,7 +44,6 @@ def prepare_train_test_input(train_part, len_forecast):
     :return task: Time series forecasting task with parameters
     """
 
-    # Specify the task to solve
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 
@@ -60,16 +64,19 @@ def prepare_train_test_input(train_part, len_forecast):
     return train_input, predict_input, task
 
 
-def run_tuning_test(pipeline, train_input, predict_input, test_data, task):
+def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_mertrics=True):
     """
     Function for predicting values in a time series
 
     :param pipeline: TsForecastingPipeline object
     :param train_input: InputData for fit
     :param predict_input: InputData for predict
+    :param test_data: numpy array for validation
     :param task: Ts_forecasting task
 
-    :return predicted_values: numpy array, forecast of model
+    :return amount_of_seconds time spent on tuning
+    :return mae_before MAE metric of pipeline without tuning
+    :return mae_after MAE metric of pipeline with tuning
     """
 
     pipeline.fit_from_scratch(train_input)
@@ -77,11 +84,10 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task):
     # Predict
     predicted_values = pipeline.predict(predict_input)
     old_predicted_values = predicted_values.predict
-    old_predicted_values = np.ravel(np.array(old_predicted_values))
 
     start_time = timeit.default_timer()
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                   iterations=10)
+                                   iterations=20)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_absolute_error,
                                             cv_folds=3,
@@ -96,25 +102,49 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task):
     predicted_values = pipeline.predict(predict_input)
     new_predicted_values = predicted_values.predict
     new_predicted_values = np.ravel(np.array(new_predicted_values))
+    old_predicted_values = np.ravel(np.array(old_predicted_values))
 
-    mse_before = mean_squared_error(test_data, old_predicted_values, squared=False)
     mae_before = mean_absolute_error(test_data, old_predicted_values)
-    print(f'RMSE before tuning - {mse_before:.4f}')
-    print(f'MAE before tuning - {mae_before:.4f}\n')
-
-    mse_after = mean_squared_error(test_data, new_predicted_values, squared=False)
     mae_after = mean_absolute_error(test_data, new_predicted_values)
-    print(f'RMSE after tuning - {mse_after:.4f}')
-    print(f'MAE after tuning - {mae_after:.4f}\n')
 
-    return amount_of_seconds, mse_before, mse_after, mae_before, mae_after
+    if show_mertrics:
+        print(f'MAE before tuning - {mae_before:.4f}')
+        print(f'MAE after tuning - {mae_after:.4f}\n')
+
+    return amount_of_seconds, mae_before, mae_after
 
 
-def run_ts_forecasting_problem(forecast_length=50):
+def visualize(tuned, no_tuned, time, method_name):
+    ind = np.arange(len(tuned))
+    width = 0.4
+
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:red'
+    ax1.set_xlabel('time (s)')
+    ax1.bar(ind, no_tuned, width, fc=(0, 0, 1, 0.5), label='No tuning')
+    ax1.bar(ind+width, tuned, width, fc=(1, 0, 0, 0.5), label='Tuned')
+    ax1.set_ylabel('MAE', color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()
+
+    color = 'tab:green'
+    ax2.plot(ind+width/2, time, color=color)
+    ax2.set_ylabel('time, s', color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    plt.title(f'MAE with tuning process based on {method_name}')
+    fig.legend()
+    fig.tight_layout()
+    plt.show()
+
+
+def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True):
     file_path = '../cases/data/time_series/temperature.csv'
 
     df = pd.read_csv(file_path)
-    time_series = np.array(df['value'])[-1000:]
+    time_series = np.array(df['value'])[:ts_size]
 
     # Train/test split
     train_part = time_series[:-forecast_length]
@@ -123,52 +153,34 @@ def run_ts_forecasting_problem(forecast_length=50):
     # Prepare data for train and test
     train_input, predict_input, task = prepare_train_test_input(train_part, forecast_length)
 
-    pipeline = get_pipeline('sparse_lagged')
-    #pipeline = get_pipeline('lagged')
+    nodes_names = ['sparse_lagged', 'lagged']
+    for name in nodes_names:
+        pipeline = get_pipeline(name)
 
-    time_list = []
-    mse_no_tuning = []
-    mse_tuning = []
-    mae_no_tuning = []
-    mae_tuning = []
+        # set lists for data collecting
+        time_list = []
+        mae_no_tuning = []
+        mae_tuning = []
 
-    test_part = np.ravel(test_part)
-    for i in range(10):
-        amount_of_seconds, mse_before, mse_after, mae_before, mae_after = run_tuning_test(pipeline,
-                                                                                          train_input,
-                                                                                          predict_input,
-                                                                                          test_part,
-                                                                                          task)
-        time_list.append(amount_of_seconds)
-        mse_no_tuning.append(mse_before)
-        mse_tuning.append(mse_after)
-        mae_no_tuning.append(mae_before)
-        mae_tuning.append(mae_after)
+        test_part = np.ravel(test_part)
+        # tuning calculations for averaging
+        for i in range(n_repits):
+            amount_of_seconds, mae_before, mae_after = run_tuning_test(pipeline,
+                                                                       train_input,
+                                                                       predict_input,
+                                                                       test_part,
+                                                                       task)
+            time_list.append(amount_of_seconds)
+            mae_no_tuning.append(mae_before)
+            mae_tuning.append(mae_after)
 
-    print('Time for tuning:')
-    print(time_list)
-    print('MSE without tuning:')
-    print(mse_no_tuning)
-    print('MSE with tuning:')
-    print(mse_tuning)
-    print('MAE without tuning:')
-    print(mae_no_tuning)
-    print('MAE with tuning:')
-    print(mae_tuning)
+        if is_visualize:
+            visualize(mae_tuning, mae_no_tuning, time_list, name)
 
-    plt.bar(np.arange(len(mse_no_tuning)), mse_no_tuning, fc=(0, 0, 1, 0.5), label='No tuning')
-    plt.bar(np.arange(len(mse_tuning)), mse_tuning, fc=(1, 0, 0, 0.5), label='Tuned')
-    plt.legend()
-    plt.title('MSE')
-    plt.show()
+        print(f'Mean time: {np.array(time_list).mean()}')
+        print(f'Mean MAE without tuning: {np.array(mae_no_tuning).mean()}')
+        print(f'Mean MAE with tuning: {np.array(mae_tuning).mean()}')
 
-    plt.bar(np.arange(len(mae_no_tuning)), mae_no_tuning, fc=(0, 0, 1, 0.5), label='No tuning')
-    plt.bar(np.arange(len(mae_tuning)), mae_tuning, fc=(1, 0, 0, 0.5), label='Tuned')
-    plt.legend()
-    plt.title('MAE')
-    plt.show()
-
-    print(f'Mean time: {np.array(time_list).mean()}')
 
 if __name__ == '__main__':
-    run_ts_forecasting_problem()
+    run_tuning_comparison(n_repits=10, ts_size=500, forecast_length=50, is_visualize=True)
