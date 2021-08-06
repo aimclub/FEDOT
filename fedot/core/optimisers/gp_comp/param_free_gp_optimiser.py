@@ -32,13 +32,16 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
     :param max_population_size: maximum population size
     :param log: optional parameter for log object
     :param archive_type: type of archive with best individuals
+    :param complexity_metric: Supplementary metric which uses in single-objective type of algorithm (in multi-objective
+    option this parameter is ignored)
 
     """
 
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None):
+                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None,
+                 suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log, archive_type)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
@@ -56,6 +59,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
         self.qual_position = 0
         self.compl_position = 1
+
+        self.suppl_metric = suppl_metric
 
     def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
         if on_next_iteration_callback is None:
@@ -200,10 +205,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         return fitness_improved, complexity_decreased
 
     def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        suppl_metric = MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)
         best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
         fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
-        complexity_decreased = suppl_metric(best_in_offspring.graph) < suppl_metric(
+        complexity_decreased = self.suppl_metric(best_in_offspring.graph) < self.suppl_metric(
             self.best_individual.graph) and best_in_offspring.fitness <= self.best_individual.fitness
         return fitness_improved, complexity_decreased
 
