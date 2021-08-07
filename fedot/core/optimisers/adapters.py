@@ -64,33 +64,37 @@ class PipelineAdapter(BaseOptimizationAdapter):
         super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
     def _transform_to_opt_node(self, node, *args, **kwargs):
-        node.content = str(node.content)
+        # Prepare content for nodes
+        node.content = node.content
         _transform_node(node=node, primary_class=OptNode, transform_func=self._transform_to_opt_node)
 
     def _transform_to_pipeline_node(self, node, *args, **kwargs):
-        _transform_node(node, PrimaryNode, SecondaryNode, transform_func=self._transform_to_pipeline_node)
+        current_content = node.content
+        _transform_node(node, PrimaryNode, SecondaryNode,
+                        transform_func=self._transform_to_pipeline_node)
         if not node.nodes_from:
             node.__init__(operation_type=node.operation)
         else:
             node.__init__(nodes_from=node.nodes_from,
                           operation_type=node.operation)
+        node.operation = current_content['name']
+        node.custom_params = current_content['params']
+        node.content = current_content
 
     def adapt(self, adaptee: Pipeline):
-        opt_nodes = []
-        for node in adaptee.nodes:
-            self._transform_to_opt_node(node)
-            opt_nodes.append(node)
-        graph = OptGraph(opt_nodes)
+        """ Convert Pipeline class into OptGraph class """
+        # Apply recursive transformation since root
+        self._transform_to_opt_node(adaptee.root_node)
+        graph = OptGraph(adaptee.nodes)
         graph.uid = adaptee.uid
         return graph
 
     def restore(self, opt_graph: OptGraph):
+        """ Convert OptGraph class into Pipeline class """
         # TODO improve transformation
-        pipeline_nodes = []
-        for node in opt_graph.nodes:
-            self._transform_to_pipeline_node(node)
-            pipeline_nodes.append(node)
-        pipeline = Pipeline(pipeline_nodes)
+        # Inverse transformation since root node
+        self._transform_to_pipeline_node(opt_graph.root_node)
+        pipeline = Pipeline(opt_graph.nodes)
         pipeline.uid = opt_graph.uid
         return pipeline
 

@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from fedot.core.dag.node_operator import NodeOperator
 
@@ -8,17 +8,17 @@ class GraphNode:
     Class for node definition in the DAG-based structure
 
     :param nodes_from: parent nodes which information comes from
-    :param content: str type of the content in node
+    :param content: dict for the content in node
     """
 
-    def __init__(self, content: Any = '',
+    def __init__(self, content: dict,
                  nodes_from: Optional[List['GraphNode']] = None):
         self.nodes_from = nodes_from
         self.content = content
         self._operator = NodeOperator(self)
 
     def __str__(self):
-        return str(self.content)
+        return str(self.content['name'])
 
     def __repr__(self):
         return self.__str__()

@@ -31,7 +31,7 @@ class OptNode:
     :param nodes_from: parent nodes
     """
 
-    def __init__(self, content: str = '',
+    def __init__(self, content: dict,
                  nodes_from: Optional[List['OptNode']] = None,
                  log: Optional[Log] = None
                  ):
@@ -50,7 +50,7 @@ class OptNode:
         return NodeOperatorAdapter()
 
     def __str__(self):
-        return str(self.content)
+        return str(self.content['name'])
 
     def __repr__(self):
         return self.__str__()

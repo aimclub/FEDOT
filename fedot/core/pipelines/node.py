@@ -24,7 +24,8 @@ class Node(GraphNode):
 
         passed_content = kwargs.get('content')
         if passed_content:
-            operation_type = passed_content
+            self.operation = passed_content['name']
+            self.custom_params = passed_content['params']
 
         if not operation_type:
             raise ValueError('Operation is not defined in the node')
@@ -37,7 +38,8 @@ class Node(GraphNode):
             operation_factory = OperationFactory(operation_name=operation_type)
             operation = operation_factory.get_operation()
 
-        super().__init__(content=operation, nodes_from=nodes_from)
+        super().__init__(content={'name': operation,
+                                  'params': operation.params}, nodes_from=nodes_from)
 
         if not log:
             self.log = default_log(__name__)
@@ -50,11 +52,11 @@ class Node(GraphNode):
     # wrappers for 'operation' field from GraphNode class
     @property
     def operation(self):
-        return self.content
+        return self.content['name']
 
     @operation.setter
     def operation(self, value):
-        self.content = value
+        self.content.update({'name': value})
 
     @property
     def fitted_operation(self):
