@@ -18,7 +18,7 @@ There is a presentation to help you to take your first steps to become a FEDOT c
 
 .. only:: builder_html or readthedocs
 
-   :download:`Want to implement a custom operation in FEDOT </docs/files/custom_operation_guide.pdf>`
+   :download:`Want to implement a custom operation in FEDOT <../files/custom_operation_guide.pdf>`
 
 
 How to contribute
