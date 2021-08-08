@@ -32,5 +32,9 @@ That is why we want to share the way we use RAPIDS:
 -  Inside the container run ``pip3 install -r requirements.txt’
 -  Run ``python3 /home/FEDOT/examples/gpu_example.py’
 
-.. _Dockerfile: https://github.com/nccr-itmo/FEDOT/blob/master/Dockerfile
+This approach doesn’t has an entry point for the container so it allows
+you make contributions and check the changes in place.
+
+
+.. _Dockerfile: https://github.com/nccr-itmo/FEDOT/blob/master/gpu/Dockerfile
 .. _RAPIDS official page: https://rapids.ai/start.html
