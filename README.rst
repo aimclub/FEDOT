@@ -199,7 +199,7 @@ Also, a detailed FEDOT API description is available in the `Read the Docs <https
 Contribution Guide
 ==================
 
-- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/contributing.rst>`__.
+- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/source/contribution.rst>`__.
 
 Acknowledgments
 ================
