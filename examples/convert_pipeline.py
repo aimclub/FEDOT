@@ -30,5 +30,7 @@ pipeline.fit(input_data)
 restored_preds = restored_pipeline.predict(input_data)
 
 print(f'Init pipeline predictions: {init_preds.predict[:2]}')
+print(f'Root node params init pipeline: {pipeline.nodes[0].custom_params}')
 print(f'Restored pipeline predictions: {restored_preds.predict[:2]}')
+print(f'Root node params restored pipeline: {pipeline.nodes[0].custom_params}')
 finish = True

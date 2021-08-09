@@ -75,7 +75,8 @@ def run_custom_example(timeout: datetime.timedelta = datetime.timedelta(minutes=
     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
     initial = CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
-                                                      content=node_type) for node_type in nodes_types])
+                                                      content={'name': node_type,
+                                                               'params': 'default_params'}) for node_type in nodes_types])
 
     requirements = GPComposerRequirements(
         primary=nodes_types,

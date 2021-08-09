@@ -45,6 +45,8 @@ def _descriptive_id_recursive(current_node, visited_nodes) -> str:
         node_label = current_node.content['name'].description
     except AttributeError:
         node_label = current_node.content['name']
+        if current_node.content.get("params"):
+            node_label = f'n_{node_label}_{current_node.content["params"]}'
 
     full_path = ''
     if current_node in visited_nodes:

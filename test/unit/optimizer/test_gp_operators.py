@@ -21,6 +21,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -48,11 +49,11 @@ def graph_example():
     graph = OptGraph()
 
     root_of_tree, root_child_first, root_child_second = \
-        [OptNode(model) for model in ('xgboost', 'xgboost', 'knn')]
+        [OptNode({'name': model}) for model in ('xgboost', 'xgboost', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
-            new_node = OptNode(requirement_model)
+            new_node = OptNode({'name': requirement_model})
             root_node_child.nodes_from.append(new_node)
             graph.add_node(new_node)
         graph.add_node(root_node_child)
@@ -186,9 +187,9 @@ def test_intermediate_add_mutation_for_linear_graph():
     Tests single_add mutation can add node between two existing nodes
     """
 
-    linear_two_nodes = OptGraph(OptNode('logit', [OptNode('scaling')]))
-    linear_three_nodes_inner = \
-        OptGraph(OptNode('logit', [OptNode('one_hot_encoding', [OptNode('scaling')])]))
+    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
+    nodes_from = [OptNode({'name': 'one_hot_encoding', 'params': 'default_params'}, [OptNode({'name': 'scaling', 'params': 'default_params'})])]
+    linear_three_nodes_inner = OptGraph(OptNode({'name': 'logit', 'params': 'default_params'}, nodes_from))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
                                                    secondary=['one_hot_encoding'], mutation_prob=1)
@@ -217,9 +218,9 @@ def test_parent_add_mutation_for_linear_graph():
     Tests single_add mutation can add node before existing node
     """
 
-    linear_one_node = OptGraph(OptNode('logit'))
+    linear_one_node = OptGraph(OptNode({'name': 'logit'}))
 
-    linear_two_nodes = OptGraph(OptNode('logit', [OptNode('scaling')]))
+    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name':'scaling'})]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
                                                    secondary=['logit'], mutation_prob=1)
@@ -246,11 +247,11 @@ def test_edge_mutation_for_graph():
     Tests edge mutation can add edge between nodes
     """
     graph_without_edge = \
-        OptGraph(OptNode('logit', [OptNode('one_hot_encoding', [OptNode('scaling')])]))
+        OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [OptNode({'name': 'scaling'})])]))
 
-    primary = OptNode('scaling')
+    primary = OptNode({'name': 'scaling'})
     graph_with_edge = \
-        OptGraph(OptNode('logit', [OptNode('one_hot_encoding', [primary]), primary]))
+        OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [primary]), primary]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling', 'one_hot_encoding'],
                                                    secondary=['logit', 'scaling'], mutation_prob=1)
@@ -276,9 +277,9 @@ def test_replace_mutation_for_linear_graph():
     """
     Tests single_change mutation can change node to another
     """
-    linear_two_nodes = OptGraph(OptNode('logit', [OptNode('scaling')]))
+    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
-    linear_changed = OptGraph(OptNode('logit', [OptNode('one_hot_encoding')]))
+    linear_changed = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'})]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling', 'one_hot_encoding'],
                                                    secondary=['logit'], mutation_prob=1)
@@ -305,9 +306,9 @@ def test_drop_mutation_for_linear_graph():
     Tests single_drop mutation can remove node
     """
 
-    linear_two_nodes = OptGraph(OptNode('logit', [OptNode('scaling')]))
+    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
-    linear_one_node = OptGraph(OptNode('logit'))
+    linear_one_node = OptGraph(OptNode({'name': 'logit'}))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
                                                    secondary=['logit'], mutation_prob=1)
@@ -334,16 +335,18 @@ def test_boosting_mutation_for_linear_graph():
     Tests boosting mutation can add correct boosting cascade
     """
 
-    linear_one_node = OptGraph(OptNode('knn', [OptNode('scaling')]))
+    linear_one_node = OptGraph(OptNode({'name': 'knn',
+                                        'params': 'default_params'}, [OptNode({'name': 'scaling',
+                                                                               'params': 'default_params'})]))
 
-    init_node = OptNode('scaling')
-    model_node = OptNode('knn', [init_node])
+    init_node = OptNode({'name': 'scaling', 'params': 'default_params'})
+    model_node = OptNode({'name': 'knn', 'params': 'default_params'}, [init_node])
 
     boosting_graph = \
         OptGraph(
-            OptNode('logit',
-                    [model_node, OptNode('linear',
-                                         [OptNode('class_decompose',
+            OptNode({'name': 'logit', 'params': 'default_params'},
+                    [model_node, OptNode({'name': 'linear', 'params': 'default_params'},
+                                         [OptNode({'name': 'class_decompose', 'params': 'default_params'},
                                                   [model_node, init_node])])]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
@@ -362,6 +365,9 @@ def test_boosting_mutation_for_linear_graph():
         if not successful_mutation_boosting:
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
+            print(graph_after_mutation.root_node.descriptive_id)
+            print(boosting_graph.root_node.descriptive_id)
+            print('------------------')
         else:
             break
     assert successful_mutation_boosting

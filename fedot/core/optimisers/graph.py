@@ -35,6 +35,8 @@ class OptNode:
                  nodes_from: Optional[List['OptNode']] = None,
                  log: Optional[Log] = None
                  ):
+        default_dict = {'params': 'default_params'}
+
         self.log = log
         if not log:
             self.log = default_log(__name__)
@@ -42,7 +44,7 @@ class OptNode:
             self.log = log
 
         self.nodes_from = nodes_from if nodes_from is not None else []
-        self.content = content
+        self.content = {**content, **default_dict}
         self._operator = NodeOperator(self)
 
     @property

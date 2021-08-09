@@ -14,8 +14,7 @@ tmp = classification_dataset
 
 
 def test_graph_id():
-    right_id = '((/{\'name\': \'n1\'};)/{\'name\': \'n2\'};;(/{\'na' \
-               'me\': \'n1\'};)/{\'name\': \'n3\'};)/{\'name\': \'n4\'}'
+    right_id = '((/n1;)/n2;;(/n1;)/n3;)/n4'
     first = GraphNode(content={'name': 'n1'})
     second = GraphNode(content={'name': 'n2'}, nodes_from=[first])
     third = GraphNode(content={'name': 'n3'}, nodes_from=[first])

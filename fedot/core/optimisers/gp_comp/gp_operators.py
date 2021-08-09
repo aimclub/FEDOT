@@ -21,12 +21,14 @@ def random_graph(params, requirements, max_depth=None) -> Any:
             is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
             if is_max_depth_exceeded or is_primary_node_selected:
                 primary_node = OptNode(nodes_from=None,
-                                       content=choice(requirements.primary))
+                                       content={'name': choice(requirements.primary),
+                                                'params': 'default_params'})
                 node_parent.nodes_from.append(primary_node)
                 graph.add_node(primary_node)
             else:
                 secondary_node = OptNode(nodes_from=[],
-                                         content=choice(requirements.secondary))
+                                         content={'name': choice(requirements.secondary),
+                                                  'params': 'default_params'})
                 graph.add_node(secondary_node)
                 node_parent.nodes_from.append(secondary_node)
                 graph_growth(graph, secondary_node)
@@ -37,7 +39,8 @@ def random_graph(params, requirements, max_depth=None) -> Any:
     while not is_correct_graph or n_iters > max_iters:
         graph = OptGraph()
         graph_root = OptNode(nodes_from=[],
-                             content=choice(requirements.secondary))
+                             content={'name': choice(requirements.secondary),
+                                      'params': 'default_params'})
         graph.add_node(graph_root)
         graph_growth(graph, graph_root)
         is_correct_graph = constraint_function(graph, params)

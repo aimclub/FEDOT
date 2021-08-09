@@ -26,9 +26,11 @@ class Node(GraphNode):
         if passed_content:
             if isinstance(passed_content['name'], str):
                 operation_factory = OperationFactory(operation_name=passed_content['name'])
-                operation = operation_factory.get_operation()
+                operation_type = operation_factory.get_operation()
 
-                passed_content.update({'name': operation})
+                passed_content.update({'name': operation_type})
+            else:
+                operation_type = passed_content['name'].operation_type
             self.content = passed_content
 
         if not operation_type:

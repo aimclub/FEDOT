@@ -72,7 +72,6 @@ class PipelineAdapter(BaseOptimizationAdapter):
                             transform_func=self._transform_to_opt_node)
 
     def _transform_to_pipeline_node(self, node, *args, **kwargs):
-        current_content = node.content
         _transform_node(node, PrimaryNode, SecondaryNode,
                         transform_func=self._transform_to_pipeline_node)
         if not node.nodes_from:
@@ -80,9 +79,6 @@ class PipelineAdapter(BaseOptimizationAdapter):
         else:
             node.__init__(nodes_from=node.nodes_from,
                           operation_type=node.operation)
-        node.operation = current_content['name']
-        node.custom_params = current_content['params']
-        node.content = current_content
 
     def adapt(self, adaptee: Pipeline):
         """ Convert Pipeline class into OptGraph class """
