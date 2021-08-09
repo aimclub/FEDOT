@@ -18,6 +18,7 @@ class LaggedImplementation(DataOperationImplementation):
     def __init__(self, log: Log = None, **params):
         super().__init__()
 
+        self.window_size_minimum = None
         self.window_size = None
         self.n_components = None
         self.sparse_transform = False
@@ -99,11 +100,9 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
     def __init__(self, **params):
         super().__init__()
         self.sparse_transform = True
+        self.window_size_minimum = 6
 
         self.window_size = round(params.get('window_size'))
-        min_window_size = 6
-        if self.window_size < min_window_size:
-            self.window_size = min_window_size
         self.n_components = params.get('n_components')
 
     def get_params(self):
@@ -118,6 +117,7 @@ class LaggedTransformationImplementation(LaggedImplementation):
     def __init__(self, **params):
         super().__init__()
 
+        self.window_size_minimum = 2
         self.window_size = round(params.get('window_size'))
 
     def get_params(self):
@@ -231,7 +231,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
             # Default parameters
             self.sigma = 1
         else:
-            self.sigma = int(round(params.get('sigma')))
+            self.sigma = round(params.get('sigma'))
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -264,22 +264,33 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
-def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int):
+def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
+                                   window_size_minimum: int):
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
     :param time_series: time series for transformation
     :param window_size: size of sliding window, which defines lag
     :param forecast_length: forecast length
+    :param window_size_minimum: minimum moving window size
     """
     log_message = None
+    prefix = "Warning: window size of lagged transformation was changed"
+
+    # Minimum threshold
+    if window_size < window_size_minimum:
+        previous_size = window_size
+        window_size = window_size_minimum
+
+        log_message = f"{prefix} from {previous_size} to {window_size}"
+
+    # Maximum threshold
     removing_len = window_size + forecast_length
     if removing_len > len(time_series):
         previous_size = window_size
         # At least 10 objects we need for training, so minus 10
         window_size = len(time_series) - forecast_length - 10
 
-        prefix = "Warning: window size of lagged transformation was changed"
         log_message = f"{prefix} from {previous_size} to {window_size}"
 
     return log_message, window_size
