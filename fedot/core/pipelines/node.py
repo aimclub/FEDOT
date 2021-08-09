@@ -24,8 +24,12 @@ class Node(GraphNode):
 
         passed_content = kwargs.get('content')
         if passed_content:
-            self.operation = passed_content['name']
-            self.custom_params = passed_content['params']
+            if isinstance(passed_content['name'], str):
+                operation_factory = OperationFactory(operation_name=passed_content['name'])
+                operation = operation_factory.get_operation()
+
+                passed_content.update({'name': operation})
+            self.content = passed_content
 
         if not operation_type:
             raise ValueError('Operation is not defined in the node')
@@ -45,7 +49,6 @@ class Node(GraphNode):
             self.log = default_log(__name__)
         else:
             self.log = log
-
         self._fitted_operation = None
         self.rating = None
 

@@ -12,8 +12,8 @@ class GraphOperator:
     def delete_node(self, node: GraphNode):
         def make_secondary_node_as_primary(node_child, new_type):
             # TODO move classes definition to additional methods
-            new_primary_node = new_type(content=node_child.content,
-                                        nodes_from=None)
+            new_primary_node = new_type(operation_type=node_child.content['name'].operation_type,
+                                        content=node_child.content)
             this_node_children = self.node_children(node_child)
             for node in this_node_children:
                 index = node.nodes_from.index(node_child)

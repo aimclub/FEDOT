@@ -12,6 +12,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.operations.factory import OperationFactory
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
@@ -108,7 +109,6 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                                       max_depth=max_depth)
         elif mutation_type != MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
-
     return new_graph
 
 
@@ -154,18 +154,22 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                operation = choice(requirements.secondary)
+                operation_name = choice(requirements.secondary)
+                operation_factory = OperationFactory(operation_name=operation_name)
+                operation = operation_factory.get_operation()
                 secondary_node = OptNode(content={'name': operation,
-                                                  'params': None},
+                                                  'params': 'default_params'},
                                          nodes_from=node.nodes_from)
                 graph.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
         else:
             if random() < node_mutation_probability:
-                operation = choice(requirements.primary)
+                operation_name = choice(requirements.primary)
+                operation_factory = OperationFactory(operation_name=operation_name)
+                operation = operation_factory.get_operation()
                 primary_node = OptNode(content={'name': operation,
-                                                'params': None})
+                                                'params': 'default_params'})
                 graph.update_node(node, primary_node)
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
@@ -203,7 +207,11 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
                                                requirements.secondary)
     if len(candidates) == 0:
         return graph
-    new_node = OptNode(content={'name': choice(candidates)})
+    operation_name = choice(candidates)
+    operation_factory = OperationFactory(operation_name=operation_name)
+    operation = operation_factory.get_operation()
+    new_node = OptNode(content={'name': operation,
+                                'params': 'default_params'})
     new_node.nodes_from = node_to_mutate.nodes_from
     node_to_mutate.nodes_from = [new_node]
     graph.nodes.append(new_node)
@@ -219,7 +227,11 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     for iter_num in range(randint(1, 3)):
         if iter_num == len(candidates):
             break
-        new_node = OptNode(content={'name': choice(candidates)})
+        operation_name = choice(candidates)
+        operation_factory = OperationFactory(operation_name=operation_name)
+        operation = operation_factory.get_operation()
+        new_node = OptNode(content={'name': operation,
+                                    'params': 'default_params'})
         if node_to_mutate.nodes_from:
             node_to_mutate.nodes_from.append(new_node)
         else:
@@ -230,7 +242,11 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
 
 def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     # add as child
-    new_node = OptNode(content={'name': choice(requirements.secondary)})
+    operation_name = choice(requirements.secondary)
+    operation_factory = OperationFactory(operation_name=operation_name)
+    operation = operation_factory.get_operation()
+    new_node = OptNode(content={'name': operation,
+                                'params': 'default_params'})
     new_node.nodes_from = [node_to_mutate]
     graph.operator.actualise_old_node_children(node_to_mutate, new_node)
     graph.nodes.append(new_node)
@@ -271,7 +287,11 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     if len(candidates) == 0:
         return graph
 
-    node_new = OptNode(content={'name': choice(candidates)})
+    operation_name = choice(candidates)
+    operation_factory = OperationFactory(operation_name=operation_name)
+    operation = operation_factory.get_operation()
+    node_new = OptNode(content={'name': operation,
+                                'params': 'default_params'})
     node_new.nodes_from = nodes_from
     graph.nodes = [node_new if n == node else n for n in graph.nodes]
     graph.operator.actualise_old_node_children(node, node_new)
@@ -311,7 +331,11 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             randint(0, 1) and \
             not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
-        new_subtree = OptNode(content={'name': choice(requirements.primary)})
+        operation_name = choice(requirements.primary)
+        operation_factory = OperationFactory(operation_name=operation_name)
+        operation = operation_factory.get_operation()
+        new_subtree = OptNode(content={'name': operation,
+                                       'params': 'default_params'})
     else:
         if local_growth:
             max_depth = node_from_graph.distance_to_primary_level
@@ -353,7 +377,11 @@ def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:
     if is_possible_to_delete:
         graph.delete_subtree(node_to_del)
     else:
-        primary_node = OptNode(content={'name': choice(requirements.primary)})
+        operation_name = choice(requirements.primary)
+        operation_factory = OperationFactory(operation_name=operation_name)
+        operation = operation_factory.get_operation()
+        primary_node = OptNode(content={'name': operation,
+                                        'params': 'default_params'})
         graph.update_subtree(node_to_del, primary_node)
     return graph
 

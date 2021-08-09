@@ -65,8 +65,11 @@ class PipelineAdapter(BaseOptimizationAdapter):
 
     def _transform_to_opt_node(self, node, *args, **kwargs):
         # Prepare content for nodes
-        node.content = node.content
-        _transform_node(node=node, primary_class=OptNode, transform_func=self._transform_to_opt_node)
+        if not isinstance(node, OptNode):
+            node.content = {'name': node.operation,
+                            'params': node.custom_params}
+            _transform_node(node=node, primary_class=OptNode,
+                            transform_func=self._transform_to_opt_node)
 
     def _transform_to_pipeline_node(self, node, *args, **kwargs):
         current_content = node.content
