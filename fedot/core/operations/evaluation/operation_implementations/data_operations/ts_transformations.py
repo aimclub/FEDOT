@@ -100,7 +100,7 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
         super().__init__()
         self.sparse_transform = True
 
-        self.window_size = int(round(params.get('window_size')))
+        self.window_size = round(params.get('window_size'))
         min_window_size = 6
         if self.window_size < min_window_size:
             self.window_size = min_window_size
@@ -118,7 +118,7 @@ class LaggedTransformationImplementation(LaggedImplementation):
     def __init__(self, **params):
         super().__init__()
 
-        self.window_size = int(round(params.get('window_size')))
+        self.window_size = round(params.get('window_size'))
 
     def get_params(self):
         return {'window_size': self.window_size}
