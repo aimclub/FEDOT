@@ -4,12 +4,12 @@ import warnings
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -122,8 +122,8 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
 
     start_forecast = len(train_data_features)
     end_forecast = start_forecast + len_forecast
-    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
-                              features=test_data_features,
+    predict_input = InputData(idx=np.arange(0, end_forecast),
+                              features=np.concatenate([train_data_features, test_data_features]),
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)

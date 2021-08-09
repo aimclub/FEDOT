@@ -454,8 +454,9 @@ def _define_data(ml_task: Task,
         data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
 
         # create labels for data sources
-        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
-                       for (data_part_key, data_part) in features.items())
+        sources = dict(
+            (f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part.features))
+            for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
