@@ -35,7 +35,9 @@ class ParametersChanger:
                 # Default changes perform with random choice
                 func = self._random_change
 
-            param_value = func(self.operation_name, parameter_name, current_value)
+            parameters = {'operation_name': self.operation_name,
+                          'current_value': current_value}
+            param_value = func(parameter_name, **parameters)
             params_dict.update(param_value)
 
         return params_dict
@@ -51,10 +53,10 @@ class ParametersChanger:
         return current_value
 
     @staticmethod
-    def _random_change(operation_name: str, parameter_name: str, current_value=None):
+    def _random_change(parameter_name, **kwargs):
         """ Randomly selects a parameter value from a specified range """
 
-        space = get_operation_parameter_range(operation_name=operation_name,
+        space = get_operation_parameter_range(operation_name=kwargs['operation_name'],
                                               parameter_name=parameter_name,
                                               label=parameter_name)
         # Randomly choose new value
@@ -62,11 +64,11 @@ class ParametersChanger:
         return {parameter_name: new_value}
 
     @staticmethod
-    def _incremental_change(operation_name: str, parameter_name: str, current_value=None):
+    def _incremental_change(parameter_name, **kwargs):
         """ Next to the current value, the normally distributed new value is set aside """
         # TODO add the ability to limit the boundaries of the params ranges
-        sigma = current_value * 0.3
-        new_value = random.normalvariate(current_value, sigma)
+        sigma = kwargs['current_value'] * 0.3
+        new_value = random.normalvariate(kwargs['current_value'], sigma)
         return {parameter_name: new_value}
 
 
