@@ -87,7 +87,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
 
     start_time = timeit.default_timer()
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                   iterations=10)
+                                   iterations=20)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_absolute_error,
                                             cv_folds=3,
@@ -140,7 +140,7 @@ def visualize(tuned, no_tuned, time, method_name):
 
 
 def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True):
-    file_path = '../cases/data/time_series/temperature.csv'
+    file_path = '../../cases/data/time_series/temperature.csv'
 
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
@@ -182,4 +182,4 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
 
 
 if __name__ == '__main__':
-    run_tuning_comparison(n_repits=3, ts_size=500, forecast_length=50, is_visualize=True)
+    run_tuning_comparison(n_repits=10, ts_size=500, forecast_length=50, is_visualize=True)

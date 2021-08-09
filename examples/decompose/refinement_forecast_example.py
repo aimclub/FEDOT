@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.ts_forecasting_tuning import prepare_input_data
+from examples.time_series.ts_forecasting_tuning import prepare_input_data
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

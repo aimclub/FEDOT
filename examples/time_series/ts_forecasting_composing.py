@@ -164,7 +164,7 @@ def run_ts_forecasting_problem(forecast_length=50,
     :param cv_folds: is it needed apply cross validation and what number
     of folds to use
     """
-    file_path = '../cases/data/metocean/metocean_data_test.csv'
+    file_path = '../../cases/data/metocean/metocean_data_test.csv'
 
     df = pd.read_csv(file_path)
     time_series = np.array(df['sea_height'])
