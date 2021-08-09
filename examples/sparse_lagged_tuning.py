@@ -27,7 +27,7 @@ def get_pipeline(first_node='lagged'):
     node_lagged_2 = PrimaryNode(first_node)
     node_dtreg_1 = SecondaryNode('dtreg', nodes_from=[node_lagged_1])
     node_dtreg_2 = SecondaryNode('dtreg', nodes_from=[node_lagged_2])
-    node_final = SecondaryNode('rfr', nodes_from=[node_dtreg_1, node_dtreg_2])
+    node_final = SecondaryNode('linear', nodes_from=[node_dtreg_1, node_dtreg_2])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -87,7 +87,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
 
     start_time = timeit.default_timer()
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                   iterations=20)
+                                   iterations=10)
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_absolute_error,
                                             cv_folds=3,
@@ -121,7 +121,6 @@ def visualize(tuned, no_tuned, time, method_name):
     fig, ax1 = plt.subplots()
 
     color = 'tab:red'
-    ax1.set_xlabel('time (s)')
     ax1.bar(ind, no_tuned, width, fc=(0, 0, 1, 0.5), label='No tuning')
     ax1.bar(ind+width, tuned, width, fc=(1, 0, 0, 0.5), label='Tuned')
     ax1.set_ylabel('MAE', color=color)
@@ -155,7 +154,6 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
 
     nodes_names = ['sparse_lagged', 'lagged']
     for name in nodes_names:
-        pipeline = get_pipeline(name)
 
         # set lists for data collecting
         time_list = []
@@ -165,6 +163,7 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
         test_part = np.ravel(test_part)
         # tuning calculations for averaging
         for i in range(n_repits):
+            pipeline = get_pipeline(name)
             amount_of_seconds, mae_before, mae_after = run_tuning_test(pipeline,
                                                                        train_input,
                                                                        predict_input,
@@ -183,4 +182,4 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
 
 
 if __name__ == '__main__':
-    run_tuning_comparison(n_repits=10, ts_size=500, forecast_length=50, is_visualize=True)
+    run_tuning_comparison(n_repits=3, ts_size=500, forecast_length=50, is_visualize=True)
