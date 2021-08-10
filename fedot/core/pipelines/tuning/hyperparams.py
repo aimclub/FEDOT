@@ -7,11 +7,28 @@ from hyperopt.pyll.stochastic import sample as hp_sample
 class ParametersChanger:
     """
     Class for the hyperparameters changing in the operation
+
+    :attribute operation_name: name of operation to get hyperparameters for
+    :attribute current_params: current parameters value
     """
 
     def __init__(self, operation_name, current_params):
         self.operation_name = operation_name
         self.current_params = current_params
+
+    def get_new_operation_params(self):
+        """ Function return a dictionary with new parameters values """
+
+        # Get available parameters for operation
+        params_list = get_operation_parameter_range(self.operation_name)
+
+        if params_list is None:
+            params_dict = None
+        else:
+            # Get new values for all parameters
+            params_dict = self.new_params_dict(params_list)
+
+        return params_dict
 
     def new_params_dict(self, params_list):
         """ Change values of hyperparameters by different ways
@@ -340,23 +357,3 @@ def convert_params(params):
             new_params.update({parameter_name: value})
 
     return new_params
-
-
-def get_new_operation_params(operation_name, current_params):
-    """ Function return a dictionary with new
-
-    :param operation_name: name of operation to get hyperparameters for
-    :param current_params: current parameters value
-    """
-
-    # Get available parameters for operation
-    params_list = get_operation_parameter_range(operation_name)
-
-    if params_list is None:
-        params_dict = None
-    else:
-        # Get new values for all parameters
-        param_changer = ParametersChanger(operation_name, current_params)
-        params_dict = param_changer.new_params_dict(params_list)
-
-    return params_dict

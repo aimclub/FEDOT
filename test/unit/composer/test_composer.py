@@ -23,7 +23,6 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.pipelines.tuning.hyperparams import get_new_operation_params
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 
 
@@ -326,19 +325,3 @@ def test_gp_composer_builder_default_params_correct():
     # Data operations and models must be in this default primary operations list
     assert 'ridge' in primary_operations
     assert 'scaling' in primary_operations
-
-
-def test_mutation_lagged_param_change_correct():
-    """ Checks how hyperparameters are modified. For the lagged operation an
-    incremental modification must be applied, not a random
-    """
-    incr_operation_name = 'lagged'
-    incr_current_params = {'window_size': 100}
-    est_sigma = incr_current_params.get('window_size') * 0.3
-
-    min_border = incr_current_params.get('window_size') - (5 * est_sigma)
-    max_border = incr_current_params.get('window_size') + (5 * est_sigma)
-    for _ in range(0, 10):
-        new_params = get_new_operation_params(incr_operation_name, incr_current_params)
-        new_value = new_params['window_size']
-        assert min_border < new_value < max_border
