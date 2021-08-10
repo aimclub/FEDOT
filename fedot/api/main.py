@@ -460,10 +460,18 @@ def _define_data(ml_task: Task,
 
         # create labels for data sources
         sources = dict(
-            (f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part.features))
+            (f'data_source_ts/{data_part_key}', data_part_transformation_func(
+                features_array=_extract_features_from_data_part(data_part)))
             for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
     else:
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
 
     return data
+
+
+def _extract_features_from_data_part(data_part):
+    if isinstance(data_part, InputData):
+        return data_part.features
+    else:
+        return data_part
