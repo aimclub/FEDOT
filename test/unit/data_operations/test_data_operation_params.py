@@ -9,6 +9,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def get_ts_pipeline(window_size):
@@ -17,6 +18,14 @@ def get_ts_pipeline(window_size):
     node_lagged.custom_params = {'window_size': window_size}
 
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
+    pipeline = Pipeline(node_final)
+    return pipeline
+
+
+def get_ransac_pipeline():
+    """ Function return pipeline with lagged transformation in it """
+    node_ransac = PrimaryNode('ransac_lin_reg')
+    node_final = SecondaryNode('linear', nodes_from=[node_ransac])
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -50,5 +59,24 @@ def test_lagged_with_invalid_params_fit_correctly():
     # Fit it
     pipeline.fit(train_input)
 
-    is_pipeline_was_fitted = True
-    assert is_pipeline_was_fitted
+    assert pipeline.is_fitted
+
+
+def test_ransac_with_invalid_params_fit_correctly():
+    """ Check that on a small dataset the RANSAC anomaly search algorithm can
+    adjust the values of hyperparameters
+
+    As stated in the sklearn documentation, min_samples is determined by default
+    based on how many features are in the dataset
+    Therefore, problems can arise when there are more attributes in a dataset
+    than the number of objects
+    """
+
+    input_regression = get_synthetic_regression_data(n_samples=20, n_features=23)
+
+    ransac_pipeline = get_ransac_pipeline()
+    ransac_pipeline.fit(input_regression)
+    predicted = ransac_pipeline.predict(input_regression)
+
+    assert ransac_pipeline.is_fitted
+    assert predicted is not None
