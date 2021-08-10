@@ -205,10 +205,11 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
         logger.message('Hyperparameters tuning started')
 
         if tuner_metric is None:
-            logger.message('Default loss function was set')
             # Default metric for tuner
             tune_metrics = TunerMetricByTask(task.task_type)
             tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+            logger.message(f'Tuner metric is None, '
+                           f'{tuner_loss.__name__} was set as default')
         else:
             # Get metric and parameters by name
             tuner_loss, loss_params = tuner_metric_by_name(metric_name=tuner_metric,
