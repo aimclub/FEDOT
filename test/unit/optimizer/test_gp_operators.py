@@ -188,8 +188,8 @@ def test_intermediate_add_mutation_for_linear_graph():
     """
 
     linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
-    nodes_from = [OptNode({'name': 'one_hot_encoding', 'params': 'default_params'}, [OptNode({'name': 'scaling', 'params': 'default_params'})])]
-    linear_three_nodes_inner = OptGraph(OptNode({'name': 'logit', 'params': 'default_params'}, nodes_from))
+    nodes_from = [OptNode({'name': 'one_hot_encoding'}, [OptNode({'name': 'scaling'})])]
+    linear_three_nodes_inner = OptGraph(OptNode({'name': 'logit'}, nodes_from))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
                                                    secondary=['one_hot_encoding'], mutation_prob=1)
@@ -335,18 +335,16 @@ def test_boosting_mutation_for_linear_graph():
     Tests boosting mutation can add correct boosting cascade
     """
 
-    linear_one_node = OptGraph(OptNode({'name': 'knn',
-                                        'params': 'default_params'}, [OptNode({'name': 'scaling',
-                                                                               'params': 'default_params'})]))
+    linear_one_node = OptGraph(OptNode({'name': 'knn'}, [OptNode({'name': 'scaling'})]))
 
-    init_node = OptNode({'name': 'scaling', 'params': 'default_params'})
-    model_node = OptNode({'name': 'knn', 'params': 'default_params'}, [init_node])
+    init_node = OptNode({'name': 'scaling'})
+    model_node = OptNode({'name': 'knn'}, [init_node])
 
     boosting_graph = \
         OptGraph(
-            OptNode({'name': 'logit', 'params': 'default_params'},
-                    [model_node, OptNode({'name': 'linear', 'params': 'default_params'},
-                                         [OptNode({'name': 'class_decompose', 'params': 'default_params'},
+            OptNode({'name': 'logit'},
+                    [model_node, OptNode({'name': 'linear', },
+                                         [OptNode({'name': 'class_decompose'},
                                                   [model_node, init_node])])]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
@@ -365,9 +363,6 @@ def test_boosting_mutation_for_linear_graph():
         if not successful_mutation_boosting:
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
-            print(graph_after_mutation.root_node.descriptive_id)
-            print(boosting_graph.root_node.descriptive_id)
-            print('------------------')
         else:
             break
     assert successful_mutation_boosting
