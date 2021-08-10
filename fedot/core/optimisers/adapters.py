@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from copy import deepcopy
 from typing import Any, Type
 
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -82,19 +83,23 @@ class PipelineAdapter(BaseOptimizationAdapter):
 
     def adapt(self, adaptee: Pipeline):
         """ Convert Pipeline class into OptGraph class """
+        source_pipeline = deepcopy(adaptee)
+
         # Apply recursive transformation since root
-        self._transform_to_opt_node(adaptee.root_node)
-        graph = OptGraph(adaptee.nodes)
-        graph.uid = adaptee.uid
+        self._transform_to_opt_node(source_pipeline.root_node)
+        graph = OptGraph(source_pipeline.nodes)
+        graph.uid = source_pipeline.uid
         return graph
 
     def restore(self, opt_graph: OptGraph):
         """ Convert OptGraph class into Pipeline class """
+        source_graph = deepcopy(opt_graph)
+
         # TODO improve transformation
         # Inverse transformation since root node
-        self._transform_to_pipeline_node(opt_graph.root_node)
-        pipeline = Pipeline(opt_graph.nodes)
-        pipeline.uid = opt_graph.uid
+        self._transform_to_pipeline_node(source_graph.root_node)
+        pipeline = Pipeline(source_graph.nodes)
+        pipeline.uid = source_graph.uid
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph):
