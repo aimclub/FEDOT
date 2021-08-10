@@ -410,7 +410,7 @@ def test_pipeline_adapters_params_correct():
 
     restored_pipeline = adapter.restore(opt_graph)
 
-    pipeline.fit(input_data)
+    restored_pipeline.fit(input_data)
     restored_preds = restored_pipeline.predict(input_data)
 
     # Get hyperparameter value after pipeline restoration
