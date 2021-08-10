@@ -59,8 +59,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     # Fit it
     pipeline.fit(train_input)
 
-    is_pipeline_was_fitted = True
-    assert is_pipeline_was_fitted
+    assert pipeline.is_fitted
 
 
 def test_ransac_with_invalid_params_fit_correctly():
@@ -79,5 +78,5 @@ def test_ransac_with_invalid_params_fit_correctly():
     ransac_pipeline.fit(input_regression)
     predicted = ransac_pipeline.predict(input_regression)
 
-    is_pipeline_was_fitted = True
-    assert is_pipeline_was_fitted
+    assert ransac_pipeline.is_fitted
+    assert predicted is not None
