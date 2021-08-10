@@ -118,7 +118,9 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
     task = Task(TaskTypesEnum.ts_forecasting)
-    is_pipeline_contains_ts_operations(pipeline)
+    if not is_pipeline_contains_ts_operations(pipeline):
+        # It is not time series forecasting pipeline
+        return True
     models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
@@ -169,7 +171,9 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
 
 def only_ts_specific_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
-    is_pipeline_contains_ts_operations(pipeline)
+    if not is_pipeline_contains_ts_operations(pipeline):
+        # It is not time series forecasting pipeline
+        return True
 
     # Check only primary nodes
     for node in pipeline.nodes:
