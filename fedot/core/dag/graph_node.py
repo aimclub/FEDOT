@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from fedot.core.dag.node_operator import NodeOperator
 
@@ -11,9 +11,12 @@ class GraphNode:
     :param content: dict for the content in node
     """
 
-    def __init__(self, content: dict,
+    def __init__(self, content: Union[dict, str],
                  nodes_from: Optional[List['GraphNode']] = None):
         self.nodes_from = nodes_from
+        # Wrap string into dict if it is necessary
+        if isinstance(content, str):
+            content = {'name': content}
         self.content = content
         self._operator = NodeOperator(self)
 

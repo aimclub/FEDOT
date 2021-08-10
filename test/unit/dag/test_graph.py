@@ -15,20 +15,20 @@ tmp = classification_dataset
 
 def test_graph_id():
     right_id = '((/n1;)/n2;;(/n1;)/n3;)/n4'
-    first = GraphNode(content={'name': 'n1'})
-    second = GraphNode(content={'name': 'n2'}, nodes_from=[first])
-    third = GraphNode(content={'name': 'n3'}, nodes_from=[first])
-    final = GraphNode(content={'name': 'n4'}, nodes_from=[second, third])
+    first = GraphNode(content='n1')
+    second = GraphNode(content='n2', nodes_from=[first])
+    third = GraphNode(content='n3', nodes_from=[first])
+    final = GraphNode(content='n4', nodes_from=[second, third])
 
     assert final.descriptive_id == right_id
 
 
 def test_graph_str():
     # given
-    first = GraphNode(content={'name': 'n1'})
-    second = GraphNode(content={'name': 'n2'})
-    third = GraphNode(content={'name': 'n3'})
-    final = GraphNode(content={'name': 'n4'},
+    first = GraphNode(content='n1')
+    second = GraphNode(content='n2')
+    third = GraphNode(content='n3')
+    final = GraphNode(content='n4',
                       nodes_from=[first, second, third])
     graph = Graph(final)
 
@@ -42,10 +42,10 @@ def test_graph_str():
 
 
 def test_pipeline_repr():
-    first = GraphNode(content={'name': 'n1'})
-    second = GraphNode(content={'name': 'n2'})
-    third = GraphNode(content={'name': 'n3'})
-    final = GraphNode(content={'name': 'n4'},
+    first = GraphNode(content='n1')
+    second = GraphNode(content='n2')
+    third = GraphNode(content='n3')
+    final = GraphNode(content='n4',
                       nodes_from=[first, second, third])
     graph = Graph(final)
 
@@ -56,10 +56,10 @@ def test_pipeline_repr():
 
 def test_delete_primary_node():
     # given
-    first = GraphNode(content={'name': 'n1'})
-    second = GraphNode(content={'name': 'n2'})
-    third = GraphNode(content={'name': 'n3'}, nodes_from=[first])
-    final = GraphNode(content={'name': 'n4'}, nodes_from=[second, third])
+    first = GraphNode(content='n1')
+    second = GraphNode(content='n2')
+    third = GraphNode(content='n3', nodes_from=[first])
+    final = GraphNode(content='n4', nodes_from=[second, third])
     graph = Graph(final)
 
     # when
@@ -73,12 +73,12 @@ def test_delete_primary_node():
 
 
 def test_graph_copy():
-    pipeline = Graph(GraphNode(content={'name': 'n1'}))
+    pipeline = Graph(GraphNode(content='n1'))
     pipeline_copy = copy(pipeline)
     assert pipeline.uid != pipeline_copy.uid
 
 
 def test_pipeline_deepcopy():
-    pipeline = Graph(GraphNode(content={'name': 'n1'}))
+    pipeline = Graph(GraphNode(content='n1'))
     pipeline_copy = deepcopy(pipeline)
     assert pipeline.uid != pipeline_copy.uid

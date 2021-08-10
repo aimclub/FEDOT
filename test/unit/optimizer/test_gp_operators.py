@@ -1,5 +1,6 @@
 import datetime
 import os
+import numpy as np
 from functools import partial
 
 from deap import tools
@@ -22,6 +23,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -29,6 +31,7 @@ from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import _to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, \
     pipeline_second, pipeline_third
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def file_data():
@@ -61,6 +64,18 @@ def graph_example():
 
     graph.add_node(root_of_tree)
     return graph
+
+
+def pipeline_with_custom_parameters(alpha_value):
+    node_scaling = PrimaryNode('scaling')
+    node_norm = PrimaryNode('normalization')
+    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
+    node_lasso = SecondaryNode('lasso', nodes_from=[node_norm])
+    node_final = SecondaryNode('ridge', nodes_from=[node_dtreg, node_lasso])
+    node_final.custom_params = {'alpha': alpha_value}
+    pipeline = Pipeline(node_final)
+
+    return pipeline
 
 
 def test_nodes_from_height():
@@ -373,3 +388,32 @@ def test_boosting_mutation_for_linear_graph():
     pipeline.fit(data)
     result = pipeline.predict(data)
     assert result is not None
+
+
+def test_pipeline_adapters_params_correct():
+    """ Checking the correct conversion of hyperparameters in nodes when nodes
+    are passing through adapter
+    """
+    init_alpha = 12.1
+    pipeline = pipeline_with_custom_parameters(init_alpha)
+
+    # Generate data
+    input_data = get_synthetic_regression_data(n_samples=10, n_features=2,
+                                               random_state=2021)
+    # Init fit
+    pipeline.fit(input_data)
+    init_preds = pipeline.predict(input_data)
+
+    # Convert into OptGraph object
+    adapter = PipelineAdapter()
+    opt_graph = adapter.adapt(pipeline)
+
+    restored_pipeline = adapter.restore(opt_graph)
+
+    pipeline.fit(input_data)
+    restored_preds = restored_pipeline.predict(input_data)
+
+    # Get hyperparameter value after pipeline restoration
+    restored_alpha = restored_pipeline.root_node.custom_params['alpha']
+    assert np.isclose(init_alpha, restored_alpha)
+    assert np.array_equal(init_preds.predict, restored_preds.predict)
