@@ -110,7 +110,9 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 
 def calculate_objective(graph: OptGraph, objective_function: Callable, is_multi_objective: bool,
                         graph_generation_params) -> Any:
-    calculated_fitness = objective_function(graph_generation_params.adapter.restore(graph))
+    # Transform OptGraph into Pipeline
+    pipeline = graph_generation_params.adapter.restore(graph)
+    calculated_fitness = objective_function(pipeline)
     if calculated_fitness is None:
         return None
     else:
