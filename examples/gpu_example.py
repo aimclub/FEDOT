@@ -41,7 +41,6 @@ def get_pipeline():
 def run_one_model_with_specific_evaluation_mod(train_data, test_data, mode: str = None):
     """
     Runs the example with one model svc.
-
     :param train_data: train data for pipeline training
     :param test_data: test data for pipeline training
     :param mode: pass gpu flag to make gpu evaluation
@@ -72,7 +71,6 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
                                                mode: str = None):
     """
     Runs the example with 3-node pipeline.
-
     :param train_data: train data for pipeline training
     :param test_data: test data for pipeline training
     :param mode: pass gpu flag to make gpu evaluation
