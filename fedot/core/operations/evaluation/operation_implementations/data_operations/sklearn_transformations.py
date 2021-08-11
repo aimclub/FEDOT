@@ -111,11 +111,14 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        default_params = {
+            'drop': 'if_binary'
+        }
         if not params:
             # Default parameters
-            self.encoder = OneHotEncoder()
+            self.encoder = OneHotEncoder(**default_params)
         else:
-            self.encoder = OneHotEncoder(**params)
+            self.encoder = OneHotEncoder(**{**params, **default_params})
         self.categorical_ids = None
         self.non_categorical_ids = None
 
