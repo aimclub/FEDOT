@@ -27,7 +27,7 @@ def get_pipeline(first_node='lagged'):
     node_lagged_2 = PrimaryNode(first_node)
     node_dtreg_1 = SecondaryNode('dtreg', nodes_from=[node_lagged_1])
     node_dtreg_2 = SecondaryNode('dtreg', nodes_from=[node_lagged_2])
-    node_final = SecondaryNode('linear', nodes_from=[node_dtreg_1, node_dtreg_2])
+    node_final = SecondaryNode('rfr', nodes_from=[node_dtreg_1, node_dtreg_2])
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -64,7 +64,7 @@ def prepare_train_test_input(train_part, len_forecast):
     return train_input, predict_input, task
 
 
-def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_mertrics=True):
+def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_metrics=True):
     """
     Function for predicting values in a time series
 
@@ -73,6 +73,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     :param predict_input: InputData for predict
     :param test_data: numpy array for validation
     :param task: Ts_forecasting task
+    :param show_metrics: is there need to print metrics before and after tuning
 
     :return amount_of_seconds time spent on tuning
     :return mae_before MAE metric of pipeline without tuning
@@ -107,7 +108,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     mae_before = mean_absolute_error(test_data, old_predicted_values)
     mae_after = mean_absolute_error(test_data, new_predicted_values)
 
-    if show_mertrics:
+    if show_metrics:
         print(f'MAE before tuning - {mae_before:.4f}')
         print(f'MAE after tuning - {mae_after:.4f}\n')
 
@@ -182,4 +183,5 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
 
 
 if __name__ == '__main__':
-    run_tuning_comparison(n_repits=10, ts_size=500, forecast_length=50, is_visualize=True)
+    # On large time series the speed of sparse_lagged increase (ts_size parameter)
+    run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True)

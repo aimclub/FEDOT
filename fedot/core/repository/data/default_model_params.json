@@ -31,7 +31,8 @@
   "sparse_lagged": {
     "window_size": 10,
     "n_components": 0.5,
-    "sparse_transform": true
+    "sparse_transform": true,
+    "use_svd": false
   },
   "ar": {
     "lag_1": 7,

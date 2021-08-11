@@ -21,6 +21,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.window_size = None
         self.n_components = None
         self.sparse_transform = False
+        self.use_svd = False
         self.features_columns = None
 
         # Define logger object
@@ -65,7 +66,7 @@ class LaggedImplementation(DataOperationImplementation):
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
-                self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, False)
+                self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
             # Transform target
             new_idx, self.features_columns, new_target = _prepare_target(idx=new_idx,
                                                                          features_columns=self.features_columns,
@@ -107,7 +108,8 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
 
     def get_params(self):
         return {'window_size': self.window_size,
-                'n_components': self.n_components}
+                'n_components': self.n_components,
+                'use_svd': self.use_svd}
 
 
 class LaggedTransformationImplementation(LaggedImplementation):
