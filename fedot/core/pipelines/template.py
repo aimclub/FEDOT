@@ -2,7 +2,7 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List, Union
+from typing import List, Tuple, Union
 from uuid import uuid4
 
 import joblib
@@ -82,12 +82,12 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: str = None, root_node: Node = None):
+    def export_pipeline(self, path: str = None, root_node: Node = None) -> Tuple[str, dict]:
         """
         Save JSON to path and return this JSON like object.
         :param path: custom path to save
-        :return: JSON like object
-        :root_node: root node of exported pipeline
+        :param root_node: root node of exported pipeline
+        :return: Tuple: (1) JSON representation pipeline structure and (2) dict of paths to fitted models
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
@@ -103,9 +103,9 @@ class PipelineTemplate:
             os.makedirs(absolute_path)
 
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(json.loads(json_data), indent=4))
+            f.write(json.dumps(pipeline_template_dict, indent='\t'))
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
-            self.log.message(f"The pipeline saved in the path: {resulted_path}.")
+            self.log.message(f'The pipeline saved in the path: {resulted_path}.')
 
         dict_fitted_operations = self._create_fitted_operations(absolute_path)
 
@@ -161,7 +161,7 @@ class PipelineTemplate:
 
             with open(path) as json_file:
                 json_object_pipeline = json.load(json_file)
-                self.log.message(f'The chain was imported from the path: {path}.')
+                self.log.message(f'The pipeline was imported from the path: {path}.')
         else:
             json_object_pipeline = source
             self.log.message(f'The chain was imported from dict.')

@@ -10,6 +10,7 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, \
     duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -26,15 +27,6 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
-
-
-class SimpleArchive(list):
-    def update(self, x):
-        self.extend((x))
-
-    @property
-    def items(self):
-        return list(self)
 
 
 class GPGraphOptimiserParameters:
