@@ -124,14 +124,10 @@ class PipelineTemplate:
         return json_object
 
     def _create_fitted_operations(self, path=None):
-        if path:
-            for operation in self.operation_templates:
-                operation.export_operation(path)
-        else:
-            dict_fitted_operations = {}
-            for operation in self.operation_templates:
-                dict_fitted_operations[operation.fitted_operation_path] = operation.export_operation()
-            return dict_fitted_operations
+        dict_fitted_operations = {}
+        for operation in self.operation_templates:
+            dict_fitted_operations[operation.fitted_operation_path] = operation.export_operation(path)
+        return dict_fitted_operations
 
     def _prepare_paths(self, path: str):
         absolute_path = os.path.abspath(path)
@@ -139,7 +135,7 @@ class PipelineTemplate:
         folder_name = os.path.splitext(folder_name)[0]
 
         if not os.path.isdir(os.path.dirname(absolute_path)):
-            message = f"The path to save a pipeline is not a directory: {absolute_path}."
+            message = f'The path to save a pipeline is not a directory: {absolute_path}.'
             self.log.error(message)
             raise FileNotFoundError(message)
 

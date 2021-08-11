@@ -267,7 +267,7 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str = None) -> Tuple[dict, dict]:
+    def save(self, path: str = None) -> Tuple[str, dict]:
         """
         Save the pipeline to the json representation with pickled fitted operations.
 

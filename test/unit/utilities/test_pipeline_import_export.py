@@ -153,13 +153,14 @@ def create_four_depth_pipeline():
 
 def test_export_pipeline_to_json_correctly():
     pipeline = create_pipeline()
-    json_actual, _ = pipeline.save('test_export_pipeline_to_json_correctly')
+    json_actual, fitted_models_dict = pipeline.save('test_export_pipeline_to_json_correctly')
 
     json_path_load = create_correct_path('test_pipeline_convert_to_json')
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
     assert json_actual == json.dumps(json_expected, indent=4)
+    assert fitted_models_dict is None
 
 
 def test_pipeline_template_to_json_correctly():
@@ -262,6 +263,14 @@ def test_empty_pipeline_to_json_correctly():
     assert json.dumps(json_actual) == json.dumps(json_expected)
 
 
+def test_local_save_for_pipeline_correctly():
+    pipeline_fitted = create_fitted_pipeline()
+    json, dict_fitted = pipeline_fitted.save()
+    assert json is not None
+    assert len(dict_fitted) == 9
+    assert dict_fitted['fitted_operations\\operation_3.pkl'] is not None
+
+
 def test_export_import_for_one_pipeline_object_correctly():
     """
     This test checks whether it is possible to upload a new model to the same object. In other words,
@@ -280,9 +289,11 @@ def test_export_import_for_one_pipeline_object_correctly():
     json_path_load_2 = create_correct_path('test_export_import_for_one_pipeline_object_correctly_2')
     pipeline_fitted_after.load(json_path_load_2)
 
-    json_second, _ = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3')
+    json_second, dict_fitted = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3')
 
     assert json_first == json_second
+    assert len(dict_fitted) == 9
+    assert dict_fitted['fitted_operations\\operation_3.pkl'] is not None
 
 
 def test_absolute_relative_paths_correctly_no_exception():
