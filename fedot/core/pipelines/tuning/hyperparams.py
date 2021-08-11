@@ -161,8 +161,8 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
         },
         'sparse_lagged': {
             'window_size': hp.uniform(label, 5, 500),
-            'n_components': hp.uniform(label, 1, 250),
-            'gain_tolerance': hp.uniform(label, 0, 1)
+            'n_components': hp.uniform(label, 0, 0.5),
+            'use_svd': hp.choice(label, [True, False])
         },
         'smoothing': {
             'window_size': hp.uniform(label, 2, 20)

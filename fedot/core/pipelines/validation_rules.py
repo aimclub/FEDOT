@@ -128,15 +128,17 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     ts_data_operations = get_operations_for_task(task=task,
                                                  mode='data_operation',
                                                  tags=["ts_specific"])
-    # Remove lagged transformation
+    # Remove lagged and sparse lagged transformation
     ts_data_operations.remove('lagged')
+    ts_data_operations.remove('sparse_lagged')
     ts_data_operations.remove('exog_ts_data_source')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     # TODO refactor
-    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],
-                         'ar': models + non_ts_data_operations + ['lagged'],
-                         'arima': models + non_ts_data_operations + ['lagged'],
+    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'sparse_lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'ar': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'arima': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
                          'ridge': ts_data_operations, 'linear': ts_data_operations,
                          'lasso': ts_data_operations, 'dtreg': ts_data_operations,
                          'knnreg': ts_data_operations, 'scaling': ts_data_operations,

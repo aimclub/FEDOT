@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from examples.ts_forecasting_tuning import prepare_input_data
+from examples.time_series.ts_forecasting_tuning import prepare_input_data
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -72,7 +72,7 @@ def run_multistep_example(time_series, len_forecast=250, future_steps=1000,
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('data/ts_sea_level.csv')
+    df = pd.read_csv('../data/ts_sea_level.csv')
     time_series = np.array(df['Level'])
 
     run_multistep_example(time_series,

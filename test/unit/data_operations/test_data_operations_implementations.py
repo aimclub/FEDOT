@@ -2,7 +2,7 @@ import numpy as np
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.regression_with_tuning_example import get_regression_dataset
-from examples.ts_gapfilling_example import generate_synthetic_data
+from examples.time_series.ts_gapfilling_example import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

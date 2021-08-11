@@ -86,8 +86,8 @@ def return_working_pipeline():
 
 len_forecast = 40
 ts_name = 'sea_level'
-path_to_file = '../cases/data/nemo/sea_surface_height.csv'
-path_to_exog_file = '../cases/data/nemo/sea_surface_height_nemo.csv'
+path_to_file = '../../cases/data/nemo/sea_surface_height.csv'
+path_to_exog_file = '../../cases/data/nemo/sea_surface_height_nemo.csv'
 
 df = pd.read_csv(path_to_file)
 time_series = np.array(df[ts_name])

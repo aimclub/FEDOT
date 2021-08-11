@@ -184,7 +184,7 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../cases/data/time_series/metocean.csv')
+    df = pd.read_csv('../../cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_experiment_with_tuning(time_series,
                                with_ar_pipeline=False,
