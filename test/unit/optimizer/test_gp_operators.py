@@ -235,7 +235,7 @@ def test_parent_add_mutation_for_linear_graph():
 
     linear_one_node = OptGraph(OptNode({'name': 'logit'}))
 
-    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name':'scaling'})]))
+    linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
     composer_requirements = GPComposerRequirements(primary=['scaling'],
                                                    secondary=['logit'], mutation_prob=1)
