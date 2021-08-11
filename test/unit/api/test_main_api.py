@@ -260,3 +260,14 @@ def test_categorical_preprocessing_unidata_predefined():
     prediction_proba = auto_model.predict_proba(features=test_data)
 
     assert prediction is not None
+
+
+def test_categorical_preprocessing_unidata_predefined_linear():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data, predefined_model='logit')
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert prediction is not None

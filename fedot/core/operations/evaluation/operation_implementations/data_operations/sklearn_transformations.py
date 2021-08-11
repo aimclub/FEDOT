@@ -127,7 +127,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        categorical_ids, non_categorical_ids = self.str_columns_check(features)
+        categorical_ids, non_categorical_ids = str_columns_check(features)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -186,30 +186,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
     def get_params(self):
         return self.encoder.get_params()
-
-    @staticmethod
-    def str_columns_check(features):
-        """
-        Method for checking which columns contain categorical (text) data
-
-        :param features: tabular data for check
-        :return categorical_ids: indices of categorical columns in table
-        :return non_categorical_ids: indices of non categorical columns in table
-        """
-        source_shape = features.shape
-        columns_amount = source_shape[1] if len(source_shape) > 1 else 1
-
-        categorical_ids = []
-        non_categorical_ids = []
-        # For every column in table make check for first element
-        for column_id in range(0, columns_amount):
-            column = features[:, column_id] if columns_amount > 1 else features
-            if isinstance(column[0], str):
-                categorical_ids.append(column_id)
-            else:
-                non_categorical_ids.append(column_id)
-
-        return categorical_ids, non_categorical_ids
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
@@ -352,3 +328,27 @@ class ImputationImplementation(DataOperationImplementation):
 
     def get_params(self):
         return self.imputer.get_params()
+
+
+def str_columns_check(features):
+    """
+    Method for checking which columns contain categorical (text) data
+
+    :param features: tabular data for check
+    :return categorical_ids: indices of categorical columns in table
+    :return non_categorical_ids: indices of non categorical columns in table
+    """
+    source_shape = features.shape
+    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
+
+    categorical_ids = []
+    non_categorical_ids = []
+    # For every column in table make check for first element
+    for column_id in range(0, columns_amount):
+        column = features[:, column_id] if columns_amount > 1 else features
+        if isinstance(column[0], str):
+            categorical_ids.append(column_id)
+        else:
+            non_categorical_ids.append(column_id)
+
+    return categorical_ids, non_categorical_ids

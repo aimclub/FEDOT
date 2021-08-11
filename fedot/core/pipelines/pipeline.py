@@ -1,12 +1,13 @@
 from copy import copy
 
+import numpy as np
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
@@ -17,7 +18,7 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_has_categorical_features
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import\
-    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation
+    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation, str_columns_check
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -333,17 +334,6 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     return list(appropriate_nodes)
 
 
-def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
-                                encoders: Union[List[DataOperationImplementation], DataOperationImplementation]):
-    if isinstance(data, InputData):
-        transformed = encoders.transform(data, True).predict
-        data.features = transformed
-    elif isinstance(data, MultiModalData):
-        for data_source_name, values, encoder in zip(data.keys(), data.values(), encoders):
-            transformed = encoder.transform(values, True).predict
-            data.data_source_name = transformed
-
-
 def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
         Union[List[DataOperationImplementation], DataOperationImplementation]:
     """ Encode categorical features to numerical. In additional,
@@ -368,21 +358,63 @@ def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
     return encoders
 
 
+def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
+                                encoders: Union[List[DataOperationImplementation], DataOperationImplementation]):
+    if isinstance(data, InputData):
+        transformed = _imputation_implementation(data)
+        transformed_encoded = encoders.transform(transformed, True).predict
+        data.features = transformed_encoded
+    elif isinstance(data, MultiModalData):
+        for data_source_name, values, encoder in zip(data.keys(), data.values(), encoders):
+            transformed = _imputation_implementation(values)
+            transformed_encoded = encoder.transform(transformed, True).predict
+            data.data_source_name = transformed_encoded
+
+
+def divide_data_categorical_numerical(input_data: InputData):
+    categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
+    numerical_features = input_data.features[:, non_categorical_ids]
+    categorical_features = input_data.features[:, categorical_ids]
+
+    numerical = InputData(features=numerical_features, data_type=input_data.data_type,
+                            target=input_data.target, task=input_data.task, idx=input_data.idx)
+    categorical = InputData(features=categorical_features, data_type=input_data.data_type,
+                            target=input_data.target, task=input_data.task, idx=input_data.idx)
+
+    return numerical, categorical
+
+
+def _imputation_implementation(data: InputData):
+    if data_has_categorical_features(data):
+        imputation_encoder_cat = ImputationImplementation(strategy='most_frequent')
+        imputation_encoder_num = ImputationImplementation()
+        numerical, categorical = divide_data_categorical_numerical(data)
+        output_data_cat = imputation_encoder_cat.fit_transform(categorical)
+        output_data_num = imputation_encoder_num.fit_transform(numerical)
+        output_features = np.hstack((output_data_cat.features, output_data_num.features))
+        output_data = OutputData(features=data.features, data_type=data.data_type,
+                                 target=data.target, task=data.task, idx=data.idx, predict=output_features)
+    else:
+        imputation_encoder = ImputationImplementation()
+        output_data = imputation_encoder.fit_transform(data)
+    transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
+                            target=output_data.target, task=output_data.task, idx=output_data.idx)
+    return transformed
+
+
 def _create_encoder(data: InputData):
-    """ Create encoder and preprocess categorical features.
+    """ Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
     :param data: data to preprocess
     :return tuple(array, OneHotEncodingImplementation): tuple of transformed and encoder
     """
 
+    transformed = _imputation_implementation(data)
     encoder = OneHotEncodingImplementation()
-    encoder.fit(data)
-    output_data = encoder.transform(data, True)
-    transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
-                            target=output_data.target, task=output_data.task, idx=output_data.idx)
-    transformed_missed = ImputationImplementation().fit_transform(transformed).predict
+    encoder.fit(transformed)
+    transformed_encoded = encoder.transform(transformed, True).predict
 
-    return transformed_missed, encoder
+    return transformed_encoded, encoder
 
 
 def _data_type_is_table(data) -> bool:
