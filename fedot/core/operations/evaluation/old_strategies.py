@@ -1,22 +1,19 @@
-import warnings
 import gc
+import warnings
+from copy import copy
+from typing import Optional
 
 import h2o
+import numpy as np
+import tensorflow as tf
 from h2o import H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
-from copy import copy
-from typing import Optional
-
-import numpy as np
-import tensorflow as tf
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.repository.tasks import extract_task_param
+from fedot.core.repository.tasks import TaskTypesEnum, extract_task_param
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -39,7 +36,7 @@ class KerasForecastingStrategy(EvaluationStrategy):
         return model
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
 
         predicted = predict_lstm(trained_operation, predict_data)
         converted = OutputData(idx=predict_data.idx,
@@ -317,7 +314,7 @@ class AutoMLEvaluationStrategy(EvaluationStrategy):
         return benchmark_model
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         predicted = self._model_specific_predict(trained_operation, predict_data)
         # Wrap prediction as features for next level
         converted = OutputData(idx=predict_data.idx,

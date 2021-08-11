@@ -1,7 +1,7 @@
 import datetime
 
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GPChainOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -18,10 +18,10 @@ def test_gp_composer_builder():
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=4,
-        crossover_prob=0.8, mutation_prob=1, max_lead_time=datetime.timedelta(minutes=5))
+        crossover_prob=0.8, mutation_prob=1, timeout=datetime.timedelta(minutes=5))
 
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPChainOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     builder_with_custom_params = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
         metric_function).with_optimiser_parameters(optimiser_parameters)

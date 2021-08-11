@@ -21,26 +21,18 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     """ Strategy for applying classification algorithms from Sklearn library """
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Predict method for classification task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
-        n_classes = len(trained_operation.classes_)
-        if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data.features)
-        elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data.features)
-            if n_classes < 2:
-                raise NotImplementedError()
-            elif n_classes == 2 and self.output_mode != 'full_probs':
-                prediction = prediction[:, 1]
-        else:
-            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        prediction = self._sklearn_compatible_prediction(trained_operation=trained_operation,
+                                                         features=predict_data.features)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
@@ -77,13 +69,13 @@ class CustomClassificationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Predict method for classification task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
@@ -141,17 +133,17 @@ class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Transform data
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
         prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
+                                                 is_fit_pipeline_stage)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

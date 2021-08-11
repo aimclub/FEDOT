@@ -7,19 +7,19 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def run_classification_example():
+def run_classification_example(timeout=None):
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
 
-    baseline_model = Fedot(problem=problem)
+    baseline_model = Fedot(problem=problem, timeout=timeout)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
 
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    auto_model = Fedot(problem=problem, seed=42)
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout)
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
@@ -49,8 +49,8 @@ def run_regression_example():
     return prediction
 
 
-def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
-    train_data_path = f'{fedot_project_root()}/notebooks/data/salaries.csv'
+def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout=None):
+    train_data_path = f'{fedot_project_root()}/examples/data/salaries.csv'
 
     target = pd.read_csv(train_data_path)['target']
 
@@ -59,12 +59,12 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     task_parameters = TsForecastingParams(forecast_length=forecast_length)
 
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters)
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=timeout)
 
     # run AutoML model design in the same way
-    chain = model.fit(features=train_data_path, target='target')
-    if with_chain_vis:
-        chain.show()
+    pipeline = model.fit(features=train_data_path, target='target')
+    if with_pipeline_vis:
+        pipeline.show()
 
     # use model to obtain forecast
     forecast = model.predict(features=train_data_path)
@@ -78,14 +78,14 @@ def run_ts_forecasting_example(with_plot=True, with_chain_vis=True):
     return forecast
 
 
-def run_classification_multiobj_example(with_plot=True):
+def run_classification_multiobj_example(with_plot=True, timeout=None):
     train_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Training.data')
     test_data = pd.read_csv(f'{fedot_project_root()}/examples/data/Hill_Valley_with_noise_Testing.data')
     target = test_data['class']
     del test_data['class']
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, learning_time=2, preset='light',
+    auto_model = Fedot(problem=problem, timeout=timeout, preset='light',
                        composer_params={'metric': ['f1', 'node_num']}, seed=42)
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)

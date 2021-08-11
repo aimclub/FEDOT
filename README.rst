@@ -108,22 +108,26 @@ Numpy arrays, pandas data frames, and file paths can be used as sources of input
  model.fit(features=train_data.features, target=train_data.target)
  prediction = model.predict(features=test_data.features)
 
- metrics = auto_model.get_metrics()
+ metrics = model.get_metrics()
 
 For more advanced approaches, please use Examples & Tutorials section.
 
 Examples & Tutorials
 ====================
 
-Jupyter notebooks with tutorials are located in the "notebooks" folder. There you can find the following guides:
+Jupyter notebooks with tutorials are located in the `examples repository <https://github.com/ITMO-NSS-team/fedot-examples>`__. There you can find the following guides:
 
-* `Intro to AutoML <./notebooks/version_03/1_intro_to_automl.ipynb>`__
-* `Intro to FEDOT functionality <./notebooks/version_03/2_intro_to_fedot.ipynb>`__
-* `Intro to time series forecasting with FEDOT <./notebooks/version_03/3_intro_ts_forecasting.ipynb>`__
-* `Advanced time series forecasting <./notebooks/version_03/4_auto_ts_forecasting.ipynb>`__
-* `Gap-filling in time series and out-of-sample forecasting <./notebooks/version_03/5_ts_specific_cases.ipynb>`__
+* `Intro to AutoML <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/1_intro_to_automl.ipynb>`__
+* `Intro to FEDOT functionality <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/2_intro_to_fedot.ipynb>`__
+* `Intro to time series forecasting with FEDOT <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/3_intro_ts_forecasting.ipynb>`__
+* `Advanced time series forecasting <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/4_auto_ts_forecasting.ipynb>`__
+* `Gap-filling in time series and out-of-sample forecasting <https://github.com/ITMO-NSS-team/fedot-examples/blob/main/notebooks/latest/5_ts_specific_cases.ipynb>`__
 
-Notebooks are issued with the corresponding release versions. In the "notebooks" folder, you can also find examples for previous releases functionality.
+Notebooks are issued with the corresponding release versions (the default version is 'latest').
+
+Also, external examples are available:
+
+* `Kaggle: baseline for Microsoft Stock - Time Series Analysis task <https://www.kaggle.com/dreamlone/microsoft-stocks-price-prediction-automl>`__
 
 Extended examples:
 
@@ -138,10 +142,21 @@ Also, several video tutorials are `available <https://www.youtube.com/playlist?l
 Publications about FEDOT
 ========================
 
-We also published several posts devoted to the different aspects of the framework:
+We also published several posts and news devoted to the different aspects of the framework:
 
-- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__ (in Russian)
-- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__ (in Russian)
+In English:
+
+- How AutoML helps to create composite AI? - `towardsdatascience.com <https://towardsdatascience.com/how-automl-helps-to-create-composite-ai-f09e05287563>`__
+- AutoML for time series: definitely a good idea - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
+- AutoML for time series: advanced approaches with FEDOT framework - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-advanced-approaches-with-fedot-framework-4f9d8ea3382c>`__
+- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/en/university_live/achievements/news/10409/>`__
+- FEDOT as a factory of human-competitive results - `video <https://www.youtube.com/watch?v=9Rhqcsrolb8&ab_channel=NSS-Lab>`__
+
+In Russian:
+
+- General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
+- Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
+- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/ru/university_live/achievements/news/10409/>`__
 
 Project structure
 =================
@@ -184,7 +199,7 @@ Also, a detailed FEDOT API description is available in the `Read the Docs <https
 Contribution Guide
 ==================
 
-- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/contributing.rst>`__.
+- The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/source/contribution.rst>`__.
 
 Acknowledgments
 ================
@@ -207,6 +222,12 @@ Supported by
 Citation
 ========
 
+@article{nikitin2021automated,
+  title={Automated Evolutionary Approach for the Design of Composite Machine Learning Pipelines},
+  author={Nikitin, Nikolay O and Vychuzhanin, Pavel and Sarafanov, Mikhail and Polonskaia, Iana S and Revin, Ilia and Barabanova, Irina V and Maximov, Gleb and Kalyuzhnaya, Anna V and Boukhanovsky, Alexander},
+  journal={arXiv preprint arXiv:2106.15397},
+  year={2021}}
+
 @article{nikitin2020structural,
  title={Structural Evolutionary Learning for Composite Classification Models},
  author={Nikitin, Nikolay O and Polonskaia, Iana S and Vychuzhanin, Pavel and Barabanova, Irina V and Kalyuzhnaya, Anna V},
@@ -222,6 +243,8 @@ Citation
  booktitle={Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion},
  pages={43--44},
  year={2020}}
+
+Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutionary-multi-modal-AutoML-with-FEDOT-framework>`_.
 
 .. |docs| image:: https://readthedocs.org/projects/ebonite/badge/?style=flat
    :target: https://fedot.readthedocs.io/en/latest/

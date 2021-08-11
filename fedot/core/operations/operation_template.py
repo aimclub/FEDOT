@@ -3,15 +3,15 @@ from abc import ABC, abstractmethod
 
 import joblib
 
-from fedot.core.chains.node import Node
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
 
 
 class OperationTemplateAbstract(ABC):
     """
     Base class used for create different types of operation ("atomized_operation"
     or others like ("knn", "xgboost")).
-    Atomized_operation is chain which can be used like general operation.
+    Atomized_operation is pipeline which can be used like general operation.
     """
 
     def __init__(self, log: Log = None):
@@ -29,7 +29,7 @@ class OperationTemplateAbstract(ABC):
         """
         Preprocessing for local fields
         :param node: current node
-        :param operation_id: operation id in chain
+        :param operation_id: operation id in pipeline
         :param nodes_from: parents operation's id
         """
 
@@ -71,20 +71,30 @@ class OperationTemplate(OperationTemplateAbstract):
         self.params = None
         self.fitted_operation = None
         self.fitted_operation_path = None
+        self.rating = None
 
         if node:
             self._operation_to_template(node, operation_id, nodes_from)
 
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
         self.operation_id = operation_id
-        self.operation_type = node.operation.operation_type
-        self.custom_params = node.operation.params
-        self.params = self._create_full_params(node)
-        self.nodes_from = nodes_from
+        if not isinstance(node.operation, str):
+            # for model-based operations
+            self.operation_type = node.operation.operation_type
+            self.custom_params = node.operation.params
+            self.params = self._create_full_params(node)
 
-        if _is_node_fitted(node):
-            self.operation_name = _extract_operation_name(node)
-            self._extract_fields_of_fitted_operation(node)
+            if _is_node_fitted(node):
+                self.operation_name = _extract_operation_name(node)
+                self._extract_fields_of_fitted_operation(node)
+        else:
+            # for custom operations without implementation
+            self.operation_type = 'custom'
+            self.custom_params = {}
+            self.params = {}
+            self.operation_name = node.operation
+        self.nodes_from = nodes_from
+        self.rating = node.rating
 
     def _create_full_params(self, node: Node) -> dict:
         wrapped_operations = ['base_estimator', 'estimator']
@@ -119,7 +129,8 @@ class OperationTemplate(OperationTemplateAbstract):
             "custom_params": self.custom_params,
             "params": self.params,
             "nodes_from": self.nodes_from,
-            "fitted_operation_path": self.fitted_operation_path
+            "fitted_operation_path": self.fitted_operation_path,
+            "rating": self.rating,
         }
 
         return operation_object
@@ -146,6 +157,8 @@ class OperationTemplate(OperationTemplateAbstract):
             self.custom_params = operation_object['custom_params']
         if "operation_name" in operation_object:
             self.operation_name = operation_object['operation_name']
+        if "rating" in operation_object:
+            self.rating = operation_object['rating']
 
 
 def _check_existing_path(path: str):

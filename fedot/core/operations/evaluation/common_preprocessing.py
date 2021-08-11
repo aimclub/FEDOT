@@ -1,12 +1,11 @@
 import warnings
-
 from typing import Optional
 
-from fedot.core.operations.evaluation.operation_implementations.data_operations.\
-    sklearn_transformations import PCAImplementation, PolyFeaturesImplementation, OneHotEncodingImplementation, \
-    ScalingImplementation, NormalizationImplementation, KernelPCAImplementation, ImputationImplementation
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, OneHotEncodingImplementation, \
+    PCAImplementation, PolyFeaturesImplementation, ScalingImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -43,17 +42,17 @@ class CustomPreprocessingStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Transform method for preprocessing task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
         prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
+                                                 is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted

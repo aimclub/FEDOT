@@ -1,13 +1,12 @@
 import warnings
+from typing import Optional
 
 import numpy as np
-
-from typing import Optional
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.\
+from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.text_preprocessing import TextCleanImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -32,7 +31,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         return vectorizer
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
 
         features_list = self._convert_to_one_dim(predict_data.features)
         predicted = trained_operation.transform(features_list).toarray()
@@ -88,18 +87,18 @@ class CustomTextPreprocessingStrategy(EvaluationStrategy):
         return text_processor
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
         prediction = trained_operation.transform(predict_data,
-                                                 is_fit_chain_stage)
+                                                 is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted

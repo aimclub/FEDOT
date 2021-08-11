@@ -1,14 +1,13 @@
 import numpy as np
 
-from fedot.core.data.data import InputData
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.data import OutputData
+from examples.regression_with_tuning_example import get_regression_dataset
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
 from fedot.core.data.supplementary_data import SupplementaryData
-from examples.regression_with_tuning_example import get_regression_dataset
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 np.random.seed(2021)
 
@@ -37,8 +36,8 @@ def generate_outputs():
     return list_with_outputs, idx_1, idx_2
 
 
-def test_data_merge_in_chain():
-    """ Test check is the chain can correctly work with dynamic changes in
+def test_data_merge_in_pipeline():
+    """ Test check is the pipeline can correctly work with dynamic changes in
     tables during the fit process
     """
 
@@ -52,7 +51,7 @@ def test_data_merge_in_chain():
 
     node_lin_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
     node_final = SecondaryNode('ridge', nodes_from=[node_lin_ransac, node_scaling])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
     features_options = {'informative': 2, 'bias': 2.0}
     x_train, y_train, x_test, y_test = get_regression_dataset(features_options=features_options,
@@ -69,10 +68,9 @@ def test_data_merge_in_chain():
                             data_type=DataTypesEnum.table)
 
     # Fit and predict
-    chain.fit_from_scratch(train_input)
-    prediction = chain.predict(train_input)
+    pipeline.fit_from_scratch(train_input)
+    prediction = pipeline.predict(train_input)
 
-    print(prediction)
     assert prediction is not None
 
 

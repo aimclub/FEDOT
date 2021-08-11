@@ -176,12 +176,12 @@ class ModelGapFiller(SimpleGapFiller):
     Class used for filling in the gaps in time series
 
     :param gap_value: value, which mask gap elements in array
-    :param chain: TsForecastingChain object for filling in the gaps
+    :param pipeline: TsForecastingPipeline object for filling in the gaps
     """
 
-    def __init__(self, gap_value, chain):
+    def __init__(self, gap_value, pipeline):
         super().__init__(gap_value)
-        self.chain = chain
+        self.pipeline = pipeline
 
     def forward_inverse_filling(self, input_data):
         """
@@ -205,7 +205,6 @@ class ModelGapFiller(SimpleGapFiller):
             weights = []
             # Two predictions are generated for each gap - forward and backward
             for direction_function in [self._forward, self._inverse]:
-
                 weights_list, predicted_list = direction_function(output_data,
                                                                   batch_index,
                                                                   new_gap_list)
@@ -224,7 +223,7 @@ class ModelGapFiller(SimpleGapFiller):
 
     def forward_filling(self, input_data):
         """
-        Method fills in the gaps in the input array using chain with only
+        Method fills in the gaps in the input array using graph with only
         forward direction (i.e. time series forecasting)
 
         :param input_data: data with gaps to filling in the gaps in it
@@ -245,9 +244,9 @@ class ModelGapFiller(SimpleGapFiller):
             # Adaptive prediction interval length
             len_gap = len(gap)
 
-            # Chain for the task of filling in gaps
-            predicted = self.__chain_fit_predict(timeseries_train_part,
-                                                 len_gap)
+            # Pipeline for the task of filling in gaps
+            predicted = self.__pipeline_fit_predict(timeseries_train_part,
+                                                    len_gap)
 
             # Replace gaps in an array with prediction values
             output_data[gap] = predicted
@@ -273,8 +272,8 @@ class ModelGapFiller(SimpleGapFiller):
 
         # Adaptive prediction interval length
         len_gap = len(gap)
-        predicted_values = self.__chain_fit_predict(timeseries_train_part,
-                                                    len_gap)
+        predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
+                                                       len_gap)
         weights_list = np.arange(len_gap, 0, -1)
         return weights_list, predicted_values
 
@@ -306,14 +305,14 @@ class ModelGapFiller(SimpleGapFiller):
         # Adaptive prediction interval length
         len_gap = len(gap)
 
-        predicted_values = self.__chain_fit_predict(timeseries_train_part,
-                                                    len_gap)
+        predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
+                                                       len_gap)
 
         predicted_values = np.flip(predicted_values)
         weights_list = np.arange(1, (len_gap + 1), 1)
         return weights_list, predicted_values
 
-    def __chain_fit_predict(self, timeseries_train: np.array, len_gap: int):
+    def __pipeline_fit_predict(self, timeseries_train: np.array, len_gap: int):
         """
         The method makes a prediction as a sequence of elements based on a
         training sample. There are two main parts: fit model and predict.
@@ -333,7 +332,7 @@ class ModelGapFiller(SimpleGapFiller):
                                data_type=DataTypesEnum.ts)
 
         # Making predictions for the missing part in the time series
-        self.chain.fit_from_scratch(input_data)
+        self.pipeline.fit_from_scratch(input_data)
 
         # "Test data" for making prediction for a specific length
         start_forecast = len(timeseries_train)
@@ -345,6 +344,6 @@ class ModelGapFiller(SimpleGapFiller):
                               task=task,
                               data_type=DataTypesEnum.ts)
 
-        predicted_values = self.chain.predict(test_data)
+        predicted_values = self.pipeline.predict(test_data)
         predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values

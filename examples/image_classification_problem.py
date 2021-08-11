@@ -4,8 +4,8 @@ import random
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -13,7 +13,7 @@ random.seed(1)
 np.random.seed(1)
 
 
-def get_composite_chain(composite_flag: bool = True) -> Chain:
+def get_composite_pipeline(composite_flag: bool = True) -> Pipeline:
     node_first = PrimaryNode('cnn')
     node_first.custom_params = {'image_shape': (28, 28, 1),
                                 'architecture': 'deep',
@@ -31,9 +31,9 @@ def get_composite_chain(composite_flag: bool = True) -> Chain:
     if not composite_flag:
         node_final = SecondaryNode('rf', nodes_from=[node_first])
 
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    return chain
+    return pipeline
 
 
 def calculate_validation_metric(predicted: OutputData, dataset_to_validate: InputData) -> float:
@@ -59,9 +59,9 @@ def run_image_classification_problem(train_dataset: tuple,
                                                labels=y_test,
                                                task=task)
 
-    chain = get_composite_chain(composite_flag)
-    chain.fit(input_data=dataset_to_train)
-    predictions = chain.predict(dataset_to_validate)
+    pipeline = get_composite_pipeline(composite_flag)
+    pipeline.fit(input_data=dataset_to_train)
+    predictions = pipeline.predict(dataset_to_validate)
     roc_auc_on_valid = calculate_validation_metric(predictions,
                                                    dataset_to_validate)
     print(f'ROCAUC: {roc_auc_on_valid}')

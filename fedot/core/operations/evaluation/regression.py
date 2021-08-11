@@ -1,27 +1,27 @@
 import warnings
-
 from typing import Optional
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
-from fedot.core.operations.evaluation.operation_implementations.\
-    data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerRegImplementation
+from fedot.core.operations.evaluation.operation_implementations. \
+    data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
+from fedot.core.operations.evaluation.operation_implementations. \
+    data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Predict method for regression task
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
 
@@ -66,16 +66,16 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """
         Transform method for preprocessing
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
-        prediction = trained_operation.transform(predict_data, is_fit_chain_stage)
+        prediction = trained_operation.transform(predict_data, is_fit_pipeline_stage)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
@@ -114,9 +114,9 @@ class CustomRegressionStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool):
+                is_fit_pipeline_stage: bool):
         """ Predict method for regression models """
-        prediction = trained_operation.predict(predict_data, is_fit_chain_stage)
+        prediction = trained_operation.predict(predict_data, is_fit_pipeline_stage)
 
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)

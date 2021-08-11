@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.ts_forecasting_tuning import prepare_input_data
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.utils import fedot_project_root
@@ -18,12 +18,10 @@ warnings.filterwarnings('ignore')
 np.random.seed(2020)
 
 
-def make_forecast(chain, train: InputData, predict: InputData,
+def make_forecast(pipeline, train: InputData, predict: InputData,
                   train_exog: InputData, predict_exog: InputData):
     """
     Function for predicting values in a time series
-
-    :param chain: Chain object
 
     :return predicted_values: numpy array, forecast of model
     """
@@ -48,13 +46,13 @@ def make_forecast(chain, train: InputData, predict: InputData,
         second_node_name: predict_exog,
     })
 
-    chain.fit_from_scratch(train_dataset)
+    pipeline.fit_from_scratch(train_dataset)
     amount_of_seconds = timeit.default_timer() - start_time
 
-    print(f'\nIt takes {amount_of_seconds:.2f} seconds to train chain\n')
+    print(f'\nIt takes {amount_of_seconds:.2f} seconds to train pipeline\n')
 
     # Predict
-    predicted_values = chain.predict(predict_dataset)
+    predicted_values = pipeline.predict(predict_dataset)
     predicted_values = predicted_values.predict
 
     return predicted_values
@@ -101,7 +99,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
         node_exog = PrimaryNode('exog_ts_data_source')
 
         node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
-        chain = Chain(node_final)
+        pipeline = Pipeline(node_final)
     else:
         # Simple example without exogenous time series
         node_lagged_1 = PrimaryNode('lagged/1')
@@ -111,9 +109,9 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
         node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
         train_input_exog = None
         predict_input_exog = None
-        chain = Chain(node_final)
+        pipeline = Pipeline(node_final)
 
-    predicted = make_forecast(chain, train_input, predict_input, train_input_exog, predict_input_exog)
+    predicted = make_forecast(pipeline, train_input, predict_input, train_input_exog, predict_input_exog)
 
     predicted = np.ravel(np.array(predicted))
     test_data = np.ravel(test_data)
@@ -135,5 +133,5 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'notebooks', 'data', 'ts_sea_level.csv')
+    data_path = os.path.join(f'{fedot_project_root()}', 'examples', 'data', 'ts_sea_level.csv')
     run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True)

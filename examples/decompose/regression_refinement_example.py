@@ -1,13 +1,12 @@
 import warnings
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -15,8 +14,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 warnings.filterwarnings('ignore')
 
 
-def get_refinement_chain():
-    """ Create five-level chain with decompose operation """
+def get_refinement_pipeline():
+    """ Create five-level pipeline with decompose operation """
     node_encoding = PrimaryNode('one_hot_encoding')
     node_scaling = SecondaryNode('scaling', nodes_from=[node_encoding])
     node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
@@ -25,11 +24,11 @@ def get_refinement_chain():
     node_dtreg.custom_params = {'max_depth': 3}
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
-    chain = Chain(final_node)
-    return chain
+    pipeline = Pipeline(final_node)
+    return pipeline
 
 
-def get_non_refinement_chain():
+def get_non_refinement_pipeline():
     node_encoding = PrimaryNode('one_hot_encoding')
     node_scaling = SecondaryNode('scaling', nodes_from=[node_encoding])
 
@@ -39,8 +38,8 @@ def get_non_refinement_chain():
 
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
-    chain = Chain(final_node)
-    return chain
+    pipeline = Pipeline(final_node)
+    return pipeline
 
 
 def prepare_input_data(features, target):
@@ -76,7 +75,7 @@ def run_river_experiment(file_path, with_tuning=False):
     """ Function launch example with experimental features of the FEDOT framework
 
     :param file_path: path to the csv file
-    :param with_tuning: is it need to tune chains or not
+    :param with_tuning: is it need to tune pipelines or not
     """
 
     # Read dataframe and prepare train and test data
@@ -88,30 +87,30 @@ def run_river_experiment(file_path, with_tuning=False):
     train_input, predict_input, task = prepare_input_data(features, target)
     y_data_test = predict_input.target
 
-    # Get refinement chain
-    r_chain = get_refinement_chain()
-    non_chain = get_non_refinement_chain()
+    # Get refinement pipeline
+    r_pipeline = get_refinement_pipeline()
+    non_pipeline = get_non_refinement_pipeline()
 
     # Fit it
-    r_chain.fit(train_input)
-    non_chain.fit(train_input)
+    r_pipeline.fit(train_input)
+    non_pipeline.fit(train_input)
 
     if with_tuning:
-        r_chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
+        r_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
                                     loss_params=None,
                                     input_data=train_input,
                                     iterations=100)
-        non_chain.fine_tune_all_nodes(loss_function=mean_absolute_error,
+        non_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
                                       loss_params=None,
                                       input_data=train_input,
                                       iterations=100)
 
     # Predict
-    predicted_values = r_chain.predict(predict_input)
+    predicted_values = r_pipeline.predict(predict_input)
     r_preds = predicted_values.predict
 
     # Predict
-    predicted_values = non_chain.predict(predict_input)
+    predicted_values = non_pipeline.predict(predict_input)
     non_preds = predicted_values.predict
 
     y_data_test = np.ravel(y_data_test)

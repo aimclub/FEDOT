@@ -1,7 +1,7 @@
-from typing import Tuple, Iterator, Union
+from typing import Tuple, Union
 
 import numpy as np
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import KFold, train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -172,48 +172,6 @@ def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
     return train_data, test_data
 
 
-def train_test_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
-    """ The function for splitting data into a train and test samples
-        in the InputData format for KFolds cross validation. The function
-        return a generator of tuples, consisting of a pair of train, test.
-
-    :param data: InputData for train and test splitting
-    :param folds: number of folds
-
-    :return Iterator[InputData, InputData]: return split train/test data
-    """
-    kf = KFold(n_splits=folds)
-
-    for train_idxs, test_idxs in kf.split(data.features):
-        train_features, train_target = \
-            _features_and_target_by_index(train_idxs, data)
-        test_features, test_target = \
-            _features_and_target_by_index(test_idxs, data)
-
-        idx_for_train = np.arange(0, len(train_features))
-        idx_for_test = np.arange(0, len(test_features))
-
-        train_data = InputData(idx=idx_for_train,
-                               features=train_features,
-                               target=train_target,
-                               task=data.task,
-                               data_type=data.data_type)
-        test_data = InputData(idx=idx_for_test,
-                              features=test_features,
-                              target=test_target,
-                              task=data.task,
-                              data_type=data.data_type)
-
-        yield train_data, test_data
-
-
-def _features_and_target_by_index(index, values: InputData):
-    features = values.features[index, :]
-    target = np.take(values.target, index)
-
-    return features, target
-
-
 def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.8,
                           shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
                                                        Union[InputData, MultiModalData]]:
@@ -234,3 +192,4 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
         raise ValueError(f'Dataset {type(data)} is not supported')
 
     return train_data, test_data
+

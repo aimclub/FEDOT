@@ -1,10 +1,9 @@
-from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
 from fedot.core.data.data import OutputData
+from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
 from test.unit.data.test_data_merge import generate_outputs
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
@@ -14,8 +13,8 @@ def generate_straight_pipeline():
     node_scaling = PrimaryNode('scaling')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
     node_linear = SecondaryNode('linear', nodes_from=[node_ridge])
-    chain = Chain(node_linear)
-    return chain
+    pipeline = Pipeline(node_linear)
+    return pipeline
 
 
 def test_parent_mask_correct():
@@ -37,12 +36,12 @@ def test_calculate_data_flow_len_correct():
     """ Function checks whether the number of nodes visited by the data block
      is calculated correctly """
 
-    # Chain consists of 3 nodes
-    simple_chain = generate_straight_pipeline()
+    # Pipeline consists of 3 nodes
+    simple_pipeline = generate_straight_pipeline()
     data = get_synthetic_regression_data(n_samples=100, n_features=2)
 
-    simple_chain.fit(data)
-    predict_output = simple_chain.predict(data)
+    simple_pipeline.fit(data)
+    predict_output = simple_pipeline.predict(data)
 
     assert predict_output.supplementary_data.data_flow_length == 2
 

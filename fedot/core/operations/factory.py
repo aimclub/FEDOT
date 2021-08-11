@@ -1,7 +1,7 @@
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.operations.operation import Operation
-from fedot.core.operations.model import Model
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.model import Model
+from fedot.core.operations.operation import Operation
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 
 
 class OperationFactory:
@@ -44,13 +44,15 @@ class OperationFactory:
         """
 
         # Get available models from model_repository.json file
-        operations_repo = OperationTypesRepository()
+        operations_repo = OperationTypesRepository('data_operation')
         models = operations_repo.operations
 
+        operation_name = get_operation_type_from_id(self.operation_name)
+
         # If there is a such model in the list
-        if any(self.operation_name == model.id for model in models):
-            operation_type = 'model'
-        # Otherwise - it is preprocessing operations
-        else:
+        if any(operation_name == model.id for model in models):
             operation_type = 'data_operation'
+        # Otherwise - it is model
+        else:
+            operation_type = 'model'
         return operation_type

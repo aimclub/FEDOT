@@ -1,7 +1,7 @@
 Tuning
 ======
 
-.. automodule:: fedot.core.chains.tuning.tuner_interface
+.. automodule:: fedot.core.pipelines.tuning.tuner_interface
    :members:
    :show-inheritance:
 

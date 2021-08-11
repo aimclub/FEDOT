@@ -11,9 +11,9 @@ from PIL import Image
 
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.merge import DataMerger
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.supplementary_data import SupplementaryData
 
 
 @dataclass
@@ -82,7 +82,7 @@ class Data:
                                    task=task,
                                    data_type=DataTypesEnum.ts)
         else:
-            # Prepare InputData for train the chain
+            # Prepare InputData for train the pipeline
             input_data = InputData(idx=np.arange(0, len(time_series)),
                                    features=time_series,
                                    target=time_series,

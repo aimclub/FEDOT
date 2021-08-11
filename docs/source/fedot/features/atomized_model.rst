@@ -1,21 +1,21 @@
-Using the chain as an atomic model
+Using the pipeline as an atomic model
 ----------------------------------
 
-To create more complex chains from other nested chains, we created a class
-AtomizedModel, which wraps the chain in a wrapper and provides an interface
-to this chain as to the usual Model class of our framework.
+To create more complex pipelines from other nested pipelines, we created a class
+AtomizedModel, which wraps the pipeline in a wrapper and provides an interface
+to this pipeline as to the usual Model class of our framework.
 
 **Example of use:**
 
-In order to add another Chain to the Chain as a Model, you need to wrap the
-chain in the AtomizedModel class and all the functionality will be saved.
+In order to add another Pipeline to the Pipeline as a Model, you need to wrap the
+pipeline in the AtomizedModel class and all the functionality will be saved.
 
 .. code-block:: python
 
-    from fedot.core.chains.chain import Chain
+    from fedot.core.pipelines.pipeline import Pipeline
     from fedot.core.models.atomized_model import AtomizedModel
 
-    chain = Chain()
-    nested_chain = Chain()
-    atomized_model = AtomizedModel(nested_chain)
-    chain.add_node(atomized_model)
+    pipeline = Pipeline()
+    nested_pipeline = Pipeline()
+    atomized_model = AtomizedModel(nested_pipeline)
+    pipeline.add_node(atomized_model)

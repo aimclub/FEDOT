@@ -1,11 +1,11 @@
 from typing import Optional
 
 import numpy as np
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.feature_selection import RFE
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from fedot.core.operations.evaluation.\
+from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import EncodedInvariantImplementation
 
 
@@ -43,11 +43,11 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             pass
         return self.operation
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """ Method for making prediction
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by columns
         """
 

@@ -1,28 +1,38 @@
 import os
+
 import numpy as np
 import pandas as pd
 
 from fedot.core.data.data import InputData
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
-def get_ts_chain(window_size):
-    """ Function return chain with lagged transformation in it """
+def get_ts_pipeline(window_size):
+    """ Function return pipeline with lagged transformation in it """
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': window_size}
 
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
+
+
+def get_ransac_pipeline():
+    """ Function return pipeline with lagged transformation in it """
+    node_ransac = PrimaryNode('ransac_lin_reg')
+    node_final = SecondaryNode('linear', nodes_from=[node_ransac])
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 def test_lagged_with_invalid_params_fit_correctly():
-    """ The function define a chain with incorrect parameters in the lagged
-    transformation. During the training of the chain, the parameter 'window_size'
+    """ The function define a pipeline with incorrect parameters in the lagged
+    transformation. During the training of the pipeline, the parameter 'window_size'
     is corrected
     """
     window_size = 600
@@ -43,11 +53,30 @@ def test_lagged_with_invalid_params_fit_correctly():
                             task=task,
                             data_type=DataTypesEnum.ts)
 
-    # Get chain with lagged transformation in it
-    chain = get_ts_chain(window_size)
+    # Get pipeline with lagged transformation in it
+    pipeline = get_ts_pipeline(window_size)
 
     # Fit it
-    chain.fit(train_input)
+    pipeline.fit(train_input)
 
-    is_chain_was_fitted = True
-    assert is_chain_was_fitted
+    assert pipeline.is_fitted
+
+
+def test_ransac_with_invalid_params_fit_correctly():
+    """ Check that on a small dataset the RANSAC anomaly search algorithm can
+    adjust the values of hyperparameters
+
+    As stated in the sklearn documentation, min_samples is determined by default
+    based on how many features are in the dataset
+    Therefore, problems can arise when there are more attributes in a dataset
+    than the number of objects
+    """
+
+    input_regression = get_synthetic_regression_data(n_samples=20, n_features=23)
+
+    ransac_pipeline = get_ransac_pipeline()
+    ransac_pipeline.fit(input_regression)
+    predicted = ransac_pipeline.predict(input_regression)
+
+    assert ransac_pipeline.is_fitted
+    assert predicted is not None

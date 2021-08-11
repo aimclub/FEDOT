@@ -1,23 +1,22 @@
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.composing_history import ComposingHistory
-from fedot.core.composer.optimisers.gp_comp.individual import Individual
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.template import PipelineTemplate
 
 
 def create_individual():
-    first = PrimaryNode(operation_type='logit')
-    second = PrimaryNode(operation_type='lda')
-    final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
+    first = OptNode(content='logit')
+    second = OptNode(content='lda')
+    final = OptNode(content='knn', nodes_from=[first, second])
 
-    indiviual = Individual(chain=Chain(final))
+    indiviual = Individual(graph=OptGraph(final))
     indiviual.fitness = 1
     return indiviual
 
 
 def generate_history(generations_quantity, pop_size):
-    history = ComposingHistory()
+    history = OptHistory()
     for _ in range(generations_quantity):
         new_pop = []
         for _ in range(pop_size):
@@ -37,20 +36,20 @@ def test_history_adding():
         assert len(history.individuals[gen]) == pop_size
 
 
-def test_convert_chain_to_chain_template():
+def test_convert_pipeline_to_pipeline_template():
     generations_quantity = 2
     pop_size = 10
     history = generate_history(generations_quantity, pop_size)
     for gen in range(generations_quantity):
         for ind in range(pop_size):
-            assert type(history.individuals[gen][ind].chain) == ChainTemplate
+            assert type(history.individuals[gen][ind].graph) == PipelineTemplate
 
 
 def test_prepare_for_visualisation():
     generations_quantity = 2
     pop_size = 10
     history = generate_history(generations_quantity, pop_size)
-    assert len(history.historical_chains) == pop_size * generations_quantity
+    assert len(history.historical_pipelines) == pop_size * generations_quantity
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
 
 
@@ -62,9 +61,9 @@ def test_all_historical_quality():
     for pop_num, population in enumerate(history.individuals):
         if pop_num != 0:
             eval_fitness = [[fit[0] - 0.5, fit[1]] for fit in eval_fitness]
-        for chain_num, chain in enumerate(population):
-            fitness = MultiObjFitness(values=eval_fitness[chain_num],
-                                      weights=tuple([-1 for _ in range(len(eval_fitness[chain_num]))]))
-            chain.fitness = fitness
+        for pipeline_num, pipeline in enumerate(population):
+            fitness = MultiObjFitness(values=eval_fitness[pipeline_num],
+                                      weights=tuple([-1 for _ in range(len(eval_fitness[pipeline_num]))]))
+            pipeline.fitness = fitness
     all_quality = history.all_historical_quality
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2

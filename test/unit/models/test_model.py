@@ -1,16 +1,23 @@
+from copy import deepcopy
+
 import numpy as np
 import pytest
 from sklearn.datasets import make_classification
-from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import mean_absolute_error, mean_squared_error, roc_auc_score as roc_auc
+from sklearn.preprocessing import MinMaxScaler
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
@@ -40,7 +47,7 @@ def classification_dataset():
     threshold = 0.5
     classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
     classes = np.expand_dims(classes, axis=1)
-    data = InputData(features=x, target=classes, idx=np.arange(0, len(x)),
+    data = InputData(features=MinMaxScaler().fit_transform(x), target=classes, idx=np.arange(0, len(x)),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
 
@@ -61,98 +68,68 @@ def classification_dataset_with_redunant_features(
     return input_data
 
 
-def test_log_regression_fit_correct(classification_dataset):
-    data = classification_dataset
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    log_reg = Model(operation_type='logit')
-    _, train_predicted = log_reg.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_random_forest_fit_correct(data_fixture, request):
+def test_classification_models_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    random_forest = Model(operation_type='rf')
-    _, train_predicted = random_forest.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
     roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
+    logger = default_log('default_test_logger')
+
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+                                                 data_type=data.data_type,
+                                                 tags=['ml'])
+
+    for model_name in model_names:
+        logger.info(f"Test classification model: {model_name}.")
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=train_data)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        roc_on_test = get_roc_auc(valid_data=test_data,
+                                  predicted_data=test_pred)
+        if model_name not in ['bernb', 'multinb']:
+            assert roc_on_test >= roc_threshold
+        else:
+            assert roc_on_test >= 0.5
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_decision_tree_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
+def test_regression_models_fit_correct():
+    data = get_synthetic_regression_data(n_samples=1000, random_state=42)
+    train_data, test_data = train_test_data_setup(data)
+    logger = default_log('default_test_logger')
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+                                                 tags=['ml'])
 
-    decision_tree = Model(operation_type='dt')
-    _, train_predicted = decision_tree.fit(data=scaled_data)
+    for model_name in model_names:
+        logger.info(f"Test regression model: {model_name}.")
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=train_data)
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_lda_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
-
-    lda = Model(operation_type='lda')
-    _, train_predicted = lda.fit(data=scaled_data)
-
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
+        rmse_threshold = np.std(test_data.target) ** 2
+        assert rmse_value_test < rmse_threshold
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_qda_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
+def test_ts_models_fit_correct():
+    train_data, test_data = get_ts_data(forecast_length=5)
+    logger = default_log('default_test_logger')
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                                 tags=['time_series'])
 
-    qda = Model(operation_type='qda')
-    _, train_predicted = qda.fit(data=scaled_data)
+    for model_name in model_names:
+        logger.info(f"Test time series model: {model_name}.")
+        model = Model(operation_type=model_name)
+        _, train_predicted = model.fit(data=deepcopy(train_data))
+        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
-    roc_on_train = get_roc_auc(valid_data=train_data,
-                               predicted_data=train_predicted)
-    roc_threshold = 0.95
-    assert roc_on_train >= roc_threshold
+        mae_threshold = np.var(test_data.target) * 2
+        assert mae_value_test < mae_threshold
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -160,10 +137,10 @@ def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     kmeans = Model(operation_type='kmeans')
     _, train_predicted = kmeans.fit(data=scaled_data)
@@ -176,10 +153,10 @@ def test_svc_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     svc = Model(operation_type='svc')
     _, train_predicted = svc.fit(data=scaled_data)
@@ -196,10 +173,10 @@ def test_pca_model_removes_redunant_features_correct():
                                                          n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling chain. Fit predict it
-    scaling_chain = Chain(PrimaryNode('normalization'))
-    scaling_chain.fit(train_data)
-    scaled_data = scaling_chain.predict(train_data)
+    # Scaling pipeline. Fit predict it
+    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
+    scaling_pipeline.fit(train_data)
+    scaled_data = scaling_pipeline.predict(train_data)
 
     pca = DataOperation(operation_type='pca')
     _, train_predicted = pca.fit(data=scaled_data)

@@ -31,7 +31,7 @@ def prepare_input_data(train_file_path, test_file_path):
 
 
 def run_metocean_forecasting_problem(train_file_path, test_file_path,
-                                     forecast_length=1, is_visualise=False):
+                                     forecast_length=1, is_visualise=False, timeout=5):
     # Prepare data for train and test
     ssh_history, ws_history, ssh_obs = prepare_input_data(train_file_path, test_file_path)
 
@@ -42,14 +42,17 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
 
     fedot = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length),
-                  learning_time=5, verbose_level=4)
-    chain = fedot.fit(features=historical_data, target=ssh_history)
+                  timeout=timeout, verbose_level=4)
+
+    pipeline = fedot.fit(features=historical_data, target=ssh_history)
     fedot.forecast(historical_data, forecast_length=forecast_length)
+    metric = fedot.get_metrics(target=ssh_obs)
+
     if is_visualise:
-        chain.show()
+        pipeline.show()
         fedot.plot_prediction()
-    metrics = fedot.get_metrics(target=ssh_obs)
-    print(metrics)
+
+    return metric
 
 
 if __name__ == '__main__':
@@ -62,5 +65,5 @@ if __name__ == '__main__':
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
 
     run_metocean_forecasting_problem(file_path_train, file_path_test,
-                                     forecast_length=12,
+                                     forecast_length=12, timeout=5,
                                      is_visualise=True)

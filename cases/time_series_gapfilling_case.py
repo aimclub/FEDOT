@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
@@ -65,11 +65,11 @@ def plot_result(dataframe):
     plt.show()
 
 
-def get_composite_chain():
+def get_composite_pipeline():
     """
-    The function returns prepared chain of 5 models
+    The function returns prepared pipeline of 5 models
 
-    :return: Chain object
+    :return: Pipeline object
     """
 
     node_1 = PrimaryNode('lagged')
@@ -81,17 +81,17 @@ def get_composite_chain():
 
     node_final = SecondaryNode('ridge', nodes_from=[node_linear_1,
                                                     node_linear_2])
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_simple_chain():
-    """ Function returns simple chain """
+def get_simple_pipeline():
+    """ Function returns simple pipeline """
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': 150}
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
-    ridge_chain = Chain(node_ridge)
-    return ridge_chain
+    ridge_pipeline = Pipeline(node_ridge)
+    return ridge_pipeline
 
 
 def run_gapfilling_case(file_path):
@@ -110,17 +110,17 @@ def run_gapfilling_case(file_path):
     dataframe['date'] = pd.to_datetime(dataframe['date'])
 
     # Filling in gaps based on inverted ridge regression model
-    ridge_chain = get_simple_chain()
+    ridge_pipeline = get_simple_pipeline()
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                     chain=ridge_chain)
+                                     pipeline=ridge_pipeline)
     with_gap_array = np.array(dataframe['with_gap'])
     without_gap_arr_ridge = ridge_gapfiller.forward_inverse_filling(with_gap_array)
     dataframe['ridge'] = without_gap_arr_ridge
 
-    # Filling in gaps based on a chain of 5 models
-    composite_chain = get_composite_chain()
+    # Filling in gaps based on a pipeline of 5 models
+    composite_pipeline = get_composite_pipeline()
     composite_gapfiller = ModelGapFiller(gap_value=-100.0,
-                                         chain=composite_chain)
+                                         pipeline=composite_pipeline)
     without_gap_composite = composite_gapfiller.forward_filling(with_gap_array)
     dataframe['composite'] = without_gap_composite
     return dataframe

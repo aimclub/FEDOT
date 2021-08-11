@@ -1,16 +1,18 @@
 import numpy as np
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    _prepare_target, _ts_to_table
+    _prepare_target, _ts_to_table, _sparse_matrix
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.log import default_log
 
 window_size = 4
 forecast_length = 4
+log = default_log(__name__)
 
 
 def synthetic_univariate_ts():
@@ -132,6 +134,38 @@ def test_ts_to_lagged_table():
     assert final_target_as_tuple == correct_final_target
 
 
+def test_sparse_matrix():
+    # Create lagged matrix for sparse
+    train_input, _, _ = synthetic_univariate_ts()
+    _, lagged_table = _ts_to_table(idx=train_input.idx,
+                                   time_series=train_input.features,
+                                   window_size=window_size)
+    features_columns = _sparse_matrix(log, lagged_table)
+
+    # assert if sparse matrix features less than half or less than another dimension
+    assert features_columns.shape[0] == lagged_table.shape[0]
+    assert features_columns.shape[1] <= lagged_table.shape[1]/2 or features_columns.shape[1] < lagged_table.shape[0]
+
+
+def test_forecast_with_sparse_lagged():
+    train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
+
+    # Source data for lagged node
+    node_lagged = PrimaryNode('sparse_lagged')
+    # Set window size for lagged transformation
+    node_lagged.custom_params = {'window_size': window_size}
+
+    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    pipeline = Pipeline(node_final)
+
+    pipeline.fit(input_data=MultiModalData({'sparse_lagged': train_source_ts}))
+
+    forecast = pipeline.predict(input_data=MultiModalData({'sparse_lagged': predict_source_ts}))
+    is_forecasted = True
+
+    assert is_forecasted
+
+
 def test_forecast_with_exog():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
@@ -143,13 +177,13 @@ def test_forecast_with_exog():
     node_exog = PrimaryNode('exog_ts_data_source')
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_exog])
-    chain = Chain(node_final)
+    pipeline = Pipeline(node_final)
 
-    chain.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
-                                         'lagged': train_source_ts}))
+    pipeline.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
+                                            'lagged': train_source_ts}))
 
-    forecast = chain.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
-                                                        'lagged': predict_source_ts}))
+    forecast = pipeline.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
+                                                           'lagged': predict_source_ts}))
     prediction = np.ravel(np.array(forecast.predict))
 
     assert tuple(prediction) == tuple(ts_test)

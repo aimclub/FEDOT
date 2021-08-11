@@ -2,25 +2,19 @@ import warnings
 from abc import abstractmethod
 from typing import Optional
 
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.ensemble import (AdaBoostRegressor,
-                              ExtraTreesRegressor,
-                              GradientBoostingRegressor,
-                              RandomForestRegressor)
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import (Lasso as SklearnLassoReg,
-                                  LinearRegression as SklearnLinReg,
-                                  Ridge as SklearnRidgeReg,
-                                  SGDRegressor as SklearnSGD)
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, GradientBoostingRegressor, RandomForestClassifier, \
+    RandomForestRegressor
+from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
+    LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import DecisionTreeRegressor
-from xgboost import XGBClassifier
-from xgboost import XGBRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
@@ -68,12 +62,12 @@ class EvaluationStrategy:
 
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         Main method to predict the target data.
         :param trained_operation: trained operation object
         :param InputData predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
@@ -133,6 +127,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'lasso': SklearnLassoReg,
         'svr': SklearnSVR,
         'sgdr': SklearnSGD,
+        'lgbmreg': LGBMRegressor,
+        'catboostreg': CatBoostRegressor,
 
         'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
@@ -141,6 +137,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'dt': DecisionTreeClassifier,
         'rf': RandomForestClassifier,
         'mlp': MLPClassifier,
+        'lgbm': LGBMClassifier,
+        'catboost': CatBoostClassifier,
 
         'kmeans': SklearnKmeans,
     }
@@ -169,7 +167,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
-        if is_model_not_support_multi and current_task == TaskTypesEnum.ts_forecasting:
+
+        # Multi-output task
+        is_multi_target = len(train_data.target.shape) > 1
+        if is_model_not_support_multi and is_multi_target:
             # Manually wrap the regressor into multi-output model
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
@@ -178,12 +179,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         This method used for prediction of the target data.
         :param trained_operation: operation object
         :param predict_data: data to predict
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
@@ -202,6 +203,21 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     @property
     def implementation_info(self) -> str:
         return str(self._convert_to_operation(self.operation_type))
+
+    def _sklearn_compatible_prediction(self, trained_operation, features):
+        n_classes = len(trained_operation.classes_)
+        if self.output_mode == 'labels':
+            prediction = trained_operation.predict(features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_operation.predict_proba(features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs':
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
+
+        return prediction
 
 
 def convert_to_multivariate_model(sklearn_model, train_data: InputData):

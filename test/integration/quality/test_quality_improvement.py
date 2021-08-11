@@ -25,7 +25,7 @@ def test_classification_quality_improvement():
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'learning_time': 10,
+                       'timeout': 5,
                        'with_tuning': True}
 
     auto_model = Fedot(problem=problem, composer_params=composer_params, seed=42, verbose_level=4)

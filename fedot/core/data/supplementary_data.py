@@ -1,6 +1,7 @@
-import numpy as np
 from dataclasses import dataclass
 from typing import Optional
+
+import numpy as np
 
 
 @dataclass
@@ -13,7 +14,7 @@ class SupplementaryData:
     is_main_target: bool = True
     # Amount of nodes, which Data visited
     data_flow_length: int = 0
-    # Masked features in the for data
+    # Masked features for data
     features_mask: Optional[dict] = None
 
     def calculate_data_flow_len(self, outputs):

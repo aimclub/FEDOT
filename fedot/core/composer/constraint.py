@@ -1,10 +1,16 @@
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_validation import validate
+from copy import deepcopy
+from typing import Optional
+
+from fedot.core.optimisers.graph import OptGraph
+from fedot.core.pipelines.validation import validate
 
 
-def constraint_function(chain: Chain):
+def constraint_function(graph: OptGraph,
+                        params: Optional['GraphGenerationParams'] = None):
     try:
-        validate(chain)
+        rules = params.rules_for_constraint if params else None
+        object_for_validation = params.adapter.restore(deepcopy(graph))
+        validate(object_for_validation, rules)
         return True
     except ValueError:
         return False

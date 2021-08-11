@@ -1,15 +1,17 @@
-import numpy as np
-
 from typing import Optional
+
+import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
-from fedot.core.operations.evaluation.\
+
+from fedot.core.log import Log
+from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 
 
 class CustomSVCImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
         if not params:
             self.inner_model = SVC(kernel='linear',
                                    probability=True,
@@ -29,11 +31,11 @@ class CustomSVCImplementation(ModelImplementation):
         self.model.fit(train_data.features, train_data.target)
         return self.model
 
-    def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """ Method make prediction with labels of classes
 
         :param input_data: data with features to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         prediction = self.model.predict(input_data.features)
 

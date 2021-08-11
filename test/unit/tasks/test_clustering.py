@@ -1,32 +1,32 @@
 import numpy as np
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from test.unit.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
 
 
-def generate_chain() -> Chain:
+def generate_pipeline() -> Pipeline:
     node_scaling = PrimaryNode('scaling')
     node_first = SecondaryNode('kmeans', nodes_from=[node_scaling])
     node_second = SecondaryNode('kmeans', nodes_from=[node_scaling])
     node_root = SecondaryNode('logit', nodes_from=[node_first, node_second])
-    chain = Chain(node_root)
-    return chain
+    pipeline = Pipeline(node_root)
+    return pipeline
 
 
-def test_chain_with_clusters_fit_correct():
+def test_pipeline_with_clusters_fit_correct():
     mean_roc_on_test = 0
 
     # mean ROC AUC is analysed because of stochastic clustering
     for _ in range(5):
         data = get_synthetic_input_data(n_samples=10000)
 
-        chain = generate_chain()
+        pipeline = generate_pipeline()
         train_data, test_data = train_test_data_setup(data)
 
-        chain.fit(input_data=train_data)
-        _, roc_on_test = get_roc_auc_value(chain, train_data, test_data)
+        pipeline.fit(input_data=train_data)
+        _, roc_on_test = get_roc_auc_value(pipeline, train_data, test_data)
         mean_roc_on_test = np.mean([mean_roc_on_test, roc_on_test])
 
     roc_threshold = 0.5

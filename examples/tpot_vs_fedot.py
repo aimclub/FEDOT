@@ -5,8 +5,8 @@ from sklearn.pipeline import make_pipeline
 from tpot.builtins import StackingEstimator
 from tpot.export_utils import set_param_recursive
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 
 
@@ -38,10 +38,10 @@ def run_tpot_vs_fedot_example(train_file_path: str, test_file_path: str):
     node_scaling = PrimaryNode('scaling')
     node_bernb = SecondaryNode('bernb', nodes_from=[node_scaling])
     node_rf = SecondaryNode('rf', nodes_from=[node_bernb, node_scaling])
-    chain = Chain(node_rf)
+    pipeline = Pipeline(node_rf)
 
-    chain.fit(train_data)
-    results = chain.predict(test_data)
+    pipeline.fit(train_data)
+    results = pipeline.predict(test_data)
 
     roc_auc_value = roc_auc(y_true=testing_target,
                             y_score=results.predict)

@@ -23,8 +23,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest
           pip install -r requirements.txt
-          pip install -r extra_requirements.txt
+          pip install -r examples/requirements.txt
+          pip install -r fedot/utilities/profiler/requirements_memory_profiler.txt
+          pip install -r fedot/utilities/profiler/requirements_time_profiler.txt
           pip install pytest-cov
       - name: Test with pytest
         run: |
-          pytest -s
+          pytest --cov=fedot -s test/integration

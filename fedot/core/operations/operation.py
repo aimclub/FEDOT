@@ -1,32 +1,34 @@
-from sklearn.impute import SimpleImputer
-
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import OneHotEncodingImplementation
+    sklearn_transformations import OneHotEncodingImplementation, ImputationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Operation:
     """
-    Base class for operators in nodes. Operators could be machine learning
+    Base class for operations in nodes. Operations could be machine learning
     (or statistical) models or data operations
 
     :param operation_type: name of the operation
     :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Log = None):
+    def __init__(self, operation_type: str, log: Log = None, **kwargs):
         self.operation_type = operation_type
         self.log = log
 
         self._eval_strategy = None
         self.operations_repo = None
-        self.params = DEFAULT_PARAMS_STUB
+
+        self.params = _get_default_params(operation_type)
+        if not self.params:
+            self.params = DEFAULT_PARAMS_STUB
 
         if not log:
             self.log = default_log(__name__)
@@ -70,34 +72,35 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, data: InputData, is_fit_chain_stage: bool = True):
+    def fit(self, data: InputData, is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
         :param data: data used for operation training
         :return: tuple of trained operation and prediction on train data
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         self._init(data.task)
 
-        data = _fill_remaining_gaps(data, self.operation_type)
+        if 'imputation' not in self.operation_type:
+            data = _fill_remaining_gaps(data, self.operation_type)
 
         fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(fitted_operation, data, is_fit_chain_stage)
+        predict_train = self.predict(fitted_operation, data, is_fit_pipeline_stage)
 
         return fitted_operation, predict_train
 
     def predict(self, fitted_operation, data: InputData,
-                is_fit_chain_stage: bool, output_mode: str = 'default'):
+                is_fit_pipeline_stage: bool, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
         :param fitted_operation: trained operation object
         :param data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
@@ -110,7 +113,7 @@ class Operation:
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
             predict_data=data,
-            is_fit_chain_stage=is_fit_chain_stage)
+            is_fit_pipeline_stage=is_fit_pipeline_stage)
 
         if is_main_target is False:
             prediction.supplementary_data.is_main_target = is_main_target
@@ -137,13 +140,18 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     # Get acceptable task types for operation
     operation_info = operations_repo.operation_info_by_id(operation_type)
+
+    if operation_info is None:
+        raise ValueError(f'{operation_type} is not implemented '
+                         f'in {operations_repo.repository_name}')
+
     acceptable_task_types = operation_info.task_type
 
     # If the operation can't be used directly for the task type from data
     set_acceptable_types = set(acceptable_task_types)
     if current_task_type not in acceptable_task_types:
 
-        # Search the supplementary task types, that can be included in chain
+        # Search the supplementary task types, that can be included in pipeline
         # which solves main task
         globally_compatible_task_types = compatible_task_types(current_task_type)
         globally_set = set(globally_compatible_task_types)
@@ -159,7 +167,7 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
 def _fill_remaining_gaps(data: InputData, operation_type: str):
     """ Function for filling in the nans in the table with features """
-    # TODO discuss: move this "filling" to the chain method - we use such method too much here (for all tables)
+    # TODO discuss: move this "filling" to the pipeline method - we use such method too much here (for all tables)
     #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays
     features = data.features
 
@@ -169,7 +177,12 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
 
         # Apply most_frequent or mean filling strategy
         if len(categorical_ids) == 0:
-            data.features = SimpleImputer().fit_transform(features)
+            data.features = ImputationImplementation().fit_transform(data).predict
         else:
-            data.features = SimpleImputer(strategy='most_frequent').fit_transform(features)
+            data.features = ImputationImplementation(strategy='most_frequent').fit_transform(data).predict
     return data
+
+
+def _get_default_params(model_name: str):
+    with DefaultModelParamsRepository() as default_params_repo:
+        return default_params_repo.get_default_params_for_model(model_name)

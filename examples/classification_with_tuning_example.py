@@ -2,13 +2,13 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import classification_dataset
-from fedot.core.chains.tuning.unified import ChainTuner
 
 np.random.seed(2020)
 
@@ -66,7 +66,7 @@ def convert_to_labels(root_operation, prediction):
     return preds
 
 
-def run_classification_tuning_experiment(chain, tuner=None):
+def run_classification_tuning_experiment(pipeline, tuner=None):
 
     samples = [50, 550, 150]
     features = [1, 5, 10]
@@ -107,10 +107,10 @@ def run_classification_tuning_experiment(chain, tuner=None):
                                   data_type=DataTypesEnum.table)
 
         # Fit it
-        chain.fit_from_scratch(train_input)
+        pipeline.fit_from_scratch(train_input)
 
         # Predict
-        predicted_labels = chain.predict(predict_input)
+        predicted_labels = pipeline.predict(predict_input)
         preds = predicted_labels.predict
 
         print(f"{roc_auc(y_test, preds):.4f}\n")
@@ -118,26 +118,25 @@ def run_classification_tuning_experiment(chain, tuner=None):
         if tuner is not None:
             print(f'Start tuning process ...')
 
-            chain_tuner = tuner(chain=chain, task=task,
+            pipeline_tuner = tuner(pipeline=pipeline, task=task,
                                 iterations=50)
-            tuned_chain = chain_tuner.tune_chain(input_data=train_input,
+            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                                  loss_function=roc_auc)
 
             # Predict
-            predicted_values_tuned = tuned_chain.predict(predict_input)
+            predicted_values_tuned = tuned_pipeline.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict
 
             print(f'Obtained metrics after tuning:')
             print(f"{roc_auc(y_test, preds_tuned):.4f}\n")
 
 
-# Script for testing is chain can process different datasets for classification
+# Script for testing is pipeline can process different datasets for classification
 if __name__ == '__main__':
-
-    # Prepare chain
+    # Prepare pipeline
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])
-    chain_for_experiment = Chain(node_final)
+    pipeline_for_experiment = Pipeline(node_final)
 
-    run_classification_tuning_experiment(chain=chain_for_experiment,
-                                         tuner=ChainTuner)
+    run_classification_tuning_experiment(pipeline=pipeline_for_experiment,
+                                         tuner=PipelineTuner)

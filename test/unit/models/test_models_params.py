@@ -1,34 +1,34 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.chains.chain import Chain
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synth_dataset_generator import regression_dataset, classification_dataset
+from fedot.utilities.synth_dataset_generator import classification_dataset, regression_dataset
 
 
-def get_knn_reg_chain(k_neighbors):
-    """ Function return chain with K-nn regression model in it """
+def get_knn_reg_pipeline(k_neighbors):
+    """ Function return pipeline with K-nn regression model in it """
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('knnreg', nodes_from=[node_scaling])
     node_final.custom_params = {'n_neighbors': k_neighbors}
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
-def get_knn_class_chain(k_neighbors):
-    """ Function return chain with K-nn classification model in it """
+def get_knn_class_pipeline(k_neighbors):
+    """ Function return pipeline with K-nn classification model in it """
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('knn', nodes_from=[node_scaling])
     node_final.custom_params = {'n_neighbors': k_neighbors}
-    chain = Chain(node_final)
-    return chain
+    pipeline = Pipeline(node_final)
+    return pipeline
 
 
 def test_knn_reg_with_invalid_params_fit_correctly():
-    """ The function define a chain with incorrect parameters in the K-nn regression
-    model. During the training of the chain, the parameter 'n_neighbors' is corrected
+    """ The function define a pipeline with incorrect parameters in the K-nn regression
+    model. During the training of the pipeline, the parameter 'n_neighbors' is corrected
     """
     samples_amount = 100
     k_neighbors = 150
@@ -48,19 +48,19 @@ def test_knn_reg_with_invalid_params_fit_correctly():
     train_input = InputData(idx=np.arange(0, len(x_data)), features=x_data,
                             target=y_data, task=task, data_type=DataTypesEnum.table)
 
-    # Prepare regression chain
-    chain = get_knn_reg_chain(k_neighbors)
+    # Prepare regression pipeline
+    pipeline = get_knn_reg_pipeline(k_neighbors)
 
     # Fit it
-    chain.fit(train_input)
+    pipeline.fit(train_input)
 
-    is_chain_was_fitted = True
-    assert is_chain_was_fitted
+    is_pipeline_was_fitted = True
+    assert is_pipeline_was_fitted
 
 
 def test_knn_class_with_invalid_params_fit_correctly():
-    """ The function define a chain with incorrect parameters in the K-nn classification
-    model. During the training of the chain, the parameter 'n_neighbors' is corrected
+    """ The function define a pipeline with incorrect parameters in the K-nn classification
+    model. During the training of the pipeline, the parameter 'n_neighbors' is corrected
     """
 
     samples_amount = 100
@@ -80,11 +80,11 @@ def test_knn_class_with_invalid_params_fit_correctly():
     train_input = InputData(idx=np.arange(0, len(x_data)), features=x_data,
                             target=y_data, task=task, data_type=DataTypesEnum.table)
 
-    # Prepare classification chain
-    chain = get_knn_class_chain(k_neighbors)
+    # Prepare classification pipeline
+    pipeline = get_knn_class_pipeline(k_neighbors)
 
     # Fit it
-    chain.fit(train_input)
+    pipeline.fit(train_input)
 
-    is_chain_was_fitted = True
-    assert is_chain_was_fitted
+    is_pipeline_was_fitted = True
+    assert is_pipeline_was_fitted

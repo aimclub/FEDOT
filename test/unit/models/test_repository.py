@@ -28,7 +28,7 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
                                                  tags=['ml'])
 
         assert 'linear' in model_names
-        assert len(model_names) == 12
+        assert len(model_names) == 14
 
 
 def test_search_in_repository_by_tag_correct():
@@ -39,7 +39,7 @@ def test_search_in_repository_by_tag_correct():
 
         model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'])
         assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge'}.issubset(model_names)
-        assert len(model_names) == 9
+        assert len(model_names) == 10
 
         model_names, _ = repo.operations_with_tag(tags=['non_real_tag'])
         assert len(model_names) == 0
@@ -87,3 +87,14 @@ def test_names_with_postfix():
     name_with_postfix = 'xgboost/best_model_ever'
     name_without_postfix = get_operation_type_from_id(name_with_postfix)
     assert name_without_postfix == 'xgboost'
+
+
+def test_cls_method_assign_repo():
+    repository = OperationTypesRepository().assign_repo('model', 'automl_repository.json')
+    assert repository.repository_name == 'automl_repository.json'
+
+
+def test_operation_types_repository_repr():
+    repository = OperationTypesRepository().assign_repo('model', 'model_repository.json')
+
+    assert repository.__repr__() == 'OperationTypesRepository for model_repository.json'

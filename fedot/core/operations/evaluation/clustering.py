@@ -1,5 +1,4 @@
 import warnings
-
 from typing import Optional
 
 from sklearn.cluster import KMeans as SklearnKmeans
@@ -38,12 +37,12 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
-                is_fit_chain_stage: bool) -> OutputData:
+                is_fit_pipeline_stage: bool) -> OutputData:
         """
         Predict method for clustering task
         :param trained_operation: operation object
         :param predict_data: data used for prediction
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return :
         """
         prediction = trained_operation.predict(predict_data.features)

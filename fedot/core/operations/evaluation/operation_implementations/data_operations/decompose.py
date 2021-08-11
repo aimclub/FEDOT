@@ -1,10 +1,11 @@
-import numpy as np
-
 from typing import Optional
+
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.operations.evaluation.operation_implementations.\
+
+from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class DecomposerImplementation(DataOperationImplementation):
@@ -23,11 +24,11 @@ class DecomposerImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
         Method for modifying input_data
         :param input_data: data with features, target and ids
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
         raise NotImplementedError()
@@ -76,18 +77,18 @@ class DecomposerRegImplementation(DecomposerImplementation):
         super().__init__()
         self.params = None
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
         Method for modifying input_data
         :param input_data: data with features, target and ids
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
 
         # Get inputs from Data and Model parent
         prev_prediction, prev_features = self.divide_inputs(input_data)
 
-        if is_fit_chain_stage:
+        if is_fit_pipeline_stage:
             # Target must be a column or table, not one-dimensional array
             target = np.array(input_data.target)
             if len(target.shape) < 2:
@@ -119,11 +120,11 @@ class DecomposerClassImplementation(DecomposerImplementation):
         super().__init__()
         self.params = None
 
-    def transform(self, input_data, is_fit_chain_stage: Optional[bool]):
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
         Method for modifying input_data
         :param input_data: data with features, target and ids
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
 
@@ -133,7 +134,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         # Get inputs from Data and Model parent
         prev_prediction, prev_features = self.divide_inputs(input_data)
 
-        if is_fit_chain_stage:
+        if is_fit_pipeline_stage:
             # Target must be a column or table, not one-dimensional array
             target = np.array(input_data.target)
             if len(target.shape) < 2:

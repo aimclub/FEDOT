@@ -1,24 +1,19 @@
-import numpy as np
+from typing import Callable, Optional
 
-from typing import Optional, Callable
+import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from fedot.core.operations.evaluation.\
+
+from fedot.core.log import Log
+from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.log import Log, default_log
 
 
 class KNeighborsImplementation(ModelImplementation):
 
     def __init__(self, log: Log = None, **params: Optional[dict]):
-        super().__init__()
+        super().__init__(log)
         self.params = params
         self.model = None
-
-        # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -28,11 +23,11 @@ class KNeighborsImplementation(ModelImplementation):
 
         raise NotImplementedError()
 
-    def predict(self, input_data, is_fit_chain_stage: Optional[bool] = None):
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """ Method for making prediction
 
         :param input_data: data with features to process
-        :param is_fit_chain_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         prediction = self.model.predict(input_data.features)
 

@@ -5,14 +5,15 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from examples.chain_and_history_visualisation import run_chain_ang_history_visualisation
-from examples.chain_log import run_log_example
-from examples.chain_tune import chain_tuning, get_case_train_test_data, get_simple_chain
 from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
                                         run_ts_forecasting_example)
-from examples.multi_modal_chain import run_multi_modal_chain
+from examples.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.multiclass_prediction import get_model
+from examples.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
+from examples.pipeline_log import run_log_example
+from examples.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
 from examples.ts_forecasting_with_exogenous import run_exogenous_experiment
+from examples.ts_foresting_with_nemo_multiple_example import run_multiple_example
 from examples.ts_gapfilling_example import run_gapfilling_example
 from examples.ts_multistep_example import run_multistep_example
 from fedot.core.utils import fedot_project_root
@@ -22,8 +23,8 @@ def test_multiclass_example():
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/multiclass_classification.csv')
 
-    chain = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
-    assert chain is not None
+    pipeline = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
+    assert pipeline is not None
 
 
 def test_gapfilling_example():
@@ -49,8 +50,19 @@ def test_exogenous_ts_example():
                              with_visualisation=False)
 
 
-def test_chain_and_history_example():
-    run_chain_ang_history_visualisation(with_chain_visualisation=False)
+def test_nemo_multiple_points_example():
+    project_root_path = str(fedot_project_root())
+    path = os.path.join(project_root_path, 'test/data/ssh_points_grid_simple.csv')
+    exog_path = os.path.join(project_root_path, 'test/data/ssh_nemo_points_grid_simple.csv')
+    run_multiple_example(path_to_file=path,
+                         path_to_exog_file=exog_path,
+                         out_path=None,
+                         len_forecast=30,
+                         is_boxplot_visualize=False)
+
+
+def test_pipeline_and_history_example():
+    run_pipeline_ang_history_visualisation(with_pipeline_visualisation=False)
 
 
 def test_log_example():
@@ -60,18 +72,18 @@ def test_log_example():
     assert os.path.isfile(log_file_name)
 
 
-def test_chain_tuning_example():
+def test_pipeline_tuning_example():
     train_data, test_data = get_case_train_test_data()
 
-    # Chain composition
-    chain = get_simple_chain()
+    # Pipeline composition
+    pipeline = get_simple_pipeline()
 
-    # Chain tuning
-    after_tune_roc_auc, _ = chain_tuning(chain=chain,
-                                         train_data=train_data,
-                                         test_data=test_data,
-                                         local_iter=1,
-                                         tuner_iter_num=2)
+    # Pipeline tuning
+    after_tune_roc_auc, _ = pipeline_tuning(pipeline=pipeline,
+                                            train_data=train_data,
+                                            test_data=test_data,
+                                            local_iter=1,
+                                            tuner_iter_num=2)
 
 
 def test_multistep_example():
@@ -88,16 +100,16 @@ def test_multistep_example():
 
 
 def test_api_example():
-    prediction = run_classification_example()
+    prediction = run_classification_example(timeout=1)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(with_plot=False, with_chain_vis=False)
+    forecast = run_ts_forecasting_example(with_plot=False, with_pipeline_vis=False, timeout=1)
     assert forecast is not None
 
-    pareto = run_classification_multiobj_example()
+    pareto = run_classification_multiobj_example(timeout=1)
     assert pareto is not None
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_chain(files_path='cases/data/mm_imdb', is_visualise=False)
+    result = run_multi_modal_pipeline(files_path='cases/data/mm_imdb', is_visualise=False)
     assert result > 0

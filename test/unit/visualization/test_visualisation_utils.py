@@ -1,18 +1,19 @@
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.chain_convert import chain_template_as_nx_graph
-from fedot.core.chains.chain_template import ChainTemplate
-from fedot.core.chains.node import SecondaryNode, PrimaryNode
-from fedot.core.composer.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from fedot.core.composer.visualisation import hierarchy_pos, ChainVisualiser
+from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.visualisation.graph_viz import hierarchy_pos
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
-def chain_first():  # tested chain
+def pipeline_first():  # tested pipeline
     #    XG
     #  |     \
     # XG     KNN
     # |  \    |  \
     # LR LDA LR  LDA
-    chain = Chain()
+    pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
         [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
@@ -21,21 +22,21 @@ def chain_first():  # tested chain
         for requirement_model in ('logit', 'lda'):
             new_node = PrimaryNode(requirement_model)
             root_node_child.nodes_from.append(new_node)
-            chain.add_node(new_node)
-        chain.add_node(root_node_child)
+            pipeline.add_node(new_node)
+        pipeline.add_node(root_node_child)
         root_of_tree.nodes_from.append(root_node_child)
 
-    chain.add_node(root_of_tree)
-    return chain
+    pipeline.add_node(root_of_tree)
+    return pipeline
 
 
-def test_chain_template_as_nx_graph():
-    chain = chain_first()
-    chain_template = ChainTemplate(chain)
-    graph, node_labels = chain_template_as_nx_graph(chain=chain_template)
+def test_pipeline_template_as_nx_graph():
+    pipeline = pipeline_first()
+    pipeline_template = PipelineTemplate(pipeline)
+    graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
 
-    assert len(graph.nodes) == len(chain.nodes)  # check node quantity
-    assert node_labels[0] == str(chain.root_node)  # check root node
+    assert len(graph.nodes) == len(pipeline.nodes)  # check node quantity
+    assert node_labels[0] == str(pipeline.root_node)  # check root node
 
 
 def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse):
@@ -61,13 +62,13 @@ def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse)
 
 
 def test_hierarchy_pos():
-    chain = chain_first()
+    pipeline = pipeline_first()
     real_hierarchy_levels_y = {0: ['xgboost'], 1: ['xgboost', 'knn'],
                                2: ['logit', 'lda', 'logit', 'lda']}
     real_hierarchy_levels_x = {0: ['logit'], 1: ['xgboost'], 2: ['lda'],
                                3: ['xgboost'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
-    chain_template = ChainTemplate(chain)
-    graph, node_labels = chain_template_as_nx_graph(chain=chain_template)
+    pipeline_template = PipelineTemplate(pipeline)
+    graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
     pos = hierarchy_pos(graph.to_undirected(), root=0)
     comparable_lists_y = make_comparable_lists(pos, real_hierarchy_levels_y,
                                                node_labels, 1, reverse=True)
@@ -78,9 +79,9 @@ def test_hierarchy_pos():
 
 
 def test_extract_objectives():
-    visualiser = ChainVisualiser()
+    visualiser = PipelineEvolutionVisualiser()
     num_of_inds = 5
-    individuals = [chain_first() for _ in range(num_of_inds)]
+    individuals = [pipeline_first() for _ in range(num_of_inds)]
     fitness = (-0.8, 0.1)
     weights = tuple([-1 for _ in range(len(fitness))])
     for ind in individuals:
