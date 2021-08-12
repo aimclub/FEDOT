@@ -3,6 +3,7 @@ import sys
 
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def extract_data_from_config_file(file):
