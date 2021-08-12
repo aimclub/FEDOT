@@ -268,7 +268,7 @@ def test_local_save_for_pipeline_correctly():
     json, dict_fitted = pipeline_fitted.save()
     assert json is not None
     assert len(dict_fitted) == 9
-    assert dict_fitted['fitted_operations\\operation_3.pkl'] is not None
+    assert dict_fitted['operation_3'] is not None
 
 
 def test_export_import_for_one_pipeline_object_correctly():
@@ -293,7 +293,7 @@ def test_export_import_for_one_pipeline_object_correctly():
 
     assert json_first == json_second
     assert len(dict_fitted) == 9
-    assert dict_fitted['fitted_operations\\operation_3.pkl'] is not None
+    assert dict_fitted['operation_3'] is not None
 
 
 def test_absolute_relative_paths_correctly_no_exception():

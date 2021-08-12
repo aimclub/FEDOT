@@ -140,14 +140,22 @@ class OperationTemplate(OperationTemplateAbstract):
         if path:
             _check_existing_path(path)
 
+            # dictionary with paths to saved fitted operations
             if self.fitted_operation:
                 path_fitted_operations = os.path.join(path, 'fitted_operations')
                 _check_existing_path(path_fitted_operations)
                 joblib.dump(self.fitted_operation, os.path.join(path, self.fitted_operation_path))
-
-        bytes_container = BytesIO()
-        joblib.dump(self.fitted_operation, bytes_container)
-        return bytes_container
+                return os.path.join(path, 'fitted_operations', f'operation_{self.operation_id}.pkl')
+            else:
+                return None
+        else:
+            # dictionary with bytes of fitted operations
+            if self.fitted_operation:
+                bytes_container = BytesIO()
+                joblib.dump(self.fitted_operation, bytes_container)
+                return bytes_container
+            else:
+                return None
 
     def import_json(self, operation_object: dict):
         required_fields = ['operation_id', 'operation_type', 'params', 'nodes_from']

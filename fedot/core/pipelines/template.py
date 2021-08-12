@@ -126,7 +126,11 @@ class PipelineTemplate:
     def _create_fitted_operations(self, path=None):
         dict_fitted_operations = {}
         for operation in self.operation_templates:
-            dict_fitted_operations[operation.fitted_operation_path] = operation.export_operation(path)
+            dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(path)
+
+        if all([val is None for val in dict_fitted_operations.values()]):
+            return None
+
         return dict_fitted_operations
 
     def _prepare_paths(self, path: str):
