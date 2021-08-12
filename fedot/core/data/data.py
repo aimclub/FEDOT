@@ -324,6 +324,22 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
     return data_has_categorical_columns
 
 
+def data_has_missing_values(data: Union[InputData, MultiModalData]) -> bool:
+    """ Check data for missing values."""
+
+    if isinstance(data, MultiModalData):
+        for data_source_name, values in data.items():
+            if _data_type_is_table(values):
+                return np.isnan(values.features)
+    else:
+        return np.isnan(data.features)
+    return False
+
+
+def _data_type_is_table(data: InputData) -> bool:
+    return data.data_type == DataTypesEnum.table
+
+
 def _integer_to_categorical(data: InputData) -> bool:
     """ If some numerical column has unique values less then
     MAX_UNIQ_VAL, then convert this column to string.

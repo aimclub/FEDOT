@@ -249,6 +249,7 @@ def test_categorical_preprocessing_unidata():
     prediction_proba = auto_model.predict_proba(features=test_data)
 
     assert prediction is not None
+    assert prediction_proba is not None
 
 
 def test_categorical_preprocessing_unidata_predefined():
@@ -260,14 +261,27 @@ def test_categorical_preprocessing_unidata_predefined():
     prediction_proba = auto_model.predict_proba(features=test_data)
 
     assert prediction is not None
+    assert prediction_proba is not None
 
 
 def test_categorical_preprocessing_unidata_predefined_linear():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', composer_params=composer_params)
-    auto_model.fit(features=train_data, predefined_model='logit')
-    prediction = auto_model.predict(features=test_data)
-    prediction_proba = auto_model.predict_proba(features=test_data)
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
 
     assert prediction is not None
+
+
+def test_fill_nan_without_categorical():
+    train_data, test_data = load_categorical_unimodal()
+    train_data.features = np.hstack((train_data.features[:, :2], train_data.features[:, 4:]))
+    test_data.features = np.hstack((test_data.features[:, :2], test_data.features[:, 4:]))
+
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+
+    assert np.isnan(train_data.features).sum() == 0
+    assert np.isnan(test_data.features).sum() == 0

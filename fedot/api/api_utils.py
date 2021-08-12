@@ -244,32 +244,36 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
     return pipeline_for_return, best_candidates, history
 
 
-def _create_unimodal_pipeline(task: Task, has_categorical_features: bool) -> Node:
+def _create_unidata_pipeline(task: Task, has_categorical_features: bool) -> Node:
+    node_imputation = PrimaryNode('simple_imputation')
     if task.task_type == TaskTypesEnum.ts_forecasting:
-        node_final = SecondaryNode('ridge', [PrimaryNode('lagged')])
+        node_lagged = SecondaryNode('lagged', [node_imputation])
+        node_final = SecondaryNode('ridge', [node_lagged])
     else:
         if has_categorical_features:
-            node_encoding = PrimaryNode('one_hot_encoding')
-            node_primary = SecondaryNode('scaling', [node_encoding])
+            node_encoder = SecondaryNode('one_hot_encoding', [node_imputation])
+            node_preprocessing = SecondaryNode('scaling', [node_encoder])
         else:
-            node_primary = PrimaryNode('scaling')
+            node_preprocessing = SecondaryNode('scaling', [node_imputation])
+
         if task.task_type == TaskTypesEnum.classification:
-            node_final = SecondaryNode('xgboost', nodes_from=[node_primary])
+            node_final = SecondaryNode('xgboost', nodes_from=[node_preprocessing])
         elif task.task_type == TaskTypesEnum.regression:
-            node_final = SecondaryNode('xgbreg', nodes_from=[node_primary])
+            node_final = SecondaryNode('xgbreg', nodes_from=[node_preprocessing])
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
 
     return node_final
 
 
-def _create_multimodal_pipeline(task: Task, data: MultiModalData, has_categorical_features: bool) -> Node:
+def _create_multidata_pipeline(task: Task, data: MultiModalData, has_categorical_features: bool) -> Node:
     if task.task_type == TaskTypesEnum.ts_forecasting:
         node_final = SecondaryNode('ridge', nodes_from=[])
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_ts'):
                 node_primary = PrimaryNode(data_source_name)
-                node_lagged = SecondaryNode('lagged', [node_primary])
+                node_imputation = SecondaryNode('simple_imputation', [node_primary])
+                node_lagged = SecondaryNode('lagged', [node_imputation])
                 node_last = SecondaryNode('ridge', [node_lagged])
                 node_final.nodes_from.append(node_last)
     elif task.task_type == TaskTypesEnum.classification:
@@ -289,12 +293,13 @@ def _create_first_multimodal_nodes(data: MultiModalData, has_categorical: bool) 
 
     for data_source_name, values in data.items():
         node_primary = PrimaryNode(data_source_name)
+        node_imputation = SecondaryNode('simple_imputation', [node_primary])
         if data_source_name.startswith('data_source_table') and has_categorical:
-            node_encoder = SecondaryNode('one_hot_encoding', [node_primary])
-            node_scaling = SecondaryNode('scaling', [node_encoder])
+            node_encoder = SecondaryNode('one_hot_encoding', [node_imputation])
+            node_preprocessing = SecondaryNode('scaling', [node_encoder])
         else:
-            node_scaling = SecondaryNode('scaling', [node_primary])
-        node_last = SecondaryNode('ridge', [node_scaling])
+            node_preprocessing = SecondaryNode('scaling', [node_imputation])
+        node_last = SecondaryNode('ridge', [node_preprocessing])
         nodes_from.append(node_last)
 
     return nodes_from
@@ -304,9 +309,9 @@ def _obtain_initial_assumption(task: Task, data: Union[InputData, MultiModalData
     has_categorical_features = data_has_categorical_features(data)
 
     if isinstance(data, MultiModalData):
-        node_final = _create_multimodal_pipeline(task, data, has_categorical_features)
+        node_final = _create_multidata_pipeline(task, data, has_categorical_features)
     elif isinstance(data, InputData):
-        node_final = _create_unimodal_pipeline(task, has_categorical_features)
+        node_final = _create_unidata_pipeline(task, has_categorical_features)
     else:
         raise NotImplementedError(f"Don't handle {type(data)}")
 
