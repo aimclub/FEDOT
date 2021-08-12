@@ -150,7 +150,6 @@ def test_sparse_matrix():
 def test_forecast_with_sparse_lagged():
     train_source_ts, predict_source_ts, train_exog_ts, predict_exog_ts, ts_test = synthetic_with_exogenous_ts()
 
-    # Source data for lagged node
     node_lagged = PrimaryNode('sparse_lagged')
     # Set window size for lagged transformation
     node_lagged.custom_params = {'window_size': window_size}
