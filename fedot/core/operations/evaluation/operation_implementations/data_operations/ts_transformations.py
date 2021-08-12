@@ -52,7 +52,7 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Correct window size parameter
         log_info, self.window_size = _check_and_correct_window_size(new_input_data.features, self.window_size,
-                                                                    forecast_length)
+                                                                    forecast_length, self.window_size_minimum)
         if log_info:
             self.log.info(log_info)
 
