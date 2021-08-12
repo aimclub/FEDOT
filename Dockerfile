@@ -2,8 +2,8 @@
 FROM ubuntu:20.04
 
 RUN apt-get update && \
-    apt-get install -y python3.8 python3-pip
-RUN rm -rf /var/lib/apt/lists/*
+    apt-get install -y python3.8 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /home/FEDOT/requirements.txt
 RUN pip3 install pip==19.3.1 && \
@@ -14,4 +14,4 @@ COPY . /home/FEDOT
 
 ENV PYTHONPATH /home/FEDOT
 
-ENTRYPOINT ["python3", "main.py",  "/home/FEDOT/.config"]
+ENTRYPOINT ["python3", "run_pipeline.py",  "/home/FEDOT/.config"]
