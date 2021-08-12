@@ -2,12 +2,13 @@ from copy import copy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.data.data import InputData, data_has_categorical_features, data_has_missing_values
+from fedot.core.data.data import InputData, data_has_categorical_features, data_has_missing_values, data_type_is_table
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
@@ -17,7 +18,6 @@ from fedot.core.optimisers.utils.population_utils import input_data_characterist
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.data.data import data_type_is_table
 
 # The allowed empirical partition limit of the number of rows to delete.
 # Rows that have 'string' type, instead of other 'integer' observes.
