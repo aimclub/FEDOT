@@ -1,0 +1,77 @@
+{
+    "total_pipeline_operations": {
+        "lagged": 1,
+        "xgbreg": 1
+    },
+    "depth": 2,
+    "nodes": [
+        {
+            "operation_id": 1,
+            "operation_type": "lagged",
+            "operation_name": "LaggedTransformationImplementation",
+            "custom_params": {
+                "window_size": 85.34131899880714
+            },
+            "params": {
+                "window_size": 85.34131899880714
+            },
+            "nodes_from": [],
+            "fitted_operation_path": "fitted_operations\\operation_1.pkl",
+            "rating": null
+        },
+        {
+            "operation_id": 0,
+            "operation_type": "xgbreg",
+            "operation_name": "MultiOutputRegressor",
+            "custom_params": {
+                "learning_rate": 0.5,
+                "max_depth": 10,
+                "min_child_weight": 16,
+                "n_estimators": 100,
+                "objective": "reg:squarederror",
+                "subsample": 0.7500000000000001
+            },
+            "params": {
+                "estimator__objective": "reg:squarederror",
+                "estimator__base_score": null,
+                "estimator__booster": null,
+                "estimator__colsample_bylevel": null,
+                "estimator__colsample_bynode": null,
+                "estimator__colsample_bytree": null,
+                "estimator__gamma": null,
+                "estimator__gpu_id": null,
+                "estimator__importance_type": "gain",
+                "estimator__interaction_constraints": null,
+                "estimator__learning_rate": 0.5,
+                "estimator__max_delta_step": null,
+                "estimator__max_depth": 10,
+                "estimator__min_child_weight": 16,
+                "estimator__missing": NaN,
+                "estimator__monotone_constraints": null,
+                "estimator__n_estimators": 100,
+                "estimator__n_jobs": null,
+                "estimator__num_parallel_tree": null,
+                "estimator__random_state": null,
+                "estimator__reg_alpha": null,
+                "estimator__reg_lambda": null,
+                "estimator__scale_pos_weight": null,
+                "estimator__subsample": 0.7500000000000001,
+                "estimator__tree_method": null,
+                "estimator__validate_parameters": false,
+                "estimator__verbosity": null,
+                "n_jobs": null,
+                "learning_rate": 0.5,
+                "max_depth": 10,
+                "min_child_weight": 16,
+                "n_estimators": 100,
+                "objective": "reg:squarederror",
+                "subsample": 0.7500000000000001
+            },
+            "nodes_from": [
+                1
+            ],
+            "fitted_operation_path": "fitted_operations\\operation_0.pkl",
+            "rating": null
+        }
+    ]
+}

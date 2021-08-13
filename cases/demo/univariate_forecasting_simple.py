@@ -41,13 +41,13 @@ if __name__ == '__main__':
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 2,
+                       'timeout': 0.2,
                        'preset': 'light_tun',
                        'metric': 'rmse',
                        'cv_folds': 2,
                        'validation_blocks': 2}
-    forecast = automl_fit_forecast(train_input, predict_input, composer_params,
-                                   vis=True, in_sample_forecasting=False)
+    forecast, obtained_pipeline = automl_fit_forecast(train_input, predict_input, composer_params,
+                                                      vis=True, in_sample_forecasting=False)
 
     mse_metric = mean_squared_error(predict_input.target, forecast, squared=False)
     mae_metric = mean_absolute_error(predict_input.target, forecast)
