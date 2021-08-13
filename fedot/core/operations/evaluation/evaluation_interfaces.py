@@ -175,6 +175,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
         else:
+            print(self.operation_id)
             operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
