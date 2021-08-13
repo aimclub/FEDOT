@@ -7,14 +7,22 @@ from fedot.core.data.data_split import train_test_data_setup
 
 # Additional custom functions
 from cases.demo.processing import prepare_unimodal_data, plot_diesel_and_wind, \
-    plot_results, automl_through_api
+    plot_results, automl_fit_forecast
 
 from pylab import rcParams
 rcParams['figure.figsize'] = 15, 7
 
 
 if __name__ == '__main__':
-    forecast_length = 30
+    """ 
+    Below is an example of univariate time series forecasting.
+    An example of how forecasts can be made is presented and a simple 
+    validation is given on a single block which length is equal to the 
+    length of the forecast horizon. 
+    """
+
+    # Define forecast horizon and read dataframe
+    forecast_length = 20
     df = pd.read_csv('pw_dataset.csv', parse_dates=['datetime'])
 
     # Make visualisation
@@ -27,8 +35,19 @@ if __name__ == '__main__':
     # Split data into train and test
     train_input, predict_input = train_test_data_setup(input_ts)
 
-    # Make predictions
-    forecast = automl_through_api(train_input, predict_input, timeout=10)
+    # Prepare parameters for algorithm launch
+    # timeout 2 - means that AutoML algorithm will work for 2 minutes
+    composer_params = {'max_depth': 4,
+                       'max_arity': 3,
+                       'pop_size': 20,
+                       'num_of_generations': 100,
+                       'timeout': 2,
+                       'preset': 'light_tun',
+                       'metric': 'rmse',
+                       'cv_folds': 2,
+                       'validation_blocks': 2}
+    forecast = automl_fit_forecast(train_input, predict_input, composer_params,
+                                   vis=True, in_sample_forecasting=False)
 
     mse_metric = mean_squared_error(predict_input.target, forecast, squared=False)
     mae_metric = mean_absolute_error(predict_input.target, forecast)
