@@ -31,10 +31,12 @@ class OptNode:
     :param nodes_from: parent nodes
     """
 
-    def __init__(self, content: str = '',
+    def __init__(self, content: dict,
                  nodes_from: Optional[List['OptNode']] = None,
                  log: Optional[Log] = None
                  ):
+        default_dict = {'params': 'default_params'}
+
         self.log = log
         if not log:
             self.log = default_log(__name__)
@@ -42,7 +44,7 @@ class OptNode:
             self.log = log
 
         self.nodes_from = nodes_from if nodes_from is not None else []
-        self.content = content
+        self.content = {**content, **default_dict}
         self._operator = NodeOperator(self)
 
     @property
@@ -50,7 +52,7 @@ class OptNode:
         return NodeOperatorAdapter()
 
     def __str__(self):
-        return str(self.content)
+        return str(self.content['name'])
 
     def __repr__(self):
         return self.__str__()

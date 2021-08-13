@@ -31,7 +31,7 @@ class CustomGraphModel(OptGraph):
 
 class CustomGraphNode(OptNode):
     def __str__(self):
-        return f'Node_{self.content}'
+        return f'Node_{self.content["name"]}'
 
 
 def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
@@ -43,8 +43,7 @@ def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
 
 def _has_no_duplicates(graph):
     _, labels = graph_structure_as_nx_graph(graph)
-    list_of_nodes = [str(node) for node in labels.values()]
-    if len(list_of_nodes) != len(set(list_of_nodes)):
+    if len(labels.values()) != len(set(labels.values())):
         raise ValueError('Custom graph has duplicates')
     return True
 
@@ -67,7 +66,9 @@ def custom_mutation(graph: OptGraph, **kwargs):
     return graph
 
 
-def run_custom_example(timeout: datetime.timedelta = datetime.timedelta(minutes=0.2)):
+def run_custom_example(timeout: datetime.timedelta = None):
+    if not timeout:
+        timeout = datetime.timedelta(minutes=0.2)
     data = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'custom_encoded.csv'))
     nodes_types = ['V1', 'V2', 'V3',
                    'V4', 'V5', 'V6',
@@ -75,7 +76,7 @@ def run_custom_example(timeout: datetime.timedelta = datetime.timedelta(minutes=
     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
     initial = CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
-                                                      content=node_type) for node_type in nodes_types])
+                                                      content={'name': node_type}) for node_type in nodes_types])
 
     requirements = GPComposerRequirements(
         primary=nodes_types,

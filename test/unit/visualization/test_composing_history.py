@@ -6,9 +6,10 @@ from fedot.core.pipelines.template import PipelineTemplate
 
 
 def create_individual():
-    first = OptNode(content='logit')
-    second = OptNode(content='lda')
-    final = OptNode(content='knn', nodes_from=[first, second])
+    first = OptNode(content={'name': 'logit', 'params': 'default_params'})
+    second = OptNode(content={'name': 'lda', 'params': 'default_params'})
+    final = OptNode(content={'name': 'knn', 'params': 'default_params'},
+                    nodes_from=[first, second])
 
     indiviual = Individual(graph=OptGraph(final))
     indiviual.fitness = 1

@@ -108,7 +108,6 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                                       max_depth=max_depth)
         elif mutation_type != MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
-
     return new_graph
 
 
@@ -151,22 +150,23 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     nodes’ operations with probability - 'node mutation probability'
     which is initialised inside the function
     """
-
-    node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
-                                                  node=graph.root_node)
-
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
-                secondary_node = OptNode(content=choice(requirements.secondary),
+                secondary_node = OptNode(content={'name': choice(requirements.secondary),
+                                                  'params': 'default_params'},
                                          nodes_from=node.nodes_from)
                 graph.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
         else:
             if random() < node_mutation_probability:
-                primary_node = OptNode(content=choice(requirements.primary))
+                primary_node = OptNode(content={'name': choice(requirements.primary),
+                                                'params': 'default_params'})
                 graph.update_node(node, primary_node)
+
+    node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
+                                                  node=graph.root_node)
 
     replace_node_to_random_recursive(graph.root_node)
 
@@ -195,12 +195,13 @@ def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
 
 def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
     # add between node and parent
-    candidates = params.advisor.propose_parent(str(node_to_mutate.content),
-                                               [str(n.content) for n in node_to_mutate.nodes_from],
+    candidates = params.advisor.propose_parent(str(node_to_mutate.content['name']),
+                                               [str(n.content['name']) for n in node_to_mutate.nodes_from],
                                                requirements.secondary)
     if len(candidates) == 0:
         return graph
-    new_node = OptNode(content=choice(candidates))
+    new_node = OptNode(content={'name': choice(candidates),
+                                'params': 'default_params'})
     new_node.nodes_from = node_to_mutate.nodes_from
     node_to_mutate.nodes_from = [new_node]
     graph.nodes.append(new_node)
@@ -209,14 +210,15 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
 
 def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     # add as separate parent
-    candidates = params.advisor.propose_parent(str(node_to_mutate.content), None,
+    candidates = params.advisor.propose_parent(str(node_to_mutate.content['name']), None,
                                                requirements.primary)
     if len(candidates) == 0:
         return graph
     for iter_num in range(randint(1, 3)):
         if iter_num == len(candidates):
             break
-        new_node = OptNode(content=choice(candidates))
+        new_node = OptNode(content={'name': choice(candidates),
+                                    'params': 'default_params'})
         if node_to_mutate.nodes_from:
             node_to_mutate.nodes_from.append(new_node)
         else:
@@ -227,7 +229,8 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
 
 def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     # add as child
-    new_node = OptNode(content=choice(requirements.secondary))
+    new_node = OptNode(content={'name': choice(requirements.secondary),
+                                'params': 'default_params'})
     new_node.nodes_from = [node_to_mutate]
     graph.operator.actualise_old_node_children(node_to_mutate, new_node)
     graph.nodes.append(new_node)
@@ -262,13 +265,14 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     nodes_from = node.nodes_from
     candidates = requirements.secondary if node.nodes_from else requirements.primary
     if params.advisor:
-        candidates = params.advisor.propose_change(current_operation_id=str(node.content),
+        candidates = params.advisor.propose_change(current_operation_id=str(node.content['name']),
                                                    possible_operations=candidates)
 
     if len(candidates) == 0:
         return graph
 
-    node_new = OptNode(content=choice(candidates))
+    node_new = OptNode(content={'name': choice(candidates),
+                                'params': 'default_params'})
     node_new.nodes_from = nodes_from
     graph.nodes = [node_new if n == node else n for n in graph.nodes]
     graph.operator.actualise_old_node_children(node, node_new)
@@ -308,7 +312,8 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             randint(0, 1) and \
             not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
-        new_subtree = OptNode(content=choice(requirements.primary))
+        new_subtree = OptNode(content={'name': choice(requirements.primary),
+                                       'params': 'default_params'})
     else:
         if local_growth:
             max_depth = node_from_graph.distance_to_primary_level
@@ -350,7 +355,8 @@ def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:
     if is_possible_to_delete:
         graph.delete_subtree(node_to_del)
     else:
-        primary_node = OptNode(content=choice(requirements.primary))
+        primary_node = OptNode(content={'name': choice(requirements.primary),
+                                        'params': 'default_params'})
         graph.update_subtree(node_to_del, primary_node)
     return graph
 

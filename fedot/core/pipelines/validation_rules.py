@@ -111,15 +111,13 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
         return True
     else:
-        return False
+        raise ValueError(f'{ERROR_PREFIX} pipeline not contains operations for time series processing')
 
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
     task = Task(TaskTypesEnum.ts_forecasting)
-    if not is_pipeline_contains_ts_operations(pipeline):
-        return True
     models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
@@ -170,9 +168,6 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
 
 def only_ts_specific_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
-    if not is_pipeline_contains_ts_operations(pipeline):
-        return True
-
     # Check only primary nodes
     for node in pipeline.nodes:
         if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:

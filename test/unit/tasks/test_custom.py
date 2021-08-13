@@ -24,7 +24,7 @@ class CustomModel(Graph):
 
 class CustomNode(GraphNode):
     def __str__(self):
-        return f'custom_{str(self.content)}'
+        return f'custom_{str(self.content["name"])}'
 
 
 def custom_metric(custom_model: CustomModel):
