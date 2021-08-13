@@ -69,15 +69,16 @@ def prepare_unimodal_for_validation(time_series: Union[np.array, pd.Series],
 
 def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, target: str,
                             forecast_length: int):
-    """ Prepare MultiModal data for time series forecasting task
+    """ Prepare MultiModal data for time series forecasting task in a form of
+    dictionary
 
     :param dataframe: pandas DataFrame to process
     :param features: columns, which should be used as features in forecasting
     :param target: name of target column
     :param forecast_length: length of forecast
 
-    :return multi_modal_train: MultiModalData for train
-    :return multi_modal_test: MultiModalData for test
+    :return multi_modal_train: dictionary with InputData for train
+    :return multi_modal_test: dictionary with InputData test
     """
     # Define task
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -136,17 +137,18 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
 
 
 def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
-                              composer_params: dict, vis=True):
+                              composer_params: dict, target: np.array,
+                              forecast_length: int, vis=True):
     """ Multi modal forecasting
 
     :param train_input: dictionary with InputData classes for train
     :param predict_input: dictionary with InputData classes for test
     :param composer_params: dictionary with hyperparameters
     :param vis: is there a need to display structure of obtained pipeline
+    :param target: numpy array (time series) for forecasting
+    :param forecast_length: forecast length
     """
-    source = list(train_input.keys())[0]
-    target = train_input[source].target
-    task_params = train_input[source].task.task_params
+    task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
                   composer_params=composer_params,
                   task_params=task_params)
