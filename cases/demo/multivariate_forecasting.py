@@ -33,23 +33,27 @@ if __name__ == '__main__':
 
     # Prepare parameters for algorithm launch
     # timeout 2 - means that AutoML algorithm will work for 2 minutes
-    composer_params = {'max_depth': 4,
+    composer_params = {'max_depth': 6,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 0.2,
-                       'preset': 'ultra_light_tun',
+                       'timeout': 0.5,
+                       'preset': 'ultra_light',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
-    forecast = multi_automl_fit_forecast(mm_train, mm_test, composer_params,
-                                         ts, forecast_length,
-                                         vis=True)
+    forecast, obtained_pipeline = multi_automl_fit_forecast(mm_train, mm_test,
+                                                            composer_params,
+                                                            ts, forecast_length,
+                                                            vis=True)
 
     mse_metric = mean_squared_error(ts[-forecast_length:], forecast, squared=False)
     mae_metric = mean_absolute_error(ts[-forecast_length:], forecast)
     print(f'MAE - {mae_metric:.2f}')
     print(f'RMSE - {mse_metric:.2f}')
+
+    # Save obtained pipeline
+    obtained_pipeline.save('')
 
     # Visualise predictions
     plot_results(actual_time_series=ts,
