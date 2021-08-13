@@ -9,6 +9,10 @@ class GraphNode:
 
     :param nodes_from: parent nodes which information comes from
     :param content: dict for the content in node
+        The possible parameters are:
+            'name' - name (str) or object that performs actions in this node
+            'params' - dictionary with additional information that is used by
+            the object in the 'name' field (e.g. hyperparameters values).
     """
 
     def __init__(self, content: Union[dict, str],

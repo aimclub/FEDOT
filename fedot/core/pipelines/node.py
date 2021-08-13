@@ -40,7 +40,7 @@ class Node(GraphNode):
         self._fitted_operation = None
         self.rating = None
 
-    def _process_content_init(self, passed_content: dict):
+    def _process_content_init(self, passed_content: dict) -> Operation:
         """ Updating content in the node """
         if isinstance(passed_content['name'], str):
             # Need to convert name of operation into operation class object
@@ -55,7 +55,7 @@ class Node(GraphNode):
         return operation
 
     @staticmethod
-    def _process_direct_init(operation_type):
+    def _process_direct_init(operation_type) -> Operation:
         """ Define operation based on direct operation_type without defining content in the node """
         if not operation_type:
             raise ValueError('Operation is not defined in the node')
