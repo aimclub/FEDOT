@@ -318,7 +318,7 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_table'):
                 data_has_categorical_columns = _integer_to_categorical(values)
-    else:
+    elif _data_type_is_suitable_preprocessing(data):
         data_has_categorical_columns = _integer_to_categorical(data)
 
     return data_has_categorical_columns
@@ -330,14 +330,20 @@ def data_has_missing_values(data: Union[InputData, MultiModalData]) -> bool:
     if isinstance(data, MultiModalData):
         for data_source_name, values in data.items():
             if _data_type_is_table(values):
-                return np.isnan(values.features)
-    else:
-        return np.isnan(data.features)
+                return pd.DataFrame(values.features).isna().sum().sum() > 0
+    elif _data_type_is_suitable_preprocessing(data):
+        return pd.DataFrame(data.features).isna().sum().sum() > 0
     return False
 
 
 def _data_type_is_table(data: InputData) -> bool:
     return data.data_type == DataTypesEnum.table
+
+
+def _data_type_is_suitable_preprocessing(data: InputData) -> bool:
+    if data.data_type == DataTypesEnum.table or data.data_type == DataTypesEnum.ts:
+        return True
+    return False
 
 
 def _integer_to_categorical(data: InputData) -> bool:

@@ -260,8 +260,10 @@ def test_categorical_preprocessing_unidata_predefined():
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
 
-    assert prediction is not None
-    assert prediction_proba is not None
+    assert np.issubdtype(prediction.dtype, np.number)
+    assert np.isnan(prediction).sum() == 0
+    assert np.issubdtype(prediction_proba.dtype, np.number)
+    assert np.isnan(prediction_proba).sum() == 0
 
 
 def test_categorical_preprocessing_unidata_predefined_linear():
@@ -271,7 +273,7 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
 
-    assert prediction is not None
+    assert np.issubdtype(prediction.features.dtype, np.number)
 
 
 def test_fill_nan_without_categorical():
@@ -282,6 +284,7 @@ def test_fill_nan_without_categorical():
     pipeline = Pipeline(nodes=PrimaryNode('logit'))
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
+    prediction_train = pipeline.predict(train_data)
 
-    assert np.isnan(train_data.features).sum() == 0
-    assert np.isnan(test_data.features).sum() == 0
+    assert np.isnan(prediction.features).sum() == 0
+    assert np.isnan(prediction_train.features).sum() == 0

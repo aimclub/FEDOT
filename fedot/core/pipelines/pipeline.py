@@ -164,11 +164,10 @@ class Pipeline(Graph):
         """
         if not use_fitted:
             self.unfit()
-            
-        input_data = self._preprocessing_data(input_data)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._preprocessing_fit_data(copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -180,7 +179,7 @@ class Pipeline(Graph):
                                                         time=time_constraint)
         return train_predicted
 
-    def _preprocessing_data(self, data: Union[InputData, MultiModalData]):
+    def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
         if data_has_missing_values(data) and not has_imputation_operation:
@@ -227,9 +226,12 @@ class Pipeline(Graph):
             self.log.error(ex)
             raise ValueError(ex)
 
-        input_data = _imputation_implementation(input_data)
+        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
-        if self.pre_proc_encoders:
+        if data_has_missing_values(input_data) and not has_imputation_operation:
+            input_data = _imputation_implementation(input_data)
+
+        if data_has_categorical_features(input_data) and not has_encoder_operation:
             _encode_data_for_prediction(input_data, self.pre_proc_encoders)
 
         # Make copy of the input data to avoid performing inplace operations
@@ -341,7 +343,7 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
 
     def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
         node_type = root.operation.operation_type
-        if node_type == 'scaling':
+        if node_type == 'simple_imputation':
             has_imputer = True
         if node_type == 'one_hot_encoding':
             has_encoder = True
@@ -359,6 +361,9 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
                 has_encoders.append(encoder)
 
     _check_imputer_encoder_recursion(pipeline.root_node)
+
+    if not has_imputers and not has_encoders:
+        return False, False
 
     has_imputer = len([_ for _ in has_imputers if not _]) == 0
     has_encoder = len([_ for _ in has_encoders if not _]) == 0
@@ -437,6 +442,7 @@ def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[
             if data_source_name.startswith('data_source_table') or data_source_name.startswith('data_source_ts'):
                 data[data_source_name].features = _imputation_implementation_unidata(values)
         return data
+    raise ValueError(f"Data format is not supported.")
 
 
 def _imputation_implementation_unidata(data: InputData):
@@ -446,7 +452,7 @@ def _imputation_implementation_unidata(data: InputData):
         numerical, categorical = divide_data_categorical_numerical(data)
         output_data_cat = imputation_encoder_cat.fit_transform(categorical)
         output_data_num = imputation_encoder_num.fit_transform(numerical)
-        output_features = np.hstack((output_data_cat.features, output_data_num.features))
+        output_features = np.hstack((output_data_cat.predict, output_data_num.predict))
         output_data = OutputData(features=data.features, data_type=data.data_type,
                                  target=data.target, task=data.task, idx=data.idx, predict=output_features)
     else:

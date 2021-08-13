@@ -471,7 +471,7 @@ def test_pipeline_encoder_validation():
     pipeline = Pipeline(nodes=[first_scaling, first_encoder, second_encoder, second_scaling,
                                linear, xgb, xgb_second, ridge, encoder_second, root])
 
-    has_imputer, has_encoder = _pipeline_encoders_validation(pipeline)
+    has_imputer, has_encoder = pipeline_encoders_validation(pipeline)
 
     assert has_imputer == True
     assert has_encoder == False
