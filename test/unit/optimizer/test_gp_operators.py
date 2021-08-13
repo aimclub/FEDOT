@@ -397,6 +397,25 @@ def test_pipeline_adapters_params_correct():
     init_alpha = 12.1
     pipeline = pipeline_with_custom_parameters(init_alpha)
 
+    # Convert into OptGraph object
+    adapter = PipelineAdapter()
+    opt_graph = adapter.adapt(pipeline)
+
+    # Get Pipeline object back
+    restored_pipeline = adapter.restore(opt_graph)
+
+    # Get hyperparameter value after pipeline restoration
+    restored_alpha = restored_pipeline.root_node.custom_params['alpha']
+    assert np.isclose(init_alpha, restored_alpha)
+
+
+def test_preds_before_and_after_convert_equal():
+    """ Check if the pipeline predictions change before and after conversion
+    through the adapter
+    """
+    init_alpha = 12.1
+    pipeline = pipeline_with_custom_parameters(init_alpha)
+
     # Generate data
     input_data = get_synthetic_regression_data(n_samples=10, n_features=2,
                                                random_state=2021)
@@ -407,13 +426,10 @@ def test_pipeline_adapters_params_correct():
     # Convert into OptGraph object
     adapter = PipelineAdapter()
     opt_graph = adapter.adapt(pipeline)
-
     restored_pipeline = adapter.restore(opt_graph)
 
+    # Restored pipeline fit
     restored_pipeline.fit(input_data)
     restored_preds = restored_pipeline.predict(input_data)
 
-    # Get hyperparameter value after pipeline restoration
-    restored_alpha = restored_pipeline.root_node.custom_params['alpha']
-    assert np.isclose(init_alpha, restored_alpha)
     assert np.array_equal(init_preds.predict, restored_preds.predict)

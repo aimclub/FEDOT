@@ -43,8 +43,7 @@ def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
 
 def _has_no_duplicates(graph):
     _, labels = graph_structure_as_nx_graph(graph)
-    list_of_nodes = [str(node) for node in labels.values()]
-    if len(list_of_nodes) != len(set(list_of_nodes)):
+    if len(labels.values()) != len(set(labels.values())):
         raise ValueError('Custom graph has duplicates')
     return True
 
@@ -67,7 +66,9 @@ def custom_mutation(graph: OptGraph, **kwargs):
     return graph
 
 
-def run_custom_example(timeout: datetime.timedelta = datetime.timedelta(minutes=0.2)):
+def run_custom_example(timeout: datetime.timedelta = None):
+    if not timeout:
+        timeout = datetime.timedelta(minutes=0.2)
     data = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'custom_encoded.csv'))
     nodes_types = ['V1', 'V2', 'V3',
                    'V4', 'V5', 'V6',
