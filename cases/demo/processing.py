@@ -161,7 +161,7 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
 
     forecast = model.predict(features=predict_input)
 
-    return forecast
+    return forecast, obtained_pipeline
 
 
 def plot_diesel_and_wind(df):
