@@ -37,12 +37,13 @@ if __name__ == '__main__':
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 0.1,
+                       'timeout': 0.2,
                        'preset': 'ultra_light_tun',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
     forecast = multi_automl_fit_forecast(mm_train, mm_test, composer_params,
+                                         ts, forecast_length,
                                          vis=True)
 
     mse_metric = mean_squared_error(ts[-forecast_length:], forecast, squared=False)
