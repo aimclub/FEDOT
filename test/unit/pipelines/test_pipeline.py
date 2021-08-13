@@ -15,7 +15,7 @@ from sklearn.metrics import roc_auc_score as roc
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline import Pipeline, pipeline_encoders_validation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -471,42 +471,7 @@ def test_pipeline_encoder_validation():
     pipeline = Pipeline(nodes=[first_scaling, first_encoder, second_encoder, second_scaling,
                                linear, xgb, xgb_second, ridge, encoder_second, root])
 
-    print(_pipeline_encoders_validation(pipeline))
+    has_imputer, has_encoder = _pipeline_encoders_validation(pipeline)
 
-
-from fedot.core.pipelines.node import Node
-from typing import Optional
-
-def _pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
-    """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
-
-    :param data Pipeline: data to check
-    :return (bool, bool): has Imputation and OneHotEncoder in pipeline
-    """
-
-    has_imputers, has_encoders = [], []
-
-    def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
-        node_type = root.operation.operation_type
-        if node_type == 'scaling':
-            has_imputer = True
-        if node_type == 'one_hot_encoding':
-            has_encoder = True
-
-        if has_imputer and has_encoder:
-            return has_imputer, has_encoder
-        elif root.nodes_from is None:
-            return has_imputer, has_encoder
-
-        for node in root.nodes_from:
-            answer = _check_imputer_encoder_recursion(node, has_imputer, has_encoder)
-            if answer is not None:
-                imputer, encoder = answer
-                has_imputers.append(imputer)
-                has_encoders.append(encoder)
-
-    _check_imputer_encoder_recursion(pipeline.root_node)
-
-    has_imputer = len([_ for _ in has_imputers if not _]) == 0
-    has_encoder = len([_ for _ in has_encoders if not _]) == 0
-    return has_imputer, has_encoder
+    assert has_imputer == True
+    assert has_encoder == False

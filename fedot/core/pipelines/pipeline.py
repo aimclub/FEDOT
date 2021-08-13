@@ -165,13 +165,7 @@ class Pipeline(Graph):
         if not use_fitted:
             self.unfit()
             
-        # has_imputation_operation, has_encoder_operation = _pipeline_encoders_validation(input_data)
-        #
-        # if data_has_missing_values(input_data) and not has_imputation_operation:
-        #     input_data = _imputation_implementation(input_data)
-        #
-        # if data_has_categorical_features(input_data) and not has_encoder_operation:
-        #     self.pre_proc_encoders = _encode_data_for_fit(input_data)
+        input_data = self._preprocessing_data(input_data)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
@@ -185,6 +179,16 @@ class Pipeline(Graph):
                                                         use_fitted_operations=use_fitted,
                                                         time=time_constraint)
         return train_predicted
+
+    def _preprocessing_data(self, data: Union[InputData, MultiModalData]):
+        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
+
+        if data_has_missing_values(data) and not has_imputation_operation:
+            data = _imputation_implementation(data)
+
+        if data_has_categorical_features(data) and not has_encoder_operation:
+            self.pre_proc_encoders = _encode_data_for_fit(data)
+        return data
 
     @property
     def is_fitted(self):
@@ -326,19 +330,39 @@ class Pipeline(Graph):
             print(f'{node.operation.operation_type} - {node.custom_params}')
 
 
-# def _pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
-#     """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
-#
-#     :param data Pipeline: data to check
-#     :return (bool, bool): has imputer and encoder in pipeline
-#     """
-#
-#     has_imputer, has_encoder = False, False
-#     root = pipeline.root_node
-#
-#     while node.nodes_from
-#
-#     return has_imputer, has_encoder
+def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
+    """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
+
+    :param data Pipeline: data to check
+    :return (bool, bool): has Imputation and OneHotEncoder in pipeline
+    """
+
+    has_imputers, has_encoders = [], []
+
+    def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
+        node_type = root.operation.operation_type
+        if node_type == 'scaling':
+            has_imputer = True
+        if node_type == 'one_hot_encoding':
+            has_encoder = True
+
+        if has_imputer and has_encoder:
+            return has_imputer, has_encoder
+        elif root.nodes_from is None:
+            return has_imputer, has_encoder
+
+        for node in root.nodes_from:
+            answer = _check_imputer_encoder_recursion(node, has_imputer, has_encoder)
+            if answer is not None:
+                imputer, encoder = answer
+                has_imputers.append(imputer)
+                has_encoders.append(encoder)
+
+    _check_imputer_encoder_recursion(pipeline.root_node)
+
+    has_imputer = len([_ for _ in has_imputers if not _]) == 0
+    has_encoder = len([_ for _ in has_encoders if not _]) == 0
+    return has_imputer, has_encoder
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
