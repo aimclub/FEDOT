@@ -133,7 +133,7 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
     else:
         forecast = model.predict(features=predict_input)
 
-    return forecast
+    return forecast, obtained_pipeline
 
 
 def multi_automl_fit_forecast(train_input: dict, predict_input: dict,

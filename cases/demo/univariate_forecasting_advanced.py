@@ -42,9 +42,9 @@ if __name__ == '__main__':
                        'metric': 'rmse',
                        'cv_folds': 2,
                        'validation_blocks': 2}
-    forecast = automl_fit_forecast(train_input, validation_input, composer_params,
-                                   vis=True, in_sample_forecasting=True,
-                                   horizon=forecast_length*validation_blocks)
+    forecast, obtained_pipeline = automl_fit_forecast(train_input, validation_input, composer_params,
+                                                      vis=True, in_sample_forecasting=True,
+                                                      horizon=forecast_length*validation_blocks)
 
     # Perform in-sample validation and display metrics
     advanced_validation(forecast, forecast_length, validation_blocks, ts)
