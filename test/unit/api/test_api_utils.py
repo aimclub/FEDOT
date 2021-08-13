@@ -1,5 +1,6 @@
+from test.data_manager import get_dataset
+
 from fedot.api.api_utils import compose_fedot_model
-from ..api.test_main_api import get_dataset
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.log import default_log
 

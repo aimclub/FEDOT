@@ -1,65 +1,17 @@
-import os
-
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
-from cases.metocean_forecasting_problem import prepare_input_data
 from fedot.api.main import Fedot, _define_data
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
-from test.unit.models.test_split_train_test import get_synthetic_input_data
-from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.tasks.test_regression import get_synthetic_regression_data
+from test.data_manager import import_metoocean_data, get_dataset, get_split_data, get_split_data_paths
+
 
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,
                    'preset': 'ultra_light'}
-
-
-def get_split_data_paths():
-    file_path_train = 'test/data/simple_regression_train.csv'
-    file_path_test = 'test/data/simple_regression_test.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    return full_path_train, full_path_test
-
-
-def get_split_data():
-    task_type = 'regression'
-    train_full, test = get_split_data_paths()
-    train_file = pd.read_csv(train_full)
-    x, y = train_file.loc[:, ~train_file.columns.isin(['target'])].values, train_file['target'].values
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=24)
-    return task_type, x_train, x_test, y_train, y_test
-
-
-def get_dataset(task_type: str):
-    if task_type == 'regression':
-        data = get_synthetic_regression_data()
-        train_data, test_data = train_test_data_setup(data)
-        threshold = np.std(test_data.target) * 0.05
-    elif task_type == 'classification':
-        data = get_iris_data()
-        train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
-        threshold = 0.95
-    elif task_type == 'clustering':
-        data = get_synthetic_input_data(n_samples=1000)
-        train_data, test_data = train_test_data_setup(data)
-        threshold = 0.5
-    elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=5)
-        threshold = np.std(test_data.target)
-    else:
-        raise ValueError('Incorrect type of machine learning task')
-    return train_data, test_data, threshold
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
@@ -189,14 +141,7 @@ def test_multiobj_for_api():
 def test_multivariate_ts():
     forecast_length = 1
 
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test)
+    target_history, add_history, _ = import_metoocean_data()
 
     historical_data = {
         'ws': add_history,  # additional variable

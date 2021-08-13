@@ -1,11 +1,9 @@
 import datetime
-import os
 import random
 import shelve
-
 import numpy as np
-import pandas as pd
 import pytest
+
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.composer.composer import ComposerRequirements
@@ -13,7 +11,6 @@ from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStruct
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
     sample_split_ratio_for_tasks
 from fedot.core.composer.random_composer import RandomSearchComposer
-from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
@@ -23,22 +20,8 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.pipelines.test_pipeline_comparison import pipeline_first
-
-
-def _to_numerical(categorical_ids: np.ndarray):
-    encoded = pd.factorize(categorical_ids)[0]
-    return encoded
-
-
-@pytest.fixture()
-def file_data_setup():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/advanced_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
-    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
-    return input_data
+from test.pipeline_manager import pipeline_first
+from test.data_manager import file_data_setup
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -124,7 +107,7 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
 
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5)
+                                 crossover_prob=0.4, mutation_prob=0.5, timeout=datetime.timedelta(minutes=0.000001))
 
     builder = GPComposerBuilder(task).with_requirements(req).with_metrics(metric_function)
     gp_composer = builder.build()
@@ -137,19 +120,6 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
                                        y_score=predicted_gp_composed.predict)
 
     assert roc_on_valid_gp_composed > 0.6
-
-
-def baseline_pipeline():
-    pipeline = Pipeline()
-    last_node = SecondaryNode(operation_type='xgboost',
-                              nodes_from=[])
-    for requirement_model in ['knn', 'logit']:
-        new_node = PrimaryNode(requirement_model)
-        pipeline.add_node(new_node)
-        last_node.nodes_from.append(new_node)
-    pipeline.add_node(last_node)
-
-    return pipeline
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -179,7 +149,8 @@ def test_composition_time(data_fixture, request):
         secondary=models_impl, max_arity=2,
         max_depth=2,
         pop_size=2, num_of_generations=2, crossover_prob=0.4,
-        mutation_prob=0.5)
+        mutation_prob=0.5,
+        timeout=datetime.timedelta(minutes=0.5))
 
     builder = GPComposerBuilder(task).with_requirements(req_completed_evolution).with_metrics(metric_function)
     gp_composer_completed_evolution = builder.build()
@@ -204,7 +175,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=4,
-                                 crossover_prob=0.4, mutation_prob=0.5)
+                                 crossover_prob=0.4, mutation_prob=0.5, timeout=datetime.timedelta(minutes=0.5))
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         metric_function).with_optimiser_parameters(opt_params)
@@ -236,7 +207,7 @@ def test_multi_objective_composer(data_fixture, request):
     metrics = [quality_metric, complexity_metric]
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5)
+                                 crossover_prob=0.4, mutation_prob=0.5, timeout=datetime.timedelta(minutes=0.000001))
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       selection_types=[SelectionTypesEnum.nsga2])
@@ -257,7 +228,7 @@ def test_multi_objective_composer(data_fixture, request):
     assert type(composer.metrics) is list and len(composer.metrics) > 1
     assert type(pipelines_evo_composed) is list
     assert composer.optimiser.parameters.multi_objective
-    assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
+    assert all([metric > 0.6 for metric in pipelines_roc_auc])
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -270,7 +241,8 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
-                                 crossover_prob=0.4, mutation_prob=0.5, start_depth=2)
+                                 crossover_prob=0.4, mutation_prob=0.5,
+                                 start_depth=2, timeout=datetime.timedelta(minutes=0.1))
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
@@ -291,7 +263,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                  max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
                                  crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                 max_pipeline_fit_time=datetime.timedelta(minutes=5))
+                                 max_pipeline_fit_time=datetime.timedelta(minutes=0.1))
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
