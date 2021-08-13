@@ -135,13 +135,22 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
     return forecast
 
 
-def multi_automl_fit_forecast(train_input, predict_input, composer_params: dict,
-                              vis=True):
-    model = Fedot(problem='ts_forecasting',
-                  composer_params=composer_params)
-    # Run AutoML model design in the same way
+def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
+                              composer_params: dict, vis=True):
+    """ Multi modal forecasting
+
+    :param train_input: dictionary with InputData classes for train
+    :param predict_input: dictionary with InputData classes for test
+    :param composer_params: dictionary with hyperparameters
+    :param vis: is there a need to display structure of obtained pipeline
+    """
     source = list(train_input.keys())[0]
     target = train_input[source].target
+    task_params = train_input[source].task.task_params
+    model = Fedot(problem='ts_forecasting',
+                  composer_params=composer_params,
+                  task_params=task_params)
+    # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)
 
     if vis is True:
