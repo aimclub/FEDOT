@@ -164,7 +164,7 @@ class PipelineTemplate:
                 self.log.message(f'The pipeline was imported from the path: {path}.')
         else:
             json_object_pipeline = source
-            self.log.message(f'The chain was imported from dict.')
+            self.log.message(f'The pipeline was imported from dict.')
 
         self._extract_operations(json_object_pipeline, path)
         self.convert_to_pipeline(self.link_to_empty_pipeline, path, dict_fitted_operations)
