@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.data.data_split import train_test_data_setup
-
 # Additional custom functions
 from cases.demo.processing import prepare_multimodal_data, plot_results, multi_automl_fit_forecast
 
@@ -39,16 +37,16 @@ if __name__ == '__main__':
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 0.2,
-                       'preset': 'light_tun',
+                       'timeout': 0.1,
+                       'preset': 'ultra_light_tun',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
     forecast = multi_automl_fit_forecast(mm_train, mm_test, composer_params,
                                          vis=True)
 
-    mse_metric = mean_squared_error(mm_test.target, forecast, squared=False)
-    mae_metric = mean_absolute_error(mm_test.target, forecast)
+    mse_metric = mean_squared_error(ts[-forecast_length:], forecast, squared=False)
+    mae_metric = mean_absolute_error(ts[-forecast_length:], forecast)
     print(f'MAE - {mae_metric:.2f}')
     print(f'RMSE - {mse_metric:.2f}')
 
