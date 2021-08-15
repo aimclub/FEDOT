@@ -344,11 +344,7 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
     def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
         node_type = root.operation.operation_type
         if node_type == 'simple_imputation':
-            # If imputer placed before encoder in pipeline
-            if not has_encoder:
-                has_imputer = True
-            else:
-                return False, has_encoder
+            has_imputer = True
         if node_type == 'one_hot_encoding':
             has_encoder = True
 
