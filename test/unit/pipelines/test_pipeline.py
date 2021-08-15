@@ -468,8 +468,7 @@ def test_pipeline_encoder_validation():
     ridge_second = SecondaryNode('ridge', nodes_from=[xgb_second])
     root = SecondaryNode('simple_imputation', nodes_from=[encoder_second, xgb, ridge_second])
 
-    pipeline = Pipeline(nodes=[first_scaling, first_encoder, second_encoder, second_scaling,
-                               linear, xgb, xgb_second, ridge, encoder_second, root])
+    pipeline = Pipeline(root)
 
     has_imputer, has_encoder = pipeline_encoders_validation(pipeline)
 
