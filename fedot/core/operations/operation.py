@@ -1,7 +1,7 @@
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import OneHotEncodingImplementation, ImputationImplementation
+    sklearn_transformations import ImputationImplementation, str_columns_check
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -173,7 +173,7 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
 
     if data.data_type == DataTypesEnum.table and data.task.task_type != TaskTypesEnum.ts_forecasting:
         # Got indices of columns with string objects
-        categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
+        categorical_ids, _ = str_columns_check(features)
 
         # Apply most_frequent or mean filling strategy
         if len(categorical_ids) == 0:

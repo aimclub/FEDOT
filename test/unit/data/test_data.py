@@ -122,15 +122,6 @@ def test_data_from_predictions(output_dataset):
         [data_1.predict, data_2.predict, data_3.predict]).all()
 
 
-def test_string_features_from_csv():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/classification_with_categorical.csv'
-    expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
-
-    assert expected_features.dtype == float
-    assert np.isfinite(expected_features).all()
-
-
 def test_data_from_image():
     _, _, dataset_to_validate = get_image_classification_data()
 

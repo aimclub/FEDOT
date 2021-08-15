@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from cases.metocean_forecasting_problem import prepare_input_data
+from examples.multi_modal_pipeline import (prepare_multi_modal_data)
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.api.main import Fedot, _define_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -60,6 +62,34 @@ def get_dataset(task_type: str):
     else:
         raise ValueError('Incorrect type of machine learning task')
     return train_data, test_data, threshold
+
+
+def load_categorical_unimodal():
+    dataset_path = 'test/data/classification_with_categorical.csv'
+    full_path = os.path.join(str(fedot_project_root()), dataset_path)
+    data = InputData.from_csv(full_path)
+    train_data, test_data = train_test_data_setup(data)
+
+    return train_data, test_data
+
+
+def load_categorical_multidata():
+    task = Task(TaskTypesEnum.classification)
+    images_size = (128, 128)
+
+    files_path = os.path.join('test', 'data', 'multi_modal')
+    path = os.path.join(str(fedot_project_root()), files_path)
+
+    train_num, _, train_img, _, train_text, _ = \
+        prepare_multi_modal_data(path, task, images_size, with_split=False)
+
+    fit_data = MultiModalData({
+        'data_source_img': train_img,
+        'data_source_table': train_num,
+        'data_source_text': train_text
+    })
+
+    return fit_data
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
@@ -184,6 +214,55 @@ def test_multiobj_for_api():
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
     assert model.best_models is not None
+
+
+def test_categorical_preprocessing_unidata():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert True
+
+
+def test_categorical_preprocessing_unidata_predefined():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data, predefined_model='rf')
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert np.issubdtype(prediction.dtype, np.number)
+    assert np.isnan(prediction).sum() == 0
+    assert np.issubdtype(prediction_proba.dtype, np.number)
+    assert np.isnan(prediction_proba).sum() == 0
+
+
+def test_categorical_preprocessing_unidata_predefined_linear():
+    train_data, test_data = load_categorical_unimodal()
+
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+
+    assert np.issubdtype(prediction.features.dtype, np.number)
+
+
+def test_fill_nan_without_categorical():
+    train_data, test_data = load_categorical_unimodal()
+    train_data.features = np.hstack((train_data.features[:, :2], train_data.features[:, 4:]))
+    test_data.features = np.hstack((test_data.features[:, :2], test_data.features[:, 4:]))
+
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+    prediction_train = pipeline.predict(train_data)
+
+    assert np.isnan(prediction.features).sum() == 0
+    assert np.isnan(prediction_train.features).sum() == 0
 
 
 def test_multivariate_ts():

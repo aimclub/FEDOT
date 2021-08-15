@@ -144,10 +144,10 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                          'gbr': ts_data_operations, 'treg': ts_data_operations,
                          'rfr': ts_data_operations, 'svr': ts_data_operations,
                          'sgdr': ts_data_operations, 'normalization': ts_data_operations,
-                         'simple_imputation': ts_data_operations, 'pca': ts_data_operations,
                          'kernel_pca': ts_data_operations, 'poly_features': ts_data_operations,
                          'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
-                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations}
+                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations,
+                         'pca': ts_data_operations}
 
     for node in pipeline.nodes:
         # Operation name in the current node
