@@ -6,6 +6,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data import data_has_categorical_features, divide_data_categorical_numerical, str_columns_check
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 
@@ -266,14 +267,19 @@ class ImputationImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        default_params_categorical = {'strategy': 'most_frequent'}
+        self.params_cat = {**params, **default_params_categorical}
+        self.params_num = params
+
         if not params:
             # Default parameters
-            self.imputer = SimpleImputer()
+            self.imputer_cat = SimpleImputer(**default_params_categorical)
+            self.imputer_num = SimpleImputer()
         else:
-            self.imputer = SimpleImputer(**params)
-        self.params = params
+            self.imputer_cat = SimpleImputer(**self.params_cat)
+            self.imputer_num = SimpleImputer(**self.params_num)
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """
         The method trains SimpleImputer
 
@@ -285,9 +291,23 @@ class ImputationImplementation(DataOperationImplementation):
                                                       [np.inf, -np.inf]),
                                               np.nan,
                                               input_data.features)
+        input_data.features = features_with_replaced_inf
 
-        self.imputer.fit(features_with_replaced_inf)
-        return self.imputer
+        if data_has_categorical_features(input_data):
+            numerical, categorical = divide_data_categorical_numerical(input_data)
+            if len(categorical.features.shape) == 1:
+                self.imputer_cat.fit(categorical.features.reshape(-1, 1))
+            else:
+                self.imputer_cat.fit(categorical.features)
+            if len(numerical.features.shape) == 1:
+                self.imputer_num.fit(numerical.features.reshape(-1, 1))
+            else:
+                self.imputer_num.fit(numerical.features)
+        else:
+            if len(input_data.features.shape) == 1:
+                self.imputer_num.fit(input_data.features.reshape(-1, 1))
+            else:
+                self.imputer_num.fit(input_data.features)
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """
@@ -301,12 +321,26 @@ class ImputationImplementation(DataOperationImplementation):
                                                       [np.inf, -np.inf]),
                                               np.nan,
                                               input_data.features)
+        input_data.features = features_with_replaced_inf
 
-        transformed_features = self.imputer.transform(features_with_replaced_inf)
+        if data_has_categorical_features(input_data):
+            numerical, categorical = divide_data_categorical_numerical(input_data)
+            if len(categorical.features.shape) == 1:
+                categorical_features = self.imputer_cat.transform(categorical.features.reshape(-1, 1))
+            else:
+                categorical_features = self.imputer_cat.transform(categorical.features)
+            if len(numerical.features.shape) == 1:
+                numerical_features = self.imputer_num.transform(numerical.features.reshape(-1, 1))
+            else:
+                numerical_features = self.imputer_num.transform(numerical.features)
+            transformed_features = np.hstack((categorical_features, numerical_features))
+        else:
+            if len(input_data.features.shape) == 1:
+                transformed_features = self.imputer_num.transform(input_data.features.reshape(-1, 1))
+            else:
+                transformed_features = self.imputer_num.transform(input_data.features)
 
-        # Update features
-        output_data = self._convert_to_output(input_data,
-                                              transformed_features)
+        output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
         return output_data
 
     def fit_transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
@@ -317,41 +351,10 @@ class ImputationImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
-        features_with_replaced_inf = np.where(np.isin(input_data.features,
-                                                      [np.inf, -np.inf]),
-                                              np.nan,
-                                              input_data.features)
-
-        transformed_features = self.imputer.fit_transform(features_with_replaced_inf)
-
-        # Update features
-        output_data = self._convert_to_output(input_data,
-                                              transformed_features)
+        self.fit(input_data)
+        output_data = self.transform(input_data)
         return output_data
 
-    def get_params(self):
-        return self.imputer.get_params()
-
-
-def str_columns_check(features):
-    """
-    Method for checking which columns contain categorical (text) data
-
-    :param features: tabular data for check
-    :return categorical_ids: indices of categorical columns in table
-    :return non_categorical_ids: indices of non categorical columns in table
-    """
-    source_shape = features.shape
-    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
-
-    categorical_ids = []
-    non_categorical_ids = []
-    # For every column in table make check for first element
-    for column_id in range(0, columns_amount):
-        column = features[:, column_id] if columns_amount > 1 else features
-        if isinstance(column[0], str):
-            categorical_ids.append(column_id)
-        else:
-            non_categorical_ids.append(column_id)
-
-    return categorical_ids, non_categorical_ids
+    def get_params(self) -> dict:
+        dictionary = {'imputer_categorical': self.params_cat, 'imputer_numerical': self.params_num}
+        return dictionary

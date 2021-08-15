@@ -336,6 +336,43 @@ def data_has_missing_values(data: Union[InputData, MultiModalData]) -> bool:
     return False
 
 
+def str_columns_check(features):
+    """
+    Method for checking which columns contain categorical (text) data
+
+    :param features: tabular data for check
+    :return categorical_ids: indices of categorical columns in table
+    :return non_categorical_ids: indices of non categorical columns in table
+    """
+    source_shape = features.shape
+    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
+
+    categorical_ids = []
+    non_categorical_ids = []
+    # For every column in table make check for first element
+    for column_id in range(0, columns_amount):
+        column = features[:, column_id] if columns_amount > 1 else features
+        if isinstance(column[0], str):
+            categorical_ids.append(column_id)
+        else:
+            non_categorical_ids.append(column_id)
+
+    return categorical_ids, non_categorical_ids
+
+
+def divide_data_categorical_numerical(input_data: InputData) -> (InputData, InputData):
+    categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
+    numerical_features = input_data.features[:, non_categorical_ids]
+    categorical_features = input_data.features[:, categorical_ids]
+
+    numerical = InputData(features=numerical_features, data_type=input_data.data_type,
+                          target=input_data.target, task=input_data.task, idx=input_data.idx)
+    categorical = InputData(features=categorical_features, data_type=input_data.data_type,
+                            target=input_data.target, task=input_data.task, idx=input_data.idx)
+
+    return numerical, categorical
+
+
 def _data_type_is_table(data: InputData) -> bool:
     return data.data_type == DataTypesEnum.table
 

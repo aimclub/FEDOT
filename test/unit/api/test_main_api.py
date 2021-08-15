@@ -216,30 +216,6 @@ def test_multiobj_for_api():
     assert model.best_models is not None
 
 
-def test_multivariate_ts():
-    forecast_length = 1
-
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test)
-
-    historical_data = {
-        'ws': add_history,  # additional variable
-        'ssh': target_history,  # target variable
-    }
-
-    fedot = Fedot(problem='ts_forecasting', composer_params=composer_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
-    fedot.fit(features=historical_data, target=target_history)
-    forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
-    assert forecast is not None
-
-
 def test_categorical_preprocessing_unidata():
     train_data, test_data = load_categorical_unimodal()
 
@@ -248,8 +224,7 @@ def test_categorical_preprocessing_unidata():
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
 
-    assert prediction is not None
-    assert prediction_proba is not None
+    assert True
 
 
 def test_categorical_preprocessing_unidata_predefined():
@@ -288,3 +263,27 @@ def test_fill_nan_without_categorical():
 
     assert np.isnan(prediction.features).sum() == 0
     assert np.isnan(prediction_train.features).sum() == 0
+
+
+def test_multivariate_ts():
+    forecast_length = 1
+
+    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test)
+
+    historical_data = {
+        'ws': add_history,  # additional variable
+        'ssh': target_history,  # target variable
+    }
+
+    fedot = Fedot(problem='ts_forecasting', composer_params=composer_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    fedot.fit(features=historical_data, target=target_history)
+    forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
+    assert forecast is not None

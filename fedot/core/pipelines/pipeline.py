@@ -17,7 +17,7 @@ from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_has_categorical_features, data_has_missing_values
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation, str_columns_check
+    OneHotEncodingImplementation, ImputationImplementation, DataOperationImplementation
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -344,7 +344,11 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
     def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
         node_type = root.operation.operation_type
         if node_type == 'simple_imputation':
-            has_imputer = True
+            # If imputer placed before encoder in pipeline
+            if not has_encoder:
+                has_imputer = True
+            else:
+                return False, has_encoder
         if node_type == 'one_hot_encoding':
             has_encoder = True
 
@@ -421,19 +425,6 @@ def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
             data[data_source_name].features = transformed
 
 
-def divide_data_categorical_numerical(input_data: InputData) -> (InputData, InputData):
-    categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
-    numerical_features = input_data.features[:, non_categorical_ids]
-    categorical_features = input_data.features[:, categorical_ids]
-
-    numerical = InputData(features=numerical_features, data_type=input_data.data_type,
-                          target=input_data.target, task=input_data.task, idx=input_data.idx)
-    categorical = InputData(features=categorical_features, data_type=input_data.data_type,
-                            target=input_data.target, task=input_data.task, idx=input_data.idx)
-
-    return numerical, categorical
-
-
 def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
     if isinstance(data, InputData):
         return _imputation_implementation_unidata(data)
@@ -446,18 +437,8 @@ def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[
 
 
 def _imputation_implementation_unidata(data: InputData):
-    if data_has_categorical_features(data):
-        imputation_encoder_cat = ImputationImplementation(strategy='most_frequent')
-        imputation_encoder_num = ImputationImplementation()
-        numerical, categorical = divide_data_categorical_numerical(data)
-        output_data_cat = imputation_encoder_cat.fit_transform(categorical)
-        output_data_num = imputation_encoder_num.fit_transform(numerical)
-        output_features = np.hstack((output_data_cat.predict, output_data_num.predict))
-        output_data = OutputData(features=data.features, data_type=data.data_type,
-                                 target=data.target, task=data.task, idx=data.idx, predict=output_features)
-    else:
-        imputation_encoder = ImputationImplementation()
-        output_data = imputation_encoder.fit_transform(data)
+    imputer = ImputationImplementation()
+    output_data = imputer.fit_transform(data)
     transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
                             target=output_data.target, task=output_data.task, idx=output_data.idx)
     return transformed
