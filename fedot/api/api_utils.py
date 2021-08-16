@@ -1,5 +1,5 @@
 import datetime
-from typing import Callable, Optional, Union, List
+from typing import Callable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -8,21 +8,19 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
                                                          GPGraphOptimiserParameters)
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
+from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.data.data import data_has_categorical_features
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 composer_metrics_mapping = {
     'acc': ClassificationMetricsEnum.accuracy,
@@ -272,8 +270,11 @@ def _create_multidata_pipeline(task: Task, data: MultiModalData, has_categorical
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_ts'):
                 node_primary = PrimaryNode(data_source_name)
-                node_imputation = SecondaryNode('simple_imputation', [node_primary])
-                node_lagged = SecondaryNode('lagged', [node_imputation])
+                if data_has_missing_values(data):
+                    node_imputation = SecondaryNode('simple_imputation', [node_primary])
+                    node_lagged = SecondaryNode('lagged', [node_imputation])
+                else:
+                    node_lagged = SecondaryNode('lagged', [node_primary])
                 node_last = SecondaryNode('ridge', [node_lagged])
                 node_final.nodes_from.append(node_last)
     elif task.task_type == TaskTypesEnum.classification:
