@@ -113,10 +113,10 @@
 			"output_type": "[DataTypesEnum.table]"
 		},
 		"data_source_ts": {
-			"meta": "data_sources",
-		  	"tags": ["ts_specific"],
-			"input_type": "[DataTypesEnum.ts]",
-			"output_type": "[DataTypesEnum.ts]"
+		  "meta": "data_sources",
+		  "tags": ["ts_specific", "non-default"],
+		  "input_type": "[DataTypesEnum.ts]",
+		  "output_type": "[DataTypesEnum.ts]"
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
