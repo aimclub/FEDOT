@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
+from pylab import rcParams
 
 # Additional custom functions
-from cases.demo.processing import prepare_unimodal_for_validation, plot_diesel_and_wind, \
-    advanced_validation, automl_fit_forecast
+from cases.industrial.processing import advanced_validation, automl_fit_forecast, plot_diesel_and_wind, \
+    prepare_unimodal_for_validation
 
-from pylab import rcParams
 rcParams['figure.figsize'] = 15, 7
-
 
 if __name__ == '__main__':
     """ 
@@ -44,7 +43,7 @@ if __name__ == '__main__':
                        'validation_blocks': 2}
     forecast, obtained_pipeline = automl_fit_forecast(train_input, validation_input, composer_params,
                                                       vis=True, in_sample_forecasting=True,
-                                                      horizon=forecast_length*validation_blocks)
+                                                      horizon=forecast_length * validation_blocks)
 
     # Perform in-sample validation and display metrics
     advanced_validation(forecast, forecast_length, validation_blocks, ts)

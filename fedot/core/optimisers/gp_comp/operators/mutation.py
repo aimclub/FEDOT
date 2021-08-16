@@ -152,6 +152,7 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     nodes’ operations with probability - 'node mutation probability'
     which is initialised inside the function
     """
+
     def replace_node_to_random_recursive(node: Any) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
@@ -286,14 +287,25 @@ def single_drop_mutation(graph: Any, *args, **kwargs):
     Add new node between two sequential existing modes
     """
     node_to_del = choice(graph.nodes)
-    graph.delete_node(node_to_del)
-    if node_to_del.nodes_from:
-        childs = graph.operator.node_children(node_to_del)
-        for child in childs:
-            if child.nodes_from:
-                child.nodes_from.extend(node_to_del.nodes_from)
-            else:
-                child.nodes_from = node_to_del.nodes_from
+    # TODO replace as workaround
+    node_name = node_to_del.content['name']
+    if (hasattr(node_name, 'operation_type') and
+            'data_source' in node_name.operation_type):
+        nodes_to_delete = \
+            [n for n in graph.nodes if node_name.operation_type in n.descriptive_id and
+             n.descriptive_id.count('data_source') == 1]
+        for child_node in nodes_to_delete:
+            graph.delete_node(child_node)
+        graph.delete_node(node_to_del)
+    else:
+        graph.delete_node(node_to_del)
+        if node_to_del.nodes_from:
+            childs = graph.operator.node_children(node_to_del)
+            for child in childs:
+                if child.nodes_from:
+                    child.nodes_from.extend(node_to_del.nodes_from)
+                else:
+                    child.nodes_from = node_to_del.nodes_from
     return graph
 
 
