@@ -2,7 +2,7 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 from uuid import uuid4
 
 import joblib
@@ -82,11 +82,15 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: str = None, root_node: Node = None) -> Tuple[str, dict]:
+    def export_pipeline(self, path: str = None, root_node: Node = None,
+                        additional_info: Optional[dict] = None,
+                        datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
         Save JSON to path and return this JSON like object.
         :param path: custom path to save
         :param root_node: root node of exported pipeline
+        :param additional_info: dict with custom metadata that should be exported
+        :param datetime_in_path: is adding the datetime to path required
         :return: Tuple: (1) JSON representation pipeline structure and (2) dict of paths to fitted models
         """
 
@@ -96,11 +100,14 @@ class PipelineTemplate:
         if path is None:
             return json_data, self._create_fitted_operations()
 
-        path = self._prepare_paths(path)
+        path = self._prepare_paths(path, with_time=datetime_in_path)
         absolute_path = os.path.abspath(path)
 
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
+
+        if additional_info is not None:
+            pipeline_template_dict['additional_info'] = additional_info
 
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(pipeline_template_dict, indent='\t'))
@@ -133,19 +140,18 @@ class PipelineTemplate:
 
         return dict_fitted_operations
 
-    def _prepare_paths(self, path: str):
+    def _prepare_paths(self, path: str, with_time: bool = True):
         absolute_path = os.path.abspath(path)
         path, folder_name = os.path.split(path)
         folder_name = os.path.splitext(folder_name)[0]
 
         if not os.path.isdir(os.path.dirname(absolute_path)):
-            message = f'The path to save a pipeline is not a directory: {absolute_path}.'
-            self.log.error(message)
-            raise FileNotFoundError(message)
+            os.mkdir(os.path.dirname(absolute_path))
+            os.mkdir(absolute_path)
 
         self.unique_pipeline_id = folder_name
 
-        if _is_nested_path(folder_name):
+        if _is_nested_path(folder_name) and with_time:
             folder_name = f"{datetime.now().strftime('%B-%d-%Y,%H-%M-%S,%p')} {folder_name}"
 
         path_to_save = os.path.join(path, folder_name)

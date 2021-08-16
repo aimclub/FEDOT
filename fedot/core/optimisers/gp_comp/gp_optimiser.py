@@ -131,6 +131,7 @@ class GPGraphOptimiser:
         self.population = None
         self.initial_graph = initial_graph
         self.history = OptHistory(metrics)
+        self.history.clean_results()
 
     def _create_randomized_pop_from_inital_pipeline(self, initial_pipeline) -> List[Individual]:
         """
@@ -376,6 +377,7 @@ class GPGraphOptimiser:
                 individual.graph = \
                     self.graph_generation_params.adapter.restore(individual.graph)
             self.history.add_to_history(individuals)
+            self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
                 self.history.add_to_archive_history(archive.items)
