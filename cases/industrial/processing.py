@@ -1,19 +1,17 @@
 from typing import Union
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # fedot api
 from fedot.api.main import Fedot
-
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-from fedot.core.data.data_split import train_test_data_setup
-
-from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 
 def prepare_unimodal_data(time_series: Union[np.array, pd.Series], forecast_length: int):
@@ -151,11 +149,11 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
                   composer_params=composer_params,
-                  task_params=task_params)
+                  task_params=task_params, verbose_level=4)
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)
 
-    if vis is True:
+    if vis:
         obtained_pipeline.print_structure()
         obtained_pipeline.show()
 

@@ -23,8 +23,10 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any
 
             # Perform specific change for particular parameter
             changer = ParametersChanger(operation_name, current_params)
-            node.custom_params = changer.get_new_operation_params()
-
+            try:
+                node.custom_params = changer.get_new_operation_params()
+            except Exception as ex:
+                pipeline.log.error(ex)
     return pipeline
 
 

@@ -1,17 +1,14 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from pylab import rcParams
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+# Additional custom functions
+from cases.industrial.processing import automl_fit_forecast, plot_diesel_and_wind, plot_results, prepare_unimodal_data
 # FEDOT imports
 from fedot.core.data.data_split import train_test_data_setup
 
-# Additional custom functions
-from cases.demo.processing import prepare_unimodal_data, plot_diesel_and_wind, \
-    plot_results, automl_fit_forecast
-
-from pylab import rcParams
 rcParams['figure.figsize'] = 15, 7
-
 
 if __name__ == '__main__':
     """ 
