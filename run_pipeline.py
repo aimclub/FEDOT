@@ -20,8 +20,8 @@ def extract_data_from_config_file(file):
 
 
 def run_fedot(config_file):
-    pipeline_file_path, train_data_path, \
-    task, test_data_path, output_path = extract_data_from_config_file(config_file)
+    pipeline_file_path, train_data_path, task, test_data_path, \
+        output_path = extract_data_from_config_file(config_file)
 
     pipeline = Pipeline()
     pipeline.load(pipeline_file_path)
