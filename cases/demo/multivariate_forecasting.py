@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from pylab import rcParams
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Additional custom functions
-from cases.demo.processing import prepare_multimodal_data, plot_results, multi_automl_fit_forecast
+from cases.demo.processing import multi_automl_fit_forecast, plot_results, prepare_multimodal_data
 
-from pylab import rcParams
 rcParams['figure.figsize'] = 15, 7
-
 
 if __name__ == '__main__':
     """ 
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     print(f'RMSE - {mse_metric:.2f}')
 
     # Save obtained pipeline
-    obtained_pipeline.save('')
+    obtained_pipeline.save('best')
 
     # Visualise predictions
     plot_results(actual_time_series=ts,

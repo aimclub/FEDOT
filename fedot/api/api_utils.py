@@ -9,7 +9,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder, GPComposerRequirements,
                                                          GPGraphOptimiserParameters)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.data.data import InputData, OutputData, data_has_categorical_features
+from fedot.core.data.data import InputData, OutputData, data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
@@ -286,8 +286,11 @@ def _create_multidata_pipeline(task: Task, data: MultiModalData, has_categorical
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_ts'):
                 node_primary = PrimaryNode(data_source_name)
-                node_imputation = SecondaryNode('simple_imputation', [node_primary])
-                node_lagged = SecondaryNode('lagged', [node_imputation])
+                if data_has_missing_values(data):
+                    node_imputation = SecondaryNode('simple_imputation', [node_primary])
+                    node_lagged = SecondaryNode('lagged', [node_imputation])
+                else:
+                    node_lagged = SecondaryNode('lagged', [node_primary])
                 node_last = SecondaryNode('ridge', [node_lagged])
                 node_final.nodes_from.append(node_last)
     elif task.task_type == TaskTypesEnum.classification:

@@ -181,7 +181,10 @@ def _check_existing_path(path: str):
 
 
 def extract_operation_params(node: Node):
-    return node.fitted_operation.get_params()
+    if not isinstance(node.fitted_operation, object):
+        return node.fitted_operation.get_params()
+    else:
+        return {}
 
 
 def _extract_operation_name(node: Node):
