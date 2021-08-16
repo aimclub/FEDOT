@@ -4,7 +4,7 @@ from pylab import rcParams
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Additional custom functions
-from cases.demo.processing import multi_automl_fit_forecast, plot_results, prepare_multimodal_data
+from cases.industrial.processing import multi_automl_fit_forecast, plot_results, prepare_multimodal_data
 
 rcParams['figure.figsize'] = 15, 7
 
@@ -31,13 +31,13 @@ if __name__ == '__main__':
                                                  forecast_length=forecast_length)
 
     # Prepare parameters for algorithm launch
-    # timeout 2 - means that AutoML algorithm will work for 2 minutes
+    # timeout 5 - means that AutoML algorithm will work for 5 minutes
     composer_params = {'max_depth': 6,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 0.5,
-                       'preset': 'ultra_light',
+                       'timeout': 5,
+                       'preset': 'light',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}

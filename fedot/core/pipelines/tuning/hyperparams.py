@@ -1,4 +1,5 @@
 import random
+
 import numpy as np
 from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
@@ -65,7 +66,11 @@ class ParametersChanger:
             current_value = None
         else:
             # Dictionary with parameters
-            current_value = self.current_params[parameter_name]
+            try:
+                current_value = self.current_params[parameter_name]
+            except KeyError as ex:
+                print(ex)
+                return None
 
         return current_value
 
