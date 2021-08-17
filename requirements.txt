@@ -1,28 +1,28 @@
-scikit-optimize==0.7.4
-pandas==1.1.0; python_version < '3.8'
-pandas==1.3.0; python_version >='3.9'
-statsmodels==0.12.0
+scikit-optimize>=0.7.4
+pandas>=1.1.0,<1.3.0; python_version < '3.8'
+pandas>=1.3.0; python_version >='3.9'
+statsmodels>=0.12.0
 dataclasses==0.7; python_version < '3.7'
-ete3==3.1.1
-numpy==1.19.2
-pytest==6.2.3
-anytree==2.8.0
-typing==3.7.4.1
-scikit_learn==0.24.1
+ete3>=3.1.*
+numpy>=1.19.*
+pytest>=6.2.*
+anytree>=2.8.*
+typing>=3.7.*
+scikit_learn>=0.24.*
 matplotlib==3.0.2; python_version < '3.8'
-matplotlib==3.3.1; python_version >= '3.8'
-networkx==2.4
-xgboost==1.0.1
-Pillow==8.2.0
-imageio==2.8.0
-seaborn==0.9.0
-hyperopt==0.2.4
-joblib==0.17.0
-tensorflow==2.2.0; python_version <= '3.7'
-tensorflow==2.5.0; python_version >= '3.8'
-nltk==3.5
-SALib==1.3.11
-deap==1.3.1
-lightgbm==2.3.1
-catboost==0.25.1
-testfixtures==6.18.0
+matplotlib>=3.3.1; python_version >= '3.8'
+networkx>=2.4
+xgboost>=1.0.1
+Pillow>=8.2.*
+imageio>=2.8.*
+seaborn>=0.9.*
+hyperopt>=0.2.4
+joblib>=0.17.*
+tensorflow>=2.2.0,<2.5.0; python_version <= '3.7'
+tensorflow>=2.5.0; python_version >= '3.8'
+nltk>=3.5
+SALib>=1.3.*
+deap>=1.3.*
+lightgbm>=2.3.*
+catboost>=0.25.*
+testfixtures>=6.18.*
