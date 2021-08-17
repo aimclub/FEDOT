@@ -148,6 +148,8 @@ class Fedot:
             available_operations = filter_operations_by_preset(self.problem, preset)
             self.composer_params['available_operations'] = available_operations
             self.composer_params['with_tuning'] = '_tun' in preset or preset is None
+            if 'steady_state' in preset:
+                self.composer_params['genetic_scheme'] = 'steady_state'
 
     def _get_params(self):
         param_dict = {'train_data': self.train_data,

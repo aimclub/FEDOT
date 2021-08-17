@@ -1,5 +1,4 @@
 from typing import Callable
-from uuid import uuid4
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation import Operation
@@ -18,7 +17,7 @@ class AtomizedModel(Operation):
 
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
-        self.unique_id = uuid4()
+        self.unique_id = self.pipeline.root_node.descriptive_id
 
     def fit(self, data: InputData, is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):

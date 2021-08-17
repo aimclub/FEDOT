@@ -27,7 +27,7 @@ def test_credit_scoring_problem():
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=timedelta(minutes=0.1))
+    roc_auc_test = run_credit_scoring_problem(full_path_train, full_path_test, timeout=0.1)
     assert roc_auc_test > 0.5
 
 

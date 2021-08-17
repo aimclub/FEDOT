@@ -2,6 +2,8 @@ import math
 from random import choice, randint
 from typing import Any, List, TYPE_CHECKING
 
+from typing import (Any, List)
+from copy import copy
 from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -36,11 +38,6 @@ def selection(types: List[SelectionTypesEnum], population: List[Individual], pop
     selection_type = choice(types)
     if selection_type in selection_by_type.keys():
         selected = selection_by_type[selection_type](population, pop_size)
-        for selected_ind in selected:
-            selected_ind.parent_operator = \
-                ParentOperator(operator_type='selection',
-                               operator_name=str(selection_type),
-                               parent_objects=[params.adapter.restore_as_template(selected_ind.graph)])
         return selected
     else:
         raise ValueError(f'Required selection not found: {selection_type}')

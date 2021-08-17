@@ -131,6 +131,8 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
         if is_correct_graph:
             new_individual = Individual(new_graph)
             if add_to_history:
+                new_individual = Individual(new_graph)
+                new_individual.parent_operators = ind.parent_operators
                 for mutation_name in mutation_names:
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',

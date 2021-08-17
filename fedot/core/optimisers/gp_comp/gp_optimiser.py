@@ -10,6 +10,7 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, \
     duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -108,9 +109,11 @@ class GPGraphOptimiser:
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
-        self.archive = archive_type
+
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
+        self.archive = archive_type if archive_type else SimpleArchive()
+
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
             else self.requirements.max_depth
@@ -128,6 +131,7 @@ class GPGraphOptimiser:
         self.population = None
         self.initial_graph = initial_graph
         self.history = OptHistory(metrics)
+        self.history.clean_results()
 
     def _create_randomized_pop_from_inital_pipeline(self, initial_pipeline) -> List[Individual]:
         """
@@ -234,6 +238,9 @@ class GPGraphOptimiser:
                 self.log_info_about_best()
 
                 self.generation_num += 1
+
+                if isinstance(self.archive, SimpleArchive):
+                    self.archive.clear()
 
                 clean_operators_history(self.population)
             best = self.result_individual()
@@ -370,6 +377,7 @@ class GPGraphOptimiser:
                 individual.graph = \
                     self.graph_generation_params.adapter.restore(individual.graph)
             self.history.add_to_history(individuals)
+            self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
                 self.history.add_to_archive_history(archive.items)

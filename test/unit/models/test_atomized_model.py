@@ -104,7 +104,7 @@ def create_data_for_train():
 def test_save_load_atomized_pipeline_correctly():
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    json_actual = pipeline.save('test_save_load_atomized_pipeline_correctly')
+    json_actual, _ = pipeline.save('test_save_load_atomized_pipeline_correctly')
 
     json_path_load = create_correct_path('test_save_load_atomized_pipeline_correctly')
 
@@ -124,13 +124,13 @@ def test_save_load_fitted_atomized_pipeline_correctly():
     train_data, test_data = create_data_for_train()
     pipeline.fit(train_data)
 
-    json_actual = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly')
+    json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly')
 
     json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
 
     pipeline_loaded = Pipeline()
     pipeline_loaded.load(json_path_load)
-    json_expected = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded')
+    json_expected, _ = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded')
 
     assert pipeline.length == pipeline_loaded.length
     assert json_actual == json_expected
