@@ -2,10 +2,13 @@ import os
 
 import numpy as np
 import pandas as pd
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.multi_modal_pipeline import (prepare_multi_modal_data)
+from fedot.api.main import Fedot
 from fedot.api.main import _define_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -23,11 +26,6 @@ composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,
                    'preset': 'ultra_light'}
-
-from sklearn.datasets import load_iris
-from sklearn.preprocessing import LabelEncoder
-
-from fedot.api.main import Fedot
 
 
 def get_split_data_paths():
