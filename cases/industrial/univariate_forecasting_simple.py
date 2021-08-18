@@ -19,7 +19,7 @@ if __name__ == '__main__':
     """
 
     # Define forecast horizon and read dataframe
-    forecast_length = 20
+    forecast_length = 30
     df = pd.read_csv('pw_dataset.csv', parse_dates=['datetime'])
 
     # Make visualisation
