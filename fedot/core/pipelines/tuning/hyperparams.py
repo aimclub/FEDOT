@@ -1,4 +1,5 @@
 import random
+
 import numpy as np
 from hyperopt import hp
 from hyperopt.pyll.stochastic import sample as hp_sample
@@ -55,7 +56,9 @@ class ParametersChanger:
             parameters = {'operation_name': self.operation_name,
                           'current_value': current_value}
             param_value = func(parameter_name, **parameters)
-            params_dict.update(param_value)
+
+            if param_value is not None:
+                params_dict.update(param_value)
 
         return params_dict
 
@@ -65,7 +68,11 @@ class ParametersChanger:
             current_value = None
         else:
             # Dictionary with parameters
-            current_value = self.current_params[parameter_name]
+            try:
+                current_value = self.current_params[parameter_name]
+            except KeyError as ex:
+                # param not found
+                return None
 
         return current_value
 
@@ -83,6 +90,9 @@ class ParametersChanger:
     @staticmethod
     def _incremental_change(parameter_name, **kwargs):
         """ Next to the current value, the normally distributed new value is set aside """
+        if 'current_value' not in kwargs:
+            print(f'Current value not defined for {parameter_name}')
+            return None
         # TODO add the ability to limit the boundaries of the params ranges
         sigma = kwargs['current_value'] * 0.3
         new_value = random.normalvariate(kwargs['current_value'], sigma)
