@@ -267,16 +267,18 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str = None) -> Tuple[str, dict]:
+    def save(self, path: str = None, datetime_in_path=True) -> Tuple[str, dict]:
         """
         Save the pipeline to the json representation with pickled fitted operations.
 
         :param path to json file with operation
+        :param datetime_in_path add timestamp to folder name
         :return: json containing a composite operation description
         """
         if not self.template:
             self.template = PipelineTemplate(self, self.log)
-        json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node)
+        json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node,
+                                                                            datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
 
     def load(self, source: Union[str, dict], dict_fitted_operations: dict = None):
