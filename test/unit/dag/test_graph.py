@@ -5,12 +5,9 @@ import numpy as np
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 
 seed(1)
 np.random.seed(1)
-
-tmp = classification_dataset
 
 
 def test_graph_id():

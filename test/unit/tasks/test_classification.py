@@ -1,19 +1,12 @@
-import os
-
 import numpy as np
 import tensorflow as tf
-from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from examples.image_classification_problem import run_image_classification_problem
-from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.keras import CustomCNNImplementation, \
     check_input_array, create_deep_cnn, fit_cnn, predict_cnn
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.models.test_model import classification_dataset_with_redunant_features
 
 
@@ -37,52 +30,6 @@ def pipeline_with_pca() -> Pipeline:
     pipeline = Pipeline(node_final)
 
     return pipeline
-
-
-def get_iris_data() -> InputData:
-    synthetic_data = load_iris()
-    input_data = InputData(idx=np.arange(0, len(synthetic_data.target)),
-                           features=synthetic_data.data,
-                           target=synthetic_data.target,
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-    return input_data
-
-
-def get_binary_classification_data():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
-    return input_data
-
-
-def get_image_classification_data(composite_flag: bool = True):
-    """ Method for loading data with images in .npy format (training_data.npy, training_labels.npy,
-    test_data.npy, test_labels.npy) that are used in tests.This npy files are a truncated version
-    of the MNIST dataset, that contains only 10 first images.
-
-    :param composite_flag: Flag that allows to run tests for complex composite models
-    """
-    test_data_path = '../../data/test_data.npy'
-    test_labels_path = '../../data/test_labels.npy'
-    train_data_path = '../../data/training_data.npy'
-    train_labels_path = '../../data/training_labels.npy'
-
-    test_file_path = str(os.path.dirname(__file__))
-    training_path_features = os.path.join(test_file_path, train_data_path)
-    training_path_labels = os.path.join(test_file_path, train_labels_path)
-    test_path_features = os.path.join(test_file_path, test_data_path)
-    test_path_labels = os.path.join(test_file_path, test_labels_path)
-
-    roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
-        train_dataset=(training_path_features,
-                       training_path_labels),
-        test_dataset=(test_path_features,
-                      test_path_labels),
-        composite_flag=composite_flag)
-
-    return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 
 def test_multiclassification_pipeline_fit_correct():

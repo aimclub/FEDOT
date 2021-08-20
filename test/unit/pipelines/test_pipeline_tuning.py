@@ -18,20 +18,6 @@ seed(1)
 np.random.seed(1)
 
 
-@pytest.fixture()
-def regression_dataset():
-    test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_regression.csv')
-    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
-
-
-@pytest.fixture()
-def classification_dataset():
-    test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_classification.csv')
-    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
-
-
 def get_simple_regr_pipeline():
     final = PrimaryNode(operation_type='xgbreg')
     pipeline = Pipeline(final)

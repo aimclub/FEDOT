@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot.api.main import Fedot
@@ -7,8 +6,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.composer.test_quality_metrics import multi_target_data_setup
 
 _ = multi_target_data_setup
@@ -33,14 +30,7 @@ def generate_pipeline() -> Pipeline:
     return pipeline
 
 
-def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
-    synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
-    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
-                           features=synthetic_data[0],
-                           target=synthetic_data[1],
-                           task=Task(TaskTypesEnum.regression),
-                           data_type=DataTypesEnum.table)
-    return input_data
+
 
 
 def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):

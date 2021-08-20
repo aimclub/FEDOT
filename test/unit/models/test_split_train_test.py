@@ -2,15 +2,12 @@ import random
 from copy import deepcopy
 
 import numpy as np
-from sklearn.datasets import make_classification
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 np.random.seed(1)
 random.seed(1)
@@ -31,17 +28,6 @@ def get_roc_auc_value(pipeline: Pipeline, train_data: InputData, test_data: Inpu
     roc_auc_value_train = roc_auc(y_true=train_data.target, y_score=train_pred.predict)
 
     return roc_auc_value_train, roc_auc_value_test
-
-
-def get_synthetic_input_data(n_samples=10000, n_features=10, random_state=None) -> InputData:
-    synthetic_data = make_classification(n_samples=n_samples,
-                                         n_features=n_features, random_state=random_state)
-    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
-                           features=synthetic_data[0],
-                           target=synthetic_data[1],
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-    return input_data
 
 
 def get_random_target_data(data: InputData) -> InputData:

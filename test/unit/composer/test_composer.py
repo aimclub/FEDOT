@@ -2,7 +2,6 @@ import datetime
 import random
 import shelve
 import numpy as np
-import pytest
 
 from sklearn.metrics import roc_auc_score as roc_auc
 
@@ -24,11 +23,10 @@ from test.pipeline_manager import pipeline_first
 from test.data_manager import file_data_setup
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_random_composer(data_fixture, request):
+def test_random_composer():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     dataset_to_validate = data
 
@@ -53,11 +51,10 @@ def test_random_composer(data_fixture, request):
     assert roc_on_valid_random_composed > 0.6
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_fixed_structure_composer(data_fixture, request):
+def test_fixed_structure_composer():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     dataset_to_validate = data
 
@@ -92,11 +89,10 @@ def test_fixed_structure_composer(data_fixture, request):
     assert pipeline_composed.length == reference_pipeline.length
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_gp_composer_build_pipeline_correct(data_fixture, request):
+def test_gp_composer_build_pipeline_correct():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     dataset_to_validate = data
     task = Task(TaskTypesEnum.classification)
@@ -122,11 +118,10 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
     assert roc_on_valid_gp_composed > 0.6
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_composition_time(data_fixture, request):
+def test_composition_time():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     task = Task(TaskTypesEnum.classification)
     models_impl = ['mlp', 'knn']
     metric_function = ClassificationMetricsEnum.ROCAUC
@@ -161,11 +156,10 @@ def test_composition_time(data_fixture, request):
     assert len(gp_composer_completed_evolution.history.individuals) == 2
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
+def test_parameter_free_composer_build_pipeline_correct():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     dataset_to_validate = data
     available_model_types, _ = OperationTypesRepository().suitable_operation(
@@ -193,11 +187,10 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     assert roc_on_valid_gp_composed > 0.6
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_multi_objective_composer(data_fixture, request):
+def test_multi_objective_composer():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     dataset_to_validate = data
     available_model_types, _ = OperationTypesRepository().suitable_operation(
@@ -231,11 +224,10 @@ def test_multi_objective_composer(data_fixture, request):
     assert all([metric > 0.6 for metric in pipelines_roc_auc])
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_gp_composer_with_start_depth(data_fixture, request):
+def test_gp_composer_with_start_depth():
     random.seed(1)
     np.random.seed(1)
-    data = request.getfixturevalue(data_fixture)
+    data = file_data_setup()
     dataset_to_compose = data
     available_model_types = ['xgboost', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
@@ -254,9 +246,8 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     assert composer.optimiser.max_depth == 5
 
 
-@pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_gp_composer_saving_info_from_process(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
+def test_gp_composer_saving_info_from_process():
+    data = file_data_setup()
     dataset_to_compose = data
     available_model_types = ['xgboost', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC

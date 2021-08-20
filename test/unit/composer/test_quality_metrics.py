@@ -1,5 +1,4 @@
 import sys
-import pytest
 
 from fedot.core.composer.metrics import QualityMetric
 from fedot.core.pipelines.node import PrimaryNode
@@ -7,7 +6,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum,\
     ComplexityMetricsEnum, MetricsRepository, RegressionMetricsEnum
 from test.pipeline_manager import default_valid_pipeline
-from test.data_manager import multi_target_data_setup, data_setup
+from test.data_manager import data_setup, multi_target_data_setup
 
 
 def test_structural_quality_correct():
@@ -18,9 +17,8 @@ def test_structural_quality_correct():
     assert actual_metric_value <= expected_metric_value
 
 
-@pytest.mark.parametrize('data_fixture', ['data_setup'])
-def test_classification_quality_metric(data_setup):
-    train, _ = data_setup
+def test_classification_quality_metric():
+    train, _ = data_setup()
     pipeline = default_valid_pipeline()
     pipeline.fit(input_data=train)
 
@@ -30,8 +28,8 @@ def test_classification_quality_metric(data_setup):
         assert 0 < abs(metric_value) < sys.maxsize
 
 
-def test_regression_quality_metric(data_setup):
-    train, _ = data_setup
+def test_regression_quality_metric():
+    train, _ = data_setup()
     pipeline = default_valid_pipeline()
     pipeline.fit(input_data=train)
 
@@ -41,8 +39,8 @@ def test_regression_quality_metric(data_setup):
         assert metric_value > 0
 
 
-def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
-    train, test = multi_target_data_setup
+def test_data_preparation_for_multi_target_correct():
+    train, test = multi_target_data_setup()
     simple_pipeline = Pipeline(PrimaryNode('linear'))
     simple_pipeline.fit(input_data=train)
 

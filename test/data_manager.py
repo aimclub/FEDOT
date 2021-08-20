@@ -4,18 +4,105 @@ import pandas as pd
 import pytest
 
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_breast_cancer, load_iris, make_classification, make_regression
 
 from fedot.core.utils import fedot_project_root
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-from test.unit.models.test_split_train_test import get_synthetic_input_data
-from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.tasks.test_regression import get_synthetic_regression_data
+from examples.image_classification_problem import run_image_classification_problem
+
+
+def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=None) -> InputData:
+    synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
+    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
+                           features=synthetic_data[0],
+                           target=synthetic_data[1],
+                           task=Task(TaskTypesEnum.regression),
+                           data_type=DataTypesEnum.table)
+    return input_data
+
+
+def get_iris_data() -> InputData:
+    synthetic_data = load_iris()
+    input_data = InputData(idx=np.arange(0, len(synthetic_data.target)),
+                           features=synthetic_data.data,
+                           target=synthetic_data.target,
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    return input_data
+
+
+def get_binary_classification_data():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/simple_classification.csv'
+    input_data = InputData.from_csv(
+        os.path.join(test_file_path, file))
+    return input_data
+
+
+def get_image_classification_data(composite_flag: bool = True):
+    """ Method for loading data with images in .npy format (training_data.npy, training_labels.npy,
+    test_data.npy, test_labels.npy) that are used in tests.This npy files are a truncated version
+    of the MNIST dataset, that contains only 10 first images.
+
+    :param composite_flag: Flag that allows to run tests for complex composite models
+    """
+    test_data_path = '../../data/test_data.npy'
+    test_labels_path = '../../data/test_labels.npy'
+    train_data_path = '../../data/training_data.npy'
+    train_labels_path = '../../data/training_labels.npy'
+
+    test_file_path = str(os.path.dirname(__file__))
+    training_path_features = os.path.join(test_file_path, train_data_path)
+    training_path_labels = os.path.join(test_file_path, train_labels_path)
+    test_path_features = os.path.join(test_file_path, test_data_path)
+    test_path_labels = os.path.join(test_file_path, test_labels_path)
+
+    roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
+        train_dataset=(training_path_features,
+                       training_path_labels),
+        test_dataset=(test_path_features,
+                      test_path_labels),
+        composite_flag=composite_flag)
+
+    return roc_auc_on_valid, dataset_to_train, dataset_to_validate
+
+
+def get_synthetic_input_data(n_samples=10000, n_features=10, random_state=None) -> InputData:
+    synthetic_data = make_classification(n_samples=n_samples,
+                                         n_features=n_features, random_state=random_state)
+    input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
+                           features=synthetic_data[0],
+                           target=synthetic_data[1],
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    return input_data
+
+
+def get_ts_data(n_steps=80, forecast_length=5):
+    """ Prepare data from csv file with time series and take needed number of
+    elements
+
+    :param n_steps: number of elements in time series to take
+    :param forecast_length: the length of forecast
+    """
+    project_root_path = str(fedot_project_root())
+    file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
+    df = pd.read_csv(file_path)
+
+    time_series = np.array(df['sea_height'])[:n_steps]
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
+
+    data = InputData(idx=np.arange(0, len(time_series)),
+                     features=time_series,
+                     target=time_series,
+                     task=task,
+                     data_type=DataTypesEnum.ts)
+    return train_test_data_setup(data)
 
 
 def import_metoocean_data():
@@ -102,7 +189,6 @@ def data_setup():
     return train_data, test_data
 
 
-@pytest.fixture()
 def multi_target_data_setup():
     test_file_path = str(os.path.dirname(__file__))
     file = 'data/multi_target_sample.csv'
@@ -114,3 +200,16 @@ def multi_target_data_setup():
                               columns_to_drop=['date'], task=task)
     train, test = train_test_data_setup(data)
     return train, test
+
+
+def regression_dataset():
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'advanced_regression.csv')
+    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
+
+
+def classification_dataset():
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'advanced_classification.csv')
+    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
+

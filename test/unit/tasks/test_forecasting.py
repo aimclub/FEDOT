@@ -1,14 +1,11 @@
-import os
 from random import seed
 
 import numpy as np
-import pandas as pd
 import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
@@ -16,7 +13,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
-from fedot.core.utils import fedot_project_root
 np.random.seed(42)
 seed(42)
 
@@ -24,29 +20,6 @@ seed(42)
 def _max_rmse_threshold_by_std(values, is_strict=True):
     tolerance_coeff = 3.0 if is_strict else 5.0
     return np.std(values) * tolerance_coeff
-
-
-def get_ts_data(n_steps=80, forecast_length=5):
-    """ Prepare data from csv file with time series and take needed number of
-    elements
-
-    :param n_steps: number of elements in time series to take
-    :param forecast_length: the length of forecast
-    """
-    project_root_path = str(fedot_project_root())
-    file_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
-    df = pd.read_csv(file_path)
-
-    time_series = np.array(df['sea_height'])[:n_steps]
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
-
-    data = InputData(idx=np.arange(0, len(time_series)),
-                     features=time_series,
-                     target=time_series,
-                     task=task,
-                     data_type=DataTypesEnum.ts)
-    return train_test_data_setup(data)
 
 
 def get_multiscale_pipeline():
