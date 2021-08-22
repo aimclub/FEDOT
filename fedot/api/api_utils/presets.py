@@ -1,4 +1,4 @@
-from fedot.core.repository.operation_types_repository import get_operations_for_task, OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
 
@@ -15,7 +15,8 @@ class ApiPresetHelper:
 
         # TODO remove workaround
         extended_excluded = ['mlp', 'catboost', 'lda', 'qda', 'lgbm',
-                             'svc', 'svr', 'arima', 'exog_ts_data_source', 'text_clean']
+                             'svc', 'svr', 'arima', 'exog_ts_data_source', 'text_clean',
+                             'one_hot_encoding', 'ransac_lin_reg', 'ransac_non_lin_reg']
         excluded_models_dict = {'light': excluded,
                                 'light_tun': excluded,
                                 'light_steady_state': extended_excluded}
