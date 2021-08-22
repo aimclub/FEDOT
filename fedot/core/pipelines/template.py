@@ -106,7 +106,7 @@ class PipelineTemplate:
                 else:
                     pipeline_template_dict['fitted_operation_path'] = None
 
-                json_data = json.dumps(pipeline_template_dict, indent=4)
+            json_data = json.dumps(pipeline_template_dict, indent=4)
             return json_data, fitted_ops
 
         path = self._prepare_paths(path, with_time=datetime_in_path)
