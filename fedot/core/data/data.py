@@ -10,10 +10,10 @@ from PIL import Image
 
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.merge import DataMerger
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.multi_modal import MultiModalData
 
 # Max unique values to convert numerical column to categorical.
 MAX_UNIQ_VAL = 12
@@ -312,6 +312,10 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
     :param data: Union[InputData, MultiModalData]
     :return data_has_categorical_columns: bool, whether data has categorical columns or not
     """
+
+    # TODO remove workaround
+    return False
+
     data_has_categorical_columns = False
 
     if isinstance(data, MultiModalData):

@@ -98,7 +98,16 @@ class PipelineTemplate:
         json_data = json.dumps(pipeline_template_dict, indent=4)
 
         if path is None:
-            return json_data, self._create_fitted_operations()
+            fitted_ops = self._create_fitted_operations()
+            for operation in pipeline_template_dict['nodes']:
+                saved_key = f'operation_{operation["operation_id"]}'
+                if saved_key in fitted_ops.keys():
+                    pipeline_template_dict['fitted_operation_path'] = saved_key
+                else:
+                    pipeline_template_dict['fitted_operation_path'] = None
+
+                json_data = json.dumps(pipeline_template_dict, indent=4)
+            return json_data, fitted_ops
 
         path = self._prepare_paths(path, with_time=datetime_in_path)
         absolute_path = os.path.abspath(path)
@@ -252,7 +261,7 @@ class PipelineTemplate:
 
             fitted_operation = joblib.load(path_to_operation)
         elif dict_fitted_operations is not None:
-            fitted_operation = joblib.load(dict_fitted_operations[operation_object.fitted_operation_path])
+            fitted_operation = joblib.load(dict_fitted_operations[f'operation_{operation_object.operation_id}'])
 
         operation_object.fitted_operation = fitted_operation
         node.fitted_operation = fitted_operation
