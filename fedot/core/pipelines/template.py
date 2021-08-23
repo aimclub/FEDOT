@@ -95,8 +95,7 @@ class PipelineTemplate:
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
-        json_data = json.dumps(pipeline_template_dict, indent=4)
-
+        fitted_ops = {}
         if path is None:
             fitted_ops = self._create_fitted_operations()
             for operation in pipeline_template_dict['nodes']:
@@ -106,7 +105,9 @@ class PipelineTemplate:
                 else:
                     pipeline_template_dict['fitted_operation_path'] = None
 
-            json_data = json.dumps(pipeline_template_dict, indent=4)
+        json_data = json.dumps(pipeline_template_dict, indent=4)
+
+        if path is None:
             return json_data, fitted_ops
 
         path = self._prepare_paths(path, with_time=datetime_in_path)
