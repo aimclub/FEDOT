@@ -26,25 +26,48 @@ def out_of_sample_ts_forecast(pipeline, input_data: InputData,
     task = input_data.task
     exception_if_not_ts_task(task)
 
-    pre_history_ts = np.array(input_data.features)
-    source_len = len(pre_history_ts)
+    if isinstance(input_data, InputData):
+        pre_history_ts = np.array(input_data.features)
 
-    # How many elements to the future pipeline can produce
-    scope_len = task.task_params.forecast_length
-    number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
+        # How many elements to the future pipeline can produce
+        scope_len = task.task_params.forecast_length
+        number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
 
-    # Make forecast iteratively moving throw the horizon
-    final_forecast = []
-    for _ in range(0, number_of_iterations):
-        iter_predict = pipeline.root_node.predict(input_data=input_data)
-        iter_predict = np.ravel(np.array(iter_predict.predict))
-        final_forecast.append(iter_predict)
+        # Make forecast iteratively moving throw the horizon
+        final_forecast = []
+        for _ in range(0, number_of_iterations):
+            iter_predict = pipeline.root_node.predict(input_data=input_data)
+            iter_predict = np.ravel(np.array(iter_predict.predict))
+            final_forecast.append(iter_predict)
 
-        # Add prediction to the historical data - update it
-        pre_history_ts = np.hstack((pre_history_ts, iter_predict))
+            # Add prediction to the historical data - update it
+            pre_history_ts = np.hstack((pre_history_ts, iter_predict))
 
-        # Prepare InputData for next iteration
-        input_data = _update_input(pre_history_ts, scope_len, task)
+            # Prepare InputData for next iteration
+            input_data = _update_input(pre_history_ts, scope_len, task)
+    elif isinstance(input_data, MultiModalData):
+        data = MultiModalData()
+        for data_id in input_data.keys():
+            features = input_data[data_id].features
+            pre_history_ts = np.array(features)
+            source_len = len(pre_history_ts)
+
+            # How many elements to the future pipeline can produce
+            scope_len = task.task_params.forecast_length
+            number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
+
+        # Make forecast iteratively moving throw the horizon
+        final_forecast = []
+        for _ in range(0, number_of_iterations):
+            iter_predict = pipeline.predict(input_data=input_data)
+            iter_predict = np.ravel(np.array(iter_predict.predict))
+            final_forecast.append(iter_predict)
+
+            # Add prediction to the historical data - update it
+            pre_history_ts = np.hstack((pre_history_ts, iter_predict))
+
+            # Prepare InputData for next iteration
+            input_data = _update_input(pre_history_ts, scope_len, task)
 
     # Create output data
     final_forecast = np.ravel(np.array(final_forecast))
