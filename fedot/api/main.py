@@ -460,7 +460,7 @@ def _define_data(ml_task: Task,
 
         # create labels for data sources
         sources = dict(
-            (f'data_source_ts/{data_part_key}', data_part_transformation_func(
+            (f'{_get_source_type(data_part_key)}/{data_part_key}', data_part_transformation_func(
                 features_array=_extract_features_from_data_part(data_part)))
             for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
@@ -468,6 +468,14 @@ def _define_data(ml_task: Task,
         raise ValueError('Please specify a features as path to csv file or as Numpy array')
 
     return data
+
+
+def _get_source_type(data_part_key):
+    if 'exog' in data_part_key:
+        source_type = 'exog_ts_data_source'
+    else:
+        source_type = 'data_source_ts'
+    return source_type
 
 
 def _extract_features_from_data_part(data_part):
