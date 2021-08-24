@@ -1,14 +1,14 @@
 import configparser
 import json
 import os
-import sys
 
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.repository.tasks import Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 
-tmp_task = Task
+tmp_task = Task(TaskTypesEnum.regression)
 
 
 def extract_data_from_config_file(file):
@@ -60,7 +60,7 @@ def pipeline_from_json(json_str: str):
 if __name__ == '__main__':
     # pipeline = Pipeline(PrimaryNode('linear'))
     # desc = pipeline.save('tmp.json')
-    # config_file = f'{fedot_project_root()}\\examples\\config'
-    # print(config_file)
-    config_file = sys.argv[1]
+    config_file = f'{fedot_project_root()}\\examples\\config'
+    print(config_file)
+    # config_file = sys.argv[1]
     run_fedot(config_file)

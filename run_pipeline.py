@@ -6,9 +6,9 @@ import sys
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.repository.tasks import Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-tmp_task = Task
+tmp_task = Task(TaskTypesEnum.regression)
 
 
 def extract_data_from_config_file(file):
