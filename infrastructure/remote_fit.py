@@ -2,6 +2,7 @@ import os
 import time
 from typing import List
 
+from fedot.core.pipelines.validation import validate
 from infrastructure.datamall.models_controller.computations import Client
 
 
@@ -35,6 +36,12 @@ class RemoteFitter:
         task_type = remote_eval_params['task_type']
 
         for pipeline in pipelines:
+            try:
+                validate(pipeline)
+            except ValueError:
+                pipeline.execution_id = None
+                continue
+
             pipeline_json = pipeline.save('tmp.json').replace('\n', '')
 
             config = f"""[DEFAULT]
@@ -54,6 +61,9 @@ class RemoteFitter:
                 config=config
             )
 
+            execution_id = client.get_executions()[-1]['id']
+            pipeline.execution_id = execution_id
+
         statuses = ['']
         all_executions = client.get_executions()
         print(all_executions)
@@ -66,16 +76,18 @@ class RemoteFitter:
         print('Success')
 
         for p_id, pipeline in enumerate(pipelines):
-            ex_id = all_executions[p_id]['id']
-            client.download_result(
-                execution_id=ex_id,
-                path=f'./remote_fit_results',
-                unpack=True
-            )
+            if pipeline.execution_id:
+                client.download_result(
+                    execution_id=pipeline.execution_id,
+                    path=f'./remote_fit_results',
+                    unpack=True
+                )
 
-            results_path_out = f'./remote_fit_results/execution-{ex_id}/out'
-            results_folder = os.listdir(results_path_out)[0]
-
-            pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
+                try:
+                    results_path_out = f'./remote_fit_results/execution-{pipeline.execution_id}/out'
+                    results_folder = os.listdir(results_path_out)[0]
+                    pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
+                except Exception as ex:
+                    print(p_id, ex)
 
         return pipelines
