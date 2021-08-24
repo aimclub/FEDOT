@@ -1,0 +1,7 @@
+[DEFAULT]
+pipeline_description = { "total_pipeline_operations": { "linear": 1 }, "depth": 1, "nodes": [ { "operation_id": 0, "operation_type": "linear", "operation_name": null, "custom_params": "default_params", "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null } ] }
+train_data = ./cases/data/cholesterol/cholesterol.csv
+task = Task(TaskTypesEnum.regression)
+output_path = .
+
+[OPTIONAL]

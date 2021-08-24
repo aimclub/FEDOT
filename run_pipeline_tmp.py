@@ -58,5 +58,9 @@ def pipeline_from_json(json_str: str):
 
 
 if __name__ == '__main__':
+    # pipeline = Pipeline(PrimaryNode('linear'))
+    # desc = pipeline.save('tmp.json')
+    # config_file = f'{fedot_project_root()}\\examples\\config'
+    # print(config_file)
     config_file = sys.argv[1]
     run_fedot(config_file)
