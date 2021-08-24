@@ -40,8 +40,6 @@ class Pipeline(Graph):
         fitted yet)
     """
 
-    fit_mode = 'local'
-
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
                  log: Log = None):
 

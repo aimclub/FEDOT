@@ -6,6 +6,7 @@ from typing import (Any, Callable, List, Tuple)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from infrastructure.remote_fit import RemoteFitter
 
 MAX_ITERS = 1000
 
@@ -112,8 +113,21 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                          is_multi_objective: bool, timer=None):
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
+
+    # TODO refactor
+    fitter = RemoteFitter()
+    pre_fitted_pipelines = []
+    if fitter.is_use:
+        print('Remote fit used')
+        pipelines = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
+        pre_fitted_pipelines = fitter.fit(pipelines)
+
     for ind_num, ind in enumerate(reversed_set):
-        ind.fitness = calculate_objective(ind.graph, objective_function, is_multi_objective, graph_generation_params)
+        pre_fitted_pipeline = None
+        if len(pre_fitted_pipelines) > 0:
+            pre_fitted_pipeline = pre_fitted_pipelines[ind_num]
+        ind.fitness = calculate_objective(ind.graph, objective_function, is_multi_objective, graph_generation_params,
+                                          pre_fitted_pipeline)
         if ind.fitness is None:
             individuals_set.remove(ind)
         else:
@@ -128,9 +142,11 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 
 
 def calculate_objective(graph: OptGraph, objective_function: Callable, is_multi_objective: bool,
-                        graph_generation_params) -> Any:
+                        graph_generation_params, pre_fitted_pipeline=None) -> Any:
     # Transform OptGraph into Pipeline
     pipeline = graph_generation_params.adapter.restore(graph)
+    if pre_fitted_pipeline:
+        pipeline = pre_fitted_pipeline
     calculated_fitness = objective_function(pipeline)
     if calculated_fitness is None:
         return None
