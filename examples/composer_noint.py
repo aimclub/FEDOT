@@ -11,7 +11,7 @@ random.seed(1)
 np.random.seed(1)
 
 RemoteFitter.remote_eval_params = {
-    'use': True,
+    'use': False,
     'dataset_name': 'cholesterol',
     'task_type': 'Task(TaskTypesEnum.regression)'
 }
