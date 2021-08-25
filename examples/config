@@ -1,7 +1,6 @@
 [DEFAULT]
-pipeline_description = { "total_pipeline_operations": { "linear": 1 }, "depth": 1, "nodes": [ { "operation_id": 0, "operation_type": "linear", "operation_name": null, "custom_params": "default_params", "params": {}, "nodes_from": [], "fitted_operation_path": null, "rating": null } ] }
-train_data = ./cases/data/cholesterol/cholesterol.csv
-task = Task(TaskTypesEnum.regression)
+pipeline_description = {    "total_pipeline_operations": {        "rfe_lin_class": 1,        "xgboost": 1    },    "depth": 2,    "nodes": [        {            "operation_id": 1,            "operation_type": "rfe_lin_class",            "operation_name": null,            "custom_params": "default_params",            "params": {},            "nodes_from": [],            "fitted_operation_path": null,            "rating": null        },        {            "operation_id": 0,            "operation_type": "xgboost",            "operation_name": null,            "custom_params": "default_params",            "params": {},            "nodes_from": [                1            ],            "fitted_operation_path": null,            "rating": null        }    ]}
+train_data = ./cases/data/scoring/scoring_comp.csv
+task = Task(TaskTypesEnum.classification)
 output_path = .
-
 [OPTIONAL]

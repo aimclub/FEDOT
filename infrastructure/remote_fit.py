@@ -77,7 +77,7 @@ class RemoteFitter:
             statuses = ['']
             all_executions = client.get_executions()
             print(all_executions)
-            while any(s != 'Succeeded' and s != 'Failed' for s in statuses):
+            while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
                 executions = client.get_executions()
                 statuses = [execution['status'] for execution in executions]
                 print([f"{execution['id']}={execution['status']};" for execution in executions])
