@@ -12,13 +12,18 @@ np.random.seed(1)
 
 RemoteFitter.remote_eval_params = {
     'use': False,
-    'dataset_name': 'cholesterol',
-    'task_type': 'Task(TaskTypesEnum.regression)'
+    'dataset_name': 'scoring',
+    'task_type': 'Task(TaskTypesEnum.classification)'
+}
+
+params = {
+    'pop_size': 22,
+    'cv_folds': None
 }
 
 preset = 'light'
 automl = Fedot(problem='regression', timeout=2, verbose_level=4,
-               preset=preset)
+               preset=preset, composer_params=params)
 path = os.path.join(fedot_project_root(), 'cases', 'data', 'cholesterol', 'cholesterol.csv')
 
 automl.fit(path)
