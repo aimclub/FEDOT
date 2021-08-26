@@ -20,13 +20,17 @@ class PipelineTuner(HyperoptTuner):
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None,
+                      custom_search_space: dict = None,
+                      replace_default_search_space: bool = False,
                       algo=tpe.suggest):
         """ Function for hyperparameters tuning on the entire pipeline """
 
         # Define folds for cross validation
         self.cv_folds = cv_folds
 
-        parameters_dict = self._get_parameters_for_tune(self.pipeline)
+        parameters_dict = self._get_parameters_for_tune(self.pipeline,
+                                                        custom_search_space=custom_search_space,
+                                                        replace_default_search_space=replace_default_search_space)
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
@@ -65,6 +69,7 @@ class PipelineTuner(HyperoptTuner):
 
         :param pipeline: pipeline to which parameters should ba assigned
         :param parameters: dictionary with parameters to set
+
         :return pipeline: pipeline with new hyperparameters in each node
         """
 
@@ -82,11 +87,14 @@ class PipelineTuner(HyperoptTuner):
         return pipeline
 
     @staticmethod
-    def _get_parameters_for_tune(pipeline):
+    def _get_parameters_for_tune(pipeline,
+                                 custom_search_space: dict = None,
+                                 replace_default_search_space: bool = False):
         """
         Function for defining the search space
 
         :param pipeline: pipeline to optimize
+
         :return parameters_dict: dictionary with operation names and parameters
         """
 
@@ -97,7 +105,9 @@ class PipelineTuner(HyperoptTuner):
             # Assign unique prefix for each model hyperparameter
             # label - number of node in the pipeline
             node_params = get_node_params(node_id=node_id,
-                                          operation_name=operation_name)
+                                          operation_name=operation_name,
+                                          custom_search_space=custom_search_space,
+                                          replace_default_search_space=replace_default_search_space)
 
             parameters_dict.update({node_id: node_params})
 

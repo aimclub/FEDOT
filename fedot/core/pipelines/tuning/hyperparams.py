@@ -90,7 +90,9 @@ class ParametersChanger:
 
 
 def get_operation_parameter_range(operation_name: str, parameter_name: str = None,
-                                  label: str = 'default'):
+                                  label: str = 'default',
+                                  custom_search_space: dict = None,
+                                  replace_default_search_space: bool = False):
     """
     Function prepares appropriate labeled dictionary for desired operation.
     If parameter name is not defined - return all available operation
@@ -98,6 +100,8 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
     :param operation_name: name of the operation
     :param parameter_name: name of hyperparameter of particular operation
     :param label: label to assign in hyperopt pyll
+    :param custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
+    :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
 
     :return : dictionary with appropriate range
     """
@@ -291,6 +295,14 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
         }
     }
 
+    if custom_search_space is not None:
+        if operation_name in custom_search_space.keys():
+            if replace_default_search_space:
+                parameters_per_operation[operation_name] = custom_search_space[operation_name]
+            else:
+                for key, value in custom_search_space[operation_name].items():
+                    parameters_per_operation[operation_name][key] = value
+
     # Get available parameters for current operation
     operation_parameters = parameters_per_operation.get(operation_name)
 
@@ -304,20 +316,26 @@ def get_operation_parameter_range(operation_name: str, parameter_name: str = Non
             return operation_parameters.get(parameter_name)
 
 
-def get_node_params(node_id, operation_name):
+def get_node_params(node_id, operation_name,
+                    custom_search_space: dict = None,
+                    replace_default_search_space: bool = False):
     """
     Function for forming dictionary with hyperparameters for considering
     operation as a part of the whole pipeline
 
     :param node_id: number of node in pipeline.nodes list
     :param operation_name: name of operation in the node
+    :param custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
+    :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
 
     :return params_dict: dictionary-like structure with labeled hyperparameters
     and their range per operation
     """
 
     # Get available parameters for operation
-    params_list = get_operation_parameter_range(operation_name)
+    params_list = get_operation_parameter_range(operation_name,
+                                                custom_search_space=custom_search_space,
+                                                replace_default_search_space=replace_default_search_space)
 
     if params_list is None:
         params_dict = None
@@ -333,7 +351,9 @@ def get_node_params(node_id, operation_name):
             # For operation get range where search can be done
             space = get_operation_parameter_range(operation_name=operation_name,
                                                   parameter_name=parameter_name,
-                                                  label=node_op_parameter_name)
+                                                  label=node_op_parameter_name,
+                                                  custom_search_space=custom_search_space,
+                                                  replace_default_search_space=replace_default_search_space)
 
             params_dict.update({node_op_parameter_name: space})
 

@@ -23,6 +23,8 @@ class SequentialTuner(HyperoptTuner):
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None,
+                      custom_search_space: dict = None,
+                      replace_default_search_space: bool = False,
                       algo=tpe.suggest):
         """ Method for hyperparameters sequential tuning """
         # Define folds for cross validation
@@ -55,7 +57,9 @@ class SequentialTuner(HyperoptTuner):
 
             # Get node's parameters to optimize
             node_params = get_node_params(node_id=node_id,
-                                          operation_name=operation_name)
+                                          operation_name=operation_name,
+                                          custom_search_space=custom_search_space,
+                                          replace_default_search_space=replace_default_search_space)
 
             if node_params is None:
                 self.log.info(f'"{operation_name}" operation has no parameters to optimize')
@@ -80,6 +84,8 @@ class SequentialTuner(HyperoptTuner):
 
     def tune_node(self, input_data, loss_function, node_index, loss_params=None,
                   cv_folds: int = None, validation_blocks: int = None,
+                  custom_search_space: dict = None,
+                  replace_default_search_space: bool = False,
                   algo=tpe.suggest):
         """ Method for hyperparameters tuning for particular node"""
         self.cv_folds = cv_folds
@@ -97,7 +103,9 @@ class SequentialTuner(HyperoptTuner):
 
         # Get node's parameters to optimize
         node_params = get_node_params(node_id=node_index,
-                                      operation_name=operation_name)
+                                      operation_name=operation_name,
+                                      custom_search_space=custom_search_space,
+                                      replace_default_search_space=replace_default_search_space)
 
         if node_params is None:
             self.log.info(f'"{operation_name}" operation has no parameters to optimize')
