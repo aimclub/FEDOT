@@ -22,7 +22,7 @@ path = os.path.join(fedot_project_root(), 'cases', 'data', 'scoring', 'scoring_c
 start = datetime.now()
 data = InputData.from_csv(path)
 pipeline = Pipeline(PrimaryNode('xgboost'))
-pipeline.fit(data)
+pipeline.fit_from_scratch(data)
 end = datetime.now()
 
 print('LOCAL EXECUTION TIME', end - start)
