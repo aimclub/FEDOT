@@ -2,6 +2,8 @@ from copy import copy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
+import pandas as pd
+import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
@@ -15,7 +17,10 @@ from fedot.core.optimisers.utils.population_utils import input_data_characterist
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.data.data import _data_type_is_suitable_preprocessing
 
+# The allowed empirical limit of the number of rows to delete as a percentage.
+EMPIRICAL_ROWS_TO_DELETE = 0.1
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
@@ -182,6 +187,8 @@ class Pipeline(Graph):
         if data_has_missing_values(data) and not has_imputation_operation:
             data = _imputation_implementation(data)
 
+        data = _numeric_preprocessing(data)
+
         if data_has_categorical_features(data) and not has_encoder_operation:
             self.pre_proc_encoders = _encode_data_for_fit(data)
         return data
@@ -223,16 +230,18 @@ class Pipeline(Graph):
             self.log.error(ex)
             raise ValueError(ex)
 
+        # Make copy of the input data to avoid performing inplace operations
+        copied_input_data = copy(input_data)
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
         if data_has_missing_values(input_data) and not has_imputation_operation:
             input_data = _imputation_implementation(input_data)
 
+        input_data = _numeric_preprocessing(input_data)
+
         if data_has_categorical_features(input_data) and not has_encoder_operation:
             _encode_data_for_prediction(input_data, self.pre_proc_encoders)
 
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
@@ -365,6 +374,56 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
     has_imputer = len([_ for _ in has_imputers if not _]) == 0
     has_encoder = len([_ for _ in has_encoders if not _]) == 0
     return has_imputer, has_encoder
+
+
+def _is_converted_to_float(s) -> bool:
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+
+def _try_convert_to_numeric(features, columns_amount):
+    for i in range(columns_amount):
+        try:
+            features[:, i] = pd.to_numeric(features[:, i])
+            features[:, i] = features[:, i].astype('float')
+        except ValueError:
+            pass
+    return features
+
+
+def _numeric_preprocessing(data: Union[InputData, MultiModalData]):
+    if isinstance(data, InputData):
+        data = _numeric_preprocessing_input_data(data)
+    elif isinstance(data, MultiModalData):
+        for data_source_name, values in data.items():
+            if _data_type_is_suitable_preprocessing(values):
+                data[data_source_name].features = _numeric_preprocessing_input_data(values)
+
+    return data
+
+
+def _numeric_preprocessing_input_data(data: InputData) -> InputData:
+    features = data.features
+    source_shape = features.shape
+    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
+    rows_to_remove = set()
+
+    for i in range(columns_amount):
+        values = pd.Series(features[:, i])
+        if isinstance(values[0], str):
+            is_converted_to_float = values.apply(lambda x: not _is_converted_to_float(x))
+            row_to_remove = list(values.index[is_converted_to_float])
+            rows_to_remove.update(row_to_remove)
+
+    if len(rows_to_remove) / source_shape[0] < EMPIRICAL_ROWS_TO_DELETE:
+        features = np.delete(features, list(rows_to_remove), 0)
+        data.features = _try_convert_to_numeric(features, columns_amount)
+        data.target = np.delete(data.target, list(rows_to_remove), 0)
+        data.idx = np.delete(data.idx, list(rows_to_remove), 0)
+    return data
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
