@@ -19,11 +19,17 @@ class HyperoptTuner(ABC):
     :param pipeline: pipeline to optimize
     :param task: task (classification, regression, ts_forecasting, clustering)
     :param iterations: max number of iterations
+    :param custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
+    :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
+    :param algo: algorithm for hyperparameters optimization in hyperopt interface
     """
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None):
+                 log: Log = None,
+                 custom_search_space: dict = None,
+                 replace_default_search_space: bool = False,
+                 algo=None):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
@@ -33,6 +39,9 @@ class HyperoptTuner(ABC):
         self.is_need_to_maximize = None
         self.cv_folds = None
         self.validation_blocks = None
+        self.custom_search_space = custom_search_space
+        self.replace_default_search_space = replace_default_search_space
+        self.algo = algo
 
         if not log:
             self.log = default_log(__name__)
@@ -41,10 +50,7 @@ class HyperoptTuner(ABC):
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None,
-                      custom_search_space: dict = None,
-                      replace_default_search_space: bool = False,
-                      algo=None):
+                      cv_folds: int = None, validation_blocks: int = None):
         """
         Function for hyperparameters tuning on the pipeline
 
@@ -55,9 +61,6 @@ class HyperoptTuner(ABC):
         :param loss_params: dictionary with parameters for loss function
         :param cv_folds: number of folds for cross validation
         :param validation_blocks: number of validation blocks for time series forecasting
-        :param custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
-        :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
-        :param algo: algorithm for hyperparameters optimization in hyperopt interface
 
         :return fitted_pipeline: pipeline with optimized hyperparameters
         """

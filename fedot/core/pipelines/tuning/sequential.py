@@ -17,15 +17,16 @@ class SequentialTuner(HyperoptTuner):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 inverse_node_order=False, log: Log = None):
-        super().__init__(pipeline, task, iterations, timeout, log)
+                 inverse_node_order=False, log: Log = None,
+                 custom_search_space: dict = None,
+                 replace_default_search_space: bool = False,
+                 algo=tpe.suggest):
+        super().__init__(pipeline, task, iterations, timeout, log,
+                         custom_search_space, replace_default_search_space, algo)
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None,
-                      custom_search_space: dict = None,
-                      replace_default_search_space: bool = False,
-                      algo=tpe.suggest):
+                      cv_folds: int = None, validation_blocks: int = None):
         """ Method for hyperparameters sequential tuning """
         # Define folds for cross validation
         self.cv_folds = cv_folds
@@ -58,8 +59,8 @@ class SequentialTuner(HyperoptTuner):
             # Get node's parameters to optimize
             node_params = get_node_params(node_id=node_id,
                                           operation_name=operation_name,
-                                          custom_search_space=custom_search_space,
-                                          replace_default_search_space=replace_default_search_space)
+                                          custom_search_space=self.custom_search_space,
+                                          replace_default_search_space=self.replace_default_search_space)
 
             if node_params is None:
                 self.log.info(f'"{operation_name}" operation has no parameters to optimize')
@@ -72,7 +73,7 @@ class SequentialTuner(HyperoptTuner):
                                     seconds_per_node=seconds_per_node,
                                     loss_function=loss_function,
                                     loss_params=loss_params,
-                                    algo=algo)
+                                    algo=self.algo)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
@@ -83,10 +84,7 @@ class SequentialTuner(HyperoptTuner):
         return final_pipeline
 
     def tune_node(self, input_data, loss_function, node_index, loss_params=None,
-                  cv_folds: int = None, validation_blocks: int = None,
-                  custom_search_space: dict = None,
-                  replace_default_search_space: bool = False,
-                  algo=tpe.suggest):
+                  cv_folds: int = None, validation_blocks: int = None):
         """ Method for hyperparameters tuning for particular node"""
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
@@ -104,8 +102,8 @@ class SequentialTuner(HyperoptTuner):
         # Get node's parameters to optimize
         node_params = get_node_params(node_id=node_index,
                                       operation_name=operation_name,
-                                      custom_search_space=custom_search_space,
-                                      replace_default_search_space=replace_default_search_space)
+                                      custom_search_space=self.custom_search_space,
+                                      replace_default_search_space=self.replace_default_search_space)
 
         if node_params is None:
             self.log.info(f'"{operation_name}" operation has no parameters to optimize')
@@ -118,7 +116,7 @@ class SequentialTuner(HyperoptTuner):
                                 seconds_per_node=self.max_seconds,
                                 loss_function=loss_function,
                                 loss_params=loss_params,
-                                algo=algo)
+                                algo=self.algo)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,

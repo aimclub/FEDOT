@@ -15,22 +15,23 @@ class PipelineTuner(HyperoptTuner):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None):
-        super().__init__(pipeline, task, iterations, timeout, log)
+                 log: Log = None,
+                 custom_search_space: dict = None,
+                 replace_default_search_space: bool = False,
+                 algo=tpe.suggest):
+        super().__init__(pipeline, task, iterations, timeout, log,
+                         custom_search_space, replace_default_search_space, algo)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None,
-                      custom_search_space: dict = None,
-                      replace_default_search_space: bool = False,
-                      algo=tpe.suggest):
+                      cv_folds: int = None, validation_blocks: int = None):
         """ Function for hyperparameters tuning on the entire pipeline """
 
         # Define folds for cross validation
         self.cv_folds = cv_folds
 
         parameters_dict = self._get_parameters_for_tune(self.pipeline,
-                                                        custom_search_space=custom_search_space,
-                                                        replace_default_search_space=replace_default_search_space)
+                                                        custom_search_space=self.custom_search_space,
+                                                        replace_default_search_space=self.replace_default_search_space)
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
@@ -46,7 +47,7 @@ class PipelineTuner(HyperoptTuner):
                             loss_function=loss_function,
                             loss_params=loss_params),
                     parameters_dict,
-                    algo=algo,
+                    algo=self.algo,
                     max_evals=self.iterations,
                     timeout=self.max_seconds)
 
