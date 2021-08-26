@@ -78,14 +78,14 @@ class RemoteFitter:
             statuses = ['']
             all_executions = client.get_executions()
             print(all_executions)
-            print('start', datetime.now())
+            start = datetime.now()
             while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
                 executions = client.get_executions()
                 statuses = [execution['status'] for execution in executions]
                 print([f"{execution['id']}={execution['status']};" for execution in executions])
                 time.sleep(5)
 
-            print('End', datetime.now())
+            end = datetime.now()
 
             for p_id, pipeline in enumerate(pipelines_part):
                 if pipeline.execution_id:
@@ -102,5 +102,7 @@ class RemoteFitter:
                     except Exception as ex:
                         print(p_id, ex)
             final_pipelines.extend(pipelines_part)
+
+            print('REMOTE EXECUTION TIME', end - start)
 
         return final_pipelines
