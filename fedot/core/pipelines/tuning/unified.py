@@ -19,7 +19,8 @@ class PipelineTuner(HyperoptTuner):
         super().__init__(pipeline, task, iterations, timeout, log)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None):
+                      cv_folds: int = None, validation_blocks: int = None,
+                      algo=tpe.suggest):
         """ Function for hyperparameters tuning on the entire pipeline """
 
         # Define folds for cross validation
@@ -41,7 +42,7 @@ class PipelineTuner(HyperoptTuner):
                             loss_function=loss_function,
                             loss_params=loss_params),
                     parameters_dict,
-                    algo=tpe.suggest,
+                    algo=algo,
                     max_evals=self.iterations,
                     timeout=self.max_seconds)
 

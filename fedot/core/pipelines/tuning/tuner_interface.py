@@ -41,7 +41,8 @@ class HyperoptTuner(ABC):
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None):
+                      cv_folds: int = None, validation_blocks: int = None,
+                      algo=None):
         """
         Function for hyperparameters tuning on the pipeline
 
@@ -52,6 +53,7 @@ class HyperoptTuner(ABC):
         :param loss_params: dictionary with parameters for loss function
         :param cv_folds: number of folds for cross validation
         :param validation_blocks: number of validation blocks for time series forecasting
+        :param algo: algorithm for hyperparameters optimization in hyperopt interface
         :return fitted_pipeline: pipeline with optimized hyperparameters
         """
         raise NotImplementedError()

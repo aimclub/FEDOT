@@ -22,7 +22,8 @@ class SequentialTuner(HyperoptTuner):
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
-                      cv_folds: int = None, validation_blocks: int = None):
+                      cv_folds: int = None, validation_blocks: int = None,
+                      algo=tpe.suggest):
         """ Method for hyperparameters sequential tuning """
         # Define folds for cross validation
         self.cv_folds = cv_folds
@@ -66,7 +67,8 @@ class SequentialTuner(HyperoptTuner):
                                     iterations_per_node=iterations_per_node,
                                     seconds_per_node=seconds_per_node,
                                     loss_function=loss_function,
-                                    loss_params=loss_params)
+                                    loss_params=loss_params,
+                                    algo=algo)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
@@ -77,7 +79,8 @@ class SequentialTuner(HyperoptTuner):
         return final_pipeline
 
     def tune_node(self, input_data, loss_function, node_index, loss_params=None,
-                  cv_folds: int = None, validation_blocks: int = None):
+                  cv_folds: int = None, validation_blocks: int = None,
+                  algo=tpe.suggest):
         """ Method for hyperparameters tuning for particular node"""
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
@@ -106,7 +109,8 @@ class SequentialTuner(HyperoptTuner):
                                 iterations_per_node=self.iterations,
                                 seconds_per_node=self.max_seconds,
                                 loss_function=loss_function,
-                                loss_params=loss_params)
+                                loss_params=loss_params,
+                                algo=algo)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
@@ -128,7 +132,7 @@ class SequentialTuner(HyperoptTuner):
         return nodes_ids
 
     def _optimize_node(self, node_id, data, node_params, iterations_per_node,
-                       seconds_per_node, loss_function, loss_params):
+                       seconds_per_node, loss_function, loss_params, algo):
         """
         Method for node optimization
 
@@ -148,7 +152,7 @@ class SequentialTuner(HyperoptTuner):
                                        loss_function=loss_function,
                                        loss_params=loss_params),
                                node_params,
-                               algo=tpe.suggest,
+                               algo=algo,
                                max_evals=iterations_per_node,
                                timeout=seconds_per_node)
 
