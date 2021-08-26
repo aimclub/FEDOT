@@ -5,7 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from test.data_manager import import_metoocean_data, get_dataset, get_split_data, get_split_data_paths
+from data.data_manager import import_metoocean_data, get_dataset, get_split_data, get_split_data_paths
 
 
 composer_params = {'max_depth': 1,

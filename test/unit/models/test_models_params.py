@@ -1,29 +1,10 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import classification_dataset, regression_dataset
-
-
-def get_knn_reg_pipeline(k_neighbors):
-    """ Function return pipeline with K-nn regression model in it """
-    node_scaling = PrimaryNode('scaling')
-    node_final = SecondaryNode('knnreg', nodes_from=[node_scaling])
-    node_final.custom_params = {'n_neighbors': k_neighbors}
-    pipeline = Pipeline(node_final)
-    return pipeline
-
-
-def get_knn_class_pipeline(k_neighbors):
-    """ Function return pipeline with K-nn classification model in it """
-    node_scaling = PrimaryNode('scaling')
-    node_final = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_final.custom_params = {'n_neighbors': k_neighbors}
-    pipeline = Pipeline(node_final)
-    return pipeline
+from data.pipeline_manager import get_knn_reg_pipeline, get_knn_class_pipeline
 
 
 def test_knn_reg_with_invalid_params_fit_correctly():

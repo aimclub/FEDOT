@@ -3,12 +3,11 @@ import json
 import pytest
 from sklearn.metrics import mean_squared_error
 
-from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
+from data.pipeline_manager import create_pipeline_with_several_nested_atomized_model, create_atomized_model
+from data.data_manager import create_data_for_train
+from data.utils import create_correct_path, create_func_delete_files
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -21,84 +20,6 @@ def preprocessing_files_before_and_after_tests(request):
 
     delete_files()
     request.addfinalizer(delete_files)
-
-
-def create_pipeline() -> Pipeline:
-    pipeline = Pipeline()
-    node_logit = PrimaryNode('logit')
-
-    node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 1}
-
-    node_xgboost = SecondaryNode('xgboost')
-    node_xgboost.custom_params = {'n_components': 1}
-    node_xgboost.nodes_from = [node_logit, node_lda]
-
-    pipeline.add_node(node_xgboost)
-
-    return pipeline
-
-
-def create_atomized_model() -> AtomizedModel:
-    """
-    Example, how to create Atomized operation.
-    """
-    pipeline = create_pipeline()
-    atomized_model = AtomizedModel(pipeline)
-
-    return atomized_model
-
-
-def create_atomized_model_with_several_atomized_models() -> AtomizedModel:
-    pipeline = Pipeline()
-    node_atomized_model_primary = PrimaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary = SecondaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_second = SecondaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary_third = SecondaryNode(operation_type=create_atomized_model())
-
-    node_atomized_model_secondary.nodes_from = [node_atomized_model_primary]
-    node_atomized_model_secondary_second.nodes_from = [node_atomized_model_primary]
-    node_atomized_model_secondary_third.nodes_from = [node_atomized_model_secondary,
-                                                      node_atomized_model_secondary_second]
-
-    pipeline.add_node(node_atomized_model_secondary_third)
-    atomized_model = AtomizedModel(pipeline)
-
-    return atomized_model
-
-
-def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
-    pipeline = Pipeline()
-    atomized_op = create_atomized_model_with_several_atomized_models()
-    node_atomized_model = PrimaryNode(operation_type=atomized_op)
-
-    node_atomized_model_secondary = SecondaryNode(operation_type=create_atomized_model())
-    node_atomized_model_secondary.nodes_from = [node_atomized_model]
-
-    node_knn = SecondaryNode('knn')
-    node_knn.custom_params = {'n_neighbors': 9}
-    node_knn.nodes_from = [node_atomized_model]
-
-    node_knn_second = SecondaryNode('knn')
-    node_knn_second.custom_params = {'n_neighbors': 5}
-    node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
-
-    node_atomized_model_secondary_second = \
-        SecondaryNode(operation_type=create_atomized_model_with_several_atomized_models())
-
-    node_atomized_model_secondary_second.nodes_from = [node_knn_second]
-
-    pipeline.add_node(node_atomized_model_secondary_second)
-
-    return pipeline
-
-
-def create_data_for_train():
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
-
-    return train_data, test_data
 
 
 def test_save_load_atomized_pipeline_correctly():

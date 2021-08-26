@@ -2,16 +2,14 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from data.pipeline_manager import get_simple_short_lagged_pipeline
 
 
 def prepare_input_data(forecast_length, horizon):
-    ts = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                   17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 101])
+    ts = np.concatenate((np.arange(31), np.array([101])), axis=0)
 
     # Forecast for 2 elements ahead
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -34,17 +32,6 @@ def prepare_input_data(forecast_length, horizon):
                               data_type=DataTypesEnum.ts)
 
     return train_input, predict_input
-
-
-def get_simple_short_lagged_pipeline():
-    # Create simple pipeline for forecasting
-    node_lagged = PrimaryNode('lagged')
-    # Use 4 elements in time series as predictors
-    node_lagged.custom_params = {'window_size': 4}
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
-    pipeline = Pipeline(node_final)
-
-    return pipeline
 
 
 def test_out_of_sample_ts_forecast_correct():

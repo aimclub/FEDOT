@@ -1,20 +1,6 @@
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
-
-
-def get_pipeline():
-    third_level_one = PrimaryNode('lda')
-
-    second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
-    second_level_two = PrimaryNode('qda')
-
-    first_level_one = SecondaryNode('knn', nodes_from=[second_level_one, second_level_two])
-
-    root = SecondaryNode(operation_type='logit', nodes_from=[first_level_one])
-    pipeline = Pipeline(root)
-
-    return pipeline
+from data.pipeline_manager import get_pipeline
 
 
 def test_pipeline_operator_init():

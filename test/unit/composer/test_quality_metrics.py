@@ -5,8 +5,8 @@ from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum,\
     ComplexityMetricsEnum, MetricsRepository, RegressionMetricsEnum
-from test.pipeline_manager import default_valid_pipeline
-from test.data_manager import data_setup, multi_target_data_setup
+from data.pipeline_manager import default_valid_pipeline
+from data.data_manager import data_setup, multi_target_data_setup
 
 
 def test_structural_quality_correct():

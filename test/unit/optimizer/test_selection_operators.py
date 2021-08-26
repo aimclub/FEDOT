@@ -1,8 +1,8 @@
+from random import randint
 from functools import partial
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
-from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
@@ -31,8 +31,7 @@ def rand_population_gener_and_eval(pop_size=4):
 
 
 def obj_function() -> float:
-    metric_function = RandomMetric.get_value
-    return metric_function()
+    return randint(0, 1000)
 
 
 def test_tournament_selection():

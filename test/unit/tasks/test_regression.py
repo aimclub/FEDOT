@@ -6,31 +6,9 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.composer.test_quality_metrics import multi_target_data_setup
-
-_ = multi_target_data_setup
-
-
-def get_simple_composer_params() -> dict:
-    params = {'max_depth': 2,
-              'max_arity': 3,
-              'pop_size': 2,
-              'num_of_generations': 2,
-              'timeout': 1,
-              'preset': 'ultra_light'}
-    return params
-
-
-def generate_pipeline() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_root = SecondaryNode('linear', nodes_from=[node_lasso, node_ridge])
-    pipeline = Pipeline(node_root)
-    return pipeline
-
-
-
+from data.data_manager import multi_target_data_setup, get_synthetic_regression_data
+from data.pipeline_manager import generate_pipeline
+from data.utils import get_simple_composer_params
 
 
 def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputData) -> (float, float):
@@ -79,9 +57,9 @@ def test_regression_pipeline_with_data_operation_fit_correct():
     assert results.predict.shape == test_data.target.shape
 
 
-def test_multi_target_regression_composing_correct(multi_target_data_setup):
+def test_multi_target_regression_composing_correct():
     # Load simple dataset for multi-target
-    train, test = multi_target_data_setup
+    train, test = multi_target_data_setup()
 
     problem = 'regression'
     simple_composer_params = get_simple_composer_params()

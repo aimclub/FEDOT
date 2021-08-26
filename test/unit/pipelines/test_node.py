@@ -1,29 +1,9 @@
-import numpy as np
-import pytest
-from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-
-@pytest.fixture()
-def data_setup() -> InputData:
-    predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-    return data
+from data.data_manager import data_setup
 
 
 def model_metrics_info(class_name, y_true, y_pred):
@@ -32,7 +12,7 @@ def model_metrics_info(class_name, y_true, y_pred):
     print('Test model accuracy: ', accuracy_score(y_true, y_pred))
 
 
-def test_node_factory_log_reg_correct(data_setup):
+def test_node_factory_log_reg_correct():
     model_type = 'logit'
     node = PrimaryNode(operation_type=model_type)
 
@@ -43,9 +23,8 @@ def test_node_factory_log_reg_correct(data_setup):
     assert expected_model == actual_model
 
 
-def test_eval_strategy_logreg(data_setup):
-    data_set = data_setup
-    train, test = train_test_data_setup(data=data_set)
+def test_eval_strategy_logreg():
+    train, test = data_setup()
     test_skl_model = LogisticRegression(C=10., random_state=1,
                                         solver='liblinear',
                                         max_iter=10000, verbose=0)

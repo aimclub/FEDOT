@@ -10,7 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synth_dataset_generator import regression_dataset
+from data.data_manager import regression_synthetic
 
 np.random.seed(2020)
 
@@ -31,11 +31,11 @@ def get_regression_dataset(features_options, samples_amount=250,
     :return y_data_test: target to test
     """
 
-    x_data, y_data = regression_dataset(samples_amount=samples_amount,
-                                        features_amount=features_amount,
-                                        features_options=features_options,
-                                        n_targets=1,
-                                        noise=0.0, shuffle=True)
+    x_data, y_data = regression_synthetic(samples_amount=samples_amount,
+                                          features_amount=features_amount,
+                                          features_options=features_options,
+                                          n_targets=1,
+                                          noise=0.0, shuffle=True)
 
     # Changing the scale of the data
     for i, coeff in zip(range(0, features_amount),
@@ -102,7 +102,7 @@ def run_experiment(pipeline, tuner):
             pipeline_tuner = tuner(pipeline=pipeline, task=task,
                                    iterations=50, timeout=timedelta(seconds=50))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                 loss_function=mean_absolute_error)
+                                                          loss_function=mean_absolute_error)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

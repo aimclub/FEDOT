@@ -2,101 +2,10 @@ from itertools import product
 
 import numpy as np
 
-from examples.classification_with_tuning_example import get_classification_dataset
-from examples.decompose.refinement_forecast_example import get_refinement_pipeline
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_ts_data
-
-
-def generate_pipeline_with_decomposition(primary_operation, secondary_operation):
-    """ The function generates a pipeline in which there is an operation of
-    decomposing the target variable into residuals
-                     secondary_operation
-    primary_operation                       xgboost
-                     class_decompose -> rfr
-
-    :param primary_operation: name of operation to place in primary node
-    :param secondary_operation: name of operation to place in secondary node
-    """
-
-    node_first = PrimaryNode(primary_operation)
-    node_second = SecondaryNode(secondary_operation, nodes_from=[node_first])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    full_pipeline = Pipeline(node_xgboost)
-    return full_pipeline
-
-
-def generate_pipeline_with_filtering():
-    """ Return 5-level pipeline with decompose and filtering operations
-           logit
-    scaling                                 xgboost
-           class_decompose -> RANSAC -> rfr
-    """
-
-    node_scaling = PrimaryNode('scaling')
-    node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
-    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_decompose])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_ransac])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    full_pipeline = Pipeline(node_xgboost)
-    return full_pipeline
-
-
-def generate_cascade_decompose_pipeline():
-    """ The function of generating a multi-stage model with many connections
-    and solving many problems (regression and classification)
-    """
-
-    node_scaling = PrimaryNode('scaling')
-    node_second = SecondaryNode('logit', nodes_from=[node_scaling])
-    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_scaling])
-    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_xgboost, node_scaling])
-    node_rfr_2 = SecondaryNode('rfr', nodes_from=[node_decompose_new])
-    node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_xgboost])
-    pipeline = Pipeline(node_final)
-    return pipeline
-
-
-def get_classification_data(classes_amount: int):
-    """ Function generate synthetic dataset for classification task
-
-    :param classes_amount: amount of classes to predict
-
-    :return train_input: InputData for model fit
-    :return predict_input: InputData for predict stage
-    """
-
-    # Define options for dataset with 800 objects
-    features_options = {'informative': 2, 'redundant': 1,
-                        'repeated': 1, 'clusters_per_class': 1}
-    x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
-                                                                  800, 4,
-                                                                  classes_amount)
-    y_train = y_train.reshape((-1, 1))
-    y_test = y_test.reshape((-1, 1))
-
-    # Define classification task
-    task = Task(TaskTypesEnum.classification)
-
-    # Prepare data to train and validate the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train, target=y_train,
-                            task=task, data_type=DataTypesEnum.table)
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test, target=y_test,
-                              task=task, data_type=DataTypesEnum.table)
-
-    return train_input, predict_input
+from fedot.core.pipelines.pipeline import nodes_with_operation
+from data.data_manager import get_iris_data, get_ts_data, get_classification_data
+from data.pipeline_manager import generate_pipeline_with_decomposition,\
+    generate_pipeline_with_filtering, generate_cascade_decompose_pipeline, get_refinement_pipeline
 
 
 def test_order_by_data_flow_len_correct():

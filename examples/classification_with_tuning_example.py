@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.model_selection import train_test_split
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -8,50 +7,9 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synth_dataset_generator import classification_dataset
+from data.data_manager import get_classification_dataset
 
 np.random.seed(2020)
-
-
-def get_classification_dataset(features_options, samples_amount=250,
-                               features_amount=5, classes_amount=2):
-    """
-    Prepares four numpy arrays with different scale features and target
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param classes_amount: The amount of classes in the dataset.
-    :param features_options: The dictionary containing features options in key-value
-    format:
-        - informative: the amount of informative features;
-        - redundant: the amount of redundant features;
-        - repeated: the amount of features that repeat the informative features;
-        - clusters_per_class: the amount of clusters for each class;
-    :return x_data_train: features to train
-    :return y_data_train: target to train
-    :return x_data_test: features to test
-    :return y_data_test: target to test
-    """
-
-    x_data, y_data = classification_dataset(samples_amount=samples_amount,
-                                            features_amount=features_amount,
-                                            classes_amount=classes_amount,
-                                            features_options=features_options)
-
-    # Changing the scale of the data
-    for i, coeff in zip(range(0, features_amount),
-                        np.random.randint(1, 100, features_amount)):
-        # Get column
-        feature = np.array(x_data[:, i])
-
-        # Change scale for this feature
-        rescaled = feature * coeff
-        x_data[:, i] = rescaled
-
-    # Train and test split
-    x_data_train, x_data_test, y_data_train, y_data_test = train_test_split(x_data, y_data,
-                                                                            test_size=0.3)
-
-    return x_data_train, y_data_train, x_data_test, y_data_test
 
 
 def convert_to_labels(root_operation, prediction):

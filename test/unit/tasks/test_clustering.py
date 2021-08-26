@@ -1,18 +1,9 @@
 import numpy as np
 
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.models.test_split_train_test import get_roc_auc_value, get_synthetic_input_data
-
-
-def generate_pipeline() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_first = SecondaryNode('kmeans', nodes_from=[node_scaling])
-    node_second = SecondaryNode('kmeans', nodes_from=[node_scaling])
-    node_root = SecondaryNode('logit', nodes_from=[node_first, node_second])
-    pipeline = Pipeline(node_root)
-    return pipeline
+from test.unit.models.test_split_train_test import get_roc_auc_value
+from data.data_manager import get_synthetic_input_data
+from data.pipeline_manager import generate_pipeline
 
 
 def test_pipeline_with_clusters_fit_correct():

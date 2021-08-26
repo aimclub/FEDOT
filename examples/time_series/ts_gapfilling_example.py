@@ -3,64 +3,8 @@ import numpy as np
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.utilities.ts_gapfilling import ModelGapFiller, SimpleGapFiller
-
-
-def generate_gaps_in_ts(array_without_gaps, gap_dict, gap_value):
-    """
-    Function for generating gaps with predefined length in the desired indices
-    of an one-dimensional array (time series)
-
-    :param array_without_gaps: an array without gaps
-    :param gap_dict: a dictionary with omissions, where the key is the index in
-    the time series from which the gap will begin. The key value is the length
-    of the gap (elements). -1 in the value means that a skip is generated until
-    the end of the array
-    :param gap_value: value indicating a gap in the array
-
-    :return: one-dimensional array with omissions
-    """
-
-    array_with_gaps = np.copy(array_without_gaps)
-
-    keys = list(gap_dict.keys())
-    for key in keys:
-        gap_size = gap_dict.get(key)
-        if gap_size == -1:
-            # Generating a gap to the end of an array
-            array_with_gaps[key:] = gap_value
-        else:
-            array_with_gaps[key:(key + gap_size)] = gap_value
-
-    return array_with_gaps
-
-
-def get_array_with_gaps(gap_dict=None, gap_value: float = -100.0):
-    """
-    Function for generating synthetic data and gaps in it with predefined length
-    and location
-
-    :param gap_dict: a dictionary with omissions, where the key is the index in
-    the time series from which the gap will begin. The key value is the length
-    of the gap (elements). -1 in the value means that a skip is generated until
-    the end of the array
-    :param gap_value: value indicating a gap in the array
-
-    :return array_with_gaps: an array with gaps
-    :return real_values: an array with actual values in gaps
-    """
-
-    real_values = generate_synthetic_data()
-
-    if gap_dict is None:
-        gap_dict = {850: 100,
-                    1400: 150}
-    array_with_gaps = generate_gaps_in_ts(array_without_gaps=real_values,
-                                          gap_dict=gap_dict,
-                                          gap_value=gap_value)
-
-    return array_with_gaps, real_values
+from data.data_manager import get_array_with_gaps
 
 
 def run_gapfilling_example():

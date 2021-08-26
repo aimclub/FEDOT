@@ -25,18 +25,9 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.composer.test_composer import _to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, \
     pipeline_second, pipeline_third
-
-
-def file_data():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
-    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
-    return input_data
+from data.data_manager import file_data
 
 
 def graph_example():

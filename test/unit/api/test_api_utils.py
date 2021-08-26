@@ -1,4 +1,4 @@
-from test.data_manager import get_dataset
+from data.data_manager import get_dataset
 
 from fedot.api.api_utils import compose_fedot_model
 from fedot.core.repository.tasks import Task, TaskTypesEnum

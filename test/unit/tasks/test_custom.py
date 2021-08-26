@@ -18,7 +18,8 @@ np.random.seed(1)
 
 
 class CustomModel(Graph):
-    def evaluate(self):
+    @staticmethod
+    def evaluate():
         return 0
 
 

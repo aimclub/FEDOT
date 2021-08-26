@@ -4,30 +4,11 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-from test.unit.tasks.test_regression import get_synthetic_regression_data
-
-
-def get_ts_pipeline(window_size):
-    """ Function return pipeline with lagged transformation in it """
-    node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': window_size}
-
-    node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-    pipeline = Pipeline(node_final)
-    return pipeline
-
-
-def get_ransac_pipeline():
-    """ Function return pipeline with lagged transformation in it """
-    node_ransac = PrimaryNode('ransac_lin_reg')
-    node_final = SecondaryNode('linear', nodes_from=[node_ransac])
-    pipeline = Pipeline(node_final)
-    return pipeline
+from data.data_manager import get_synthetic_regression_data
+from data.pipeline_manager import get_ransac_pipeline, get_ts_pipeline
 
 
 def test_lagged_with_invalid_params_fit_correctly():

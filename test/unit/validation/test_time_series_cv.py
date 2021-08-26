@@ -4,16 +4,14 @@ from sklearn.metrics import mean_absolute_error
 
 from examples.time_series.ts_forecasting_composing import get_available_operations
 from fedot.api.main import Fedot
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
-from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
-from test.unit.tasks.test_forecasting import get_ts_data
+from data.data_manager import get_ts_data
+from data.pipeline_manager import get_simple_ts_pipeline
 
 
 def configure_experiment():

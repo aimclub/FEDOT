@@ -5,31 +5,9 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.keras import CustomCNNImplementation, \
     check_input_array, create_deep_cnn, fit_cnn, predict_cnn
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
-from test.unit.models.test_model import classification_dataset_with_redunant_features
-
-
-def pipeline_simple() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_svc = SecondaryNode('svc', nodes_from=[node_scaling])
-    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
-    node_final = SecondaryNode('rf', nodes_from=[node_svc, node_lda])
-
-    pipeline = Pipeline(node_final)
-
-    return pipeline
-
-
-def pipeline_with_pca() -> Pipeline:
-    node_scaling = PrimaryNode('scaling')
-    node_pca = SecondaryNode('pca', nodes_from=[node_scaling])
-    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
-    node_final = SecondaryNode('rf', nodes_from=[node_pca, node_lda])
-
-    pipeline = Pipeline(node_final)
-
-    return pipeline
+from data.data_manager import classification_dataset_with_redunant_features, get_iris_data,\
+    get_binary_classification_data, get_image_classification_data
+from data.pipeline_manager import pipeline_simple, pipeline_with_pca
 
 
 def test_multiclassification_pipeline_fit_correct():

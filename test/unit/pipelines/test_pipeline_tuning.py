@@ -1,61 +1,23 @@
-import os
 from random import seed
 
 import numpy as np
-import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
-from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.tasks.test_forecasting import get_ts_data
+from data.data_manager import get_ts_data, classification_dataset, regression_dataset
+from data.pipeline_manager import get_simple_regr_pipeline, get_complex_regr_pipeline,\
+    get_simple_class_pipeline, get_complex_class_pipeline
 
 seed(1)
 np.random.seed(1)
 
 
-def get_simple_regr_pipeline():
-    final = PrimaryNode(operation_type='xgbreg')
-    pipeline = Pipeline(final)
-
-    return pipeline
-
-
-def get_complex_regr_pipeline():
-    node_scaling = PrimaryNode(operation_type='scaling')
-    node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
-    node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
-    pipeline = Pipeline(final)
-
-    return pipeline
-
-
-def get_simple_class_pipeline():
-    final = PrimaryNode(operation_type='logit')
-    pipeline = Pipeline(final)
-
-    return pipeline
-
-
-def get_complex_class_pipeline():
-    first = PrimaryNode(operation_type='xgboost')
-    second = PrimaryNode(operation_type='pca')
-    final = SecondaryNode(operation_type='logit',
-                          nodes_from=[first, second])
-
-    pipeline = Pipeline(final)
-
-    return pipeline
-
-
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_custom_params_setter(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
+def test_custom_params_setter():
+    data = classification_dataset()
     pipeline = get_complex_class_pipeline()
 
     custom_params = dict(C=10)
@@ -67,10 +29,9 @@ def test_custom_params_setter(data_fixture, request):
     assert params['C'] == 10
 
 
-@pytest.mark.parametrize('data_fixture', ['regression_dataset'])
-def test_pipeline_tuner_regression_correct(data_fixture, request):
+def test_pipeline_tuner_regression_correct():
     """ Test PipelineTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = regression_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
@@ -91,10 +52,9 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_pipeline_tuner_classification_correct(data_fixture, request):
+def test_pipeline_tuner_classification_correct():
     """ Test PipelineTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task
@@ -113,10 +73,9 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['regression_dataset'])
-def test_sequential_tuner_regression_correct(data_fixture, request):
+def test_sequential_tuner_regression_correct():
     """ Test SequentialTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = regression_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
@@ -137,10 +96,9 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_sequential_tuner_classification_correct(data_fixture, request):
+def test_sequential_tuner_classification_correct():
     """ Test SequentialTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task
@@ -159,10 +117,9 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['regression_dataset'])
-def test_certain_node_tuning_regression_correct(data_fixture, request):
+def test_certain_node_tuning_regression_correct():
     """ Test SequentialTuner for particular node based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = regression_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
@@ -182,10 +139,9 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_certain_node_tuning_classification_correct(data_fixture, request):
+def test_certain_node_tuning_classification_correct():
     """ Test SequentialTuner for particular node based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset()
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task

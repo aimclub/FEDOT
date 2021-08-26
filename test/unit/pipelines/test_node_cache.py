@@ -1,47 +1,12 @@
 import glob
 import os
 
-import numpy as np
 import pytest
-from sklearn.datasets import load_breast_cancer
 
 from fedot.core.composer.cache import OperationsCache
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-
-@pytest.fixture()
-def data_setup():
-    task = Task(TaskTypesEnum.classification)
-    predictors, response = load_breast_cancer(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    response = response[:100]
-    predictors = predictors[:100]
-
-    input_data = InputData(idx=np.arange(0, len(predictors)),
-                           features=predictors,
-                           target=response,
-                           task=task,
-                           data_type=DataTypesEnum.table)
-    train_data, test_data = train_test_data_setup(data=input_data)
-    train_data_x = train_data.features
-    test_data_x = test_data.features
-    train_data_y = train_data.target
-    test_data_y = test_data.target
-
-    train_data = InputData(features=train_data_x, target=train_data_y,
-                           idx=np.arange(0, len(train_data_y)),
-                           task=task, data_type=DataTypesEnum.table)
-    test_data = InputData(features=test_data_x, target=test_data_y,
-                          idx=np.arange(0, len(test_data_y)),
-                          task=task, data_type=DataTypesEnum.table)
-    return train_data, test_data
+from data.pipeline_manager import pipeline_fifth, pipeline_first, pipeline_second, pipeline_fourth, pipeline_third
 
 
 def create_func_delete_files(paths):
@@ -69,92 +34,6 @@ def preprocessing_files_before_and_after_tests(request):
     delete_files = create_func_delete_files(paths)
     delete_files()
     request.addfinalizer(delete_files)
-
-
-def pipeline_first():
-    #    XG
-    #  |     \
-    # XG      KNN
-    # |  \    |  \
-    # LR LDA LR  LDA
-    pipeline = Pipeline()
-
-    root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
-
-    for root_node_child in (root_child_first, root_child_second):
-        for requirement_model in ('logit', 'lda'):
-            new_node = PrimaryNode(requirement_model)
-            root_node_child.nodes_from.append(new_node)
-            pipeline.add_node(new_node)
-        pipeline.add_node(root_node_child)
-        root_of_tree.nodes_from.append(root_node_child)
-
-    pipeline.add_node(root_of_tree)
-    return pipeline
-
-
-def pipeline_second():
-    #    XG
-    #  |     \
-    # DT      KNN
-    # |  \    |  \
-    # KNN KNN LR  LDA
-    pipeline = pipeline_first()
-    new_node = SecondaryNode('dt')
-    for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0], new_node)
-    return pipeline
-
-
-def pipeline_third():
-    #    QDA
-    #  |     \
-    # RF     RF
-    pipeline = Pipeline()
-    new_node = SecondaryNode('qda')
-    for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
-    pipeline.add_node(new_node)
-    [pipeline.add_node(node_from) for node_from in new_node.nodes_from]
-    return pipeline
-
-
-def pipeline_fourth():
-    #          XG
-    #      |         \
-    #     XG          KNN
-    #   |    \        |  \
-    # QDA     KNN     LR  LDA
-    # |  \    |    \
-    # RF  RF  KNN KNN
-    pipeline = pipeline_first()
-    new_node = SecondaryNode('qda')
-    for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[1], new_node)
-    new_node = SecondaryNode('knn')
-    for model_type in ('knn', 'knn'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
-    pipeline.update_subtree(pipeline.root_node.nodes_from[0].nodes_from[0], new_node)
-    return pipeline
-
-
-def pipeline_fifth():
-    #    KNN
-    #  |     \
-    # XG      KNN
-    # |  \    |  \
-    # LR LDA KNN  KNN
-    pipeline = pipeline_first()
-    new_node = SecondaryNode('knn')
-    pipeline.update_node(pipeline.root_node, new_node)
-    new_node = PrimaryNode('knn')
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[0], new_node)
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[1], new_node)
-
-    return pipeline
 
 
 def test_cache_actuality_after_model_change(data_setup):

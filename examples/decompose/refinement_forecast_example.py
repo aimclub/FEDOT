@@ -6,49 +6,12 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.time_series.ts_forecasting_tuning import prepare_input_data
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 warnings.filterwarnings('ignore')
 np.random.seed(2020)
-
-
-def get_refinement_pipeline(lagged):
-    """ Create 4-level pipeline with decompose operation """
-
-    node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': lagged}
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
-    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_lasso])
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
-    node_dtreg.custom_params = {'max_depth': 3}
-
-    # Pipelines with different outputs
-    pipeline_with_decompose_finish = Pipeline(node_dtreg)
-    pipeline_with_main_finish = Pipeline(node_lasso)
-
-    # Combining branches with different targets (T and T_decomposed)
-    final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
-
-    pipeline = Pipeline(final_node)
-    return pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline
-
-
-def get_non_refinement_pipeline(lagged):
-    """ Create 4-level pipeline without decompose operation """
-
-    node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': lagged}
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_lagged])
-    node_dtreg.custom_params = {'max_depth': 3}
-    final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
-
-    pipeline = Pipeline(final_node)
-    return pipeline
 
 
 def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.array:

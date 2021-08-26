@@ -1,5 +1,4 @@
 import datetime
-import os
 import platform
 import time
 from copy import copy, deepcopy
@@ -7,9 +6,7 @@ from multiprocessing import set_start_method
 from random import seed
 
 import numpy as np
-import pandas as pd
 import pytest
-from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc
 
 from fedot.core.data.data import InputData
@@ -21,53 +18,25 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
-from test.unit.pipelines.test_pipeline_tuning import classification_dataset
+from data.data_manager import data_setup, file_data_setup, classification_dataset
 
 seed(1)
 np.random.seed(1)
 
-tmp = classification_dataset
+
+@pytest.fixture()
+def data_setup_fixture():
+    return data_setup()
 
 
 @pytest.fixture()
-def data_setup():
-    predictors, response = load_iris(return_X_y=True)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-    return data
+def file_data_setup_fixture():
+    return file_data_setup()
 
 
-@pytest.fixture()
-def classification_dataset():
-    test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_classification.csv')
-    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
-
-
-@pytest.fixture()
-def file_data_setup():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
-    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
-    return input_data
-
-
-def _to_numerical(categorical_ids: np.ndarray):
-    encoded = pd.factorize(categorical_ids)[0]
-    return encoded
-
-
-@pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
+@pytest.mark.parametrize('data_fixture', ['data_setup_fixture', 'file_data_setup'])
 def test_nodes_sequence_fit_correct(data_fixture, request):
-    data = request.getfixturevalue(data_fixture)
-    train, _ = train_test_data_setup(data)
+    train, _ = request.getfixturevalue(data_fixture)
 
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='lda', nodes_from=[first])
@@ -87,9 +56,8 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     assert final.fitted_operation is not None
 
 
-def test_pipeline_hierarchy_fit_correct(data_setup):
-    data = data_setup
-    train, _ = train_test_data_setup(data)
+def test_pipeline_hierarchy_fit_correct():
+    train, _ = data_setup()
 
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit', nodes_from=[first])
@@ -116,9 +84,8 @@ def test_pipeline_hierarchy_fit_correct(data_setup):
     assert final.fitted_operation is not None
 
 
-def test_pipeline_sequential_fit_correct(data_setup):
-    data = data_setup
-    train, _ = train_test_data_setup(data)
+def test_pipeline_sequential_fit_correct():
+    train, _ = data_setup()
 
     first = PrimaryNode(operation_type='logit')
     second = SecondaryNode(operation_type='logit', nodes_from=[first])
@@ -143,9 +110,8 @@ def test_pipeline_sequential_fit_correct(data_setup):
     assert final.fitted_operation is not None
 
 
-def test_pipeline_with_datamodel_fit_correct(data_setup):
-    data = data_setup
-    train_data, test_data = train_test_data_setup(data)
+def test_pipeline_with_datamodel_fit_correct():
+    train_data, test_data = data_setup()
 
     pipeline = Pipeline()
 
@@ -165,9 +131,8 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
     assert results.shape == test_data.target.shape
 
 
-def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
-    data = data_setup
-    train, test = train_test_data_setup(data)
+def test_secondary_nodes_is_invariant_to_inputs_order():
+    train, test = data_setup()
 
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
@@ -216,8 +181,8 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     assert np.equal(test_predicted.predict, test_predicted_re_shuffled.predict).all()
 
 
-def test_pipeline_with_custom_params_for_model(data_setup):
-    data = data_setup
+def test_pipeline_with_custom_params_for_model():
+    data, _ = data_setup()
     custom_params = dict(n_neighbors=1,
                          weights='uniform',
                          p=1)
@@ -364,12 +329,11 @@ def test_delete_subtree():
     assert pipeline.length == 3
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_pipeline_fit_time_constraint(data_fixture, request):
+def test_pipeline_fit_time_constraint():
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset()
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
     time_constraint = datetime.timedelta(minutes=0.01)
@@ -401,8 +365,8 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
     assert predicted_second is not None
 
 
-def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
-    data = classification_dataset
+def test_pipeline_fine_tune_all_nodes_correct():
+    data = classification_dataset()
 
     first = PrimaryNode(operation_type='scaling')
     second = PrimaryNode(operation_type='knn')
@@ -440,7 +404,7 @@ def test_pipeline_structure_print_correct():
     assert is_print_was_correct
 
 
-@pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
+@pytest.mark.parametrize('data_fixture', ['data_setup_fixture', 'file_data_setup_fixture'])
 def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     pipeline = Pipeline(PrimaryNode('logit'))

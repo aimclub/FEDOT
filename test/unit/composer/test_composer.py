@@ -19,8 +19,8 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.pipeline_manager import pipeline_first
-from test.data_manager import file_data_setup
+from data.pipeline_manager import pipeline_first
+from data.data_manager import file_data_setup
 
 
 def test_random_composer():

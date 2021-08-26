@@ -1,33 +1,9 @@
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.visualisation.graph_viz import hierarchy_pos
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
-
-
-def pipeline_first():  # tested pipeline
-    #    XG
-    #  |     \
-    # XG     KNN
-    # |  \    |  \
-    # LR LDA LR  LDA
-    pipeline = Pipeline()
-
-    root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
-
-    for root_node_child in (root_child_first, root_child_second):
-        for requirement_model in ('logit', 'lda'):
-            new_node = PrimaryNode(requirement_model)
-            root_node_child.nodes_from.append(new_node)
-            pipeline.add_node(new_node)
-        pipeline.add_node(root_node_child)
-        root_of_tree.nodes_from.append(root_node_child)
-
-    pipeline.add_node(root_of_tree)
-    return pipeline
+from data.pipeline_manager import pipeline_first
 
 
 def test_pipeline_template_as_nx_graph():

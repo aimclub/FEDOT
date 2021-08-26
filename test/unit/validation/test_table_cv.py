@@ -6,38 +6,21 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.api.main import Fedot
 from fedot.core.log import default_log
 from fedot.core.validation.compose.tabular import table_metric_calculation
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.models.test_model import classification_dataset
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
-
-_ = classification_dataset
-
-
-def sample_pipeline():
-    return Pipeline(SecondaryNode(operation_type='logit',
-                                  nodes_from=[PrimaryNode(operation_type='xgboost'),
-                                              PrimaryNode(operation_type='scaling')]))
+from data.data_manager import classification_dataset, get_data
+from data.pipeline_manager import sample_pipeline
 
 
-def get_data(task):
-    full_path_train, full_path_test = get_scoring_data()
-    dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    dataset_to_validate = InputData.from_csv(full_path_test, task=task)
-
-    return dataset_to_compose, dataset_to_validate
-
-
-def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
+def test_cv_multiple_metrics_evaluated_correct():
+    data = classification_dataset()
     pipeline = sample_pipeline()
     log = default_log(__name__)
 
-    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
+    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=data, cv_folds=10,
                                             metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
                                                      ClassificationMetricsEnum.accuracy,
                                                      ClassificationMetricsEnum.logloss],

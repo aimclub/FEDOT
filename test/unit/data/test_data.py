@@ -3,45 +3,13 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.datasets import load_iris
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.tasks.test_classification import get_image_classification_data
-
-
-@pytest.fixture()
-def data_setup() -> InputData:
-    predictors, response = load_iris(return_X_y=True)
-    np.random.seed(1)
-    np.random.shuffle(predictors)
-    np.random.shuffle(response)
-    predictors = predictors[:100]
-    response = response[:100]
-    data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
-                     task=Task(TaskTypesEnum.classification),
-                     data_type=DataTypesEnum.table)
-    return data
-
-
-@pytest.fixture()
-def output_dataset():
-    task = Task(TaskTypesEnum.classification)
-
-    samples = 1000
-    x = 10.0 * np.random.rand(samples, ) - 5.0
-    x = np.expand_dims(x, axis=1)
-    threshold = 0.5
-    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
-    classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
-    classes = np.expand_dims(classes, axis=1)
-    data = OutputData(idx=np.arange(0, 100), features=x, predict=classes,
-                      task=task, data_type=DataTypesEnum.table)
-
-    return data
+from data.data_manager import get_image_classification_data
 
 
 def test_data_subset_correct(data_setup):
@@ -66,7 +34,7 @@ def test_data_subset_incorrect(data_setup):
 
 def test_data_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
+    file = '../../../data/data/simple_classification.csv'
     task = Task(TaskTypesEnum.classification)
     df = pd.read_csv(os.path.join(test_file_path, file))
     data_array = np.array(df).T
@@ -84,8 +52,8 @@ def test_data_from_csv():
 
 def test_with_custom_target():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    file_custom = '../../data/simple_classification_with_custom_target.csv'
+    file = '../../../data/data/simple_classification.csv'
+    file_custom = '../../../data/data/simple_classification_with_custom_target.csv'
 
     file_data = InputData.from_csv(
         os.path.join(test_file_path, file))
@@ -124,7 +92,7 @@ def test_data_from_predictions(output_dataset):
 
 def test_string_features_from_csv():
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/classification_with_categorical.csv'
+    file = '../../../data/data/classification_with_categorical.csv'
     expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
 
     assert expected_features.dtype == float
@@ -185,7 +153,7 @@ def test_target_data_from_csv_correct():
     method
     """
     test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/multi_target_sample.csv'
+    file = '../../../data/data/multi_target_sample.csv'
     path = os.path.join(test_file_path, file)
     task = Task(TaskTypesEnum.regression)
 

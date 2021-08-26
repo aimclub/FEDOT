@@ -6,13 +6,13 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log, LogManager, default_log
 from fedot.core.operations.model import Model
-from test.unit.utilities.test_pipeline_import_export import create_four_depth_pipeline
+from data.pipeline_manager import create_four_depth_pipeline
 
 
 @pytest.fixture()
 def get_config_file():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(test_file_path, '../data', 'logging.json')
+    file = os.path.join(test_file_path, '../../data/data', 'logging.json')
     if os.path.exists(file):
         return file
 
@@ -20,7 +20,7 @@ def get_config_file():
 @pytest.fixture()
 def get_bad_config_file():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(test_file_path, '../data', 'bad_log_config_file.yml')
+    file = os.path.join(test_file_path, '../../data/data', 'bad_log_config_file.yml')
     if os.path.exists(file):
         return file
 
@@ -54,7 +54,7 @@ def test_logger_write_logs_correctly():
                            log_file=test_log_file)
 
     # Model data preparation
-    file = os.path.join('../data', 'advanced_classification.csv')
+    file = os.path.join('../../data/data', 'advanced_classification.csv')
     data = InputData.from_csv(os.path.join(test_file_path, file))
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -78,7 +78,7 @@ def test_logger_manager_keeps_loggers_correctly():
     pipeline = create_four_depth_pipeline()
     expected_number_of_loggers = 5
 
-    file = os.path.join('../data', 'advanced_classification.csv')
+    file = os.path.join('../../data/data', 'advanced_classification.csv')
     test_file_path = str(os.path.dirname(__file__))
     data = InputData.from_csv(os.path.join(test_file_path, file))
     train_data, _ = train_test_data_setup(data=data)

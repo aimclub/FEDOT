@@ -6,13 +6,13 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
+from data.data_manager import generate_synthetic_data, get_ts_data
+from data.pipeline_manager import get_statsmodels_pipeline, get_simple_ts_pipeline, get_multiscale_pipeline
+
 np.random.seed(42)
 seed(42)
 
@@ -20,43 +20,6 @@ seed(42)
 def _max_rmse_threshold_by_std(values, is_strict=True):
     tolerance_coeff = 3.0 if is_strict else 5.0
     return np.std(values) * tolerance_coeff
-
-
-def get_multiscale_pipeline():
-    # First branch
-    node_lagged_1 = PrimaryNode('lagged')
-    node_lagged_1.custom_params = {'window_size': 20}
-    node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-
-    # Second branch, which will try to make prediction based on smoothed ts
-    node_filtering = PrimaryNode('gaussian_filter')
-    node_filtering.custom_params = {'sigma': 3}
-    node_lagged_2 = SecondaryNode('lagged', nodes_from=[node_filtering])
-    node_lagged_2.custom_params = {'window_size': 100}
-    node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
-
-    node_final = SecondaryNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
-
-    pipeline = Pipeline(node_final)
-
-    return pipeline
-
-
-def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
-    node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': window_size}
-    node_root = SecondaryNode(model_root, nodes_from=[node_lagged])
-
-    pipeline = Pipeline(node_root)
-
-    return pipeline
-
-
-def get_statsmodels_pipeline():
-    node_ar = PrimaryNode('ar')
-    node_ar.custom_params = {'lag_1': 20, 'lag_2': 100}
-    pipeline = Pipeline(node_ar)
-    return pipeline
 
 
 def test_arima_pipeline_fit_correct():
