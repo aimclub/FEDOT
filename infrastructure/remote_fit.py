@@ -1,9 +1,11 @@
 import os
 import time
+from datetime import datetime
 from typing import List
 
 import numpy as np
 
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
 from infrastructure.datamall.models_controller.computations import Client
 
@@ -28,7 +30,6 @@ class RemoteFitter:
 
         final_pipelines = []
         for pipelines_part in pipelines_parts:
-
             remote_eval_params = RemoteFitter.remote_eval_params
             client = Client(
                 authorization_server=os.environ['AUTH_SERVER'],
@@ -67,7 +68,7 @@ class RemoteFitter:
                     container_output_path="/home/FEDOT/output_data_dir",
                     container_config_path="/home/FEDOT/.config",
                     container_image="fedot:dm-2",
-                    timeout=60,
+                    timeout=360,
                     config=config
                 )
 
@@ -77,13 +78,14 @@ class RemoteFitter:
             statuses = ['']
             all_executions = client.get_executions()
             print(all_executions)
+            print('start', datetime.now())
             while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
                 executions = client.get_executions()
                 statuses = [execution['status'] for execution in executions]
                 print([f"{execution['id']}={execution['status']};" for execution in executions])
                 time.sleep(5)
 
-            print('Success')
+            print('End', datetime.now())
 
             for p_id, pipeline in enumerate(pipelines_part):
                 if pipeline.execution_id:
@@ -99,6 +101,6 @@ class RemoteFitter:
                         pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
                     except Exception as ex:
                         print(p_id, ex)
-            final_pipelines.extend(final_pipelines)
+            final_pipelines.extend(pipelines_part)
 
         return final_pipelines
