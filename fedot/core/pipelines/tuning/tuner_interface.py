@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
+from collections.abc import Callable
 
 import numpy as np
 
@@ -21,7 +22,7 @@ class HyperoptTuner(ABC):
     :param iterations: max number of iterations
     :param custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
     :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
-    :param algo: algorithm for hyperparameters optimization in hyperopt interface
+    :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
     def __init__(self, pipeline, task, iterations=100,
@@ -29,7 +30,7 @@ class HyperoptTuner(ABC):
                  log: Log = None,
                  custom_search_space: dict = None,
                  replace_default_search_space: bool = False,
-                 algo=None):
+                 algo: Callable = None):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations

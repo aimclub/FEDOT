@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-
+from collections.abc import Callable
 from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.log import Log
@@ -18,7 +18,7 @@ class PipelineTuner(HyperoptTuner):
                  log: Log = None,
                  custom_search_space: dict = None,
                  replace_default_search_space: bool = False,
-                 algo=tpe.suggest):
+                 algo: Callable = tpe.suggest):
         super().__init__(pipeline, task, iterations, timeout, log,
                          custom_search_space, replace_default_search_space, algo)
 

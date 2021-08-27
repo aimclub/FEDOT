@@ -1,7 +1,6 @@
 from datetime import timedelta
 from functools import partial
-
-import numpy as np
+from collections.abc import Callable
 from hyperopt import fmin, space_eval, tpe
 
 from fedot.core.data.data_split import train_test_data_setup
@@ -20,7 +19,7 @@ class SequentialTuner(HyperoptTuner):
                  inverse_node_order=False, log: Log = None,
                  custom_search_space: dict = None,
                  replace_default_search_space: bool = False,
-                 algo=tpe.suggest):
+                 algo: Callable = tpe.suggest):
         super().__init__(pipeline, task, iterations, timeout, log,
                          custom_search_space, replace_default_search_space, algo)
         self.inverse_node_order = inverse_node_order
