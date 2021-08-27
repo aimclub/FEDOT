@@ -395,6 +395,7 @@ class GPGraphOptimiser:
         evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function,
                              graph_generation_params=self.graph_generation_params,
                              timer=timer, is_multi_objective=self.parameters.multi_objective)
+        self.population = [ind for ind in self.population if ind.fitness is not None]
 
 
 @dataclass
