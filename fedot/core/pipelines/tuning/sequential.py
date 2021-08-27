@@ -1,11 +1,10 @@
 from datetime import timedelta
 from functools import partial
-from collections.abc import Callable
+from typing import Callable, ClassVar
 from hyperopt import fmin, space_eval, tpe
 
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
-from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
+from fedot.core.pipelines.tuning.hyperparams import convert_params, SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 
@@ -17,11 +16,9 @@ class SequentialTuner(HyperoptTuner):
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
                  inverse_node_order=False, log: Log = None,
-                 custom_search_space: dict = None,
-                 replace_default_search_space: bool = False,
+                 search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
-        super().__init__(pipeline, task, iterations, timeout, log,
-                         custom_search_space, replace_default_search_space, algo)
+        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
@@ -56,10 +53,8 @@ class SequentialTuner(HyperoptTuner):
             operation_name = str(node.operation)
 
             # Get node's parameters to optimize
-            node_params = get_node_params(node_id=node_id,
-                                          operation_name=operation_name,
-                                          custom_search_space=self.custom_search_space,
-                                          replace_default_search_space=self.replace_default_search_space)
+            node_params = self.search_space.get_node_params(node_id=node_id,
+                                                            operation_name=operation_name)
 
             if node_params is None:
                 self.log.info(f'"{operation_name}" operation has no parameters to optimize')
@@ -71,8 +66,7 @@ class SequentialTuner(HyperoptTuner):
                                     iterations_per_node=iterations_per_node,
                                     seconds_per_node=seconds_per_node,
                                     loss_function=loss_function,
-                                    loss_params=loss_params,
-                                    algo=self.algo)
+                                    loss_params=loss_params)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
@@ -99,10 +93,8 @@ class SequentialTuner(HyperoptTuner):
         operation_name = str(node.operation.operation_type)
 
         # Get node's parameters to optimize
-        node_params = get_node_params(node_id=node_index,
-                                      operation_name=operation_name,
-                                      custom_search_space=self.custom_search_space,
-                                      replace_default_search_space=self.replace_default_search_space)
+        node_params = self.search_space.get_node_params(node_id=node_index,
+                                                        operation_name=operation_name)
 
         if node_params is None:
             self.log.info(f'"{operation_name}" operation has no parameters to optimize')
@@ -114,8 +106,7 @@ class SequentialTuner(HyperoptTuner):
                                 iterations_per_node=self.iterations,
                                 seconds_per_node=self.max_seconds,
                                 loss_function=loss_function,
-                                loss_params=loss_params,
-                                algo=self.algo)
+                                loss_params=loss_params)
 
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
@@ -137,7 +128,7 @@ class SequentialTuner(HyperoptTuner):
         return nodes_ids
 
     def _optimize_node(self, node_id, data, node_params, iterations_per_node,
-                       seconds_per_node, loss_function, loss_params, algo):
+                       seconds_per_node, loss_function, loss_params):
         """
         Method for node optimization
 
@@ -157,7 +148,7 @@ class SequentialTuner(HyperoptTuner):
                                        loss_function=loss_function,
                                        loss_params=loss_params),
                                node_params,
-                               algo=algo,
+                               algo=self.algo,
                                max_evals=iterations_per_node,
                                timeout=seconds_per_node)
 
