@@ -396,6 +396,8 @@ class GPGraphOptimiser:
                              graph_generation_params=self.graph_generation_params,
                              timer=timer, is_multi_objective=self.parameters.multi_objective)
         self.population = [ind for ind in self.population if ind.fitness is not None]
+        if len(self.population) == 0:
+            raise ValueError('All evaluations of fitness was unsuccessful.')
 
 
 @dataclass
