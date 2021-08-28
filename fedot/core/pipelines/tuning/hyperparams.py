@@ -73,8 +73,9 @@ class ParametersChanger:
     def _random_change(parameter_name, **kwargs):
         """ Randomly selects a parameter value from a specified range """
 
-        space = SearchSpace(label=parameter_name).get_operation_parameter_range(operation_name=kwargs['operation_name'],
-                                                                                parameter_name=parameter_name)
+        space = SearchSpace().get_operation_parameter_range(operation_name=kwargs['operation_name'],
+                                                            parameter_name=parameter_name,
+                                                            label=parameter_name)
         # Randomly choose new value
         new_value = hp_sample(space)
         return {parameter_name: new_value}
@@ -92,203 +93,200 @@ class SearchSpace:
     """
     Class for extracting searching space
 
-    :attribute label: label to assign in hyperopt pyll
-    :attribute custom_search_space: dictionary of dictionaries for applying custom hyperparameters search space
+    :attribute custom_search_space: dictionary of dictionaries of tuples (hyperopt expression, *params)
+     for applying custom hyperparameters search space
     :attribute replace_default_search_space: whether replace default dictionary (False) or append it (True)
     """
 
     def __init__(self,
-                 label: str = 'default',
                  custom_search_space: dict = None,
                  replace_default_search_space: bool = False):
         self.custom_search_space = custom_search_space
         self.replace_default_search_space = replace_default_search_space
         self.parameters_per_operation = {
             'kmeans': {
-                'n_clusters': hp.choice(label, [2, 3, 4, 5, 6])
+                'n_clusters': (hp.choice, [[2, 3, 4, 5, 6]])
             },
             'adareg': {
-                'n_estimators': hp.choice(label, [100]),
-                'learning_rate': hp.uniform(label, 1e-3, 1.0),
-                'loss': hp.choice(label, ["linear", "square", "exponential"])
+                'n_estimators': (hp.choice, [[100]]),
+                'learning_rate': (hp.uniform, [1e-3, 1.0]),
+                'loss': (hp.choice, [["linear", "square", "exponential"]])
             },
             'gbr': {
-                'n_estimators': hp.choice(label, [100]),
-                'loss': hp.choice(label, ["ls", "lad", "huber", "quantile"]),
-                'learning_rate': hp.uniform(label, 1e-3, 1.0),
-                'max_depth': hp.choice(label, range(1, 11)),
-                'min_samples_split': hp.choice(label, range(2, 21)),
-                'min_samples_leaf': hp.choice(label, range(1, 21)),
-                'subsample': hp.uniform(label, 0.05, 1.0),
-                'max_features': hp.uniform(label, 0.05, 1.0),
-                'alpha': hp.uniform(label, 0.75, 0.99)
+                'n_estimators': (hp.choice, [[100]]),
+                'loss': (hp.choice, [["ls", "lad", "huber", "quantile"]]),
+                'learning_rate': (hp.uniform, [1e-3, 1.0]),
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'min_samples_split': (hp.choice, [range(2, 21)]),
+                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'subsample': (hp.uniform, [0.05, 1.0]),
+                'max_features': (hp.uniform, [0.05, 1.0]),
+                'alpha': (hp.uniform, [0.75, 0.99])
             },
             'logit': {
-                'C': hp.uniform(label, 1e-2, 10.0)
+                'C': (hp.uniform, [1e-2, 10.0])
             },
             'rf': {
-                'n_estimators': hp.choice(label, [100]),
-                'criterion': hp.choice(label, ["gini", "entropy"]),
-                'max_features': hp.uniform(label, 0.05, 1.01),
-                'min_samples_split': hp.choice(label, range(2, 10)),
-                'min_samples_leaf': hp.choice(label, range(1, 15)),
-                'bootstrap': hp.choice(label, [True, False])
+                'n_estimators': (hp.choice, [[100]]),
+                'criterion': (hp.choice, [["gini", "entropy"]]),
+                'max_features': (hp.uniform, [0.05, 1.01]),
+                'min_samples_split': (hp.choice, [range(2, 10)]),
+                'min_samples_leaf': (hp.choice, [range(1, 15)]),
+                'bootstrap': (hp.choice, [[True, False]])
             },
             'lasso': {
-                'alpha': hp.uniform(label, 0.01, 10.0)
+                'alpha': (hp.uniform, [0.01, 10.0])
             },
             'ridge': {
-                'alpha': hp.uniform(label, 0.01, 10.0)
+                'alpha': (hp.uniform, [0.01, 10.0])
             },
             'rfr': {
-                'n_estimators': hp.choice(label, [100]),
-                'max_features': hp.uniform(label, 0.05, 1.01),
-                'min_samples_split': hp.choice(label, range(2, 21)),
-                'min_samples_leaf': hp.choice(label, range(1, 21)),
-                'bootstrap': hp.choice(label, [True, False])
+                'n_estimators': (hp.choice, [[100]]),
+                'max_features': (hp.uniform, [0.05, 1.01]),
+                'min_samples_split': (hp.choice, [range(2, 21)]),
+                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'bootstrap': (hp.choice, [[True, False]])
             },
             'xgbreg': {
-                'n_estimators': hp.choice(label, [100]),
-                'max_depth': hp.choice(label, range(1, 11)),
-                'learning_rate': hp.choice(label, [1e-3, 1e-2, 1e-1, 0.5, 1.]),
-                'subsample': hp.choice(label, np.arange(0.05, 1.01, 0.05)),
-                'min_child_weight': hp.choice(label, range(1, 21)),
-                'objective': hp.choice(label, ['reg:squarederror'])
+                'n_estimators': (hp.choice, [[100]]),
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1, 0.5, 1.]]),
+                'subsample': (hp.choice, [np.arange(0.05, 1.01, 0.05)]),
+                'min_child_weight': (hp.choice, [range(1, 21)]),
+                'objective': (hp.choice, [['reg:squarederror']])
             },
             'xgboost': {
-                'n_estimators': hp.choice(label, [100]),
-                'max_depth': hp.choice(label, range(1, 7)),
-                'learning_rate': hp.uniform(label, 0.1, 0.9),
-                'subsample': hp.uniform(label, 0.05, 0.99),
-                'min_child_weight': hp.choice(label, range(1, 21)),
-                'nthread': hp.choice(label, [1])
+                'n_estimators': (hp.choice, [[100]]),
+                'max_depth': (hp.choice, [range(1, 7)]),
+                'learning_rate': (hp.uniform, [0.1, 0.9]),
+                'subsample': (hp.uniform, [0.05, 0.99]),
+                'min_child_weight': (hp.choice, [range(1, 21)]),
+                'nthread': (hp.choice, [[1]])
             },
             'svr': {
-                'loss': hp.choice(label, ["epsilon_insensitive", "squared_epsilon_insensitive"]),
-                'tol': hp.choice(label, [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]),
-                'C': hp.uniform(label, 1e-4, 25.0),
-                'epsilon': hp.uniform(label, 1e-4, 1.0)
+                'loss': (hp.choice, [["epsilon_insensitive", "squared_epsilon_insensitive"]]),
+                'tol': (hp.choice, [[1e-5, 1e-4, 1e-3, 1e-2, 1e-1]]),
+                'C': (hp.uniform, [1e-4, 25.0]),
+                'epsilon': (hp.uniform, [1e-4, 1.0])
             },
             'dtreg': {
-                'max_depth': hp.choice(label, range(1, 11)),
-                'min_samples_split': hp.choice(label, range(2, 21)),
-                'min_samples_leaf': hp.choice(label, range(1, 21))
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'min_samples_split': (hp.choice, [range(2, 21)]),
+                'min_samples_leaf': (hp.choice, [range(1, 21)])
             },
             'treg': {
-                'n_estimators': hp.choice(label, [100]),
-                'max_features': hp.uniform(label, 0.05, 1.0),
-                'min_samples_split': hp.choice(label, range(2, 21)),
-                'min_samples_leaf': hp.choice(label, range(1, 21)),
-                'bootstrap': hp.choice(label, [True, False])
+                'n_estimators': (hp.choice, [[100]]),
+                'max_features': (hp.uniform, [0.05, 1.0]),
+                'min_samples_split': (hp.choice, [range(2, 21)]),
+                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'bootstrap': (hp.choice, [[True, False]])
             },
             'dt': {
-                'max_depth': hp.choice(label, range(1, 11)),
-                'min_samples_split': hp.choice(label, range(2, 21)),
-                'min_samples_leaf': hp.choice(label, range(1, 21))
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'min_samples_split': (hp.choice, [range(2, 21)]),
+                'min_samples_leaf': (hp.choice, [range(1, 21)])
             },
             'knnreg': {
-                'n_neighbors': hp.choice(label, range(1, 50)),
-                'weights': hp.choice(label, ["uniform", "distance"]),
-                'p': hp.choice(label, [1, 2])
+                'n_neighbors': (hp.choice, [range(1, 50)]),
+                'weights': (hp.choice, [["uniform", "distance"]]),
+                'p': (hp.choice, [[1, 2]])
             },
             'knn': {
-                'n_neighbors': hp.choice(label, range(1, 50)),
-                'weights': hp.choice(label, ["uniform", "distance"]),
-                'p': hp.choice(label, [1, 2])
+                'n_neighbors': (hp.choice, [range(1, 50)]),
+                'weights': (hp.choice, [["uniform", "distance"]]),
+                'p': (hp.choice, [[1, 2]])
             },
             'arima': {
-                'p': hp.choice(label, [1, 2, 3, 4, 5, 6]),
-                'd': hp.choice(label, [0, 1]),
-                'q': hp.choice(label, [1, 2, 3, 4])
+                'p': (hp.choice, [[1, 2, 3, 4, 5, 6]]),
+                'd': (hp.choice, [[0, 1]]),
+                'q': (hp.choice, [[1, 2, 3, 4]])
             },
             'stl_arima': {
-                'p': hp.choice(label, [1, 2, 3, 4, 5, 6]),
-                'd': hp.choice(label, [0, 1]),
-                'q': hp.choice(label, [1, 2, 3, 4]),
-                'period': hp.choice(label, range(1, 365)),
+                'p': (hp.choice, [[1, 2, 3, 4, 5, 6]]),
+                'd': (hp.choice, [[0, 1]]),
+                'q': (hp.choice, [[1, 2, 3, 4]]),
+                'period': (hp.choice, [range(1, 365)])
             },
             'ar': {
-                'lag_1': hp.uniform(label, 2, 200),
-                'lag_2': hp.uniform(label, 2, 800)
+                'lag_1': (hp.uniform, [2, 200]),
+                'lag_2': (hp.uniform, [2, 800])
             },
             'pca': {
-                'n_components': hp.uniform(label, 0.1, 0.99),
-                'svd_solver': hp.choice(label, ['full'])
+                'n_components': (hp.uniform, [0.1, 0.99]),
+                'svd_solver': (hp.choice, [['full']])
             },
             'kernel_pca': {
-                'n_components': hp.choice(label, range(1, 20))
+                'n_components': (hp.choice, [range(1, 20)])
             },
             'ransac_lin_reg': {
-                'min_samples': hp.uniform(label, 0.1, 0.9),
-                'residual_threshold': hp.choice(label,
-                                                [0.1, 1.0, 100.0, 500.0, 1000.0]),
-                'max_trials': hp.uniform(label, 50, 500),
-                'max_skips': hp.uniform(label, 50, 500000)
+                'min_samples': (hp.uniform, [0.1, 0.9]),
+                'residual_threshold': (hp.choice, [[0.1, 1.0, 100.0, 500.0, 1000.0]]),
+                'max_trials': (hp.uniform, [50, 500]),
+                'max_skips': (hp.uniform, [50, 500000])
             },
             'ransac_non_lin_reg': {
-                'min_samples': hp.uniform(label, 0.1, 0.9),
-                'residual_threshold': hp.choice(label,
-                                                [0.1, 1.0, 100.0, 500.0, 1000.0]),
-                'max_trials': hp.uniform(label, 50, 500),
-                'max_skips': hp.uniform(label, 50, 500000)
+                'min_samples': (hp.uniform, [0.1, 0.9]),
+                'residual_threshold': (hp.choice, [[0.1, 1.0, 100.0, 500.0, 1000.0]]),
+                'max_trials': (hp.uniform, [50, 500]),
+                'max_skips': (hp.uniform, [50, 500000])
             },
             'rfe_lin_reg': {
-                'n_features_to_select': hp.choice(label, [0.5, 0.7, 0.9]),
-                'step': hp.choice(label, [0.1, 0.15, 0.2])
+                'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
+                'step': (hp.choice, [[0.1, 0.15, 0.2]])
             },
             'rfe_non_lin_reg': {
-                'n_features_to_select': hp.choice(label, [0.5, 0.7, 0.9]),
-                'step': hp.choice(label, [0.1, 0.15, 0.2])
+                'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
+                'step': (hp.choice, [[0.1, 0.15, 0.2]])
             },
             'poly_features': {
-                'degree': hp.choice(label, [2, 3, 4]),
-                'interaction_only': hp.choice(label, [True, False])
+                'degree': (hp.choice, [[2, 3, 4]]),
+                'interaction_only': (hp.choice, [[True, False]])
             },
             'lagged': {
-                'window_size': hp.uniform(label, 5, 500)
+                'window_size': (hp.uniform, [5, 500])
             },
             'sparse_lagged': {
-                'window_size': hp.uniform(label, 5, 500),
-                'n_components': hp.uniform(label, 0, 0.5),
-                'use_svd': hp.choice(label, [True, False])
+                'window_size': (hp.uniform, [5, 500]),
+                'n_components': (hp.uniform, [0, 0.5]),
+                'use_svd': (hp.choice, [[True, False]])
             },
             'smoothing': {
-                'window_size': hp.uniform(label, 2, 20)
+                'window_size': (hp.uniform, [2, 20])
             },
             'gaussian_filter': {
-                'sigma': hp.uniform(label, 1, 5)
+                'sigma': (hp.uniform, [1, 5])
             },
             'lgbm': {
-                'class_weight': hp.choice(label, [None, 'balanced']),
-                'num_leaves': hp.choice(label, np.arange(2, 256, 8, dtype=int)),
-                'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
-                'colsample_bytree': hp.uniform(label, 0.4, 1),
-                'subsample': hp.uniform(label, 0.4, 1),
-                'lambda_l1': hp.uniform(label, 1e-8, 10.0),
-                'lambda_l2': hp.uniform(label, 1e-8, 10.0),
+                'class_weight': (hp.choice, [[None, 'balanced']]),
+                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'lambda_l1': (hp.uniform, [1e-8, 10.0]),
+                'lambda_l2': (hp.uniform, [1e-8, 10.0])
             },
             'lgbmreg': {
-                'num_leaves': hp.choice(label, np.arange(2, 256, 8, dtype=int)),
-                'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
-                'colsample_bytree': hp.uniform(label, 0.4, 1),
-                'subsample': hp.uniform(label, 0.4, 1),
-                'lambda_l1': hp.uniform(label, 1e-8, 10.0),
-                'lambda_l2': hp.uniform(label, 1e-8, 10.0),
+                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'colsample_bytree': (hp.uniform, [0.4, 1]),
+                'subsample': (hp.uniform, [0.4, 1]),
+                'lambda_l1': (hp.uniform, [1e-8, 10.0]),
+                'lambda_l2': (hp.uniform, [1e-8, 10.0])
             },
             'catboost': {
-                'max_depth': hp.choice(label, range(1, 11)),
-                'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
-                'min_data_in_leaf': hp.qloguniform(label, 0, 6, 1),
-                'border_count': hp.randint(label, 2, 255),
-                'l2_leaf_reg': hp.uniform(label, 1e-8, 10.0),
-                'loss_function': hp.choice(label, ['Logloss', 'CrossEntropy']),
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                'border_count': (hp.randint, [2, 255]),
+                'l2_leaf_reg': (hp.uniform, [1e-8, 10.0]),
+                'loss_function': (hp.choice, [['Logloss', 'CrossEntropy']])
             },
             'catboostreg': {
-                'max_depth': hp.choice(label, range(1, 11)),
-                'learning_rate': hp.loguniform(label, np.log(0.01), np.log(0.2)),
-                'min_data_in_leaf': hp.qloguniform(label, 0, 6, 1),
-                'border_count': hp.randint(label, 2, 255),
-                'l2_leaf_reg': hp.uniform(label, 1e-8, 10.0),
+                'max_depth': (hp.choice, [range(1, 11)]),
+                'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
+                'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
+                'border_count': (hp.randint, [2, 255]),
+                'l2_leaf_reg': (hp.uniform, [1e-8, 10.0])
             }
         }
 
@@ -300,14 +298,14 @@ class SearchSpace:
                     for key, value in self.custom_search_space[operation].items():
                         self.parameters_per_operation[operation][key] = value
 
-    def get_operation_parameter_range(self,
-                                      operation_name: str, parameter_name: str = None):
+    def get_operation_parameter_range(self, operation_name: str, parameter_name: str = None, label: str = 'default'):
         """
         Method prepares appropriate labeled dictionary for desired operation.
         If parameter name is not defined - return all available operation
 
         :param operation_name: name of the operation
         :param parameter_name: name of hyperparameter of particular operation
+        :param label: label to assign in hyperopt pyll
 
         :return : dictionary with appropriate range
         """
@@ -322,7 +320,8 @@ class SearchSpace:
             if parameter_name is None:
                 return list(operation_parameters.keys())
             else:
-                return operation_parameters.get(parameter_name)
+                hyperopt_tuple = operation_parameters.get(parameter_name)
+                return hyperopt_tuple[0](label, *hyperopt_tuple[1])
 
     def get_node_params(self, node_id, operation_name):
         """
@@ -352,7 +351,8 @@ class SearchSpace:
 
                 # For operation get range where search can be done
                 space = self.get_operation_parameter_range(operation_name=operation_name,
-                                                           parameter_name=parameter_name)
+                                                           parameter_name=parameter_name,
+                                                           label=node_op_parameter_name)
 
                 params_dict.update({node_op_parameter_name: space})
 
