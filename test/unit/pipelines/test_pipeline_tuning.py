@@ -314,3 +314,23 @@ def test_search_space_correctness_after_customization():
     assert default_params.keys() != custom_with_replace_params.keys()
     assert default_params['0 || gbr | max_depth'] != custom_without_replace_params['0 || gbr | max_depth']
     assert default_params['0 || gbr | max_depth'] != custom_with_replace_params['0 || gbr | max_depth']
+
+
+def test_search_space_get_operation_parameter_range():
+    default_search_space = SearchSpace()
+    gbr_operations = ['n_estimators', 'loss', 'learning_rate', 'max_depth', 'min_samples_split',
+                      'min_samples_leaf', 'subsample', 'max_features', 'alpha']
+
+    custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
+    custom_search_space_without_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                      replace_default_search_space=False)
+    custom_search_space_with_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                   replace_default_search_space=True)
+
+    default_operations = default_search_space.get_operation_parameter_range('gbr')
+    custom_without_replace_operations = custom_search_space_without_replace.get_operation_parameter_range('gbr')
+    custom_with_replace_operations = custom_search_space_with_replace.get_operation_parameter_range('gbr')
+
+    assert default_operations == gbr_operations
+    assert custom_without_replace_operations == gbr_operations
+    assert custom_with_replace_operations == ['max_depth']
