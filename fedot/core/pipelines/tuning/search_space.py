@@ -6,7 +6,7 @@ class SearchSpace:
     """
     Class for extracting searching space
 
-    :attribute custom_search_space: dictionary of dictionaries of tuples (hyperopt expression, *params)
+    :attribute custom_search_space: dictionary of dictionaries of tuples (hyperopt expression (e.g. hp.choice), *params)
      for applying custom hyperparameters search space
     :attribute replace_default_search_space: whether replace default dictionary (False) or append it (True)
     """
@@ -218,8 +218,8 @@ class SearchSpace:
 
     def get_operation_parameter_range(self, operation_name: str, parameter_name: str = None, label: str = 'default'):
         """
-        Method prepares appropriate labeled dictionary for desired operation.
-        If parameter name is not defined - return all available operation
+        Method return hyperopt object with search_space from parameters_per_operation dictionary
+        If parameter name is not defined - return all available operations
 
         :param operation_name: name of the operation
         :param parameter_name: name of hyperparameter of particular operation
@@ -231,15 +231,15 @@ class SearchSpace:
         # Get available parameters for current operation
         operation_parameters = self.parameters_per_operation.get(operation_name)
 
-        if operation_parameters is None:
-            return None
-        else:
+        if operation_parameters is not None:
             # If there are not parameter_name - return list with all parameters
             if parameter_name is None:
                 return list(operation_parameters.keys())
             else:
                 hyperopt_tuple = operation_parameters.get(parameter_name)
                 return hyperopt_tuple[0](label, *hyperopt_tuple[1])
+        else:
+            return None
 
     def get_node_params(self, node_id, operation_name):
         """
