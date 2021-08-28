@@ -4,7 +4,7 @@ from typing import Callable, ClassVar
 from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.log import Log
-from fedot.core.pipelines.tuning.hyperparams import convert_params, SearchSpace
+from fedot.core.pipelines.tuning.search_space import convert_params, SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 

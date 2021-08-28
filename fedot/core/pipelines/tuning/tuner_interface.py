@@ -9,7 +9,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.tune.time_series import cross_validation_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
-from fedot.core.pipelines.tuning.hyperparams import SearchSpace
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 MAX_METRIC_VALUE = 10e6
 

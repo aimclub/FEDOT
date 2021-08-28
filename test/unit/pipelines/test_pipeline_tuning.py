@@ -12,7 +12,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.pipelines.tuning.hyperparams import SearchSpace
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 

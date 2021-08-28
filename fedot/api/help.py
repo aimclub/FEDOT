@@ -1,4 +1,4 @@
-from fedot.core.pipelines.tuning.hyperparams import SearchSpace
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 
