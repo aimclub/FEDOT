@@ -124,8 +124,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = None
 
     def fit(self, input_data: InputData):
-        """ Method for fit encoder with automatic determination of categorical
-        features
+        """ Method for fit encoder with automatic determination of categorical features
 
         :param input_data: data with features, target and ids for encoder training
         :return encoder: trained encoder (optional output)
