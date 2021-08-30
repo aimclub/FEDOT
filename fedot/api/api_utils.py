@@ -285,8 +285,7 @@ def _create_multidata_pipeline(task: Task, data: MultiModalData, has_categorical
     if task.task_type == TaskTypesEnum.ts_forecasting:
         node_final = SecondaryNode('ridge', nodes_from=[])
         for data_source_name, values in data.items():
-            if (data_source_name.startswith('data_source_ts') or
-                    data_source_name.startswith('exog_ts_data_source')):
+            if data_source_name.startswith('data_source_ts'):
                 node_primary = PrimaryNode(data_source_name)
                 if data_has_missing_values(data):
                     node_imputation = SecondaryNode('simple_imputation', [node_primary])
@@ -294,6 +293,14 @@ def _create_multidata_pipeline(task: Task, data: MultiModalData, has_categorical
                 else:
                     node_lagged = SecondaryNode('lagged', [node_primary])
                 node_last = SecondaryNode('ridge', [node_lagged])
+                node_final.nodes_from.append(node_last)
+            elif data_source_name.startswith('exog_ts_data_source'):
+                node_primary = PrimaryNode(data_source_name)
+                if data_has_missing_values(data):
+                    node_next = SecondaryNode('simple_imputation', [node_primary])
+                else:
+                    node_next = node_primary
+                node_last = SecondaryNode('ridge', [node_next])
                 node_final.nodes_from.append(node_last)
     elif task.task_type == TaskTypesEnum.classification:
         node_final = SecondaryNode('xgboost', nodes_from=[])
