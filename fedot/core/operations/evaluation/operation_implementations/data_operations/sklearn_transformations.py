@@ -189,9 +189,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         return transformed_features
 
     def _check_same_categories(self, categorical_features):
-        features_prefixes = ["" for _ in range(len(self.categorical_ids))]
-        encoder_unique_categories = sorted(list(map(lambda x: x[1:],
-                                                    self.encoder.get_feature_names(features_prefixes))))
+        encoder_unique_categories = sorted(list(np.hstack(self.encoder.categories_)))
         features_unique_categories = sorted(np.unique(np.array(categorical_features)))
 
         if encoder_unique_categories != features_unique_categories:

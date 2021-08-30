@@ -72,7 +72,7 @@ def load_categorical_unimodal():
     dataset_path = 'test/data/classification_with_categorical.csv'
     full_path = os.path.join(str(fedot_project_root()), dataset_path)
     data = InputData.from_csv(full_path)
-    train_data, test_data = train_test_data_setup(data)
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     return train_data, test_data
 
