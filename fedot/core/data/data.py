@@ -10,10 +10,10 @@ from PIL import Image
 
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.merge import DataMerger
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.data.multi_modal import MultiModalData
 
 # Max unique values to convert numerical column to categorical.
 MAX_UNIQ_VAL = 12
@@ -243,6 +243,19 @@ class InputData(Data):
             new_features = self.features[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
+
+    def shuffle(self):
+        """
+        Shuffles features and target if possible
+        """
+        if self.data_type == DataTypesEnum.table:
+            shuffled_ind = np.random.permutation(len(self.features))
+            idx, features, target = self.idx[shuffled_ind], self.features[shuffled_ind], self.target[shuffled_ind]
+            self.idx = idx
+            self.features = features
+            self.target = target
+        else:
+            pass
 
 
 @dataclass

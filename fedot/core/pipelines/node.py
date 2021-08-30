@@ -4,7 +4,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
-from fedot.core.operations.operation import Operation, _get_default_params
+from fedot.core.operations.operation import Operation, get_default_params
 
 
 class Node(GraphNode):
@@ -135,7 +135,7 @@ class Node(GraphNode):
     def custom_params(self, params):
         if params:
             # Complete the dictionary if it is incomplete
-            default_params = _get_default_params(self.operation.operation_type)
+            default_params = get_default_params(self.operation.operation_type)
             if default_params is not None:
                 params = {**default_params, **params}
             self.operation.params = params

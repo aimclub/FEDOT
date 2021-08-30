@@ -37,3 +37,7 @@ class MultiModalData(dict):
             return len(np.unique(self.target))
         else:
             return None
+
+    def shuffle(self):
+        # TODO implement multi-modal shuffle
+        pass
