@@ -2,14 +2,17 @@ import os
 
 import numpy as np
 import pandas as pd
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.multi_modal_pipeline import (prepare_multi_modal_data)
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.api.main import Fedot, _define_data
+from fedot.api.main import Fedot
+from fedot.api.main import _define_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -287,3 +290,16 @@ def test_multivariate_ts():
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
     assert forecast is not None
+
+
+def test_unshaffled_data():
+    target_column = 'species'
+    df_el, y = load_iris(return_X_y=True, as_frame=True)
+    df_el[target_column] = LabelEncoder().fit_transform(y)
+
+    features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
+
+    problem = 'classification'
+    auto_model = Fedot(problem=problem, seed=42, timeout=0.05, composer_params={'metric': 'f1'})
+    pipeline = auto_model.fit(features=features, target=target)
+    assert pipeline is not None
