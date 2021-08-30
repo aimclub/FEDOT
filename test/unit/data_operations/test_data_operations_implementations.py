@@ -1,6 +1,9 @@
 from itertools import product
+import os
+import pytest
 
 import numpy as np
+import pandas as pd
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.regression_with_tuning_example import get_regression_dataset
@@ -13,6 +16,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 
 np.random.seed(2021)
 
@@ -261,3 +265,36 @@ def test_feature_selection_of_single_features():
 
             assert node_data_operation.fitted_operation is not None
             assert predicted.shape == train_input.features.shape
+
+
+def test_one_hot_encoding_new_category_in_test():
+    file_path_train = 'cases/data/river_levels/station_levels.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    data = pd.read_csv(full_path_train)
+    test_features = data[data['month'] == 'Декабрь']
+    test_target = test_features['level_station_2']
+    test_features.drop(['level_station_2'], axis=1, inplace=True)
+
+    train_features = data[data['month'] != 'Декабрь']
+    train_target = train_features['level_station_2']
+    train_features.drop(['level_station_2'], axis=1, inplace=True)
+
+    test_data = InputData(idx=np.arange(0, len(test_features)),
+                          features=np.array(test_features), target=np.array(test_target),
+                          task=Task(TaskTypesEnum.regression),
+                          data_type=DataTypesEnum.table)
+
+    train_data = InputData(idx=np.arange(0, len(train_features)),
+                           features=np.array(train_features),
+                           target=np.array(train_target),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+
+    pipeline = Pipeline()
+    one_hot_node = PrimaryNode('one_hot_encoding')
+    final_node = SecondaryNode('dt', nodes_from=[one_hot_node])
+    pipeline.add_node(final_node)
+    pipeline.fit(train_data)
+
+    with pytest.raises(ValueError):
+        pipeline.predict(test_data)
