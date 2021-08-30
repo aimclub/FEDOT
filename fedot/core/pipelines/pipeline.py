@@ -17,7 +17,7 @@ from fedot.core.optimisers.utils.population_utils import input_data_characterist
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.data.data import _data_type_is_suitable_preprocessing
+from fedot.core.data.data import data_type_is_table
 
 # The allowed empirical limit of the number of rows to delete as a percentage.
 EMPIRICAL_ROWS_TO_DELETE = 0.1
@@ -234,13 +234,13 @@ class Pipeline(Graph):
         copied_input_data = copy(input_data)
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
-        if data_has_missing_values(input_data) and not has_imputation_operation:
-            input_data = _imputation_implementation(input_data)
+        if data_has_missing_values(copied_input_data) and not has_imputation_operation:
+            copied_input_data = _imputation_implementation(copied_input_data)
 
-        input_data = _numeric_preprocessing(input_data)
+        copied_input_data = _numeric_preprocessing(copied_input_data)
 
-        if data_has_categorical_features(input_data) and not has_encoder_operation:
-            _encode_data_for_prediction(input_data, self.pre_proc_encoders)
+        if data_has_categorical_features(copied_input_data) and not has_encoder_operation:
+            _encode_data_for_prediction(copied_input_data, self.pre_proc_encoders)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -396,11 +396,12 @@ def _try_convert_to_numeric(features, columns_amount):
 
 def _numeric_preprocessing(data: Union[InputData, MultiModalData]):
     if isinstance(data, InputData):
-        data = _numeric_preprocessing_input_data(data)
+        if data_type_is_table(data):
+            data = _numeric_preprocessing_input_data(data)
     elif isinstance(data, MultiModalData):
         for data_source_name, values in data.items():
-            if _data_type_is_suitable_preprocessing(values):
-                data[data_source_name].features = _numeric_preprocessing_input_data(values)
+            if data_type_is_table(values):
+                data[data_source_name] = _numeric_preprocessing_input_data(values)
 
     return data
 
@@ -418,7 +419,7 @@ def _numeric_preprocessing_input_data(data: InputData) -> InputData:
             row_to_remove = list(values.index[is_converted_to_float])
             rows_to_remove.update(row_to_remove)
 
-    if len(rows_to_remove) / source_shape[0] < EMPIRICAL_ROWS_TO_DELETE:
+    if len(rows_to_remove) > 0 and len(rows_to_remove) / source_shape[0] < EMPIRICAL_ROWS_TO_DELETE:
         features = np.delete(features, list(rows_to_remove), 0)
         data.features = _try_convert_to_numeric(features, columns_amount)
         data.target = np.delete(data.target, list(rows_to_remove), 0)
@@ -468,13 +469,14 @@ def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
 
 def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
                                 encoders: Union[dict, DataOperationImplementation]):
-    if isinstance(data, InputData):
-        transformed = encoders.transform(data, True).predict
-        data.features = transformed
-    elif isinstance(data, MultiModalData):
-        for data_source_name, encoder in encoders.items():
-            transformed = encoder.transform(data[data_source_name], True).predict
-            data[data_source_name].features = transformed
+    if encoders:
+        if isinstance(data, InputData):
+            transformed = encoders.transform(data, True).predict
+            data.features = transformed
+        elif isinstance(data, MultiModalData):
+            for data_source_name, encoder in encoders.items():
+                transformed = encoder.transform(data[data_source_name], True).predict
+                data[data_source_name].features = transformed
 
 
 def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
