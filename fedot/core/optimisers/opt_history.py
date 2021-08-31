@@ -1,13 +1,15 @@
 import csv
 import itertools
 import os
+import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import (Any, List)
+from typing import (Any, List, Optional)
+from uuid import uuid4
 
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
+from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
 
@@ -17,6 +19,11 @@ class ParentOperator:
     operator_name: str
     operator_type: str
     parent_objects: List[PipelineTemplate]
+    uid: str = None
+
+    def __post_init__(self):
+        if not self.uid:
+            self.uid = str(uuid4())
 
 
 class OptHistory:
@@ -104,12 +111,53 @@ class OptHistory:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow(row)
 
+    def save_current_results(self, path: Optional[str] = None):
+        if not path:
+            path = os.path.join(default_fedot_data_dir(), 'composing_history')
+        try:
+            last_gen_id = len(self.individuals) - 1
+            last_gen = self.individuals[last_gen_id]
+            for ind_id, individual in enumerate(last_gen):
+                # TODO support multi-objective case
+                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.unique_pipeline_id))
+                additional_info = \
+                    {'fitness_name': self.short_metrics_names[0],
+                     'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
+                individual.graph.export_pipeline(path=ind_path, additional_info=additional_info,
+                                                 datetime_in_path=False)
+        except Exception as ex:
+            print(ex)
+
+    def clean_results(self, path: Optional[str] = None):
+        if not path:
+            path = os.path.join(default_fedot_data_dir(), 'composing_history')
+        shutil.rmtree(path, ignore_errors=True)
+        os.mkdir(path)
+
+    @property
+    def short_metrics_names(self):
+        # TODO refactor
+        possible_short_names = ['RMSE', 'MSE', 'ROCAUC', 'MAE']
+        short_names = []
+        for full_name in self.metrics:
+            is_found = False
+            for candidate_short_name in possible_short_names:
+                if candidate_short_name in str(full_name):
+                    short_names.append(candidate_short_name)
+                    is_found = True
+                    break
+            if not is_found:
+                short_names.append(str(full_name))
+
+        return short_names
+
     @property
     def historical_fitness(self):
         if self.is_multi_objective:
             historical_fitness = []
             for objective_num in range(len(self.individuals[0][0].fitness.values)):
-                objective_history = [[pipeline.fitness.values[objective_num] for pipeline in pop] for pop in self.individuals]
+                objective_history = [[pipeline.fitness.values[objective_num] for pipeline in pop] for pop in
+                                     self.individuals]
                 historical_fitness.append(objective_history)
         else:
             historical_fitness = [[pipeline.fitness for pipeline in pop] for pop in self.individuals]

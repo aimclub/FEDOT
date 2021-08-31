@@ -4,7 +4,7 @@ from typing import Any
 from fedot.core.optimisers.gp_comp.operators.mutation import get_mutation_prob
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.hyperparams import get_new_operation_params
+from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
@@ -19,7 +19,11 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
             operation_name = node.operation.operation_type
-            node.custom_params = get_new_operation_params(operation_name)
+            current_params = node.operation.params
+
+            # Perform specific change for particular parameter
+            changer = ParametersChanger(operation_name, current_params)
+            node.custom_params = changer.get_new_operation_params()
 
     return pipeline
 

@@ -117,6 +117,9 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
+        # shuffle data if necessary
+        data.shuffle()
+
         if self.composer_requirements.cv_folds is not None:
             objective_function_for_pipeline = self._cv_validation_metric_build(data)
         else:
@@ -170,7 +173,7 @@ class GPComposer(Composer):
                         test_data: Union[InputData, MultiModalData],
                         pipeline: Pipeline) -> Optional[Tuple[Any]]:
         try:
-            validate(pipeline)
+            validate(pipeline, task=train_data.task)
             pipeline.log = self.log
 
             if type(metrics) is not list:

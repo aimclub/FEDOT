@@ -2,6 +2,7 @@ import os
 from random import seed
 
 import numpy as np
+from hyperopt import hp, tpe, rand
 import pytest
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
@@ -11,6 +12,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -67,6 +69,36 @@ def get_complex_class_pipeline():
     return pipeline
 
 
+def get_not_default_search_space():
+    custom_search_space = {
+        'logit': {
+            'C': (hp.uniform, [0.01, 5.0])
+        },
+        'ridge': {
+            'alpha': (hp.uniform, [0.01, 5.0])
+        },
+        'xgbreg': {
+            'n_estimators': (hp.choice, [[100]]),
+            'max_depth': (hp.choice, [range(1, 7)]),
+            'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
+            'subsample': (hp.choice, [np.arange(0.15, 1.01, 0.05)])
+        },
+        'xgboost': {
+            'max_depth': (hp.choice, [range(1, 5)]),
+            'subsample': (hp.uniform, [0.1, 0.9]),
+            'min_child_weight': (hp.choice, [range(1, 15)])
+        },
+        'ar': {
+            'lag_1': (hp.uniform, [2, 100]),
+            'lag_2': (hp.uniform, [2, 500])
+        },
+        'pca': {
+            'n_components': (hp.uniform, [0.2, 0.8])
+        }
+    }
+    return SearchSpace(custom_search_space=custom_search_space)
+
+
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -92,14 +124,18 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     pipeline_complex = get_complex_regr_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                       task=train_data.task,
-                                       iterations=1)
-        # Optimization will be performed on RMSE metric, so loss params are defined
-        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                      loss_function=mse,
-                                                      loss_params={'squared': False})
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=algo)
+                # Optimization will be performed on RMSE metric, so loss params are defined
+                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                              loss_function=mse,
+                                                              loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -116,12 +152,16 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
     pipeline_complex = get_complex_class_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                       task=train_data.task,
-                                       iterations=1)
-        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                      loss_function=roc)
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=algo)
+                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                              loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -138,14 +178,18 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
     pipeline_complex = get_complex_regr_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=1)
-        # Optimization will be performed on RMSE metric, so loss params are defined
-        tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                        loss_function=mse,
-                                                        loss_params={'squared': False})
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=algo)
+                # Optimization will be performed on RMSE metric, so loss params are defined
+                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                                loss_function=mse,
+                                                                loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -162,12 +206,16 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
     pipeline_complex = get_complex_class_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=2)
-        tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                        loss_function=roc)
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=2,
+                                                   search_space=search_space,
+                                                   algo=algo)
+                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                                loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -184,13 +232,17 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     pipeline_complex = get_complex_regr_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=1)
-        tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                    node_index=0,
-                                                    loss_function=mse)
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=algo)
+                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                            node_index=0,
+                                                            loss_function=mse)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -207,13 +259,17 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
     pipeline_complex = get_complex_class_pipeline()
 
     for pipeline in [pipeline_simple, pipeline_complex]:
-        # Pipeline tuning
-        sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=1)
-        tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                    node_index=0,
-                                                    loss_function=roc)
+        for search_space in [SearchSpace(), get_not_default_search_space()]:
+            for algo in [tpe.suggest, rand.suggest]:
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=algo)
+                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                            node_index=0,
+                                                            loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -225,11 +281,56 @@ def test_ts_pipeline_with_stats_model():
 
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
-    # Tune AR model
-    tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3)
-    tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                               loss_function=mse)
+    for search_space in [SearchSpace(), get_not_default_search_space()]:
+        for algo in [tpe.suggest, rand.suggest]:
+            # Tune AR model
+            tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
+                                     search_space=search_space, algo=algo)
+            tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
+                                                       loss_function=mse)
 
     is_tuning_finished = True
 
     assert is_tuning_finished
+
+
+def test_search_space_correctness_after_customization():
+    default_search_space = SearchSpace()
+
+    custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
+    custom_search_space_without_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                      replace_default_search_space=False)
+    custom_search_space_with_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                   replace_default_search_space=True)
+
+    default_params = default_search_space.get_node_params(node_id=0,
+                                                          operation_name='gbr')
+    custom_without_replace_params = custom_search_space_without_replace.get_node_params(node_id=0,
+                                                                                        operation_name='gbr')
+    custom_with_replace_params = custom_search_space_with_replace.get_node_params(node_id=0,
+                                                                                  operation_name='gbr')
+
+    assert default_params.keys() == custom_without_replace_params.keys()
+    assert default_params.keys() != custom_with_replace_params.keys()
+    assert default_params['0 || gbr | max_depth'] != custom_without_replace_params['0 || gbr | max_depth']
+    assert default_params['0 || gbr | max_depth'] != custom_with_replace_params['0 || gbr | max_depth']
+
+
+def test_search_space_get_operation_parameter_range():
+    default_search_space = SearchSpace()
+    gbr_operations = ['n_estimators', 'loss', 'learning_rate', 'max_depth', 'min_samples_split',
+                      'min_samples_leaf', 'subsample', 'max_features', 'alpha']
+
+    custom_search_space = {'gbr': {'max_depth': (hp.choice, [[3, 7, 31, 127, 8191, 131071]])}}
+    custom_search_space_without_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                      replace_default_search_space=False)
+    custom_search_space_with_replace = SearchSpace(custom_search_space=custom_search_space,
+                                                   replace_default_search_space=True)
+
+    default_operations = default_search_space.get_operation_parameter_range('gbr')
+    custom_without_replace_operations = custom_search_space_without_replace.get_operation_parameter_range('gbr')
+    custom_with_replace_operations = custom_search_space_with_replace.get_operation_parameter_range('gbr')
+
+    assert default_operations == gbr_operations
+    assert custom_without_replace_operations == gbr_operations
+    assert custom_with_replace_operations == ['max_depth']

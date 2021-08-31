@@ -228,6 +228,14 @@ Citation
   journal={arXiv preprint arXiv:2106.15397},
   year={2021}}
 
+@inproceedings{oolonskaia2021multi,
+  title={Multi-Objective Evolutionary Design of Composite Data-Driven Models},
+  author={Polonskaia, Iana S. and Nikitin, Nikolay O. and Revin, Ilia and Vychuzhanin, Pavel and Kalyuzhnaya, Anna V.},
+  booktitle={2021 IEEE Congress on Evolutionary Computation (CEC)},
+  year={2021},
+  pages={926-933},
+  doi={10.1109/CEC45853.2021.9504773}}
+
 @article{nikitin2020structural,
  title={Structural Evolutionary Learning for Composite Classification Models},
  author={Nikitin, Nikolay O and Polonskaia, Iana S and Vychuzhanin, Pavel and Barabanova, Irina V and Kalyuzhnaya, Anna V},

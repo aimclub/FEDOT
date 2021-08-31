@@ -18,7 +18,7 @@ class CuMLClassificationStrategy(CuMLEvaluationStrategy):
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for chain
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         features = cudf.DataFrame(predict_data.features.astype('float32'))

@@ -10,7 +10,7 @@ def constraint_function(graph: OptGraph,
     try:
         rules = params.rules_for_constraint if params else None
         object_for_validation = params.adapter.restore(deepcopy(graph))
-        validate(object_for_validation, rules)
+        validate(object_for_validation, rules, params.advisor.task)
         return True
     except ValueError:
         return False

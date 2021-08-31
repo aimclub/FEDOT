@@ -17,8 +17,8 @@
 		},
 		"custom_preprocessing": {
 			"tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression, TaskTypesEnum.clustering, TaskTypesEnum.ts_forecasting]",
-			"input_type": "[DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table]",
+			"input_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
+			"output_type": "[DataTypesEnum.table, DataTypesEnum.ts]",
 			"accepted_node_types": [
 				"any"
 			],

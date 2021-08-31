@@ -64,15 +64,18 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                              for new_graph in new_graphs])
 
                     if are_correct:
+                        operator = ParentOperator(operator_type='crossover',
+                                                  operator_name=str(crossover_type),
+                                                  parent_objects=[
+                                                      params.adapter.restore_as_template(ind_first.graph),
+                                                      params.adapter.restore_as_template(ind_second.graph)
+                                                  ])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
-                            new_ind.parent_operators.append(
-                                ParentOperator(operator_type='crossover',
-                                               operator_name=str(crossover_type),
-                                               parent_objects=[
-                                                   params.adapter.restore_as_template(ind_first.graph),
-                                                   params.adapter.restore_as_template(ind_second.graph)
-                                               ]))
+                            new_ind.parent_operators = []
+                            new_ind.parent_operators.extend(ind_first.parent_operators)
+                            new_ind.parent_operators.extend(ind_second.parent_operators)
+                            new_ind.parent_operators.append(operator)
                             new_inds.append(new_ind)
                         return new_inds
             else:

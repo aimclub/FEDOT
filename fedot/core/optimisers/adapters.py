@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from copy import deepcopy
 from typing import Any, Type
 
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -64,11 +65,16 @@ class PipelineAdapter(BaseOptimizationAdapter):
         super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
     def _transform_to_opt_node(self, node, *args, **kwargs):
-        node.content = str(node.content)
-        _transform_node(node=node, primary_class=OptNode, transform_func=self._transform_to_opt_node)
+        # Prepare content for nodes
+        if not isinstance(node, OptNode):
+            node.content = {'name': node.operation,
+                            'params': node.custom_params}
+            _transform_node(node=node, primary_class=OptNode,
+                            transform_func=self._transform_to_opt_node)
 
     def _transform_to_pipeline_node(self, node, *args, **kwargs):
-        _transform_node(node, PrimaryNode, SecondaryNode, transform_func=self._transform_to_pipeline_node)
+        _transform_node(node, PrimaryNode, SecondaryNode,
+                        transform_func=self._transform_to_pipeline_node)
         if not node.nodes_from:
             node.__init__(operation_type=node.operation)
         else:
@@ -76,22 +82,24 @@ class PipelineAdapter(BaseOptimizationAdapter):
                           operation_type=node.operation)
 
     def adapt(self, adaptee: Pipeline):
-        opt_nodes = []
-        for node in adaptee.nodes:
-            self._transform_to_opt_node(node)
-            opt_nodes.append(node)
-        graph = OptGraph(opt_nodes)
-        graph.uid = adaptee.uid
+        """ Convert Pipeline class into OptGraph class """
+        source_pipeline = deepcopy(adaptee)
+
+        # Apply recursive transformation since root
+        self._transform_to_opt_node(source_pipeline.root_node)
+        graph = OptGraph(source_pipeline.nodes)
+        graph.uid = source_pipeline.uid
         return graph
 
     def restore(self, opt_graph: OptGraph):
+        """ Convert OptGraph class into Pipeline class """
+        source_graph = deepcopy(opt_graph)
+
         # TODO improve transformation
-        pipeline_nodes = []
-        for node in opt_graph.nodes:
-            self._transform_to_pipeline_node(node)
-            pipeline_nodes.append(node)
-        pipeline = Pipeline(pipeline_nodes)
-        pipeline.uid = opt_graph.uid
+        # Inverse transformation since root node
+        self._transform_to_pipeline_node(source_graph.root_node)
+        pipeline = Pipeline(source_graph.nodes)
+        pipeline.uid = source_graph.uid
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph):

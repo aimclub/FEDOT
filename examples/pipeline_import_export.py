@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -78,6 +79,15 @@ def run_import_export_example(pipeline_path):
     prediction_after_export = np.array(predicted_output_after_export.predict)
 
     print(f'After import {prediction_after_export[:4]}')
+
+    dict_pipeline, dict_fitted_operations = pipeline.save()
+    dict_pipeline = json.loads(dict_pipeline)
+    pipeline_from_dict = Pipeline()
+    pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
+
+    predicted_output = pipeline_from_dict.predict(predict_input)
+    prediction = np.array(predicted_output.predict)
+    print(f'Prediction from pipeline loaded from dict {prediction[:4]}')
 
 
 if __name__ == '__main__':

@@ -15,13 +15,15 @@ from fedot.core.data.data import InputData
 
 class LaggedImplementation(DataOperationImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params):
         super().__init__()
 
+        self.window_size_minimum = None
         self.window_size = None
         self.n_components = None
-        self.gain_tolerance = None
         self.sparse_transform = False
+        self.use_svd = False
+        self.features_columns = None
 
         # Define logger object
         if not log:
@@ -50,7 +52,7 @@ class LaggedImplementation(DataOperationImplementation):
 
         # Correct window size parameter
         log_info, self.window_size = _check_and_correct_window_size(new_input_data.features, self.window_size,
-                                                                    forecast_length)
+                                                                    forecast_length, self.window_size_minimum)
         if log_info:
             self.log.info(log_info)
 
@@ -59,41 +61,35 @@ class LaggedImplementation(DataOperationImplementation):
             target = new_input_data.target
             features = np.array(new_input_data.features)
             # Prepare features for training
-            new_idx, features_columns = _ts_to_table(idx=old_idx,
-                                                     time_series=features,
-                                                     window_size=self.window_size)
+            new_idx, self.features_columns = _ts_to_table(idx=old_idx,
+                                                          time_series=features,
+                                                          window_size=self.window_size)
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
-                features_columns = _sparse_matrix(self.log, features_columns, self.n_components, self.gain_tolerance)
+                self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
             # Transform target
-            new_idx, features_columns, new_target = _prepare_target(idx=new_idx,
-                                                                    features_columns=features_columns,
-                                                                    target=target,
-                                                                    forecast_length=forecast_length)
+            new_idx, self.features_columns, new_target = _prepare_target(idx=new_idx,
+                                                                         features_columns=self.features_columns,
+                                                                         target=target,
+                                                                         forecast_length=forecast_length)
 
             # Update target for Input Data
             new_input_data.target = new_target
             new_input_data.idx = new_idx
         else:
             # Transformation for predict stage of the pipeline
-            features = np.array(new_input_data.features)
             if self.sparse_transform:
-                new_idx, features_columns = _ts_to_table(idx=old_idx,
-                                                         time_series=features,
-                                                         window_size=self.window_size)
-
-                # Extracting the last row from sparse matrix
-                features_columns = _sparse_matrix(self.log, features_columns, self.n_components, self.gain_tolerance)
-                features_columns = features_columns[-1]
+                self.features_columns = self.features_columns[-1]
 
             if not self.sparse_transform:
-                features_columns = features[-self.window_size:]
+                features = np.array(new_input_data.features)
+                self.features_columns = features[-self.window_size:]
 
-            features_columns = features_columns.reshape(1, -1)
+            self.features_columns = self.features_columns.reshape(1, -1)
 
         output_data = self._convert_to_output(new_input_data,
-                                              features_columns,
+                                              self.features_columns,
                                               data_type=DataTypesEnum.table)
         return output_data
 
@@ -101,33 +97,27 @@ class LaggedImplementation(DataOperationImplementation):
 class SparseLaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of sparse lagged transformation for time series forecasting"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
+        self.sparse_transform = True
+        self.window_size_minimum = 6
 
-        if params:
-            if 'window_size' in params.keys():
-                self.window_size = int(round(params.get('window_size')))
-                if self.window_size < 6:
-                    self.window_size = 6
-            if 'n_components' in params.keys():
-                self.n_components = int(round(params.get('n_components')))
-            if 'gain_tolerance' in params.keys():
-                self.gain_tolerance = params.get('gain_tolerance')
+        self.window_size = round(params.get('window_size'))
+        self.n_components = params.get('n_components')
 
     def get_params(self):
         return {'window_size': self.window_size,
                 'n_components': self.n_components,
-                'gain_tolerance': self.gain_tolerance}
+                'use_svd': self.use_svd}
 
 
 class LaggedTransformationImplementation(LaggedImplementation):
     """ Implementation of lagged transformation for time series forecasting"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
-
-        if params:
-            self.window_size = int(round(params.get('window_size')))
+        self.window_size_minimum = 2
+        self.window_size = round(params.get('window_size'))
 
     def get_params(self):
         return {'window_size': self.window_size}
@@ -135,14 +125,14 @@ class LaggedTransformationImplementation(LaggedImplementation):
 
 class TsSmoothingImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
         if not params:
             # Default parameters
             self.window_size = 10
         else:
-            self.window_size = int(round(params.get('window_size')))
+            self.window_size = round(params.get('window_size'))
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -180,7 +170,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
 class ExogDataTransformationImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
     def fit(self, input_data):
@@ -233,14 +223,14 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
 class GaussianFilterImplementation(DataOperationImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, **params):
         super().__init__()
 
         if not params:
             # Default parameters
             self.sigma = 1
         else:
-            self.sigma = int(round(params.get('sigma')))
+            self.sigma = round(params.get('sigma'))
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -273,22 +263,33 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
-def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int):
+def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
+                                   window_size_minimum: int):
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
     :param time_series: time series for transformation
     :param window_size: size of sliding window, which defines lag
     :param forecast_length: forecast length
+    :param window_size_minimum: minimum moving window size
     """
     log_message = None
+    prefix = "Warning: window size of lagged transformation was changed"
+
+    # Minimum threshold
+    if window_size < window_size_minimum:
+        previous_size = window_size
+        window_size = window_size_minimum
+
+        log_message = f"{prefix} from {previous_size} to {window_size}"
+
+    # Maximum threshold
     removing_len = window_size + forecast_length
     if removing_len > len(time_series):
         previous_size = window_size
         # At least 10 objects we need for training, so minus 10
         window_size = len(time_series) - forecast_length - 10
 
-        prefix = "Warning: window size of lagged transformation was changed"
         log_message = f"{prefix} from {previous_size} to {window_size}"
 
     return log_message, window_size
@@ -326,58 +327,51 @@ def _ts_to_table(idx, time_series: np.array, window_size: int):
     return updated_idx, features_columns
 
 
-def _sparse_matrix(logger, features_columns: np.array, n_components=None, gain_tolerance=0.1):
-    """ Method convert time series to lagged form.
+def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, use_svd=False):
+    """ Method converts the matrix to sparse form
 
         :param features_columns: matrix to sparse
-        :param n_components: initial approximation of number of components to keep
-        :param gain_tolerance: threshold of gain in explained variance depending on number of components,
-                               explained variance value ranges from 0 to 1, the gain is the difference between
-                               first and current iteration
+        :param n_components_perc: initial approximation of percent of components to keep
+        :param use_svd: is there need to use SVD method for sparse or use naive method
 
         :return components: reduced dimension matrix, its shape depends on the number of components which includes
                             the threshold of explained variance gain
         """
-    # Getting the initial approximation of number of components
-    if not n_components:
-        n_components = int(features_columns.shape[1] / 2)
-    if n_components >= features_columns.shape[0]:
-        n_components = features_columns.shape[0]-1
-    logger.info(f'Initial approximation of number of components set as {n_components}')
+    if not n_components_perc:
+        n_components_perc = 0.5
 
-    # Forming the first value of explained variance
-    exp_var, components = _get_svd(features_columns, n_components)
-    var_list = [exp_var]
+    if use_svd:
+        n_components = int(features_columns.shape[1]*n_components_perc)
+        # Getting the initial approximation of number of components
+        if not n_components:
+            n_components = int(features_columns.shape[1]*n_components_perc)
+        if n_components >= features_columns.shape[0]:
+            n_components = features_columns.shape[0]-1
+        logger.info(f'Initial approximation of number of components set as {n_components}')
 
-    # Forming the list of perspective number of components
-    iter = np.arange(n_components-1)[::-1]
-
-    # Checking the gain of explained variance depending on number of components
-    for i in iter:
-        exp_var, components = _get_svd(features_columns, i)
-        var_list.append(exp_var)
-        var_gain = var_list[0] - exp_var
-        if var_gain >= gain_tolerance:
-            break
+        # Forming the first value of explained variance
+        components = _get_svd(features_columns, n_components)
+    else:
+        step = int(1/n_components_perc)
+        indeces_to_stay = np.arange(1, features_columns.shape[1], step)
+        components = np.take(features_columns, indeces_to_stay, 1)
 
     return components
 
 
 def _get_svd(features_columns: np.array, n_components: int):
-    """ Method converts the matrix to sparse form
+    """ Method converts the matrix to svd sparse form
 
     :param features_columns: matrix to sparse
     :param n_components: number of components to keep
 
-    :return exp_var: summ of explained variances provided by selected number of components
     :return components: transformed sparse matrix
     """
 
-    svd = TruncatedSVD(n_components=n_components, n_iter=10, random_state=42)
+    svd = TruncatedSVD(n_components=n_components, n_iter=5, random_state=42)
     svd.fit(features_columns.T)
-    exp_var = svd.explained_variance_ratio_.sum()
     components = svd.components_.T
-    return exp_var, components
+    return components
 
 
 def _prepare_target(idx, features_columns: np.array, target, forecast_length: int):

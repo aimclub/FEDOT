@@ -111,15 +111,13 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
         return True
     else:
-        return False
+        raise ValueError(f'{ERROR_PREFIX} pipeline not contains operations for time series processing')
 
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
 
     task = Task(TaskTypesEnum.ts_forecasting)
-    if not is_pipeline_contains_ts_operations(pipeline):
-        return True
     models = get_operations_for_task(task=task, mode='model')
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
@@ -128,15 +126,17 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     ts_data_operations = get_operations_for_task(task=task,
                                                  mode='data_operation',
                                                  tags=["ts_specific"])
-    # Remove lagged transformation
+    # Remove lagged and sparse lagged transformation
     ts_data_operations.remove('lagged')
+    ts_data_operations.remove('sparse_lagged')
     ts_data_operations.remove('exog_ts_data_source')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     # TODO refactor
-    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged'],
-                         'ar': models + non_ts_data_operations + ['lagged'],
-                         'arima': models + non_ts_data_operations + ['lagged'],
+    wrong_connections = {'lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'sparse_lagged': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'ar': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
+                         'arima': models + non_ts_data_operations + ['lagged', 'sparse_lagged'],
                          'ridge': ts_data_operations, 'linear': ts_data_operations,
                          'lasso': ts_data_operations, 'dtreg': ts_data_operations,
                          'knnreg': ts_data_operations, 'scaling': ts_data_operations,
@@ -144,10 +144,10 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                          'gbr': ts_data_operations, 'treg': ts_data_operations,
                          'rfr': ts_data_operations, 'svr': ts_data_operations,
                          'sgdr': ts_data_operations, 'normalization': ts_data_operations,
-                         'simple_imputation': ts_data_operations, 'pca': ts_data_operations,
                          'kernel_pca': ts_data_operations, 'poly_features': ts_data_operations,
                          'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
-                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations}
+                         'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations,
+                         'pca': ts_data_operations}
 
     for node in pipeline.nodes:
         # Operation name in the current node
@@ -168,9 +168,6 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
 
 def only_ts_specific_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
-    if not is_pipeline_contains_ts_operations(pipeline):
-        return True
-
     # Check only primary nodes
     for node in pipeline.nodes:
         if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:

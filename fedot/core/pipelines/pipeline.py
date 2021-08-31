@@ -1,20 +1,20 @@
 from copy import copy
-
 from datetime import timedelta
 from multiprocessing import Manager, Process
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+    DataOperationImplementation, ImputationImplementation, OneHotEncodingImplementation
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.tasks import TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -38,6 +38,7 @@ class Pipeline(Graph):
         self.computation_time = None
         self.template = None
         self.fitted_on_data = {}
+        self.pre_proc_encoders = {}
 
         self.log = log
         if not log:
@@ -163,6 +164,7 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
+        copied_input_data = self._preprocessing_fit_data(copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -173,6 +175,16 @@ class Pipeline(Graph):
                                                         use_fitted_operations=use_fitted,
                                                         time=time_constraint)
         return train_predicted
+
+    def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
+        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
+
+        if data_has_missing_values(data) and not has_imputation_operation:
+            data = _imputation_implementation(data)
+
+        if data_has_categorical_features(data) and not has_encoder_operation:
+            self.pre_proc_encoders = _encode_data_for_fit(data)
+        return data
 
     @property
     def is_fitted(self):
@@ -211,6 +223,14 @@ class Pipeline(Graph):
             self.log.error(ex)
             raise ValueError(ex)
 
+        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
+
+        if data_has_missing_values(input_data) and not has_imputation_operation:
+            input_data = _imputation_implementation(input_data)
+
+        if data_has_categorical_features(input_data) and not has_encoder_operation:
+            _encode_data_for_prediction(input_data, self.pre_proc_encoders)
+
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
@@ -247,7 +267,7 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str):
+    def save(self, path: str = None) -> Tuple[str, dict]:
         """
         Save the pipeline to the json representation with pickled fitted operations.
 
@@ -256,18 +276,19 @@ class Pipeline(Graph):
         """
         if not self.template:
             self.template = PipelineTemplate(self, self.log)
-        json_object = self.template.export_pipeline(path)
-        return json_object
+        json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node)
+        return json_object, dict_fitted_operations
 
-    def load(self, path: str):
+    def load(self, source: Union[str, dict], dict_fitted_operations: dict = None):
         """
         Load the pipeline the json representation with pickled fitted operations.
 
-        :param path to json file with operation
+        :param source path to json file with operation
+        :param dict_fitted_operations dictionary of the fitted operations
         """
         self.nodes = []
         self.template = PipelineTemplate(self, self.log)
-        self.template.import_pipeline(path)
+        self.template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
@@ -309,6 +330,44 @@ class Pipeline(Graph):
             print(f'{node.operation.operation_type} - {node.custom_params}')
 
 
+def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
+    """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
+
+    :param data Pipeline: data to check
+    :return (bool, bool): has Imputation and OneHotEncoder in pipeline
+    """
+
+    has_imputers, has_encoders = [], []
+
+    def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False, has_encoder: bool = False):
+        node_type = root.operation.operation_type
+        if node_type == 'simple_imputation':
+            has_imputer = True
+        if node_type == 'one_hot_encoding':
+            has_encoder = True
+
+        if has_imputer and has_encoder:
+            return has_imputer, has_encoder
+        elif root.nodes_from is None:
+            return has_imputer, has_encoder
+
+        for node in root.nodes_from:
+            answer = _check_imputer_encoder_recursion(node, has_imputer, has_encoder)
+            if answer is not None:
+                imputer, encoder = answer
+                has_imputers.append(imputer)
+                has_encoders.append(encoder)
+
+    _check_imputer_encoder_recursion(pipeline.root_node)
+
+    if not has_imputers and not has_encoders:
+        return False, False
+
+    has_imputer = len([_ for _ in has_imputers if not _]) == 0
+    has_encoder = len([_ for _ in has_encoders if not _]) == 0
+    return has_imputer, has_encoder
+
+
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     """ The function return list with nodes with the needed operation
 
@@ -321,3 +380,77 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
+
+
+def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
+        Union[List[DataOperationImplementation], DataOperationImplementation]:
+    """ Encode categorical features to numerical. In additional,
+    save encoders to use later for prediction data.
+
+    :param data: data to transform
+    :return encoders: operation preprocessing categorical features or list of it
+    """
+
+    encoders = None
+    if isinstance(data, InputData):
+        transformed, encoder = _create_encoder(data)
+        encoders = encoder
+        data.features = transformed
+    elif isinstance(data, MultiModalData):
+        encoders = {}
+        for data_source_name, values in data.items():
+            if data_source_name.startswith('data_source_table'):
+                transformed, encoder = _create_encoder(values)
+                if encoder is not None:
+                    encoders[data_source_name] = encoder
+                data[data_source_name].features = transformed
+
+    return encoders
+
+
+def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
+                                encoders: Union[dict, DataOperationImplementation]):
+    if isinstance(data, InputData):
+        transformed = encoders.transform(data, True).predict
+        data.features = transformed
+    elif isinstance(data, MultiModalData):
+        for data_source_name, encoder in encoders.items():
+            transformed = encoder.transform(data[data_source_name], True).predict
+            data[data_source_name].features = transformed
+
+
+def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
+    if isinstance(data, InputData):
+        return _imputation_implementation_unidata(data)
+    if isinstance(data, MultiModalData):
+        for data_source_name, values in data.items():
+            if data_source_name.startswith('data_source_table') or data_source_name.startswith('data_source_ts'):
+                data[data_source_name].features = _imputation_implementation_unidata(values)
+        return data
+    raise ValueError(f"Data format is not supported.")
+
+
+def _imputation_implementation_unidata(data: InputData):
+    imputer = ImputationImplementation()
+    output_data = imputer.fit_transform(data)
+    transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
+                            target=output_data.target, task=output_data.task, idx=output_data.idx)
+    return transformed
+
+
+def _create_encoder(data: InputData):
+    """ Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
+
+    :param data: data to preprocess
+    :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
+    """
+
+    encoder = None
+    if data_has_categorical_features(data):
+        encoder = OneHotEncodingImplementation()
+        encoder.fit(data)
+        transformed = encoder.transform(data, True).predict
+    else:
+        transformed = data.features
+
+    return transformed, encoder

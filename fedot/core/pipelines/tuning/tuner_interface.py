@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Callable, ClassVar
 from copy import deepcopy
 from datetime import timedelta
 
@@ -8,6 +9,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.tune.time_series import cross_validation_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 MAX_METRIC_VALUE = 10e6
 
@@ -16,14 +18,18 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :param pipeline: pipeline to optimize
-    :param task: task (classification, regression, ts_forecasting, clustering)
-    :param iterations: max number of iterations
+    :attribute pipeline: pipeline to optimize
+    :attribute task: task (classification, regression, ts_forecasting, clustering)
+    :attribute iterations: max number of iterations
+    :attribute search_space: SearchSpace instance
+    :attribute algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None):
+                 log: Log = None,
+                 search_space: ClassVar = SearchSpace(),
+                 algo: Callable = None):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
@@ -33,6 +39,8 @@ class HyperoptTuner(ABC):
         self.is_need_to_maximize = None
         self.cv_folds = None
         self.validation_blocks = None
+        self.search_space = search_space
+        self.algo = algo
 
         if not log:
             self.log = default_log(__name__)
@@ -52,6 +60,7 @@ class HyperoptTuner(ABC):
         :param loss_params: dictionary with parameters for loss function
         :param cv_folds: number of folds for cross validation
         :param validation_blocks: number of validation blocks for time series forecasting
+
         :return fitted_pipeline: pipeline with optimized hyperparameters
         """
         raise NotImplementedError()

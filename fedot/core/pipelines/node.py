@@ -4,7 +4,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
-from fedot.core.operations.operation import Operation
+from fedot.core.operations.operation import Operation, get_default_params
 
 
 class Node(GraphNode):
@@ -24,8 +24,39 @@ class Node(GraphNode):
 
         passed_content = kwargs.get('content')
         if passed_content:
-            operation_type = passed_content
+            # Define operation, based on content dictionary
+            operation = self._process_content_init(passed_content)
+        else:
+            # There is no content for node
+            operation = self._process_direct_init(operation_type)
 
+        super().__init__(content={'name': operation,
+                                  'params': operation.params}, nodes_from=nodes_from)
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+        self._fitted_operation = None
+        self.rating = None
+
+    def _process_content_init(self, passed_content: dict) -> Operation:
+        """ Updating content in the node """
+        if isinstance(passed_content['name'], str):
+            # Need to convert name of operation into operation class object
+            operation_factory = OperationFactory(operation_name=passed_content['name'])
+            operation = operation_factory.get_operation()
+
+            passed_content.update({'name': operation})
+        else:
+            operation = passed_content['name']
+        self.content = passed_content
+
+        return operation
+
+    @staticmethod
+    def _process_direct_init(operation_type) -> Operation:
+        """ Define operation based on direct operation_type without defining content in the node """
         if not operation_type:
             raise ValueError('Operation is not defined in the node')
 
@@ -37,24 +68,16 @@ class Node(GraphNode):
             operation_factory = OperationFactory(operation_name=operation_type)
             operation = operation_factory.get_operation()
 
-        super().__init__(content=operation, nodes_from=nodes_from)
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
-
-        self._fitted_operation = None
-        self.rating = None
+        return operation
 
     # wrappers for 'operation' field from GraphNode class
     @property
     def operation(self):
-        return self.content
+        return self.content['name']
 
     @operation.setter
     def operation(self, value):
-        self.content = value
+        self.content.update({'name': value})
 
     @property
     def fitted_operation(self):
@@ -106,11 +129,19 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        return self.operation.params
+        # Operation is not fitted yet
+        if self.fitted_operation is None:
+            return self.operation.get_params
+        else:
+            return self.fitted_operation.get_params()
 
     @custom_params.setter
     def custom_params(self, params):
         if params:
+            # Complete the dictionary if it is incomplete
+            default_params = get_default_params(self.operation.operation_type)
+            if default_params is not None:
+                params = {**default_params, **params}
             self.operation.params = params
 
     def __str__(self):

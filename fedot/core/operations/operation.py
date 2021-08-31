@@ -1,11 +1,11 @@
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import OneHotEncodingImplementation, ImputationImplementation
+    sklearn_transformations import ImputationImplementation, str_columns_check
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 
 DEFAULT_PARAMS_STUB = 'default_params'
 
@@ -25,8 +25,9 @@ class Operation:
 
         self._eval_strategy = None
         self.operations_repo = None
+        self.fitted_operation = None
 
-        self.params = _get_default_params(operation_type)
+        self.params = get_default_params(operation_type)
         if not self.params:
             self.params = DEFAULT_PARAMS_STUB
 
@@ -86,11 +87,11 @@ class Operation:
         if 'imputation' not in self.operation_type:
             data = _fill_remaining_gaps(data, self.operation_type)
 
-        fitted_operation = self._eval_strategy.fit(train_data=data)
+        self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(fitted_operation, data, is_fit_pipeline_stage)
+        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
 
-        return fitted_operation, predict_train
+        return self.fitted_operation, predict_train
 
     def predict(self, fitted_operation, data: InputData,
                 is_fit_pipeline_stage: bool, output_mode: str = 'default'):
@@ -123,6 +124,14 @@ class Operation:
 
     def __str__(self):
         return f'{self.operation_type}'
+
+    @property
+    def get_params(self):
+        if self.fitted_operation is None:
+            # Operation is not fitted yet
+            return self.params
+        else:
+            return self.fitted_operation.get_params()
 
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,
@@ -173,16 +182,16 @@ def _fill_remaining_gaps(data: InputData, operation_type: str):
 
     if data.data_type == DataTypesEnum.table and data.task.task_type != TaskTypesEnum.ts_forecasting:
         # Got indices of columns with string objects
-        categorical_ids, _ = OneHotEncodingImplementation.str_columns_check(features)
+        categorical_ids, _ = str_columns_check(features)
 
         # Apply most_frequent or mean filling strategy
         if len(categorical_ids) == 0:
             data.features = ImputationImplementation().fit_transform(data).predict
         else:
-            data.features = ImputationImplementation(strategy='most_frequent').fit_transform(data).predict
+            data.features = ImputationImplementation(**{'strategy': 'most_frequent'}).fit_transform(data).predict
     return data
 
 
-def _get_default_params(model_name: str):
+def get_default_params(model_name: str):
     with DefaultModelParamsRepository() as default_params_repo:
         return default_params_repo.get_default_params_for_model(model_name)

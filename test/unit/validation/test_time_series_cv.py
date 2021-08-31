@@ -2,7 +2,7 @@ import datetime
 
 from sklearn.metrics import mean_absolute_error
 
-from examples.ts_forecasting_composing import get_available_operations
+from examples.time_series.ts_forecasting_composing import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements

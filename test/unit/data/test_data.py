@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 
 import numpy as np
 import pandas as pd
@@ -116,19 +117,9 @@ def test_data_from_predictions(output_dataset):
     data_1 = output_dataset
     data_2 = output_dataset
     data_3 = output_dataset
-    target = output_dataset.predict
     new_input_data = InputData.from_predictions(outputs=[data_1, data_2, data_3])
     assert new_input_data.features.all() == np.array(
         [data_1.predict, data_2.predict, data_3.predict]).all()
-
-
-def test_string_features_from_csv():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/classification_with_categorical.csv'
-    expected_features = InputData.from_csv(os.path.join(test_file_path, file)).features
-
-    assert expected_features.dtype == float
-    assert np.isfinite(expected_features).all()
 
 
 def test_data_from_image():
@@ -201,3 +192,18 @@ def test_target_data_from_csv_correct():
 
     assert one_column_data.target.shape == (499, 1)
     assert seven_columns_data.target.shape == (499, 7)
+
+
+def test_table_data_shuffle():
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/simple_classification.csv'
+
+    data = InputData.from_csv(os.path.join(test_file_path, file))
+    shuffled_data = deepcopy(data)
+    shuffled_data.shuffle()
+
+    assert not np.array_equal(data.idx, shuffled_data.idx)
+    assert not np.array_equal(data.features, shuffled_data.features)
+    assert not np.array_equal(data.target, shuffled_data.target)
+
+    assert np.array_equal(data.idx, sorted(shuffled_data.idx))
