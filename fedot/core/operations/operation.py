@@ -25,6 +25,7 @@ class Operation:
 
         self._eval_strategy = None
         self.operations_repo = None
+        self.fitted_operation = None
 
         self.params = get_default_params(operation_type)
         if not self.params:
@@ -86,11 +87,11 @@ class Operation:
         if 'imputation' not in self.operation_type:
             data = _fill_remaining_gaps(data, self.operation_type)
 
-        fitted_operation = self._eval_strategy.fit(train_data=data)
+        self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(fitted_operation, data, is_fit_pipeline_stage)
+        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
 
-        return fitted_operation, predict_train
+        return self.fitted_operation, predict_train
 
     def predict(self, fitted_operation, data: InputData,
                 is_fit_pipeline_stage: bool, output_mode: str = 'default'):
@@ -123,6 +124,14 @@ class Operation:
 
     def __str__(self):
         return f'{self.operation_type}'
+
+    @property
+    def get_params(self):
+        if self.fitted_operation is None:
+            # Operation is not fitted yet
+            return self.params
+        else:
+            return self.fitted_operation.get_params()
 
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,

@@ -116,7 +116,6 @@ class LaggedTransformationImplementation(LaggedImplementation):
 
     def __init__(self, **params):
         super().__init__()
-
         self.window_size_minimum = 2
         self.window_size = round(params.get('window_size'))
 

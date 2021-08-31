@@ -129,7 +129,11 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        return self.operation.params
+        # Operation is not fitted yet
+        if self.fitted_operation is None:
+            return self.operation.get_params
+        else:
+            return self.fitted_operation.get_params()
 
     @custom_params.setter
     def custom_params(self, params):
