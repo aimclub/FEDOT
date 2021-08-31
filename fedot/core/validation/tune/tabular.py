@@ -5,11 +5,9 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 
 
-def cross_validation_tabular_predictions(pipeline, reference_data: InputData, log,
-                                         cv_folds: int, validation_blocks=None):
-    """ Provide K-fold cross validation for tabular data with using in-sample
-    forecasting on each step (fold)
-    """
+def cv_tabular_predictions(pipeline, reference_data: InputData, log,
+                           cv_folds: int, validation_blocks=None):
+    """ Provide K-fold cross validation for tabular data"""
 
     # Place where predictions and actual values will be loaded
     predictions = []
