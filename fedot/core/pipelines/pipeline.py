@@ -19,7 +19,10 @@ from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
 
-# The allowed empirical limit of the number of rows to delete as a percentage.
+# The allowed empirical partition limit of the number of rows to delete.
+# Rows that have 'string' type, instead of other 'integer' observes.
+# Example: 90% objects in column are 'integer', other are 'string'. Then
+# we will try to convert 'string' data to 'integer', otherwise delete it.
 EMPIRICAL_ROWS_TO_DELETE = 0.1
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -376,7 +379,7 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
     return has_imputer, has_encoder
 
 
-def _is_converted_to_float(s) -> bool:
+def _is_convertable_to_float(s) -> bool:
     try:
         float(s)
         return True
@@ -414,8 +417,8 @@ def _numeric_preprocessing_input_data(data: InputData) -> InputData:
 
     for i in range(columns_amount):
         values = pd.Series(features[:, i])
-        if isinstance(values[0], str):
-            is_converted_to_float = values.apply(lambda x: not _is_converted_to_float(x))
+        if any(list(map(lambda x: isinstance(x, str), values))):
+            is_converted_to_float = list(map(lambda x: not _is_convertable_to_float(x), values))
             row_to_remove = list(values.index[is_converted_to_float])
             rows_to_remove.update(row_to_remove)
 

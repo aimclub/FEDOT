@@ -11,8 +11,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root, train_test_split
 
 
-data = pd.read_csv(os.path.join(fedot_project_root(), 'cases', 'data', 'oil.csv'))
-data2 = pd.read_csv(os.path.join(fedot_project_root(), 'cases', 'data', 'oil.csv'))
+data = pd.read_csv(os.path.join(fedot_project_root(), 'cases', '../cases/data', 'oil.csv'))
+data2 = pd.read_csv(os.path.join(fedot_project_root(), 'cases', '../cases/data', 'oil.csv'))
 full_data = pd.concat([data, data2], ignore_index=True).drop(columns=['Index '], axis=1).reset_index()
 full_target = full_data['target ']
 full_data.drop(columns=['target '], axis=1, inplace=True)

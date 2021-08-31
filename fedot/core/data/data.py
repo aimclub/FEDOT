@@ -417,7 +417,6 @@ def _has_data_categorical(data: InputData) -> bool:
     return data_has_categorical_columns
 
 
-def _is_values_categorical(values):
-    if isinstance(values[0], str):
-        return True
-    return False
+def _is_values_categorical(values: List):
+    # Check if any value in list has 'string' type
+    return any(list(map(lambda x: isinstance(x, str), values)))
