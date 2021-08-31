@@ -1,10 +1,10 @@
 from datetime import timedelta
 from functools import partial
-
+from typing import Callable, ClassVar
 from hyperopt import fmin, tpe, space_eval
 
 from fedot.core.log import Log
-from fedot.core.pipelines.tuning.hyperparams import convert_params, get_node_params
+from fedot.core.pipelines.tuning.search_space import convert_params, SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 
@@ -15,8 +15,10 @@ class PipelineTuner(HyperoptTuner):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None):
-        super().__init__(pipeline, task, iterations, timeout, log)
+                 log: Log = None,
+                 search_space: ClassVar = SearchSpace(),
+                 algo: Callable = tpe.suggest):
+        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None):
@@ -25,7 +27,7 @@ class PipelineTuner(HyperoptTuner):
         # Define folds for cross validation
         self.cv_folds = cv_folds
 
-        parameters_dict = self._get_parameters_for_tune(self.pipeline)
+        parameters_dict = self._get_parameters_for_tune()
 
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
@@ -41,7 +43,7 @@ class PipelineTuner(HyperoptTuner):
                             loss_function=loss_function,
                             loss_params=loss_params),
                     parameters_dict,
-                    algo=tpe.suggest,
+                    algo=self.algo,
                     max_evals=self.iterations,
                     timeout=self.max_seconds)
 
@@ -64,6 +66,7 @@ class PipelineTuner(HyperoptTuner):
 
         :param pipeline: pipeline to which parameters should ba assigned
         :param parameters: dictionary with parameters to set
+
         :return pipeline: pipeline with new hyperparameters in each node
         """
 
@@ -80,23 +83,21 @@ class PipelineTuner(HyperoptTuner):
 
         return pipeline
 
-    @staticmethod
-    def _get_parameters_for_tune(pipeline):
+    def _get_parameters_for_tune(self):
         """
         Function for defining the search space
 
-        :param pipeline: pipeline to optimize
         :return parameters_dict: dictionary with operation names and parameters
         """
 
         parameters_dict = {}
-        for node_id, node in enumerate(pipeline.nodes):
+        for node_id, node in enumerate(self.pipeline.nodes):
             operation_name = str(node.operation)
 
             # Assign unique prefix for each model hyperparameter
             # label - number of node in the pipeline
-            node_params = get_node_params(node_id=node_id,
-                                          operation_name=operation_name)
+            node_params = self.search_space.get_node_params(node_id=node_id,
+                                                            operation_name=operation_name)
 
             parameters_dict.update({node_id: node_params})
 
