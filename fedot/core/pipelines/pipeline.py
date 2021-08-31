@@ -391,7 +391,7 @@ def _try_convert_to_numeric(features, columns_amount):
     for i in range(columns_amount):
         try:
             features[:, i] = pd.to_numeric(features[:, i])
-            features[:, i] = features[:, i].astype('float')
+            features[:, i] = features[:, i].astype(np.number)
         except ValueError:
             pass
     return features
