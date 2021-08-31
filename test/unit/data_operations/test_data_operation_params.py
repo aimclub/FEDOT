@@ -47,19 +47,21 @@ def test_lagged_with_invalid_params_fit_correctly():
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 
-    train_input = InputData(idx=np.arange(0, len(time_series)),
-                            features=time_series,
-                            target=time_series,
-                            task=task,
-                            data_type=DataTypesEnum.ts)
+    ts_input = InputData(idx=np.arange(0, len(time_series)), features=time_series,
+                         target=time_series, task=task, data_type=DataTypesEnum.ts)
 
     # Get pipeline with lagged transformation in it
     pipeline = get_ts_pipeline(window_size)
 
     # Fit it
-    pipeline.fit(train_input)
+    pipeline.fit(ts_input)
+
+    # Get lagged node
+    lagged_node = pipeline.nodes[1]
+    fixed_params = lagged_node.custom_params
 
     assert pipeline.is_fitted
+    assert fixed_params['window_size'] == 439
 
 
 def test_ransac_with_invalid_params_fit_correctly():
