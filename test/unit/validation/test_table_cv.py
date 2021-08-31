@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import accuracy_score
 
 from fedot.api.main import Fedot
 from fedot.core.log import default_log
@@ -15,6 +16,7 @@ from test.unit.models.test_model import classification_dataset
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
+from test.unit.tasks.test_classification import pipeline_simple
 
 _ = classification_dataset
 
@@ -71,6 +73,21 @@ def test_cv_min_kfolds_raise():
 
     with pytest.raises(ValueError):
         GPComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
+
+
+def test_tuner_cv_classification_correct():
+    folds = 2
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset, _ = get_data(task)
+
+    simple_pipeline = pipeline_simple()
+    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=accuracy_score,
+                                                loss_params=None,
+                                                input_data=dataset,
+                                                iterations=1, timeout=1,
+                                                cv_folds=folds)
+    is_tune_succeeded = True
+    assert is_tune_succeeded
 
 
 def test_composer_with_cv_optimization_correct():
