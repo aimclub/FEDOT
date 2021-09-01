@@ -1,8 +1,9 @@
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task
+from fedot.api.api_utils.presets_types import excluded_models_dict, light_models
 
 
-class Fedot_preset_helper():
+class API_preset_helper():
 
     def filter_operations_by_preset(self,
                                     task,
@@ -11,12 +12,9 @@ class Fedot_preset_helper():
         appropriate ones
         """
 
-        excluded_models_dict = {'light': ['mlp', 'svc', 'arima', 'exog', 'text_clean'],
-                                'light_tun': ['mlp', 'svc', 'arima', 'exog', 'text_clean']}
-
         # Get data operations and models
         available_operations = get_operations_for_task(task, mode='all')
-        available_data_operation = get_operations_for_task(task, mode='data_operations')
+        available_data_operation = get_operations_for_task(task, mode='data_operation')
 
         # Exclude "heavy" operations if necessary
         if preset in excluded_models_dict.keys():
@@ -25,7 +23,6 @@ class Fedot_preset_helper():
 
             # Save only "light" operations
         if preset in ['ultra_light', 'ultra_light_tun']:
-            light_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn', 'ar']
             included_operations = light_models + available_data_operation
             available_operations = [_ for _ in available_operations if _ in included_operations]
 

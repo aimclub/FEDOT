@@ -3,10 +3,10 @@ import numpy as np
 
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.api.api_utils.presets import Fedot_preset_helper
+from fedot.api.api_utils.presets import API_preset_helper
 
 
-class Fedot_params_helper():
+class API_params_helper:
 
     def __init__(self):
         return
@@ -17,7 +17,7 @@ class Fedot_params_helper():
                 'max_arity': 3,
                 'pop_size': 20,
                 'num_of_generations': 20,
-                'learning_time': 2,
+                'timeout': 2,
                 'preset': 'light_tun'}
 
     def get_default_metric(self, problem: str):
@@ -49,8 +49,8 @@ class Fedot_params_helper():
             np.random.seed(input_params['seed'])
             random.seed(input_params['seed'])
 
-        if input_params['learning_time'] is not None:
-            self.api_params['learning_time'] = self.api_params['learning_time']
+        if input_params['timeout'] is not None:
+            self.api_params['timeout'] = self.api_params['timeout']
             self.api_params['num_of_generations'] = 10000
 
         if 'metric' in self.api_params:
@@ -81,7 +81,7 @@ class Fedot_params_helper():
 
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
-        preset_model = Fedot_preset_helper()
+        preset_model = API_preset_helper()
         self.api_params = preset_model.get_preset(task=self.task,
                                                   preset=input_params['preset'],
                                                   composer_params=self.api_params)

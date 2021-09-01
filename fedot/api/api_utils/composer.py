@@ -3,27 +3,28 @@ from typing import Callable, Union, Optional
 
 import numpy as np
 
-from fedot.api.api_utils.metrics import Fedot_metrics_helper
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
-from fedot.core.composer.gp_composer.gp_composer import (GPChainOptimiserParameters, GPComposerBuilder,
+from fedot.api.api_utils.initial_assumptions import API_initial_assumptions_helper
+from fedot.api.api_utils.metrics import API_metrics_helper
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
-from fedot.core.composer.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.composer.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
-from fedot.core.repository.operation_types_repository import get_operations_for_task, get_ts_operations
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 from deap import tools
-from fedot.core.composer.optimisers.utils.pareto import ParetoFront
+from fedot.core.optimisers.utils.pareto import ParetoFront
 
 
-class Fedot_composer_helper(Fedot_metrics_helper):
+class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the chain quality assessment during composition
@@ -45,47 +46,21 @@ class Fedot_composer_helper(Fedot_metrics_helper):
             metric_function.append(specific_metric_function)
         return metric_function
 
-    def _assumption_by_data(self,
-                            data,
-                            node_from_task) -> Chain:
-
-        if isinstance(data, MultiModalData):
-            node_final = SecondaryNode('ridge', nodes_from=[])
-            for data_source_name in data.keys():
-                last_node_for_sub_chain = \
-                    SecondaryNode('ridge', [SecondaryNode('lagged', [PrimaryNode(data_source_name)])])
-                node_final.nodes_from.append(last_node_for_sub_chain)
-        else:
-            node_final = node_from_task
-
-        return node_final
-
-    def _assumption_by_task(self,
-                            task: Task) -> Chain:
-
-        node_lagged = PrimaryNode('scaling')
-        initial_assumption_dict = {TaskTypesEnum.classification: SecondaryNode('xgboost', nodes_from=[node_lagged]),
-                                   TaskTypesEnum.regression: SecondaryNode('ridge', nodes_from=[node_lagged]),
-                                   TaskTypesEnum.ts_forecasting: SecondaryNode('ridge',
-                                                                               nodes_from=[PrimaryNode('lagged')])}
-
-        return initial_assumption_dict[task.task_type]
-
     def obtain_initial_assumption(self,
                                   task: Task,
-                                  data) -> Chain:
+                                  data) -> Pipeline:
 
         # Create init chain
-        node_from_task = self._assumption_by_task(task=task)
-        node_final = self._assumption_by_data(data=data, node_from_task=node_from_task)
+        node_from_task = self.assumption_by_task(task=task)
+        node_final = self.assumption_by_data(data=data, node_from_task=node_from_task)
 
-        init_chain = Chain(node_final)
+        init_chain = Pipeline(node_final)
         return init_chain
 
     def get_composer_dict(self, composer_dict):
         filtred_dict = composer_dict.copy()
         params_dict = dict(train_data=None, task=Task, logger=Log, max_depth=None, max_arity=None, pop_size=None,
-                           num_of_generations=None, available_operations=None, composer_metric=None, learning_time=5,
+                           num_of_generations=None, available_operations=None, composer_metric=None, timeout=5,
                            with_tuning=False, tuner_metric=None, cv_folds=None, initial_chain=None)
         for key in composer_dict.keys():
             if key not in params_dict.keys():
@@ -112,10 +87,10 @@ class Fedot_composer_helper(Fedot_metrics_helper):
     def get_gp_composer_builder(self, task: Task,
                                 metric_function,
                                 composer_requirements: GPComposerRequirements,
-                                optimizer_parameters: GPChainOptimiserParameters,
+                                optimizer_parameters: GPGraphOptimiserParameters,
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
-                                initial_chain: Chain = None):
+                                initial_chain: Pipeline = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
         init_chain in it """
 
@@ -130,7 +105,7 @@ class Fedot_composer_helper(Fedot_metrics_helper):
             init_chain = self.obtain_initial_assumption(task, data)
 
         if init_chain is not None:
-            builder = builder.with_initial_chain(init_chain)
+            builder = builder.with_initial_pipeline(init_chain)
 
         return builder
 
@@ -139,20 +114,22 @@ class Fedot_composer_helper(Fedot_metrics_helper):
                           task):
         """ Function divide operations for primary and secondary """
 
-        if task.task_type == TaskTypesEnum.ts_forecasting:
-            ts_data_operations = get_ts_operations(mode='data_operations',
-                                                   tags=["ts_specific"])
-            # Remove exog data operation from the list
-            try:
-                ts_data_operations.remove('exog')
-            except ValueError:
-                print('Exog operations was deleted from ts_operations')
-
-            primary_operations = ts_data_operations
-            secondary_operations = available_operations
-        else:
-            primary_operations = available_operations
-            secondary_operations = available_operations
+        # if task.task_type == TaskTypesEnum.ts_forecasting:
+        #     ts_data_operations = get_ts_operations(mode='data_operations',
+        #                                            tags=["ts_specific"])
+        #     # Remove exog data operation from the list
+        #     try:
+        #         ts_data_operations.remove('exog')
+        #     except ValueError:
+        #         print('Exog operations was deleted from ts_operations')
+        #
+        #     primary_operations = ts_data_operations
+        #     secondary_operations = available_operations
+        # else:
+        #     primary_operations = available_operations
+        #     secondary_operations = available_operations
+        primary_operations = available_operations
+        secondary_operations = available_operations
         return primary_operations, secondary_operations
 
     def compose_fedot_model(self,
@@ -165,7 +142,7 @@ class Fedot_composer_helper(Fedot_metrics_helper):
                             num_of_generations: int,
                             available_operations: list = None,
                             composer_metric=None,
-                            learning_time: float = 5,
+                            timeout: float = 5,
                             with_tuning=False,
                             tuner_metric=None,
                             cv_folds: Optional[int] = None,
@@ -175,15 +152,15 @@ class Fedot_composer_helper(Fedot_metrics_helper):
         metric_function = self.obtain_metric(task, composer_metric)
 
         if available_operations is None:
-            available_operations = get_operations_for_task(task, mode='models')
+            available_operations = get_operations_for_task(task, mode='model')
 
         logger.message(f'Composition started. Parameters tuning: {with_tuning}. '
-                       f'Set of candidate models: {available_operations}. Composing time limit: {learning_time} min')
+                       f'Set of candidate models: {available_operations}. Composing time limit: {timeout} min')
 
         primary_operations, secondary_operations = self.divide_operations(available_operations,
                                                                           task)
 
-        learning_time_for_composing = learning_time / 2 if with_tuning else learning_time
+        learning_time_for_composing = timeout / 2 if with_tuning else timeout
         # the choice and initialisation of the GP composer
         composer_requirements = \
             GPComposerRequirements(primary=primary_operations,
@@ -192,16 +169,15 @@ class Fedot_composer_helper(Fedot_metrics_helper):
                                    max_depth=max_depth,
                                    pop_size=pop_size,
                                    num_of_generations=num_of_generations,
-                                   max_lead_time=datetime.timedelta(minutes=learning_time_for_composing),
-                                   allow_single_operations=False,
+                                   max_pipeline_fit_time=datetime.timedelta(minutes=learning_time_for_composing),
                                    cv_folds=cv_folds)
 
-        optimizer_parameters = GPChainOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
-                                                          mutation_types=[MutationTypesEnum.parameter_change,
-                                                                          MutationTypesEnum.simple,
-                                                                          MutationTypesEnum.reduce,
-                                                                          MutationTypesEnum.growth,
-                                                                          MutationTypesEnum.local_growth],
+        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
+                                                          mutation_types=[
+                                                              MutationTypesEnum.simple,
+                                                              MutationTypesEnum.reduce,
+                                                              MutationTypesEnum.growth,
+                                                              MutationTypesEnum.local_growth],
                                                           crossover_types=[CrossoverTypesEnum.one_point,
                                                                            CrossoverTypesEnum.subtree])
 
@@ -214,7 +190,7 @@ class Fedot_composer_helper(Fedot_metrics_helper):
         gp_composer = builder.build()
 
         logger.message('Pipeline composition started')
-        chain_gp_composed = gp_composer.compose_chain(data=train_data)
+        chain_gp_composed = gp_composer.compose_pipeline(data=train_data)
         chain_for_return = chain_gp_composed
 
         if isinstance(chain_gp_composed, list):
@@ -240,14 +216,14 @@ class Fedot_composer_helper(Fedot_metrics_helper):
                                                                     train_data=train_data,
                                                                     task=task)
 
-            iterations = 20 if learning_time is None else 1000
-            learning_time_for_tuning = learning_time / 2
+            iterations = 20 if timeout is None else 1000
+            learning_time_for_tuning = timeout / 2
 
             # Tune all nodes in the chain
             chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
                                                  loss_params=loss_params,
                                                  input_data=train_data,
-                                                 iterations=iterations, max_lead_time=learning_time_for_tuning)
+                                                 iterations=iterations, timeout=learning_time_for_tuning)
 
         logger.message('Model composition finished')
 
