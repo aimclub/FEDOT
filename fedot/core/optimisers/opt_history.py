@@ -1,4 +1,5 @@
 import csv
+import datetime
 import itertools
 import os
 import shutil
@@ -31,13 +32,15 @@ class OptHistory:
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, metrics=None):
+    def __init__(self, metrics=None, save_folder=None):
         self.metrics = metrics
         self.individuals = []
         self.archive_history = []
         self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
         self.parent_operators = []
+        self.save_folder = save_folder if save_folder \
+            else f'composing_history_{datetime.datetime.now().timestamp()}'
 
     def _convert_pipeline_to_template(self, pipeline):
         pipeline_template = PipelineTemplate(pipeline)
@@ -80,7 +83,7 @@ class OptHistory:
             print(f'Cannot add to archive history: {ex}')
 
     def write_composer_history_to_csv(self, file='history.csv'):
-        history_dir = os.path.join(default_fedot_data_dir(), 'composing_history')
+        history_dir = os.path.join(default_fedot_data_dir(), self.save_folder)
         file = os.path.join(history_dir, file)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)
@@ -113,7 +116,7 @@ class OptHistory:
 
     def save_current_results(self, path: Optional[str] = None):
         if not path:
-            path = os.path.join(default_fedot_data_dir(), 'composing_history')
+            path = os.path.join(default_fedot_data_dir(), self.save_folder)
         try:
             last_gen_id = len(self.individuals) - 1
             last_gen = self.individuals[last_gen_id]
@@ -130,7 +133,7 @@ class OptHistory:
 
     def clean_results(self, path: Optional[str] = None):
         if not path:
-            path = os.path.join(default_fedot_data_dir(), 'composing_history')
+            path = os.path.join(default_fedot_data_dir(), self.save_folder)
         shutil.rmtree(path, ignore_errors=True)
         os.mkdir(path)
 

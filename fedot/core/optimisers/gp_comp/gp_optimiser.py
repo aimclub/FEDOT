@@ -51,7 +51,8 @@ class GPGraphOptimiserParameters:
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
                  with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False):
+                 multi_objective: bool = False,
+                 history_folder: str = None):
 
         self.selection_types = selection_types
         self.crossover_types = crossover_types
@@ -61,6 +62,7 @@ class GPGraphOptimiserParameters:
         self.with_auto_depth_configuration = with_auto_depth_configuration
         self.depth_increase_step = depth_increase_step
         self.multi_objective = multi_objective
+        self.history_folder = history_folder
 
     def set_default_params(self):
         """
@@ -130,7 +132,7 @@ class GPGraphOptimiser:
 
         self.population = None
         self.initial_graph = initial_graph
-        self.history = OptHistory(metrics)
+        self.history = OptHistory(metrics, parameters.history_folder)
         self.history.clean_results()
 
     def _create_randomized_pop_from_inital_pipeline(self, initial_pipeline) -> List[Individual]:

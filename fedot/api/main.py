@@ -29,7 +29,8 @@ def default_evo_params(problem):
               'pop_size': 20,
               'num_of_generations': 20,
               'timeout': 2,
-              'preset': 'light_tun'}
+              'preset': 'light_tun',
+              'history_folder': None}
 
     if problem in ['classification', 'regression']:
         params['cv_folds'] = 3

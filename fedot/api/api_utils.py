@@ -152,7 +152,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         cv_folds: Optional[int] = None,
                         validation_blocks: int = None,
                         initial_pipeline=None,
-                        genetic_scheme: str = None
+                        genetic_scheme: str = None,
+                        history_folder=None
                         ):
     """ Function for composing FEDOT pipeline """
 
@@ -191,7 +192,8 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                                                                       single_drop_mutation,
                                                                       single_add_mutation],
                                                       crossover_types=[CrossoverTypesEnum.one_point,
-                                                                       CrossoverTypesEnum.subtree])
+                                                                       CrossoverTypesEnum.subtree],
+                                                      history_folder=history_folder)
 
     # Create GP-based composer
     builder = _get_gp_composer_builder(task=task,
