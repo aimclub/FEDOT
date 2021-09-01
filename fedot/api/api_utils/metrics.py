@@ -5,7 +5,7 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
                                                               RegressionMetricsEnum)
 
 
-class Fedot_metrics_helper():
+class API_metrics_helper():
 
     def get_tuner_metrics_mapping(self,
                                   metric_name):

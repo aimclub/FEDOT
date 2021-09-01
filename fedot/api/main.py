@@ -1,25 +1,11 @@
 from typing import List, Optional, Tuple, Union
-import random
-from functools import partial
-
 import numpy as np
 import pandas as pd
 from fedot.api.api_utils.api_utils import Api_facade
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
-from deap import tools
-
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, composer_metrics_mapping,
-                                 filter_operations_by_preset, save_predict)
 from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
-
-from fedot.core.log import default_log
-from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 
@@ -62,11 +48,11 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_chain: Chain = None):
+                 initial_chain: Pipeline = None):
 
         self.helper = Api_facade(**{'problem': problem,
                                     'preset': preset,
-                                    'learning_time': learning_time,
+                                    'timeout': timeout,
                                     'composer_params': composer_params,
                                     'task_params': task_params,
                                     'seed': seed,
@@ -111,12 +97,12 @@ class Fedot:
                 self.current_pipeline = Pipeline(PrimaryNode(predefined_model))
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-            self.composer_dict['current_model'] = self.current_model
+            self.composer_dict['current_model'] = self.current_pipeline
 
         self.composer_dict['is_composing_required'] = is_composing_required
         self.composer_dict['train_data'] = self.train_data
-        self.current_model, self.best_models, self.history = self.helper.obtain_model(**self.composer_dict)
-        return self.current_model
+        self.current_pipeline, self.best_models, self.history = self.helper.obtain_model(**self.composer_dict)
+        return self.current_pipeline
 
     def predict(self,
                 features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -134,22 +120,13 @@ class Fedot:
         self.test_data = self.helper.define_data(ml_task=self.composer_dict['task'], target=self.target_name,
                                                  features=features, is_predict=True)
 
-        if self.composer_dict['task'].task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
-            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
-            output_prediction = self.prediction
-        elif self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
-            # Convert forecast into one-dimensional array
-            self.prediction = self.current_pipeline.predict(self.test_data)
-            forecast = np.ravel(np.array(self.prediction.predict))
-            self.prediction.predict = forecast
-            output_prediction = self.prediction
-        else:
-            self.prediction = self.current_pipeline.predict(self.test_data)
-            output_prediction = self.prediction
+        output_prediction = self.helper.define_predictions(task_type=self.composer_dict['task'].task_type,
+                                                           current_pipeline=self.current_pipeline,
+                                                           test_data=self.test_data)
 
         if save_predictions:
             self.helper.save_predict(self.prediction)
+
         return output_prediction.predict
 
     def predict_proba(self,
@@ -212,9 +189,9 @@ class Fedot:
                                                  features=pre_history,
                                                  is_predict=True)
 
-        self.current_model = Chain(self.current_model.root_node)
+        self.current_pipeline = Pipeline(self.current_pipeline.root_node)
         # TODO add incremental forecast
-        self.prediction = self.current_model.predict(self.test_data)
+        self.prediction = self.current_pipeline.predict(self.test_data)
         if len(self.prediction.predict.shape) > 1:
             self.prediction.predict = np.squeeze(self.prediction.predict)
         self.current_pipeline = Pipeline(self.current_pipeline.root_node)
@@ -305,80 +282,3 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
-
-
-def _define_data(ml_task: Task,
-                 features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-                 target: Union[str, np.ndarray, pd.Series] = None,
-                 is_predict=False):
-    if type(features) == InputData:
-        # native FEDOT format for input data
-        data = features
-        data.task = ml_task
-    elif type(features) == pd.DataFrame:
-        # pandas format for input data
-        if target is None:
-            target = np.array([])
-
-        if isinstance(target, str) and target in features.columns:
-            target_array = features[target]
-            del features[target]
-        else:
-            target_array = target
-
-        data = array_to_input_data(features_array=np.asarray(features),
-                                   target_array=np.asarray(target_array),
-                                   task=ml_task)
-    elif type(features) == np.ndarray:
-        # numpy format for input data
-        if target is None:
-            target = np.array([])
-
-        if isinstance(target, str):
-            target_array = features[target]
-            del features[target]
-        else:
-            target_array = target
-
-        data = array_to_input_data(features_array=features,
-                                   target_array=target_array,
-                                   task=ml_task)
-    elif type(features) == tuple:
-        data = array_to_input_data(features_array=features[0],
-                                   target_array=features[1],
-                                   task=ml_task)
-    elif type(features) == str:
-        # CSV files as input data, by default - table data
-        if target is None:
-            target = 'target'
-
-        data_type = DataTypesEnum.table
-        if ml_task.task_type == TaskTypesEnum.ts_forecasting:
-            # For time series forecasting format - time series
-            data = InputData.from_csv_time_series(task=ml_task,
-                                                  file_path=features,
-                                                  target_column=target,
-                                                  is_predict=is_predict)
-        else:
-            # Make default features table
-            # CSV files as input data
-            if target is None:
-                target = 'target'
-            data = InputData.from_csv(features, task=ml_task,
-                                      target_columns=target,
-                                      data_type=data_type)
-    elif type(features) == dict:
-        if target is None:
-            target = np.array([])
-        target_array = target
-
-        data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
-
-        # create labels for data sources
-        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
-                       for (data_part_key, data_part) in features.items())
-        data = MultiModalData(sources)
-    else:
-        raise ValueError('Please specify a features as path to csv file or as Numpy array')
-
-    return data
