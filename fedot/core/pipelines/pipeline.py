@@ -62,7 +62,7 @@ class Pipeline(Graph):
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.log.info('Fit pipeline from scratch')
+        self.log.debug('Fit pipeline from scratch')
         self.unfit()
         self.fit(input_data, use_fitted=False)
 

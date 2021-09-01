@@ -35,8 +35,10 @@ def run_regression_example():
 
     problem = 'regression'
 
-    baseline_model = Fedot(problem=problem)
-    baseline_model.fit(features=train, predefined_model='xgbreg')
+    baseline_model = Fedot(problem=problem, composer_params={
+        'history_folder': 'custom_history_folder'
+    })
+    baseline_model.fit(features=train)
 
     baseline_model.predict(features=test)
     print(baseline_model.get_metrics())

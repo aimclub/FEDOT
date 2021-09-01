@@ -29,8 +29,8 @@ def pipeline_first():
     return pipeline
 
 
-def generate_history(generations, pop_size):
-    history = OptHistory()
+def generate_history(generations, pop_size, folder=None):
+    history = OptHistory(save_folder=folder)
     converter = GraphGenerationParams().adapter
     for gen in range(generations):
         new_pop = []
