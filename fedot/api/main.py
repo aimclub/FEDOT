@@ -65,9 +65,12 @@ class Fedot:
             'num_of_generations' - number of generations for composer
             'timeout':- composing time (minutes)
             'available_operations' - list of model names to use
-            'with_tuning' - allow huperparameters tuning for the model
+            'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
             'validation_blocks' - number of validation blocks for time series forecasting
+            'initial_pipeline' - initial assumption for composing
+            'genetic_scheme' - name of the genetic scheme
+            'history_folder' - name of the folder for composing history
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
     :param verbose_level: level of the output detailing
