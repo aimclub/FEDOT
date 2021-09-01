@@ -2,6 +2,8 @@ import warnings
 
 from cuml import KMeans
 import cudf
+from typing import Optional
+
 from fedot.core.data.data import InputData, OutputData
 
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy

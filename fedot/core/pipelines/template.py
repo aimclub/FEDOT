@@ -75,9 +75,9 @@ class PipelineTemplate:
         if hasattr(node, 'operation'):
             if (not isinstance(node.operation, str) and
                     node.operation.operation_type == atomized_model_type()):
-                operation_template = AtomizedModelTemplate(node, operation_id, nodes_from)
+                operation_template = AtomizedModelTemplate(node, operation_id, sorted(nodes_from))
             else:
-                operation_template = OperationTemplate(node, operation_id, nodes_from)
+                operation_template = OperationTemplate(node, operation_id, sorted(nodes_from))
 
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1

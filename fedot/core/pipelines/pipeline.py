@@ -274,8 +274,7 @@ class Pipeline(Graph):
         :param path to json file with operation
         :return: json containing a composite operation description
         """
-        if not self.template:
-            self.template = PipelineTemplate(self, self.log)
+        self.template = PipelineTemplate(self, self.log)
         json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node)
         return json_object, dict_fitted_operations
 
