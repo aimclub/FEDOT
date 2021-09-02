@@ -155,7 +155,7 @@ def filter_operations_by_preset(task: Task, preset: str):
     return available_operations
 
 
-def compose_fedot_model(train_data: [InputData, MultiModalData],
+def compose_fedot_model(train_data: List[InputData, MultiModalData],
                         task: Task,
                         logger: Log,
                         max_depth: int,
