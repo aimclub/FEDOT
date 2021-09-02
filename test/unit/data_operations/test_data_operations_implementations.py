@@ -4,13 +4,13 @@ from examples.classification_with_tuning_example import get_classification_datas
 from examples.regression_with_tuning_example import get_regression_dataset
 from examples.time_series.ts_gapfilling_example import generate_synthetic_data
 from fedot.core.data.data import InputData
+from fedot.core.operations.evaluation.operation_implementations.data_operations. \
+    sklearn_transformations import ImputationImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import ImputationImplementation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 np.random.seed(2021)
 
@@ -107,14 +107,10 @@ def get_nan_inf_data():
 
     return train_input
 
+
 def get_single_feature_data(task=None):
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
-                            features=np.array([[1],
-                                               [2],
-                                               [3],
-                                               [7],
-                                               [8],
-                                               [9]]),
+                            features=np.array([[1], [2], [3], [7], [8], [9]]),
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
                             data_type=DataTypesEnum.table)
@@ -228,23 +224,21 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
 
 def test_feature_selection_of_single_features():
-    model_names, _ = OperationTypesRepository(operation_type='data_operation')\
-        .suitable_operation(tags=['feature_selection'])
+    for task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
+        model_names, _ = OperationTypesRepository(operation_type='data_operation') \
+            .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
-    for data_operation in model_names:
-        if 'class' in data_operation:
-            train_input = get_single_feature_data(Task(TaskTypesEnum.classification))
+        train_input = get_single_feature_data(Task(task_type))
 
-        elif 'reg' in data_operation:
-            train_input = get_single_feature_data(Task(TaskTypesEnum.regression))
+        for data_operation in model_names:
+            node_data_operation = PrimaryNode(data_operation)
 
-        node_data_operation = PrimaryNode(data_operation)
-        node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
-        pipeline = Pipeline(node_final)
+            assert node_data_operation.fitted_operation is None
 
-        # Fit and predict for pipeline
-        pipeline.fit(train_input)
-        predicted_output = pipeline.predict(train_input)
-        predicted = predicted_output.predict
+            # Fit and predict for pipeline
+            node_data_operation.fit(train_input)
+            predicted_output = node_data_operation.predict(train_input)
+            predicted = predicted_output.predict
 
-        assert len(predicted) == len(train_input.features)
+            assert node_data_operation.fitted_operation is not None
+            assert predicted.shape == train_input.features.shape

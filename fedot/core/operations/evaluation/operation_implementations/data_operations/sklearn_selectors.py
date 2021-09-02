@@ -28,6 +28,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         features = input_data.features
         target = input_data.target
 
+        # To avoid getting an error from sklearn for 1-feature dataset
         if input_data.features.shape[1] == 1:
             return None
 
