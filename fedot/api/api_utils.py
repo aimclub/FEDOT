@@ -90,6 +90,19 @@ def _autodetect_data_type(task: Task) -> DataTypesEnum:
 
 
 def save_predict(predicted_data: OutputData):
+    '''Save predicted data to file './predictions.csv' in same as work directory.
+    :param predicted_data: OutputData data type variable.
+    :return pandas dataframe with below given format.
+    
+    for example csv file will have following table format:
+    ----------------------
+    | Index | Prediction |
+    ----------------------
+    | 0     | 0.0        |
+    | 1     | 0.1,2      |
+    | 2     | 0.2        |
+    ----------------------
+    '''
     if len(predicted_data.predict.shape) >= 2:
         prediction = predicted_data.predict.tolist()
     else:
