@@ -325,6 +325,7 @@ def data_has_categorical_features(data: Union[InputData, MultiModalData]) -> boo
     :param data: Union[InputData, MultiModalData]
     :return data_has_categorical_columns: bool, whether data has categorical columns or not
     """
+
     data_has_categorical_columns = False
 
     if isinstance(data, MultiModalData):
