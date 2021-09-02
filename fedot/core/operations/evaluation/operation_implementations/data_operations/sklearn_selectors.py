@@ -28,6 +28,9 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         features = input_data.features
         target = input_data.target
 
+        if input_data.features.shape[1] == 1:
+            return None
+
         bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
@@ -50,6 +53,9 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by columns
         """
+
+        if input_data.features.shape[1] == 1:
+            return self._convert_to_output(input_data, input_data.features)
 
         features = input_data.features
         if len(self.ids_to_process) > 0:

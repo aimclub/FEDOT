@@ -107,6 +107,20 @@ def get_nan_inf_data():
 
     return train_input
 
+def get_single_feature_data(task=None):
+    train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
+                            features=np.array([[1],
+                                               [2],
+                                               [3],
+                                               [7],
+                                               [8],
+                                               [9]]),
+                            target=np.array([[0], [0], [0], [1], [1], [1]]),
+                            task=task,
+                            data_type=DataTypesEnum.table)
+
+    return train_input
+
 
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
@@ -211,3 +225,26 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
         assert np.sum(np.isinf(predicted)) == 0
         assert np.sum(np.isnan(predicted)) == 0
+
+
+def test_feature_selection_of_single_features():
+    model_names, _ = OperationTypesRepository(operation_type='data_operation')\
+        .suitable_operation(tags=['feature_selection'])
+
+    for data_operation in model_names:
+        if 'class' in data_operation:
+            train_input = get_single_feature_data(Task(TaskTypesEnum.classification))
+
+        elif 'reg' in data_operation:
+            train_input = get_single_feature_data(Task(TaskTypesEnum.regression))
+
+        node_data_operation = PrimaryNode(data_operation)
+        node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
+        pipeline = Pipeline(node_final)
+
+        # Fit and predict for pipeline
+        pipeline.fit(train_input)
+        predicted_output = pipeline.predict(train_input)
+        predicted = predicted_output.predict
+
+        assert len(predicted) == len(train_input.features)
