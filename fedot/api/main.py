@@ -23,7 +23,15 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
 def default_evo_params(problem):
-    """ Dictionary with default parameters for composer """
+    """ Dictionary with default parameters for composer which is as given below.
+        params = {'max_depth': 3,
+              'max_arity': 4,
+              'pop_size': 20,
+              'num_of_generations': 20,
+              'timeout': 2,
+              'preset': 'light_tun'}
+        :return params: dictionary with default parameters for composer.
+    """
     params = {'max_depth': 3,
               'max_arity': 4,
               'pop_size': 20,
