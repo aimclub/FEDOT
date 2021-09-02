@@ -7,15 +7,12 @@ from fedot.core.data.data import InputData
 def cv_tabular_predictions(pipeline, reference_data: InputData, cv_folds: int):
     """ Provide K-fold cross validation for tabular data"""
 
-    # Place where predictions and actual values will be loaded
     predictions = []
     targets = []
 
     for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
         pipeline.fit_from_scratch(train_data)
-        print(train_data, test_data)
         predicted_values = pipeline.predict(test_data).predict
-        print(predicted_values)
         actual_values = test_data.target
         predictions.extend(predicted_values)
         targets.extend(actual_values)

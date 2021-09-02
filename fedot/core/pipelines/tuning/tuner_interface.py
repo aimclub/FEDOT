@@ -182,7 +182,8 @@ class HyperoptTuner(ABC):
     def _cross_validation(self, data, pipeline):
         """ Perform cross validation for metric evaluation """
 
-        if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or data.data_type is DataTypesEnum.image:
+        if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
+                data.data_type is DataTypesEnum.image:
             preds, test_target = cv_tabular_predictions(pipeline, data,
                                                         cv_folds=self.cv_folds)
 
