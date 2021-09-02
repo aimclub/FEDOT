@@ -28,8 +28,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         features = input_data.features
         target = input_data.target
 
-        # To avoid getting an error from sklearn for 1-feature dataset
-        if input_data.features.shape[1] == 1:
+        if self._is_input_data_1d(input_data):
             return None
 
         bool_ids, ids_to_process = self._reasonability_check(features)
@@ -55,7 +54,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :return output_data: filtered input data by columns
         """
 
-        if input_data.features.shape[1] == 1:
+        if self._is_input_data_1d(input_data):
             return self._convert_to_output(input_data, input_data.features)
 
         features = input_data.features
@@ -96,6 +95,16 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
+
+    def _is_input_data_1d(self, input_data):
+        """
+        The method checks the input data has only one feature
+
+        :param input_data:
+        :return: True / False
+        """
+
+        return input_data.features.shape[1] == 1
 
 
 class LinearRegFSImplementation(FeatureSelectionImplementation):
