@@ -172,7 +172,27 @@ def compose_fedot_model(train_data: [InputData, MultiModalData],
                         initial_pipeline=None,
                         genetic_scheme: str = None
                         ):
-    """ Function for composing FEDOT pipeline """
+    """ Function for composing FEDOT pipeline 
+
+    :param train_data: List[InputData, MultiModalData] : 
+    :param task: Task : 
+    :param logger: Log : 
+    :param max_depth: int : 
+    :param max_arity: int : 
+    :param pop_size: int : 
+    :param num_of_generations: int : 
+    :param available_operations: list = None : 
+    :param composer_metric=None : 
+    :param timeout: float = 5 : Max Time in minutes for training pipeline,
+    :param with_tuning=False : 
+    :param tuner_metric=None : 
+    :param cv_folds: Optional[int] = None : 
+    :param validation_blocks: int = None : 
+    :param initial_pipeline=None : 
+    :param genetic_scheme: str = Non : 
+    :return (pipeline_for_return, best_candidates, history)
+
+    """
 
     metric_function = _obtain_metric(task, composer_metric)
 
