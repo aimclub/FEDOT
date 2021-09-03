@@ -1,3 +1,5 @@
+from itertools import product
+
 import numpy as np
 
 from examples.classification_with_tuning_example import get_classification_dataset
@@ -118,6 +120,21 @@ def get_single_feature_data(task=None):
     return train_input
 
 
+def get_one_hot_encoding_data(task=None):
+    train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
+                            features=np.array([[1, 0, 1],
+                                               [2, 1, 0],
+                                               [3, 1, 0],
+                                               [7, 1, 1],
+                                               [8, 1, 1],
+                                               [9, 0, 0]]),
+                            target=np.array([[0], [0], [0], [1], [1], [1]]),
+                            task=task,
+                            data_type=DataTypesEnum.table)
+
+    return train_input
+
+
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
@@ -228,9 +245,11 @@ def test_feature_selection_of_single_features():
         model_names, _ = OperationTypesRepository(operation_type='data_operation') \
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
-        train_input = get_single_feature_data(Task(task_type))
+        task = Task(task_type)
+        data_functions = [get_single_feature_data(task), get_one_hot_encoding_data(task)]
+        list_with_operations = list(product(model_names, data_functions))
 
-        for data_operation in model_names:
+        for data_operation, train_input in list_with_operations:
             node_data_operation = PrimaryNode(data_operation)
 
             assert node_data_operation.fitted_operation is None

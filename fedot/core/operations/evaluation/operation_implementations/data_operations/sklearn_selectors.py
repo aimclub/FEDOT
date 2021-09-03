@@ -18,7 +18,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         self.operation = None
         self.ids_to_process = None
         self.bool_ids = None
-        self._1d_feature_flag = None
+        self.is_not_fitted = None
 
     def fit(self, input_data):
         """ Method for fit feature selection
@@ -37,8 +37,8 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             features_to_process = np.array(features[:, ids_to_process])
 
             if self._is_input_data_1d(features_to_process):
-                self._1d_feature_flag = True
-                return None
+                self.is_not_fitted = True
+                return self.operation
             try:
                 self.operation.fit(features_to_process, target)
             except ValueError:
@@ -55,7 +55,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by columns
         """
-        if self._1d_feature_flag:
+        if self.is_not_fitted:
             return self._convert_to_output(input_data, input_data.features)
 
         features = input_data.features
@@ -98,13 +98,6 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         return transformed_features
 
     def _is_input_data_1d(self, input_data):
-        """
-        The method checks the input data has only one feature
-
-        :param input_data:
-        :return: True / False
-        """
-
         return input_data.shape[1] == 1
 
 
