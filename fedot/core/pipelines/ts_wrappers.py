@@ -1,9 +1,11 @@
+from copy import copy
 from typing import Union
 
 import numpy as np
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -160,6 +162,38 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     # Clip the forecast if it is necessary
     final_forecast = final_forecast[:horizon]
     return final_forecast
+
+
+def fitted_values(train_predicted: OutputData, horizon_step: int = None):
+    """ The method converts a multidimensional lagged array into an
+    one-dimensional array - time series
+
+    :param train_predicted: OutputData
+    :param horizon_step: index of elements for forecast
+    """
+    copied_data = copy(train_predicted)
+    if horizon_step is not None:
+        # Take particular forecast step
+        copied_data.predict = copied_data.predict[:, horizon_step]
+        copied_data.idx = copied_data.idx + horizon_step
+        return copied_data
+    else:
+        # Perform collapse with averaging
+        forecast_length = copied_data.task.task_params.forecast_length
+        # LMatrix with indices in cells
+        indices_range = np.arange(0, len(copied_data.predict))
+        _, idx_matrix = _ts_to_table(idx=indices_range,
+                                     time_series=indices_range,
+                                     window_size=forecast_length)
+        predicted_matrix = copied_data.predict
+        predicted_matrix = predicted_matrix[-len(idx_matrix):, :]
+        final_predictions = []
+        for index in indices_range:
+            vals = predicted_matrix[idx_matrix == index]
+            mean_value = np.mean(vals)
+            final_predictions.append(mean_value)
+        copied_data.predict = np.array(final_predictions)
+        return copied_data
 
 
 def _calculate_number_of_steps(scope_len, horizon):
