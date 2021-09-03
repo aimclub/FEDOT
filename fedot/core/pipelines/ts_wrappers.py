@@ -164,12 +164,13 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     return final_forecast
 
 
-def fitted_target(train_predicted: OutputData, horizon_step: int = None):
+def fitted_target(train_predicted: OutputData, horizon_step: int = None) -> OutputData:
     """ The method converts a multidimensional lagged array into an
-    one-dimensional array - time series
+    one-dimensional array - time series based on predicted values for training sample
 
     :param train_predicted: OutputData
-    :param horizon_step: index of elements for forecast
+    :param horizon_step: index of elements for forecast. If None - perform
+    averaging for all forecasting steps
     """
     copied_data = copy(train_predicted)
     if horizon_step is not None:
@@ -198,6 +199,17 @@ def fitted_target(train_predicted: OutputData, horizon_step: int = None):
         copied_data.predict = np.array(final_predictions)
         copied_data.idx = indices_range
         return copied_data
+
+
+def in_sample_fitted_target(train_predicted: OutputData) -> OutputData:
+    """ Perform in sample validation based on training sample """
+    forecast_length = train_predicted.task.task_params.forecast_length
+    all_values = []
+    step = 0
+    while step < len(train_predicted.idx):
+        all_values.extend(train_predicted.predict[step, :])
+        step += forecast_length
+    # TODO finish implementation 
 
 
 def _calculate_number_of_steps(scope_len, horizon):
