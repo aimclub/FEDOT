@@ -169,6 +169,6 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
     return strategy
 
 
-def _get_default_params(model_name: str):
+def get_default_params(model_name: str):
     with DefaultModelParamsRepository() as default_params_repo:
         return default_params_repo.get_default_params_for_model(model_name)

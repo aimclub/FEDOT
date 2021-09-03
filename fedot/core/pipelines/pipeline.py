@@ -23,7 +23,7 @@ from fedot.core.data.data import data_type_is_table
 # Rows that have 'string' type, instead of other 'integer' observes.
 # Example: 90% objects in column are 'integer', other are 'string'. Then
 # we will try to convert 'string' data to 'integer', otherwise delete it.
-EMPIRICAL_ROWS_TO_DELETE = 0.1
+EMPIRICAL_PARTITION = 0.1
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
@@ -187,10 +187,10 @@ class Pipeline(Graph):
     def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
+        data = _custom_preprocessing(data)
+
         if data_has_missing_values(data) and not has_imputation_operation:
             data = _imputation_implementation(data)
-
-        data = _numeric_preprocessing(data)
 
         if data_has_categorical_features(data) and not has_encoder_operation:
             self.pre_proc_encoders = _encode_data_for_fit(data)
@@ -237,10 +237,10 @@ class Pipeline(Graph):
         copied_input_data = copy(input_data)
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
+        copied_input_data = _custom_preprocessing(copied_input_data)
+
         if data_has_missing_values(copied_input_data) and not has_imputation_operation:
             copied_input_data = _imputation_implementation(copied_input_data)
-
-        copied_input_data = _numeric_preprocessing(copied_input_data)
 
         if data_has_categorical_features(copied_input_data) and not has_encoder_operation:
             _encode_data_for_prediction(copied_input_data, self.pre_proc_encoders)
@@ -379,7 +379,12 @@ def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
     return has_imputer, has_encoder
 
 
-def _is_convertable_to_float(s) -> bool:
+def _is_numeric(s) -> bool:
+    """ Check if variable converted to float.
+
+    :param s: any type variable
+    :return: is variable convertable to float
+    """
     try:
         float(s)
         return True
@@ -390,43 +395,58 @@ def _is_convertable_to_float(s) -> bool:
 def _try_convert_to_numeric(features, columns_amount):
     for i in range(columns_amount):
         try:
-            features[:, i] = pd.to_numeric(features[:, i])
-            features[:, i] = features[:, i].astype(np.number)
+            features = pd.to_numeric(features)
+            features = features.astype(np.number)
         except ValueError:
             pass
     return features
 
 
-def _numeric_preprocessing(data: Union[InputData, MultiModalData]):
+def _custom_preprocessing(data: Union[InputData, MultiModalData]):
     if isinstance(data, InputData):
         if data_type_is_table(data):
-            data = _numeric_preprocessing_input_data(data)
+            data = _preprocessing_input_data(data)
     elif isinstance(data, MultiModalData):
         for data_source_name, values in data.items():
             if data_type_is_table(values):
-                data[data_source_name] = _numeric_preprocessing_input_data(values)
+                data[data_source_name] = _preprocessing_input_data(values)
 
     return data
 
 
-def _numeric_preprocessing_input_data(data: InputData) -> InputData:
+def _preprocessing_input_data(data: InputData) -> InputData:
     features = data.features
+    target = data.target
+
+    # if target is None delete data
+    target_index_with_nan = np.hstack(np.argwhere(np.isnan(target)))
+    data.features = np.delete(features, target_index_with_nan, 0)
+    data.target = np.delete(data.target, target_index_with_nan, 0)
+    data.idx = np.delete(data.idx, target_index_with_nan, 0)
+
     source_shape = features.shape
     columns_amount = source_shape[1] if len(source_shape) > 1 else 1
-    rows_to_remove = set()
 
-    for i in range(columns_amount):
-        values = pd.Series(features[:, i])
-        if any(list(map(lambda x: isinstance(x, str), values))):
-            is_converted_to_float = list(map(lambda x: not _is_convertable_to_float(x), values))
-            row_to_remove = list(values.index[is_converted_to_float])
-            rows_to_remove.update(row_to_remove)
+    # if total rows in data more then 100
+    if source_shape[0] > 100:
+        for i in range(columns_amount):
+            values = pd.Series(features[:, i])
+            # check if data converted to numeric, remember index of rows
+            if any(list(map(lambda x: isinstance(x, str), values))):
+                not_numeric = list(map(lambda x: not _is_numeric(x), values))
+                rows_to_nan = list(values.index[not_numeric])
+                partition_not_numeric = len(rows_to_nan) / source_shape[0]
 
-    if len(rows_to_remove) > 0 and len(rows_to_remove) / source_shape[0] < EMPIRICAL_ROWS_TO_DELETE:
-        features = np.delete(features, list(rows_to_remove), 0)
-        data.features = _try_convert_to_numeric(features, columns_amount)
-        data.target = np.delete(data.target, list(rows_to_remove), 0)
-        data.idx = np.delete(data.idx, list(rows_to_remove), 0)
+                # if partition of numerical rows less then EMPIRICAL_PARTITION,
+                # then convert to numerical and others to Nan
+                if partition_not_numeric < EMPIRICAL_PARTITION:
+                    features.loc[rows_to_nan] = np.nan
+                    data.features = _try_convert_to_numeric(features, columns_amount)
+                # if EMPIRICAL_PARTITION < partition < 1, then some data in column
+                # integer and some data are string, can not handle this case
+                elif partition_not_numeric < 0.9:
+                    raise ValueError("The data in the column has a different type. Need to preprocessing data manually.")
+
     return data
 
 
@@ -472,6 +492,11 @@ def _encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
 
 def _encode_data_for_prediction(data: Union[InputData, MultiModalData],
                                 encoders: Union[dict, DataOperationImplementation]):
+    """ Transformation the prediction data inplace. Use the same transformations as for the training data.
+
+    :param data: data to transformation
+    :param encoders: encoders f transformation
+    """
     if encoders:
         if isinstance(data, InputData):
             transformed = encoders.transform(data, True).predict
@@ -494,6 +519,10 @@ def _imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[
 
 
 def _imputation_implementation_unidata(data: InputData):
+    """ Fill in the gaps in the data inplace.
+
+    :param data: data for fill in the gaps
+    """
     imputer = ImputationImplementation()
     output_data = imputer.fit_transform(data)
     transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
