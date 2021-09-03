@@ -2,7 +2,6 @@ from datetime import timedelta
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
-from sklearn.metrics import accuracy_score
 
 from fedot.api.main import Fedot
 from fedot.core.log import default_log
