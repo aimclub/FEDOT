@@ -18,6 +18,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         self.operation = None
         self.ids_to_process = None
         self.bool_ids = None
+        self._1d_feature_flag = None
 
     def fit(self, input_data):
         """ Method for fit feature selection
@@ -28,15 +29,16 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         features = input_data.features
         target = input_data.target
 
-        if self._is_input_data_1d(input_data):
-            return None
-
         bool_ids, ids_to_process = self._reasonability_check(features)
         self.ids_to_process = ids_to_process
         self.bool_ids = bool_ids
 
         if len(ids_to_process) > 0:
             features_to_process = np.array(features[:, ids_to_process])
+
+            if self._is_input_data_1d(features_to_process):
+                self._1d_feature_flag = True
+                return None
             try:
                 self.operation.fit(features_to_process, target)
             except ValueError:
@@ -53,8 +55,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by columns
         """
-
-        if self._is_input_data_1d(input_data):
+        if self._1d_feature_flag:
             return self._convert_to_output(input_data, input_data.features)
 
         features = input_data.features
@@ -104,7 +105,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :return: True / False
         """
 
-        return input_data.features.shape[1] == 1
+        return input_data.shape[1] == 1
 
 
 class LinearRegFSImplementation(FeatureSelectionImplementation):
