@@ -164,7 +164,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     return final_forecast
 
 
-def fitted_values(train_predicted: OutputData, horizon_step: int = None):
+def fitted_target(train_predicted: OutputData, horizon_step: int = None):
     """ The method converts a multidimensional lagged array into an
     one-dimensional array - time series
 
@@ -180,19 +180,23 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None):
     else:
         # Perform collapse with averaging
         forecast_length = copied_data.task.task_params.forecast_length
-        # LMatrix with indices in cells
-        indices_range = np.arange(0, len(copied_data.predict))
+        # Extend source index range
+        indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
+        # Lagged matrix with indices in cells
         _, idx_matrix = _ts_to_table(idx=indices_range,
                                      time_series=indices_range,
                                      window_size=forecast_length)
         predicted_matrix = copied_data.predict
-        predicted_matrix = predicted_matrix[-len(idx_matrix):, :]
+
+        # For every index calculate mean predictions (by all forecast steps)
         final_predictions = []
+        indices_range = indices_range[:-1]
         for index in indices_range:
             vals = predicted_matrix[idx_matrix == index]
             mean_value = np.mean(vals)
             final_predictions.append(mean_value)
         copied_data.predict = np.array(final_predictions)
+        copied_data.idx = indices_range
         return copied_data
 
 

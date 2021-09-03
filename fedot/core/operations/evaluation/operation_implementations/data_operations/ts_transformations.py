@@ -317,8 +317,9 @@ def _ts_to_table(idx, time_series: np.array, window_size: int):
 
     transformed = np.array(lagged_dataframe)
 
-    # Generate dataset with features
+    # Remove extra column (it will go to target)
     features_columns = transformed[:, 1:]
+    # Generate dataset with features
     features_columns = np.fliplr(features_columns)
 
     # First n elements in time series are removed
