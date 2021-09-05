@@ -7,7 +7,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
     TsSmoothingImplementation, SparseLaggedTransformationImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
-    ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation
+    ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation, \
+    CLSTMImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -25,7 +26,8 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'arima': ARIMAImplementation,
         'ar': AutoRegImplementation,
-        'stl_arima': STLForecastARIMAImplementation}
+        'stl_arima': STLForecastARIMAImplementation,
+        'clstm': CLSTMImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)

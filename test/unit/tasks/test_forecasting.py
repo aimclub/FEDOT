@@ -236,3 +236,38 @@ def test_multistep_in_sample_forecasting():
                                       horizon=horizon)
 
     assert len(predicted) == horizon
+
+
+def test_clstm_forecasting():
+    horizon = 12
+    window_size = 7
+    train_data, test_data = get_ts_data(n_steps=200, forecast_length=horizon)
+
+    node_lagged = PrimaryNode('lagged')
+    node_lagged.custom_params = {'window_size': window_size}
+    node_scaler = SecondaryNode("scaling", nodes_from=[node_lagged])
+    node_root = SecondaryNode("clstm", nodes_from=[node_scaler])
+    node_root.custom_params = {
+        "input_size": 1,
+        "forecast_length": horizon,
+        "hidden_size": 200,
+        "learning_rate": 0.001,
+        "cnn1_kernel_size": 5,
+        "cnn1_output_size": 8,
+        "cnn2_kernel_size": 3,
+        "cnn2_output_size": 16
+    }
+    pipeline = Pipeline(node_root)
+    pipeline.fit(train_data)
+    predicted = out_of_sample_ts_forecast(
+        pipeline=pipeline,
+        input_data=test_data,
+        horizon=horizon
+    )
+    print(predicted.predict)
+    print(test_data.target)
+
+
+    assert len(predicted.predict) == horizon
+
+

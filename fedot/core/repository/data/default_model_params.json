@@ -54,5 +54,15 @@
     "residual_threshold": 10,
     "max_trials": 100,
     "max_skips": 1000
+  },
+  "clstm": {
+    "input_size": 1,
+    "forecast_length": 1,
+    "hidden_size": 200,
+    "learning_rate": 0.001,
+    "cnn1_kernel_size": 5,
+    "cnn1_output_size": 16,
+    "cnn2_kernel_size": 3,
+    "cnn2_output_size": 32
   }
 }

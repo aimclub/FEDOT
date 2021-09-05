@@ -146,6 +146,13 @@
         "ts_specific"
       ]
     },
+    "clstm": {
+      "meta": "ts_model",
+      "tags": [
+        "simple",
+        "ts_specific"
+      ]
+    },
     "bernb": {
       "meta": "sklearn_class",
       "tags": [
