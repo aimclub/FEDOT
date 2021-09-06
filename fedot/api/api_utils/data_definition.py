@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import ABC, abstractmethod
 from functools import partial
 from typing import Union
@@ -29,15 +28,15 @@ def array_to_input_data(features_array: np.array,
 
 class Data_definer:
 
-    def __init__(self, strategy: Strategy_to_define_data) -> None:
+    def __init__(self, strategy) -> None:
         self._strategy = strategy
 
     @property
-    def strategy(self) -> Strategy_to_define_data:
+    def strategy(self):
         return self._strategy
 
     @strategy.setter
-    def strategy(self, strategy: Strategy_to_define_data) -> None:
+    def strategy(self, strategy) -> None:
         self._strategy = strategy
 
     def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
