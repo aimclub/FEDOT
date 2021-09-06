@@ -10,8 +10,6 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
@@ -90,7 +88,7 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                 optimizer_parameters: GPGraphOptimiserParameters,
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
-                                initial_chain: Pipeline = None):
+                                initial_pipeline: Pipeline = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
         init_chain in it """
 
@@ -99,13 +97,13 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
             with_optimiser_parameters(optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
-        if initial_chain is not None:
-            init_chain = initial_chain
+        if initial_pipeline is not None:
+            initial_pipeline = initial_pipeline
         else:
-            init_chain = self.obtain_initial_assumption(task, data)
+            initial_pipeline = self.obtain_initial_assumption(task, data)
 
-        if init_chain is not None:
-            builder = builder.with_initial_pipeline(init_chain)
+        if initial_pipeline is not None:
+            builder = builder.with_initial_pipeline(initial_pipeline)
 
         return builder
 
@@ -114,26 +112,21 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                           task):
         """ Function divide operations for primary and secondary """
 
-        # if task.task_type == TaskTypesEnum.ts_forecasting:
-        #     ts_data_operations = get_ts_operations(mode='data_operations',
-        #                                            tags=["ts_specific"])
-        #     # Remove exog data operation from the list
-        #     try:
-        #         ts_data_operations.remove('exog')
-        #     except ValueError:
-        #         print('Exog operations was deleted from ts_operations')
-        #
-        #     primary_operations = ts_data_operations
-        #     secondary_operations = available_operations
-        # else:
-        #     primary_operations = available_operations
-        #     secondary_operations = available_operations
-        primary_operations = available_operations
-        secondary_operations = available_operations
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            ts_data_operations = get_operations_for_task(task=task,
+                                                         mode='data_operation',
+                                                         tags=["ts_specific"])
+            # Remove exog data operation from the list
+            ts_data_operations.remove('exog_ts_data_source')
+
+            primary_operations = ts_data_operations
+            secondary_operations = available_operations
+        else:
+            primary_operations = available_operations
+            secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def compose_fedot_model(self,
-                            train_data: [InputData, MultiModalData],
+    def compose_fedot_model(self, train_data: [InputData, MultiModalData],
                             task: Task,
                             logger: Log,
                             max_depth: int,
@@ -146,9 +139,11 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                             with_tuning=False,
                             tuner_metric=None,
                             cv_folds: Optional[int] = None,
-                            initial_chain=None
+                            validation_blocks: int = None,
+                            initial_pipeline=None
                             ):
         """ Function for composing FEDOT chain model """
+
         metric_function = self.obtain_metric(task, composer_metric)
 
         if available_operations is None:
@@ -160,7 +155,7 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
         primary_operations, secondary_operations = self.divide_operations(available_operations,
                                                                           task)
 
-        learning_time_for_composing = timeout / 2 if with_tuning else timeout
+        timeout_for_composing = timeout / 2 if with_tuning else timeout
         # the choice and initialisation of the GP composer
         composer_requirements = \
             GPComposerRequirements(primary=primary_operations,
@@ -169,47 +164,45 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                    max_depth=max_depth,
                                    pop_size=pop_size,
                                    num_of_generations=num_of_generations,
-                                   max_pipeline_fit_time=datetime.timedelta(minutes=learning_time_for_composing),
-                                   cv_folds=cv_folds)
+                                   cv_folds=cv_folds,
+                                   validation_blocks=validation_blocks,
+                                   timeout=datetime.timedelta(minutes=timeout_for_composing))
 
-        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free,
-                                                          mutation_types=[
-                                                              MutationTypesEnum.simple,
-                                                              MutationTypesEnum.reduce,
-                                                              MutationTypesEnum.growth,
-                                                              MutationTypesEnum.local_growth],
-                                                          crossover_types=[CrossoverTypesEnum.one_point,
-                                                                           CrossoverTypesEnum.subtree])
+        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
 
         builder = self.get_gp_composer_builder(task=task,
                                                metric_function=metric_function,
                                                composer_requirements=composer_requirements,
                                                optimizer_parameters=optimizer_parameters,
                                                data=train_data,
+                                               initial_pipeline=initial_pipeline,
                                                logger=logger)
+
         gp_composer = builder.build()
 
         logger.message('Pipeline composition started')
-        chain_gp_composed = gp_composer.compose_pipeline(data=train_data)
-        chain_for_return = chain_gp_composed
+        pipeline_gp_composed = gp_composer.compose_pipeline(data=train_data)
 
-        if isinstance(chain_gp_composed, list):
-            for chain in chain_gp_composed:
-                chain.log = logger
-            chain_for_return = chain_gp_composed[0]
+        pipeline_for_return = pipeline_gp_composed
+
+        if isinstance(pipeline_gp_composed, list):
+            for pipeline in pipeline_gp_composed:
+                pipeline.log = logger
+            pipeline_for_return = pipeline_gp_composed[0]
             best_candidates = gp_composer.optimiser.archive
         else:
-            best_candidates = [chain_gp_composed]
-            chain_gp_composed.log = logger
+            best_candidates = [pipeline_gp_composed]
+            pipeline_gp_composed.log = logger
 
         if with_tuning:
             logger.message('Hyperparameters tuning started')
 
             if tuner_metric is None:
-                logger.message('Default loss function was set')
                 # Default metric for tuner
                 tune_metrics = TunerMetricByTask(task.task_type)
                 tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+                logger.message(f'Tuner metric is None, '
+                               f'{tuner_loss.__name__} was set as default')
             else:
                 # Get metric and parameters by name
                 tuner_loss, loss_params = self.tuner_metric_by_name(metric_name=tuner_metric,
@@ -217,19 +210,30 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                                                     task=task)
 
             iterations = 20 if timeout is None else 1000
-            learning_time_for_tuning = timeout / 2
+            timeout_for_tuning = timeout / 2
 
-            # Tune all nodes in the chain
-            chain_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                 loss_params=loss_params,
-                                                 input_data=train_data,
-                                                 iterations=iterations, timeout=learning_time_for_tuning)
+            # Tune all nodes in the pipeline
+
+            vb_number = composer_requirements.validation_blocks
+            folds = composer_requirements.cv_folds
+            if train_data.task.task_type != TaskTypesEnum.ts_forecasting:
+                # TODO remove after implementation of CV for class/regr
+                logger.warn('Cross-validation is not supported for tuning of ts-forecasting pipeline: '
+                            'hold-out validation used instead')
+                folds = None
+            pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                          loss_params=loss_params,
+                                                                          input_data=train_data,
+                                                                          iterations=iterations,
+                                                                          timeout=timeout_for_tuning,
+                                                                          cv_folds=folds,
+                                                                          validation_blocks=vb_number)
 
         logger.message('Model composition finished')
 
         history = gp_composer.optimiser.history
 
-        return chain_for_return, best_candidates, history
+        return pipeline_for_return, best_candidates, history
 
     def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):
         """ Function allow to obtain metric for tuner by its name
@@ -260,3 +264,22 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                 # Metric for multiclass classification
                 loss_params = {'multi_class': 'ovr'}
         return tuner_loss, loss_params
+
+
+def compose_fedot_model(train_data: [InputData, MultiModalData],
+                        task: Task,
+                        logger: Log,
+                        max_depth: int,
+                        max_arity: int,
+                        pop_size: int,
+                        num_of_generations: int,
+                        available_operations: list = None,
+                        composer_metric=None,
+                        timeout: float = 5,
+                        with_tuning=False,
+                        tuner_metric=None,
+                        cv_folds: Optional[int] = None,
+                        validation_blocks: int = None,
+                        initial_pipeline=None
+                        ):
+    """ Function for composing FEDOT pipeline """

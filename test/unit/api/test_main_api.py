@@ -6,23 +6,22 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-
-from fedot.api.api_utils.data import Fedot_data_helper
+from fedot.api.api_utils.data import API_data_helper
 from cases.metocean_forecasting_problem import prepare_input_data
 from fedot.api.main import Fedot
 
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_synthetic_ts_data_period
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
-data_checker = Fedot_data_helper()
+data_checker = API_data_helper()
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'learning_time': 0.0001,
@@ -61,7 +60,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_synthetic_ts_data_period(forecast_length=12)
+        train_data, test_data = get_ts_data(forecast_length=12)
         threshold = np.str(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
@@ -76,10 +75,9 @@ def test_api_predict_correct(task_type: str = 'classification'):
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
 
-    assert isinstance(fedot_model, Chain)
+    assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
-
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 12
@@ -104,7 +102,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
 
     # Define chain for prediction
     node_lagged = PrimaryNode('lagged')
-    chain = Chain(SecondaryNode('linear', nodes_from=[node_lagged]))
+    chain = Pipeline(SecondaryNode('linear', nodes_from=[node_lagged]))
 
     model.fit(features=train_data.features,
               target=train_data.target,
@@ -149,7 +147,6 @@ def test_baseline_with_api():
     baseline_metrics = baseline_model.get_metrics(metric_names='f1')
 
     assert baseline_metrics['f1'] > 0
-
 
 def test_pandas_input_for_api():
     train_data, test_data, threshold = get_dataset('classification')

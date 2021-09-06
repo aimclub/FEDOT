@@ -1,8 +1,16 @@
+import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
                              roc_auc_score)
+from typing import List
+
+from sklearn.preprocessing import LabelBinarizer
+
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, MetricsRepository,
                                                               RegressionMetricsEnum)
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import probs_to_labels
 
 
 class API_metrics_helper():
@@ -59,3 +67,30 @@ class API_metrics_helper():
         composer_metric = self.get_composer_metrics_mapping(metric_name[0])
         tuner_metrics = self.get_tuner_metrics_mapping(metric_name[0])
         return task_metrics, composer_metric, tuner_metrics
+
+    def check_prediction_shape(self,
+                               task: Task,
+                               metric_name: str,
+                               real: InputData,
+                               prediction: OutputData):
+        if task == TaskTypesEnum.ts_forecasting:
+            real.target = real.target[~np.isnan(prediction.predict)]
+            prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+
+        if metric_name == 'roc_auc' and len(prediction.predict.shape) == 1:
+            real.target, prediction.predict = self.multiclass_roc_auc_score(real.target,
+                                                                            prediction.predict)
+
+        if metric_name == 'f1' and len(prediction.predict.shape) > len(real.target.shape):
+            prediction.predict = probs_to_labels(prediction.predict)
+
+        return real.target, prediction.predict
+
+    def multiclass_roc_auc_score(self,
+                                 truth: List,
+                                 pred: List):
+        lb = LabelBinarizer()
+        lb.fit(truth)
+        truth = lb.transform(truth)
+        pred = lb.transform(pred)
+        return truth, pred

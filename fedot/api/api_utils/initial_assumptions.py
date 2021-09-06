@@ -28,5 +28,5 @@ class API_initial_assumptions_helper:
                                    TaskTypesEnum.regression: SecondaryNode('ridge', nodes_from=[node_lagged]),
                                    TaskTypesEnum.ts_forecasting: SecondaryNode('ridge',
                                                                                nodes_from=[PrimaryNode('lagged')])}
-
+        # init_pipeline = Pipeline(initial_assumption_dict[task.task_type])
         return initial_assumption_dict[task.task_type]
