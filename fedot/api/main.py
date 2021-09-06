@@ -1,24 +1,12 @@
 from typing import List, Optional, Tuple, Union
-import random
-from functools import partial
 
 import numpy as np
 import pandas as pd
 from fedot.api.api_utils.api_utils import Api_facade
-from fedot.core.chains.chain import Chain
-from fedot.core.chains.node import PrimaryNode
-from deap import tools
-
-from fedot.api.api_utils import (array_to_input_data, compose_fedot_model, composer_metrics_mapping,
-                                 filter_operations_by_preset, save_predict)
 from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_forecast
-from fedot.core.log import default_log
-from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
@@ -66,7 +54,7 @@ class Fedot:
 
         self.helper = Api_facade(**{'problem': problem,
                                     'preset': preset,
-                                    'timeout': learning_time,
+                                    'timeout': timeout,
                                     'composer_params': composer_params,
                                     'task_params': task_params,
                                     'seed': seed,
@@ -114,7 +102,7 @@ class Fedot:
                 self.current_pipeline = Pipeline(model)
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-            self.composer_dict['current_model'] = self.current_model
+            self.composer_dict['current_model'] = self.current_pipeline
 
         self.composer_dict['is_composing_required'] = is_composing_required
         self.composer_dict['train_data'] = self.train_data

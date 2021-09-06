@@ -2,7 +2,7 @@ import datetime
 from typing import Callable, Union, Optional
 
 import numpy as np
-
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
 from fedot.api.api_utils.initial_assumptions import API_initial_assumptions_helper
 from fedot.api.api_utils.metrics import API_metrics_helper
 from fedot.core.pipelines.pipeline import Pipeline
@@ -245,41 +245,28 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
         :return tuner_loss: loss function for tuner
         :return loss_params: parameters for tuner loss (can be None in some cases)
         """
-        loss_params = None
-        if type(metric_name) is not str:
-            tuner_loss = metric_name
-        else:
-            tuner_loss = self.get_tuner_metrics_mapping(metric_name)
-        if tuner_loss is None:
-            raise ValueError(f'Incorrect tuner metric {tuner_loss}')
+        loss_params_dict = {roc_auc: {'multi_class': 'ovr'},
+                            mean_squared_error: {'squared': False}}
+        loss_function = None
 
-        if metric_name == 'rmse':
+        if type(metric_name) is str:
+            loss_function = self.get_tuner_metrics_mapping(metric_name)
+
+        if task.task_type == TaskTypesEnum.regression:
+            loss_function = mean_squared_error
             loss_params = {'squared': False}
-        elif metric_name == 'roc_auc' and task == TaskTypesEnum.classification:
+        elif task.task_type == TaskTypesEnum.classification:
+            # Default metric for time classification
             amount_of_classes = len(np.unique(np.array(train_data.target)))
+            loss_function = roc_auc
             if amount_of_classes == 2:
-                # Binary classification
                 loss_params = None
             else:
-                # Metric for multiclass classification
-                loss_params = {'multi_class': 'ovr'}
-        return tuner_loss, loss_params
+                loss_params = loss_params_dict[loss_function]
+        else:
+            raise NotImplementedError(f'Metric for "{task.task_type}" is not supported')
 
+        if loss_function is None:
+            raise ValueError(f'Incorrect tuner metric {loss_function}')
 
-def compose_fedot_model(train_data: [InputData, MultiModalData],
-                        task: Task,
-                        logger: Log,
-                        max_depth: int,
-                        max_arity: int,
-                        pop_size: int,
-                        num_of_generations: int,
-                        available_operations: list = None,
-                        composer_metric=None,
-                        timeout: float = 5,
-                        with_tuning=False,
-                        tuner_metric=None,
-                        cv_folds: Optional[int] = None,
-                        validation_blocks: int = None,
-                        initial_pipeline=None
-                        ):
-    """ Function for composing FEDOT pipeline """
+        return loss_function, loss_params

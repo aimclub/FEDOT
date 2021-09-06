@@ -11,15 +11,18 @@ class API_params_helper:
     def __init__(self):
         return
 
-    def get_default_evo_params(self):
+    def get_default_evo_params(self, problem: str):
         """ Dictionary with default parameters for composer """
-        return {'max_depth': 2,
-                'max_arity': 3,
-                'pop_size': 20,
-                'num_of_generations': 20,
-                'timeout': 2,
-                'preset': 'light_tun'}
+        params = {'max_depth': 3,
+                  'max_arity': 4,
+                  'pop_size': 20,
+                  'num_of_generations': 20,
+                  'timeout': 2,
+                  'preset': 'light_tun'}
 
+        if problem in ['classification', 'regression']:
+            params['cv_folds'] = 3
+        return params
     def get_default_metric(self, problem: str):
         default_test_metric_dict = {
             'regression': ['rmse', 'mae'],
@@ -67,9 +70,10 @@ class API_params_helper:
     def get_initial_params(self, **input_params):
 
         if input_params['composer_params'] is None:
-            self.api_params = self.get_default_evo_params()
+            self.api_params = self.get_default_evo_params(problem=input_params['problem'])
         else:
-            self.api_params = {**self.get_default_evo_params(), **input_params['composer_params']}
+            self.api_params = {**self.get_default_evo_params(problem=input_params['problem']),
+                               **input_params['composer_params']}
 
         self.check_input_params(**input_params)
 
