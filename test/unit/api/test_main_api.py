@@ -1,19 +1,20 @@
-from sklearn.model_selection import train_test_split
-
 import os
 
 import numpy as np
 import pandas as pd
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
-from fedot.api.api_utils.data import API_data_helper
 from cases.metocean_forecasting_problem import prepare_input_data
+from examples.multi_modal_pipeline import (prepare_multi_modal_data)
+from fedot.api.api_utils.data import API_data_helper
 from fedot.api.main import Fedot
-
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
@@ -24,7 +25,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 data_checker = API_data_helper()
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
-                   'learning_time': 0.0001,
+                   'timeout': 0.0001,
                    'preset': 'ultra_light'}
 
 
@@ -56,15 +57,43 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
         threshold = 0.95
     elif task_type == 'clustering':
-        data = get_synthetic_input_data(n_samples=10000)
+        data = get_synthetic_input_data(n_samples=1000)
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
-        train_data, test_data = get_ts_data(forecast_length=12)
-        threshold = np.str(test_data.target)
+        train_data, test_data = get_ts_data(forecast_length=5)
+        threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
     return train_data, test_data, threshold
+
+
+def load_categorical_unimodal():
+    dataset_path = 'test/data/classification_with_categorical.csv'
+    full_path = os.path.join(str(fedot_project_root()), dataset_path)
+    data = InputData.from_csv(full_path)
+    train_data, test_data = train_test_data_setup(data)
+
+    return train_data, test_data
+
+
+def load_categorical_multidata():
+    task = Task(TaskTypesEnum.classification)
+    images_size = (128, 128)
+
+    files_path = os.path.join('test', 'data', 'multi_modal')
+    path = os.path.join(str(fedot_project_root()), files_path)
+
+    train_num, _, train_img, _, train_text, _ = \
+        prepare_multi_modal_data(path, task, images_size, with_split=False)
+
+    fit_data = MultiModalData({
+        'data_source_img': train_img,
+        'data_source_table': train_num,
+        'data_source_text': train_text
+    })
+
+    return fit_data
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
@@ -79,9 +108,10 @@ def test_api_predict_correct(task_type: str = 'classification'):
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
 
+
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
-    # The forecast length must be equal to 12
-    forecast_length = 12
+    # The forecast length must be equal to 5
+    forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', composer_params=composer_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
@@ -95,18 +125,18 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
 
 
 def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts_forecasting'):
-    forecast_length = 10
+    forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting',
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
-    # Define chain for prediction
+    # Define pipeline for prediction
     node_lagged = PrimaryNode('lagged')
-    chain = Pipeline(SecondaryNode('linear', nodes_from=[node_lagged]))
+    pipeline = Pipeline(SecondaryNode('linear', nodes_from=[node_lagged]))
 
     model.fit(features=train_data.features,
               target=train_data.target,
-              predefined_model=chain)
+              predefined_model=pipeline)
     ts_forecast = model.predict(features=train_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
@@ -147,6 +177,7 @@ def test_baseline_with_api():
     baseline_metrics = baseline_model.get_metrics(metric_names='f1')
 
     assert baseline_metrics['f1'] > 0
+
 
 def test_pandas_input_for_api():
     train_data, test_data, threshold = get_dataset('classification')
@@ -189,6 +220,55 @@ def test_multiobj_for_api():
     assert model.best_models is not None
 
 
+def test_categorical_preprocessing_unidata():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert True
+
+
+def test_categorical_preprocessing_unidata_predefined():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data, predefined_model='rf')
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert np.issubdtype(prediction.dtype, np.number)
+    assert np.isnan(prediction).sum() == 0
+    assert np.issubdtype(prediction_proba.dtype, np.number)
+    assert np.isnan(prediction_proba).sum() == 0
+
+
+def test_categorical_preprocessing_unidata_predefined_linear():
+    train_data, test_data = load_categorical_unimodal()
+
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+
+    assert np.issubdtype(prediction.features.dtype, np.number)
+
+
+def test_fill_nan_without_categorical():
+    train_data, test_data = load_categorical_unimodal()
+    train_data.features = np.hstack((train_data.features[:, :2], train_data.features[:, 4:]))
+    test_data.features = np.hstack((test_data.features[:, :2], test_data.features[:, 4:]))
+
+    pipeline = Pipeline(nodes=PrimaryNode('logit'))
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+    prediction_train = pipeline.predict(train_data)
+
+    assert np.isnan(prediction.features).sum() == 0
+    assert np.isnan(prediction_train.features).sum() == 0
+
+
 def test_multivariate_ts():
     forecast_length = 1
 
@@ -211,3 +291,16 @@ def test_multivariate_ts():
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
     assert forecast is not None
+
+
+def test_unshaffled_data():
+    target_column = 'species'
+    df_el, y = load_iris(return_X_y=True, as_frame=True)
+    df_el[target_column] = LabelEncoder().fit_transform(y)
+
+    features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
+
+    problem = 'classification'
+    auto_model = Fedot(problem=problem, seed=42, timeout=0.05, composer_params={'metric': 'f1'})
+    pipeline = auto_model.fit(features=features, target=target)
+    assert pipeline is not None
