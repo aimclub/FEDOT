@@ -5,8 +5,8 @@ from fedot.core.data.data import InputData
 from fedot.core.validation.split import ts_cv_generator
 
 
-def cross_validation_predictions(pipeline, reference_data: InputData, log,
-                                 cv_folds: int, validation_blocks=None):
+def cv_time_series_predictions(pipeline, reference_data: InputData, log,
+                               cv_folds: int, validation_blocks=None):
     """ Provide K-fold cross validation for time series with using in-sample
     forecasting on each step (fold)
     """

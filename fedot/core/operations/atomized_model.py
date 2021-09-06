@@ -34,7 +34,7 @@ class AtomizedModel(Operation):
         return prediction
 
     def fine_tune(self, loss_function: Callable,
-                  loss_params: Callable = None,
+                  loss_params: dict = None,
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """

@@ -15,6 +15,8 @@ from test.unit.models.test_model import classification_dataset
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
+from test.unit.tasks.test_classification import pipeline_simple, get_iris_data
+from fedot.core.validation.tune.tabular import cv_tabular_predictions
 
 _ = classification_dataset
 
@@ -71,6 +73,35 @@ def test_cv_min_kfolds_raise():
 
     with pytest.raises(ValueError):
         GPComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
+
+
+def test_tuner_cv_classification_correct():
+    folds = 2
+    dataset = get_iris_data()
+
+    simple_pipeline = pipeline_simple()
+    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=roc_auc,
+                                                loss_params={"multi_class": "ovr"},
+                                                input_data=dataset,
+                                                iterations=1, timeout=1,
+                                                cv_folds=folds)
+    is_tune_succeeded = True
+    assert is_tune_succeeded
+
+
+def test_cv_tabular_predictions_correct():
+    folds = 2
+    dataset = get_iris_data()
+
+    simple_pipeline = pipeline_simple()
+    predictions, target = cv_tabular_predictions(pipeline=simple_pipeline,
+                                                 reference_data=dataset,
+                                                 cv_folds=folds)
+    dataset_size = len(dataset.features)
+    predictions_size = len(predictions)
+    target_size = len(target)
+    assert dataset_size == predictions_size
+    assert dataset_size == target_size
 
 
 def test_composer_with_cv_optimization_correct():

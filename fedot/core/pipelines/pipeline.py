@@ -239,7 +239,7 @@ class Pipeline(Graph):
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
-                            loss_params: Callable = None,
+                            loss_params: dict = None,
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations=50, timeout: int = 5,
                             cv_folds: int = None,

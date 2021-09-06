@@ -7,7 +7,9 @@ import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.tune.time_series import cross_validation_predictions
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.validation.tune.time_series import cv_time_series_predictions
+from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
@@ -180,16 +182,19 @@ class HyperoptTuner(ABC):
     def _cross_validation(self, data, pipeline):
         """ Perform cross validation for metric evaluation """
 
-        if data.task.task_type is not TaskTypesEnum.ts_forecasting:
-            raise NotImplementedError(f'For {data.task.task_type} task cross validation not supported')
-        if self.validation_blocks is None:
-            self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
-            self.validation_blocks = 3
+        if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
+                data.data_type is DataTypesEnum.image:
+            preds, test_target = cv_tabular_predictions(pipeline, data,
+                                                        cv_folds=self.cv_folds)
 
-        # For time series forecasting task in-sample forecasting is provided
-        preds, test_target = cross_validation_predictions(pipeline, data, log=self.log,
-                                                          cv_folds=self.cv_folds,
-                                                          validation_blocks=self.validation_blocks)
+        elif data.data_type is DataTypesEnum.ts:
+            if self.validation_blocks is None:
+                self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
+                self.validation_blocks = 3
+
+            preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
+                                                            cv_folds=self.cv_folds,
+                                                            validation_blocks=self.validation_blocks)
         return test_target, preds
 
     @property

@@ -24,6 +24,7 @@ class PipelineTuner(HyperoptTuner):
                       cv_folds: int = None, validation_blocks: int = None):
         """ Function for hyperparameters tuning on the entire pipeline """
 
+        self.validation_blocks = validation_blocks
         # Define folds for cross validation
         self.cv_folds = cv_folds
 
