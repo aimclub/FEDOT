@@ -59,12 +59,16 @@ class ParametersChanger:
         return params_dict
 
     def _get_current_parameter_value(self, parameter_name):
+
         if isinstance(self.current_params, str):
             # TODO 'default_params' - need to process
             current_value = None
         else:
             # Dictionary with parameters
-            current_value = self.current_params[parameter_name]
+            try:
+                current_value = self.current_params[parameter_name]
+            except Exception as exec:
+                current_value = None
 
         return current_value
 
