@@ -33,7 +33,7 @@ def probs_to_labels(prediction: np.array):
     """ Converts predicted probabilities into labels """
     list_with_labels = []
     for list_with_probs in prediction:
-        list_with_labels.append(list_with_probs.argmax() + 1.0)
+        list_with_labels.append(list_with_probs.argmax())
 
     return list_with_labels
 

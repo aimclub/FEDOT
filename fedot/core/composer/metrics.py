@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
-
+from sklearn.preprocessing import OneHotEncoder
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
@@ -177,9 +177,9 @@ class F1(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         n_classes = reference.num_classes
         if n_classes > 2:
-            additional_params = {'average': 'macro'}
+            additional_params = {'average': 'weighted'}
         else:
-            additional_params = {}
+            additional_params = {'average': 'micro'}
         return f1_score(y_true=reference.target, y_pred=predicted.predict,
                         **additional_params)
 
@@ -200,6 +200,7 @@ class R2(QualityMetric):
         return r2_score(y_true=reference.target, y_pred=predicted.predict)
 
 
+
 class ROCAUC(QualityMetric):
     default_value = 0.5
 
@@ -209,7 +210,7 @@ class ROCAUC(QualityMetric):
 
         n_classes = reference.num_classes
         if n_classes > 2:
-            additional_params = {'multi_class': 'ovo', 'average': 'macro'}
+            additional_params = {'multi_class': 'ovr', 'average': 'macro'}
         else:
             additional_params = {}
 

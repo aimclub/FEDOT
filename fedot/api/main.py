@@ -26,29 +26,6 @@ from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
-def default_evo_params(problem):
-    """ Dictionary with default parameters for composer """
-    params = {'max_depth': 3,
-              'max_arity': 4,
-              'pop_size': 20,
-              'num_of_generations': 20,
-              'timeout': 2,
-              'preset': 'light_tun'}
-
-    if problem in ['classification', 'regression']:
-        params['cv_folds'] = 3
-    return params
-
-
-default_test_metric_dict = {
-    'regression': ['rmse', 'mae'],
-    'classification': ['roc_auc', 'f1'],
-    'multiclassification': 'f1',
-    'clustering': 'silhouette',
-    'ts_forecasting': ['rmse', 'mae']
-}
-
-
 class Fedot:
     """
     Main class for FEDOT API
@@ -85,11 +62,11 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_chain: Chain = None):
+                 initial_chain: Pipeline = None):
 
         self.helper = Api_facade(**{'problem': problem,
                                     'preset': preset,
-                                    'learning_time': learning_time,
+                                    'timeout': learning_time,
                                     'composer_params': composer_params,
                                     'task_params': task_params,
                                     'seed': seed,
@@ -102,26 +79,6 @@ class Fedot:
         self.tuner_metrics = self.helper.get_metrics_for_task(self.composer_dict['problem'],
                                                               self.composer_dict['metric_name'])
         self.composer_dict['tuner_metric'] = self.tuner_metrics
-    def _obtain_model(self, is_composing_required: bool = True):
-        execution_params = self._get_params()
-        if is_composing_required:
-            self.current_pipeline, self.best_models, self.history = compose_fedot_model(**execution_params)
-
-        if isinstance(self.best_models, tools.ParetoFront):
-            self.best_models.__class__ = ParetoFront
-            self.best_models.objective_names = self.metric_to_compose
-
-        self.current_pipeline.fit_from_scratch(self.train_data)
-
-        return self.current_pipeline
-
-    def clean(self):
-        """
-        Cleans fitted model and obtained predictions
-        """
-        self.prediction = None
-        self.prediction_labels = None
-        self.current_pipeline = None
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -144,7 +101,6 @@ class Fedot:
 
         is_composing_required = True
         if self.composer_dict['current_model'] is not None:
-        if self.current_pipeline is not None:
             is_composing_required = False
 
         if predefined_model is not None:
@@ -162,8 +118,8 @@ class Fedot:
 
         self.composer_dict['is_composing_required'] = is_composing_required
         self.composer_dict['train_data'] = self.train_data
-        self.current_model, self.best_models, self.history = self.helper.obtain_model(**self.composer_dict)
-        return self.current_model
+        self.current_pipeline, self.best_models, self.history = self.helper.obtain_model(**self.composer_dict)
+        return self.current_pipeline
 
     def predict(self,
                 features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -181,26 +137,14 @@ class Fedot:
         self.test_data = self.helper.define_data(ml_task=self.composer_dict['task'], target=self.target_name,
                                                  features=features, is_predict=True)
 
-        if self.composer_dict['task'].task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_model.predict(self.test_data, output_mode='labels')
-            self.prediction = self.current_model.predict(self.test_data, output_mode='probs')
-        if self.problem.task_type == TaskTypesEnum.classification:
-            self.prediction_labels = self.current_pipeline.predict(self.test_data, output_mode='labels')
-            self.prediction = self.current_pipeline.predict(self.test_data, output_mode='probs')
-            output_prediction = self.prediction
-        elif self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
-            # Convert forecast into one-dimensional array
-            self.prediction = self.current_pipeline.predict(self.test_data)
-            forecast = np.ravel(np.array(self.prediction.predict))
-            self.prediction.predict = forecast
-            output_prediction = self.prediction
-        else:
-            self.prediction = self.current_pipeline.predict(self.test_data)
-            output_prediction = self.prediction
+        self.prediction = self.helper.define_predictions(task_type=self.composer_dict['task'].task_type,
+                                                         current_pipeline=self.current_pipeline,
+                                                         test_data=self.test_data)
 
         if save_predictions:
             self.helper.save_predict(self.prediction)
-        return output_prediction.predict
+
+        return self.prediction.predict
 
     def predict_proba(self,
                       features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -225,7 +169,6 @@ class Fedot:
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
             self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
-            self.prediction_labels = self.current_pipeline.predict(self.test_data, output_mode='labels')
 
             if save_predictions:
                 self.helper.save_predict(self.prediction)
@@ -328,17 +271,19 @@ class Fedot:
             if self.helper.get_composer_metrics_mapping(metric_name) is NotImplemented:
                 self.composer_dict['log'].warn(f'{metric_name} is not available as metric')
             else:
-                prediction = self.prediction
                 metric_cls = MetricsRepository().metric_class_by_id(
                     self.helper.get_composer_metrics_mapping(metric_name))
-                if metric_cls.output_mode == 'labels':
-                    prediction = self.prediction_labels
-                if self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
-                    real.target = real.target[~np.isnan(prediction.predict)]
-                    prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
+
+                prediction = self.prediction
+                real.target, prediction.predict = self.helper.check_prediction_shape(
+                    task=self.composer_dict['task'].task_type,
+                    metric_name=metric_name,
+                    real=real,
+                    prediction=prediction)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
+
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics

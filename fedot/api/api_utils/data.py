@@ -28,8 +28,7 @@ class API_data_helper:
                            test_data: InputData):
 
         if task_type == TaskTypesEnum.classification:
-            prediction_labels = current_pipeline.predict(test_data, output_mode='labels')
-            prediction = current_pipeline.predict(test_data, output_mode='probs')
+            prediction = current_pipeline.predict(test_data, output_mode='labels')
             output_prediction = prediction
         elif task_type == TaskTypesEnum.ts_forecasting:
             # Convert forecast into one-dimensional array
