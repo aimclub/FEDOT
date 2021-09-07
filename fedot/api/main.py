@@ -63,9 +63,9 @@ class Fedot:
 
         self.composer_dict = self.helper.initialize_params()
         self.composer_dict['current_model'] = None
-        self.task_metrics, self.composer_metrics, \
-        self.tuner_metrics = self.helper.get_metrics_for_task(self.composer_dict['problem'],
-                                                              self.composer_dict['metric_name'])
+        self.task_metrics, self.composer_metrics, self.tuner_metrics = self.helper.get_metrics_for_task(
+            self.composer_dict['problem'],
+            self.composer_dict['metric_name'])
         self.composer_dict['tuner_metric'] = self.tuner_metrics
 
     def fit(self,
@@ -275,4 +275,3 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
-

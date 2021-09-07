@@ -23,6 +23,7 @@ class ApiParamsHelper:
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3
         return params
+
     def get_default_metric(self, problem: str):
         default_test_metric_dict = {
             'regression': ['rmse', 'mae'],

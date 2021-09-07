@@ -56,6 +56,8 @@ class ApiPresetHelper():
         if preset is not None:
             available_operations = self.filter_operations_by_preset(task, preset)
             composer_params['available_operations'] = available_operations
-            composer_params['with_tuning'] = '_tun' in preset or preset is None
+
+        if composer_params['with_tuning'] or '_tun' in preset:
+            composer_params['with_tuning'] = True
 
         return composer_params
