@@ -181,8 +181,10 @@ def fitted_target(train_predicted: OutputData, horizon_step: int = None) -> Outp
     else:
         # Perform collapse with averaging
         forecast_length = copied_data.task.task_params.forecast_length
+
         # Extend source index range
         indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
+
         # Lagged matrix with indices in cells
         _, idx_matrix = _ts_to_table(idx=indices_range,
                                      time_series=indices_range,
@@ -206,10 +208,24 @@ def in_sample_fitted_target(train_predicted: OutputData) -> OutputData:
     forecast_length = train_predicted.task.task_params.forecast_length
     all_values = []
     step = 0
-    while step < len(train_predicted.idx):
+    # Glues together parts of predictions using "in-sample" way
+    while step < len(train_predicted.predict):
         all_values.extend(train_predicted.predict[step, :])
         step += forecast_length
-    # TODO finish implementation 
+
+    # In some cases it doesn't reach the end
+    if not np.isclose(all_values[-1], train_predicted.predict[-1, -1]):
+        missing_part_index = step - len(train_predicted.predict) + 1
+        # Store missing predicted values
+        all_values.extend(train_predicted.predict[-1, missing_part_index:])
+
+    copied_data = copy(train_predicted)
+    copied_data.predict = np.array(all_values)
+    # Update indices
+    first_id = copied_data.idx[0]
+    copied_data.idx = np.arange(first_id, first_id + len(all_values))
+
+    return copied_data
 
 
 def _calculate_number_of_steps(scope_len, horizon):

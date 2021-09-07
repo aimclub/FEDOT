@@ -4,7 +4,7 @@ from sklearn.metrics import mean_absolute_error
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast, in_sample_fitted_target
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.pipelines.ts_wrappers import fitted_target
@@ -92,13 +92,13 @@ def test_in_sample_ts_forecast_correct():
 
 
 def test_fitted_target_correct():
-    from matplotlib import pyplot as plt
     simple_length, multi_length = 5, 5
     ts_input, _ = prepare_input_data(simple_length, multi_length)
 
-    pipeline = get_simple_short_lagged_pipeline()
-    train_predicted = pipeline.fit(ts_input)
+    for fitted_func in [fitted_target, in_sample_fitted_target]:
+        pipeline = get_simple_short_lagged_pipeline()
+        train_predicted = pipeline.fit(ts_input)
 
-    fitted_ts_values = fitted_target(train_predicted)
+        fitted_ts_values = fitted_func(train_predicted)
 
-    assert len(fitted_ts_values.predict) == len(ts_input.target) - 4
+        assert len(fitted_ts_values.predict) == len(ts_input.target) - 4

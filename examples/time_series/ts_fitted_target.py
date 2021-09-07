@@ -7,6 +7,10 @@ from test.unit.pipelines.test_pipeline_ts_wrappers import get_simple_short_lagge
 
 
 def show_fitted_time_series(len_forecast=24):
+    """
+    Shows an example of how to get fitted values of a time series by any
+    pipeline created by FEDOT
+    """
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 
@@ -16,18 +20,19 @@ def show_fitted_time_series(len_forecast=24):
     pipeline = get_simple_short_lagged_pipeline()
     train_predicted = pipeline.fit(ts_input)
 
-    fitted_ts_10 = fitted_target(train_predicted, 10)
+    # Get fitted values
+    fitted_ts_10 = fitted_target(train_predicted, 1)
     fitted_ts_act = fitted_target(train_predicted)
+    in_sample_validated = in_sample_fitted_target(train_predicted)
 
-    in_sample_fitted_target(train_predicted)
-
-    plt.plot(ts_input.idx, ts_input.target, label='Actual time series')
-    plt.plot(fitted_ts_10.idx, fitted_ts_10.predict, label='Fitted values horizon 10')
-    plt.plot(fitted_ts_act.idx, fitted_ts_act.predict, label='Fitted values all')
+    plt.plot(ts_input.idx, ts_input.target, label='Actual time series', alpha=0.8)
+    plt.plot(fitted_ts_10.idx, fitted_ts_10.predict, label='Fitted values horizon 10', alpha=0.2)
+    plt.plot(fitted_ts_act.idx, fitted_ts_act.predict, label='Fitted values all', alpha=0.2)
+    plt.plot(in_sample_validated.idx, in_sample_validated.predict, label='In-sample fitted values')
     plt.legend()
     plt.grid()
     plt.show()
 
 
 if __name__ == '__main__':
-    show_fitted_time_series()
+    show_fitted_time_series(55)
