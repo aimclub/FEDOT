@@ -26,7 +26,7 @@ def array_to_input_data(features_array: np.array,
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 
-class Data_definer:
+class DataDefiner:
 
     def __init__(self, strategy) -> None:
         self._strategy = strategy
@@ -49,7 +49,7 @@ class Data_definer:
                                           is_predict)
 
 
-class Strategy_to_define_data(ABC):
+class StrategyDefineData(ABC):
     @abstractmethod
     def define_data(self, features: Union[tuple, str, np.ndarray, pd.DataFrame, InputData],
                     ml_task: Task,
@@ -58,7 +58,7 @@ class Strategy_to_define_data(ABC):
         pass
 
 
-class Fedot_strategy(Strategy_to_define_data):
+class FedotStrategy(StrategyDefineData):
     def define_data(self, features: InputData,
                     ml_task: Task,
                     target: str = None,
@@ -69,7 +69,7 @@ class Fedot_strategy(Strategy_to_define_data):
         return data
 
 
-class Tuple_strategy(Strategy_to_define_data):
+class TupleStrategy(StrategyDefineData):
     def define_data(self, features: tuple,
                     ml_task: Task,
                     target: str = None,
@@ -80,7 +80,7 @@ class Tuple_strategy(Strategy_to_define_data):
         return data
 
 
-class Pandas_strategy(Strategy_to_define_data):
+class PandasStrategy(StrategyDefineData):
     def define_data(self, features: pd.DataFrame,
                     ml_task: Task,
                     target: str = None,
@@ -100,7 +100,7 @@ class Pandas_strategy(Strategy_to_define_data):
         return data
 
 
-class Numpy_strategy(Strategy_to_define_data):
+class NumpyStrategy(StrategyDefineData):
     def define_data(self, features: np.ndarray,
                     ml_task: Task,
                     target: str = None,
@@ -121,7 +121,7 @@ class Numpy_strategy(Strategy_to_define_data):
         return data
 
 
-class CSV_strategy(Strategy_to_define_data):
+class CsvStrategy(StrategyDefineData):
     def define_data(self, features: str,
                     ml_task: Task,
                     target: str = None,
@@ -148,7 +148,7 @@ class CSV_strategy(Strategy_to_define_data):
         return data
 
 
-class Mulitmodal_strategy(Strategy_to_define_data):
+class MulitmodalStrategy(StrategyDefineData):
     def define_data(self, features: dict,
                     ml_task: str,
                     target: str = None,
@@ -168,12 +168,12 @@ class Mulitmodal_strategy(Strategy_to_define_data):
 
 def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
     data_type = type(features)
-    strategy_dict = {InputData: Fedot_strategy(),
-                     tuple: Tuple_strategy(),
-                     pd.DataFrame: Pandas_strategy(),
-                     np.ndarray: Numpy_strategy(),
-                     str: CSV_strategy(),
-                     dict: Mulitmodal_strategy()}
+    strategy_dict = {InputData: FedotStrategy(),
+                     tuple: TupleStrategy(),
+                     pd.DataFrame: PandasStrategy(),
+                     np.ndarray: NumpyStrategy(),
+                     str: CsvStrategy(),
+                     dict: MulitmodalStrategy()}
 
-    data = Data_definer(strategy_dict[data_type])
+    data = DataDefiner(strategy_dict[data_type])
     return data.define_data(features, ml_task, target, is_predict)

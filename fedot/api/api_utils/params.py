@@ -3,10 +3,10 @@ import numpy as np
 
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.api.api_utils.presets import API_preset_helper
+from fedot.api.api_utils.presets import ApiPresetHelper
 
 
-class API_params_helper:
+class ApiParamsHelper:
 
     def __init__(self):
         return
@@ -62,6 +62,7 @@ class API_params_helper:
             self.metric_to_compose = self.api_params['composer_metric']
 
         if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
+            self.log.warn('The value of the forecast depth was set to 30.')
             self.task_params = TsForecastingParams(forecast_length=30)
 
         if input_params['problem'] == 'clustering':
@@ -85,7 +86,7 @@ class API_params_helper:
 
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
-        preset_model = API_preset_helper()
+        preset_model = ApiPresetHelper()
         self.api_params = preset_model.get_preset(task=self.task,
                                                   preset=input_params['preset'],
                                                   composer_params=self.api_params)

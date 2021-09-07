@@ -1,9 +1,9 @@
-from fedot.api.api_utils.presets import API_preset_helper
+from fedot.api.api_utils.presets import ApiPresetHelper
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-preset_checker = API_preset_helper()
+preset_checker = ApiPresetHelper()
 
 
 def test_presets_classification():

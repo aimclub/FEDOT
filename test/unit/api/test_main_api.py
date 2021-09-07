@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.multi_modal_pipeline import (prepare_multi_modal_data)
-from fedot.api.api_utils.data import API_data_helper
+from fedot.api.api_utils.data import ApiDataHelper
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -22,7 +22,7 @@ from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
-data_checker = API_data_helper()
+data_checker = ApiDataHelper()
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,

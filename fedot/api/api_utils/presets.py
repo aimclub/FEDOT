@@ -3,7 +3,7 @@ from fedot.core.repository.tasks import Task
 from fedot.api.api_utils.presets_types import excluded_models_dict, light_models
 
 
-class API_preset_helper():
+class ApiPresetHelper():
 
     def filter_operations_by_preset(self,
                                     task,

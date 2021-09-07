@@ -7,7 +7,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-class API_data_helper:
+class ApiDataHelper:
     def define_data(self,
                     ml_task: Task,
                     features: Union[str, np.ndarray, pd.DataFrame, InputData],

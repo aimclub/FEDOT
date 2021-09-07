@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from fedot.api.api_utils.api_utils import Api_facade
+from fedot.api.api_utils.api_utils import ApiFacade
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -52,14 +52,14 @@ class Fedot:
                  seed=None, verbose_level: int = 0,
                  initial_chain: Pipeline = None):
 
-        self.helper = Api_facade(**{'problem': problem,
-                                    'preset': preset,
-                                    'timeout': timeout,
-                                    'composer_params': composer_params,
-                                    'task_params': task_params,
-                                    'seed': seed,
-                                    'verbose_level': verbose_level,
-                                    'initial_chain': initial_chain})
+        self.helper = ApiFacade(**{'problem': problem,
+                                   'preset': preset,
+                                   'timeout': timeout,
+                                   'composer_params': composer_params,
+                                   'task_params': task_params,
+                                   'seed': seed,
+                                   'verbose_level': verbose_level,
+                                   'initial_chain': initial_chain})
 
         self.composer_dict = self.helper.initialize_params()
         self.composer_dict['current_model'] = None

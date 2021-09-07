@@ -3,8 +3,12 @@ from typing import Callable, Union, Optional
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
-from fedot.api.api_utils.initial_assumptions import API_initial_assumptions_helper
-from fedot.api.api_utils.metrics import API_metrics_helper
+from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptionsHelper
+from fedot.api.api_utils.metrics import ApiMetricsHelper
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import single_drop_mutation, single_edge_mutation, \
+    single_change_mutation, single_add_mutation
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
@@ -22,10 +26,10 @@ from deap import tools
 from fedot.core.optimisers.utils.pareto import ParetoFront
 
 
-class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
+class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
-        # the choice of the metric for the chain quality assessment during composition
+        # the choice of the metric for the pipeline quality assessment during composition
         if composer_metric is None:
             composer_metric = MetricByTask(task.task_type).metric_cls.get_value
 
@@ -48,18 +52,15 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                   task: Task,
                                   data) -> Pipeline:
 
-        # Create init chain
-        node_from_task = self.assumption_by_task(task=task)
-        node_final = self.assumption_by_data(data=data, node_from_task=node_from_task)
+        init_pipeline = self.get_initial_assumption(data=data, task=task)
 
-        init_chain = Pipeline(node_final)
-        return init_chain
+        return init_pipeline
 
     def get_composer_dict(self, composer_dict):
         filtred_dict = composer_dict.copy()
         params_dict = dict(train_data=None, task=Task, logger=Log, max_depth=None, max_arity=None, pop_size=None,
                            num_of_generations=None, available_operations=None, composer_metric=None, timeout=5,
-                           with_tuning=False, tuner_metric=None, cv_folds=None, initial_chain=None)
+                           with_tuning=False, tuner_metric=None, cv_folds=None, initial_pipeline=None)
         for key in composer_dict.keys():
             if key not in params_dict.keys():
                 filtred_dict.pop(key)
@@ -90,7 +91,7 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                 logger: Log,
                                 initial_pipeline: Pipeline = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
-        init_chain in it """
+        init_pipeline in it """
 
         builder = GPComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
@@ -140,7 +141,8 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                             tuner_metric=None,
                             cv_folds: Optional[int] = None,
                             validation_blocks: int = None,
-                            initial_pipeline=None
+                            initial_pipeline=None,
+                            genetic_scheme: str = None
                             ):
         """ Function for composing FEDOT chain model """
 
@@ -168,7 +170,18 @@ class API_composer_helper(API_metrics_helper, API_initial_assumptions_helper):
                                    validation_blocks=validation_blocks,
                                    timeout=datetime.timedelta(minutes=timeout_for_composing))
 
-        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
+        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+
+        if genetic_scheme == 'steady_state':
+            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
+        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
+                                                          mutation_types=[boosting_mutation, parameter_change_mutation,
+                                                                          single_edge_mutation, single_change_mutation,
+                                                                          single_drop_mutation,
+                                                                          single_add_mutation],
+                                                          crossover_types=[CrossoverTypesEnum.one_point,
+                                                                           CrossoverTypesEnum.subtree])
 
         builder = self.get_gp_composer_builder(task=task,
                                                metric_function=metric_function,

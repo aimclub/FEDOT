@@ -1,16 +1,16 @@
-from fedot.api.api_utils.initial_assumptions import API_initial_assumptions_helper
+from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptionsHelper
 import pandas as pd
 from fedot.core.data.data import OutputData
-from fedot.api.api_utils.metrics import API_metrics_helper
-from fedot.api.api_utils.composer import API_composer_helper
-from fedot.api.api_utils.params import API_params_helper
-from fedot.api.api_utils.data import API_data_helper
+from fedot.api.api_utils.metrics import ApiMetricsHelper
+from fedot.api.api_utils.composer import ApiComposerHelper
+from fedot.api.api_utils.params import ApiParamsHelper
+from fedot.api.api_utils.data import ApiDataHelper
 
 
-class Api_facade(API_data_helper, API_composer_helper, API_metrics_helper, API_initial_assumptions_helper):
+class ApiFacade(ApiDataHelper, ApiComposerHelper, ApiMetricsHelper, ApiInitialAssumptionsHelper):
 
     def __init__(self, **input_params):
-        self.composer_params = API_params_helper()
+        self.composer_params = ApiParamsHelper()
         self.api_params = self.composer_params.initialize_params(**input_params)
 
     def initialize_params(self):
