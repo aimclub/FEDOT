@@ -50,6 +50,9 @@ class ApiPresetHelper():
         if preset is None and 'preset' in composer_params:
             preset = composer_params['preset']
 
+        if composer_params['with_tuning'] is None:
+            composer_params['with_tuning'] = False
+
         if 'preset' in composer_params:
             del composer_params['preset']
 
