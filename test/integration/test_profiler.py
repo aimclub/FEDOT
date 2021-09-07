@@ -45,7 +45,7 @@ def test_memory_profiler_correctly():
     path = os.path.abspath('memory_profiler')
     full_path_train, full_path_test = get_scoring_data()
     arguments = {'train_file_path': full_path_train, 'test_file_path': full_path_test,
-                 'timeout': datetime.timedelta(minutes=0.1)}
+                 'timeout': 0.1}
     MemoryProfiler(run_credit_scoring_problem, kwargs=arguments,
                    path=path, roots=[run_credit_scoring_problem], max_depth=8)
 
