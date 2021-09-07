@@ -18,6 +18,7 @@ class ApiParamsHelper:
                   'pop_size': 20,
                   'num_of_generations': 20,
                   'timeout': 2,
+                  'with_tuning': True,
                   'preset': 'light_tun'}
 
         if problem in ['classification', 'regression']:
