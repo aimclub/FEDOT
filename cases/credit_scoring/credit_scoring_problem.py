@@ -26,12 +26,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                timeout: float = 5.0,
                                is_visualise=False,
                                with_tuning=False,
-                               cache_path=None):
+                               cache_path=None,
+                               target='target'):
 
     preset = 'light_tun' if with_tuning else 'light'
     automl = Fedot(problem='classification', timeout=timeout, verbose_level=4,
                    preset=preset)
-    automl.fit(train_file_path)
+    automl.fit(train_file_path, target=target)
     predict = automl.predict(test_file_path)
     metrics = automl.get_metrics()
 

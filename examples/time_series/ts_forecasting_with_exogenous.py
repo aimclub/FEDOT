@@ -133,5 +133,5 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
 
 if __name__ == '__main__':
-    data_path = os.path.join(f'{fedot_project_root()}', 'examples', '../data', 'ts_sea_level.csv')
+    data_path = os.path.join(f'{fedot_project_root()}', 'examples/data', 'ts_sea_level.csv')
     run_exogenous_experiment(path_to_file=data_path, len_forecast=250, with_exog=True)

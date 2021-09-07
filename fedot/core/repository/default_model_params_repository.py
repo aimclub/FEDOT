@@ -22,6 +22,7 @@ class DefaultModelParamsRepository:
         return repository_json
 
     def get_default_params_for_model(self, model_name: str) -> dict:
+        model_name = model_name.split('/')[0]
         if model_name in self._repo:
             return self._repo[model_name]
         return {}
