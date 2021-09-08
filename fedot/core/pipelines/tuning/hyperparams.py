@@ -1,5 +1,7 @@
 import random
 from hyperopt.pyll.stochastic import sample as hp_sample
+
+from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 
@@ -14,6 +16,7 @@ class ParametersChanger:
     def __init__(self, operation_name, current_params):
         self.operation_name = operation_name
         self.current_params = current_params
+        self.logger = default_log('ParametersChangerLog')
 
     def get_new_operation_params(self):
         """ Function return a dictionary with new parameters values """
@@ -59,12 +62,17 @@ class ParametersChanger:
         return params_dict
 
     def _get_current_parameter_value(self, parameter_name):
+
         if isinstance(self.current_params, str):
             # TODO 'default_params' - need to process
             current_value = None
         else:
             # Dictionary with parameters
-            current_value = self.current_params[parameter_name]
+            try:
+                current_value = self.current_params[parameter_name]
+            except Exception as exec:
+                self.logger.warn(f'The following error occurred during the hyperparameter configuration.{exec}')
+                current_value = None
 
         return current_value
 
