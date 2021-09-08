@@ -21,5 +21,7 @@ class ApiFacade(ApiDataHelper, ApiComposerHelper, ApiMetricsHelper, ApiInitialAs
             prediction = predicted_data.predict.tolist()
         else:
             prediction = predicted_data.predict
-        return pd.DataFrame({'Index': predicted_data.idx,
-                             'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
+        pd.DataFrame({'Index': predicted_data.idx,
+                      'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
+        self.api_params['logger'].info('Predictions was saved in current directory.')
+        return

@@ -78,11 +78,15 @@ class ApiMetricsHelper():
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
         if metric_name == 'roc_auc' and len(prediction.predict.shape) == 1:
-            real.target, prediction.predict = self.multiclass_roc_auc_score(real.target,
-                                                                            prediction.predict)
-
-        if metric_name == 'f1' and len(prediction.predict.shape) > len(real.target.shape):
+            if real.num_classes == 2:
+                prediction.predict = probs_to_labels(prediction.predict)
+            else:
+                real.target, prediction.predict = self.multiclass_roc_auc_score(real.target,
+                                                                                prediction.predict)
+        elif metric_name == 'f1' and len(prediction.predict.shape) > len(real.target.shape):
             prediction.predict = probs_to_labels(prediction.predict)
+        else:
+            pass
 
         return real.target, prediction.predict
 

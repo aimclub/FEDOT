@@ -9,6 +9,7 @@ from fedot.api.api_utils.presets import ApiPresetHelper
 class ApiParamsHelper:
 
     def __init__(self):
+        self.default_forecast_length = 30
         return
 
     def get_default_evo_params(self, problem: str):
@@ -19,7 +20,8 @@ class ApiParamsHelper:
                   'num_of_generations': 20,
                   'timeout': 2,
                   'with_tuning': False,
-                  'preset': 'light_tun'}
+                  'preset': 'light_tun',
+                  'genetic_scheme': None}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3
@@ -65,13 +67,12 @@ class ApiParamsHelper:
 
         if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
             self.log.warn('The value of the forecast depth was set to 30.')
-            self.task_params = TsForecastingParams(forecast_length=30)
+            self.task_params = TsForecastingParams(forecast_length=self.default_forecast_length)
 
         if input_params['problem'] == 'clustering':
             raise ValueError('This type of task is not not supported in API now')
 
     def get_initial_params(self, **input_params):
-
         if input_params['composer_params'] is None:
             self.api_params = self.get_default_evo_params(problem=input_params['problem'])
         else:

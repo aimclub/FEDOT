@@ -1,9 +1,8 @@
 from fedot.core.repository.operation_types_repository import get_operations_for_task, OperationTypesRepository
 from fedot.core.repository.tasks import Task
-from fedot.api.api_utils.presets_types import excluded_models_dict, light_models
 
 
-class ApiPresetHelper():
+class ApiPresetHelper:
 
     def filter_operations_by_preset(self,
                                     task,
