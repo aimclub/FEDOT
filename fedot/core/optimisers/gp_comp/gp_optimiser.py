@@ -303,6 +303,7 @@ class GPGraphOptimiser:
             self.max_depth += 1
 
     def get_best_individual(self, individuals: List[Any], equivalents_from_current_pop=True) -> Any:
+        individuals = correct_if_population_has_nans(individuals)
         best_ind = min(individuals, key=lambda ind: ind.fitness)
         if equivalents_from_current_pop:
             equivalents = self.simpler_equivalents_of_best_ind(best_ind)
@@ -397,9 +398,7 @@ class GPGraphOptimiser:
         evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function,
                              graph_generation_params=self.graph_generation_params,
                              timer=timer, is_multi_objective=self.parameters.multi_objective)
-        self.population = [ind for ind in self.population if ind.fitness is not None]
-        if len(self.population) == 0:
-            raise ValueError('All evaluations of fitness was unsuccessful.')
+        self.population = correct_if_population_has_nans(self.population)
 
 
 @dataclass
@@ -413,3 +412,11 @@ class GraphGenerationParams:
     adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Optional[List[Callable]] = None
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
+
+
+def correct_if_population_has_nans(population):
+    population = [ind for ind in population if ind.fitness is not None]
+    if len(population) == 0:
+        raise ValueError('All evaluations of fitness was unsuccessful.')
+
+    return population
