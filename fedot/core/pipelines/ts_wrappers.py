@@ -164,7 +164,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     return final_forecast
 
 
-def fitted_target(train_predicted: OutputData, horizon_step: int = None) -> OutputData:
+def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> OutputData:
     """ The method converts a multidimensional lagged array into an
     one-dimensional array - time series based on predicted values for training sample
 
@@ -203,7 +203,7 @@ def fitted_target(train_predicted: OutputData, horizon_step: int = None) -> Outp
         return copied_data
 
 
-def in_sample_fitted_target(train_predicted: OutputData) -> OutputData:
+def in_sample_fitted_values(train_predicted: OutputData) -> OutputData:
     """ Perform in sample validation based on training sample """
     forecast_length = train_predicted.task.task_params.forecast_length
     all_values = []
