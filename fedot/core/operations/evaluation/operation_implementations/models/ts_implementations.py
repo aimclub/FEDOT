@@ -440,7 +440,7 @@ class TimeSeriesDataset(Dataset):
         return self.data.features.shape[0]
 
     def __getitem__(self, idx):
-        return torch.Tensor(self.data.features[idx]), torch.Tensor(self.data.target[idx])
+        return torch.Tensor(self.data.features[idx]), torch.Tensor([self.data.target[idx]])
 
 
 class TimeSeriesDatasetTest(TimeSeriesDataset):

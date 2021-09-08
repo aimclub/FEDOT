@@ -48,6 +48,28 @@ def get_ts_data(n_steps=80, forecast_length=5):
                      data_type=DataTypesEnum.ts)
     return train_test_data_setup(data)
 
+def get_ts_data_long(n_steps=80, forecast_length=5):
+    """ Prepare data from csv file with time series and take needed number of
+    elements
+
+    :param n_steps: number of elements in time series to take
+    :param forecast_length: the length of forecast
+    """
+    project_root_path = str(fedot_project_root())
+    file_path = os.path.join(project_root_path, 'test/data/ts_long.csv')
+    df = pd.read_csv(file_path)
+    df = df[df["series_id"] == "temp"]
+    time_series = np.array(df['value'])[:n_steps]
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
+
+    data = InputData(idx=np.arange(0, len(time_series)),
+                     features=time_series,
+                     target=time_series,
+                     task=task,
+                     data_type=DataTypesEnum.ts)
+    return train_test_data_setup(data)
+
 
 def get_multiscale_pipeline():
     # First branch
@@ -239,9 +261,9 @@ def test_multistep_in_sample_forecasting():
 
 
 def test_clstm_forecasting():
-    horizon = 12
-    window_size = 7
-    train_data, test_data = get_ts_data(n_steps=200, forecast_length=horizon)
+    horizon = 1
+    window_size = 100
+    train_data, test_data = get_ts_data_long(n_steps=2000, forecast_length=1)
 
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': window_size}
@@ -257,17 +279,12 @@ def test_clstm_forecasting():
         "cnn2_kernel_size": 3,
         "cnn2_output_size": 16
     }
+
     pipeline = Pipeline(node_root)
     pipeline.fit(train_data)
-    predicted = out_of_sample_ts_forecast(
-        pipeline=pipeline,
-        input_data=test_data,
-        horizon=horizon
-    )
+
+    predicted = pipeline.predict(test_data)
     print(predicted.predict)
     print(test_data.target)
 
-
     assert len(predicted.predict) == horizon
-
-
