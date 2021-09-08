@@ -10,6 +10,10 @@ def show_fitted_time_series(len_forecast=24):
     """
     Shows an example of how to get fitted values of a time series by any
     pipeline created by FEDOT
+
+    fitted values - are the predictions of the pipelines on the training sample.
+    For time series, these values show how well the model reproduces the time
+    series structure
     """
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
@@ -20,9 +24,11 @@ def show_fitted_time_series(len_forecast=24):
     pipeline = get_simple_short_lagged_pipeline()
     train_predicted = pipeline.fit(ts_input)
 
-    # Get fitted values
-    fitted_ts_10 = fitted_target(train_predicted, 1)
+    # Get fitted values for every 10th forecast
+    fitted_ts_10 = fitted_target(train_predicted, 10)
+    # Average for all forecasting horizons
     fitted_ts_act = fitted_target(train_predicted)
+    # In-sample forecasting fitted values
     in_sample_validated = in_sample_fitted_target(train_predicted)
 
     plt.plot(ts_input.idx, ts_input.target, label='Actual time series', alpha=0.8)
@@ -35,4 +41,4 @@ def show_fitted_time_series(len_forecast=24):
 
 
 if __name__ == '__main__':
-    show_fitted_time_series(55)
+    show_fitted_time_series()
