@@ -85,10 +85,10 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
         if composer_dict['is_composing_required']:
             api_params_dict, composer_params_dict, tuner_params_dict = self.get_composer_dict(composer_dict)
 
-            self.current_model, \
-            self.best_models, self.history = self.compose_fedot_model(api_params=api_params_dict,
-                                                                      composer_params=composer_params_dict,
-                                                                      tuning_params=tuner_params_dict)
+            self.current_model, self.best_models, self.history = self.compose_fedot_model(
+                api_params=api_params_dict,
+                composer_params=composer_params_dict,
+                tuning_params=tuner_params_dict)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront

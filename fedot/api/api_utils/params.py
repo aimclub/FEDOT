@@ -66,7 +66,7 @@ class ApiParamsHelper:
             self.metric_to_compose = self.api_params['composer_metric']
 
         if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
-            self.log.warn('The value of the forecast depth was set to 30.')
+            self.log.warn('The value of the forecast depth was set to {}.'.format(self.default_forecast_length))
             self.task_params = TsForecastingParams(forecast_length=self.default_forecast_length)
 
         if input_params['problem'] == 'clustering':
