@@ -357,11 +357,13 @@ def test_gp_composer_random_graph_generation_looping():
         num_of_generations=5,
         crossover_prob=0.8,
         mutation_prob=0.8,
-        mutation_strength=MutationStrengthEnum.mean,
-        start_depth=None,
-        validation_blocks=None
+        mutation_strength=MutationStrengthEnum.mean
     )
 
     graph = random_graph(params=params, requirements=requirements, max_depth=None)
+    nodes_name = list(map(str, graph.nodes))
 
+    for primary_node in requirements.primary:
+        assert primary_node in nodes_name
+        assert nodes_name.count(primary_node) == 1
     assert constraint_function(graph, params) is True

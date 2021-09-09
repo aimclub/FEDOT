@@ -15,9 +15,7 @@ def random_graph(params, requirements, max_depth=None) -> Any:
     is_correct_graph = False
     graph = None
     n_iter = 0
-
-    if len(requirements.primary) == 1 and requirements.max_arity > 1:
-        requirements.min_arity = requirements.max_arity = 1
+    requirements = checking_requirements(requirements)
 
     while not is_correct_graph:
         graph = OptGraph()
@@ -34,6 +32,13 @@ def random_graph(params, requirements, max_depth=None) -> Any:
                              f' with current params {params} and requirements {requirements}')
 
     return graph
+
+
+def checking_requirements(requirements):
+    if len(requirements.primary) == 1 and requirements.max_arity > 1:
+        requirements.min_arity = requirements.max_arity = 1
+
+    return requirements
 
 
 def graph_growth(graph: Any, node_parent: Any, requirements, max_depth: int):
