@@ -7,47 +7,55 @@ from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
-max_iters = 1000
+MAX_ITERS = 5
 
 
 def random_graph(params, requirements, max_depth=None) -> Any:
     max_depth = max_depth if max_depth else requirements.max_depth
-
-    def graph_growth(graph: Any, node_parent: Any):
-        offspring_size = randint(requirements.min_arity, requirements.max_arity)
-        for offspring_node in range(offspring_size):
-            height = graph.operator.distance_to_root_level(node_parent)
-            is_max_depth_exceeded = height >= max_depth - 1
-            is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
-            if is_max_depth_exceeded or is_primary_node_selected:
-                primary_node = OptNode(nodes_from=None,
-                                       content={'name': choice(requirements.primary),
-                                                'params': 'default_params'})
-                node_parent.nodes_from.append(primary_node)
-                graph.add_node(primary_node)
-            else:
-                secondary_node = OptNode(nodes_from=[],
-                                         content={'name': choice(requirements.secondary),
-                                                  'params': 'default_params'})
-                graph.add_node(secondary_node)
-                node_parent.nodes_from.append(secondary_node)
-                graph_growth(graph, secondary_node)
-
     is_correct_graph = False
     graph = None
-    n_iters = 0
-    while not is_correct_graph or n_iters > max_iters:
+    n_iter = 0
+
+    if len(requirements.primary) == 1 and requirements.max_arity > 1:
+        requirements.min_arity = requirements.max_arity = 1
+
+    while not is_correct_graph:
         graph = OptGraph()
         graph_root = OptNode(nodes_from=[],
                              content={'name': choice(requirements.secondary),
                                       'params': 'default_params'})
         graph.add_node(graph_root)
-        graph_growth(graph, graph_root)
+        graph_growth(graph, graph_root, requirements, max_depth)
         is_correct_graph = constraint_function(graph, params)
-        n_iters += 1
-        if n_iters > max_iters:
-            warnings.warn(f'Random_graph generation failed for {n_iters} iterations.')
+        n_iter += 1
+        if n_iter > MAX_ITERS:
+            warnings.warn(f'Random_graph generation failed for {n_iter} iterations.')
+            raise ValueError(f'Random_graph generation failed. Cannot find valid pipeline'
+                             f' with current params {params} and requirements {requirements}')
+
     return graph
+
+
+def graph_growth(graph: Any, node_parent: Any, requirements, max_depth: int):
+    offspring_size = randint(requirements.min_arity, requirements.max_arity)
+
+    for offspring_node in range(offspring_size):
+        height = graph.operator.distance_to_root_level(node_parent)
+        is_max_depth_exceeded = height >= max_depth - 1
+        is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
+        if is_max_depth_exceeded or is_primary_node_selected:
+            primary_node = OptNode(nodes_from=None,
+                                   content={'name': choice(requirements.primary),
+                                            'params': 'default_params'})
+            node_parent.nodes_from.append(primary_node)
+            graph.add_node(primary_node)
+        else:
+            secondary_node = OptNode(nodes_from=[],
+                                     content={'name': choice(requirements.secondary),
+                                              'params': 'default_params'})
+            graph.add_node(secondary_node)
+            node_parent.nodes_from.append(secondary_node)
+            graph_growth(graph, secondary_node, requirements, max_depth)
 
 
 def equivalent_subtree(graph_first: Any, graph_second: Any) -> List[Tuple[Any, Any]]:

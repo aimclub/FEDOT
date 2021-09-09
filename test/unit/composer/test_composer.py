@@ -8,14 +8,20 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer import ComposerRequirements
+from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.fixed_structure_composer import FixedStructureComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements, \
     sample_split_ratio_for_tasks
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.gp_comp.gp_operators import random_graph
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum, \
+    GraphGenerationParams
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -325,3 +331,37 @@ def test_gp_composer_builder_default_params_correct():
     # Data operations and models must be in this default primary operations list
     assert 'ridge' in primary_operations
     assert 'scaling' in primary_operations
+
+
+def test_gp_composer_random_graph_generation_looping():
+    """ Test checks random_graph valid generation without freezing in loop of creation.
+    """
+    task = Task(TaskTypesEnum.regression)
+
+    params = GraphGenerationParams(
+        adapter=PipelineAdapter(),
+        rules_for_constraint=None,
+        advisor=PipelineChangeAdvisor(task=task)
+    )
+
+    requirements = GPComposerRequirements(
+        primary=['simple_imputation'],
+        secondary=['ridge', 'dtreg'],
+        timeout=datetime.timedelta(seconds=300),
+        max_pipeline_fit_time=None,
+        max_depth=2,
+        max_arity=2,
+        cv_folds=None,
+        advisor=PipelineChangeAdvisor(task=task),
+        pop_size=10,
+        num_of_generations=5,
+        crossover_prob=0.8,
+        mutation_prob=0.8,
+        mutation_strength=MutationStrengthEnum.mean,
+        start_depth=None,
+        validation_blocks=None
+    )
+
+    graph = random_graph(params=params, requirements=requirements, max_depth=None)
+
+    assert constraint_function(graph, params) is True
