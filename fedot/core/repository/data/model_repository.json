@@ -149,8 +149,7 @@
     "clstm": {
       "meta": "ts_model",
       "tags": [
-        "simple",
-        "ts_specific"
+        "simple"
       ]
     },
     "bernb": {

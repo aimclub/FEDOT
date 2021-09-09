@@ -63,6 +63,8 @@
     "cnn1_kernel_size": 5,
     "cnn1_output_size": 16,
     "cnn2_kernel_size": 3,
-    "cnn2_output_size": 32
+    "cnn2_output_size": 32,
+    "batch_size": 64,
+    "num_epochs": 10
   }
 }

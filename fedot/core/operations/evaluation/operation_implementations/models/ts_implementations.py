@@ -357,21 +357,23 @@ class CLSTMImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params):
         super().__init__(log)
         self.params = params
-        self.epochs = 300
+        self.epochs = params.get("num_epochs")
         self.model = LSTMNetwork(
             input_size=params.get("input_size"),
             output_size=params.get("forecast_length"),
             hidden_size=params.get("hidden_size")
         )
+        self.batch_size = params.get("batch_size")
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=params.get("learning_rate"))
         self.criterion = nn.MSELoss()
 
     def fit(self, train_data: InputData):
         self.model.train()
         dataset = TimeSeriesDataset(train_data)
-        data_loader = DataLoader(dataset, batch_size=64)
+        data_loader = DataLoader(dataset, batch_size=self.batch_size)
         self.model.init_hidden(data_loader.batch_size)
         for i in range(self.epochs):
+            print("epoch", i+1, "/", self.epochs)
             for x, y in data_loader:
                 self.model.init_hidden(x.size(0))
                 self.optimizer.zero_grad()
@@ -408,14 +410,17 @@ class LSTMNetwork(nn.Module):
 
         self.hidden_size = hidden_size
         self.cnn2_output_size = cnn2_output_size
-
-        self.cnn1 = nn.Conv1d(in_channels=input_size, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size)
-        self.relu = nn.ReLU()
-        self.cnn2 = nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size)
-
+        self.conv_block1 = nn.Sequential(
+            nn.Conv1d(in_channels=input_size, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
+            nn.ReLU()
+        )
+        self.conv_block2 = nn.Sequential(
+            nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
+            nn.ReLU()
+        )
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size)
         self.hidden_cell = None
-        self.linear = nn.Linear(self.hidden_size, output_size)
+        self.linear = nn.Linear(2*self.hidden_size, output_size)
 
     def init_hidden(self, batch_size):
         self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size),
@@ -424,10 +429,12 @@ class LSTMNetwork(nn.Module):
     def forward(self, x):
         if self.hidden_cell is None:
             raise Exception
-        x = self.relu(self.cnn1(x))
-        x = self.cnn2(x).permute(2, 0, 1)
-        lstm_out, self.hidden_cell = self.lstm(x, self.hidden_cell)
-        predictions = self.linear(self.hidden_cell[0])
+        x = self.conv_block1(x)
+        x = self.conv_block2(x)
+        x = x.permute(2, 0, 1)
+        out, self.hidden_cell = self.lstm(x, self.hidden_cell)
+        hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        predictions = self.linear(hidden_cat)
 
         return predictions
 
