@@ -7,15 +7,15 @@ from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 
-MAX_ITERS = 5
+MAX_ITERS = 1000
 
 
-def random_graph(params, requirements, max_depth=None) -> Any:
+def random_graph(params, requirements, max_depth=None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False
     graph = None
     n_iter = 0
-    requirements = checking_requirements(requirements)
+    requirements = modify_requirements(requirements)
 
     while not is_correct_graph:
         graph = OptGraph()
@@ -34,14 +34,20 @@ def random_graph(params, requirements, max_depth=None) -> Any:
     return graph
 
 
-def checking_requirements(requirements):
+def modify_requirements(requirements):
+    """Function modify requirements if necessary.
+    Example: Graph with only one primary node should consists of only one primary node
+    without duplication, because this causes errors. Therefore minimum and maximum arity
+    become equal to one.
+    """
     if len(requirements.primary) == 1 and requirements.max_arity > 1:
         requirements.min_arity = requirements.max_arity = 1
 
     return requirements
 
 
-def graph_growth(graph: Any, node_parent: Any, requirements, max_depth: int):
+def graph_growth(graph: OptGraph, node_parent: OptNode, requirements, max_depth: int):
+    """Function create a graph and links between nodes"""
     offspring_size = randint(requirements.min_arity, requirements.max_arity)
 
     for offspring_node in range(offspring_size):
