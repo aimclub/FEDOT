@@ -17,10 +17,12 @@ from fedot.core.operations.evaluation. \
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
-
+from sklearn.preprocessing import StandardScaler
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, TensorDataset
+
+
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -358,42 +360,100 @@ class CLSTMImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.epochs = params.get("num_epochs")
-        self.model = LSTMNetwork(
-            input_size=params.get("input_size"),
-            output_size=params.get("forecast_length"),
-            hidden_size=params.get("hidden_size")
-        )
+        self.input_size = params.get("input_size")
+        self.output_size = params.get("forecast_length")
+        self.hidden_size = int(params.get("hidden_size"))
         self.batch_size = params.get("batch_size")
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=params.get("learning_rate"))
+        self.learning_rate = params.get("learning_rate")
+        self.lag_len = int(params.get("window_size"))
+
+        self.device = self._get_device()
+
+        self.model = LSTMNetwork(
+            input_size=self.input_size,
+            output_size=self.output_size,
+            hidden_size=self.hidden_size
+        ).to(self.device)
+
+
+
+        self.scaler = StandardScaler()
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.criterion = nn.MSELoss()
 
     def fit(self, train_data: InputData):
+        data_scaled = self._fit_transform_scaler(train_data)
+        x_train, y_train = self._generate_lags_train(data_scaled)
+        data_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=self.batch_size)
+
         self.model.train()
-        dataset = TimeSeriesDataset(train_data)
-        data_loader = DataLoader(dataset, batch_size=self.batch_size)
-        self.model.init_hidden(data_loader.batch_size)
         for i in range(self.epochs):
-            print("epoch", i+1, "/", self.epochs)
             for x, y in data_loader:
                 self.model.init_hidden(x.size(0))
                 self.optimizer.zero_grad()
-                output = self.model(x.unsqueeze(1))
-                loss = self.criterion(output, y)
+                output = self.model(x.unsqueeze(1).to(self.device))
+                loss = self.criterion(output, y.to(self.device))
                 loss.backward()
                 self.optimizer.step()
 
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
         self.model.eval()
-        x = torch.Tensor(input_data.features)
+        data_scaled = self._transform_scaler(input_data)
+        x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
+        x = torch.Tensor(x).to(self.device)
         self.model.init_hidden(x.size(0))
         output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
+        rescaled_output = self._inverse_transform_scaler(output)
         output_data = self._convert_to_output(input_data,
-                                              predict=output,
+                                              predict=rescaled_output,
                                               data_type=DataTypesEnum.table)
         return output_data
 
+    def _fit_transform_scaler(self, data: InputData):
+        return self.scaler.fit_transform(data.features.reshape(-1, 1)).reshape(-1)
+
+    def _inverse_transform_scaler(self, data: np.ndarray):
+        return self.scaler.inverse_transform(data.reshape(-1, 1)).reshape(-1)
+
+    def _transform_scaler(self, data: InputData):
+        return self.scaler.transform(data.features.reshape(-1, 1)).reshape(-1)
+
     def get_params(self):
         return self.params
+
+    def _generate_lags_train(self, data):
+        x, y = [], []
+        for i in range(len(data) - self.lag_len-1):
+            x_i = data[i: i + self.lag_len]
+            y_i = data[i + self.lag_len + 1]
+            x.append(x_i)
+            y.append(y_i)
+        x_arr = np.array(x).reshape(-1, self.lag_len)
+        y_arr = np.array(y).reshape(-1, self.output_size)
+        x = torch.from_numpy(x_arr).float()
+        y = torch.from_numpy(y_arr).float()
+        return x, y
+
+    def _generate_lags_test(self, data, is_fit_pipeline_stage=True):
+        if is_fit_pipeline_stage:
+            x = []
+            for i in range(len(data) - self.lag_len+1):
+                x_i = data[i: i + self.lag_len]
+                x.append(x_i)
+            x_arr = np.array(x).reshape(-1, self.lag_len)
+            x = torch.from_numpy(x_arr).float()
+            return x
+        else:
+            return data[-self.lag_len:].reshape(1, -1)
+
+    @staticmethod
+    def _get_device():
+        if torch.cuda.is_available():
+            device = 'cuda:0'
+        else:
+            device = 'cpu'
+        return device
+
 
 
 class LSTMNetwork(nn.Module):
@@ -404,9 +464,11 @@ class LSTMNetwork(nn.Module):
                  cnn1_kernel_size=5,
                  cnn1_output_size=16,
                  cnn2_kernel_size=3,
-                 cnn2_output_size=32
+                 cnn2_output_size=32,
+                 device="cpu"
                  ):
         super().__init__()
+        self.device = device
 
         self.hidden_size = hidden_size
         self.cnn2_output_size = cnn2_output_size
@@ -418,13 +480,13 @@ class LSTMNetwork(nn.Module):
             nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
             nn.ReLU()
         )
-        self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size)
+        self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.2)
         self.hidden_cell = None
-        self.linear = nn.Linear(2*self.hidden_size, output_size)
+        self.linear = nn.Linear(self.hidden_size, output_size)
 
     def init_hidden(self, batch_size):
-        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size),
-                            torch.zeros(1, batch_size, self.hidden_size))
+        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(self.device),
+                            torch.zeros(1, batch_size, self.hidden_size).to(self.device))
 
     def forward(self, x):
         if self.hidden_cell is None:
@@ -433,29 +495,7 @@ class LSTMNetwork(nn.Module):
         x = self.conv_block2(x)
         x = x.permute(2, 0, 1)
         out, self.hidden_cell = self.lstm(x, self.hidden_cell)
-        hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
-        predictions = self.linear(hidden_cat)
+        #hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        predictions = self.linear(self.hidden_cell[0])
 
         return predictions
-
-
-class TimeSeriesDataset(Dataset):
-    def __init__(self, data: InputData):
-        self.data = data
-
-    def __len__(self):
-        return self.data.features.shape[0]
-
-    def __getitem__(self, idx):
-        return torch.Tensor(self.data.features[idx]), torch.Tensor([self.data.target[idx]])
-
-
-class TimeSeriesDatasetTest(TimeSeriesDataset):
-    def __init__(self, data: InputData):
-        super().__init__(data)
-
-    def __len__(self):
-        return self.data.features.shape[0]
-
-    def __getitem__(self, idx):
-        return torch.Tensor(self.data.features[idx])

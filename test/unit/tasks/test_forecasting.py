@@ -49,8 +49,6 @@ def get_ts_data(n_steps=80, forecast_length=5):
     return train_test_data_setup(data)
 
 
-
-
 def get_multiscale_pipeline():
     # First branch
     node_lagged_1 = PrimaryNode('lagged')
@@ -240,6 +238,32 @@ def test_multistep_in_sample_forecasting():
     assert len(predicted) == horizon
 
 
+def test_clstm_forecasting():
+    horizon = 12
+    window_size = 20
+    n_steps = 200
+    train_data, test_data = get_ts_data(n_steps=n_steps+1, forecast_length=1)
 
+    node_root = PrimaryNode("clstm")
+    node_root.custom_params = {
+        "input_size": 1,
+        "forecast_length": 1,
+        "hidden_size": 300,
+        "learning_rate": 0.001,
+        "cnn1_kernel_size": 5,
+        "cnn1_output_size": 16,
+        "cnn2_kernel_size": 3,
+        "cnn2_output_size": 32,
+        "num_epochs": 10,
+        "window_size": window_size
+    }
 
+    pipeline = Pipeline(node_root)
+    pipeline.fit(train_data)
+    predicted = out_of_sample_ts_forecast(
+        pipeline=pipeline,
+        input_data=test_data,
+        horizon=horizon
+    )
 
+    assert len(predicted) == horizon

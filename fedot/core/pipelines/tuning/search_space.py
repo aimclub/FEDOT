@@ -127,6 +127,17 @@ class SearchSpace:
                 'lag_1': (hp.uniform, [2, 200]),
                 'lag_2': (hp.uniform, [2, 800])
             },
+            'clstm': {
+                'window_size': (hp.uniform, [1, 200]),
+                'hidden_size': (hp.uniform, [20, 200]),
+                'learning_rate': (hp.uniform, [0.0005, 0.005]),
+                'cnn1_kernel_size': (hp.choice, [[3, 4, 5, 6, 7]]),
+                'cnn1_output_size': (hp.choice, [[8, 16, 32, 64]]),
+                'cnn2_kernel_size': (hp.choice, [[3, 4, 5, 6, 7]]),
+                'cnn2_output_size': (hp.choice, [[8, 16, 32, 64]]),
+                'batch_size': (hp.choice, [[64, 128]]),
+                'num_epochs': (hp.choice, [[10, 20, 50, 100]]),
+            },
             'pca': {
                 'n_components': (hp.uniform, [0.1, 0.99]),
                 'svd_solver': (hp.choice, [['full']])

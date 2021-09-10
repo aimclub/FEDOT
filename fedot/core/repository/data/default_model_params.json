@@ -58,6 +58,7 @@
   "clstm": {
     "input_size": 1,
     "forecast_length": 1,
+    "window_size": 24,
     "hidden_size": 200,
     "learning_rate": 0.001,
     "cnn1_kernel_size": 5,
@@ -66,5 +67,6 @@
     "cnn2_output_size": 32,
     "batch_size": 64,
     "num_epochs": 10
+
   }
 }
