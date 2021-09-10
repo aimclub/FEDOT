@@ -2,6 +2,9 @@ from typing import Optional
 from copy import copy
 
 import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
 from scipy import stats
 from scipy.special import inv_boxcox, boxcox
 from statsmodels.tsa.api import STLForecast
@@ -18,11 +21,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 from sklearn.preprocessing import StandardScaler
-import torch
-import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, TensorDataset
-
-
 
 
 class ARIMAImplementation(ModelImplementation):
@@ -367,21 +365,19 @@ class CLSTMImplementation(ModelImplementation):
         self.learning_rate = params.get("learning_rate")
         self.lag_len = int(params.get("window_size"))
 
+        # Where we will perform training: cpu or gpu (if it is possible)
         self.device = self._get_device()
 
-        self.model = LSTMNetwork(
-            input_size=self.input_size,
-            output_size=self.output_size,
-            hidden_size=self.hidden_size
-        ).to(self.device)
-
-
+        self.model = LSTMNetwork(input_size=self.input_size,
+                                 output_size=self.output_size,
+                                 hidden_size=self.hidden_size)
 
         self.scaler = StandardScaler()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.criterion = nn.MSELoss()
 
     def fit(self, train_data: InputData):
+        self.model = self.model.to(self.device)
         data_scaled = self._fit_transform_scaler(train_data)
         x_train, y_train = self._generate_lags_train(data_scaled)
         data_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=self.batch_size)
@@ -389,10 +385,12 @@ class CLSTMImplementation(ModelImplementation):
         self.model.train()
         for i in range(self.epochs):
             for x, y in data_loader:
-                self.model.init_hidden(x.size(0))
+                x = x.to(self.device)
+                y = y.to(self.device)
+                self.model.init_hidden(x.size(0), self.device)
                 self.optimizer.zero_grad()
-                output = self.model(x.unsqueeze(1).to(self.device))
-                loss = self.criterion(output, y.to(self.device))
+                output = self.model(x.unsqueeze(1))
+                loss = self.criterion(output, y)
                 loss.backward()
                 self.optimizer.step()
 
@@ -401,7 +399,7 @@ class CLSTMImplementation(ModelImplementation):
         data_scaled = self._transform_scaler(input_data)
         x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
         x = torch.Tensor(x).to(self.device)
-        self.model.init_hidden(x.size(0))
+        self.model.init_hidden(x.size(0), self.device)
         output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
         rescaled_output = self._inverse_transform_scaler(output)
         output_data = self._convert_to_output(input_data,
@@ -455,7 +453,6 @@ class CLSTMImplementation(ModelImplementation):
         return device
 
 
-
 class LSTMNetwork(nn.Module):
     def __init__(self,
                  input_size=1,
@@ -465,10 +462,8 @@ class LSTMNetwork(nn.Module):
                  cnn1_output_size=16,
                  cnn2_kernel_size=3,
                  cnn2_output_size=32,
-                 device="cpu"
                  ):
         super().__init__()
-        self.device = device
 
         self.hidden_size = hidden_size
         self.cnn2_output_size = cnn2_output_size
@@ -484,9 +479,9 @@ class LSTMNetwork(nn.Module):
         self.hidden_cell = None
         self.linear = nn.Linear(self.hidden_size, output_size)
 
-    def init_hidden(self, batch_size):
-        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(self.device),
-                            torch.zeros(1, batch_size, self.hidden_size).to(self.device))
+    def init_hidden(self, batch_size, device):
+        self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(device),
+                            torch.zeros(1, batch_size, self.hidden_size).to(device))
 
     def forward(self, x):
         if self.hidden_cell is None:

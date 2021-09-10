@@ -15,6 +15,7 @@ from fedot.core.utils import fedot_project_root
 import pandas as pd
 import numpy as np
 
+
 def get_ts_data_long(n_steps=80, forecast_length=5):
     """ Prepare data from csv file with time series and take needed number of
     elements
