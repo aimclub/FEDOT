@@ -490,7 +490,7 @@ class LSTMNetwork(nn.Module):
         x = self.conv_block2(x)
         x = x.permute(2, 0, 1)
         out, self.hidden_cell = self.lstm(x, self.hidden_cell)
-        #hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
+        #  hidden_cat = torch.cat([self.hidden_cell[0], self.hidden_cell[1]], dim=2)
         predictions = self.linear(self.hidden_cell[0])
 
         return predictions
