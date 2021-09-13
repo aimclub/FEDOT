@@ -259,8 +259,6 @@ class GPComposerBuilder:
         return self
 
     def with_initial_pipeline(self, initial_pipeline: Optional[Pipeline]):
-        if not isinstance(initial_pipeline, Pipeline):
-            raise ValueError(f'Incorrect type of initial_pipeline: Pipeline needed, but has {type(initial_pipeline)}')
         self._composer.initial_pipeline = initial_pipeline
         return self
 
