@@ -98,12 +98,14 @@ class PipelineTemplate:
         fitted_ops = {}
         if path is None:
             fitted_ops = self._create_fitted_operations()
-            for operation in pipeline_template_dict['nodes']:
-                saved_key = f'operation_{operation["operation_id"]}'
-                if saved_key in fitted_ops.keys():
-                    pipeline_template_dict['fitted_operation_path'] = saved_key
-                else:
-                    pipeline_template_dict['fitted_operation_path'] = None
+
+            if fitted_ops is not None:
+                for operation in pipeline_template_dict['nodes']:
+                    saved_key = f'operation_{operation["operation_id"]}'
+                    if saved_key in fitted_ops.keys():
+                        pipeline_template_dict['fitted_operation_path'] = saved_key
+                    else:
+                        pipeline_template_dict['fitted_operation_path'] = None
 
         json_data = json.dumps(pipeline_template_dict, indent=4)
 
@@ -171,7 +173,9 @@ class PipelineTemplate:
     def import_pipeline(self, source: Union[str, dict], dict_fitted_operations: dict = None):
         path = None
 
-        if type(source) is str:
+        if source is None:
+            raise ValueError('Cannot import pipeline: the source is None')
+        elif type(source) is str:
             path = source
             self._check_path_correct(path)
 

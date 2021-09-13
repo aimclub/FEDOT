@@ -67,7 +67,7 @@ def generate_cascade_decompose_pipeline():
     return pipeline
 
 
-def get_classification_data(classes_amount: int):
+def get_classification_data(classes_amount: int = 2):
     """ Function generate synthetic dataset for classification task
 
     :param classes_amount: amount of classes to predict
