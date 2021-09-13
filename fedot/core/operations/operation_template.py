@@ -107,9 +107,8 @@ class OperationTemplate(OperationTemplateAbstract):
             # Check if it is needed to process "model in model" cases
             # such strategy is needed for RANSAC or RFE algorithms
             for wrapped_operation in wrapped_operations:
-                if params is not None:
-                    if wrapped_operation in params:
-                        del params[wrapped_operation]
+                if params is not None and wrapped_operation in params:
+                    del params[wrapped_operation]
 
             if isinstance(self.custom_params, dict):
                 for key, value in self.custom_params.items():

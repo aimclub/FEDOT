@@ -173,7 +173,9 @@ class PipelineTemplate:
     def import_pipeline(self, source: Union[str, dict], dict_fitted_operations: dict = None):
         path = None
 
-        if type(source) is str:
+        if source is None:
+            raise ValueError('Cannot import pipeline: the source is None')
+        elif type(source) is str:
             path = source
             self._check_path_correct(path)
 

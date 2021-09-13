@@ -5,11 +5,10 @@ import shutil
 import numpy as np
 import pytest
 
-from cases.data.data_utils import get_scoring_case_data_paths
-from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
+from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data
 
 
@@ -109,8 +108,7 @@ def create_pipeline() -> Pipeline:
 
 
 def create_fitted_pipeline() -> Pipeline:
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
+    train_data, _ = get_classification_data()
 
     pipeline = create_pipeline()
     pipeline.fit(train_data)
@@ -177,9 +175,7 @@ def test_pipeline_template_to_json_correctly():
 
 
 def test_fitted_pipeline_cache_correctness_after_export_and_import():
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
+    train_data, test_data = get_classification_data()
 
     pipeline = create_classification_pipeline_with_preprocessing()
     pipeline.fit(train_data)
@@ -312,14 +308,28 @@ def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
     file = '../../data/test_custom_json_template.json'
     json_path_load = os.path.join(test_file_path, file)
 
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
+    train_data, _ = get_classification_data()
 
     pipeline = Pipeline()
     pipeline.load(json_path_load)
+
     pipeline.fit(train_data)
 
     pipeline.save('test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception')
+
+
+def test_export_without_path_correctly():
+    pipeline = create_pipeline()
+
+    save_not_fitted_without_path, not_fitted_dict = pipeline.save()
+    assert len(save_not_fitted_without_path) > 0
+    assert not_fitted_dict is None
+
+    fitted_pipeline = create_fitted_pipeline()
+
+    save_fitted_without_path, fitted_dict = fitted_pipeline.save()
+    assert len(save_fitted_without_path) > 0
+    assert fitted_dict is not None
 
 
 def test_data_model_types_forecasting_pipeline_fit():
@@ -336,8 +346,7 @@ def test_data_model_types_forecasting_pipeline_fit():
 
 
 def test_data_model_type_classification_pipeline_fit():
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
+    train_data, _ = get_classification_data()
 
     pipeline = create_classification_pipeline_with_preprocessing()
     pipeline.fit(train_data)
