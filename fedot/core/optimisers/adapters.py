@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Any, Type
 
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -14,7 +15,7 @@ class BaseOptimizationAdapter:
         """
         Base class for for the optimization adapter
         """
-        self._log = log
+        self._log = log if log is not None else default_log('adapter_logger')
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 
