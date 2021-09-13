@@ -1,29 +1,28 @@
 import datetime
-from typing import Callable, Union, Optional
+from typing import Callable, Union
 
 import numpy as np
+from deap import tools
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
+
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptionsHelper
 from fedot.api.api_utils.metrics import ApiMetricsHelper
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import single_drop_mutation, single_edge_mutation, \
-    single_change_mutation, single_add_mutation
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
-from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import single_drop_mutation, single_edge_mutation, \
+    single_change_mutation, single_add_mutation
+from fedot.core.optimisers.utils.pareto import ParetoFront
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-
-from deap import tools
-from fedot.core.optimisers.utils.pareto import ParetoFront
 
 
 class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
@@ -119,6 +118,9 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
             initial_pipeline = self.obtain_initial_assumption(task, data)
 
         if initial_pipeline is not None:
+            if not isinstance(initial_pipeline, Pipeline):
+                raise ValueError(
+                    f'Incorrect type of initial_pipeline: Pipeline needed, but has {type(initial_pipeline)}')
             builder = builder.with_initial_pipeline(initial_pipeline)
 
         return builder
