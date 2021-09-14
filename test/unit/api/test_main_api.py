@@ -220,15 +220,16 @@ def test_multiobj_for_api():
     assert model.best_models is not None
 
 
-# def test_categorical_preprocessing_unidata():
-#     train_data, test_data = load_categorical_unimodal()
-#
-#     auto_model = Fedot(problem='classification', composer_params=composer_params,verbose_level=4)
-#     auto_model.fit(features=train_data)
-#     prediction = auto_model.predict(features=test_data)
-#     prediction_proba = auto_model.predict_proba(features=test_data)
-#
-#     assert True
+def test_categorical_preprocessing_unidata():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params,verbose_level=4)
+    auto_model.fit(features=train_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert True
+
 
 def test_categorical_preprocessing_unidata_predefined():
     train_data, test_data = load_categorical_unimodal()
