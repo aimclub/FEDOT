@@ -1,8 +1,8 @@
 import datetime
 import os
-import numpy as np
 from functools import partial
 
+import numpy as np
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
@@ -18,7 +18,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals, fil
 from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation, reduce_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -29,8 +29,8 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import _to_numerical
-from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, \
-    pipeline_second, pipeline_third
+from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, \
+    pipeline_fourth, pipeline_fifth, pipeline_sixth
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -433,3 +433,35 @@ def test_preds_before_and_after_convert_equal():
     restored_preds = restored_pipeline.predict(input_data)
 
     assert np.array_equal(init_preds.predict, restored_preds.predict)
+
+
+def test_crossover_with_single_node():
+    adapter = PipelineAdapter()
+    graph_example_first = adapter.adapt(pipeline_sixth())
+    graph_example_second = adapter.adapt(pipeline_sixth())
+    log = default_log(__name__)
+    crossover_types = [CrossoverTypesEnum.none]
+    new_graphs = crossover(crossover_types, Individual(graph_example_first),
+                           Individual(graph_example_second),
+                           max_depth=3, log=log, crossover_prob=1)
+    assert new_graphs[0].graph == graph_example_first
+    assert new_graphs[1].graph == graph_example_second
+    crossover_types = [CrossoverTypesEnum.subtree]
+    new_graphs = crossover(crossover_types, Individual(graph_example_first),
+                           Individual(graph_example_second),
+                           max_depth=3, log=log, crossover_prob=0)
+    assert new_graphs[0].graph == graph_example_first
+    assert new_graphs[1].graph == graph_example_second
+
+
+def test_mutation_with_single_node():
+    adapter = PipelineAdapter()
+    graph = adapter.adapt(pipeline_sixth())
+    task = Task(TaskTypesEnum.classification)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
+                                                   max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
+                                                   crossover_prob=.8, mutation_prob=1)
+    new_graph = reduce_mutation(graph, composer_requirements)
+
+    assert graph == new_graph
