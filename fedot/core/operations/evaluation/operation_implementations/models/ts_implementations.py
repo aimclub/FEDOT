@@ -17,6 +17,7 @@ from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.pipelines.ts_wrappers import _update_input
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
@@ -39,7 +40,6 @@ class ARIMAImplementation(ModelImplementation):
 
         :param input_data: data with features, target and ids to process
         """
-
         source_ts = np.array(input_data.features)
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
@@ -128,11 +128,12 @@ class ARIMAImplementation(ModelImplementation):
 
             # Update idx
             input_data.idx = new_idx
-
         # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
+
+
         return output_data
 
     def get_params(self):
@@ -359,7 +360,7 @@ class CLSTMImplementation(ModelImplementation):
         self.params = params
         self.epochs = params.get("num_epochs")
         self.input_size = params.get("input_size")
-        self.output_size = params.get("forecast_length")
+        self.forecast_length = params.get("forecast_length")
         self.hidden_size = int(params.get("hidden_size"))
         self.batch_size = params.get("batch_size")
         self.learning_rate = params.get("learning_rate")
@@ -369,7 +370,7 @@ class CLSTMImplementation(ModelImplementation):
         self.device = self._get_device()
 
         self.model = LSTMNetwork(input_size=self.input_size,
-                                 output_size=self.output_size,
+                                 output_size=1,
                                  hidden_size=self.hidden_size)
 
         self.scaler = StandardScaler()
@@ -385,6 +386,7 @@ class CLSTMImplementation(ModelImplementation):
         self.model.train()
         for i in range(self.epochs):
             for x, y in data_loader:
+
                 x = x.to(self.device)
                 y = y.to(self.device)
                 self.model.init_hidden(x.size(0), self.device)
@@ -393,18 +395,68 @@ class CLSTMImplementation(ModelImplementation):
                 loss = self.criterion(output, y)
                 loss.backward()
                 self.optimizer.step()
+        return self.model
 
     def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
         self.model.eval()
-        data_scaled = self._transform_scaler(input_data)
-        x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
-        x = torch.Tensor(x).to(self.device)
-        self.model.init_hidden(x.size(0), self.device)
-        output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
-        rescaled_output = self._inverse_transform_scaler(output)
-        output_data = self._convert_to_output(input_data,
+        if is_fit_pipeline_stage:
+            data_scaled = self._transform_scaler(input_data)
+            x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
+            x = torch.Tensor(x).to(self.device)
+            self.model.init_hidden(x.size(0), self.device)
+            output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
+            rescaled_output = self._inverse_transform_scaler(output)
+            output_data = self._convert_to_output(input_data.subset(self.lag_len-1, input_data.idx.shape[0]),
                                               predict=rescaled_output,
                                               data_type=DataTypesEnum.table)
+        else:
+            pre_history_ts = np.array(input_data.features)
+            final_forecast = []
+            task = input_data.task
+
+            scope_len = task.task_params.forecast_length
+            old_idx = input_data.idx
+            target = input_data.target
+
+            for _ in range(0, scope_len):
+                data_scaled = self._transform_scaler(input_data)
+                x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
+                x = torch.Tensor(x).to(self.device)
+                self.model.init_hidden(x.size(0), self.device)
+                output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
+                rescaled_output = self._inverse_transform_scaler(output)
+                iter_predict = np.ravel(np.array(rescaled_output))
+                final_forecast.append(iter_predict)
+
+                # Add prediction to the historical data - update it
+                pre_history_ts = np.hstack((pre_history_ts, iter_predict))
+
+                # Prepare InputData for next iteration
+                input_data = _update_input(pre_history_ts, scope_len, task)
+
+            # Create output data
+            input_data.idx = input_data.idx - len(final_forecast)
+            final_forecast = np.ravel(np.array(final_forecast))
+            # Clip the forecast if it is necessary
+            final_forecast = final_forecast[:scope_len]
+            start_id = old_idx[-1] - scope_len + 1
+            end_id = old_idx[-1]
+            predicted = final_forecast
+
+            # Convert one-dim array as column
+            predict = predicted.reshape(1, -1)
+            new_idx = np.arange(start_id, end_id + 1)
+
+            # Update idx
+            input_data.idx = new_idx
+
+
+            # Update idx and features
+            output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+
+
         return output_data
 
     def _fit_transform_scaler(self, data: InputData):
@@ -427,7 +479,7 @@ class CLSTMImplementation(ModelImplementation):
             x.append(x_i)
             y.append(y_i)
         x_arr = np.array(x).reshape(-1, self.lag_len)
-        y_arr = np.array(y).reshape(-1, self.output_size)
+        y_arr = np.array(y).reshape(-1, 1)
         x = torch.from_numpy(x_arr).float()
         y = torch.from_numpy(y_arr).float()
         return x, y
