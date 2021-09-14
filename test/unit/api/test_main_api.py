@@ -72,7 +72,7 @@ def load_categorical_unimodal():
     dataset_path = 'test/data/classification_with_categorical.csv'
     full_path = os.path.join(str(fedot_project_root()), dataset_path)
     data = InputData.from_csv(full_path)
-    train_data, test_data = train_test_data_setup(data)
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     return train_data, test_data
 
@@ -250,7 +250,8 @@ def test_categorical_preprocessing_unidata_predefined_linear():
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
 
-    assert np.issubdtype(prediction.features.dtype, np.number)
+    for i in range(prediction.features.shape[1]):
+        assert all(list(map(lambda x: isinstance(x, (int, float)), prediction.features[:, i])))
 
 
 def test_fill_nan_without_categorical():
@@ -299,6 +300,6 @@ def test_unshaffled_data():
     features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
 
     problem = 'classification'
-    auto_model = Fedot(problem=problem, seed=42, timeout=0.05, composer_params={'metric': 'f1'})
+    auto_model = Fedot(problem=problem, seed=42, composer_params={**{'metric': 'f1'}, **composer_params})
     pipeline = auto_model.fit(features=features, target=target)
     assert pipeline is not None

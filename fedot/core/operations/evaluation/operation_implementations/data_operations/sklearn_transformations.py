@@ -124,8 +124,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = None
 
     def fit(self, input_data: InputData):
-        """ Method for fit encoder with automatic determination of categorical
-        features
+        """ Method for fit encoder with automatic determination of categorical features
 
         :param input_data: data with features, target and ids for encoder training
         :return encoder: trained encoder (optional output)
@@ -175,6 +174,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
 
         categorical_features = np.array(features[:, self.categorical_ids])
+        self._check_same_categories(categorical_features)
         transformed_categorical = self.encoder.transform(categorical_features).toarray()
 
         # If there are non-categorical features in the data
@@ -187,6 +187,13 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
+
+    def _check_same_categories(self, categorical_features):
+        encoder_unique_categories = sorted(list(np.hstack(self.encoder.categories_)))
+        features_unique_categories = sorted(np.unique(np.array(categorical_features)))
+
+        if encoder_unique_categories != features_unique_categories:
+            raise ValueError('Category in test data was not exist in train.')
 
     def get_params(self):
         return self.encoder.get_params()

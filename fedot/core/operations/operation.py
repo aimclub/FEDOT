@@ -84,9 +84,6 @@ class Operation:
         """
         self._init(data.task)
 
-        if 'imputation' not in self.operation_type:
-            data = _fill_remaining_gaps(data, self.operation_type)
-
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
@@ -108,8 +105,6 @@ class Operation:
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode)
-
-        data = _fill_remaining_gaps(data, self.operation_type)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
@@ -172,24 +167,6 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy
-
-
-def _fill_remaining_gaps(data: InputData, operation_type: str):
-    """ Function for filling in the nans in the table with features """
-    # TODO discuss: move this "filling" to the pipeline method - we use such method too much here (for all tables)
-    #  np.isnan(features).any() and np.isnan(features) doesn't work with non-numeric arrays
-    features = data.features
-
-    if data.data_type == DataTypesEnum.table and data.task.task_type != TaskTypesEnum.ts_forecasting:
-        # Got indices of columns with string objects
-        categorical_ids, _ = str_columns_check(features)
-
-        # Apply most_frequent or mean filling strategy
-        if len(categorical_ids) == 0:
-            data.features = ImputationImplementation().fit_transform(data).predict
-        else:
-            data.features = ImputationImplementation(**{'strategy': 'most_frequent'}).fit_transform(data).predict
-    return data
 
 
 def get_default_params(model_name: str):
