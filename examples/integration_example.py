@@ -1,6 +1,6 @@
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from infrastructure.remote_fit import RemoteFitter
+from remote.remote_fit import RemoteFitter
 
 pipeline_1 = Pipeline(PrimaryNode('linear'))
 pipeline_2 = Pipeline(PrimaryNode('ridge'))

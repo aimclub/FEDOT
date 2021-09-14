@@ -7,7 +7,7 @@ import numpy as np
 
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
-from infrastructure.datamall.models_controller.computations import Client
+from remote.infrastructure.models_controller.computations import Client
 
 
 class RemoteFitter:
@@ -22,29 +22,17 @@ class RemoteFitter:
     def is_use(self):
         return RemoteFitter.remote_eval_params['use']
 
-    def fit(self, pipelines: List['Pipeline']):
-        num_parts = np.floor(len(pipelines) / RemoteFitter.remote_eval_params['max_parallel'])
-        pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
-        data_id = int(os.environ['DATA_ID'])
-        pid = int(os.environ['PROJECT_ID'])
+    def fit(self, pipelines: List['Pipeline']) -> List['Pipeline']:
+        pipelines_parts, data_id = _prepare_computation_vars(pipelines)
 
         final_pipelines = []
         for pipelines_part in pipelines_parts:
             remote_eval_params = RemoteFitter.remote_eval_params
-            client = Client(
-                authorization_server=os.environ['AUTH_SERVER'],
-                controller_server=os.environ['CONTR_SERVER']
-            )
-
-            client.login(login=os.environ['FEDOT_LOGIN'],
-                         password=os.environ['FEDOT_PASSWORD'])
-
-            client.create_execution_group(project_id=pid)
-            response = client.get_execution_groups(project_id=pid)
-            client.set_group_token(project_id=pid, group_id=response[-1]['id'])
 
             dataset_name = remote_eval_params['dataset_name']
             task_type = remote_eval_params['task_type']
+
+            client = _prepare_client()
 
             for pipeline in pipelines_part:
                 try:
@@ -53,15 +41,10 @@ class RemoteFitter:
                     pipeline.execution_id = None
                     continue
 
-                pipeline_json = pipeline.save('tmp.json').replace('\n', '')
+                pipeline_json, _ = pipeline.save()
+                pipeline_json = pipeline_json.replace('\n', '')
 
-                config = f"""[DEFAULT]
-                pipeline_description = {pipeline_json}
-                train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}_comp.csv
-                task = {task_type}
-                output_path = output_data_dir/fitted_pipeline
-                [OPTIONAL]
-                """.encode('utf-8')
+                config = _get_config(pipeline_json, data_id, dataset_name, task_type)
 
                 client.create_execution(
                     container_input_path="/home/FEDOT/input_data_dir",
@@ -72,8 +55,7 @@ class RemoteFitter:
                     config=config
                 )
 
-                execution_id = client.get_executions()[-1]['id']
-                pipeline.execution_id = execution_id
+                pipeline.execution_id = client.get_executions()[-1]['id']
 
             statuses = ['']
             all_executions = client.get_executions()
@@ -106,3 +88,37 @@ class RemoteFitter:
             print('REMOTE EXECUTION TIME', end - start)
 
         return final_pipelines
+
+
+def _prepare_computation_vars(pipelines):
+    num_parts = np.floor(len(pipelines) / RemoteFitter.remote_eval_params['max_parallel'])
+    pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
+    data_id = int(os.environ['DATA_ID'])
+    return pipelines_parts, data_id
+
+
+def _prepare_client():
+    pid = int(os.environ['PROJECT_ID'])
+
+    client = Client(
+        authorization_server=os.environ['AUTH_SERVER'],
+        controller_server=os.environ['CONTR_SERVER']
+    )
+
+    client.login(login=os.environ['FEDOT_LOGIN'],
+                 password=os.environ['FEDOT_PASSWORD'])
+
+    client.create_execution_group(project_id=pid)
+    response = client.get_execution_groups(project_id=pid)
+    client.set_group_token(project_id=pid, group_id=response[-1]['id'])
+    return client
+
+
+def _get_config(pipeline_json, data_id, dataset_name, task_type):
+    return f"""[DEFAULT]
+        pipeline_description = {pipeline_json}
+        train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}_train.csv
+        task = {task_type}
+        output_path = output_data_dir/fitted_pipeline
+        [OPTIONAL]
+        """.encode('utf-8')

@@ -47,7 +47,7 @@ def output_dataset():
 
 def test_data_subset_correct(data_setup):
     subset_size = 50
-    subset = data_setup.subset(0, subset_size - 1)
+    subset = data_setup.subset_range(0, subset_size - 1)
 
     assert len(subset.idx) == subset_size
     assert len(subset.features) == subset_size
@@ -57,12 +57,12 @@ def test_data_subset_correct(data_setup):
 def test_data_subset_incorrect(data_setup):
     subset_size = 105
     with pytest.raises(ValueError):
-        assert data_setup.subset(0, subset_size)
+        assert data_setup.subset_range(0, subset_size)
 
     with pytest.raises(ValueError):
-        assert data_setup.subset(-1, subset_size)
+        assert data_setup.subset_range(-1, subset_size)
     with pytest.raises(ValueError):
-        assert data_setup.subset(-1, -1)
+        assert data_setup.subset_range(-1, -1)
 
 
 def test_data_from_csv():

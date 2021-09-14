@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
-from infrastructure.remote_fit import RemoteFitter
+from remote.remote_fit import RemoteFitter
 
 random.seed(1)
 np.random.seed(1)
@@ -14,7 +14,7 @@ RemoteFitter.remote_eval_params = {
     'use': True,
     'dataset_name': 'scoring',
     'task_type': 'Task(TaskTypesEnum.classification)',
-    'test_sampele_idx': 15000,
+    'test_sample_idx': 15000,
     'max_parallel': 5,
 }
 

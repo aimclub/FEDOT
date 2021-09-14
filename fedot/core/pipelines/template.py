@@ -124,7 +124,7 @@ class PipelineTemplate:
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
             f.write(json.dumps(pipeline_template_dict, indent='\t'))
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
-            self.log.message(f'The pipeline saved in the path: {resulted_path}.')
+            self.log.debug(f'The pipeline saved in the path: {resulted_path}.')
 
         dict_fitted_operations = self._create_fitted_operations(absolute_path)
 
@@ -181,10 +181,10 @@ class PipelineTemplate:
 
             with open(path) as json_file:
                 json_object_pipeline = json.load(json_file)
-                self.log.message(f'The pipeline was imported from the path: {path}.')
+                self.log.debug(f'The pipeline was imported from the path: {path}.')
         else:
             json_object_pipeline = source
-            self.log.message(f'The pipeline was imported from dict.')
+            self.log.debug(f'The pipeline was imported from dict.')
 
         self._extract_operations(json_object_pipeline, path)
         self.convert_to_pipeline(self.link_to_empty_pipeline, path, dict_fitted_operations)
@@ -197,7 +197,7 @@ class PipelineTemplate:
         if os.path.isfile(absolute_path):
             self.unique_pipeline_id = os.path.splitext(name_of_file)[0]
         else:
-            message = f"The path to load a pipeline is not correct: {absolute_path}."
+            message = f'The path to load a pipeline is not correct: {absolute_path}.'
             self.log.error(message)
             raise FileNotFoundError(message)
 
@@ -261,7 +261,7 @@ class PipelineTemplate:
                    'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
             path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
             if not os.path.isfile(path_to_operation):
-                message = f"Fitted operation on the path: {path_to_operation} does not exist."
+                message = f'Fitted operation on the path: {path_to_operation} does not exist.'
                 self.log.error(message)
                 raise FileNotFoundError(message)
 

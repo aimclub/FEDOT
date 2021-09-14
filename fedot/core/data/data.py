@@ -235,7 +235,7 @@ class InputData(Data):
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, supplementary_data=updated_info)
 
-    def subset(self, start: int, end: int):
+    def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
             raise ValueError('Incorrect boundaries for subset')
         new_features = None
@@ -243,6 +243,16 @@ class InputData(Data):
             new_features = self.features[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
+
+    def subset_list(self, selected_idx: List):
+        idx_list = list(self.idx)
+        indices = [idx_list.index(sel_ind) for sel_ind in selected_idx]
+        new_features = None
+
+        if self.features is not None:
+            new_features = self.features[indices]
+        return InputData(idx=self.idx[indices], features=new_features,
+                         target=self.target[indices], task=self.task, data_type=self.data_type)
 
     def shuffle(self):
         """

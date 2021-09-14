@@ -1,12 +1,12 @@
 import warnings
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, Callable, List, Tuple)
+from typing import (Any, Callable, List, Tuple, Union)
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from infrastructure.remote_fit import RemoteFitter
+from remote.remote_fit import RemoteFitter
 
 MAX_ITERS = 1000
 
@@ -116,18 +116,18 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 
     # TODO refactor
     fitter = RemoteFitter()
-    pre_fitted_pipelines = []
+    pre_evaluated_objects = []
     if fitter.is_use:
         print('Remote fit used')
-        pipelines = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
-        pre_fitted_pipelines = fitter.fit(pipelines)
+        restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
+        pre_evaluated_objects = fitter.fit(restored_graphs)
 
     for ind_num, ind in enumerate(reversed_set):
-        pre_fitted_pipeline = None
-        if len(pre_fitted_pipelines) > 0:
-            pre_fitted_pipeline = pre_fitted_pipelines[ind_num]
-        ind.fitness = calculate_objective(ind.graph, objective_function, is_multi_objective, graph_generation_params,
-                                          pre_fitted_pipeline)
+        graph = ind.graph
+        if len(pre_evaluated_objects) > 0:
+            graph = pre_evaluated_objects[ind_num]
+        ind.fitness = calculate_objective(graph, objective_function, is_multi_objective,
+                                          graph_generation_params)
         if ind.fitness is None:
             individuals_set.remove(ind)
         else:
@@ -141,12 +141,11 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
         raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
 
 
-def calculate_objective(graph: OptGraph, objective_function: Callable, is_multi_objective: bool,
-                        graph_generation_params, pre_fitted_pipeline=None) -> Any:
-    # Transform OptGraph into Pipeline
-    pipeline = graph_generation_params.adapter.restore(graph)
-    if pre_fitted_pipeline:
-        pipeline = pre_fitted_pipeline
+def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable, is_multi_objective: bool,
+                        graph_generation_params) -> Any:
+    if isinstance(graph, OptGraph):
+        pipeline = graph_generation_params.adapter.restore(graph)
+
     calculated_fitness = objective_function(pipeline)
     if calculated_fitness is None:
         return None
