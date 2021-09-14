@@ -84,7 +84,7 @@ class Operation:
         """
         self._init(data.task)
 
-        fitted_operation = self._eval_strategy.fit(train_data=data)
+        self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
 

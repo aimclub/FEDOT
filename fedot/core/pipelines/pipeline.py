@@ -392,14 +392,13 @@ def _is_numeric(s) -> bool:
         return False
 
 
-def _try_convert_to_numeric(features, columns_amount):
-    for i in range(columns_amount):
-        try:
-            features = pd.to_numeric(features)
-            features = features.astype(np.number)
-        except ValueError:
-            pass
-    return features
+def _try_convert_to_numeric(values):
+    try:
+        values = pd.to_numeric(values)
+        values = values.astype(np.number)
+    except ValueError:
+        pass
+    return values
 
 
 def _custom_preprocessing(data: Union[InputData, MultiModalData]):
@@ -418,11 +417,12 @@ def _preprocessing_input_data(data: InputData) -> InputData:
     features = data.features
     target = data.target
 
-    # if target is None delete data
-    target_index_with_nan = np.hstack(np.argwhere(np.isnan(target)))
-    data.features = np.delete(features, target_index_with_nan, 0)
-    data.target = np.delete(data.target, target_index_with_nan, 0)
-    data.idx = np.delete(data.idx, target_index_with_nan, 0)
+    # delete rows with equal target None
+    if target is not None and np.argwhere(np.isnan(target)):
+        target_index_with_nan = np.hstack(np.argwhere(np.isnan(target)))
+        data.features = np.delete(features, target_index_with_nan, 0)
+        data.target = np.delete(data.target, target_index_with_nan, 0)
+        data.idx = np.delete(data.idx, target_index_with_nan, 0)
 
     source_shape = features.shape
     columns_amount = source_shape[1] if len(source_shape) > 1 else 1
@@ -441,8 +441,8 @@ def _preprocessing_input_data(data: InputData) -> InputData:
                 # then convert to numerical and others to Nan
                 if partition_not_numeric < EMPIRICAL_PARTITION:
                     features.loc[rows_to_nan] = np.nan
-                    data.features = _try_convert_to_numeric(features, columns_amount)
-                # if EMPIRICAL_PARTITION < partition < 1, then some data in column
+                    data.features[:, i] = _try_convert_to_numeric(values)
+                # if EMPIRICAL_PARTITION < partition < 1, then some data in column are
                 # integer and some data are string, can not handle this case
                 elif partition_not_numeric < 0.9:
                     raise ValueError("The data in the column has a different type. Need to preprocessing data manually.")
