@@ -300,6 +300,6 @@ def test_unshaffled_data():
     features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
 
     problem = 'classification'
-    auto_model = Fedot(problem=problem, seed=42, timeout=0.05, composer_params={'metric': 'f1'})
+    auto_model = Fedot(problem=problem, seed=42, composer_params={**{'metric': 'f1'}, **composer_params})
     pipeline = auto_model.fit(features=features, target=target)
     assert pipeline is not None
