@@ -70,6 +70,7 @@ def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, target: str
     """ Prepare MultiModal data for time series forecasting task in a form of
     dictionary
 
+    TODO Переписать, так как не сопоставима с новым API + модифицировать разделение на train test
     :param dataframe: pandas DataFrame to process
     :param features: columns, which should be used as features in forecasting
     :param target: name of target column
@@ -78,25 +79,15 @@ def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, target: str
     :return multi_modal_train: dictionary with InputData for train
     :return multi_modal_test: dictionary with InputData test
     """
-    # Define task
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
     target_ts = np.array(dataframe[target])
 
-    multi_modal_train = {}
-    multi_modal_test = {}
+    multi_modal = {}
     for feature in features:
         feature_ts = np.array(dataframe[feature])
-        feature_data = InputData(idx=range(len(feature_ts)), features=feature_ts,
-                                 target=target_ts, data_type=DataTypesEnum.ts, task=task)
-        # Divide into train and test
-        train_data, test_data = train_test_data_setup(feature_data)
-
         # Store InputData into Multimodal dictionary
-        multi_modal_train.update({feature: train_data})
-        multi_modal_test.update({feature: test_data})
+        multi_modal.update({feature: feature_ts})
 
-    return multi_modal_train, multi_modal_test
+    return multi_modal, target_ts
 
 
 def automl_fit_forecast(train_input, predict_input, composer_params: dict,
@@ -113,10 +104,11 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
     """
 
     model = Fedot(problem='ts_forecasting',
+                  task_params=train_input.task.task_params,
                   composer_params=composer_params)
 
     # Run AutoML model design in the same way
-    obtained_pipeline = model.fit(features=train_input)
+    obtained_pipeline = model.fit(train_input)
 
     if vis is True:
         obtained_pipeline.print_structure()

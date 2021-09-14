@@ -108,6 +108,7 @@ def test_api_predict_correct(task_type: str = 'classification'):
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
 
+
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5

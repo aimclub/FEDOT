@@ -11,12 +11,10 @@ from fedot.core.data.data_split import train_test_data_setup
 rcParams['figure.figsize'] = 15, 7
 
 if __name__ == '__main__':
-    """ 
-    Below is an example of univariate time series forecasting.
-    An example of how forecasts can be made is presented and a simple 
-    validation is given on a single block which length is equal to the 
-    length of the forecast horizon. 
-    """
+    # Below is an example of univariate time series forecasting.
+    # An example of how forecasts can be made is presented and a simple
+    # validation is given on a single block which length is equal to the
+    # length of the forecast horizon.
 
     # Define forecast horizon and read dataframe
     forecast_length = 30
@@ -34,15 +32,15 @@ if __name__ == '__main__':
 
     # Prepare parameters for algorithm launch
     # timeout 2 - means that AutoML algorithm will work for 2 minutes
-    composer_params = {'max_depth': 4,
-                       'max_arity': 3,
+    composer_params = {'max_depth': 3,
+                       'max_arity': 4,
                        'pop_size': 20,
-                       'num_of_generations': 100,
-                       'timeout': 0.2,
-                       'preset': 'light_tun',
-                       'metric': 'rmse',
-                       'cv_folds': 2,
-                       'validation_blocks': 2}
+                       'num_of_generations': 20,
+                       'timeout': 2,
+                       'with_tuning': True,
+                       'preset': 'light',
+                       'genetic_scheme': None,
+                       'history_folder': None}
     forecast, obtained_pipeline = automl_fit_forecast(train_input, predict_input, composer_params,
                                                       vis=True, in_sample_forecasting=False)
 

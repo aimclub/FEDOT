@@ -9,12 +9,10 @@ from cases.industrial.processing import multi_automl_fit_forecast, plot_results,
 rcParams['figure.figsize'] = 15, 7
 
 if __name__ == '__main__':
-    """ 
-    Below is an example of multivariate time series forecasting.
-    An example of how forecasts can be made is presented and a simple 
-    validation is given on a single block which length is equal to the 
-    length of the forecast horizon. 
-    """
+    # Below is an example of multivariate time series forecasting.
+    # An example of how forecasts can be made is presented and a simple
+    # validation is given on a single block which length is equal to the
+    # length of the forecast horizon.
 
     # Define forecast horizon and read dataframe
     forecast_length = 20

@@ -9,12 +9,10 @@ from cases.industrial.processing import advanced_validation, automl_fit_forecast
 rcParams['figure.figsize'] = 15, 7
 
 if __name__ == '__main__':
-    """ 
-    Below is an example of univariate time series forecasting.
-    An example of how forecasts can be made is presented and an advanced 
-    validation is given on a several validation blocks which length is equal 
-    to the length of the forecast horizon * number of validation blocks. 
-    """
+    # Below is an example of univariate time series forecasting.
+    # An example of how forecasts can be made is presented and an advanced
+    # validation is given on a several validation blocks which length is equal
+    # to the length of the forecast horizon * number of validation blocks.
 
     # Define forecast horizon and read dataframe
     forecast_length = 20

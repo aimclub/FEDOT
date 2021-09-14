@@ -303,7 +303,6 @@ class GPGraphOptimiser:
             self.max_depth += 1
 
     def get_best_individual(self, individuals: List[Any], equivalents_from_current_pop=True) -> Any:
-        individuals = correct_if_population_has_nans(individuals)
         best_ind = min(individuals, key=lambda ind: ind.fitness)
         if equivalents_from_current_pop:
             equivalents = self.simpler_equivalents_of_best_ind(best_ind)
@@ -398,7 +397,7 @@ class GPGraphOptimiser:
         evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function,
                              graph_generation_params=self.graph_generation_params,
                              timer=timer, is_multi_objective=self.parameters.multi_objective)
-        self.population = correct_if_population_has_nans(self.population)
+        self.population = correct_if_population_has_nans(self.population, self.log)
 
 
 @dataclass
@@ -414,8 +413,14 @@ class GraphGenerationParams:
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
 
 
-def correct_if_population_has_nans(population):
+def correct_if_population_has_nans(population, log):
+    len_before = len(population)
     population = [ind for ind in population if ind.fitness is not None]
+    len_after = len(population)
+
+    if len_after != len_before:
+        log.info(f"None from individual's fitness were removed")
+
     if len(population) == 0:
         raise ValueError('All evaluations of fitness was unsuccessful.')
 
