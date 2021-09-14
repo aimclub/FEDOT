@@ -112,9 +112,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
             with_optimiser_parameters(optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
-        if initial_pipeline is not None:
-            initial_pipeline = initial_pipeline
-        else:
+        if initial_pipeline is None:
             initial_pipeline = self.obtain_initial_assumption(task, data)
 
         if initial_pipeline is not None:
