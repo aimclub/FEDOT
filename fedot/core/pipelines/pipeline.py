@@ -392,6 +392,13 @@ def _is_numeric(s) -> bool:
         return False
 
 
+def is_np_array_has_nan(array):
+    for x in array:
+        if x is np.nan:
+            return True
+    return False
+
+
 def _try_convert_to_numeric(values):
     try:
         values = pd.to_numeric(values)
@@ -418,7 +425,7 @@ def _preprocessing_input_data(data: InputData) -> InputData:
     target = data.target
 
     # delete rows with equal target None
-    if target is not None and np.argwhere(np.isnan(target)):
+    if target is not None and len(target.shape) != 0 and is_np_array_has_nan(target):
         target_index_with_nan = np.hstack(np.argwhere(np.isnan(target)))
         data.features = np.delete(features, target_index_with_nan, 0)
         data.target = np.delete(data.target, target_index_with_nan, 0)
@@ -427,25 +434,23 @@ def _preprocessing_input_data(data: InputData) -> InputData:
     source_shape = features.shape
     columns_amount = source_shape[1] if len(source_shape) > 1 else 1
 
-    # if total rows in data more then 100
-    if source_shape[0] > 100:
-        for i in range(columns_amount):
-            values = pd.Series(features[:, i])
-            # check if data converted to numeric, remember index of rows
-            if any(list(map(lambda x: isinstance(x, str), values))):
-                not_numeric = list(map(lambda x: not _is_numeric(x), values))
-                rows_to_nan = list(values.index[not_numeric])
-                partition_not_numeric = len(rows_to_nan) / source_shape[0]
+    for i in range(columns_amount):
+        values = pd.Series(features[:, i])
+        # check for each column, if values converted to numeric. remember index of rows that not converted
+        if any(list(map(lambda x: isinstance(x, str), values))):
+            not_numeric = list(map(lambda x: not _is_numeric(x), values))
+            rows_to_nan = list(values.index[not_numeric])
+            partition_not_numeric = len(rows_to_nan) / source_shape[0]
 
-                # if partition of numerical rows less then EMPIRICAL_PARTITION,
-                # then convert to numerical and others to Nan
-                if partition_not_numeric < EMPIRICAL_PARTITION:
-                    features.loc[rows_to_nan] = np.nan
-                    data.features[:, i] = _try_convert_to_numeric(values)
-                # if EMPIRICAL_PARTITION < partition < 1, then some data in column are
-                # integer and some data are string, can not handle this case
-                elif partition_not_numeric < 0.9:
-                    raise ValueError("The data in the column has a different type. Need to preprocessing data manually.")
+            # if partition of numerical rows less then EMPIRICAL_PARTITION,
+            # then convert to numerical and others to Nan
+            if partition_not_numeric < EMPIRICAL_PARTITION:
+                values[rows_to_nan] = np.nan
+                data.features[:, i] = _try_convert_to_numeric(values)
+            # if EMPIRICAL_PARTITION < partition < 1, then some data in column are
+            # integer and some data are string, can not handle this case
+            elif partition_not_numeric < 0.9:
+                raise ValueError("The data in the column has a different type. Need to preprocessing data manually.")
 
     return data
 
