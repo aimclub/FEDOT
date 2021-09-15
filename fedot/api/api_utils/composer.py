@@ -118,8 +118,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
         if initial_pipeline is not None:
             if not isinstance(initial_pipeline, Pipeline):
                 prefix = 'Incorrect type of initial_pipeline'
-                raise ValueError(
-                    f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
+                raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
             builder = builder.with_initial_pipeline(initial_pipeline)
 
         return builder

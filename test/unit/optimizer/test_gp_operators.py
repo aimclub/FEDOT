@@ -447,15 +447,15 @@ def test_crossover_with_single_node():
     graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
     graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
     log = default_log(__name__)
-    params = [
-        {'crossover_prob': 1, 'crossover_types': [CrossoverTypesEnum.none]},
-        {'crossover_prob': 0, 'crossover_types': [CrossoverTypesEnum.subtree]}
+    graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
+                                         rules_for_constraint=DEFAULT_DAG_RULES)
+    crossover_types = [
+        [CrossoverTypesEnum.none], [CrossoverTypesEnum.subtree], [CrossoverTypesEnum.one_point]
     ]
 
-    for temp in params:
-        new_graphs = crossover(temp['crossover_types'], Individual(graph_example_first),
-                               Individual(graph_example_second), max_depth=3, log=log,
-                               crossover_prob=temp['crossover_prob'])
+    for crossover_type in crossover_types:
+        new_graphs = crossover(crossover_type, Individual(graph_example_first), Individual(graph_example_second),
+                               params=graph_params, max_depth=3, log=log, crossover_prob=1)
 
         assert new_graphs[0].graph == graph_example_first
         assert new_graphs[1].graph == graph_example_second
