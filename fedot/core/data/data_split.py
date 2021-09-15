@@ -1,7 +1,7 @@
 from typing import Tuple, Union
 
 import numpy as np
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -66,24 +66,23 @@ def _split_any(data, task, data_type, split_ratio, with_shuffle=False):
     # Predictors and target
     input_features = data.features
     input_target = data.target
-
-    x_train, x_test, y_train, y_test = train_test_split(input_features,
-                                                        input_target,
-                                                        test_size=1. - split_ratio,
-                                                        shuffle=with_shuffle,
-                                                        random_state=random_state)
-
-    idx_for_train = np.arange(0, len(x_train))
-    idx_for_predict = np.arange(0, len(x_test))
+    idx = data.idx
+    idx_train, idx_test, x_train, x_test, y_train, y_test = \
+        train_test_split(idx,
+                         input_features,
+                         input_target,
+                         test_size=1. - split_ratio,
+                         shuffle=with_shuffle,
+                         random_state=random_state)
 
     # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
+    train_data = InputData(idx=idx_train,
                            features=x_train,
                            target=y_train,
                            task=task,
                            data_type=data_type)
 
-    test_data = InputData(idx=idx_for_predict,
+    test_data = InputData(idx=idx_test,
                           features=x_test,
                           target=y_test,
                           task=task,

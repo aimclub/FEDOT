@@ -14,7 +14,7 @@ RemoteFitter.remote_eval_params = {
     'use': True,
     'dataset_name': 'scoring',
     'task_type': 'Task(TaskTypesEnum.classification)',
-    'test_sample_idx': 15000,
+    'train_data_idx': [],
     'max_parallel': 5,
 }
 

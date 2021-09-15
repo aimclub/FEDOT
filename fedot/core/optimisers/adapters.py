@@ -73,7 +73,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
                 node.content = {'name': node.operation,
                                 'params': node.custom_params}
             else:
-                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead'
+                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead '
                                'PrimaryNode or SecondaryNode.')
             _transform_node(node=node, primary_class=OptNode,
                             transform_func=self._transform_to_opt_node)

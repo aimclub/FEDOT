@@ -21,6 +21,7 @@ path = os.path.join(fedot_project_root(), 'cases', 'data', 'scoring', 'scoring_t
 
 start = datetime.now()
 data = InputData.from_csv(path)
+data.subset_list([1, 2, 3, 4, 5, 20])
 pipeline = Pipeline(PrimaryNode('xgboost'))
 pipeline.fit_from_scratch(data)
 end = datetime.now()
@@ -33,6 +34,7 @@ RemoteFitter.remote_eval_params = {
     'use': True,
     'dataset_name': 'scoring',
     'task_type': 'Task(TaskTypesEnum.classification)',
+    'train_data_idx': [1, 2, 3, 4, 5, 20],
     'max_parallel': num_parallel,  # NUMBER OF PARALLEL TASKS
 }
 

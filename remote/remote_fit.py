@@ -15,6 +15,7 @@ class RemoteFitter:
         'use': False,
         'dataset_name': '',  # name of the dataset for composer evaluation
         'task_type': '',  # name of the modelling task for dataset
+        'train_data_idx': [],
         'max_parallel': 10
     }
 
@@ -31,6 +32,7 @@ class RemoteFitter:
 
             dataset_name = remote_eval_params['dataset_name']
             task_type = remote_eval_params['task_type']
+            data_idx = remote_eval_params['train_data_idx']
 
             client = _prepare_client()
 
@@ -44,13 +46,13 @@ class RemoteFitter:
                 pipeline_json, _ = pipeline.save()
                 pipeline_json = pipeline_json.replace('\n', '')
 
-                config = _get_config(pipeline_json, data_id, dataset_name, task_type)
+                config = _get_config(pipeline_json, data_id, dataset_name, task_type, data_idx)
 
                 client.create_execution(
                     container_input_path="/home/FEDOT/input_data_dir",
                     container_output_path="/home/FEDOT/output_data_dir",
                     container_config_path="/home/FEDOT/.config",
-                    container_image="fedot:dm-2",
+                    container_image="fedot:dm-4",
                     timeout=360,
                     config=config
                 )
@@ -110,15 +112,17 @@ def _prepare_client():
 
     client.create_execution_group(project_id=pid)
     response = client.get_execution_groups(project_id=pid)
-    client.set_group_token(project_id=pid, group_id=response[-1]['id'])
+    new_id = response[-1]['id'] + 2
+    client.set_group_token(project_id=pid, group_id=new_id)
     return client
 
 
-def _get_config(pipeline_json, data_id, dataset_name, task_type):
+def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx):
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
         train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}_train.csv
         task = {task_type}
         output_path = output_data_dir/fitted_pipeline
+        train_data_idx = {[str(int(ind)) for ind in dataset_idx]}
         [OPTIONAL]
         """.encode('utf-8')
