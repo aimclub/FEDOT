@@ -156,7 +156,7 @@ In Russian:
 
 - General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
 - Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
-- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/ru/university_live/achievements/news/10409/>`__
+- Details of FEDOT-based solution for Emergency DataHack - `habr.com <https://habr.com/ru/post/577886/>`__
 
 Project structure
 =================
@@ -206,6 +206,11 @@ Acknowledgments
 
 We acknowledge the contributors for their important impact and the participants of the numerous scientific conferences and workshops for their valuable advice and suggestions.
 
+Side projects
+=============
+- The prototype of web-GUI for FEDOT is available in `FEDOT.WEB <https://github.com/nccr-itmo/FEDOT.Web>`__ repository.
+
+
 Contacts
 ========
 - `Telegram channel for solving problems and answering questions on FEDOT <https://t.me/FEDOT_helpdesk>`_
@@ -230,7 +235,7 @@ Citation
   issn = {0167-739X},
   doi = {https://doi.org/10.1016/j.future.2021.08.022}}
 
-@inproceedings{oolonskaia2021multi,
+@inproceedings{polonskaia2021multi,
   title={Multi-Objective Evolutionary Design of Composite Data-Driven Models},
   author={Polonskaia, Iana S. and Nikitin, Nikolay O. and Revin, Ilia and Vychuzhanin, Pavel and Kalyuzhnaya, Anna V.},
   booktitle={2021 IEEE Congress on Evolutionary Computation (CEC)},
