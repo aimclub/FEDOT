@@ -33,7 +33,7 @@ if __name__ == '__main__':
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'timeout': 2,
+                       'timeout': 0.5,
                        'preset': 'light',
                        'metric': 'rmse',
                        'cv_folds': None,
