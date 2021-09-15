@@ -1,4 +1,5 @@
 import random
+
 from hyperopt.pyll.stochastic import sample as hp_sample
 
 from fedot.core.log import default_log

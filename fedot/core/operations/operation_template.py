@@ -184,7 +184,7 @@ def _check_existing_path(path: str):
 
 
 def extract_operation_params(node: Node):
-    params = node.fitted_operation.get_params()
+    params = node.custom_params
 
     if 'dtype' in params:
         params['dtype'] = params['dtype'].__name__

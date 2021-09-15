@@ -1,0 +1,65 @@
+{
+	"total_pipeline_operations": [
+		"simple_imputation",
+		"lagged",
+		"ridge"
+	],
+	"depth": 3,
+	"nodes": [
+		{
+			"operation_id": 2,
+			"operation_type": "simple_imputation",
+			"operation_name": "ImputationImplementation",
+			"custom_params": "default_params",
+			"params": {
+				"imputer_categorical": {
+					"strategy": "most_frequent"
+				},
+				"imputer_numerical": {}
+			},
+			"nodes_from": [],
+			"fitted_operation_path": "fitted_operations\\operation_2.pkl",
+			"rating": null
+		},
+		{
+			"operation_id": 1,
+			"operation_type": "lagged",
+			"operation_name": "LaggedTransformationImplementation",
+			"custom_params": {
+				"window_size": 5.376830561186539
+			},
+			"params": {
+				"window_size": 5.376830561186539
+			},
+			"nodes_from": [
+				2
+			],
+			"fitted_operation_path": "fitted_operations\\operation_1.pkl",
+			"rating": null
+		},
+		{
+			"operation_id": 0,
+			"operation_type": "ridge",
+			"operation_name": "Ridge",
+			"custom_params": {
+				"alpha": 2.138188780233012
+			},
+			"params": {
+				"alpha": 2.138188780233012,
+				"copy_X": true,
+				"fit_intercept": true,
+				"max_iter": null,
+				"normalize": false,
+				"random_state": null,
+				"solver": "auto",
+				"tol": 0.001
+			},
+			"nodes_from": [
+				1
+			],
+			"fitted_operation_path": "fitted_operations\\operation_0.pkl",
+			"rating": null
+		}
+	],
+	"descriptive_id": "((/n_simple_imputation_default_params;)/n_lagged_{'window_size': 5.376830561186539};)/n_ridge_{'alpha': 2.138188780233012}"
+}

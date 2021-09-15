@@ -10,9 +10,10 @@ from fedot.core.pipelines.pipeline import Pipeline
 class ApiDataHelper:
     def define_data(self,
                     ml_task: Task,
-                    features: Union[str, np.ndarray, pd.DataFrame, InputData],
+                    features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                     target: Union[str, np.ndarray, pd.Series] = None,
                     is_predict=False):
+        """ Prepare data for fedot pipeline composing """
         try:
             data = data_strategy_selector(features=features,
                                           target=target,

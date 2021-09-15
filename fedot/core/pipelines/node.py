@@ -133,7 +133,11 @@ class Node(GraphNode):
         if self.fitted_operation is None:
             return self.operation.get_params
         else:
-            return self.fitted_operation.get_params()
+            try:
+                return self.fitted_operation.get_params()
+            except Exception as ex:
+                self.log.info(f'Operation get params failed due to: {ex}')
+                return {}
 
     @custom_params.setter
     def custom_params(self, params):

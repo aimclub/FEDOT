@@ -21,7 +21,8 @@ class ApiParamsHelper:
                   'timeout': 2,
                   'with_tuning': False,
                   'preset': 'light_tun',
-                  'genetic_scheme': None}
+                  'genetic_scheme': None,
+                  'history_folder': None}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3

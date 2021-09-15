@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -107,6 +108,7 @@ def test_api_predict_correct(task_type: str = 'classification'):
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
+
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
@@ -219,15 +221,17 @@ def test_multiobj_for_api():
     assert model.best_models is not None
 
 
-# def test_categorical_preprocessing_unidata():
-#     train_data, test_data = load_categorical_unimodal()
-#
-#     auto_model = Fedot(problem='classification', composer_params=composer_params,verbose_level=4)
-#     auto_model.fit(features=train_data)
-#     prediction = auto_model.predict(features=test_data)
-#     prediction_proba = auto_model.predict_proba(features=test_data)
-#
-#     assert True
+@pytest.mark.skip('Sometimes it is failed due to unknown reasons')
+def test_categorical_preprocessing_unidata():
+    train_data, test_data = load_categorical_unimodal()
+
+    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model.fit(features=train_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
+
+    assert True
+
 
 def test_categorical_preprocessing_unidata_predefined():
     train_data, test_data = load_categorical_unimodal()
@@ -278,7 +282,8 @@ def test_multivariate_ts():
     file_path_test = 'cases/data/metocean/metocean_data_test.csv'
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test)
+    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
+                                                          history_size=500)
 
     historical_data = {
         'ws': add_history,  # additional variable
