@@ -369,7 +369,6 @@ class CLSTMImplementation(ModelImplementation):
 
         # Where we will perform training: cpu or gpu (if it is possible)
         self.device = self._get_device()
-        self.lagger = LaggedTransformationImplementation(window_size=self.window_size)
 
         self.model = LSTMNetwork(input_size=self.input_size,
                                  output_size=1,
@@ -396,20 +395,27 @@ class CLSTMImplementation(ModelImplementation):
         train_data_new.idx = final_idx
         train_data_new.features = features_columns
         train_data_new.target = final_target
+        print(train_data_new.features.shape, train_data_new.target.shape)
         data_loader = DataLoader(TensorDataset(torch.from_numpy(train_data_new.features.copy()).float(),
                                                torch.from_numpy(train_data_new.target.copy()).float()), batch_size=self.batch_size)
 
         self.model.train()
         for i in range(self.epochs):
             for x, y in data_loader:
-
+                self.optimizer.zero_grad()
                 x = x.to(self.device)
                 y = y.to(self.device)
                 self.model.init_hidden(x.size(0), self.device)
-                self.optimizer.zero_grad()
                 output = self.model(x.unsqueeze(1))
                 loss = self.criterion(output, y)
                 loss.backward()
+                print(loss.item())
+                total_norm = 0
+                for p in self.model.parameters():
+                    param_norm = p.grad.data.norm(2)
+                    total_norm += param_norm.item() ** 2
+                total_norm = total_norm ** (1. / 2)
+                print("grad_norm", total_norm)
                 self.optimizer.step()
         return self.model
 
@@ -417,16 +423,9 @@ class CLSTMImplementation(ModelImplementation):
         self.model.eval()
         input_data_new = copy(input_data)
         features_scaled = self._transform_scale_features(input_data)
-        if is_fit_pipeline_stage:
-            target_scaled = self._transform_scale_target(input_data)
-        else:
-            target_scaled = None
+
         input_data_new.features = features_scaled
-        input_data_new.target = target_scaled
-
-
-
-        if input_data_new.target is not None:
+        if is_fit_pipeline_stage:
 
             new_idx, lagged_table = _ts_to_table(idx=input_data_new.idx,
                                                  time_series=input_data_new.features,
@@ -445,7 +444,6 @@ class CLSTMImplementation(ModelImplementation):
         output_data = self._convert_to_output(input_data_new,
                                            predict=predict,
                                            data_type=DataTypesEnum.table)
-
 
         return output_data
 
@@ -477,10 +475,14 @@ class CLSTMImplementation(ModelImplementation):
         # Make forecast iteratively moving throw the horizon
         final_forecast = None
 
+        print(input_data.features.shape)
+
         for _ in range(0, number_of_iterations):
-            x = torch.from_numpy(input_data.features.copy()).float().to(self.device)
-            self.model.init_hidden(x.size(0), self.device)
-            iter_predict = self.model(x.unsqueeze(1)).cpu().detach().numpy().reshape(-1, 1)
+
+            with torch.no_grad():
+                x = torch.from_numpy(input_data.features.copy()).float().to(self.device)
+                self.model.init_hidden(x.size(0), self.device)
+                iter_predict = self.model(x.unsqueeze(1)).cpu().numpy().reshape(-1, 1)
             if final_forecast is not None:
                 final_forecast = np.hstack((final_forecast, iter_predict))
             else:
@@ -492,9 +494,7 @@ class CLSTMImplementation(ModelImplementation):
             # Prepare InputData for next iteration
             input_data = _update_input(pre_history_ts, scope_len, task)
 
-        # Create output data
-        # Clip the forecast if it is necessary
-        return final_forecast
+        return self._inverse_transform_scaler(final_forecast)
 
     def _fit_transform_scaler(self, data: InputData):
         f_scaled = self.scaler.fit_transform(data.features.reshape(-1, 1)).reshape(-1)
@@ -512,31 +512,6 @@ class CLSTMImplementation(ModelImplementation):
 
     def get_params(self):
         return self.params
-
-    def _generate_lags_train(self, data):
-        x, y = [], []
-        for i in range(len(data) - self.lag_len-1):
-            x_i = data[i: i + self.lag_len]
-            y_i = data[i + self.lag_len + 1]
-            x.append(x_i)
-            y.append(y_i)
-        x_arr = np.array(x).reshape(-1, self.lag_len)
-        y_arr = np.array(y).reshape(-1, 1)
-        x = torch.from_numpy(x_arr).float()
-        y = torch.from_numpy(y_arr).float()
-        return x, y
-
-    def _generate_lags_test(self, data, is_fit_pipeline_stage=True):
-        if is_fit_pipeline_stage:
-            x = []
-            for i in range(len(data) - self.lag_len+1):
-                x_i = data[i: i + self.lag_len]
-                x.append(x_i)
-            x_arr = np.array(x).reshape(-1, self.lag_len)
-            x = torch.from_numpy(x_arr).float()
-            return x
-        else:
-            return data[-self.lag_len:].reshape(1, -1)
 
     @staticmethod
     def _get_device():
@@ -571,7 +546,7 @@ class LSTMNetwork(nn.Module):
         )
         self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.2)
         self.hidden_cell = None
-        self.linear = nn.Linear(self.hidden_size, output_size)
+        self.linear = nn.Linear(self.hidden_size, 1)
 
     def init_hidden(self, batch_size, device):
         self.hidden_cell = (torch.zeros(1, batch_size, self.hidden_size).to(device),

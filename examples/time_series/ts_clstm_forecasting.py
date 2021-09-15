@@ -1,3 +1,4 @@
+import copy
 import datetime
 import json
 import os
@@ -19,6 +20,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -52,29 +54,28 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 
 
 def clstm_forecasting():
-    horizon = 24*2
-    window_size = 24*7
+    horizon = 12
+    window_size = 24
     n_steps = 200
-    (train_data, test_data), task = get_ts_data_long(n_steps=n_steps+1, forecast_length=1)
-    (train_data2, test_data2), _ = get_ts_data_long(n_steps=n_steps+horizon, forecast_length=horizon)
+    (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
     node_root.custom_params = {
         'input_size': 1,
-        'forecast_length': 1,
-        'window_size': 29.3418382487487,
+        'forecast_length': horizon,
+        'window_size': window_size,
         'hidden_size': 135.66211398383396,
-        'learning_rate': 0.004641403016307329,
+        'learning_rate': 0.0041403016307329,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 50
+        'num_epochs': 10
     }
 
     pipeline = Pipeline(node_root)
-
+    #
     # pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
     #                                iterations=30)
     #
@@ -82,15 +83,11 @@ def clstm_forecasting():
     #                                         loss_function=mean_absolute_error,
     #                                         cv_folds=3,
     #                                         validation_blocks=2)
-    # pipeline.print_structure()
+    pipeline.print_structure()
 
     pipeline.fit(train_data)
 
-    prediction_before_export = out_of_sample_ts_forecast(
-        pipeline=pipeline,
-        input_data=test_data,
-        horizon=horizon
-    )
+    prediction_before_export = pipeline.predict(test_data).predict
 
     print(f'Before export {prediction_before_export[:4]}')
 
@@ -104,11 +101,7 @@ def clstm_forecasting():
     new_pipeline = Pipeline()
     new_pipeline.load(json_path_load)
 
-    predicted_output_after_export = out_of_sample_ts_forecast(
-        pipeline=new_pipeline,
-        input_data=test_data,
-        horizon=horizon
-    )
+    predicted_output_after_export = new_pipeline.predict(test_data).predict
 
     print(f'After import {predicted_output_after_export[:4]}')
 
@@ -117,12 +110,11 @@ def clstm_forecasting():
     pipeline_from_dict = Pipeline()
     pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
 
-    predicted_output_from_dict = out_of_sample_ts_forecast(
-        pipeline=pipeline_from_dict,
-        input_data=test_data,
-        horizon=horizon
-    )
+    predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
+    print(predicted_output_from_dict.shape)
     print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
+
+    display_validation_metric(prediction_before_export, test_data.target, test_data.features, True)
 
 
 def get_source_pipeline_clstm():
@@ -135,7 +127,6 @@ def get_source_pipeline_clstm():
 
     # First level
     node_lagged_1 = PrimaryNode('lagged')
-
 
     # Second level
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
@@ -151,13 +142,14 @@ def get_source_pipeline_clstm():
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 5
+        'num_epochs': 10
     }
     # Third level - root node
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_clstm])
     pipeline = Pipeline(node_final)
 
     return pipeline
+
 
 def display_validation_metric(predicted, real, actual_values,
                               is_visualise: bool) -> None:
@@ -210,6 +202,7 @@ def run_ts_forecasting_problem(forecast_length=50,
     preds = fit_predict_for_pipeline(pipeline=init_pipeline,
                                      train_input=train_input,
                                      predict_input=predict_input)
+
     display_validation_metric(predicted=preds,
                               real=test_part,
                               actual_values=time_series[-100:],
@@ -233,8 +226,8 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = GPComposerBuilder(task=task). \
-        with_optimiser_parameters(optimiser_parameters).\
-        with_requirements(composer_requirements).\
+        with_optimiser_parameters(optimiser_parameters). \
+        with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipeline(init_pipeline)
     composer = builder.build()
 
@@ -259,7 +252,7 @@ def run_ts_forecasting_problem(forecast_length=50,
 
 
 if __name__ == '__main__':
-    #  clstm_forecasting()
-    run_ts_forecasting_problem(forecast_length=50,
-                               with_visualisation=True,
-                               cv_folds=2)
+    clstm_forecasting()
+    # run_ts_forecasting_problem(forecast_length=50,
+    #                            with_visualisation=True,
+    #                            cv_folds=2)
