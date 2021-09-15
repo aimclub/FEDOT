@@ -65,29 +65,27 @@ def prepare_unimodal_for_validation(time_series: Union[np.array, pd.Series],
     return train_input, validation_input
 
 
-def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, target: str,
-                            forecast_length: int):
+def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_length: int):
     """ Prepare MultiModal data for time series forecasting task in a form of
     dictionary
 
-    TODO Переписать, так как не сопоставима с новым API + модифицировать разделение на train test
     :param dataframe: pandas DataFrame to process
     :param features: columns, which should be used as features in forecasting
-    :param target: name of target column
     :param forecast_length: length of forecast
 
-    :return multi_modal_train: dictionary with InputData for train
-    :return multi_modal_test: dictionary with InputData test
+    :return multi_modal_train: dictionary with numpy arrays for train
+    :return multi_modal_test: dictionary with numpy arrays for test
     """
-    target_ts = np.array(dataframe[target])
-
-    multi_modal = {}
+    multi_modal_train = {}
+    multi_modal_test = {}
     for feature in features:
-        feature_ts = np.array(dataframe[feature])
-        # Store InputData into Multimodal dictionary
-        multi_modal.update({feature: feature_ts})
+        feature_ts = np.array(dataframe[feature])[:-forecast_length]
 
-    return multi_modal, target_ts
+        # Will be the same
+        multi_modal_train.update({feature: feature_ts})
+        multi_modal_test.update({feature: feature_ts})
+
+    return multi_modal_train, multi_modal_test
 
 
 def automl_fit_forecast(train_input, predict_input, composer_params: dict,
@@ -146,8 +144,8 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     obtained_pipeline = model.fit(features=train_input, target=target)
 
     if vis:
-        obtained_pipeline.print_structure()
         obtained_pipeline.show()
+        obtained_pipeline.print_structure()
 
     forecast = model.predict(features=predict_input)
 

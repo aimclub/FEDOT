@@ -25,7 +25,6 @@ if __name__ == '__main__':
     ts = np.array(df['diesel_fuel_kWh'])
     mm_train, mm_test, = prepare_multimodal_data(dataframe=df,
                                                  features=features_to_use,
-                                                 target='diesel_fuel_kWh',
                                                  forecast_length=forecast_length)
 
     # Prepare parameters for algorithm launch
@@ -33,8 +32,8 @@ if __name__ == '__main__':
     composer_params = {'max_depth': 6,
                        'max_arity': 3,
                        'pop_size': 20,
-                       'num_of_generations': 100,
-                       'timeout': 5,
+                       'num_of_generations': 20,
+                       'timeout': 2,
                        'preset': 'light',
                        'metric': 'rmse',
                        'cv_folds': None,

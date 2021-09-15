@@ -8,11 +8,12 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def prepare_input_data(train_file_path, test_file_path):
+def prepare_input_data(train_file_path, test_file_path, history_size: int = 10000):
     """ Function for preparing InputData for train and test algorithm
 
     :param train_file_path: path to the csv file for training
     :param test_file_path: path to the csv file for validation
+    :param history_size: length of time series
 
     :return dataset_to_train: InputData for train
     :return dataset_to_validate: InputData for validation
@@ -23,9 +24,9 @@ def prepare_input_data(train_file_path, test_file_path):
     df_train = pd.read_csv(full_path_train)
     df_test = pd.read_csv(full_path_test)
 
-    ws_history = np.ravel(np.array(df_train['wind_speed']))
-    ssh_history = np.ravel(np.array(df_train['sea_height']))
-    ssh_obs = np.ravel(np.array(df_test['sea_height']))
+    ws_history = np.ravel(np.array(df_train['wind_speed']))[:history_size]
+    ssh_history = np.ravel(np.array(df_train['sea_height']))[:history_size]
+    ssh_obs = np.ravel(np.array(df_test['sea_height']))[:history_size]
 
     return ssh_history, ws_history, ssh_obs
 

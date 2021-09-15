@@ -133,7 +133,10 @@ class Node(GraphNode):
         if self.fitted_operation is None:
             return self.operation.get_params
         else:
-            return self.fitted_operation.get_params()
+            if isinstance(self.fitted_operation, object):
+                return {}
+            else:
+                return self.fitted_operation.get_params()
 
     @custom_params.setter
     def custom_params(self, params):
