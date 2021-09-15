@@ -14,10 +14,11 @@ from statsmodels.tsa.arima.model import ARIMA
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
 
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table, \
+    LaggedImplementation, LaggedTransformationImplementation, _prepare_target
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.pipelines.ts_wrappers import _update_input
+from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task, _calculate_number_of_steps
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
@@ -364,10 +365,11 @@ class CLSTMImplementation(ModelImplementation):
         self.hidden_size = int(params.get("hidden_size"))
         self.batch_size = params.get("batch_size")
         self.learning_rate = params.get("learning_rate")
-        self.lag_len = int(params.get("window_size"))
+        self.window_size = int(params.get("window_size"))
 
         # Where we will perform training: cpu or gpu (if it is possible)
         self.device = self._get_device()
+        self.lagger = LaggedTransformationImplementation(window_size=self.window_size)
 
         self.model = LSTMNetwork(input_size=self.input_size,
                                  output_size=1,
@@ -379,9 +381,23 @@ class CLSTMImplementation(ModelImplementation):
 
     def fit(self, train_data: InputData):
         self.model = self.model.to(self.device)
-        data_scaled = self._fit_transform_scaler(train_data)
-        x_train, y_train = self._generate_lags_train(data_scaled)
-        data_loader = DataLoader(TensorDataset(x_train, y_train), batch_size=self.batch_size)
+        features_scaled, target_scaled = self._fit_transform_scaler(train_data)
+        train_data_new = copy(train_data)
+        train_data_new.features = features_scaled
+        train_data_new.target = target_scaled
+        new_idx, lagged_table = _ts_to_table(idx=train_data_new.idx,
+                                             time_series=train_data_new.features,
+                                             window_size=self.window_size)
+
+        final_idx, features_columns, final_target = _prepare_target(idx=new_idx,
+                                                                    features_columns=lagged_table,
+                                                                    target=train_data_new.target,
+                                                                    forecast_length=1)
+        train_data_new.idx = final_idx
+        train_data_new.features = features_columns
+        train_data_new.target = final_target
+        data_loader = DataLoader(TensorDataset(torch.from_numpy(train_data_new.features.copy()).float(),
+                                               torch.from_numpy(train_data_new.target.copy()).float()), batch_size=self.batch_size)
 
         self.model.train()
         for i in range(self.epochs):
@@ -399,74 +415,100 @@ class CLSTMImplementation(ModelImplementation):
 
     def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
         self.model.eval()
+        input_data_new = copy(input_data)
+        features_scaled = self._transform_scale_features(input_data)
         if is_fit_pipeline_stage:
-            data_scaled = self._transform_scaler(input_data)
-            x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
-            x = torch.Tensor(x).to(self.device)
-            self.model.init_hidden(x.size(0), self.device)
-            output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
-            rescaled_output = self._inverse_transform_scaler(output)
-            output_data = self._convert_to_output(input_data.subset(self.lag_len-1, input_data.idx.shape[0]),
-                                              predict=rescaled_output,
-                                              data_type=DataTypesEnum.table)
+            target_scaled = self._transform_scale_target(input_data)
         else:
-            pre_history_ts = np.array(input_data.features)
-            final_forecast = []
-            task = input_data.task
-
-            scope_len = task.task_params.forecast_length
-            old_idx = input_data.idx
-            target = input_data.target
-
-            for _ in range(0, scope_len):
-                data_scaled = self._transform_scaler(input_data)
-                x = self._generate_lags_test(data_scaled, is_fit_pipeline_stage)
-                x = torch.Tensor(x).to(self.device)
-                self.model.init_hidden(x.size(0), self.device)
-                output = self.model(x.unsqueeze(1)).detach().cpu().numpy().reshape(-1)
-                rescaled_output = self._inverse_transform_scaler(output)
-                iter_predict = np.ravel(np.array(rescaled_output))
-                final_forecast.append(iter_predict)
-
-                # Add prediction to the historical data - update it
-                pre_history_ts = np.hstack((pre_history_ts, iter_predict))
-
-                # Prepare InputData for next iteration
-                input_data = _update_input(pre_history_ts, scope_len, task)
-
-            # Create output data
-            input_data.idx = input_data.idx - len(final_forecast)
-            final_forecast = np.ravel(np.array(final_forecast))
-            # Clip the forecast if it is necessary
-            final_forecast = final_forecast[:scope_len]
-            start_id = old_idx[-1] - scope_len + 1
-            end_id = old_idx[-1]
-            predicted = final_forecast
-
-            # Convert one-dim array as column
-            predict = predicted.reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
-
-            # Update idx
-            input_data.idx = new_idx
+            target_scaled = None
+        input_data_new.features = features_scaled
+        input_data_new.target = target_scaled
 
 
-            # Update idx and features
-            output_data = self._convert_to_output(input_data,
-                                              predict=predict,
-                                              data_type=DataTypesEnum.table)
+
+        if input_data_new.target is not None:
+
+            new_idx, lagged_table = _ts_to_table(idx=input_data_new.idx,
+                                                 time_series=input_data_new.features,
+                                                 window_size=self.window_size)
+
+            final_idx, features_columns, final_target = _prepare_target(idx=new_idx,
+                                                                        features_columns=lagged_table,
+                                                                        target=input_data_new.target,
+                                                                        forecast_length=self.forecast_length)
+            input_data_new.idx = final_idx
+            input_data_new.features = features_columns
+            input_data_new.target = final_target
+        else:
+            input_data_new.features = input_data_new.features[-self.window_size:].reshape(1, -1)
+        predict = self.out_of_sample_ts_forecast(input_data_new)
+        output_data = self._convert_to_output(input_data_new,
+                                           predict=predict,
+                                           data_type=DataTypesEnum.table)
 
 
         return output_data
 
+    def out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
+        """
+        Method allow make forecast with appropriate forecast length. The previously
+        predicted parts of the time series are used for forecasting next parts. Available
+        only for time series forecasting task. Steps ahead provided iteratively.
+        time series ----------------|
+        forecast                    |---|---|---|
+
+        :param pipeline: Pipeline for making time series forecasting
+        :param input_data: data for prediction
+        :param horizon: forecasting horizon
+        :return final_forecast: array with forecast
+        """
+        # Prepare data for time series forecasting
+        task = input_data.task
+        exception_if_not_ts_task(task)
+
+        pre_history_ts = np.array(input_data.features)
+
+        source_len = len(pre_history_ts)
+
+        # How many elements to the future pipeline can produce
+        scope_len = task.task_params.forecast_length
+        number_of_iterations = scope_len
+
+        # Make forecast iteratively moving throw the horizon
+        final_forecast = None
+
+        for _ in range(0, number_of_iterations):
+            x = torch.from_numpy(input_data.features.copy()).float().to(self.device)
+            self.model.init_hidden(x.size(0), self.device)
+            iter_predict = self.model(x.unsqueeze(1)).cpu().detach().numpy().reshape(-1, 1)
+            if final_forecast is not None:
+                final_forecast = np.hstack((final_forecast, iter_predict))
+            else:
+                final_forecast = iter_predict
+
+            # Add prediction to the historical data - update it
+            pre_history_ts = np.hstack((pre_history_ts[:, 1:], iter_predict))
+
+            # Prepare InputData for next iteration
+            input_data = _update_input(pre_history_ts, scope_len, task)
+
+        # Create output data
+        # Clip the forecast if it is necessary
+        return final_forecast
+
     def _fit_transform_scaler(self, data: InputData):
-        return self.scaler.fit_transform(data.features.reshape(-1, 1)).reshape(-1)
+        f_scaled = self.scaler.fit_transform(data.features.reshape(-1, 1)).reshape(-1)
+        t_scaled = self.scaler.transform(data.target.reshape(-1, 1)).reshape(-1)
+        return f_scaled, t_scaled
 
     def _inverse_transform_scaler(self, data: np.ndarray):
         return self.scaler.inverse_transform(data.reshape(-1, 1)).reshape(-1)
 
-    def _transform_scaler(self, data: InputData):
+    def _transform_scale_features(self, data: InputData):
         return self.scaler.transform(data.features.reshape(-1, 1)).reshape(-1)
+
+    def _transform_scale_target(self, data: InputData):
+        return self.scaler.transform(data.target.reshape(-1, 1)).reshape(-1)
 
     def get_params(self):
         return self.params

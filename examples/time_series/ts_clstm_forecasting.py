@@ -2,15 +2,17 @@ import datetime
 import json
 import os
 
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from examples.pipeline_import_export import create_correct_path, get_pipeline
 from examples.time_series.ts_forecasting_composing import prepare_train_test_input, fit_predict_for_pipeline, \
-    display_validation_metric, get_source_pipeline, get_available_operations
+    display_validation_metric, get_source_pipeline, get_available_operations, plot_results
 from fedot.core.composer.gp_composer.fixed_structure_composer import GPComposerRequirements
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.composer.gp_composer.gp_composer import \
+    GPComposerBuilder, GPComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -128,7 +130,7 @@ def get_source_pipeline_clstm():
     Return pipeline with the following structure:
     lagged - ridge \
                     -> ridge
-    lagged - ridge /
+    clstm - - - - /
     """
 
     # First level
@@ -137,10 +139,10 @@ def get_source_pipeline_clstm():
 
     # Second level
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
-    node_ridge_2 = PrimaryNode('clstm') # TODO изменить обратно
-    node_ridge_2.custom_params = {
+    node_clstm = PrimaryNode('clstm')
+    node_clstm.custom_params = {
         'input_size': 1,
-        'forecast_length': 1,
+        'forecast_length': 100,
         'window_size': 29.3418382487487,
         'hidden_size': 135.66211398383396,
         'learning_rate': 0.004641403016307329,
@@ -152,10 +154,31 @@ def get_source_pipeline_clstm():
         'num_epochs': 5
     }
     # Third level - root node
-    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_clstm])
     pipeline = Pipeline(node_final)
 
     return pipeline
+
+def display_validation_metric(predicted, real, actual_values,
+                              is_visualise: bool) -> None:
+    """ Function calculate metrics based on predicted and tests data
+
+    :param predicted: predicted values
+    :param real: real values
+    :param actual_values: source time series
+    :param is_visualise: is it needed to show the plots
+    """
+
+    rmse_value = mean_squared_error(real, predicted, squared=False)
+    mae_value = mean_absolute_error(real, predicted)
+    print(f'RMSE - {rmse_value:.2f}')
+    print(f'MAE - {mae_value:.2f}\n')
+
+    if is_visualise:
+        plot_results(actual_time_series=actual_values,
+                     predicted_values=predicted,
+                     len_train_data=len(actual_values) - len(predicted))
+
 
 def run_ts_forecasting_problem(forecast_length=50,
                                with_visualisation=True,
@@ -189,7 +212,7 @@ def run_ts_forecasting_problem(forecast_length=50,
                                      predict_input=predict_input)
     display_validation_metric(predicted=preds,
                               real=test_part,
-                              actual_values=time_series,
+                              actual_values=time_series[-100:],
                               is_visualise=with_visualisation)
 
     # Get available_operations type
@@ -237,6 +260,6 @@ def run_ts_forecasting_problem(forecast_length=50,
 
 if __name__ == '__main__':
     #  clstm_forecasting()
-    run_ts_forecasting_problem(forecast_length=100,
+    run_ts_forecasting_problem(forecast_length=50,
                                with_visualisation=True,
                                cv_folds=2)
