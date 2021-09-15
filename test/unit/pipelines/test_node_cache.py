@@ -157,14 +157,6 @@ def pipeline_fifth():
     return pipeline
 
 
-def pipeline_sixth():
-    # Only one single node KNN
-    pipeline = Pipeline()
-    pipeline.add_node(PrimaryNode('knn'))
-
-    return pipeline
-
-
 def test_cache_actuality_after_model_change(data_setup):
     """The non-affected nodes has actual cache after changing the model"""
 
