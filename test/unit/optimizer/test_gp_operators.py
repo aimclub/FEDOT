@@ -30,7 +30,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import _to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, \
-    pipeline_fourth, pipeline_fifth, pipeline_sixth
+    pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -64,6 +64,13 @@ def graph_example():
 
     graph.add_node(root_of_tree)
     return graph
+
+
+def generate_pipeline_with_single_node():
+    pipeline = Pipeline()
+    pipeline.add_node(PrimaryNode('knn'))
+
+    return pipeline
 
 
 def pipeline_with_custom_parameters(alpha_value):
@@ -437,26 +444,26 @@ def test_preds_before_and_after_convert_equal():
 
 def test_crossover_with_single_node():
     adapter = PipelineAdapter()
-    graph_example_first = adapter.adapt(pipeline_sixth())
-    graph_example_second = adapter.adapt(pipeline_sixth())
+    graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
+    graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
     log = default_log(__name__)
-    crossover_types = [CrossoverTypesEnum.none]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first),
-                           Individual(graph_example_second),
-                           max_depth=3, log=log, crossover_prob=1)
-    assert new_graphs[0].graph == graph_example_first
-    assert new_graphs[1].graph == graph_example_second
-    crossover_types = [CrossoverTypesEnum.subtree]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first),
-                           Individual(graph_example_second),
-                           max_depth=3, log=log, crossover_prob=0)
-    assert new_graphs[0].graph == graph_example_first
-    assert new_graphs[1].graph == graph_example_second
+    params = [
+        {'crossover_prob': 1, 'crossover_types': [CrossoverTypesEnum.none]},
+        {'crossover_prob': 0, 'crossover_types': [CrossoverTypesEnum.subtree]}
+    ]
+
+    for temp in params:
+        new_graphs = crossover(temp['crossover_types'], Individual(graph_example_first),
+                               Individual(graph_example_second), max_depth=3, log=log,
+                               crossover_prob=temp['crossover_prob'])
+
+        assert new_graphs[0].graph == graph_example_first
+        assert new_graphs[1].graph == graph_example_second
 
 
 def test_mutation_with_single_node():
     adapter = PipelineAdapter()
-    graph = adapter.adapt(pipeline_sixth())
+    graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
