@@ -7,9 +7,10 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 # required for the import of task from file
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-tmp_task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams())
+tmp_task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=1))
 
 
 def extract_data_from_config_file(file):
@@ -36,8 +37,13 @@ def fit_pipeline(config_file) -> bool:
             extract_data_from_config_file(config_file)
 
         pipeline = pipeline_from_json(pipeline_description)
+
+        data_type = DataTypesEnum.table
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            data_type = DataTypesEnum.ts
+
         train_data = InputData.from_csv(file_path=train_data_path,
-                                        task=task)
+                                        task=task, data_type=data_type)
         train_data = train_data.subset_list(train_data_idx)
         pipeline.fit_from_scratch(train_data)
 

@@ -3,5 +3,5 @@ pipeline_description = {    "total_pipeline_operations": {        "rfe_lin_class
 train_data = ./data/advanced_classification.csv
 train_data_idx = [1, 2, 3, 4, 5, 20]
 task = Task(TaskTypesEnum.classification)
-output_path = .
+output_path = ./test_class
 [OPTIONAL]
