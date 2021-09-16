@@ -366,10 +366,8 @@ class CLSTMImplementation(ModelImplementation):
         self.batch_size = params.get("batch_size")
         self.learning_rate = params.get("learning_rate")
         self.window_size = int(params.get("window_size"))
-
         # Where we will perform training: cpu or gpu (if it is possible)
         self.device = self._get_device()
-
         self.model = LSTMNetwork(input_size=self.input_size,
                                  output_size=1,
                                  hidden_size=self.hidden_size)
@@ -395,9 +393,9 @@ class CLSTMImplementation(ModelImplementation):
         train_data_new.idx = final_idx
         train_data_new.features = features_columns
         train_data_new.target = final_target
-        print(train_data_new.features.shape, train_data_new.target.shape)
-        data_loader = DataLoader(TensorDataset(torch.from_numpy(train_data_new.features.copy()).float(),
-                                               torch.from_numpy(train_data_new.target.copy()).float()), batch_size=self.batch_size)
+        x = torch.from_numpy(train_data_new.features.copy()).float()
+        y = torch.from_numpy(train_data_new.target.copy()).float().reshape(-1, 1)
+        data_loader = DataLoader(TensorDataset(x, y), batch_size=self.batch_size)
 
         self.model.train()
         for i in range(self.epochs):
@@ -410,12 +408,6 @@ class CLSTMImplementation(ModelImplementation):
                 loss = self.criterion(output, y)
                 loss.backward()
                 print(loss.item())
-                total_norm = 0
-                for p in self.model.parameters():
-                    param_norm = p.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-                total_norm = total_norm ** (1. / 2)
-                print("grad_norm", total_norm)
                 self.optimizer.step()
         return self.model
 
@@ -440,11 +432,11 @@ class CLSTMImplementation(ModelImplementation):
             input_data_new.target = final_target
         else:
             input_data_new.features = input_data_new.features[-self.window_size:].reshape(1, -1)
+            input_data.idx = input_data_new.idx[-self.window_size:].reshape(1, -1)
         predict = self.out_of_sample_ts_forecast(input_data_new)
         output_data = self._convert_to_output(input_data_new,
                                            predict=predict,
                                            data_type=DataTypesEnum.table)
-
         return output_data
 
     def out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
@@ -475,10 +467,8 @@ class CLSTMImplementation(ModelImplementation):
         # Make forecast iteratively moving throw the horizon
         final_forecast = None
 
-        print(input_data.features.shape)
-
         for _ in range(0, number_of_iterations):
-
+            print(input_data.idx)
             with torch.no_grad():
                 x = torch.from_numpy(input_data.features.copy()).float().to(self.device)
                 self.model.init_hidden(x.size(0), self.device)
@@ -490,7 +480,6 @@ class CLSTMImplementation(ModelImplementation):
 
             # Add prediction to the historical data - update it
             pre_history_ts = np.hstack((pre_history_ts[:, 1:], iter_predict))
-
             # Prepare InputData for next iteration
             input_data = _update_input(pre_history_ts, scope_len, task)
 
@@ -502,7 +491,8 @@ class CLSTMImplementation(ModelImplementation):
         return f_scaled, t_scaled
 
     def _inverse_transform_scaler(self, data: np.ndarray):
-        return self.scaler.inverse_transform(data.reshape(-1, 1)).reshape(-1)
+        start_shape = data.shape
+        return self.scaler.inverse_transform(data.reshape(-1, 1)).reshape(start_shape)
 
     def _transform_scale_features(self, data: InputData):
         return self.scaler.transform(data.features.reshape(-1, 1)).reshape(-1)
@@ -544,7 +534,7 @@ class LSTMNetwork(nn.Module):
             nn.Conv1d(in_channels=cnn1_output_size, out_channels=cnn2_output_size, kernel_size=cnn2_kernel_size),
             nn.ReLU()
         )
-        self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.2)
+        self.lstm = nn.LSTM(cnn2_output_size, self.hidden_size, dropout=0.1)
         self.hidden_cell = None
         self.linear = nn.Linear(self.hidden_size, 1)
 

@@ -54,9 +54,9 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 
 
 def clstm_forecasting():
-    horizon = 12
-    window_size = 24
-    n_steps = 200
+    horizon = 24*2
+    window_size = 24*7
+    n_steps = 1000
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
@@ -65,13 +65,13 @@ def clstm_forecasting():
         'forecast_length': horizon,
         'window_size': window_size,
         'hidden_size': 135.66211398383396,
-        'learning_rate': 0.0041403016307329,
+        'learning_rate': 0.00041403016307329,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 10
+        'num_epochs': 50
     }
 
     pipeline = Pipeline(node_root)
@@ -86,6 +86,8 @@ def clstm_forecasting():
     pipeline.print_structure()
 
     pipeline.fit(train_data)
+    print(train_data.idx)
+    print(test_data.idx)
 
     prediction_before_export = pipeline.predict(test_data).predict
 
@@ -93,28 +95,28 @@ def clstm_forecasting():
 
     path = "import_export"
     # Export it
-    pipeline.save(path=path)
+    # pipeline.save(path=path)
+    #
+    # # Import pipeline
+    # json_path_load = create_correct_path(path)
+    # print(json_path_load)
+    # new_pipeline = Pipeline()
+    # new_pipeline.load(json_path_load)
+    #
+    # predicted_output_after_export = new_pipeline.predict(test_data).predict
+    #
+    # print(f'After import {predicted_output_after_export[:4]}')
+    #
+    # dict_pipeline, dict_fitted_operations = pipeline.save()
+    # dict_pipeline = json.loads(dict_pipeline)
+    # pipeline_from_dict = Pipeline()
+    # pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
+    #
+    # predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
+    # print(predicted_output_from_dict.shape)
+    # print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
 
-    # Import pipeline
-    json_path_load = create_correct_path(path)
-    print(json_path_load)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
-
-    predicted_output_after_export = new_pipeline.predict(test_data).predict
-
-    print(f'After import {predicted_output_after_export[:4]}')
-
-    dict_pipeline, dict_fitted_operations = pipeline.save()
-    dict_pipeline = json.loads(dict_pipeline)
-    pipeline_from_dict = Pipeline()
-    pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
-
-    predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
-    print(predicted_output_from_dict.shape)
-    print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
-
-    display_validation_metric(prediction_before_export, test_data.target, test_data.features, True)
+    display_validation_metric(np.ravel(prediction_before_export), test_data.target, np.concatenate([test_data.features[-window_size:], test_data.target]), True)
 
 
 def get_source_pipeline_clstm():
@@ -160,7 +162,7 @@ def display_validation_metric(predicted, real, actual_values,
     :param actual_values: source time series
     :param is_visualise: is it needed to show the plots
     """
-
+    print(real.shape, predicted.shape)
     rmse_value = mean_squared_error(real, predicted, squared=False)
     mae_value = mean_absolute_error(real, predicted)
     print(f'RMSE - {rmse_value:.2f}')
