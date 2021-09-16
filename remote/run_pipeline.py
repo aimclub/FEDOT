@@ -7,9 +7,9 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 # required for the import of task from file
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-tmp_task = Task(TaskTypesEnum.classification)
+tmp_task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams())
 
 
 def extract_data_from_config_file(file):

@@ -246,7 +246,7 @@ class InputData(Data):
 
     def subset_list(self, selected_idx: List):
         idx_list = list(self.idx)
-        indices = [idx_list.index(sel_ind) for sel_ind in selected_idx]
+        indices = [idx_list.index(sel_ind) for sel_ind in selected_idx if sel_ind in idx_list]
         new_features = None
 
         if self.features is not None:

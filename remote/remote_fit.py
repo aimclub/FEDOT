@@ -10,9 +10,9 @@ from fedot.core.pipelines.validation import validate
 from remote.infrastructure.models_controller.computations import Client
 
 
-class RemoteFitter:
+class ComputationalSetup:
     remote_eval_params = {
-        'use': False,
+        'mode': 'local',
         'dataset_name': '',  # name of the dataset for composer evaluation
         'task_type': '',  # name of the modelling task for dataset
         'train_data_idx': [],
@@ -20,15 +20,15 @@ class RemoteFitter:
     }
 
     @property
-    def is_use(self):
-        return RemoteFitter.remote_eval_params['use']
+    def is_remote(self):
+        return ComputationalSetup.remote_eval_params['mode'] == 'remote'
 
     def fit(self, pipelines: List['Pipeline']) -> List['Pipeline']:
         pipelines_parts, data_id = _prepare_computation_vars(pipelines)
 
         final_pipelines = []
         for pipelines_part in pipelines_parts:
-            remote_eval_params = RemoteFitter.remote_eval_params
+            remote_eval_params = ComputationalSetup.remote_eval_params
 
             dataset_name = remote_eval_params['dataset_name']
             task_type = remote_eval_params['task_type']
@@ -93,7 +93,7 @@ class RemoteFitter:
 
 
 def _prepare_computation_vars(pipelines):
-    num_parts = np.floor(len(pipelines) / RemoteFitter.remote_eval_params['max_parallel'])
+    num_parts = np.floor(len(pipelines) / ComputationalSetup.remote_eval_params['max_parallel'])
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
     data_id = int(os.environ['DATA_ID'])
     return pipelines_parts, data_id
@@ -112,7 +112,7 @@ def _prepare_client():
 
     client.create_execution_group(project_id=pid)
     response = client.get_execution_groups(project_id=pid)
-    new_id = response[-1]['id'] + 2
+    new_id = max([item['id'] for item in response]) + 1
     client.set_group_token(project_id=pid, group_id=new_id)
     return client
 
@@ -120,9 +120,9 @@ def _prepare_client():
 def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx):
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
-        train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}_train.csv
+        train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}.csv
         task = {task_type}
         output_path = output_data_dir/fitted_pipeline
-        train_data_idx = {[str(int(ind)) for ind in dataset_idx]}
+        train_data_idx = {[int(ind) for ind in dataset_idx]}
         [OPTIONAL]
         """.encode('utf-8')
