@@ -18,7 +18,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals, fil
 from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation, reduce_mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation, reduce_mutation, \
+    single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -458,7 +459,7 @@ def test_crossover_with_single_node():
         assert new_graphs[1].graph == graph_example_second
 
 
-def test_reduce_mutation_with_single_node():
+def test_mutation_with_single_node():
     adapter = PipelineAdapter()
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
@@ -467,5 +468,7 @@ def test_reduce_mutation_with_single_node():
                                                    max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
                                                    crossover_prob=.8, mutation_prob=1)
     new_graph = reduce_mutation(graph, composer_requirements)
+    assert graph == new_graph
 
+    new_graph = single_drop_mutation(graph)
     assert graph == new_graph
