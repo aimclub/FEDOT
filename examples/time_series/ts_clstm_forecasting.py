@@ -56,7 +56,7 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 def clstm_forecasting():
     horizon = 24*2
     window_size = 29
-    n_steps = 200
+    n_steps = 1000
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
@@ -84,12 +84,10 @@ def clstm_forecasting():
     #                                         cv_folds=3,
     #                                         validation_blocks=2)
     pipeline.print_structure()
-    print(train_data.features.shape, train_data.target.shape)
-    print(test_data.features.shape, test_data.target.shape)
+
     pipeline.fit(train_data)
 
     prediction_before_export = pipeline.predict(test_data).predict
-
     # print(f'Before export {prediction_before_export[:4]}')
     #
     # path = "import_export"
@@ -114,7 +112,6 @@ def clstm_forecasting():
     # predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
     # print(predicted_output_from_dict.shape)
     # print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
-
     display_validation_metric(np.ravel(prediction_before_export), test_data.target, np.concatenate([test_data.features[-window_size:], test_data.target]), True)
 
 
@@ -166,7 +163,6 @@ def display_validation_metric(predicted, real, actual_values,
     mae_value = mean_absolute_error(real, predicted)
     print(f'RMSE - {rmse_value:.2f}')
     print(f'MAE - {mae_value:.2f}\n')
-
     if is_visualise:
         plot_results(actual_time_series=actual_values,
                      predicted_values=predicted,

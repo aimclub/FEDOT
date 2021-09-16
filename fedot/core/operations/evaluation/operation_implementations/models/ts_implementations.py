@@ -426,7 +426,6 @@ class CLSTMImplementation(ModelImplementation):
                                                                         features_columns=lagged_table,
                                                                         target=input_data_new.target,
                                                                         forecast_length=self.forecast_length)
-            print(features_columns.shape, final_target.shape)
             input_data_new.idx = final_idx
             input_data_new.features = features_columns
             input_data_new.target = final_target
@@ -442,8 +441,6 @@ class CLSTMImplementation(ModelImplementation):
         return output_data
 
     def _predict(self, input_data: InputData):
-        plt.plot(input_data.features[0, :])
-        plt.show()
         features_scaled = self._transform_scaler_features(input_data)
         x = torch.Tensor(features_scaled).to(self.device)
         self.model.init_hidden(x.shape[0], self.device)
@@ -478,9 +475,8 @@ class CLSTMImplementation(ModelImplementation):
             pre_history_ts = np.hstack((pre_history_ts[:, 1:], iter_predict))
             # Prepare InputData for next iteration
             input_data_new = _update_input(pre_history_ts, scope_len, task)
-            print(input_data_new)
 
-        return self._inverse_transform_scaler(final_forecast)
+        return final_forecast
 
     def _fit_transform_scaler(self, data: InputData):
         f_scaled = self.scaler.fit_transform(data.features.reshape(-1, 1)).reshape(-1)
