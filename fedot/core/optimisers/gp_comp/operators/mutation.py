@@ -355,12 +355,14 @@ def growth_mutation(graph: Any, requirements, params, max_depth: int, local_grow
         return _tree_growth(graph, requirements, params, max_depth, local_growth)
 
 
-def reduce_mutation(graph: Any, requirements, **kwargs) -> Any:
+def reduce_mutation(graph: OptGraph, requirements, **kwargs) -> OptGraph:
     """
     Selects a random node in a tree, then removes its subtree. If the current arity of the node's
     parent is more than the specified minimal arity, then the selected node is also removed.
     Otherwise, it is replaced by a random primary node.
     """
+    if len(graph.nodes) == 1:
+        return graph
 
     nodes = [node for node in graph.nodes if node is not graph.root_node]
     node_to_del = choice(nodes)
