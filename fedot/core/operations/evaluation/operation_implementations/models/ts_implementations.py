@@ -415,9 +415,6 @@ class CLSTMImplementation(ModelImplementation):
     def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
         self.model.eval()
         input_data_new = copy(input_data)
-        features_scaled = self._transform_scale_features(input_data)
-        input_data_new.features = features_scaled
-        print(is_fit_pipeline_stage)
         old_idx = input_data_new.idx
         if is_fit_pipeline_stage:
 
@@ -444,6 +441,15 @@ class CLSTMImplementation(ModelImplementation):
                                            data_type=DataTypesEnum.table)
         return output_data
 
+    def _predict(self, input_data: InputData):
+        plt.plot(input_data.features[0, :])
+        plt.show()
+        features_scaled = self._transform_scaler_features(input_data)
+        x = torch.Tensor(features_scaled).to(self.device)
+        self.model.init_hidden(x.shape[0], self.device)
+        pred = self.model(x.unsqueeze(1)).squeeze(0).cpu().detach().numpy()
+        return self._inverse_transform_scaler(pred)
+
     def _out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
         input_data_new = copy(input_data)
         # Prepare data for time series forecasting
@@ -462,12 +468,7 @@ class CLSTMImplementation(ModelImplementation):
 
         for _ in range(0, number_of_iterations):
             with torch.no_grad():
-                x = torch.from_numpy(input_data_new.features.copy()).float().to(self.device)
-                self.model.init_hidden(x.size(0), self.device)
-                iter_predict = self.model(x.unsqueeze(1)).cpu().squeeze(0)
-                print(x.shape, iter_predict.shape)
-                plt.plot(torch.hstack([x, iter_predict])[0, :])
-                plt.show()
+                iter_predict = self._predict(input_data_new)
             if final_forecast is not None:
                 final_forecast = np.hstack((final_forecast, iter_predict))
             else:
@@ -477,6 +478,7 @@ class CLSTMImplementation(ModelImplementation):
             pre_history_ts = np.hstack((pre_history_ts[:, 1:], iter_predict))
             # Prepare InputData for next iteration
             input_data_new = _update_input(pre_history_ts, scope_len, task)
+            print(input_data_new)
 
         return self._inverse_transform_scaler(final_forecast)
 
@@ -489,10 +491,11 @@ class CLSTMImplementation(ModelImplementation):
         start_shape = data.shape
         return self.scaler.inverse_transform(data.reshape(-1, 1)).reshape(start_shape)
 
-    def _transform_scale_features(self, data: InputData):
-        return self.scaler.transform(data.features.reshape(-1, 1)).reshape(-1)
+    def _transform_scaler_features(self, data: InputData):
+        start_shape = data.features.shape
+        return self.scaler.transform(data.features.reshape(-1, 1)).reshape(start_shape)
 
-    def _transform_scale_target(self, data: InputData):
+    def _transform_scaler_target(self, data: InputData):
         return self.scaler.transform(data.target.reshape(-1, 1)).reshape(-1)
 
     def get_params(self):
