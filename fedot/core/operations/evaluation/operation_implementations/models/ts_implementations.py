@@ -4,6 +4,7 @@ from copy import copy
 import numpy as np
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 from scipy import stats
 from scipy.special import inv_boxcox, boxcox
@@ -415,11 +416,12 @@ class CLSTMImplementation(ModelImplementation):
         self.model.eval()
         input_data_new = copy(input_data)
         features_scaled = self._transform_scale_features(input_data)
-
         input_data_new.features = features_scaled
+        print(is_fit_pipeline_stage)
+        old_idx = input_data_new.idx
         if is_fit_pipeline_stage:
 
-            new_idx, lagged_table = _ts_to_table(idx=input_data_new.idx,
+            new_idx, lagged_table = _ts_to_table(idx=old_idx,
                                                  time_series=input_data_new.features,
                                                  window_size=self.window_size)
 
@@ -427,38 +429,29 @@ class CLSTMImplementation(ModelImplementation):
                                                                         features_columns=lagged_table,
                                                                         target=input_data_new.target,
                                                                         forecast_length=self.forecast_length)
+            print(features_columns.shape, final_target.shape)
             input_data_new.idx = final_idx
             input_data_new.features = features_columns
             input_data_new.target = final_target
         else:
             input_data_new.features = input_data_new.features[-self.window_size:].reshape(1, -1)
             input_data.idx = input_data_new.idx[-self.window_size:].reshape(1, -1)
-        predict = self.out_of_sample_ts_forecast(input_data_new)
+        predict = self._out_of_sample_ts_forecast(input_data_new)
+
+
         output_data = self._convert_to_output(input_data_new,
                                            predict=predict,
                                            data_type=DataTypesEnum.table)
         return output_data
 
-    def out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
-        """
-        Method allow make forecast with appropriate forecast length. The previously
-        predicted parts of the time series are used for forecasting next parts. Available
-        only for time series forecasting task. Steps ahead provided iteratively.
-        time series ----------------|
-        forecast                    |---|---|---|
-
-        :param pipeline: Pipeline for making time series forecasting
-        :param input_data: data for prediction
-        :param horizon: forecasting horizon
-        :return final_forecast: array with forecast
-        """
+    def _out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
+        input_data_new = copy(input_data)
         # Prepare data for time series forecasting
-        task = input_data.task
+        task = input_data_new.task
         exception_if_not_ts_task(task)
 
-        pre_history_ts = np.array(input_data.features)
+        pre_history_ts = np.array(input_data_new.features)
 
-        source_len = len(pre_history_ts)
 
         # How many elements to the future pipeline can produce
         scope_len = task.task_params.forecast_length
@@ -468,11 +461,13 @@ class CLSTMImplementation(ModelImplementation):
         final_forecast = None
 
         for _ in range(0, number_of_iterations):
-            print(input_data.idx)
             with torch.no_grad():
-                x = torch.from_numpy(input_data.features.copy()).float().to(self.device)
+                x = torch.from_numpy(input_data_new.features.copy()).float().to(self.device)
                 self.model.init_hidden(x.size(0), self.device)
-                iter_predict = self.model(x.unsqueeze(1)).cpu().numpy().reshape(-1, 1)
+                iter_predict = self.model(x.unsqueeze(1)).cpu().squeeze(0)
+                print(x.shape, iter_predict.shape)
+                plt.plot(torch.hstack([x, iter_predict])[0, :])
+                plt.show()
             if final_forecast is not None:
                 final_forecast = np.hstack((final_forecast, iter_predict))
             else:
@@ -481,7 +476,7 @@ class CLSTMImplementation(ModelImplementation):
             # Add prediction to the historical data - update it
             pre_history_ts = np.hstack((pre_history_ts[:, 1:], iter_predict))
             # Prepare InputData for next iteration
-            input_data = _update_input(pre_history_ts, scope_len, task)
+            input_data_new = _update_input(pre_history_ts, scope_len, task)
 
         return self._inverse_transform_scaler(final_forecast)
 

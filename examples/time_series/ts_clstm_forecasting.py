@@ -55,8 +55,8 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 
 def clstm_forecasting():
     horizon = 24*2
-    window_size = 24*7
-    n_steps = 1000
+    window_size = 29
+    n_steps = 200
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
@@ -71,7 +71,7 @@ def clstm_forecasting():
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 50
+        'num_epochs': 20
     }
 
     pipeline = Pipeline(node_root)
@@ -84,16 +84,15 @@ def clstm_forecasting():
     #                                         cv_folds=3,
     #                                         validation_blocks=2)
     pipeline.print_structure()
-
+    print(train_data.features.shape, train_data.target.shape)
+    print(test_data.features.shape, test_data.target.shape)
     pipeline.fit(train_data)
-    print(train_data.idx)
-    print(test_data.idx)
 
     prediction_before_export = pipeline.predict(test_data).predict
 
-    print(f'Before export {prediction_before_export[:4]}')
-
-    path = "import_export"
+    # print(f'Before export {prediction_before_export[:4]}')
+    #
+    # path = "import_export"
     # Export it
     # pipeline.save(path=path)
     #
