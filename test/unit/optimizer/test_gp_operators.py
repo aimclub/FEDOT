@@ -449,19 +449,16 @@ def test_crossover_with_single_node():
     log = default_log(__name__)
     graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
-    crossover_types = [
-        [CrossoverTypesEnum.none], [CrossoverTypesEnum.subtree], [CrossoverTypesEnum.one_point]
-    ]
 
-    for crossover_type in crossover_types:
-        new_graphs = crossover(crossover_type, Individual(graph_example_first), Individual(graph_example_second),
+    for crossover_type in CrossoverTypesEnum:
+        new_graphs = crossover([crossover_type], Individual(graph_example_first), Individual(graph_example_second),
                                params=graph_params, max_depth=3, log=log, crossover_prob=1)
 
         assert new_graphs[0].graph == graph_example_first
         assert new_graphs[1].graph == graph_example_second
 
 
-def test_mutation_with_single_node():
+def test_reduce_mutation_with_single_node():
     adapter = PipelineAdapter()
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
