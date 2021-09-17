@@ -146,7 +146,7 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
                   composer_params=composer_params,
-                  task_params=task_params, verbose_level=4)
+                  task_params=task_params, verbose_level=1)
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)
 
