@@ -8,7 +8,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 # fedot api
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -79,8 +78,10 @@ def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_le
     multi_modal_train = {}
     multi_modal_test = {}
     for feature in features:
-        feature_ts = np.array(dataframe[feature])[:-forecast_length]
-
+        if forecast_length > 0:
+            feature_ts = np.array(dataframe[feature])[:-forecast_length]
+        else:
+            feature_ts = np.array(dataframe[feature])
         # Will be the same
         multi_modal_train.update({feature: feature_ts})
         multi_modal_test.update({feature: feature_ts})

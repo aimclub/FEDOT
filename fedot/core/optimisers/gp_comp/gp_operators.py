@@ -144,9 +144,10 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable, is_multi_objective: bool,
                         graph_generation_params) -> Any:
     if isinstance(graph, OptGraph):
-        pipeline = graph_generation_params.adapter.restore(graph)
-
-    calculated_fitness = objective_function(pipeline)
+        converted_object = graph_generation_params.adapter.restore(graph)
+    else:
+        converted_object = graph
+    calculated_fitness = objective_function(converted_object)
     if calculated_fitness is None:
         return None
     else:

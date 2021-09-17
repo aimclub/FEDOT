@@ -1,16 +1,15 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
+from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data import InputData
 
 
 class LaggedImplementation(DataOperationImplementation):
@@ -69,7 +68,8 @@ class LaggedImplementation(DataOperationImplementation):
             if self.sparse_transform:
                 self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
             # Transform target
-            new_idx, self.features_columns, new_target = _prepare_target(idx=new_idx,
+            new_idx, self.features_columns, new_target = _prepare_target(all_idx=input_data.idx,
+                                                                         idx=new_idx,
                                                                          features_columns=self.features_columns,
                                                                          target=target,
                                                                          forecast_length=forecast_length)
@@ -193,13 +193,15 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
         if is_fit_pipeline_stage is True:
             # Transform features in "target-like way"
-            _, _, features_columns = _prepare_target(idx=old_idx,
+            _, _, features_columns = _prepare_target(all_idx=input_data.idx,
+                                                     idx=old_idx,
                                                      features_columns=input_data.features,
                                                      target=input_data.features,
                                                      forecast_length=forecast_length)
 
             # Transform target
-            new_idx, _, new_target = _prepare_target(idx=old_idx,
+            new_idx, _, new_target = _prepare_target(all_idx=input_data.idx,
+                                                     idx=old_idx,
                                                      features_columns=input_data.features,
                                                      target=input_data.target,
                                                      forecast_length=forecast_length)
@@ -342,18 +344,18 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
         n_components_perc = 0.5
 
     if use_svd:
-        n_components = int(features_columns.shape[1]*n_components_perc)
+        n_components = int(features_columns.shape[1] * n_components_perc)
         # Getting the initial approximation of number of components
         if not n_components:
-            n_components = int(features_columns.shape[1]*n_components_perc)
+            n_components = int(features_columns.shape[1] * n_components_perc)
         if n_components >= features_columns.shape[0]:
-            n_components = features_columns.shape[0]-1
+            n_components = features_columns.shape[0] - 1
         logger.info(f'Initial approximation of number of components set as {n_components}')
 
         # Forming the first value of explained variance
         components = _get_svd(features_columns, n_components)
     else:
-        step = int(1/n_components_perc)
+        step = int(1 / n_components_perc)
         indeces_to_stay = np.arange(1, features_columns.shape[1], step)
         components = np.take(features_columns, indeces_to_stay, 1)
 
@@ -375,11 +377,12 @@ def _get_svd(features_columns: np.array, n_components: int):
     return components
 
 
-def _prepare_target(idx, features_columns: np.array, target, forecast_length: int):
+def _prepare_target(all_idx, idx, features_columns: np.array, target, forecast_length: int):
     """ Method convert time series to lagged form. Transformation applied
     only for generating target table (time series considering as multi-target
     regression task).
 
+    :param all_idx: all indices in data
     :param idx: remaining indices after lagged feature table generation
     :param features_columns: lagged feature table
     :param target: source time series
@@ -391,7 +394,7 @@ def _prepare_target(idx, features_columns: np.array, target, forecast_length: in
     """
 
     # Update target (clip first "window size" values)
-    ts_target = target[idx]
+    ts_target = target[[list(all_idx).index(i) for i in idx]]
 
     # Multi-target transformation
     if forecast_length > 1:

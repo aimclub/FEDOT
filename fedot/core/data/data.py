@@ -251,7 +251,7 @@ class InputData(Data):
 
         if self.features is not None:
             new_features = self.features[indices]
-        return InputData(idx=self.idx[indices], features=new_features,
+        return InputData(idx=np.asarray(self.idx)[indices], features=new_features,
                          target=self.target[indices], task=self.task, data_type=self.data_type)
 
     def shuffle(self):

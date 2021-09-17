@@ -52,7 +52,7 @@ class ComputationalSetup:
                     container_input_path="/home/FEDOT/input_data_dir",
                     container_output_path="/home/FEDOT/output_data_dir",
                     container_config_path="/home/FEDOT/.config",
-                    container_image="fedot:dm-4",
+                    container_image="fedot:dm-5",
                     timeout=360,
                     config=config
                 )
@@ -120,9 +120,9 @@ def _prepare_client():
 def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx):
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
-        train_data = input_data_dir/data/{data_id}/{dataset_name}/{dataset_name}.csv
+        train_data = input_data_dir/data/{data_id}/{dataset_name}.csv
         task = {task_type}
         output_path = output_data_dir/fitted_pipeline
-        train_data_idx = {[int(ind) for ind in dataset_idx]}
+        train_data_idx = {[str(int(ind)) for ind in dataset_idx]}
         [OPTIONAL]
         """.encode('utf-8')
