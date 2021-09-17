@@ -67,42 +67,9 @@ def clstm_forecasting():
     }
 
     pipeline = Pipeline(node_root)
-    #
-    # pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-    #                                iterations=30)
-    #
-    # pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-    #                                         loss_function=mean_absolute_error,
-    #                                         cv_folds=3,
-    #                                         validation_blocks=2)
-
     pipeline.fit(train_data)
-
     prediction_before_export = pipeline.predict(test_data).predict
-    # print(f'Before export {prediction_before_export[:4]}')
-    #
-    # path = "import_export"
-    # Export it
-    # pipeline.save(path=path)
-    #
-    # # Import pipeline
-    # json_path_load = create_correct_path(path)
-    # print(json_path_load)
-    # new_pipeline = Pipeline()
-    # new_pipeline.load(json_path_load)
-    #
-    # predicted_output_after_export = new_pipeline.predict(test_data).predict
-    #
-    # print(f'After import {predicted_output_after_export[:4]}')
-    #
-    # dict_pipeline, dict_fitted_operations = pipeline.save()
-    # dict_pipeline = json.loads(dict_pipeline)
-    # pipeline_from_dict = Pipeline()
-    # pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
-    #
-    # predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
-    # print(predicted_output_from_dict.shape)
-    # print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
+
     display_validation_metric(
         np.ravel(prediction_before_export),
         test_data.target, np.concatenate([test_data.features[-window_size:], test_data.target]),

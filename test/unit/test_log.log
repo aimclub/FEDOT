@@ -1,0 +1,28 @@
+2021-09-17 17:33:13,958 - test_log - INFO - Composition started. Parameters tuning: True. Set of candidate models: ['bernb', 'catboost', 'dt', 'knn', 'lda', 'lgbm', 'logit', 'mlp', 'qda', 'rf', 'xgboost']. Composing time limit: 0.1 min
+2021-09-17 17:33:13,969 - test_log - INFO - Pipeline composition started
+2021-09-17 17:33:13,969 - test_log - INFO - Hold out validation for graph composing was applied.
+2021-09-17 17:33:13,973 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,973 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,973 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:13,992 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:14,015 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:14,015 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:14,015 - test_log - WARNING - Unexpected: GraphNode found in PipelineAdapter insteadPrimaryNode or SecondaryNode.
+2021-09-17 17:33:14,022 - test_log - INFO - pop size: 2, num of new inds: 1
+2021-09-17 17:33:14,925 - test_log - INFO - Best metric is -1.0
+2021-09-17 17:33:14,925 - test_log - INFO - Result:
+2021-09-17 17:33:14,925 - test_log - INFO - Best metric is -1.0
+2021-09-17 17:33:14,925 - test_log - INFO - Composition time: 0.015 min
+2021-09-17 17:33:14,930 - test_log - INFO - GP composition finished
+2021-09-17 17:33:14,931 - test_log - INFO - Hyperparameters tuning started
+2021-09-17 17:33:14,932 - test_log - INFO - Tuner metric is None, roc_auc_score was set as default
+2021-09-17 17:33:14,932 - test_log - WARNING - Cross-validation is not supported for tuning of ts-forecasting pipeline: hold-out validation used instead
+2021-09-17 17:33:14,933 - test_log - INFO - Start tuning of primary nodes
+2021-09-17 17:33:18,079 - test_log - INFO - Tuning was finished
+2021-09-17 17:33:18,079 - test_log - INFO - Model composition finished
