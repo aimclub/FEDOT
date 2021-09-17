@@ -14,6 +14,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.pipelines.validation import validate
 # required for the import of task from file
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -81,6 +82,10 @@ def fit_pipeline(config_file) -> bool:
                                             task=task, data_type=data_type)
 
         train_data = train_data.subset_list(train_data_idx)
+        # pipeline.show()
+        if not validate(pipeline, task=task):
+            return False
+
         pipeline.fit_from_scratch(train_data)
 
         if test_data_path:
@@ -88,11 +93,9 @@ def fit_pipeline(config_file) -> bool:
             pipeline.predict(test_data)
 
         pipeline.save(path=output_path)
-    finally:
+    except Exception as ex:
         status = False
-    # except Exception as ex:
-    #    status = False
-    #    print(f'Pipeline processing failed: {ex}')
+        print(f'Pipeline processing failed: {ex}')
     return status
 
 

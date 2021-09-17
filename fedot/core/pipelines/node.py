@@ -134,10 +134,12 @@ class Node(GraphNode):
             return self.operation.get_params
         else:
             try:
-                return self.fitted_operation.get_params()
+                if hasattr(self.fitted_operation, 'get_params'):
+                    return self.fitted_operation.get_params()
+                else:
+                    return {}
             except Exception as ex:
                 self.log.info(f'Operation get params failed due to: {ex}')
-                return {}
 
     @custom_params.setter
     def custom_params(self, params):
