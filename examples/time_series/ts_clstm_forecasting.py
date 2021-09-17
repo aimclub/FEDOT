@@ -56,7 +56,7 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 def clstm_forecasting():
     horizon = 24*2
     window_size = 29
-    n_steps = 1000
+    n_steps = 200
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
@@ -71,7 +71,7 @@ def clstm_forecasting():
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 20
+        'num_epochs': 50
     }
 
     pipeline = Pipeline(node_root)

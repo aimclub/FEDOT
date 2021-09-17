@@ -390,12 +390,12 @@ class CLSTMImplementation(ModelImplementation):
         final_idx, features_columns, final_target = _prepare_target(idx=new_idx,
                                                                     features_columns=lagged_table,
                                                                     target=train_data_new.target,
-                                                                    forecast_length=1)
+                                                                    forecast_length=self.forecast_length)
         train_data_new.idx = final_idx
         train_data_new.features = features_columns
         train_data_new.target = final_target
         x = torch.from_numpy(train_data_new.features.copy()).float()
-        y = torch.from_numpy(train_data_new.target.copy()).float().reshape(-1, 1)
+        y = torch.from_numpy(train_data_new.target.copy()).float()
         data_loader = DataLoader(TensorDataset(x, y), batch_size=self.batch_size)
 
         self.model.train()
@@ -404,9 +404,22 @@ class CLSTMImplementation(ModelImplementation):
                 self.optimizer.zero_grad()
                 x = x.to(self.device)
                 y = y.to(self.device)
-                self.model.init_hidden(x.size(0), self.device)
-                output = self.model(x.unsqueeze(1))
-                loss = self.criterion(output, y)
+                final_output = None
+                for _ in range(self.forecast_length):
+                    self.model.init_hidden(x.size(0), self.device)
+                    output = self.model(x.unsqueeze(1)).squeeze(0)
+                    # print(x.shape, output.shape, y[:, _].unsqueeze(1).shape)
+                    if np.random.random_sample() > 0.8:
+                        x = torch.hstack((x[:, 1:], output))
+                    else:
+                        x = torch.hstack((x, y[:, _].unsqueeze(1)))
+
+                    if final_output is not None:
+                        final_output = torch.hstack((final_output, output))
+                    else:
+                        final_output = output
+
+                loss = self.criterion(final_output, y)
                 loss.backward()
                 print(loss.item())
                 self.optimizer.step()
@@ -434,10 +447,9 @@ class CLSTMImplementation(ModelImplementation):
             input_data.idx = input_data_new.idx[-self.window_size:].reshape(1, -1)
         predict = self._out_of_sample_ts_forecast(input_data_new)
 
-
         output_data = self._convert_to_output(input_data_new,
-                                           predict=predict,
-                                           data_type=DataTypesEnum.table)
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
         return output_data
 
     def _predict(self, input_data: InputData):
