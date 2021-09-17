@@ -1,33 +1,26 @@
-import copy
 import datetime
-import json
 import os
 
+import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from examples.pipeline_import_export import create_correct_path, get_pipeline
 from examples.time_series.ts_forecasting_composing import prepare_train_test_input, fit_predict_for_pipeline, \
-    display_validation_metric, get_source_pipeline, get_available_operations, plot_results
+    display_validation_metric, get_available_operations, plot_results
 from fedot.core.composer.gp_composer.fixed_structure_composer import GPComposerRequirements
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-
-import pandas as pd
-import numpy as np
 
 
 def get_ts_data_long(n_steps=80, forecast_length=5):
@@ -56,13 +49,12 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 def clstm_forecasting():
     horizon = 24*2
     window_size = 29
-    n_steps = 200
+    n_steps = 100
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
     node_root.custom_params = {
         'input_size': 1,
-        'forecast_length': horizon,
         'window_size': window_size,
         'hidden_size': 135.66211398383396,
         'learning_rate': 0.00041403016307329,
@@ -83,7 +75,6 @@ def clstm_forecasting():
     #                                         loss_function=mean_absolute_error,
     #                                         cv_folds=3,
     #                                         validation_blocks=2)
-    pipeline.print_structure()
 
     pipeline.fit(train_data)
 
@@ -112,7 +103,10 @@ def clstm_forecasting():
     # predicted_output_from_dict = pipeline_from_dict.predict(test_data).predict
     # print(predicted_output_from_dict.shape)
     # print(f'Prediction from pipeline loaded from dict {predicted_output_from_dict[:4]}')
-    display_validation_metric(np.ravel(prediction_before_export), test_data.target, np.concatenate([test_data.features[-window_size:], test_data.target]), True)
+    display_validation_metric(
+        np.ravel(prediction_before_export),
+        test_data.target, np.concatenate([test_data.features[-window_size:], test_data.target]),
+        True)
 
 
 def get_source_pipeline_clstm():
@@ -131,7 +125,6 @@ def get_source_pipeline_clstm():
     node_clstm = PrimaryNode('clstm')
     node_clstm.custom_params = {
         'input_size': 1,
-        'forecast_length': 100,
         'window_size': 29.3418382487487,
         'hidden_size': 135.66211398383396,
         'learning_rate': 0.004641403016307329,
@@ -158,7 +151,6 @@ def display_validation_metric(predicted, real, actual_values,
     :param actual_values: source time series
     :param is_visualise: is it needed to show the plots
     """
-    print(real.shape, predicted.shape)
     rmse_value = mean_squared_error(real, predicted, squared=False)
     mae_value = mean_absolute_error(real, predicted)
     print(f'RMSE - {rmse_value:.2f}')
@@ -185,7 +177,7 @@ def run_ts_forecasting_problem(forecast_length=50,
     time_series = np.array(df['sea_height'])
 
     # Train/test split
-    train_part = time_series[:-forecast_length]
+    train_part = time_series[len(time_series)-200:-forecast_length]
     test_part = time_series[-forecast_length:]
 
     # Prepare data for train and test
