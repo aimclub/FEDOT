@@ -87,7 +87,7 @@ def fit_pipeline(config_file) -> bool:
             return False
 
         pipeline.fit_from_scratch(train_data)
-
+        pipeline.show()
         if test_data_path:
             test_data = InputData.from_csv(test_data_path)
             pipeline.predict(test_data)

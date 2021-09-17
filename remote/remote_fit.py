@@ -5,8 +5,10 @@ from typing import List
 
 import numpy as np
 
+from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
+from fedot.core.utils import fedot_project_root
 from remote.infrastructure.models_controller.computations import Client
 
 
@@ -18,6 +20,9 @@ class ComputationalSetup:
         'train_data_idx': [],
         'max_parallel': 10
     }
+
+    def __init__(self):
+        self._logger = default_log('RemoteFitterLog')
 
     @property
     def is_remote(self):
@@ -34,6 +39,9 @@ class ComputationalSetup:
             task_type = remote_eval_params['task_type']
             data_idx = remote_eval_params['train_data_idx']
 
+            var_names = remote_eval_params['var_names']
+            is_multi_modal = remote_eval_params['is_multi_modal']
+
             client = _prepare_client()
 
             for pipeline in pipelines_part:
@@ -46,27 +54,28 @@ class ComputationalSetup:
                 pipeline_json, _ = pipeline.save()
                 pipeline_json = pipeline_json.replace('\n', '')
 
-                config = _get_config(pipeline_json, data_id, dataset_name, task_type, data_idx)
+                config = _get_config(pipeline_json, data_id, dataset_name,
+                                     task_type, data_idx, var_names, is_multi_modal)
 
-                client.create_execution(
+                created_ex = client.create_execution(
                     container_input_path="/home/FEDOT/input_data_dir",
                     container_output_path="/home/FEDOT/output_data_dir",
                     container_config_path="/home/FEDOT/.config",
-                    container_image="fedot:dm-5",
+                    container_image="fedot:dm-6",
                     timeout=360,
                     config=config
                 )
 
-                pipeline.execution_id = client.get_executions()[-1]['id']
+                pipeline.execution_id = created_ex['id']
 
             statuses = ['']
             all_executions = client.get_executions()
-            print(all_executions)
+            self._logger.info(all_executions)
             start = datetime.now()
             while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
                 executions = client.get_executions()
                 statuses = [execution['status'] for execution in executions]
-                print([f"{execution['id']}={execution['status']};" for execution in executions])
+                self._logger.info([f"{execution['id']}={execution['status']};" for execution in executions])
                 time.sleep(5)
 
             end = datetime.now()
@@ -75,25 +84,29 @@ class ComputationalSetup:
                 if pipeline.execution_id:
                     client.download_result(
                         execution_id=pipeline.execution_id,
-                        path=f'./remote_fit_results',
+                        path=os.path.join(fedot_project_root(), 'remote_fit_results'),
                         unpack=True
                     )
 
                     try:
-                        results_path_out = f'./remote_fit_results/execution-{pipeline.execution_id}/out'
+                        results_path_out = os.path.join(fedot_project_root(),
+                                                        'remote_fit_results',
+                                                        f'execution-{pipeline.execution_id}',
+                                                        'out')
                         results_folder = os.listdir(results_path_out)[0]
                         pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
                     except Exception as ex:
-                        print(p_id, ex)
+                        self._logger.warn(f'{p_id}, {ex}')
             final_pipelines.extend(pipelines_part)
 
-            print('REMOTE EXECUTION TIME', end - start)
+            self._logger.info(f'REMOTE EXECUTION TIME {end - start}')
 
         return final_pipelines
 
 
 def _prepare_computation_vars(pipelines):
     num_parts = np.floor(len(pipelines) / ComputationalSetup.remote_eval_params['max_parallel'])
+    num_parts = max(num_parts, 1)
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
     data_id = int(os.environ['DATA_ID'])
     return pipelines_parts, data_id
@@ -112,17 +125,20 @@ def _prepare_client():
 
     client.create_execution_group(project_id=pid)
     response = client.get_execution_groups(project_id=pid)
-    new_id = max([item['id'] for item in response]) + 1
+    new_id = max([item['id'] for item in response]) + 5
     client.set_group_token(project_id=pid, group_id=new_id)
     return client
 
 
-def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx):
+def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx,
+                var_names, is_multi_modal):
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
         train_data = input_data_dir/data/{data_id}/{dataset_name}.csv
         task = {task_type}
         output_path = output_data_dir/fitted_pipeline
-        train_data_idx = {[str(int(ind)) for ind in dataset_idx]}
+        train_data_idx = {[str(ind) for ind in dataset_idx]}
+        var_names = {[str(name) for name in var_names]}
+        is_multi_modal = {is_multi_modal}
         [OPTIONAL]
         """.encode('utf-8')

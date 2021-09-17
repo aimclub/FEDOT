@@ -2,19 +2,12 @@ import random
 
 import numpy as np
 
-from cases.industrial.processing import prepare_multimodal_data, plot_results, multi_automl_fit_forecast, \
-    plot_diesel_and_wind
+from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results, \
+    prepare_multimodal_data
 from remote.remote_fit import ComputationalSetup
 
 random.seed(1)
 np.random.seed(1)
-
-ComputationalSetup.remote_eval_params = {
-    'mode': 'remote',
-    'dataset_name': 'pw_dataset',
-    'task_type': 'Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=30))',
-    'max_parallel': 11,
-}
 
 import numpy as np
 import pandas as pd
@@ -37,6 +30,15 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                forecast_horizon: int = 10, history_size: int = 397,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
+
+    ComputationalSetup.remote_eval_params = {
+        'mode': 'remote',
+        'dataset_name': 'pw_dataset',
+        'task_type': f'Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length={forecast_horizon}))',
+        'max_parallel': 20,
+        'is_multi_modal': True,
+        'var_names': features_to_use
+    }
 
     dataframe_cutted = clip_dataframe(df, forecast_horizon, history_size)
 

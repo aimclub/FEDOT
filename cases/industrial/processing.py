@@ -80,11 +80,17 @@ def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_le
     for feature in features:
         if forecast_length > 0:
             feature_ts = np.array(dataframe[feature])[:-forecast_length]
+            idx = list(dataframe['datetime'])[:-forecast_length]
         else:
             feature_ts = np.array(dataframe[feature])
+            idx = list(dataframe['datetime'])
+
         # Will be the same
         multi_modal_train.update({feature: feature_ts})
         multi_modal_test.update({feature: feature_ts})
+
+    multi_modal_test['idx'] = idx
+    multi_modal_train['idx'] = idx
 
     return multi_modal_train, multi_modal_test
 

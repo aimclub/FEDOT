@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-import numpy as np
 from sklearn.model_selection import train_test_split
 
 from fedot.core.data.data import InputData
@@ -26,21 +25,17 @@ def _split_time_series(data, task, *args, **kwargs):
     y_train = input_target[:-forecast_length]
     y_test = input_target[-forecast_length:]
 
-    idx_for_train = np.arange(0, len(x_train))
-
-    # Define indices for test
-    start_forecast = len(x_train)
-    end_forecast = start_forecast + forecast_length
-    idx_for_predict = np.arange(start_forecast, end_forecast)
+    idx_train = data.idx[:-forecast_length]
+    idx_test = data.idx[-forecast_length:]
 
     # Prepare data to train the operation
-    train_data = InputData(idx=idx_for_train,
+    train_data = InputData(idx=idx_train,
                            features=x_train,
                            target=y_train,
                            task=task,
                            data_type=DataTypesEnum.ts)
 
-    test_data = InputData(idx=idx_for_predict,
+    test_data = InputData(idx=idx_test,
                           features=x_test,
                           target=y_test,
                           task=task,

@@ -156,7 +156,8 @@ class MulitmodalStrategy(StrategyDefineData):
     def define_data(self, features: dict,
                     ml_task: str,
                     target: str = None,
-                    is_predict: bool = False) -> MultiModalData:
+                    is_predict: bool = False,
+                    idx=None) -> MultiModalData:
         if target is None:
             target = np.array([])
         target_array = target

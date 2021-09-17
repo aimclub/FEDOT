@@ -69,7 +69,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
     def _transform_to_opt_node(self, node, *args, **kwargs):
         # Prepare content for nodes
         if not isinstance(node, OptNode):
-            if not isinstance(node, GraphNode):
+            if not type(node) == GraphNode:
                 node.content = {'name': node.operation,
                                 'params': node.custom_params}
             else:
