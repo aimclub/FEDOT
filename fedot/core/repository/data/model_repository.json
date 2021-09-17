@@ -150,7 +150,7 @@
       "meta": "ts_model",
       "tags": [
         "simple",
-        "ts_specific"
+        "non_lagged"
       ]
     },
     "bernb": {
