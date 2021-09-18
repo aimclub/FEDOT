@@ -29,21 +29,32 @@ class ComputationalSetup:
         return ComputationalSetup.remote_eval_params['mode'] == 'remote'
 
     def fit(self, pipelines: List['Pipeline']) -> List['Pipeline']:
-        pipelines_parts, data_id = _prepare_computation_vars(pipelines)
+        remote_eval_params = ComputationalSetup.remote_eval_params
+
+        dataset_name = remote_eval_params['dataset_name']
+        task_type = remote_eval_params['task_type']
+        data_idx = remote_eval_params['train_data_idx']
+
+        var_names = remote_eval_params['var_names']
+        is_multi_modal = remote_eval_params['is_multi_modal']
+
+        if ('access_params' in remote_eval_params and
+                remote_eval_params['access_params'] is not None):
+            access_params = remote_eval_params['access_params']
+        else:
+            access_params = {
+                'FEDOT_LOGIN': os.environ['FEDOT_LOGIN'],
+                'FEDOT_PASSWORD': os.environ['FEDOT_PASSWORD'],
+                'AUTH_SERVER': os.environ['AUTH_SERVER'],
+                'CONTR_SERVER': os.environ['CONTR_SERVER'],
+                'PROJECT_ID': os.environ['PROJECT_ID'],
+                'DATA_ID': os.environ['DATA_ID']
+            }
+        client = _prepare_client(access_params)
+        pipelines_parts, data_id = _prepare_computation_vars(pipelines, access_params)
 
         final_pipelines = []
         for pipelines_part in pipelines_parts:
-            remote_eval_params = ComputationalSetup.remote_eval_params
-
-            dataset_name = remote_eval_params['dataset_name']
-            task_type = remote_eval_params['task_type']
-            data_idx = remote_eval_params['train_data_idx']
-
-            var_names = remote_eval_params['var_names']
-            is_multi_modal = remote_eval_params['is_multi_modal']
-
-            client = _prepare_client()
-
             for pipeline in pipelines_part:
                 try:
                     validate(pipeline)
@@ -104,24 +115,24 @@ class ComputationalSetup:
         return final_pipelines
 
 
-def _prepare_computation_vars(pipelines):
+def _prepare_computation_vars(pipelines, access_params):
     num_parts = np.floor(len(pipelines) / ComputationalSetup.remote_eval_params['max_parallel'])
     num_parts = max(num_parts, 1)
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
-    data_id = int(os.environ['DATA_ID'])
+    data_id = int(access_params['DATA_ID'])
     return pipelines_parts, data_id
 
 
-def _prepare_client():
-    pid = int(os.environ['PROJECT_ID'])
+def _prepare_client(access_params):
+    pid = int(access_params['PROJECT_ID'])
 
     client = Client(
-        authorization_server=os.environ['AUTH_SERVER'],
-        controller_server=os.environ['CONTR_SERVER']
+        authorization_server=access_params['AUTH_SERVER'],
+        controller_server=access_params['CONTR_SERVER']
     )
 
-    client.login(login=os.environ['FEDOT_LOGIN'],
-                 password=os.environ['FEDOT_PASSWORD'])
+    client.login(login=access_params['FEDOT_LOGIN'],
+                 password=access_params['FEDOT_PASSWORD'])
 
     client.create_execution_group(project_id=pid)
     response = client.get_execution_groups(project_id=pid)
