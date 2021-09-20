@@ -1,5 +1,6 @@
 import os
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
@@ -12,6 +13,30 @@ from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.models_controller.computations import Client
 
 
+def singleton(class_):
+    instances = {}
+
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+
+    return getinstance
+
+
+@dataclass
+class RemoteEvalParams:
+    mode: str = 'remote',
+    dataset_name: str = 'cholesterol',
+    task_type: str = 'Task(TaskTypesEnum.regression)',
+    train_data_idx: List = []
+    is_multi_modal: bool = True
+    var_names: List = []
+    max_parallel: int = 7
+    access_params: dict = {}
+
+
+@singleton
 class ComputationalSetup:
     remote_eval_params = {
         'mode': 'local',
@@ -21,8 +46,12 @@ class ComputationalSetup:
         'max_parallel': 10
     }
 
-    def __init__(self):
+    def __init__(self, remote_eval_params: RemoteEvalParams):
+        """
+        :param remote_eval_params: dictionary with the parameters of remote evaluation.
+        """
         self._logger = default_log('RemoteFitterLog')
+        self.remote_eval_params = remote_eval_params
 
     @property
     def is_remote(self):
