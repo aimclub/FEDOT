@@ -2,14 +2,14 @@ import os
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import default_fedot_data_dir
 from fedot.remote.infrastructure.models_controller.computations import Client
 
 
@@ -26,26 +26,18 @@ def singleton(class_):
 
 @dataclass
 class RemoteEvalParams:
-    mode: str = 'remote',
-    dataset_name: str = 'cholesterol',
-    task_type: str = 'Task(TaskTypesEnum.regression)',
-    train_data_idx: List = []
+    mode: str
+    dataset_name: str
+    task_type: str
+    train_data_idx: Optional[List] = None
     is_multi_modal: bool = True
-    var_names: List = []
+    var_names: Optional[List] = None
     max_parallel: int = 7
-    access_params: dict = {}
+    access_params: Optional[dict] = None
 
 
 @singleton
 class ComputationalSetup:
-    remote_eval_params = {
-        'mode': 'local',
-        'dataset_name': '',  # name of the dataset for composer evaluation
-        'task_type': '',  # name of the modelling task for dataset
-        'train_data_idx': [],
-        'max_parallel': 10
-    }
-
     def __init__(self, remote_eval_params: RemoteEvalParams):
         """
         :param remote_eval_params: dictionary with the parameters of remote evaluation.
@@ -58,29 +50,14 @@ class ComputationalSetup:
         return ComputationalSetup.remote_eval_params['mode'] == 'remote'
 
     def fit(self, pipelines: List['Pipeline']) -> List['Pipeline']:
-        remote_eval_params = ComputationalSetup.remote_eval_params
+        params = self.remote_eval_params
 
-        dataset_name = remote_eval_params['dataset_name']
-        task_type = remote_eval_params['task_type']
-        data_idx = remote_eval_params['train_data_idx']
-
-        var_names = remote_eval_params['var_names']
-        is_multi_modal = remote_eval_params['is_multi_modal']
-
-        if ('access_params' in remote_eval_params and
-                remote_eval_params['access_params'] is not None):
-            access_params = remote_eval_params['access_params']
+        if params.access_params is not None:
+            params.access_params = params.access_params
         else:
-            access_params = {
-                'FEDOT_LOGIN': os.environ['FEDOT_LOGIN'],
-                'FEDOT_PASSWORD': os.environ['FEDOT_PASSWORD'],
-                'AUTH_SERVER': os.environ['AUTH_SERVER'],
-                'CONTR_SERVER': os.environ['CONTR_SERVER'],
-                'PROJECT_ID': os.environ['PROJECT_ID'],
-                'DATA_ID': os.environ['DATA_ID']
-            }
-        client = _prepare_client(access_params)
-        pipelines_parts, data_id = _prepare_computation_vars(pipelines, access_params)
+            params.access_params = _init_from_env()
+        client = _prepare_client(params)
+        pipelines_parts, data_id = _prepare_computation_vars(pipelines, params)
 
         final_pipelines = []
         for pipelines_part in pipelines_parts:
@@ -94,8 +71,7 @@ class ComputationalSetup:
                 pipeline_json, _ = pipeline.save()
                 pipeline_json = pipeline_json.replace('\n', '')
 
-                config = _get_config(pipeline_json, data_id, dataset_name,
-                                     task_type, data_idx, var_names, is_multi_modal)
+                config = _get_config(pipeline_json, data_id, params)
 
                 created_ex = client.create_execution(
                     container_input_path="/home/FEDOT/input_data_dir",
@@ -124,17 +100,21 @@ class ComputationalSetup:
                 if pipeline.execution_id:
                     client.download_result(
                         execution_id=pipeline.execution_id,
-                        path=os.path.join(fedot_project_root(), 'remote_fit_results'),
+                        path=os.path.join(default_fedot_data_dir(), 'remote_fit_results'),
                         unpack=True
                     )
 
                     try:
-                        results_path_out = os.path.join(fedot_project_root(),
+                        results_path_out = os.path.join(default_fedot_data_dir(),
                                                         'remote_fit_results',
                                                         f'execution-{pipeline.execution_id}',
                                                         'out')
                         results_folder = os.listdir(results_path_out)[0]
                         pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
+
+                        for root, dirs, files in os.walk(results_path_out):
+                            for file in files:
+                                os.remove(os.path.join(root, file))
                     except Exception as ex:
                         self._logger.warn(f'{p_id}, {ex}')
             final_pipelines.extend(pipelines_part)
@@ -144,7 +124,8 @@ class ComputationalSetup:
         return final_pipelines
 
 
-def _prepare_computation_vars(pipelines, access_params):
+def _prepare_computation_vars(pipelines, params):
+    access_params = params.access_params
     num_parts = np.floor(len(pipelines) / ComputationalSetup.remote_eval_params['max_parallel'])
     num_parts = max(num_parts, 1)
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
@@ -152,7 +133,8 @@ def _prepare_computation_vars(pipelines, access_params):
     return pipelines_parts, data_id
 
 
-def _prepare_client(access_params):
+def _prepare_client(params):
+    access_params = params.access_params
     pid = int(access_params['PROJECT_ID'])
 
     client = Client(
@@ -168,15 +150,23 @@ def _prepare_client(access_params):
     return client
 
 
-def _get_config(pipeline_json, data_id, dataset_name, task_type, dataset_idx,
-                var_names, is_multi_modal):
+def _get_config(pipeline_json, data_id, params: RemoteEvalParams):
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
-        train_data = input_data_dir/data/{data_id}/{dataset_name}.csv
-        task = {task_type}
+        train_data = input_data_dir/data/{data_id}/{params.dataset_name}.csv
+        task = {params.task_type}
         output_path = output_data_dir/fitted_pipeline
-        train_data_idx = {[str(ind) for ind in dataset_idx]}
-        var_names = {[str(name) for name in var_names]}
-        is_multi_modal = {is_multi_modal}
+        train_data_idx = {[str(ind) for ind in params.train_data_idx]}
+        var_names = {[str(name) for name in params.var_names]}
+        is_multi_modal = {params.is_multi_modal}
         [OPTIONAL]
         """.encode('utf-8')
+
+
+def _init_from_env():
+    return {'FEDOT_LOGIN': os.environ['FEDOT_LOGIN'],
+            'FEDOT_PASSWORD': os.environ['FEDOT_PASSWORD'],
+            'AUTH_SERVER': os.environ['AUTH_SERVER'],
+            'CONTR_SERVER': os.environ['CONTR_SERVER'],
+            'PROJECT_ID': os.environ['PROJECT_ID'],
+            'DATA_ID': os.environ['DATA_ID']}
