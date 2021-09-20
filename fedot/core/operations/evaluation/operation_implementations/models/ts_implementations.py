@@ -100,12 +100,12 @@ class ARIMAImplementation(ModelImplementation):
                 fitted_values = np.array(first_elements)
 
             _, predict = ts_to_table(idx=old_idx,
-                                      time_series=fitted_values,
-                                      window_size=forecast_length)
+                                     time_series=fitted_values,
+                                     window_size=forecast_length)
 
             new_idx, target_columns = ts_to_table(idx=old_idx,
-                                                   time_series=target,
-                                                   window_size=forecast_length)
+                                                  time_series=target,
+                                                  window_size=forecast_length)
 
             # Update idx and target
             input_data.idx = new_idx
@@ -225,12 +225,12 @@ class AutoRegImplementation(ModelImplementation):
             fitted = np.array(first_elements)
 
             _, predict = ts_to_table(idx=old_idx,
-                                      time_series=fitted,
-                                      window_size=forecast_length)
+                                     time_series=fitted,
+                                     window_size=forecast_length)
 
             new_idx, target_columns = ts_to_table(idx=old_idx,
-                                                   time_series=target,
-                                                   window_size=forecast_length)
+                                                  time_series=target,
+                                                  window_size=forecast_length)
 
             # Update idx and target
             input_data.idx = new_idx
@@ -320,12 +320,12 @@ class STLForecastARIMAImplementation(ModelImplementation):
                 fitted_values = np.array(first_elements)
 
             _, predict = ts_to_table(idx=old_idx,
-                                      time_series=fitted_values,
-                                      window_size=forecast_length)
+                                     time_series=fitted_values,
+                                     window_size=forecast_length)
 
             new_idx, target_columns = ts_to_table(idx=old_idx,
-                                                   time_series=target,
-                                                   window_size=forecast_length)
+                                                  time_series=target,
+                                                  window_size=forecast_length)
 
             # Update idx and target
             input_data.idx = new_idx
@@ -365,11 +365,11 @@ class CLSTMImplementation(ModelImplementation):
         self.teacher_forcing = int(params.get("teacher_forcing"))
         self.device = self._get_device()
         self.model = LSTMNetwork(
-                                 hidden_size=int(params.get("hidden_size")),
-                                 cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
-                                 cnn1_output_size=int(params.get("cnn1_output_size")),
-                                 cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
-                                 cnn2_output_size=int(params.get("cnn2_output_size"))
+            hidden_size=int(params.get("hidden_size")),
+            cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
+            cnn1_output_size=int(params.get("cnn1_output_size")),
+            cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
+            cnn2_output_size=int(params.get("cnn2_output_size"))
         )
 
         self.optim_dict = {
@@ -443,13 +443,13 @@ class CLSTMImplementation(ModelImplementation):
 
         if is_fit_pipeline_stage:
             new_idx, lagged_table = ts_to_table(idx=old_idx,
-                                                 time_series=input_data_new.features,
-                                                 window_size=self.window_size)
+                                                time_series=input_data_new.features,
+                                                window_size=self.window_size)
 
             final_idx, features_columns, final_target = prepare_target(idx=new_idx,
-                                                                        features_columns=lagged_table,
-                                                                        target=input_data_new.target,
-                                                                        forecast_length=forecast_length)
+                                                                       features_columns=lagged_table,
+                                                                       target=input_data_new.target,
+                                                                       forecast_length=forecast_length)
             input_data_new.idx = final_idx
             input_data_new.features = features_columns
             input_data_new.target = final_target
@@ -543,13 +543,13 @@ class CLSTMImplementation(ModelImplementation):
         forecast_length = input_data.task.task_params.forecast_length
         features_scaled, target_scaled = self._fit_transform_scaler(input_data)
         new_idx, lagged_table = ts_to_table(idx=input_data.idx,
-                                             time_series=features_scaled,
-                                             window_size=self.window_size)
+                                            time_series=features_scaled,
+                                            window_size=self.window_size)
 
         final_idx, features_columns, final_target = prepare_target(idx=new_idx,
-                                                                    features_columns=lagged_table,
-                                                                    target=target_scaled,
-                                                                    forecast_length=forecast_length)
+                                                                   features_columns=lagged_table,
+                                                                   target=target_scaled,
+                                                                   forecast_length=forecast_length)
         x = torch.from_numpy(features_columns.copy()).float()
         y = torch.from_numpy(final_target.copy()).float()
         return DataLoader(TensorDataset(x, y), batch_size=self.batch_size), forecast_length
