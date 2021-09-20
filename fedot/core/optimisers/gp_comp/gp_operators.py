@@ -6,7 +6,7 @@ from typing import (Any, Callable, List, Tuple, Union)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup
 
 MAX_ITERS = 1000
 

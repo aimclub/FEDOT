@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
-from remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup
 
 random.seed(1)
 np.random.seed(1)

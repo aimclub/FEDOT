@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
-from remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup
 
 random.seed(1)
 np.random.seed(1)

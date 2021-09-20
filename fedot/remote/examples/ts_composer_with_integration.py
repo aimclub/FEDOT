@@ -4,7 +4,7 @@ import numpy as np
 
 from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results, \
     prepare_multimodal_data
-from remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup
 
 random.seed(1)
 np.random.seed(1)
@@ -37,7 +37,15 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
         'task_type': f'Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length={forecast_horizon}))',
         'max_parallel': 20,
         'is_multi_modal': True,
-        'var_names': features_to_use
+        'var_names': features_to_use,
+        'access_params': {
+            'FEDOT_LOGIN': 'fedot',
+            'FEDOT_PASSWORD': 'fedot-password',
+            'AUTH_SERVER': 'http://10.32.0.51:30880/b',
+            'CONTR_SERVER': 'http://10.32.0.51:30880/models-controller',
+            'PROJECT_ID': '83',
+            'DATA_ID': '60'
+        }
     }
 
     dataframe_cutted = clip_dataframe(df, forecast_horizon, history_size)

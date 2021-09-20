@@ -9,7 +9,7 @@ from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
 from fedot.core.utils import fedot_project_root
-from remote.infrastructure.models_controller.computations import Client
+from fedot.remote.infrastructure.models_controller.computations import Client
 
 
 class ComputationalSetup:
@@ -134,10 +134,8 @@ def _prepare_client(access_params):
     client.login(login=access_params['FEDOT_LOGIN'],
                  password=access_params['FEDOT_PASSWORD'])
 
-    client.create_execution_group(project_id=pid)
-    response = client.get_execution_groups(project_id=pid)
-    new_id = max([item['id'] for item in response]) + 5
-    client.set_group_token(project_id=pid, group_id=new_id)
+    group = client.create_execution_group(project_id=pid)
+    client.set_group_token(project_id=pid, group_id=group['id'])
     return client
 
 

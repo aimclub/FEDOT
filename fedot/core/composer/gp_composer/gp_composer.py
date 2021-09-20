@@ -31,7 +31,7 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
-from remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
