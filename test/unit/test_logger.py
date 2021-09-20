@@ -69,7 +69,8 @@ def test_logger_write_logs_correctly():
             content = file.readlines()
 
     release_log(logger=test_log, log_file=test_log_file)
-    assert 'Can not find evaluation strategy' in content[0]
+    # Is there a required message in the logs
+    assert any('Can not find evaluation strategy' in log_message for log_message in content)
 
 
 def test_logger_manager_keeps_loggers_correctly():
