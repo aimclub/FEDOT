@@ -133,7 +133,8 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
 
 def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
                               composer_params: dict, target: np.array,
-                              forecast_length: int, vis=True):
+                              forecast_length: int, vis: bool = True,
+                              verbose_level: int = 1):
     """ Multi modal forecasting
 
     :param train_input: dictionary with InputData classes for train
@@ -142,11 +143,12 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     :param vis: is there a need to display structure of obtained pipeline
     :param target: numpy array (time series) for forecasting
     :param forecast_length: forecast length
+    :param verbose_level: verbosity of logger
     """
     task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
                   composer_params=composer_params,
-                  task_params=task_params, verbose_level=1)
+                  task_params=task_params, verbose_level=verbose_level)
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)
 
