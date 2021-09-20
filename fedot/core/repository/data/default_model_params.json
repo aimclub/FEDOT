@@ -56,7 +56,6 @@
     "max_skips": 1000
   },
   "clstm": {
-    "input_size": 1,
     "window_size": 24,
     "hidden_size": 200,
     "learning_rate": 0.001,
@@ -66,6 +65,8 @@
     "cnn2_output_size": 32,
     "batch_size": 64,
     "num_epochs": 10,
-    "teacher_forcing": 0.8
+    "teacher_forcing": 0.8,
+    "optimizer": "adam",
+    "loss": "MSE"
   }
 }

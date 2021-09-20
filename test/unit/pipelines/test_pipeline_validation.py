@@ -7,7 +7,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import (validate)
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
-    has_primary_nodes, is_pipeline_contains_ts_operations, only_ts_specific_operations_are_primary, \
+    has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
     has_correct_data_sources
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -330,7 +330,7 @@ def test_ts_pipeline_with_incorrect_data_flow():
         assert False
 
 
-def test_only_ts_specific_operations_are_primary():
+def test_only_non_lagged_operations_are_primary():
     """ Incorrect pipeline
     lagged \
              linear -> final forecast
@@ -342,10 +342,10 @@ def test_only_ts_specific_operations_are_primary():
     incorrect_pipeline = Pipeline(node_final)
 
     with pytest.raises(Exception) as exc:
-        assert only_ts_specific_operations_are_primary(incorrect_pipeline)
+        assert only_non_lagged_operations_are_primary(incorrect_pipeline)
 
     assert str(exc.value) == \
-           f'{PIPELINE_ERROR_PREFIX} Pipeline for forecasting has not ts_specific preprocessing in primary nodes'
+           f'{PIPELINE_ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes'
 
 
 def test_has_two_parents_for_decompose_operations():

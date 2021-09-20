@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import _ts_to_table
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 
@@ -186,7 +186,7 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
         indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
 
         # Lagged matrix with indices in cells
-        _, idx_matrix = _ts_to_table(idx=indices_range,
+        _, idx_matrix = ts_to_table(idx=indices_range,
                                      time_series=indices_range,
                                      window_size=forecast_length)
         predicted_matrix = copied_data.predict

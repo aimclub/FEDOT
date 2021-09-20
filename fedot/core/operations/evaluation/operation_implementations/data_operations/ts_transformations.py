@@ -61,7 +61,7 @@ class LaggedImplementation(DataOperationImplementation):
             target = new_input_data.target
             features = np.array(new_input_data.features)
             # Prepare features for training
-            new_idx, self.features_columns = _ts_to_table(idx=old_idx,
+            new_idx, self.features_columns = ts_to_table(idx=old_idx,
                                                           time_series=features,
                                                           window_size=self.window_size)
 
@@ -69,7 +69,7 @@ class LaggedImplementation(DataOperationImplementation):
             if self.sparse_transform:
                 self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
             # Transform target
-            new_idx, self.features_columns, new_target = _prepare_target(idx=new_idx,
+            new_idx, self.features_columns, new_target = prepare_target(idx=new_idx,
                                                                          features_columns=self.features_columns,
                                                                          target=target,
                                                                          forecast_length=forecast_length)
@@ -193,13 +193,13 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
         if is_fit_pipeline_stage is True:
             # Transform features in "target-like way"
-            _, _, features_columns = _prepare_target(idx=old_idx,
+            _, _, features_columns = prepare_target(idx=old_idx,
                                                      features_columns=input_data.features,
                                                      target=input_data.features,
                                                      forecast_length=forecast_length)
 
             # Transform target
-            new_idx, _, new_target = _prepare_target(idx=old_idx,
+            new_idx, _, new_target = prepare_target(idx=old_idx,
                                                      features_columns=input_data.features,
                                                      target=input_data.target,
                                                      forecast_length=forecast_length)
@@ -295,7 +295,7 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     return log_message, window_size
 
 
-def _ts_to_table(idx, time_series: np.array, window_size: int):
+def ts_to_table(idx, time_series: np.array, window_size: int):
     """ Method convert time series to lagged form.
 
     :param idx: the indices of the time series to convert
@@ -375,7 +375,7 @@ def _get_svd(features_columns: np.array, n_components: int):
     return components
 
 
-def _prepare_target(idx, features_columns: np.array, target, forecast_length: int):
+def prepare_target(idx, features_columns: np.array, target, forecast_length: int):
     """ Method convert time series to lagged form. Transformation applied
     only for generating target table (time series considering as multi-target
     regression task).

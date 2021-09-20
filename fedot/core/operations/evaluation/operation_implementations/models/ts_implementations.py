@@ -15,7 +15,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    _ts_to_table, _prepare_target
+    ts_to_table, prepare_target
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
@@ -99,11 +99,11 @@ class ARIMAImplementation(ModelImplementation):
 
                 fitted_values = np.array(first_elements)
 
-            _, predict = _ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=old_idx,
                                       time_series=fitted_values,
                                       window_size=forecast_length)
 
-            new_idx, target_columns = _ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=old_idx,
                                                    time_series=target,
                                                    window_size=forecast_length)
 
@@ -224,11 +224,11 @@ class AutoRegImplementation(ModelImplementation):
 
             fitted = np.array(first_elements)
 
-            _, predict = _ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=old_idx,
                                       time_series=fitted,
                                       window_size=forecast_length)
 
-            new_idx, target_columns = _ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=old_idx,
                                                    time_series=target,
                                                    window_size=forecast_length)
 
@@ -319,11 +319,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
                 fitted_values = np.array(first_elements)
 
-            _, predict = _ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=old_idx,
                                       time_series=fitted_values,
                                       window_size=forecast_length)
 
-            new_idx, target_columns = _ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=old_idx,
                                                    time_series=target,
                                                    window_size=forecast_length)
 
@@ -359,22 +359,44 @@ class CLSTMImplementation(ModelImplementation):
         super().__init__(log)
         self.params = params
         self.epochs = params.get("num_epochs")
-        self.input_size = params.get("input_size")
-        self.hidden_size = int(params.get("hidden_size"))
         self.batch_size = params.get("batch_size")
         self.learning_rate = params.get("learning_rate")
         self.window_size = int(params.get("window_size"))
         self.teacher_forcing = int(params.get("teacher_forcing"))
         self.device = self._get_device()
-        self.model = LSTMNetwork(input_size=self.input_size,
-                                 output_size=1,
-                                 hidden_size=self.hidden_size)
+        self.model = LSTMNetwork(
+                                 hidden_size=int(params.get("hidden_size")),
+                                 cnn1_kernel_size=int(params.get("cnn1_kernel_size")),
+                                 cnn1_output_size=int(params.get("cnn1_output_size")),
+                                 cnn2_kernel_size=int(params.get("cnn2_kernel_size")),
+                                 cnn2_output_size=int(params.get("cnn2_output_size"))
+        )
+
+        self.optim_dict = {
+            'adam': torch.optim.Adam(self.model.parameters(), lr=self.learning_rate),
+            'SGD': torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+        }
+
+        self.loss_dict = {
+            'MAE': nn.L1Loss,
+            'MSE': nn.MSELoss
+        }
 
         self.scaler = StandardScaler()
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        self.criterion = nn.MSELoss()
+        self.optimizer = self.optim_dict[params.get("optimizer")]
+        self.criterion = self.loss_dict[params.get("loss")]()
 
     def fit(self, train_data: InputData):
+        """ Class fit ar model on data.
+
+        Implementation uses the idea of teacher forcing. That means model learns
+        to predict data when horizon != 1. It uses real values or previous model output
+        to predict next value. self.teacher_forcing param is used to control probability
+        of using real y values.
+
+        :param train_data: data with features, target and ids to process
+        """
+
         self.model = self.model.to(self.device)
         data_loader, forecast_length = self._create_dataloader(train_data)
 
@@ -384,37 +406,47 @@ class CLSTMImplementation(ModelImplementation):
                 self.optimizer.zero_grad()
                 x = x.to(self.device)
                 y = y.to(self.device)
-                final_output = None
-                for i in range(forecast_length):
-                    self.model.init_hidden(x.shape[0], self.device)
-                    output = self.model(x.unsqueeze(1)).squeeze(0)
-                    if np.random.random_sample() > self.teacher_forcing:
-                        x = torch.hstack((x[:, 1:], output))
-                    else:
-                        x = torch.hstack((x, y[:, i].unsqueeze(1)))
-
-                    if final_output is not None:
-                        final_output = torch.hstack((final_output, output))
-                    else:
-                        final_output = output
-
+                final_output = self._apply_teacher_forcing(x, y, forecast_length)
                 loss = self.criterion(final_output, y)
                 loss.backward()
                 self.optimizer.step()
         return self.model
 
+    def _apply_teacher_forcing(self, x, y, forecast_length):
+        final_output = None
+        for i in range(forecast_length):
+            self.model.init_hidden(x.shape[0], self.device)
+            output = self.model(x.unsqueeze(1)).squeeze(0)
+            if np.random.random_sample() > self.teacher_forcing:
+                x = torch.hstack((x[:, 1:], output))
+            else:
+                x = torch.hstack((x, y[:, i].unsqueeze(1)))
+
+            if final_output is not None:
+                final_output = torch.hstack((final_output, output))
+            else:
+                final_output = output
+        return final_output
+
     def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
+        """ Method for time series prediction on forecast length
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: output data with smoothed time series
+        """
         self.model.eval()
+        print(type(input_data.idx))
         input_data_new = copy(input_data)
         old_idx = input_data_new.idx
         forecast_length = input_data.task.task_params.forecast_length
 
         if is_fit_pipeline_stage:
-            new_idx, lagged_table = _ts_to_table(idx=old_idx,
+            new_idx, lagged_table = ts_to_table(idx=old_idx,
                                                  time_series=input_data_new.features,
                                                  window_size=self.window_size)
 
-            final_idx, features_columns, final_target = _prepare_target(idx=new_idx,
+            final_idx, features_columns, final_target = prepare_target(idx=new_idx,
                                                                         features_columns=lagged_table,
                                                                         target=input_data_new.target,
                                                                         forecast_length=forecast_length)
@@ -423,9 +455,10 @@ class CLSTMImplementation(ModelImplementation):
             input_data_new.target = final_target
         else:
             input_data_new.features = input_data_new.features[-self.window_size:].reshape(1, -1)
-            input_data.idx = input_data_new.idx[-self.window_size:].reshape(1, -1)
+            input_data_new.idx = input_data_new.idx[-forecast_length:]
 
         predict = self._out_of_sample_ts_forecast(input_data_new)
+
         output_data = self._convert_to_output(input_data_new,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
@@ -439,6 +472,12 @@ class CLSTMImplementation(ModelImplementation):
         return self._inverse_transform_scaler(predict)
 
     def _out_of_sample_ts_forecast(self, input_data: InputData) -> np.array:
+        """ Method for out_of_sample CLSTM forecasting (use previous outputs as next inputs)
+
+        :param input_data: data with features, target and ids to process
+        :return np.array: np.array with predicted values to process it into output_data
+        """
+
         input_data_new = copy(input_data)
         # Prepare data for time series forecasting
         task = input_data_new.task
@@ -494,31 +533,30 @@ class CLSTMImplementation(ModelImplementation):
         return device
 
     def _create_dataloader(self, input_data: InputData):
+        """ Method for creating torch.utils.data.DataLoader object from input_data
+
+        Generate lag tables and process it into DataLoader
+
+        :param input_data: data with features, target and ids to process
+        :return torch.utils.data.DataLoader: DataLoader with train data
+        """
         forecast_length = input_data.task.task_params.forecast_length
-        input_data_new = copy(input_data)
         features_scaled, target_scaled = self._fit_transform_scaler(input_data)
-        input_data_new.features = features_scaled
-        input_data_new.target = target_scaled
-        new_idx, lagged_table = _ts_to_table(idx=input_data_new.idx,
-                                             time_series=input_data_new.features,
+        new_idx, lagged_table = ts_to_table(idx=input_data.idx,
+                                             time_series=features_scaled,
                                              window_size=self.window_size)
 
-        final_idx, features_columns, final_target = _prepare_target(idx=new_idx,
+        final_idx, features_columns, final_target = prepare_target(idx=new_idx,
                                                                     features_columns=lagged_table,
-                                                                    target=input_data_new.target,
+                                                                    target=target_scaled,
                                                                     forecast_length=forecast_length)
-        input_data_new.idx = final_idx
-        input_data_new.features = features_columns
-        input_data_new.target = final_target
-        x = torch.from_numpy(input_data_new.features.copy()).float()
-        y = torch.from_numpy(input_data_new.target.copy()).float()
+        x = torch.from_numpy(features_columns.copy()).float()
+        y = torch.from_numpy(final_target.copy()).float()
         return DataLoader(TensorDataset(x, y), batch_size=self.batch_size), forecast_length
 
 
 class LSTMNetwork(nn.Module):
     def __init__(self,
-                 input_size=1,
-                 output_size=1,
                  hidden_size=200,
                  cnn1_kernel_size=5,
                  cnn1_output_size=16,
@@ -528,9 +566,8 @@ class LSTMNetwork(nn.Module):
         super().__init__()
 
         self.hidden_size = hidden_size
-        self.cnn2_output_size = cnn2_output_size
         self.conv_block1 = nn.Sequential(
-            nn.Conv1d(in_channels=input_size, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
+            nn.Conv1d(in_channels=1, out_channels=cnn1_output_size, kernel_size=cnn1_kernel_size),
             nn.ReLU()
         )
         self.conv_block2 = nn.Sequential(

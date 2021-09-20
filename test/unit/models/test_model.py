@@ -105,6 +105,7 @@ def test_regression_models_fit_correct():
     for model_name in model_names:
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
+
         _, train_predicted = model.fit(data=train_data)
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)

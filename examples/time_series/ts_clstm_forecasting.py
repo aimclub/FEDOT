@@ -1,10 +1,11 @@
 import datetime
+import json
 import os
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+from examples.pipeline_import_export import create_correct_path
 from examples.time_series.ts_forecasting_composing import prepare_train_test_input, fit_predict_for_pipeline, \
     display_validation_metric, get_available_operations, plot_results
 from fedot.core.composer.gp_composer.fixed_structure_composer import GPComposerRequirements
@@ -54,7 +55,6 @@ def clstm_forecasting():
 
     node_root = PrimaryNode("clstm")
     node_root.custom_params = {
-        'input_size': 1,
         'window_size': window_size,
         'hidden_size': 135.66211398383396,
         'learning_rate': 0.00041403016307329,
@@ -68,7 +68,32 @@ def clstm_forecasting():
 
     pipeline = Pipeline(node_root)
     pipeline.fit(train_data)
-    prediction_before_export = pipeline.predict(test_data).predict
+    prediction_before_export = pipeline.predict(test_data).predict[0]
+
+    print(f'Before export {prediction_before_export[:4]}')
+
+    # Export it
+    pipeline_path = "clstm"
+    pipeline.save(path=pipeline_path)
+
+    # Import pipeline
+    json_path_load = create_correct_path(pipeline_path)
+    new_pipeline = Pipeline()
+    new_pipeline.load(json_path_load)
+
+    predicted_output_after_export = new_pipeline.predict(test_data)
+    prediction_after_export = np.array(predicted_output_after_export.predict[0])
+
+    print(f'After import {prediction_after_export[:4]}')
+
+    dict_pipeline, dict_fitted_operations = pipeline.save()
+    dict_pipeline = json.loads(dict_pipeline)
+    pipeline_from_dict = Pipeline()
+    pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
+
+    predicted_output = pipeline_from_dict.predict(test_data)
+    prediction = np.array(predicted_output.predict[0])
+    print(f'Prediction from pipeline loaded from dict {prediction[:4]}')
 
     display_validation_metric(
         np.ravel(prediction_before_export),
@@ -91,41 +116,21 @@ def get_source_pipeline_clstm():
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
     node_clstm = PrimaryNode('clstm')
     node_clstm.custom_params = {
-        'input_size': 1,
         'window_size': 29.3418382487487,
-        'hidden_size': 135.66211398383396,
+        'hidden_size': 50.66211398383396,
         'learning_rate': 0.004641403016307329,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 10
+        'num_epochs': 3
     }
     # Third level - root node
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_clstm])
     pipeline = Pipeline(node_final)
 
     return pipeline
-
-
-def display_validation_metric(predicted, real, actual_values,
-                              is_visualise: bool) -> None:
-    """ Function calculate metrics based on predicted and tests data
-
-    :param predicted: predicted values
-    :param real: real values
-    :param actual_values: source time series
-    :param is_visualise: is it needed to show the plots
-    """
-    rmse_value = mean_squared_error(real, predicted, squared=False)
-    mae_value = mean_absolute_error(real, predicted)
-    print(f'RMSE - {rmse_value:.2f}')
-    print(f'MAE - {mae_value:.2f}\n')
-    if is_visualise:
-        plot_results(actual_time_series=actual_values,
-                     predicted_values=predicted,
-                     len_train_data=len(actual_values) - len(predicted))
 
 
 def run_ts_forecasting_problem(forecast_length=50,
@@ -164,51 +169,8 @@ def run_ts_forecasting_problem(forecast_length=50,
                               actual_values=time_series[-100:],
                               is_visualise=with_visualisation)
 
-    # Get available_operations type
-    primary_operations, secondary_operations = get_available_operations()
-
-    # Composer parameters
-    composer_requirements = GPComposerRequirements(
-        primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=10,
-        crossover_prob=0.8, mutation_prob=0.8,
-        timeout=datetime.timedelta(minutes=10),
-        cv_folds=cv_folds, validation_blocks=3)
-
-    mutation_types = [parameter_change_mutation, MutationTypesEnum.growth, MutationTypesEnum.reduce,
-                      MutationTypesEnum.simple]
-    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
-
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    builder = GPComposerBuilder(task=task). \
-        with_optimiser_parameters(optimiser_parameters). \
-        with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipeline(init_pipeline)
-    composer = builder.build()
-
-    obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
-
-    ###################################
-    # Obtained pipeline visualisation #
-    ###################################
-    if with_visualisation:
-        obtained_pipeline.show()
-
-    preds = fit_predict_for_pipeline(pipeline=obtained_pipeline,
-                                     train_input=train_input,
-                                     predict_input=predict_input)
-
-    display_validation_metric(predicted=preds,
-                              real=test_part,
-                              actual_values=time_series,
-                              is_visualise=with_visualisation)
-
-    obtained_pipeline.print_structure()
-
 
 if __name__ == '__main__':
-    clstm_forecasting()
-    # run_ts_forecasting_problem(forecast_length=50,
-    #                            with_visualisation=True,
-    #                            cv_folds=2)
+    run_ts_forecasting_problem(forecast_length=50,
+                               with_visualisation=True,
+                               cv_folds=2)

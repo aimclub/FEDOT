@@ -24,15 +24,16 @@ def create_correct_path(path: str, dirname_flag: bool = False):
     """
     Create path with time which was created during the testing process.
     """
-
+    last_el = None
     for dirname in next(os.walk(os.path.curdir))[1]:
         if dirname.endswith(path):
             if dirname_flag:
-                return dirname
+
+                last_el = dirname
             else:
                 file = os.path.join(dirname, path + '.json')
-                return file
-    return None
+                last_el = file
+    return last_el
 
 
 def run_import_export_example(pipeline_path):

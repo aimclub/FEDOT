@@ -155,15 +155,15 @@
 	},
 	"arima": {
 	  "meta": "ts_model",
-	  "tags": ["simple", "interpretable", "ts_specific"]
+	  "tags": ["simple", "interpretable", "non_lagged"]
 	},
     "stl_arima": {
 	  "meta": "ts_model",
-	  "tags": ["simple", "interpretable", "ts_specific"]
+	  "tags": ["simple", "interpretable", "non_lagged"]
 	},
 	"ar": {
 	  "meta": "ts_model",
-	  "tags": ["simple", "interpretable", "ts_specific"]
+	  "tags": ["simple", "interpretable", "non_lagged"]
 	},
 	"kmeans": {
 	  "meta": "sklearn_clust"

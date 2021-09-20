@@ -257,7 +257,7 @@ def test_clstm_forecasting():
         'cnn2_kernel_size': 4,
         'cnn2_output_size': 32,
         'batch_size': 64,
-        'num_epochs': 5
+        'num_epochs': 2
     }
 
     pipeline = Pipeline(node_root)
@@ -269,14 +269,11 @@ def test_clstm_forecasting():
 
 def test_clstm_in_pipeline():
     horizon = 5
-    window_size = 20
     n_steps = 100
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
     pipeline = get_source_pipeline_clstm()
     pipeline.fit(train_data)
-    predicted = out_of_sample_ts_forecast(pipeline=pipeline,
-                                          input_data=test_data,
-                                          horizon=horizon)
+    predicted = pipeline.predict(test_data).predict[0]
 
     assert len(predicted) == horizon

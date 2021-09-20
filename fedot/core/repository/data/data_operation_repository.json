@@ -114,7 +114,7 @@
 		},
 		"data_source_ts": {
 		  "meta": "data_sources",
-		  "tags": ["ts_specific", "non-default"],
+		  "tags": ["non_lagged", "non-default"],
 		  "input_type": "[DataTypesEnum.ts]",
 		  "output_type": "[DataTypesEnum.ts]"
 		},
@@ -179,7 +179,7 @@
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
-				"ts_specific"
+				"non_lagged"
 			]
 		},
 		"sparse_lagged": {
@@ -187,7 +187,7 @@
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
-				"ts_specific"
+				"non_lagged"
 			]
 		},
 		"smoothing": {
@@ -195,7 +195,7 @@
 			"tags": [
 				"simple",
 				"smoothing",
-				"ts_specific"
+				"non_lagged"
 			]
 		},
 		"gaussian_filter": {
@@ -203,14 +203,14 @@
 			"tags": [
 				"simple",
 				"smoothing",
-				"ts_specific"
+				"non_lagged"
 			]
 		},
 		"exog_ts_data_source": {
 			"meta": "custom_time_series_transformation",
 			"tags": [
 				"simple",
-				"ts_specific"
+				"non_lagged"
 			]
 		},
 		"text_clean": {
