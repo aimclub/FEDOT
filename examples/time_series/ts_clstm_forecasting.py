@@ -131,8 +131,6 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     :param forecast_length: length of the forecast
     :param with_visualisation: is it needed to show the plots
-    :param cv_folds: is it needed apply cross validation and what number
-    of folds to use
     """
     file_path = '../../cases/data/metocean/metocean_data_test.csv'
 
