@@ -138,6 +138,8 @@ class SearchSpace:
                 'cnn2_output_size': (hp.choice, [[8, 16, 32, 64]]),
                 'batch_size': (hp.choice, [[64, 128]]),
                 'num_epochs': (hp.choice, [[10, 20, 50, 100]]),
+                'optimizer': (hp.choice, [['adam', 'sgd']]),
+                'loss': (hp.choice, [['mae', 'mse']])
             },
             'pca': {
                 'n_components': (hp.uniform, [0.1, 0.99]),

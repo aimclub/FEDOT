@@ -187,8 +187,8 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
 
         # Lagged matrix with indices in cells
         _, idx_matrix = ts_to_table(idx=indices_range,
-                                     time_series=indices_range,
-                                     window_size=forecast_length)
+                                    time_series=indices_range,
+                                    window_size=forecast_length)
         predicted_matrix = copied_data.predict
 
         # For every index calculate mean predictions (by all forecast steps)

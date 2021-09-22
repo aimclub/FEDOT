@@ -250,8 +250,8 @@ def test_clstm_forecasting():
     node_root.custom_params = {
         'input_size': 1,
         'window_size': window_size,
-        'hidden_size': 100.66211398383396,
-        'learning_rate': 0.00041403016307329,
+        'hidden_size': 100,
+        'learning_rate': 0.0004,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,

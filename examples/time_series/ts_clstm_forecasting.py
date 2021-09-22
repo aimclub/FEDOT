@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 
@@ -7,19 +6,12 @@ import pandas as pd
 
 from examples.pipeline_import_export import create_correct_path
 from examples.time_series.ts_forecasting_composing import prepare_train_test_input, fit_predict_for_pipeline, \
-    display_validation_metric, get_available_operations, plot_results
-from fedot.core.composer.gp_composer.fixed_structure_composer import GPComposerRequirements
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+    display_validation_metric
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
@@ -56,8 +48,8 @@ def clstm_forecasting():
     node_root = PrimaryNode("clstm")
     node_root.custom_params = {
         'window_size': window_size,
-        'hidden_size': 135.66211398383396,
-        'learning_rate': 0.00041403016307329,
+        'hidden_size': 135,
+        'learning_rate': 0.0004,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
@@ -116,9 +108,9 @@ def get_source_pipeline_clstm():
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
     node_clstm = PrimaryNode('clstm')
     node_clstm.custom_params = {
-        'window_size': 29.3418382487487,
-        'hidden_size': 50.66211398383396,
-        'learning_rate': 0.004641403016307329,
+        'window_size': 29,
+        'hidden_size': 50,
+        'learning_rate': 0.004,
         'cnn1_kernel_size': 5,
         'cnn1_output_size': 32,
         'cnn2_kernel_size': 4,
@@ -134,8 +126,7 @@ def get_source_pipeline_clstm():
 
 
 def run_ts_forecasting_problem(forecast_length=50,
-                               with_visualisation=True,
-                               cv_folds=None) -> None:
+                               with_visualisation=True) -> None:
     """ Function launch time series task with composing
 
     :param forecast_length: length of the forecast
@@ -172,5 +163,4 @@ def run_ts_forecasting_problem(forecast_length=50,
 
 if __name__ == '__main__':
     run_ts_forecasting_problem(forecast_length=50,
-                               with_visualisation=True,
-                               cv_folds=2)
+                               with_visualisation=True)

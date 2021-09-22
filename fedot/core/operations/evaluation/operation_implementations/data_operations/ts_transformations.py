@@ -62,17 +62,17 @@ class LaggedImplementation(DataOperationImplementation):
             features = np.array(new_input_data.features)
             # Prepare features for training
             new_idx, self.features_columns = ts_to_table(idx=old_idx,
-                                                          time_series=features,
-                                                          window_size=self.window_size)
+                                                         time_series=features,
+                                                         window_size=self.window_size)
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
                 self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
             # Transform target
             new_idx, self.features_columns, new_target = prepare_target(idx=new_idx,
-                                                                         features_columns=self.features_columns,
-                                                                         target=target,
-                                                                         forecast_length=forecast_length)
+                                                                        features_columns=self.features_columns,
+                                                                        target=target,
+                                                                        forecast_length=forecast_length)
 
             # Update target for Input Data
             new_input_data.target = new_target
@@ -194,15 +194,15 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         if is_fit_pipeline_stage is True:
             # Transform features in "target-like way"
             _, _, features_columns = prepare_target(idx=old_idx,
-                                                     features_columns=input_data.features,
-                                                     target=input_data.features,
-                                                     forecast_length=forecast_length)
+                                                    features_columns=input_data.features,
+                                                    target=input_data.features,
+                                                    forecast_length=forecast_length)
 
             # Transform target
             new_idx, _, new_target = prepare_target(idx=old_idx,
-                                                     features_columns=input_data.features,
-                                                     target=input_data.target,
-                                                     forecast_length=forecast_length)
+                                                    features_columns=input_data.features,
+                                                    target=input_data.target,
+                                                    forecast_length=forecast_length)
             # Update target for Input Data
             input_data.target = new_target
             input_data.idx = new_idx
@@ -342,18 +342,18 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
         n_components_perc = 0.5
 
     if use_svd:
-        n_components = int(features_columns.shape[1]*n_components_perc)
+        n_components = int(features_columns.shape[1] * n_components_perc)
         # Getting the initial approximation of number of components
         if not n_components:
-            n_components = int(features_columns.shape[1]*n_components_perc)
+            n_components = int(features_columns.shape[1] * n_components_perc)
         if n_components >= features_columns.shape[0]:
-            n_components = features_columns.shape[0]-1
+            n_components = features_columns.shape[0] - 1
         logger.info(f'Initial approximation of number of components set as {n_components}')
 
         # Forming the first value of explained variance
         components = _get_svd(features_columns, n_components)
     else:
-        step = int(1/n_components_perc)
+        step = int(1 / n_components_perc)
         indeces_to_stay = np.arange(1, features_columns.shape[1], step)
         components = np.take(features_columns, indeces_to_stay, 1)
 

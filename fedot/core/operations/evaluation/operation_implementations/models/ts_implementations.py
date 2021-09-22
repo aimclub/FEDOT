@@ -374,12 +374,12 @@ class CLSTMImplementation(ModelImplementation):
 
         self.optim_dict = {
             'adam': torch.optim.Adam(self.model.parameters(), lr=self.learning_rate),
-            'SGD': torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
+            'sgd': torch.optim.SGD(self.model.parameters(), lr=self.learning_rate)
         }
 
         self.loss_dict = {
-            'MAE': nn.L1Loss,
-            'MSE': nn.MSELoss
+            'mae': nn.L1Loss,
+            'mse': nn.MSELoss
         }
 
         self.scaler = StandardScaler()
@@ -436,7 +436,6 @@ class CLSTMImplementation(ModelImplementation):
         :return output_data: output data with smoothed time series
         """
         self.model.eval()
-        print(type(input_data.idx))
         input_data_new = copy(input_data)
         old_idx = input_data_new.idx
         forecast_length = input_data.task.task_params.forecast_length

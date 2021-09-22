@@ -67,6 +67,6 @@
     "num_epochs": 10,
     "teacher_forcing": 0.8,
     "optimizer": "adam",
-    "loss": "MSE"
+    "loss": "mse"
   }
 }
