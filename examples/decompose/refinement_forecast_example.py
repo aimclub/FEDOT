@@ -91,7 +91,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     :param path_to_file: path to the csv file
     :param len_forecast: forecast length
     :param lagged: window size for lagged transformation
-    :param validation_blocks: amount of parts for time series validation
+    :param validation_blocks: number of parts for time series validation
     :param vis_with_decompose: visualise part of main forecast
     """
 
