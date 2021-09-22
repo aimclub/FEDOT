@@ -99,9 +99,9 @@ def get_supported_data_types(node, operation_repo, models_repo):
 def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     """ Function checks is the model contains operations for time series
     forecasting """
-    # Get time series specific operations with tag "ts_specific"
+    # Get time series specific operations with tag "non_lagged"
     ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
-                                            tags=["ts_specific"], mode='all')
+                                            tags=["non_lagged"], mode='all')
 
     # List with operations in considering pipeline
     operations_in_pipeline = []
@@ -122,10 +122,10 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
                                                      mode='data_operation',
-                                                     forbidden_tags=["ts_specific"])
+                                                     forbidden_tags=["non_lagged"])
     ts_data_operations = get_operations_for_task(task=task,
                                                  mode='data_operation',
-                                                 tags=["ts_specific"])
+                                                 tags=["non_lagged"])
     # Remove lagged and sparse lagged transformation
     ts_data_operations.remove('lagged')
     ts_data_operations.remove('sparse_lagged')
@@ -166,13 +166,13 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     return True
 
 
-def only_ts_specific_operations_are_primary(pipeline: 'Pipeline'):
+def only_non_lagged_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
     # Check only primary nodes
     for node in pipeline.nodes:
         if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
             raise ValueError(
-                f'{ERROR_PREFIX} Pipeline for forecasting has not ts_specific preprocessing in primary nodes')
+                f'{ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes')
 
     return True
 

@@ -7,6 +7,7 @@ import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
+from examples.time_series.ts_clstm_forecasting import get_source_pipeline_clstm
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -17,6 +18,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
 from fedot.core.utils import fedot_project_root
+
 np.random.seed(42)
 seed(42)
 
@@ -234,5 +236,44 @@ def test_multistep_in_sample_forecasting():
     predicted = in_sample_ts_forecast(pipeline=pipeline,
                                       input_data=test_data,
                                       horizon=horizon)
+
+    assert len(predicted) == horizon
+
+
+def test_clstm_forecasting():
+    horizon = 5
+    window_size = 20
+    n_steps = 100
+    train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
+
+    node_root = PrimaryNode("clstm")
+    node_root.custom_params = {
+        'input_size': 1,
+        'window_size': window_size,
+        'hidden_size': 100,
+        'learning_rate': 0.0004,
+        'cnn1_kernel_size': 5,
+        'cnn1_output_size': 32,
+        'cnn2_kernel_size': 4,
+        'cnn2_output_size': 32,
+        'batch_size': 64,
+        'num_epochs': 2
+    }
+
+    pipeline = Pipeline(node_root)
+    pipeline.fit(train_data)
+    predicted = pipeline.predict(test_data).predict[0]
+
+    assert len(predicted) == horizon
+
+
+def test_clstm_in_pipeline():
+    horizon = 5
+    n_steps = 100
+    train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
+
+    pipeline = get_source_pipeline_clstm()
+    pipeline.fit(train_data)
+    predicted = pipeline.predict(test_data).predict[0]
 
     assert len(predicted) == horizon

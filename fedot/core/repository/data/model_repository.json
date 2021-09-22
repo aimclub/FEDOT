@@ -135,7 +135,7 @@
       "tags": [
         "simple",
         "interpretable",
-        "ts_specific"
+        "non_lagged"
       ]
     },
     "arima": {
@@ -143,7 +143,13 @@
       "tags": [
         "simple",
         "interpretable",
-        "ts_specific"
+        "non_lagged"
+      ]
+    },
+    "clstm": {
+      "meta": "ts_model",
+      "tags": [
+        "non_lagged"
       ]
     },
     "bernb": {
@@ -290,7 +296,7 @@
       "tags": [
         "simple",
         "interpretable",
-        "ts_specific"
+        "non_lagged"
       ]
     },
     "svc": {

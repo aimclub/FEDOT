@@ -131,7 +131,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
         if task.task_type == TaskTypesEnum.ts_forecasting:
             ts_data_operations = get_operations_for_task(task=task,
                                                          mode='data_operation',
-                                                         tags=["ts_specific"])
+                                                         tags=["non_lagged"])
             # Remove exog data operation from the list
             ts_data_operations.remove('exog_ts_data_source')
 
