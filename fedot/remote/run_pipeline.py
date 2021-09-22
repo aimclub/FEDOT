@@ -97,7 +97,13 @@ def fit_pipeline(config_file) -> bool:
             # create labels for data sources
             data_part_transformation_func = partial(array_to_input_data, idx=idx,
                                                     target_array=target, task=config.task)
-            sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
+
+            def new_key_name(data_part_key):
+                if data_part_key == 'idx':
+                    return 'idx'
+                return f'data_source_ts/{data_part_key}'
+
+            sources = dict((new_key_name(data_part_key), data_part_transformation_func(features_array=data_part))
                            for (data_part_key, data_part) in train_data.items())
             train_data = MultiModalData(sources)
         else:

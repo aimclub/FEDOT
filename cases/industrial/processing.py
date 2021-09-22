@@ -89,8 +89,8 @@ def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_le
         multi_modal_train.update({feature: feature_ts})
         multi_modal_test.update({feature: feature_ts})
 
-    multi_modal_test['idx'] = idx
-    multi_modal_train['idx'] = idx
+    multi_modal_test['idx'] = np.asarray(idx)
+    multi_modal_train['idx'] = np.asarray(idx)
 
     return multi_modal_train, multi_modal_test
 
