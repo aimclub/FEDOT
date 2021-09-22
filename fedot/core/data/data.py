@@ -55,7 +55,9 @@ class Data:
         # Get indices of the DataFrame
         data_array = np.array(data_frame).T
         idx = data_array[0]
-
+        if isinstance(idx[0], float) and idx[0] == round(idx[0]):
+            # if float indices is unnecessary
+            idx = [str(round(i)) for i in idx]
         if type(target_columns) is list:
             features, target = process_multiple_columns(target_columns, data_frame)
         else:
@@ -245,8 +247,8 @@ class InputData(Data):
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
 
     def subset_list(self, selected_idx: List):
-        idx_list = list(self.idx)
-        indices = [idx_list.index(sel_ind) for sel_ind in selected_idx if sel_ind in idx_list]
+        idx_list = [str(i) for i in self.idx]
+        indices = [idx_list.index(str(sel_ind)) for sel_ind in selected_idx if str(sel_ind) in idx_list]
         new_features = None
 
         if self.features is not None:

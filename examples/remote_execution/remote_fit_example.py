@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
-from fedot.remote.remote_fit import ComputationalSetup
+from fedot.remote.remote_fit import ComputationalSetup, RemoteEvalParams
 
 random.seed(1)
 np.random.seed(1)
@@ -30,13 +30,16 @@ print('LOCAL EXECUTION TIME', end - start)
 
 # REMOTE RUN
 
-ComputationalSetup.remote_eval_params = {
-    'mode': 'remote',
-    'dataset_name': 'scoring',
-    'task_type': 'Task(TaskTypesEnum.classification)',
-    'train_data_idx': [1, 2, 3, 4, 5, 20],
-    'max_parallel': num_parallel,  # NUMBER OF PARALLEL TASKS
-}
+remote_eval_params = RemoteEvalParams(
+    mode='remote',
+    dataset_name='scoring_train',
+    task_type='Task(TaskTypesEnum.classification)',
+    train_data_idx=None,
+    max_parallel=num_parallel
+)
 
 pipelines = [Pipeline(PrimaryNode('xgboost'))] * num_parallel
-ComputationalSetup().fit(pipelines)
+setup = ComputationalSetup(remote_eval_params)
+setup.fit(pipelines)
+
+[print(p.is_fitted) for p in pipelines]

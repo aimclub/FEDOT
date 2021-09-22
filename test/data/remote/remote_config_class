@@ -4,4 +4,6 @@ train_data = ./data/advanced_classification.csv
 train_data_idx = [1, 2, 3, 4, 5, 20]
 task = Task(TaskTypesEnum.classification)
 output_path = ./test_class
+is_multi_modal = False
+var_names = None
 [OPTIONAL]

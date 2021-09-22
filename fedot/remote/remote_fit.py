@@ -30,7 +30,7 @@ class RemoteEvalParams:
     dataset_name: str
     task_type: str
     train_data_idx: Optional[List] = None
-    is_multi_modal: bool = True
+    is_multi_modal: bool = False
     var_names: Optional[List] = None
     max_parallel: int = 7
     access_params: Optional[dict] = None
@@ -126,7 +126,7 @@ class ComputationalSetup:
 
 def _prepare_computation_vars(pipelines, params):
     access_params = params.access_params
-    num_parts = np.floor(len(pipelines) / ComputationalSetup.remote_eval_params['max_parallel'])
+    num_parts = np.floor(len(pipelines) / params.max_parallel)
     num_parts = max(num_parts, 1)
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
     data_id = int(access_params['DATA_ID'])
@@ -151,13 +151,18 @@ def _prepare_client(params):
 
 
 def _get_config(pipeline_json, data_id, params: RemoteEvalParams):
+    var_names = [str(name) for name in params.var_names] \
+        if params.var_names is not None else []
+    train_data_idx = [str(idx) for idx in params.train_data_idx] \
+        if params.train_data_idx is not None else []
+
     return f"""[DEFAULT]
         pipeline_description = {pipeline_json}
         train_data = input_data_dir/data/{data_id}/{params.dataset_name}.csv
         task = {params.task_type}
         output_path = output_data_dir/fitted_pipeline
-        train_data_idx = {[str(ind) for ind in params.train_data_idx]}
-        var_names = {[str(name) for name in params.var_names]}
+        train_data_idx = {train_data_idx}
+        var_names = {var_names}
         is_multi_modal = {params.is_multi_modal}
         [OPTIONAL]
         """.encode('utf-8')

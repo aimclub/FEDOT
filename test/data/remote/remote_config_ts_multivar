@@ -6,4 +6,5 @@ output_path = ./test_ts_multivar
 train_data_idx = ["2019-05-01 00:00:00","2019-05-02 00:00:00","2019-05-03 00:00:00","2019-05-04 00:00:00","2019-05-05 00:00:00","2019-05-06 00:00:00","2019-05-07 00:00:00","2019-05-08 00:00:00","2019-05-09 00:00:00","2019-05-10 00:00:00","2019-05-11 00:00:00","2019-05-12 00:00:00","2019-05-13 00:00:00","2019-05-14 00:00:00","2019-05-15 00:00:00"]
 var_names = ["diesel_fuel_kWh","wind_power_kWh","diesel_time_h","wind_time_h","velocity_max_msec","velocity_mean_msec","tmp_grad"]
 is_multi_modal = "True"
+target = "diesel_fuel_kWh"
 [OPTIONAL]
