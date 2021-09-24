@@ -16,6 +16,8 @@ class SupplementaryData:
     data_flow_length: int = 0
     # Masked features for data
     features_mask: Optional[dict] = None
+    # Last visited nodes
+    last_visited_operations: Optional[list] = None
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)
@@ -87,3 +89,27 @@ class SupplementaryData:
 
     def get_flow_mask(self) -> list:
         return self.features_mask.get('flow_lens')
+
+    def define_parents(self, unique_features_masks: np.array):
+        """ Define which parent should be "Data parent" and "Model parent"
+        for decompose operation
+
+        :param unique_features_masks: unique values for mask
+        """
+        if not isinstance(self.last_visited_operations, list) or len(self.last_visited_operations) == 1:
+            raise ValueError(f'Data was received from one node and at least two nodes are required')
+
+        if 'lagged' in self.last_visited_operations:
+            # Lagged operation by default is "Data parent"
+            data_ids = np.ravel(np.argwhere(np.array(self.last_visited_operations) == 'lagged'))
+            data_parent_id = data_ids[0]
+            model_ids = np.ravel(np.argwhere(np.array(self.last_visited_operations) != 'lagged'))
+            model_parent_id = model_ids[0]
+        else:
+            model_parent_id = 0
+            data_parent_id = 1
+
+        data_parent = unique_features_masks[data_parent_id]
+        model_parent = unique_features_masks[model_parent_id]
+
+        return model_parent, data_parent
