@@ -69,11 +69,11 @@ class PipelineAdapter(BaseOptimizationAdapter):
     def _transform_to_opt_node(self, node, *args, **kwargs):
         # Prepare content for nodes
         if not isinstance(node, OptNode):
-            if not isinstance(node, GraphNode):
+            if not type(node) == GraphNode:
                 node.content = {'name': node.operation,
                                 'params': node.custom_params}
             else:
-                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead'
+                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead '
                                'PrimaryNode or SecondaryNode.')
             _transform_node(node=node, primary_class=OptNode,
                             transform_func=self._transform_to_opt_node)
