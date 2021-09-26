@@ -1,5 +1,23 @@
 {
   "metadata": {
+    "tpot": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of tpot AutoMl models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "TPOTAutoMLStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification]"
+    },
     "h2o": {
       "accepted_node_types": [
         "any"
@@ -367,6 +385,12 @@
     },
     "h2o": {
       "meta": "h2o",
+      "tags": [
+        "automl"
+      ]
+    },
+    "tpot": {
+      "meta": "tpot",
       "tags": [
         "automl"
       ]

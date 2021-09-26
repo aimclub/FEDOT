@@ -1,6 +1,6 @@
 
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score as roc_auc
 from test.unit.tasks.test_classification import get_iris_data
@@ -9,8 +9,9 @@ from test.unit.tasks.test_classification import get_iris_data
 def pipeline_simple() -> Pipeline:
     node = PrimaryNode('h2o')
     pipeline = Pipeline(node)
-
     return pipeline
+
+
 
 
 def multiclassification_pipeline_fit_correct():

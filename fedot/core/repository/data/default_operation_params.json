@@ -73,5 +73,10 @@
     "timeout": 2,
     "seed": 42,
     "max_models": 3
+  },
+  "tpot": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
   }
 }
