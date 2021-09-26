@@ -68,5 +68,10 @@
     "teacher_forcing": 0.8,
     "optimizer": "adam",
     "loss": "mse"
+  },
+  "h2o": {
+    "timeout": 2,
+    "seed": 42,
+    "max_models": 3
   }
 }
