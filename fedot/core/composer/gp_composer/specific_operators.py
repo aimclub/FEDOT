@@ -6,6 +6,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any:
@@ -42,17 +43,37 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
 
     existing_pipeline = pipeline
 
-    if len(pipeline.nodes) == 1:
-        # to deal with single-node pipeline
-        data_source = pipeline.nodes[0]
+    all_data_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
+        task_type=task_type)
+    preprocessing_primary_nodes = [n for n in existing_pipeline.nodes if str(n) in all_data_operations]
+
+    if len(preprocessing_primary_nodes) > 0:
+        data_source = preprocessing_primary_nodes[0]
     else:
-        data_source = PrimaryNode('scaling')
+        if task_type == TaskTypesEnum.ts_forecasting:
+            data_source = PrimaryNode('simple_imputation')
+        else:
+            data_source = PrimaryNode('scaling')
 
     decompose_parents = [existing_pipeline.root_node, data_source]
 
+    new_model = choice(requirements.secondary)
+
+    if task_type == TaskTypesEnum.ts_forecasting:
+        non_lagged_ts_models, _ = OperationTypesRepository('model').operations_with_tag(['non_lagged'])
+        is_non_lagged_ts_models_in_node = \
+            str(existing_pipeline.root_node) in non_lagged_ts_models
+        is_lagged_ts_models_in_decompose = \
+            new_model not in non_lagged_ts_models
+        if is_non_lagged_ts_models_in_node and is_lagged_ts_models_in_decompose:
+            # if additional lagged node is required
+            lagged_node = SecondaryNode('lagged', nodes_from=[data_source])
+            decompose_parents = [existing_pipeline.root_node, lagged_node]
+
     node_decompose = SecondaryNode(decompose_operation, nodes_from=decompose_parents)
-    node_boost = SecondaryNode('linear', nodes_from=[node_decompose])
+
+    node_boost = SecondaryNode(new_model, nodes_from=[node_decompose])
     node_final = SecondaryNode(choice(requirements.secondary),
-                               nodes_from=[node_boost, existing_pipeline.root_node])
-    pipeline.nodes.extend([node_decompose, node_final, node_boost])
+                               nodes_from=[existing_pipeline.root_node, node_boost])
+    pipeline = Pipeline(node_final)
     return pipeline
