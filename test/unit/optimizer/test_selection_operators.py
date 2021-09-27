@@ -23,7 +23,13 @@ def rand_population_gener_and_eval(pop_size=4):
     pipeline_gener_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
     random_pipeline_function = partial(random_graph, params=pipeline_gener_params,
                                        requirements=requirements)
-    population = [Individual(random_pipeline_function()) for _ in range(pop_size)]
+    population = []
+    while len(population) != pop_size:
+        # to ensure uniqueness
+        ind = Individual(random_pipeline_function())
+        if ind not in population:
+            population.append(ind)
+
     # evaluation
     for ind in population:
         ind.fitness = obj_function()
