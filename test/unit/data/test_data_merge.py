@@ -139,3 +139,26 @@ def test_target_task_two_none_merge():
 
     assert is_main_target is True
     assert task.task_type is TaskTypesEnum.classification
+
+
+def test_define_parents_with_equal_lengths():
+    """
+    Check the processing of the case when the decompose operation receives
+    data whose flow_lens is not different. In this case, the data that came
+    from the data_operation node is used as the "Data parent".
+
+    Such case is common for time series forecasting pipelines. So we imitate
+    merged output from ARIMA and lagged operations
+    """
+    sd = SupplementaryData(is_main_target=True,
+                           data_flow_length=1,
+                           features_mask={'input_ids': [0, 0, 0, 1, 1, 1],
+                                          'flow_lens': [0, 0, 0, 0, 0, 0]},
+                           previous_operations=['arima', 'lagged'])
+    features_mask = np.array(sd.get_compound_mask())
+    unique_features_masks = np.unique(features_mask)
+
+    model_parent, data_parent = sd.define_parents(unique_features_masks, task=TaskTypesEnum.ts_forecasting)
+
+    assert model_parent == '00'
+    assert data_parent == '10'

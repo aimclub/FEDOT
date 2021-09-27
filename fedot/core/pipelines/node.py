@@ -284,7 +284,9 @@ class SecondaryNode(Node):
                                                   parent_operation)
 
         secondary_input = InputData.from_predictions(outputs=parent_results)
-
+        # Update info about visited nodes
+        parent_operations = [node.content['name'].operation_type for node in parent_nodes]
+        secondary_input.supplementary_data.previous_operations = parent_operations
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):
