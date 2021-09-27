@@ -31,7 +31,7 @@ class H2OAutoMLStrategy(EvaluationStrategy):
         train_columns = train_frame.columns
         target_name = train_columns[-1]
         train_columns.remove(target_name)
-        # train_frame[target_name] = train_frame[target_name].asfactor()
+        train_frame[target_name] = train_frame[target_name].asfactor()
         model = H2OAutoML(max_models=self.params.get("max_models"),
                           seed=self.params.get("seed"),
                           max_runtime_secs=self.params.get("timeout")
@@ -104,5 +104,3 @@ class TPOTAutoMLStrategy(EvaluationStrategy):
             prediction = trained_operation.predict(predict_data.features)
         out = self._convert_to_output(prediction, predict_data)
         return out
-
-

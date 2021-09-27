@@ -15,6 +15,7 @@ def pipeline_tpot() -> Pipeline:
 
     return pipeline
 
+
 def pipeline_tpot_ts(window_size: int = 20):
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': window_size}
@@ -36,7 +37,7 @@ def tpot_classification_pipeline_fit_correct():
                               y_score=results.predict,
                               multi_class='ovo',
                               average='macro')
-    print(roc_auc_on_test)
+    print("roc_auc ", roc_auc_on_test)
 
 
 def tpot_regression_pipeline_fit_correct():
@@ -47,8 +48,8 @@ def tpot_regression_pipeline_fit_correct():
 
     pipeline.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(pipeline, train_data, test_data)
-    print(rmse_on_test)
-    
+    print("RMSE ", rmse_on_test)
+
 
 def tpot_ts_pipeline_fit_correct():
     train_data, test_data = get_ts_data(forecast_length=3)
@@ -64,7 +65,7 @@ def tpot_ts_pipeline_fit_correct():
 
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
 
-    print(rmse_test)
+    print("RMSE ", rmse_test)
 
 
 if __name__ == '__main__':

@@ -1,4 +1,3 @@
-
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -10,8 +9,6 @@ def pipeline_simple() -> Pipeline:
     node = PrimaryNode('h2o')
     pipeline = Pipeline(node)
     return pipeline
-
-
 
 
 def multiclassification_pipeline_fit_correct():
