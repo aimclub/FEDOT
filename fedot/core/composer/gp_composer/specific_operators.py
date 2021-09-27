@@ -62,7 +62,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
         # the regression models are required
         boosting_model_candidates, _ = \
             OperationTypesRepository('model').suitable_operation(
-                task_type=TaskTypesEnum.regression)
+                task_type=TaskTypesEnum.regression, forbidden_tags=['non_lagged'])
 
     new_model = choice(boosting_model_candidates)
 
@@ -70,9 +70,8 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
         non_lagged_ts_models, _ = OperationTypesRepository('model').operations_with_tag(['non_lagged'])
         is_non_lagged_ts_models_in_node = \
             str(existing_pipeline.root_node) in non_lagged_ts_models
-        is_lagged_ts_models_in_decompose = \
-            new_model not in non_lagged_ts_models
-        if is_non_lagged_ts_models_in_node and is_lagged_ts_models_in_decompose:
+
+        if is_non_lagged_ts_models_in_node:
             # if additional lagged node is required
             lagged_node = SecondaryNode('lagged', nodes_from=[data_source])
             decompose_parents = [existing_pipeline.root_node, lagged_node]
