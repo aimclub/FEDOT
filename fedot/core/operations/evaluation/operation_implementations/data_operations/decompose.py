@@ -62,7 +62,8 @@ class DecomposerImplementation(DataOperationImplementation):
         # For case when data from "Model parent" and "Data parent" go through equal number of nodes
         if min_flow_length_i == max_flow_length_i:
             # Find data models
-            model_parent, data_parent = input_data.supplementary_data.define_parents(unique_features_masks)
+            model_parent, data_parent = input_data.supplementary_data.define_parents(unique_features_masks,
+                                                                                     task=input_data.task)
         else:
             model_parent = features_mask[max_flow_length_i]
             data_parent = features_mask[min_flow_length_i]

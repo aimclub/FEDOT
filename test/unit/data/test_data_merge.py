@@ -154,11 +154,11 @@ def test_define_parents_with_equal_lengths():
                            data_flow_length=1,
                            features_mask={'input_ids': [0, 0, 0, 1, 1, 1],
                                           'flow_lens': [0, 0, 0, 0, 0, 0]},
-                           last_visited_operations=['arima', 'lagged'])
+                           previous_operations=['arima', 'lagged'])
     features_mask = np.array(sd.get_compound_mask())
     unique_features_masks = np.unique(features_mask)
 
-    model_parent, data_parent = sd.define_parents(unique_features_masks)
+    model_parent, data_parent = sd.define_parents(unique_features_masks, task=TaskTypesEnum.ts_forecasting)
 
     assert model_parent == '00'
     assert data_parent == '10'
