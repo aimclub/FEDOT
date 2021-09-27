@@ -30,8 +30,9 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import _to_numerical
-from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, \
-    pipeline_fourth, pipeline_fifth
+from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
+    pipeline_third
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -395,6 +396,57 @@ def test_boosting_mutation_for_linear_graph():
     data = file_data()
     pipeline.fit(data)
     result = pipeline.predict(data)
+    assert result is not None
+
+
+def test_boosting_mutation_for_non_lagged_ts_model():
+    """
+    Tests boosting mutation can add correct boosting cascade for ts forecasting with non-lagged model
+    """
+
+    linear_two_nodes = OptGraph(OptNode({'name': 'clstm'},
+                                        nodes_from=[OptNode({'name': 'smoothing'})]))
+
+    init_node = OptNode({'name': 'smoothing'})
+    model_node = OptNode({'name': 'clstm'}, nodes_from=[init_node])
+    lagged_node = OptNode({'name': 'lagged'}, nodes_from=[init_node])
+
+    boosting_graph = \
+        OptGraph(
+            OptNode({'name': 'ridge'},
+                    [model_node, OptNode({'name': 'ridge', },
+                                         [OptNode({'name': 'decompose'},
+                                                  [model_node, lagged_node])])]))
+    adapter = PipelineAdapter()
+    # to ensure hyperparameters of custom models
+    boosting_graph = adapter.adapt(adapter.restore(boosting_graph))
+
+    composer_requirements = GPComposerRequirements(primary=['smoothing'],
+                                                   secondary=['ridge'], mutation_prob=1)
+
+    graph_params = GraphGenerationParams(adapter=adapter,
+                                         advisor=PipelineChangeAdvisor(
+                                             task=Task(TaskTypesEnum.ts_forecasting)),
+                                         rules_for_constraint=DEFAULT_DAG_RULES)
+    successful_mutation_boosting = False
+    for _ in range(100):
+        graph_after_mutation = mutation(types=[boosting_mutation],
+                                        params=graph_params,
+                                        ind=Individual(linear_two_nodes),
+                                        requirements=composer_requirements,
+                                        log=default_log(__name__), max_depth=2).graph
+        if not successful_mutation_boosting:
+            successful_mutation_boosting = \
+                graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
+        else:
+            break
+    assert successful_mutation_boosting
+
+    # check that obtained pipeline can be fitted
+    pipeline = PipelineAdapter().restore(graph_after_mutation)
+    data_train, data_test = get_ts_data()
+    pipeline.fit(data_train)
+    result = pipeline.predict(data_test)
     assert result is not None
 
 
