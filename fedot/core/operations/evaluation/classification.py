@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
