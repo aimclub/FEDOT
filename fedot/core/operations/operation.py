@@ -2,6 +2,7 @@ from typing import Union
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 

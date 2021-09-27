@@ -2,8 +2,8 @@
   "metadata": {
 	"sklearn_class": {
 	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.classification", "SkLearnClassificationStrategy"],
@@ -12,8 +12,8 @@
 	},
 	"custom_class": {
 	  "tasks": "[TaskTypesEnum.classification]",
-	  "input_type": "[DataTypesEnum.table, DataTypesEnum.table]",
-	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
+	  "input_type": "[DataTypesEnum.table]",
+	  "output_type": "[DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
 	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
@@ -64,6 +64,14 @@
 	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
+	},
+	"default_model": {
+	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]",
+	  "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
+	  "output_type": "[DataTypesEnum.table]",
+	  "strategies": ["fedot.core.operations.evaluation.default", "CustomDefaultModelStrategy"],
+	  "tags": ["all_purpose"],
+	  "description": "Implementations of the models specified by user with external code source"
 	}
   },
   "operations": {
@@ -179,6 +187,10 @@
     "tfidf": {
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
-    }
+    },
+    "default": {
+		"meta": "default_model",
+		"tags": ["all_purpose"]
+	}
   }
 }
