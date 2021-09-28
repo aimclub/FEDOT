@@ -394,10 +394,11 @@ class GPGraphOptimiser:
         return best
 
     def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
-        evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function,
-                             graph_generation_params=self.graph_generation_params,
-                             timer=timer, is_multi_objective=self.parameters.multi_objective)
-        self.population = correct_if_population_has_nans(self.population, self.log)
+        evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
+                                                     objective_function=objective_function,
+                                                     graph_generation_params=self.graph_generation_params,
+                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
+        self.population = correct_if_population_has_nans(evaluated_individuals, self.log)
 
 
 @dataclass

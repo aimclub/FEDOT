@@ -124,20 +124,20 @@ def test_evaluate_individuals():
     timeout = datetime.timedelta(minutes=0.001)
     params = GraphGenerationParams(adapter=PipelineAdapter(), advisor=PipelineChangeAdvisor())
     with OptimisationTimer(timeout=timeout) as t:
-        evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
-                             graph_generation_params=params,
-                             is_multi_objective=False, timer=t)
-    assert len(population) == 1
-    assert population[0].fitness is not None
+        evaluated = evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
+                                         graph_generation_params=params,
+                                         is_multi_objective=False, timer=t)
+    assert len(evaluated) == 1
+    assert evaluated[0].fitness is not None
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
-                             graph_generation_params=params,
-                             is_multi_objective=False, timer=t)
-    assert len(population) == 4
-    assert all([ind.fitness is not None for ind in population])
+        evaluated = evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
+                                         graph_generation_params=params,
+                                         is_multi_objective=False, timer=t)
+    assert len(evaluated) == 4
+    assert all([ind.fitness is not None for ind in evaluated])
 
 
 def test_filter_duplicates():
