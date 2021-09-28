@@ -9,8 +9,15 @@ from test.unit.tasks.test_forecasting import get_ts_data, _max_rmse_threshold_by
 from test.unit.tasks.test_regression import get_synthetic_regression_data, get_rmse_value
 
 
-def pipeline_tpot() -> Pipeline:
-    node = PrimaryNode('tpot')
+def pipeline_tpot_class() -> Pipeline:
+    node = PrimaryNode('tpot_class')
+    pipeline = Pipeline(node)
+
+    return pipeline
+
+
+def pipeline_tpot_regr() -> Pipeline:
+    node = PrimaryNode('tpot_regr')
     pipeline = Pipeline(node)
 
     return pipeline
@@ -19,7 +26,7 @@ def pipeline_tpot() -> Pipeline:
 def pipeline_tpot_ts(window_size: int = 20):
     node_lagged = PrimaryNode('lagged')
     node_lagged.custom_params = {'window_size': window_size}
-    node_root = SecondaryNode('tpot', nodes_from=[node_lagged])
+    node_root = SecondaryNode('tpot_regr', nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)
 
@@ -28,11 +35,11 @@ def pipeline_tpot_ts(window_size: int = 20):
 
 def tpot_classification_pipeline_fit_correct():
     data = get_iris_data()
-    pipeline = pipeline_tpot()
+    pipeline = pipeline_tpot_class()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     pipeline.fit(input_data=train_data)
-    results = pipeline.predict(input_data=test_data)
+    results = pipeline.predict(input_data=test_data, output_mode="full_probs")
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
                               multi_class='ovo',
@@ -43,7 +50,7 @@ def tpot_classification_pipeline_fit_correct():
 def tpot_regression_pipeline_fit_correct():
     data = get_synthetic_regression_data()
 
-    pipeline = pipeline_tpot()
+    pipeline = pipeline_tpot_regr()
     train_data, test_data = train_test_data_setup(data)
 
     pipeline.fit(input_data=train_data)

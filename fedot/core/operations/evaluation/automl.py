@@ -70,37 +70,62 @@ class H2OAutoMLStrategy(EvaluationStrategy):
         return ip, port
 
 
-class TPOTAutoMLStrategy(EvaluationStrategy):
+class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
         self.params = params
-        self.model = None
-        super().__init__(operation_type)
+        self.operation_impl = TPOTRegressor
+        super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        if train_data.task.task_type == TaskTypesEnum.classification:
-            estimator = TPOTClassifier
-        elif train_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-            estimator = TPOTRegressor
-
-        self.model = estimator(generations=self.params.get('generations'),
-                               population_size=self.params.get('population_size'),
-                               verbosity=2,
-                               random_state=42,
-                               max_time_mins=self.params.get('timeout')
-                               )
-        if len(train_data.target.shape) > 1 and \
-                train_data.task.task_type in [TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]:
-            self.model = MultiOutputRegressor(self.model)
-
-        self.model.fit(train_data.features, train_data.target)
-
-        return self.model
+        model = self.operation_impl(generations=self.params.get('generations'),
+                                    population_size=self.params.get('population_size'),
+                                    verbosity=2,
+                                    random_state=42,
+                                    max_time_mins=self.params.get('timeout')
+                                    )
+        if len(train_data.target.shape) > 1:
+            model = MultiOutputRegressor(model)
+        model.fit(train_data.features, train_data.target)
+        return model
 
     def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        if predict_data.task.task_type == TaskTypesEnum.classification:
-            prediction = trained_operation.predict_proba(predict_data.features)
-        else:
+        prediction = trained_operation.predict(predict_data.features)
+        out = self._convert_to_output(prediction, predict_data)
+        return out
+
+
+class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.name_operation = operation_type
+        self.params = params
+        self.operation_impl = TPOTClassifier
+        super().__init__(operation_type, params)
+
+    def fit(self, train_data: InputData):
+        model = self.operation_impl(generations=self.params.get('generations'),
+                                    population_size=self.params.get('population_size'),
+                                    verbosity=2,
+                                    random_state=42,
+                                    max_time_mins=self.params.get('timeout')
+                                    )
+        model.classes_ = np.unique(train_data.target)
+
+        model.fit(train_data.features, train_data.target)
+
+        return model
+
+    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+        n_classes = len(trained_operation.classes_)
+        if self.output_mode == 'labels':
             prediction = trained_operation.predict(predict_data.features)
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = trained_operation.predict_proba(predict_data.features)
+            if n_classes < 2:
+                raise NotImplementedError()
+            elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:
+                prediction = prediction[:, 1]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out

@@ -1,6 +1,24 @@
 {
   "metadata": {
-    "tpot": {
+    "tpot_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of tpot AutoMl classification models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "TPOTAutoMLClassificationStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tpot_regr": {
       "accepted_node_types": [
         "any"
       ],
@@ -10,13 +28,13 @@
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.automl",
-        "TPOTAutoMLStrategy"
+        "TPOTAutoMLRegressionStrategy"
       ],
       "tags": [
         "automl",
         "custom"
       ],
-      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification]"
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
     "h2o": {
       "accepted_node_types": [
@@ -389,8 +407,14 @@
         "automl"
       ]
     },
-    "tpot": {
-      "meta": "tpot",
+    "tpot_regr": {
+      "meta": "tpot_regr",
+      "tags": [
+        "automl"
+      ]
+    },
+    "tpot_class": {
+      "meta": "tpot_class",
       "tags": [
         "automl"
       ]
