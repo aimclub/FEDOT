@@ -24,7 +24,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import validate
+from fedot.core.pipelines.validation import validate, ts_rules, common_rules
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
@@ -110,6 +110,11 @@ class GPComposer(Composer):
         """
 
         self.optimiser.graph_generation_params.advisor.task = data.task
+
+        if data.task == TaskTypesEnum.ts_forecasting:
+            self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
+        else:
+            self.optimiser.graph_generation_params.rules_for_constraint = common_rules
 
         if self.composer_requirements.max_pipeline_fit_time:
             set_multiprocess_start_method()
