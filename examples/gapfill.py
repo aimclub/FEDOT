@@ -1,13 +1,9 @@
-import pandas as pd
 import numpy as np
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository import tasks
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.utils import fedot_project_root
 from fedot.utilities.ts_gapfilling import ModelGapFiller
 
 forecast_len = 2
@@ -46,5 +42,5 @@ for i, node in enumerate(pipeline.nodes):
 gapfiller = ModelGapFiller(gap_value=gap_value,
                            pipeline=pipeline)
 
-array_with_gaps = filling_gaps(original_array) # a function to add gap_value
+array_with_gaps = filling_gaps(original_array)  # a function to add gap_value
 output = gapfiller.forward_inverse_filling(array_with_gaps)
