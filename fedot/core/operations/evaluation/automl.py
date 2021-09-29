@@ -96,6 +96,9 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
 
 
 class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
+    def _convert_to_operation(self, operation_type: str):
+        pass
+
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
         self.params = params

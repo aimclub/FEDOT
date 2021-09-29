@@ -1,5 +1,6 @@
 import numpy as np
 
+from examples.time_series.ts_forecasting_composing import display_validation_metric
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -33,7 +34,7 @@ def pipeline_tpot_ts(window_size: int = 20):
     return pipeline
 
 
-def tpot_classification_pipeline_fit_correct():
+def tpot_classification_pipeline_evaluation():
     data = get_iris_data()
     pipeline = pipeline_tpot_class()
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
@@ -47,7 +48,7 @@ def tpot_classification_pipeline_fit_correct():
     print("roc_auc ", roc_auc_on_test)
 
 
-def tpot_regression_pipeline_fit_correct():
+def tpot_regression_pipeline_evaluation():
     data = get_synthetic_regression_data()
 
     pipeline = pipeline_tpot_regr()
@@ -58,8 +59,8 @@ def tpot_regression_pipeline_fit_correct():
     print("RMSE ", rmse_on_test)
 
 
-def tpot_ts_pipeline_fit_correct():
-    train_data, test_data = get_ts_data(forecast_length=3)
+def tpot_ts_pipeline_evaluation():
+    train_data, test_data = get_ts_data(n_steps=500, forecast_length=3)
 
     pipeline = pipeline_tpot_ts()
     pipeline.fit(input_data=train_data)
@@ -68,14 +69,14 @@ def tpot_ts_pipeline_fit_correct():
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
-    rmse_test = mean_squared_error(test_target, test_pred, squared=False)
 
-    rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
-
-    print("RMSE ", rmse_test)
+    display_validation_metric(predicted=test_pred,
+                              real=test_target,
+                              actual_values=test_data.features,
+                              is_visualise=True)
 
 
 if __name__ == '__main__':
-    tpot_classification_pipeline_fit_correct()
-    tpot_regression_pipeline_fit_correct()
-    tpot_ts_pipeline_fit_correct()
+    tpot_classification_pipeline_evaluation()
+    tpot_regression_pipeline_evaluation()
+    tpot_ts_pipeline_evaluation()
