@@ -45,7 +45,7 @@ def tpot_classification_pipeline_evaluation():
                               y_score=results.predict,
                               multi_class='ovo',
                               average='macro')
-    print("roc_auc ", roc_auc_on_test)
+    print(f"roc_auc {roc_auc_on_test}")
 
 
 def tpot_regression_pipeline_evaluation():
@@ -56,7 +56,7 @@ def tpot_regression_pipeline_evaluation():
 
     pipeline.fit(input_data=train_data)
     _, rmse_on_test = get_rmse_value(pipeline, train_data, test_data)
-    print("RMSE ", rmse_on_test)
+    print(f"RMSE {rmse_on_test}")
 
 
 def tpot_ts_pipeline_evaluation():
