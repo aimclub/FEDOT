@@ -17,7 +17,7 @@ def run_experiment(horizons: list, validation_blocks: int, tuner_iterations: int
     tep_path = '../data/time_series/tep_data.csv'
     tep_df = pd.read_csv(tep_path, header=None)
 
-    for column in tep_df.columns:
+    for column in tep_df.columns[:5]:
         print(f'Process time series with id {column}')
         ts = np.array(tep_df[column])
 
@@ -33,5 +33,5 @@ def run_experiment(horizons: list, validation_blocks: int, tuner_iterations: int
 
 if __name__ == '__main__':
     run_experiment(horizons=[10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-                   tuner_iterations=2,
+                   tuner_iterations=20,
                    validation_blocks=3)
