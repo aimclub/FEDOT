@@ -71,10 +71,14 @@ class H2OAutoMLStrategy(EvaluationStrategy):
 
 
 class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
+    __operations_by_types = {
+        'tpot_regr': TPOTRegressor
+    }
+
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
         self.params = params
-        self.operation_impl = TPOTRegressor
+        self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -94,15 +98,22 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         out = self._convert_to_output(prediction, predict_data)
         return out
 
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
+
 
 class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
-    def _convert_to_operation(self, operation_type: str):
-        pass
+    __operations_by_types = {
+        'tpot_class': TPOTClassifier
+    }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
         self.params = params
-        self.operation_impl = TPOTClassifier
+        self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -132,3 +143,10 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
+
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
+
