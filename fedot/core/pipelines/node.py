@@ -147,6 +147,8 @@ class Node(GraphNode):
             if default_params is not None:
                 params = {**default_params, **params}
             self.operation.params = params
+            # Update content
+            self.content.update({'params': params})
 
     def __str__(self):
         return str(self.operation.operation_type)

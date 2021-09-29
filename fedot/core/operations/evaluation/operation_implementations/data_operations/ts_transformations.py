@@ -51,10 +51,9 @@ class LaggedImplementation(DataOperationImplementation):
         old_idx = new_input_data.idx
 
         # Correct window size parameter
-        log_info, self.window_size = _check_and_correct_window_size(new_input_data.features, self.window_size,
-                                                                    forecast_length, self.window_size_minimum)
-        if log_info:
-            self.log.info(log_info)
+        self.window_size = _check_and_correct_window_size(new_input_data.features, self.window_size,
+                                                          forecast_length, self.window_size_minimum,
+                                                          self.log)
 
         if is_fit_pipeline_stage:
             # Transformation for fit stage of the pipeline
@@ -264,7 +263,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
 
 def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
-                                   window_size_minimum: int):
+                                   window_size_minimum: int, log: Log):
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
@@ -272,16 +271,9 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     :param window_size: size of sliding window, which defines lag
     :param forecast_length: forecast length
     :param window_size_minimum: minimum moving window size
+    :param log: logger for saving messages
     """
-    log_message = None
     prefix = "Warning: window size of lagged transformation was changed"
-
-    # Minimum threshold
-    if window_size < window_size_minimum:
-        previous_size = window_size
-        window_size = window_size_minimum
-
-        log_message = f"{prefix} from {previous_size} to {window_size}"
 
     # Maximum threshold
     removing_len = window_size + forecast_length
@@ -290,9 +282,16 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
         # At least 10 objects we need for training, so minus 10
         window_size = len(time_series) - forecast_length - 10
 
-        log_message = f"{prefix} from {previous_size} to {window_size}"
+        log.info(f"{prefix} from {previous_size} to {window_size}")
 
-    return log_message, window_size
+    # Minimum threshold
+    if window_size < window_size_minimum:
+        previous_size = window_size
+        window_size = window_size_minimum
+
+        log.info(f"{prefix} from {previous_size} to {window_size}")
+
+    return window_size
 
 
 def ts_to_table(idx, time_series: np.array, window_size: int):
