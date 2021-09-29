@@ -102,7 +102,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain TPOT AutoML Regression Strategy for {operation_type}')
 
 
 class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
@@ -148,5 +148,4 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
-
+            raise ValueError(f'Impossible to obtain TPOT AutoML Classification Strategy for {operation_type}')
