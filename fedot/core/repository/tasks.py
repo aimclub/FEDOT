@@ -19,8 +19,8 @@ class TsForecastingParams(TaskParams):
 
 
 class TaskTypesEnum(Enum):
-    classification = 'classification',
-    regression = 'regression',
+    classification = 'classification'
+    regression = 'regression'
     ts_forecasting = 'ts_forecasting'
     clustering = 'clustering'  # not applicable as main task yet
 
