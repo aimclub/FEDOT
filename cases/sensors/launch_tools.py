@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 import numpy as np
+import time
 
 from examples.decompose.refinement_forecast_example import time_series_into_input
 from fedot.core.pipelines.pipeline import Pipeline
@@ -95,6 +96,41 @@ def ridge_non_ref():
     return _get_lagged_non_refinement_pipeline('ridge')
 
 
+def perform_experiment(pipelines_by_model, model, train_input, tuner_iterations, predict_input,
+                       horizon, train_part, time_series, len_forecast, validation_blocks, ts_save_path):
+    """ Initialise pipeline, tune it and make prediction with """
+    try:
+        generators = pipelines_by_model.get(model)
+        pipeline_ref = generators[0]()
+        tuned_ref = pipeline_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                                     input_data=train_input,
+                                                     iterations=tuner_iterations,
+                                                     timeout=2)
+        predicted_ref = in_sample_ts_forecast(pipeline=tuned_ref,
+                                              input_data=predict_input,
+                                              horizon=horizon)
+
+        pipeline_non_ref = generators[1]()
+        tuned_non_ref = pipeline_non_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                                             input_data=train_input,
+                                                             iterations=tuner_iterations,
+                                                             timeout=2)
+        predicted_non_ref = in_sample_ts_forecast(pipeline=tuned_non_ref,
+                                                  input_data=predict_input,
+                                                  horizon=horizon)
+
+        time_series_decomposed = np.hstack((train_part, predicted_ref))
+        time_series_non_decomposed = np.hstack((train_part, predicted_non_ref))
+        df = pd.DataFrame({'actual': time_series, 'decomposed': time_series_decomposed,
+                           'non_decompose': time_series_non_decomposed})
+
+        df_name = ''.join(('forecast_', str(len_forecast), '_model_', str(model),
+                           '_val_blocks_', str(validation_blocks), '.csv'))
+        df.to_csv(os.path.join(ts_save_path, df_name), index=False)
+    except Exception as ex:
+        print(f'{ex}, continue ...')
+
+
 def make_forecasts(time_series: np.array, ts_name: str, horizons: list,
                    tuner_iterations: int, validation_blocks: int = 3,
                    save_path: str = None):
@@ -110,7 +146,7 @@ def make_forecasts(time_series: np.array, ts_name: str, horizons: list,
     ts_save_path = os.path.join(save_path, str(ts_name))
     if os.path.isdir(ts_save_path) is False:
         os.makedirs(ts_save_path)
-    models_for_experiment = ['ridge', 'clstm', 'arima']
+    models_for_experiment = ['clstm']
     pipelines_by_model = {'ridge': [ridge_ref, ridge_non_ref],
                           'clstm': [lstm_ref, lstm_non_ref],
                           'arima': [arima_ref, arima_non_ref]}
@@ -127,30 +163,5 @@ def make_forecasts(time_series: np.array, ts_name: str, horizons: list,
 
         # For every configuration
         for model in models_for_experiment:
-            generators = pipelines_by_model.get(model)
-            pipeline_ref = generators[0]()
-            tuned_ref = pipeline_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                         input_data=train_input,
-                                                         iterations=tuner_iterations,
-                                                         timeout=2)
-            predicted_ref = in_sample_ts_forecast(pipeline=tuned_ref,
-                                                  input_data=predict_input,
-                                                  horizon=horizon)
-
-            pipeline_non_ref = generators[1]()
-            tuned_non_ref = pipeline_non_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                                 input_data=train_input,
-                                                                 iterations=tuner_iterations,
-                                                                 timeout=2)
-            predicted_non_ref = in_sample_ts_forecast(pipeline=tuned_non_ref,
-                                                      input_data=predict_input,
-                                                      horizon=horizon)
-
-            time_series_decomposed = np.hstack((train_part, predicted_ref))
-            time_series_non_decomposed = np.hstack((train_part, predicted_non_ref))
-            df = pd.DataFrame({'actual': time_series, 'decomposed': time_series_decomposed,
-                               'non_decompose': time_series_non_decomposed})
-
-            df_name = ''.join(('forecast_', str(len_forecast), '_model_', str(model),
-                               '_val_blocks_', str(validation_blocks), '.csv'))
-            df.to_csv(os.path.join(ts_save_path, df_name), index=False)
+            perform_experiment(pipelines_by_model, model, train_input, tuner_iterations, predict_input,
+                               horizon, train_part, time_series, len_forecast, validation_blocks, ts_save_path)

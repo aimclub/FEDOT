@@ -46,6 +46,11 @@ class DecomposerImplementation(DataOperationImplementation):
         features = np.array(input_data.features)
         # Array with masks
         features_mask = np.array(input_data.supplementary_data.get_compound_mask())
+        unique_features_masks = np.unique(features_mask)
+
+        if len(unique_features_masks) < 2:
+            prefix = 'Decompose operation must have at least two parents nodes'
+            raise ValueError(f'{prefix}, but got {len(unique_features_masks)}')
 
         # Get amount of nodes data already visited
         flow_lengths = input_data.supplementary_data.get_flow_mask()
@@ -54,13 +59,20 @@ class DecomposerImplementation(DataOperationImplementation):
         min_flow_length_i = np.argmin(flow_lengths)
         max_flow_length_i = np.argmax(flow_lengths)
 
+        # For case when data from "Model parent" and "Data parent" go through equal number of nodes
+        if min_flow_length_i == max_flow_length_i:
+            # Find data models
+            model_parent, data_parent = input_data.supplementary_data.define_parents(unique_features_masks,
+                                                                                     task=input_data.task)
+        else:
+            model_parent = features_mask[max_flow_length_i]
+            data_parent = features_mask[min_flow_length_i]
+
         # Get prediction from "Model parent"
-        model_parent = features_mask[max_flow_length_i]
         prev_prediction_id = np.ravel(np.argwhere(features_mask == model_parent))
         prev_prediction = features[:, prev_prediction_id]
 
         # Get prediction from "Data parent" - it must be the last parent in parent list
-        data_parent = features_mask[min_flow_length_i]
         prev_features_id = np.ravel(np.argwhere(features_mask == data_parent))
         prev_features = features[:, prev_features_id]
 
