@@ -19,12 +19,12 @@ class CustomDefaultModelStrategy(EvaluationStrategy):
     def __init__(self, operation_type: Optional[str], params: dict = None):
         super().__init__(operation_type, params)
 
-        if not 'params' not in params.keys():
+        if 'params' not in params.keys():
             raise KeyError('There is no key word "params" for custom model parameters in input dictionary')
         else:
             self.params_for_fit = params.get('params')
 
-        if not 'model' not in params.keys():
+        if 'model' not in params.keys():
             raise KeyError('There is no key word "model" for model definition in input dictionary')
         else:
             self.model = params.get('model')
@@ -41,13 +41,12 @@ class CustomDefaultModelStrategy(EvaluationStrategy):
                 is_fit_pipeline_stage: bool) -> OutputData:
         train_data = predict_data.features
         target_data = predict_data.target
-
         try:
-            result = trained_operation(train_data, target_data, self.params_for_fit)
+            result = trained_operation(train_data, target_data, self.params_for_fit, is_fit_pipeline_stage)
         except Exception as e:
             print(e)
             raise AttributeError('Input model has incorrect behaviour. Check type hints model: \
-                                  Callable[[np.array, np.array, dict], np.array]')
+                                  Callable[[np.array, np.array, dict, bool], np.array]')
         output = self._convert_to_output(result, predict_data)
 
         return output
