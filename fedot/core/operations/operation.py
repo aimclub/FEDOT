@@ -1,13 +1,7 @@
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations. \
-    sklearn_transformations import ImputationImplementation, str_columns_check
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.default_model_params_repository import DefaultModelParamsRepository
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-
-DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Operation:
@@ -26,10 +20,7 @@ class Operation:
         self._eval_strategy = None
         self.operations_repo = None
         self.fitted_operation = None
-
-        self.params = get_default_params(operation_type)
-        if not self.params:
-            self.params = DEFAULT_PARAMS_STUB
+        self.params = None
 
         if not log:
             self.log = default_log(__name__)
@@ -38,7 +29,7 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params_for_fit = None
-        if self.params != DEFAULT_PARAMS_STUB:
+        if self.params != 'default_params':
             params_for_fit = self.params
 
         try:
@@ -73,6 +64,16 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
+    @property
+    def updated_params(self):
+        return self.fitted_operation.get_params()
+        # if self.fitted_operation and self.params != 'default_params':
+        #     all_params = self.fitted_operation.get_params()
+        #     for p in self.params.keys:
+        #         if ...
+        # else:
+        #     return {}
+
     def fit(self, data: InputData, is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
@@ -88,8 +89,6 @@ class Operation:
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
 
-        # Update parameters after fitting
-        self.params = self.get_params
         return self.fitted_operation, predict_train
 
     def predict(self, fitted_operation, data: InputData,
@@ -121,14 +120,6 @@ class Operation:
 
     def __str__(self):
         return f'{self.operation_type}'
-
-    @property
-    def get_params(self):
-        if self.fitted_operation is None:
-            # Operation is not fitted yet
-            return self.params
-        else:
-            return self.fitted_operation.get_params()
 
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,
@@ -169,8 +160,3 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy
-
-
-def get_default_params(model_name: str):
-    with DefaultModelParamsRepository() as default_params_repo:
-        return default_params_repo.get_default_params_for_model(model_name)

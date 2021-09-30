@@ -4,7 +4,10 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
-from fedot.core.operations.operation import Operation, get_default_params
+from fedot.core.operations.operation import Operation
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
+
+DEFAULT_PARAMS_STUB = 'default_params'
 
 
 class Node(GraphNode):
@@ -30,8 +33,15 @@ class Node(GraphNode):
             # There is no content for node
             operation = self._process_direct_init(operation_type)
 
+        # Define operation with default parameters
+        default_params = get_default_params(operation.operation_type)
+        if not default_params:
+            default_params = DEFAULT_PARAMS_STUB
+
+        # Default params for all containers (operation and content)
+        operation.params = default_params
         super().__init__(content={'name': operation,
-                                  'params': operation.params}, nodes_from=nodes_from)
+                                  'params': default_params}, nodes_from=nodes_from)
 
         if not log:
             self.log = default_log(__name__)
@@ -104,6 +114,10 @@ class Node(GraphNode):
         :param input_data: data used for operation training
         """
 
+        # if self.operation.params != self.content['params']:
+        #     # TODO change dict comparison
+        #     raise ValueError('Operations params are not consistent with content field')
+
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(data=input_data,
                                                                           is_fit_pipeline_stage=True)
@@ -112,7 +126,7 @@ class Node(GraphNode):
                                                        data=input_data,
                                                        is_fit_pipeline_stage=True)
         # Update parameters after operation fitting
-        self.content.update({'params': self.custom_params})
+        self.content.update({'params': self.operation.updated_params})
         return operation_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
@@ -139,8 +153,13 @@ class Node(GraphNode):
             default_params = get_default_params(self.operation.operation_type)
             if default_params is not None:
                 params = {**default_params, **params}
+
+            # Create new operation in the Node
+            self.operation = self._process_direct_init(self.operation.operation_type)
+            self.unfit()
+
+            # Update content and parameters
             self.operation.params = params
-            # Update content
             self.content.update({'params': params})
 
     def __str__(self):
@@ -324,3 +343,8 @@ def _combine_parents(parent_nodes: List[Node],
             target = prediction.target
 
     return parent_results, target
+
+
+def get_default_params(model_name: str):
+    with DefaultOperationParamsRepository() as default_params_repo:
+        return default_params_repo.get_default_params_for_operation(model_name)

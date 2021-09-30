@@ -83,7 +83,7 @@ class OperationTemplate(OperationTemplateAbstract):
         if not isinstance(node.operation, str):
             # for model-based operations
             self.operation_type = node.operation.operation_type
-            self.custom_params = node.operation.params
+            self.custom_params = node.custom_params
             self.params = self._create_full_params(node)
 
             if _is_node_fitted(node):
