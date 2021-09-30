@@ -17,7 +17,7 @@ def run_experiment(horizons: list, validation_blocks: int, tuner_iterations: int
     tep_path = '../data/time_series/tep_data.csv'
     tep_df = pd.read_csv(tep_path, header=None)
 
-    for column in tep_df.columns[:5]:
+    for column in tep_df.columns:
         print(f'Process time series with id {column}')
         ts = np.array(tep_df[column])
 

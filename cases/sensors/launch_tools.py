@@ -129,10 +129,6 @@ def perform_experiment(pipelines_by_model, model, train_input, tuner_iterations,
         df.to_csv(os.path.join(ts_save_path, df_name), index=False)
     except Exception as ex:
         print(f'{ex}, continue ...')
-        # Repeat launching this function
-        time.sleep(30)
-        perform_experiment(pipelines_by_model, model, train_input, tuner_iterations, predict_input,
-                           horizon, train_part, time_series, len_forecast, validation_blocks, ts_save_path)
 
 
 def make_forecasts(time_series: np.array, ts_name: str, horizons: list,
