@@ -88,6 +88,8 @@ class Operation:
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
 
+        # Update parameters after fitting
+        self.params = self.get_params
         return self.fitted_operation, predict_train
 
     def predict(self, fitted_operation, data: InputData,

@@ -36,6 +36,6 @@ if __name__ == '__main__':
 
     ts_pipeline.print_structure()
 
-    print(f'custom_params: {ts_pipeline.nodes[1].custom_params}')
+    print(f'\ncustom_params: {ts_pipeline.nodes[1].custom_params}')
     print(f'content: {ts_pipeline.nodes[1].content}')
     print(f'descriptive_id: {ts_pipeline.nodes[1].descriptive_id}')

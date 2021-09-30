@@ -111,7 +111,8 @@ class Node(GraphNode):
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        data=input_data,
                                                        is_fit_pipeline_stage=True)
-
+        # Update parameters after operation fitting
+        self.content.update({'params': self.custom_params})
         return operation_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
@@ -129,15 +130,7 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        # Operation is not fitted yet
-        if self.fitted_operation is None:
-            return self.operation.get_params
-        else:
-            try:
-                return self.fitted_operation.get_params()
-            except Exception as ex:
-                self.log.info(f'Operation get params failed due to: {ex}')
-                return {}
+        return self.content['params']
 
     @custom_params.setter
     def custom_params(self, params):
