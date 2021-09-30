@@ -41,7 +41,7 @@ class DataMerger:
 
         # Check is all data types can be merged or not
         if len(set(output_data_types)) > 1:
-            raise ValueError("There is no ability to merge different data types")
+            raise ValueError('There is no ability to merge different data types')
 
         # Define appropriate strategy
         merge_func = merge_function_by_type.get(first_data_type)

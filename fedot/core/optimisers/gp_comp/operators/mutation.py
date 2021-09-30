@@ -187,7 +187,7 @@ def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
 
         nodes_not_cycling = (target_node.descriptive_id not in
                              [n.descriptive_id for n in source_node.ordered_subnodes_hierarchy()])
-        if nodes_not_cycling:
+        if nodes_not_cycling and (target_node.nodes_from is None or source_node not in target_node.nodes_from):
             graph.operator.connect_nodes(source_node, target_node)
             break
 

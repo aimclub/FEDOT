@@ -112,19 +112,19 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                          is_multi_objective: bool, timer=None):
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
-    for ind_num, ind in enumerate(reversed_set):
-        ind.fitness = calculate_objective(ind.graph, objective_function, is_multi_objective, graph_generation_params)
-        if ind.fitness is None:
-            individuals_set.remove(ind)
-        else:
+    evaluated_individuals = []
+    for ind in reversed_set:
+        ind.fitness = calculate_objective(ind.graph, objective_function,
+                                          is_multi_objective, graph_generation_params)
+        if ind.fitness is not None:
             num_of_successful_evals += 1
-        if timer is not None and num_of_successful_evals:
+            evaluated_individuals.append(ind)
+        if timer is not None and num_of_successful_evals > 0:
             if timer.is_time_limit_reached():
-                for _ in range(0, len(individuals_set) - num_of_successful_evals):
-                    individuals_set.remove(individuals_set[0])
                 break
-    if len(individuals_set) == 0:
+    if len(evaluated_individuals) == 0:
         raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
+    return evaluated_individuals
 
 
 def calculate_objective(graph: OptGraph, objective_function: Callable, is_multi_objective: bool,

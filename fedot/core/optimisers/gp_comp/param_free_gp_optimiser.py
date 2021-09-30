@@ -75,7 +75,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
-            self._evaluate_individuals(self.population, objective_function, timer=t)
+            self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -110,7 +110,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
                 if num_of_new_individuals == 1 and len(self.population) == 1:
                     new_population = list(self.reproduce(self.population[0]))
-                    self._evaluate_individuals(new_population, objective_function, timer=t)
+                    new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
                 else:
                     num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -125,7 +125,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
                         new_population += self.reproduce(selected_individuals[parent_num],
                                                          selected_individuals[parent_num + 1])
 
-                    self._evaluate_individuals(new_population, objective_function, timer=t)
+                    new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
 
                 self.requirements.pop_size = self.next_population_size(new_population)
                 num_of_new_individuals = self.offspring_size(offspring_rate)

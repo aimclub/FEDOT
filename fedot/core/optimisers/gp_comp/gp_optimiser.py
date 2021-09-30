@@ -175,7 +175,7 @@ class GPGraphOptimiser:
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
-            self._evaluate_individuals(self.population, objective_function, timer=t)
+            self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -220,7 +220,7 @@ class GPGraphOptimiser:
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
-                self._evaluate_individuals(new_population, objective_function, timer=t)
+                new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -394,10 +394,12 @@ class GPGraphOptimiser:
         return best
 
     def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
-        evaluate_individuals(individuals_set=individuals_set, objective_function=objective_function,
-                             graph_generation_params=self.graph_generation_params,
-                             timer=timer, is_multi_objective=self.parameters.multi_objective)
-        self.population = correct_if_population_has_nans(self.population, self.log)
+        evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
+                                                     objective_function=objective_function,
+                                                     graph_generation_params=self.graph_generation_params,
+                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
+        individuals_set = correct_if_population_has_nans(evaluated_individuals, self.log)
+        return individuals_set
 
 
 @dataclass
