@@ -20,7 +20,8 @@ def custom_model_imitation(train_data, test_data, params, is_fit):
     else:
         a = params.get('a')
         b = params.get('b')
-        res = np.array(test_data)*a + b
+        shape = train_data.shape
+        res = np.random.rand(shape[0], shape[1])*a + b
     return res
 
 def get_custom_pipeline():
@@ -86,8 +87,24 @@ def run_model():
                                                           test_data_features=train_data)
     pipeline = get_custom_pipeline()
     pipeline.fit_from_scratch(train_input)
+    pipeline.print_structure()
     predicted_values = pipeline.predict(predict_input)
+    print(predicted_values.predict)
 
+    pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
+                                   iterations=10)
+    pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
+                                            loss_function=mean_squared_error,
+                                            loss_params={'squared': False},
+                                            cv_folds=3,
+                                            validation_blocks=3)
+
+    # Fit pipeline on the entire train data
+    pipeline.fit_from_scratch(train_input)
+    # Predict
+    predicted_values = pipeline.predict(predict_input)
+    pipeline.print_structure()
+    print(predicted_values.predict)
 
 
 if __name__ == '__main__':
