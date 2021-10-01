@@ -36,23 +36,41 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
-    "h2o": {
+    "h2o_regr": {
       "accepted_node_types": [
         "any"
       ],
-      "description": "Implementations of h2o AutoMl models",
+      "description": "Implementations of h2o regression AutoMl models",
       "forbidden_node_types": "[]",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.automl",
-        "H2OAutoMLStrategy"
+        "H2OAutoMLRegressionStrategy"
       ],
       "tags": [
         "automl",
         "custom"
       ],
-      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification]"
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
+    },
+    "h2o_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of h2o classifier AutoMl models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "H2OAutoMLClassificationStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
     },
     "custom_class": {
       "accepted_node_types": [
@@ -401,8 +419,14 @@
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"
     },
-    "h2o": {
-      "meta": "h2o",
+    "h2o_regr": {
+      "meta": "h2o_regr",
+      "tags": [
+        "automl"
+      ]
+    },
+    "h2o_class": {
+      "meta": "h2o_class",
       "tags": [
         "automl"
       ]

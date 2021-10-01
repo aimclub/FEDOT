@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+
 from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
 from sklearn.multioutput import MultiOutputRegressor
@@ -11,12 +12,87 @@ from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStr
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-class H2OAutoMLStrategy(EvaluationStrategy):
+class H2OAutoMLRegressionStrategy(EvaluationStrategy):
+    __operations_by_types = {
+        'h2o_regr': H2OAutoML
+    }
+
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
         self.params = params
-        self.best_model = None
-        super().__init__(operation_type)
+        self.operation_impl = self._convert_to_operation(operation_type)
+        super().__init__(operation_type, params)
+
+    def fit(self, train_data: InputData):
+        ip, port = self._get_h2o_connect_config()
+        h2o.init(ip=ip, port=port, name='h2o_server')
+
+        frame = self._data_transform(train_data)
+
+        train_frame, valid_frame = frame.split_frame(ratios=[0.85])
+
+        # make sure that your target column is the last one
+        train_columns = train_frame.columns
+        if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            target_len = train_data.task.task_params.forecast_length
+        else:
+            target_len = 1
+        target_names = train_columns[-target_len:]
+
+        models = []
+
+        for name in target_names:
+            train_columns.remove(name)
+        for name in target_names:
+            model = H2OAutoML(max_models=self.params.get("max_models"),
+                              seed=self.params.get("seed"),
+                              max_runtime_secs=self.params.get("timeout") // target_len
+                              )
+            model.train(x=train_columns, y=name, training_frame=train_frame)
+            models.append(model)
+        return models
+
+    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+        res = []
+        for model in trained_operation:
+            frame = H2OFrame(predict_data.features)
+            prediction = model.predict(frame)
+            prediction = prediction.as_data_frame().to_numpy()
+            res.append(np.ravel(prediction))
+        res = np.hstack(res)
+        out = self._convert_to_output(res, predict_data)
+        return out
+
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain H2O AutoML Regression Strategy for {operation_type}')
+
+    def _data_transform(self, data: InputData) -> H2OFrame:
+        if len(data.target.shape) == 1:
+            concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
+        else:
+            concat_data = np.concatenate((data.features, data.target.reshape(-1, data.target.shape[1])), 1)
+        frame = H2OFrame(python_obj=concat_data)
+        return frame
+
+    def _get_h2o_connect_config(self):
+        ip = '127.0.0.1'
+        port = 8888
+        return ip, port
+
+
+class H2OAutoMLClassificationStrategy(EvaluationStrategy):
+    __operations_by_types = {
+        'h2o_class': H2OAutoML
+    }
+
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.name_operation = operation_type
+        self.params = params
+        self.operation_impl = self._convert_to_operation(operation_type)
+        super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
         ip, port = self._get_h2o_connect_config()
@@ -32,32 +108,34 @@ class H2OAutoMLStrategy(EvaluationStrategy):
         target_name = train_columns[-1]
         train_columns.remove(target_name)
         train_frame[target_name] = train_frame[target_name].asfactor()
-        model = H2OAutoML(max_models=self.params.get("max_models"),
-                          seed=self.params.get("seed"),
-                          max_runtime_secs=self.params.get("timeout")
-                          )
+        model = self.operation_impl(max_models=self.params.get("max_models"),
+                                    seed=self.params.get("seed"),
+                                    max_runtime_secs=self.params.get("timeout")
+                                    )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
-        self.best_model = model.leader
-
-        return self.best_model
+        model.classes_ = np.unique(train_data.target)
+        return model
 
     def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        test_frame = self._data_transform(predict_data)
+        frame = self._data_transform(predict_data)
+        prediction = trained_operation.predict(frame)
+        prediction = prediction.as_data_frame().to_numpy()
 
-        target_name = test_frame.columns[-1]
-        test_frame[target_name] = test_frame[target_name].asfactor()
-
-        prediction_frame = trained_operation.predict(test_frame)
-
-        # return list of values like predict_proba[,:1] in sklearn
-        print(prediction_frame)
-        prediction: list = prediction_frame['p1'].transpose().getrow()
-
-        return self._convert_to_output(prediction, predict_data)
+        if self.output_mode == 'labels':
+            prediction = prediction[:, 0]
+        elif self.output_mode in ['probs', 'full_probs', 'default']:
+            prediction = prediction[:, 1::]
+        else:
+            raise ValueError(f'Output model {self.output_mode} is not supported')
+        out = self._convert_to_output(prediction, predict_data)
+        return out
 
     def _convert_to_operation(self, operation_type: str):
-        pass
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain TPOT AutoML Classification Strategy for {operation_type}')
 
     def _data_transform(self, data: InputData) -> H2OFrame:
         concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)

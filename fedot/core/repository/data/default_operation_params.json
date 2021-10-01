@@ -69,8 +69,13 @@
     "optimizer": "adam",
     "loss": "mse"
   },
-  "h2o": {
-    "timeout": 2,
+  "h2o_regr": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "h2o_class": {
+    "timeout": 20,
     "seed": 42,
     "max_models": 3
   },
