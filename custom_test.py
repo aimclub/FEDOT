@@ -14,14 +14,11 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def custom_model_imitation(train_data, test_data, params, is_fit):
-    if is_fit:
-        res = train_data
-    else:
-        a = params.get('a')
-        b = params.get('b')
-        shape = train_data.shape
-        res = np.random.rand(shape[0], shape[1])*a + b
+def custom_model_imitation(train_data, test_data, params):
+    a = params.get('a')
+    b = params.get('b')
+    shape = train_data.shape
+    res = np.random.rand(shape[0], shape[1])*a + b
     return res
 
 def get_custom_pipeline():
