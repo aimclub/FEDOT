@@ -13,10 +13,6 @@ class DefaultModelImplementation(ModelImplementation):
     """
     def __init__(self, log: Log = None, **params):
         super().__init__(log)
-        if 'params' not in params.keys():
-            raise KeyError('There is no key word "params" for custom model parameters in input dictionary')
-        else:
-            self.params_for_fit = params.get('params')
 
         if 'model' not in params.keys():
             raise KeyError('There is no key word "model" for model definition in input dictionary')
@@ -24,6 +20,12 @@ class DefaultModelImplementation(ModelImplementation):
             self.model = params.get('model')
         if not isinstance(self.model, Callable):
             raise ValueError('Input model is not Callable')
+
+        parameters_dict = {}
+        for variable in params.keys():
+            if variable != 'model':
+                parameters_dict[variable] = params.get(variable)
+        self.params = parameters_dict
 
     def fit(self, input_data):
         """
@@ -39,7 +41,7 @@ class DefaultModelImplementation(ModelImplementation):
             predict = train_data
         else:
             try:
-                predict = self.model(train_data, target_data, self.params_for_fit)
+                predict = self.model(train_data, target_data, self.params)
             except Exception as e:
                 raise AttributeError(f'Error: {e}\nInput model has incorrect behaviour. Check type hints model: \
                                       Callable[[np.array, np.array, dict], np.array]')
@@ -50,4 +52,4 @@ class DefaultModelImplementation(ModelImplementation):
         return output_data
 
     def get_params(self):
-        return self.params_for_fit
+        return self.params
