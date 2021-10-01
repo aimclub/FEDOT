@@ -45,7 +45,7 @@ def _descriptive_id_recursive(current_node, visited_nodes) -> str:
         # If in 'name' instance of Operation is placed
         operation_params = current_node.content['params']
         node_label = current_node.content['name'].description(operation_params)
-    except AttributeError:
+    except Exception as ex:
         # If there is a string: name of operation (as in json repository)
         node_label = current_node.content['name']
         if current_node.content.get('params'):

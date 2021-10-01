@@ -70,8 +70,8 @@ class PipelineAdapter(BaseOptimizationAdapter):
         # Prepare content for nodes
         if not isinstance(node, OptNode):
             if not type(node) == GraphNode:
-                node.content = {'name': node.operation,
-                                'params': node.custom_params}
+                node.content = {'name': node.content['name'],
+                                'params': node.content['params']}
             else:
                 self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead '
                                'PrimaryNode or SecondaryNode.')
@@ -82,10 +82,11 @@ class PipelineAdapter(BaseOptimizationAdapter):
         _transform_node(node, PrimaryNode, SecondaryNode,
                         transform_func=self._transform_to_pipeline_node)
         if not node.nodes_from:
-            node.__init__(operation_type=node.operation)
+            node.__init__(operation_type=node.operation, content=node.content)
         else:
             node.__init__(nodes_from=node.nodes_from,
-                          operation_type=node.operation)
+                          operation_type=node.operation,
+                          content=node.content)
 
     def adapt(self, adaptee: Pipeline):
         """ Convert Pipeline class into OptGraph class """
