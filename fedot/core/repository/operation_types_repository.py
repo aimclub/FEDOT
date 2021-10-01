@@ -52,7 +52,9 @@ class OperationTypesRepository:
 
     __repository_dict__ = {
         'model': {'file': 'model_repository.json', 'initialized_repo': None},
-        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None}
+        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None},
+        'automl': {'file': 'automl_repository.json', 'initialized_repo': None}
+
     }
 
     def __init__(self, operation_type: str = 'model'):
@@ -72,9 +74,13 @@ class OperationTypesRepository:
         default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
         cls.assign_repo('data_operation', default_data_operation_repo_file)
 
+        # default data_operation repo
+        default_automl_repo_file = cls.__repository_dict__['automl']['file']
+        cls.assign_repo('automl', default_automl_repo_file)
+
     @classmethod
     def assign_repo(cls, operation_type: str, repo_file: str):
-        if operation_type not in ['model', 'data_operation']:
+        if operation_type not in cls.__repository_dict__:
             raise Warning(f'The {operation_type} is not supported. The model type will be set')
 
         repo_path = create_repository_path(repo_file)
@@ -291,7 +297,9 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
         # Get data operations
         data_operation_types, _ = OperationTypesRepository('data_operation') \
             .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
-        return model_types + data_operation_types
+        automl_types, _ = OperationTypesRepository('automl') \
+            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        return model_types + data_operation_types+automl_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
 

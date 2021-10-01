@@ -77,6 +77,6 @@ def h2o_ts_pipeline_evaluation():
 
 
 if __name__ == '__main__':
-    #h2o_classification_pipeline_evaluation()
+    h2o_classification_pipeline_evaluation()
     h2o_regression_pipeline_evaluation()
     h2o_ts_pipeline_evaluation()
