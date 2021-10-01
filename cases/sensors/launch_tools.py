@@ -146,7 +146,7 @@ def make_forecasts(time_series: np.array, ts_name: str, horizons: list,
     ts_save_path = os.path.join(save_path, str(ts_name))
     if os.path.isdir(ts_save_path) is False:
         os.makedirs(ts_save_path)
-    models_for_experiment = ['clstm']
+    models_for_experiment = ['ridge', 'arima']
     pipelines_by_model = {'ridge': [ridge_ref, ridge_non_ref],
                           'clstm': [lstm_ref, lstm_non_ref],
                           'arima': [arima_ref, arima_non_ref]}
