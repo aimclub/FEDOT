@@ -24,6 +24,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
+        self.parameters_changed = False
 
         # Define logger object
         if not log:
@@ -51,9 +52,11 @@ class LaggedImplementation(DataOperationImplementation):
         old_idx = new_input_data.idx
 
         # Correct window size parameter
-        self.window_size = _check_and_correct_window_size(new_input_data.features, self.window_size,
-                                                          forecast_length, self.window_size_minimum,
-                                                          self.log)
+        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
+                                                                                   self.window_size,
+                                                                                   forecast_length,
+                                                                                   self.window_size_minimum,
+                                                                                   self.log)
 
         if is_fit_pipeline_stage:
             # Transformation for fit stage of the pipeline
@@ -105,9 +108,13 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
         self.n_components = params.get('n_components')
 
     def get_params(self):
-        return {'window_size': self.window_size,
-                'n_components': self.n_components,
-                'use_svd': self.use_svd}
+        params_dict = {'window_size': self.window_size,
+                       'n_components': self.n_components,
+                       'use_svd': self.use_svd}
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['window_size']])
+        else:
+            return params_dict
 
 
 class LaggedTransformationImplementation(LaggedImplementation):
@@ -119,7 +126,11 @@ class LaggedTransformationImplementation(LaggedImplementation):
         self.window_size = round(params.get('window_size'))
 
     def get_params(self):
-        return {'window_size': self.window_size}
+        params_dict = {'window_size': self.window_size}
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['window_size']])
+        else:
+            return params_dict
 
 
 class TsSmoothingImplementation(DataOperationImplementation):
@@ -274,6 +285,7 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     :param log: logger for saving messages
     """
     prefix = "Warning: window size of lagged transformation was changed"
+    was_changed = False
 
     # Maximum threshold
     removing_len = window_size + forecast_length
@@ -283,6 +295,7 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
         window_size = len(time_series) - forecast_length - 10
 
         log.info(f"{prefix} from {previous_size} to {window_size}")
+        was_changed = True
 
     # Minimum threshold
     if window_size < window_size_minimum:
@@ -290,8 +303,9 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
         window_size = window_size_minimum
 
         log.info(f"{prefix} from {previous_size} to {window_size}")
+        was_changed = True
 
-    return window_size
+    return window_size, was_changed
 
 
 def ts_to_table(idx, time_series: np.array, window_size: int):

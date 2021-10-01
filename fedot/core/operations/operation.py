@@ -1,3 +1,5 @@
+from typing import Union
+
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
@@ -20,7 +22,6 @@ class Operation:
         self._eval_strategy = None
         self.operations_repo = None
         self.fitted_operation = None
-        self.params = None
 
         if not log:
             self.log = default_log(__name__)
@@ -28,9 +29,10 @@ class Operation:
             self.log = log
 
     def _init(self, task: Task, **kwargs):
+        params = kwargs.get('params')
         params_for_fit = None
-        if self.params != 'default_params':
-            params_for_fit = self.params
+        if params != 'default_params':
+            params_for_fit = params
 
         try:
             self._eval_strategy = \
@@ -45,10 +47,8 @@ class Operation:
         if 'output_mode' in kwargs:
             self._eval_strategy.output_mode = kwargs['output_mode']
 
-    @property
-    def description(self):
+    def description(self, operation_params: dict) -> str:
         operation_type = self.operation_type
-        operation_params = self.params
         return f'n_{operation_type}_{operation_params}'
 
     @property
@@ -64,26 +64,17 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    @property
-    def updated_params(self):
-        return self.fitted_operation.get_params()
-        # if self.fitted_operation and self.params != 'default_params':
-        #     all_params = self.fitted_operation.get_params()
-        #     for p in self.params.keys:
-        #         if ...
-        # else:
-        #     return {}
-
-    def fit(self, data: InputData, is_fit_pipeline_stage: bool = True):
+    def fit(self, params: Union[str, dict], data: InputData, is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
+        :param params: hyperparameters for operation
         :param data: data used for operation training
         :return: tuple of trained operation and prediction on train data
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
-        self._init(data.task)
+        self._init(data.task, params=params)
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
