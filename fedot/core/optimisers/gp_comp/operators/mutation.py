@@ -79,16 +79,12 @@ def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List
 
         if is_custom_mutation:
             new_graph = params.adapter.restore(new_graph)
-
-            new_graph = _apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
-                                        mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
-                                        requirements=requirements, params=params, max_depth=max_depth)
         else:
             if not isinstance(new_graph, OptGraph):
                 new_graph = params.adapter.adapt(new_graph)
-            new_graph = _apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
-                                        mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
-                                        requirements=requirements, params=params, max_depth=max_depth)
+        new_graph = _apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
+                                    mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
+                                    requirements=requirements, params=params, max_depth=max_depth)
         mutation_names.append(str(mutation_type))
 
         if not isinstance(new_graph, OptGraph):
