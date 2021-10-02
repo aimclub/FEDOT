@@ -329,7 +329,7 @@ def test_delete_primary_node():
     # when
     pipeline.delete_node(first)
 
-    new_primary_node = [node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
+    new_primary_node = [node for node in pipeline.nodes if node.content['name'].operation_type == 'knn'][0]
 
     # then
     assert len(pipeline.nodes) == 3

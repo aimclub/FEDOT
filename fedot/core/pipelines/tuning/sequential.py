@@ -50,7 +50,7 @@ class SequentialTuner(HyperoptTuner):
         nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
         for node_id in nodes_ids:
             node = self.pipeline.nodes[node_id]
-            operation_name = str(node.operation)
+            operation_name = str(node.content['name'])
 
             # Get node's parameters to optimize
             node_params = self.search_space.get_node_params(node_id=node_id,
@@ -90,7 +90,7 @@ class SequentialTuner(HyperoptTuner):
         self.init_check(input_data, loss_function, loss_params)
 
         node = self.pipeline.nodes[node_index]
-        operation_name = str(node.operation.operation_type)
+        operation_name = str(node.content['name'].operation_type)
 
         # Get node's parameters to optimize
         node_params = self.search_space.get_node_params(node_id=node_index,

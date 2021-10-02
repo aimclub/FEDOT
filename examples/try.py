@@ -39,7 +39,7 @@ _input = InputData(idx=np.arange(0, len(original_array)),
 pipeline = model.fit(_input)
 # Correct window_size parameters
 for i, node in enumerate(pipeline.nodes):
-    current_operation = node.operation.operation_type
+    current_operation = node.content['name'].operation_type
     if current_operation == 'lagged' or current_operation == 'sparse_lagged':
         pipeline.nodes[i].custom_params = {'window_size': 2}
 

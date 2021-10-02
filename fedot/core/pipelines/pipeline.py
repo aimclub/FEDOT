@@ -325,8 +325,8 @@ class Pipeline(Graph):
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
             for node in [n for n in self.nodes if isinstance(n, PrimaryNode)]:
-                if node.operation.operation_type in input_data.keys():
-                    node.node_data = input_data[node.operation.operation_type]
+                if node.content['name'].operation_type in input_data.keys():
+                    node.node_data = input_data[node.content['name'].operation_type]
                     node.direct_set = True
                 else:
                     raise ValueError(f'No data for primary node {node}')
@@ -338,7 +338,7 @@ class Pipeline(Graph):
         print('Pipeline structure:')
         print(self.__str__())
         for node in self.nodes:
-            print(f'{node.operation.operation_type} - {node.custom_params}')
+            print(f"{node.content['name'].operation_type} - {node.custom_params}")
 
 
 def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):

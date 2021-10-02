@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.data_source import DataSourceStrategy
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
@@ -30,15 +29,21 @@ class Node(GraphNode):
         if passed_content:
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
-            default_params = passed_content['params']
+
+            default_params = get_default_params(operation.operation_type)
+            if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+                default_params = get_default_params(operation.operation_type)
+            else:
+                default_params = passed_content['params']
         else:
             # There is no content for node
             operation = self._process_direct_init(operation_type)
 
             # Define operation with default parameters
             default_params = get_default_params(operation.operation_type)
-            if not default_params:
-                default_params = DEFAULT_PARAMS_STUB
+
+        if not default_params:
+            default_params = DEFAULT_PARAMS_STUB
 
         # Create Node with default content
         super().__init__(content={'name': operation,
@@ -159,6 +164,7 @@ class Node(GraphNode):
             operation_predict = self.content['name'].predict(fitted_operation=self.fitted_operation,
                                                              data=input_data,
                                                              is_fit_pipeline_stage=True)
+
         # Update parameters after operation fitting (they can be corrected)
         if 'source' not in self.content['name'].operation_type:
             self.update_params()

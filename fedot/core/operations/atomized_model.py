@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation import Operation
@@ -19,7 +19,8 @@ class AtomizedModel(Operation):
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
 
-    def fit(self, data: InputData, is_fit_pipeline_stage: bool = True,
+    def fit(self, params: Optional[Union[str, dict]], data: InputData,
+            is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):
 
         predicted_train = self.pipeline.fit(input_data=data)
@@ -59,10 +60,10 @@ class AtomizedModel(Operation):
         allowed_positions = ['any']
         tags = list(tags)
 
-        operation_info = OperationMetaInfo(root_node.operation.supplementary_data.id,
-                                           root_node.operation.supplementary_data.input_types,
-                                           root_node.operation.supplementary_data.output_types,
-                                           root_node.operation.supplementary_data.task_type,
+        operation_info = OperationMetaInfo(root_node.content['name'].supplementary_data.id,
+                                           root_node.content['name'].supplementary_data.input_types,
+                                           root_node.content['name'].supplementary_data.output_types,
+                                           root_node.content['name'].supplementary_data.task_type,
                                            supported_strategies, allowed_positions,
                                            tags)
         return operation_info
@@ -76,10 +77,10 @@ class AtomizedModel(Operation):
         operation_types = {}
 
         for node in self.pipeline.nodes:
-            if node.operation.operation_type in operation_types:
-                operation_types[node.operation.operation_type] += 1
+            if node.content['name'].operation_type in operation_types:
+                operation_types[node.content['name'].operation_type] += 1
             else:
-                operation_types[node.operation.operation_type] = 1
+                operation_types[node.content['name'].operation_type] = 1
 
         return f'{operation_type}_length:{operation_length}_depth:{operation_depth}' \
                f'_types:{operation_types}_id:{operation_id}'

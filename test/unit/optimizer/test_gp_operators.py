@@ -23,7 +23,8 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, \
+    get_default_params
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -403,7 +404,6 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     """
     Tests boosting mutation can add correct boosting cascade for ts forecasting with non-lagged model
     """
-
     linear_two_nodes = OptGraph(OptNode({'name': 'clstm'},
                                         nodes_from=[OptNode({'name': 'smoothing'})]))
 

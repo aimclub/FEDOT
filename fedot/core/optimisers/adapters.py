@@ -82,10 +82,10 @@ class PipelineAdapter(BaseOptimizationAdapter):
         _transform_node(node, PrimaryNode, SecondaryNode,
                         transform_func=self._transform_to_pipeline_node)
         if not node.nodes_from:
-            node.__init__(operation_type=node.operation, content=node.content)
+            node.__init__(operation_type=node.content['name'], content=node.content)
         else:
             node.__init__(nodes_from=node.nodes_from,
-                          operation_type=node.operation,
+                          operation_type=node.content['name'],
                           content=node.content)
 
     def adapt(self, adaptee: Pipeline):

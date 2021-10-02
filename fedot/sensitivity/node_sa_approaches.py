@@ -110,7 +110,7 @@ class NodeAnalysis:
 
     def _save_results_to_json(self, node: Node, pipeline: Pipeline, results):
         node_id = pipeline.nodes.index(node)
-        node_type = node.operation.operation_type
+        node_type = node.content['name'].operation_type
         result_file = join(self.path_to_save, f'{node_id}{node_type}_sa_results.json')
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(results, indent=4))
@@ -269,7 +269,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
             loss_values.append(loss_per_sample)
 
             new_node = sample_pipeline.nodes[node_id]
-            new_nodes_types.append(new_node.operation.operation_type)
+            new_nodes_types.append(new_node.content['name'].operation_type)
 
         if self._requirements.is_visualize:
             self._visualize(x_values=new_nodes_types,

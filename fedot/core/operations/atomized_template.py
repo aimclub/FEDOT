@@ -30,9 +30,9 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
         from fedot.core.pipelines.template import PipelineTemplate
 
         self.operation_id = operation_id
-        self.operation_type = node.operation.operation_type
+        self.operation_type = node.content['name'].operation_type
         self.nodes_from = nodes_from
-        self.pipeline_template = PipelineTemplate(node.operation.pipeline)
+        self.pipeline_template = PipelineTemplate(node.content['name'].pipeline)
         self.atomized_model_json_path = 'nested_' + str(self.operation_id)
 
     def convert_to_dict(self) -> dict:

@@ -19,7 +19,7 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any
                                                   node=pipeline.root_node)
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
-            operation_name = node.operation.operation_type
+            operation_name = node.content['name'].operation_type
             current_params = node.custom_params
 
             # Perform specific change for particular parameter

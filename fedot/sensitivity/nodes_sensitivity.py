@@ -71,10 +71,10 @@ class NodesAnalysis:
                 analyze(pipeline=self.pipeline, node=node,
                         train_data=self.train_data,
                         test_data=self.test_data)
-            operation_types.append(node.operation.operation_type)
+            operation_types.append(node.content['name'].operation_type)
 
             nodes_results[f'id = {self.pipeline.nodes.index(node)}, ' \
-                          f'operation = {node.operation.operation_type}'] = node_result
+                          f'operation = {node.content["name"].operation_type}'] = node_result
 
         if self.requirements.is_visualize:
             self._visualize_result_per_approach(nodes_results, operation_types)
