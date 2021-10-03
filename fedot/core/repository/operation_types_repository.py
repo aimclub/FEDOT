@@ -60,8 +60,15 @@ class OperationTypesRepository:
     def __init__(self, operation_type: str = 'model'):
         self._tags_excluded_by_default = ['non-default', 'expensive']
         OperationTypesRepository.init_default_repositories()
+
         self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
         self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+
+    @classmethod
+    @run_once
+    def _init_automl_repository(cls):  # TODO вставить этот метод в общую логику
+        default_automl_repo_file = cls.__repository_dict__['automl']['file']
+        cls.assign_repo('automl', default_automl_repo_file)
 
     @classmethod
     @run_once
@@ -73,10 +80,6 @@ class OperationTypesRepository:
         # default data_operation repo
         default_data_operation_repo_file = cls.__repository_dict__['data_operation']['file']
         cls.assign_repo('data_operation', default_data_operation_repo_file)
-
-        # default data_operation repo
-        default_automl_repo_file = cls.__repository_dict__['automl']['file']
-        cls.assign_repo('automl', default_automl_repo_file)
 
     @classmethod
     def assign_repo(cls, operation_type: str, repo_file: str):
