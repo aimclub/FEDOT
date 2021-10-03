@@ -166,7 +166,9 @@ class Node(GraphNode):
                                                              is_fit_pipeline_stage=True)
 
         # Update parameters after operation fitting (they can be corrected)
-        if 'source' not in self.content['name'].operation_type:
+        not_source_node = 'source' not in self.content['name'].operation_type
+        not_atomized_operation = 'atomized' not in self.content['name'].operation_type
+        if not_source_node and not_atomized_operation:
             self.update_params()
         return operation_predict
 
@@ -190,10 +192,11 @@ class Node(GraphNode):
     @custom_params.setter
     def custom_params(self, params):
         if params:
-            # Complete the dictionary if it is incomplete
-            default_params = get_default_params(self.content['name'].operation_type)
-            if default_params is not None:
-                params = {**default_params, **params}
+            if params != DEFAULT_PARAMS_STUB:
+                # Complete the dictionary if it is incomplete
+                default_params = get_default_params(self.content['name'].operation_type)
+                if default_params is not None:
+                    params = {**default_params, **params}
             self.content.update({'params': params})
 
     def __str__(self):
