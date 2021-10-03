@@ -3,9 +3,9 @@ from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
-class AUTOML(Operation):
+class AutoML(Operation):
     """
-    Class with fit/predict methods defining the evaluation strategy for the task
+    Class with fit/predict methods defining the automl strategy for the task
 
     :param operation_type: name of the model
     :param log: Log object to record messages

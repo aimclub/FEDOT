@@ -1,4 +1,4 @@
-from fedot.core.operations.automl import AUTOML
+from fedot.core.operations.automl import AutoML
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
@@ -29,7 +29,7 @@ class OperationFactory:
         elif self.operation_type == 'data_operation':
             operation = DataOperation(operation_type=self.operation_name)
         elif self.operation_type == 'automl':
-            operation = AUTOML(operation_type=self.operation_name)
+            operation = AutoML(operation_type=self.operation_name)
         else:
             raise ValueError(f'Operation type {self.operation_type} is not supported')
 

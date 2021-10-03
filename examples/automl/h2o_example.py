@@ -48,7 +48,6 @@ def h2o_classification_pipeline_evaluation():
     print(f"roc auc: {roc_auc_on_test}")
 
 
-
 def h2o_regression_pipeline_evaluation():
     data = get_synthetic_regression_data()
 

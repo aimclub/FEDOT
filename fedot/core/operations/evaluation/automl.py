@@ -135,7 +135,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TPOT AutoML Classification Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain H2O AutoML Classification Strategy for {operation_type}')
 
     def _data_transform(self, data: InputData) -> H2OFrame:
         concat_data = np.concatenate((data.features, data.target.reshape(-1, 1)), 1)
@@ -180,7 +180,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TPOT AutoML Regression Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain H2O AutoML Regression Strategy for {operation_type}')
 
 
 class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
@@ -226,4 +226,4 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TPOT AutoML Classification Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain H2O AutoML Classification Strategy for {operation_type}')
