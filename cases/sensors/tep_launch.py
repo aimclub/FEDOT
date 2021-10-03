@@ -28,7 +28,7 @@ def run_experiment(horizons: list, validation_blocks: int, tuner_iterations: int
                        validation_blocks=validation_blocks,
                        horizons=horizons,
                        tuner_iterations=tuner_iterations,
-                       save_path='../data/time_series/results_1')
+                       save_path='../data/time_series/results_3')
 
 
 if __name__ == '__main__':

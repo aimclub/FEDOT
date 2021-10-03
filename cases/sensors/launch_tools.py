@@ -81,11 +81,11 @@ def lstm_non_ref():
 
 
 def arima_ref():
-    return _get_non_lagged_refinement_pipeline('arima')
+    return _get_non_lagged_refinement_pipeline('ar')
 
 
 def arima_non_ref():
-    return _get_non_lagged_non_refinement_pipeline('arima')
+    return _get_non_lagged_non_refinement_pipeline('ar')
 
 
 def ridge_ref():
@@ -101,20 +101,14 @@ def perform_experiment(pipelines_by_model, model, train_input, tuner_iterations,
     """ Initialise pipeline, tune it and make prediction with """
     try:
         generators = pipelines_by_model.get(model)
-        pipeline_ref = generators[0]()
-        tuned_ref = pipeline_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                     input_data=train_input,
-                                                     iterations=tuner_iterations,
-                                                     timeout=2)
+        tuned_ref = generators[0]()
+        tuned_ref.fit(train_input)
         predicted_ref = in_sample_ts_forecast(pipeline=tuned_ref,
                                               input_data=predict_input,
                                               horizon=horizon)
 
-        pipeline_non_ref = generators[1]()
-        tuned_non_ref = pipeline_non_ref.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                             input_data=train_input,
-                                                             iterations=tuner_iterations,
-                                                             timeout=2)
+        tuned_non_ref = generators[1]()
+        tuned_non_ref.fit(train_input)
         predicted_non_ref = in_sample_ts_forecast(pipeline=tuned_non_ref,
                                                   input_data=predict_input,
                                                   horizon=horizon)
