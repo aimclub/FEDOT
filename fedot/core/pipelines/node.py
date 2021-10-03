@@ -32,8 +32,10 @@ class Node(GraphNode):
 
             default_params = get_default_params(operation.operation_type)
             if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+                # Replace 'default_params' with params from json file
                 default_params = get_default_params(operation.operation_type)
             else:
+                # Store passed
                 default_params = passed_content['params']
         else:
             # There is no content for node
