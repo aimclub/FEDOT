@@ -1,5 +1,5 @@
-FEDOT
-=====
+.. image:: docs/fedot_logo.jpg
+   :alt: The structure of the modeling pipeline that can be optimised by FEDOT
 
 .. start-badges
 .. list-table::
