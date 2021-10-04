@@ -1,5 +1,5 @@
-FEDOT
-=====
+.. image:: docs/fedot_logo.png
+   :alt: Logo of FEDOT framework
 
 .. start-badges
 .. list-table::
