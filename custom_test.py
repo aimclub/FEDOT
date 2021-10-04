@@ -31,7 +31,8 @@ def get_custom_pipeline():
     lagged_node = PrimaryNode('lagged')
     lagged_node.custom_params = {'window_size': 50}
     custom_node = SecondaryNode('default', nodes_from=[lagged_node])
-    custom_node.custom_params = {"a": 0, "b": 3, 'model': custom_model_imitation}
+    custom_node.custom_params = {"a": 0, "b": 3}
+    custom_node.custom_model(custom_model_imitation)
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -91,8 +92,7 @@ def run_model():
     print(predicted_values.predict)
 
     custom_search_space = {'default': {'a': (hp.uniform, [-100, 100]),
-                                       'b': (hp.uniform, [0, 1000]),
-                                       'model': [custom_model_imitation]}}
+                                       'b': (hp.uniform, [0, 1000])}}
     replace_default_search_space = True
     pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
                                    iterations=10, custom_search_space=custom_search_space,

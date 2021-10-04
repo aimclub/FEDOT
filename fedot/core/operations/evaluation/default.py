@@ -17,9 +17,11 @@ class CustomDefaultModelStrategy(EvaluationStrategy):
     :param dict params: hyperparameters to fit the model with
     """
 
-    def __init__(self, operation_type: Optional[str], params: dict = None):
+    def __init__(self, operation_type: Optional[str], params: dict = None, wrappers: dict = None):
         super().__init__(operation_type, params)
-        self.operation_impl = DefaultModelImplementation(**params)
+
+        self.wrappers = wrappers
+        self.operation_impl = DefaultModelImplementation(self.wrappers, **params)
 
     def fit(self, train_data: InputData):
         """ This strategy does not support fitting the operation"""

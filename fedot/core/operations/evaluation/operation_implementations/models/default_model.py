@@ -11,15 +11,16 @@ class DefaultModelImplementation(ModelImplementation):
     """
     Implementation of container for custom model
     """
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, wrappers: dict, log: Log = None,  **params):
         super().__init__(log)
+        self.wrappers = wrappers
 
-        if 'model' not in params.keys():
+        '''if 'model' not in params.keys():
             raise KeyError('There is no key word "model" for model definition in input dictionary')
         else:
             self.model = params.get('model')
         if not isinstance(self.model, Callable):
-            raise ValueError('Input model is not Callable')
+            raise ValueError('Input model is not Callable')'''
 
         parameters_dict = {}
         for variable in params.keys():

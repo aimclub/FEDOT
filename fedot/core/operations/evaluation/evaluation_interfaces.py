@@ -36,7 +36,7 @@ class EvaluationStrategy:
     """
 
     def __init__(self, operation_type: str, params: Optional[dict] = None,
-                 log=None):
+                 log=None, *args, **kwargs):
         self.params_for_fit = params
         self.operation_id = operation_type
 
@@ -143,7 +143,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'kmeans': SklearnKmeans,
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, **params):
         self.operation_impl = self._convert_to_operation(operation_type)
         self.operation_id = operation_type
         super().__init__(operation_type, params)

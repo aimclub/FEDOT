@@ -16,9 +16,10 @@ class Operation:
     :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Log = None, **kwargs):
+    def __init__(self, operation_type: str, log: Log = None, wrappers: dict = None, **kwargs):
         self.operation_type = operation_type
         self.log = log
+        self.wrappers = wrappers
 
         self._eval_strategy = None
         self.operations_repo = None
@@ -36,11 +37,20 @@ class Operation:
             params_for_fit = params
 
         try:
-            self._eval_strategy = \
-                _eval_strategy_for_task(self.operation_type,
-                                        task.task_type,
-                                        self.operations_repo)(self.operation_type,
-                                                              params_for_fit)
+            if self.wrappers:
+                self._eval_strategy = \
+                    _eval_strategy_for_task(self.operation_type,
+                                            task.task_type,
+                                            self.operations_repo)(self.operation_type,
+                                                                  params_for_fit,
+                                                                  self.wrappers)
+            else:
+                self._eval_strategy = \
+                    _eval_strategy_for_task(self.operation_type,
+                                            task.task_type,
+                                            self.operations_repo)(self.operation_type,
+                                                                  params_for_fit)
+
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
             raise ex

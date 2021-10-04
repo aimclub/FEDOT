@@ -126,6 +126,17 @@ class Node(GraphNode):
 
     # wrappers for 'operation' field from GraphNode class
     @property
+    def custom_wrappers(self):
+        return self.content['wrappers']
+
+    @custom_wrappers.setter
+    def custom_wrappers(self, model):
+        if self.operation.operation_type != 'default':
+            raise Warning(f"Operation type {self.operation.operation_type} does not support custom_model")
+        else:
+            self.content.update({'wrappers': model})
+
+    @property
     def operation(self):
         return self.content['name']
 
