@@ -80,9 +80,9 @@ class OperationTemplate(OperationTemplateAbstract):
 
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
         self.operation_id = operation_id
-        if not isinstance(node.content['name'], str):
+        if not isinstance(node.operation, str):
             # for model-based operations
-            self.operation_type = node.content['name'].operation_type
+            self.operation_type = node.operation.operation_type
             self.custom_params = node.custom_params
             self.params = self._create_full_params(node)
 
@@ -94,7 +94,7 @@ class OperationTemplate(OperationTemplateAbstract):
             self.operation_type = 'custom'
             self.custom_params = {}
             self.params = {}
-            self.operation_name = node.content['name']
+            self.operation_name = node.operation
         self.nodes_from = nodes_from
         self.rating = node.rating
 

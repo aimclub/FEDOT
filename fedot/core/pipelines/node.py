@@ -158,17 +158,17 @@ class Node(GraphNode):
         """
 
         if self.fitted_operation is None:
-            self.fitted_operation, operation_predict = self.content['name'].fit(params=self.content['params'],
-                                                                                data=input_data,
-                                                                                is_fit_pipeline_stage=True)
+            self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
+                                                                          data=input_data,
+                                                                          is_fit_pipeline_stage=True)
         else:
-            operation_predict = self.content['name'].predict(fitted_operation=self.fitted_operation,
-                                                             data=input_data,
-                                                             is_fit_pipeline_stage=True)
+            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                       data=input_data,
+                                                       is_fit_pipeline_stage=True)
 
         # Update parameters after operation fitting (they can be corrected)
-        not_source_node = 'source' not in self.content['name'].operation_type
-        not_atomized_operation = 'atomized' not in self.content['name'].operation_type
+        not_source_node = 'source' not in self.operation.operation_type
+        not_atomized_operation = 'atomized' not in self.operation.operation_type
         if not_source_node and not_atomized_operation:
             self.update_params()
         return operation_predict
@@ -180,10 +180,10 @@ class Node(GraphNode):
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        operation_predict = self.content['name'].predict(fitted_operation=self.fitted_operation,
-                                                         data=input_data,
-                                                         output_mode=output_mode,
-                                                         is_fit_pipeline_stage=False)
+        operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                   data=input_data,
+                                                   output_mode=output_mode,
+                                                   is_fit_pipeline_stage=False)
         return operation_predict
 
     @property
@@ -195,13 +195,13 @@ class Node(GraphNode):
         if params:
             if params != DEFAULT_PARAMS_STUB:
                 # Complete the dictionary if it is incomplete
-                default_params = get_default_params(self.content['name'].operation_type)
+                default_params = get_default_params(self.operation.operation_type)
                 if default_params is not None:
                     params = {**default_params, **params}
             self.content.update({'params': params})
 
     def __str__(self):
-        return str(self.content['name'].operation_type)
+        return str(self.operation.operation_type)
 
 
 class PrimaryNode(Node):
@@ -233,7 +233,7 @@ class PrimaryNode(Node):
 
         :param input_data: data used for operation training
         """
-        self.log.ext_debug(f"Trying to fit primary node with operation: {self.content['name']}")
+        self.log.ext_debug(f'Trying to fit primary node with operation: {self.operation}')
 
         if self.direct_set:
             input_data = self.node_data
@@ -254,7 +254,7 @@ class PrimaryNode(Node):
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        self.log.ext_debug(f"Predict in primary node by operation: {self.content['name']}")
+        self.log.ext_debug(f'Predict in primary node by operation: {self.operation}')
 
         if self.direct_set:
             input_data = self.node_data
@@ -303,7 +303,7 @@ class SecondaryNode(Node):
 
         :param input_data: data used for operation training
         """
-        self.log.ext_debug(f"Trying to fit secondary node with operation: {self.content['name']}")
+        self.log.ext_debug(f'Trying to fit secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data, parent_operation='fit')
 
@@ -316,7 +316,7 @@ class SecondaryNode(Node):
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
-        self.log.ext_debug(f"Obtain prediction in secondary node with operation: {self.content['name']}")
+        self.log.ext_debug(f'Obtain prediction in secondary node with operation: {self.operation}')
 
         secondary_input = self._input_from_parents(input_data=input_data,
                                                    parent_operation='predict')
@@ -328,7 +328,7 @@ class SecondaryNode(Node):
         if len(self.nodes_from) == 0:
             raise ValueError('No parent nodes found')
 
-        self.log.ext_debug(f"Fit all parent nodes in secondary node with operation: {self.content['name']}")
+        self.log.ext_debug(f'Fit all parent nodes in secondary node with operation: {self.operation}')
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
@@ -337,7 +337,7 @@ class SecondaryNode(Node):
 
         secondary_input = InputData.from_predictions(outputs=parent_results)
         # Update info about visited nodes
-        parent_operations = [node.content['name'].operation_type for node in parent_nodes]
+        parent_operations = [node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_operations
         return secondary_input
 

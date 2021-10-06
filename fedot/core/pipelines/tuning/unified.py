@@ -93,7 +93,7 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict = {}
         for node_id, node in enumerate(self.pipeline.nodes):
-            operation_name = str(node.content['name'])
+            operation_name = node.operation.operation_type
 
             # Assign unique prefix for each model hyperparameter
             # label - number of node in the pipeline

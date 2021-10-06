@@ -49,7 +49,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
             self._pipeline.fit(self._train_data)
 
         # create problem
-        self.operation_type = node.content['name'].operation_type
+        self.operation_type = node.operation.operation_type
         self.problem = OneOperationProblem(operation_types=[self.operation_type])
 
         # sample
