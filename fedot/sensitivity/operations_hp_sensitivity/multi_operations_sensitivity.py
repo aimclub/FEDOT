@@ -58,7 +58,7 @@ class MultiOperationsHPAnalyze:
             self._pipeline.fit(self._train_data)
 
         # create problem
-        self.operation_types = [node.operation.operation_type for node in self._pipeline.nodes]
+        self.operation_types = [node.content['name'].operation_type for node in self._pipeline.nodes]
         self.problem = MultiOperationsProblem(self.operation_types)
 
         # sample

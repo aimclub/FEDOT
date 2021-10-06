@@ -73,8 +73,8 @@ class PipelineTemplate:
 
         # TODO resolve as to GraphTemplate
         if hasattr(node, 'operation'):
-            if (not isinstance(node.operation, str) and
-                    node.operation.operation_type == atomized_model_type()):
+            if (not isinstance(node.content['name'], str) and
+                    node.content['name'].operation_type == atomized_model_type()):
                 operation_template = AtomizedModelTemplate(node, operation_id, sorted(nodes_from))
             else:
                 operation_template = OperationTemplate(node, operation_id, sorted(nodes_from))
@@ -253,7 +253,7 @@ class PipelineTemplate:
                 node = SecondaryNode(operation_object.operation_type)
             else:
                 node = PrimaryNode(operation_object.operation_type)
-            node.operation.params = operation_object.custom_params
+            node.custom_params = operation_object.custom_params
             node.rating = operation_object.rating
 
         if hasattr(operation_object,

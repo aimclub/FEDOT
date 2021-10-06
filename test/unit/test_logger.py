@@ -60,7 +60,7 @@ def test_logger_write_logs_correctly():
 
     try:
         knn = Model(operation_type='knnreg', log=test_log)
-        model, _ = knn.fit(train_data, is_fit_pipeline_stage=True)
+        model, _ = knn.fit(params='default_params', data=train_data, is_fit_pipeline_stage=True)
     except Exception:
         print('Captured error')
 

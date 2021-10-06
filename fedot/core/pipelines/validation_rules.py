@@ -14,7 +14,7 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 def has_correct_operation_positions(pipeline: 'Pipeline', task: Optional[Task] = None):
     is_root_satisfy_task_type = True
     if task:
-        is_root_satisfy_task_type = task.task_type in pipeline.root_node.operation.acceptable_task_types
+        is_root_satisfy_task_type = task.task_type in pipeline.root_node.content['name'].acceptable_task_types
 
     if not is_root_satisfy_task_type:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect operations positions')
@@ -32,7 +32,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
     """ Check if the operation in root node is model or not """
     root_node = pipeline.root_node
 
-    if type(root_node.operation) is not Model and type(root_node.operation) is not AtomizedModel:
+    if type(root_node.content['name']) is not Model and type(root_node.content['name']) is not AtomizedModel:
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
     return True
@@ -90,9 +90,9 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
 
 
 def get_supported_data_types(node, operation_repo, models_repo):
-    supported_data_types = operation_repo.operation_info_by_id(node.operation.operation_type)
+    supported_data_types = operation_repo.operation_info_by_id(node.content['name'].operation_type)
     if supported_data_types is None:
-        supported_data_types = models_repo.operation_info_by_id(node.operation.operation_type)
+        supported_data_types = models_repo.operation_info_by_id(node.content['name'].operation_type)
     return supported_data_types
 
 
@@ -106,7 +106,7 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     # List with operations in considering pipeline
     operations_in_pipeline = []
     for node in pipeline.nodes:
-        operations_in_pipeline.append(node.operation.operation_type)
+        operations_in_pipeline.append(node.content['name'].operation_type)
 
     if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
         return True
@@ -151,7 +151,7 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
 
     for node in pipeline.nodes:
         # Operation name in the current node
-        current_operation = node.operation.operation_type
+        current_operation = node.content['name'].operation_type
         parent_nodes = node.nodes_from
 
         if parent_nodes is not None:
@@ -170,7 +170,7 @@ def only_non_lagged_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
     # Check only primary nodes
     for node in pipeline.nodes:
-        if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
+        if type(node) == PrimaryNode and DataTypesEnum.ts not in node.content['name'].metadata.input_types:
             raise ValueError(
                 f'{ERROR_PREFIX} Pipeline for forecasting has not non_lagged preprocessing in primary nodes')
 

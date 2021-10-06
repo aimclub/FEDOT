@@ -226,8 +226,7 @@ def test_pipeline_with_custom_params_for_model(data_setup):
     second = PrimaryNode(operation_type='lda')
     final = SecondaryNode(operation_type='knn', nodes_from=[first, second])
 
-    pipeline = Pipeline()
-    pipeline.add_node(final)
+    pipeline = Pipeline(final)
     pipeline_default_params = deepcopy(pipeline)
 
     pipeline.root_node.custom_params = custom_params
@@ -330,7 +329,7 @@ def test_delete_primary_node():
     # when
     pipeline.delete_node(first)
 
-    new_primary_node = [node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
+    new_primary_node = [node for node in pipeline.nodes if node.content['name'].operation_type == 'knn'][0]
 
     # then
     assert len(pipeline.nodes) == 3

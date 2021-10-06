@@ -42,8 +42,11 @@ def _descriptive_id_recursive(current_node, visited_nodes) -> str:
     and its parameters
     """
     try:
-        node_label = current_node.content['name'].description
-    except AttributeError:
+        # If instance of Operation is placed in 'name'
+        operation_params = current_node.content['params']
+        node_label = current_node.content['name'].description(operation_params)
+    except (AttributeError, TypeError) as ex:
+        # If there is a string: name of operation (as in json repository)
         node_label = current_node.content['name']
         if current_node.content.get('params'):
             node_label = f'n_{node_label}_{current_node.content["params"]}'

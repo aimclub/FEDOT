@@ -155,7 +155,7 @@ def test_fit_predict_atomized_model_correctly():
     pipeline.fit(train_data)
     predicted_values = pipeline.predict(test_data)
 
-    fitted_atomized_model, _ = atomized_model.fit(train_data)
+    fitted_atomized_model, _ = atomized_model.fit('default_params', train_data)
     predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
@@ -181,10 +181,10 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
-    dummy_atomized_model.fit(train_data)
+    dummy_atomized_model.fit('default_params', train_data)
 
-    fitted_dummy_model, _ = dummy_atomized_model.fit(train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(train_data)
+    fitted_dummy_model, _ = dummy_atomized_model.fit('default_params', train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit('default_params', train_data)
 
     after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict

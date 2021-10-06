@@ -12,6 +12,7 @@ class KNeighborsImplementation(ModelImplementation):
 
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
+        self.parameters_changed = False
         self.params = params
         self.model = None
 
@@ -39,6 +40,7 @@ class KNeighborsImplementation(ModelImplementation):
         :param input_data: InputData for fit
         :param model_impl: Model to use
         """
+        was_changed = False
         current_params = self.model.get_params()
         n_neighbors = current_params.get('n_neighbors')
 
@@ -50,12 +52,19 @@ class KNeighborsImplementation(ModelImplementation):
 
             prefix = "n_neighbors of K-nn model was changed"
             self.log.info(f"{prefix} from {n_neighbors} to {new_k_value}")
+            was_changed = True
+
+        return was_changed
 
     def get_params(self):
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        return self.model.get_params()
+        if self.parameters_changed is True:
+            params_dict = self.model.get_params()
+            return tuple([params_dict, ['n_neighbors']])
+        else:
+            return self.model.get_params()
 
 
 class CustomKnnClassImplementation(KNeighborsImplementation):
@@ -76,7 +85,7 @@ class CustomKnnClassImplementation(KNeighborsImplementation):
         self.classes = np.unique(np.array(train_data.target))
 
         # Improve hyperparameters for model
-        self.check_and_correct_k_value(train_data, KNeighborsClassifier)
+        self.parameters_changed = self.check_and_correct_k_value(train_data, KNeighborsClassifier)
         self.model.fit(train_data.features, train_data.target)
         return self.model
 
@@ -110,6 +119,6 @@ class CustomKnnRegImplementation(KNeighborsImplementation):
         """
 
         # Improve hyperparameters for model
-        self.check_and_correct_k_value(train_data, KNeighborsRegressor)
+        self.parameters_changed = self.check_and_correct_k_value(train_data, KNeighborsRegressor)
         self.model.fit(train_data.features, train_data.target)
         return self.model

@@ -370,7 +370,7 @@ def test_extract_subtree_root():
                                      pipeline_template=pipeline_template)
 
     sub_pipeline = Pipeline(root_node)
-    actual_types = [node.operation.operation_type for node in sub_pipeline.nodes]
+    actual_types = [node.content['name'].operation_type for node in sub_pipeline.nodes]
 
     assertion_list = [True if expected_types[index] == actual_types[index] else False
                       for index in range(len(expected_types))]

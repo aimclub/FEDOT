@@ -37,7 +37,7 @@ def test_node_factory_log_reg_correct(data_setup):
     node = PrimaryNode(operation_type=model_type)
 
     expected_model = Model(operation_type=model_type).__class__
-    actual_model = node.operation.__class__
+    actual_model = node.content['name'].__class__
 
     assert node.__class__ == PrimaryNode
     assert expected_model == actual_model
