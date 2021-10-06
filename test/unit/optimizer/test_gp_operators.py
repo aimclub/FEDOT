@@ -539,8 +539,8 @@ def test_mutation_with_single_node():
 
 def test_no_opt_or_graph_nodes_after_mutation():
     test_file_path = str(os.path.dirname(__file__))
-    test_log_file = os.path.join(test_file_path, 'test_log.log')
-    test_log = default_log('test_log',
+    test_log_file = os.path.join(test_file_path, 'test_no_opt_or_graph_nodes_after_mutation.log')
+    test_log = default_log('test_no_opt_or_graph_nodes_after_mutation',
                            log_file=test_log_file)
 
     adapter = PipelineAdapter(log=test_log)
@@ -574,8 +574,8 @@ def test_no_opt_or_graph_nodes_after_mutation():
 
 def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
     test_file_path = str(os.path.dirname(__file__))
-    test_log_file = os.path.join(test_file_path, 'test_log.log')
-    test_log = default_log('test_log',
+    test_log_file = os.path.join(test_file_path, 'test_no_opt_in_complex_graph.log')
+    test_log = default_log('test_no_opt_in_complex_graph',
                            log_file=test_log_file)
 
     adapter = PipelineAdapter(log=test_log)
