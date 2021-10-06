@@ -49,7 +49,7 @@ def _descriptive_id_recursive(current_node, visited_nodes) -> str:
     else:
         # If instance of Operation is placed in 'name'
         operation_params = current_node.content.get('params')
-        node_label = current_node.operation.description(operation_params)
+        node_label = current_node.content['name'].description(operation_params)
 
     full_path = ''
     if current_node in visited_nodes:
