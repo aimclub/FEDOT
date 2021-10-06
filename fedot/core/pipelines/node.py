@@ -6,8 +6,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
-
-DEFAULT_PARAMS_STUB = 'default_params'
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Node(GraphNode):
@@ -88,7 +87,7 @@ class Node(GraphNode):
 
         return operation
 
-    def filter_params(self, returned_params: Union[dict, tuple]) -> dict:
+    def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
         """
         Filters out the desired parameter values from what Implementation returns
 
@@ -120,7 +119,7 @@ class Node(GraphNode):
     def update_params(self):
         new_params = self.fitted_operation.get_params()
         # Filter parameters
-        filtered_params = self.filter_params(new_params)
+        filtered_params = self._filter_params(new_params)
         if filtered_params != DEFAULT_PARAMS_STUB:
             self.custom_params = filtered_params
 
@@ -189,7 +188,7 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        return self.content['params']
+        return self.content.get('params')
 
     @custom_params.setter
     def custom_params(self, params):

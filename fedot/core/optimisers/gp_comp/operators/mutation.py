@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utils import ComparableEnum as Enum, DEFAULT_PARAMS_STUB
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
@@ -157,7 +157,7 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
                 secondary_node = OptNode(content={'name': choice(requirements.secondary),
-                                                  'params': 'default_params'},
+                                                  'params': DEFAULT_PARAMS_STUB},
                                          nodes_from=node.nodes_from)
                 graph.update_node(node, secondary_node)
             for child in node.nodes_from:
@@ -165,7 +165,7 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
         else:
             if random() < node_mutation_probability:
                 primary_node = OptNode(content={'name': choice(requirements.primary),
-                                                'params': 'default_params'})
+                                                'params': DEFAULT_PARAMS_STUB})
                 graph.update_node(node, primary_node)
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
@@ -204,7 +204,7 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
     if len(candidates) == 0:
         return graph
     new_node = OptNode(content={'name': choice(candidates),
-                                'params': 'default_params'})
+                                'params': DEFAULT_PARAMS_STUB})
     new_node.nodes_from = node_to_mutate.nodes_from
     node_to_mutate.nodes_from = [new_node]
     graph.nodes.append(new_node)
@@ -221,7 +221,7 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
         if iter_num == len(candidates):
             break
         new_node = OptNode(content={'name': choice(candidates),
-                                    'params': 'default_params'})
+                                    'params': DEFAULT_PARAMS_STUB})
         if node_to_mutate.nodes_from:
             node_to_mutate.nodes_from.append(new_node)
         else:
@@ -233,7 +233,7 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
 def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     # add as child
     new_node = OptNode(content={'name': choice(requirements.secondary),
-                                'params': 'default_params'})
+                                'params': DEFAULT_PARAMS_STUB})
     new_node.nodes_from = [node_to_mutate]
     graph.operator.actualise_old_node_children(node_to_mutate, new_node)
     graph.nodes.append(new_node)
@@ -275,7 +275,7 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
         return graph
 
     node_new = OptNode(content={'name': choice(candidates),
-                                'params': 'default_params'})
+                                'params': DEFAULT_PARAMS_STUB})
     node_new.nodes_from = nodes_from
     graph.nodes = [node_new if n == node else n for n in graph.nodes]
     graph.operator.actualise_old_node_children(node, node_new)
@@ -327,7 +327,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
         new_subtree = OptNode(content={'name': choice(requirements.primary),
-                                       'params': 'default_params'})
+                                       'params': DEFAULT_PARAMS_STUB})
     else:
         if local_growth:
             max_depth = node_from_graph.distance_to_primary_level
@@ -372,7 +372,7 @@ def reduce_mutation(graph: OptGraph, requirements, **kwargs) -> OptGraph:
         graph.delete_subtree(node_to_del)
     else:
         primary_node = OptNode(content={'name': choice(requirements.primary),
-                                        'params': 'default_params'})
+                                        'params': DEFAULT_PARAMS_STUB})
         graph.update_subtree(node_to_del, primary_node)
     return graph
 

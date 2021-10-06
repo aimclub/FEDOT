@@ -4,6 +4,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Operation:
@@ -31,7 +32,7 @@ class Operation:
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
         params_for_fit = None
-        if params != 'default_params':
+        if params != DEFAULT_PARAMS_STUB:
             params_for_fit = params
 
         try:
@@ -64,7 +65,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict], data: InputData, is_fit_pipeline_stage: bool = True):
+    def fit(self, params: Union[str, dict, None], data: InputData, is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided

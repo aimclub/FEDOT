@@ -3,12 +3,13 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def create_individual():
-    first = OptNode(content={'name': 'logit', 'params': 'default_params'})
-    second = OptNode(content={'name': 'lda', 'params': 'default_params'})
-    final = OptNode(content={'name': 'knn', 'params': 'default_params'},
+    first = OptNode(content={'name': 'logit', 'params': DEFAULT_PARAMS_STUB})
+    second = OptNode(content={'name': 'lda', 'params': DEFAULT_PARAMS_STUB})
+    final = OptNode(content={'name': 'knn', 'params': DEFAULT_PARAMS_STUB},
                     nodes_from=[first, second])
 
     indiviual = Individual(graph=OptGraph(final))

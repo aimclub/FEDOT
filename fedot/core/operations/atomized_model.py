@@ -68,8 +68,7 @@ class AtomizedModel(Operation):
                                            tags)
         return operation_info
 
-    @property
-    def description(self):
+    def description(self, operation_params: Optional[dict]):
         operation_type = self.operation_type
         operation_length = self.pipeline.length
         operation_depth = self.pipeline.depth
