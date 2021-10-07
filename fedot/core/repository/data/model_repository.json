@@ -120,6 +120,19 @@
         "time_series"
       ],
       "tasks": "[TaskTypesEnum.ts_forecasting]"
+    },
+    "default_model": {
+      "description": "Implementations of the models specified by user with external code source",
+      "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.default",
+        "CustomDefaultModelStrategy"
+      ],
+      "tags": [
+        "all_purpose"
+      ],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
     }
   },
   "operations": {
@@ -348,6 +361,12 @@
       ],
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"
-    }
+    },
+    "default": {
+		"meta": "default_model",
+		"tags": [
+          "all_purpose"
+        ]
+	}
   }
 }

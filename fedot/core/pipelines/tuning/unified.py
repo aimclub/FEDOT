@@ -16,9 +16,16 @@ class PipelineTuner(HyperoptTuner):
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
                  log: Log = None,
-                 search_space: ClassVar = SearchSpace(),
+                 custom_search_space: dict = None,
+                 replace_default_search_space: bool = False,
                  algo: Callable = tpe.suggest):
-        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
+        super().__init__(pipeline, task, iterations, timeout, log, algo)
+        if custom_search_space:
+            self.search_space = SearchSpace(custom_search_space=custom_search_space,
+                                            replace_default_search_space=replace_default_search_space)
+        if not custom_search_space:
+            search_space = SearchSpace()
+            self.search_space = search_space
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None):

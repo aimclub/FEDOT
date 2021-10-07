@@ -48,7 +48,8 @@ class Node(GraphNode):
 
         # Create Node with default content
         super().__init__(content={'name': operation,
-                                  'params': default_params}, nodes_from=nodes_from)
+                                  'params': default_params,
+                                  'wrappers': {}}, nodes_from=nodes_from)
 
         if not log:
             self.log = default_log(__name__)
@@ -125,6 +126,17 @@ class Node(GraphNode):
 
     # wrappers for 'operation' field from GraphNode class
     @property
+    def custom_wrappers(self):
+        return self.content['wrappers']
+
+    @custom_wrappers.setter
+    def custom_wrappers(self, params):
+        if self.operation.operation_type != 'default':
+            raise Warning(f"Operation type {self.operation.operation_type} does not support custom_model")
+        else:
+            self.content.update({'wrappers': params})
+
+    @property
     def operation(self):
         return self.content['name']
 
@@ -159,6 +171,7 @@ class Node(GraphNode):
 
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
+                                                                          wrappers=self.content['wrappers'],
                                                                           data=input_data,
                                                                           is_fit_pipeline_stage=True)
         else:
@@ -181,6 +194,8 @@ class Node(GraphNode):
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
         operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                   params=self.content['params'],
+                                                   wrappers=self.content['wrappers'],
                                                    data=input_data,
                                                    output_mode=output_mode,
                                                    is_fit_pipeline_stage=False)
