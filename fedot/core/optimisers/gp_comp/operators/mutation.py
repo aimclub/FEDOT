@@ -11,7 +11,9 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import ComparableEnum as Enum, DEFAULT_PARAMS_STUB
+
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
@@ -77,15 +79,15 @@ def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List
 
         if is_custom_mutation:
             new_graph = params.adapter.restore(new_graph)
-
+        else:
+            if not isinstance(new_graph, OptGraph):
+                new_graph = params.adapter.adapt(new_graph)
         new_graph = _apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
                                     mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
                                     requirements=requirements, params=params, max_depth=max_depth)
         mutation_names.append(str(mutation_type))
-
         if not isinstance(new_graph, OptGraph):
             new_graph = params.adapter.adapt(new_graph)
-
         if is_custom_mutation:
             # custom mutation occurs once
             break
@@ -96,7 +98,7 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                     is_custom_mutation: bool, requirements, params: 'GraphGenerationParams', max_depth: int):
     """
       Apply mutation for adapted graph
-      """
+    """
     if _will_mutation_be_applied(mutation_prob, mutation_type):
         if mutation_type in mutation_by_type or is_custom_mutation:
             if is_custom_mutation:

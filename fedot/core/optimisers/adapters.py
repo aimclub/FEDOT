@@ -36,8 +36,8 @@ class DirectAdapter(BaseOptimizationAdapter):
         """
         Optimization adapter for Pipeline class
         """
-        base_node_class = base_node_class if base_node_class else OptNode
-        base_graph_class = base_graph_class if base_graph_class else OptGraph
+        self.base_node_class = base_node_class if base_node_class else OptNode
+        self.base_graph_class = base_graph_class if base_graph_class else OptGraph
 
         super().__init__(base_graph_class=base_graph_class, base_node_class=base_node_class, log=log)
 
@@ -45,14 +45,14 @@ class DirectAdapter(BaseOptimizationAdapter):
         opt_graph = adaptee
         opt_graph.__class__ = OptGraph
         for node in opt_graph.nodes:
-            _transform_node(node, OptNode)
+            node.__class__ = OptNode
         return opt_graph
 
     def restore(self, opt_graph: OptGraph):
         obj = opt_graph
-        obj.__class__ = self._base_graph_class
-        for node in opt_graph.nodes:
-            _transform_node(node, self._base_node_class)
+        obj.__class__ = self.base_graph_class
+        for node in obj.nodes:
+            node.__class__ = self.base_node_class
         return obj
 
     def restore_as_template(self, opt_graph: OptGraph):
@@ -66,34 +66,44 @@ class PipelineAdapter(BaseOptimizationAdapter):
         """
         super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
-    def _transform_to_opt_node(self, node, *args, **kwargs):
+    def _transform_to_opt_node(self, node, *args, **params):
         # Prepare content for nodes
-        if not isinstance(node, OptNode):
-            if not type(node) == GraphNode:
-                node.content = {'name': node.content['name'],
-                                'params': node.content['params']}
-            else:
-                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead '
+        if type(node) == OptNode:
+            self._log.warn('Unexpected: OptNode found in PipelineAdapter instead'
+                           'PrimaryNode or SecondaryNode.')
+        else:
+            if type(node) == GraphNode:
+                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead'
                                'PrimaryNode or SecondaryNode.')
-            _transform_node(node=node, primary_class=OptNode,
-                            transform_func=self._transform_to_opt_node)
+            else:
+                content = {'name': node.operation,
+                           'params': node.custom_params}
+                if node.nodes_from:
+                    node.__class__ = params.get('secondary_class')
+                else:
+                    node.__class__ = params.get('primary_class')
+                node.content = content
 
-    def _transform_to_pipeline_node(self, node, *args, **kwargs):
-        _transform_node(node, PrimaryNode, SecondaryNode,
-                        transform_func=self._transform_to_pipeline_node)
+    def _transform_to_pipeline_node(self, node, *args, **params):
+        if node.nodes_from:
+            node.__class__ = params.get('secondary_class')
+        else:
+            node.__class__ = params.get('primary_class')
         if not node.nodes_from:
-            node.__init__(operation_type=node.operation, content=node.content)
+            node.__init__(operation_type=node.content['name'], content=node.content)
         else:
             node.__init__(nodes_from=node.nodes_from,
-                          operation_type=node.operation,
-                          content=node.content)
+                          operation_type=node.content['name'], content=node.content
+                          )
 
     def adapt(self, adaptee: Pipeline):
         """ Convert Pipeline class into OptGraph class """
         source_pipeline = deepcopy(adaptee)
 
         # Apply recursive transformation since root
-        self._transform_to_opt_node(source_pipeline.root_node)
+        for node in source_pipeline.nodes:
+            _transform_node(node=node, primary_class=OptNode,
+                            transform_func=self._transform_to_opt_node)
         graph = OptGraph(source_pipeline.nodes)
         graph.uid = source_pipeline.uid
         return graph
@@ -102,9 +112,10 @@ class PipelineAdapter(BaseOptimizationAdapter):
         """ Convert OptGraph class into Pipeline class """
         source_graph = deepcopy(opt_graph)
 
-        # TODO improve transformation
         # Inverse transformation since root node
-        self._transform_to_pipeline_node(source_graph.root_node)
+        for node in source_graph.nodes:
+            _transform_node(node, PrimaryNode, SecondaryNode,
+                            transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
         pipeline.uid = source_graph.uid
         return pipeline
@@ -123,15 +134,9 @@ def _check_nodes_references_correct(graph):
 
 
 def _transform_node(node, primary_class, secondary_class=None, transform_func=None):
-    if not transform_func:
-        transform_func = _transform_node
-    if not secondary_class:
-        secondary_class = primary_class
-    if node.nodes_from:
-        node.__class__ = secondary_class
-        for new_parent_node in node.nodes_from:
-            transform_func(node=new_parent_node,
-                           primary_class=primary_class,
-                           secondary_class=secondary_class)
-    else:
-        node.__class__ = primary_class
+    if transform_func:
+        if not secondary_class:
+            secondary_class = primary_class  # if there are no differences between primary and secondary class
+        transform_func(node=node,
+                       primary_class=primary_class,
+                       secondary_class=secondary_class)

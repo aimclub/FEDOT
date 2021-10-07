@@ -16,7 +16,7 @@ from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import single_drop_mutation, single_edge_mutation, \
-    single_change_mutation, single_add_mutation
+    single_change_mutation, single_add_mutation, MutationTypesEnum
 from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -182,9 +182,10 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
 
         optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
                                                           mutation_types=[boosting_mutation, parameter_change_mutation,
-                                                                          single_edge_mutation, single_change_mutation,
-                                                                          single_drop_mutation,
-                                                                          single_add_mutation],
+                                                                          MutationTypesEnum.single_edge,
+                                                                          MutationTypesEnum.single_change,
+                                                                          MutationTypesEnum.single_drop,
+                                                                          MutationTypesEnum.single_add],
                                                           crossover_types=[CrossoverTypesEnum.one_point,
                                                                            CrossoverTypesEnum.subtree])
 

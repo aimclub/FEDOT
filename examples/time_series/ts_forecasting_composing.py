@@ -206,8 +206,8 @@ def run_ts_forecasting_problem(forecast_length=50,
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = GPComposerBuilder(task=task). \
-        with_optimiser_parameters(optimiser_parameters).\
-        with_requirements(composer_requirements).\
+        with_optimiser_parameters(optimiser_parameters). \
+        with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipeline(init_pipeline)
     composer = builder.build()
 
