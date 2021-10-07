@@ -31,16 +31,25 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
+        wrappers = kwargs.get('wrappers')
         params_for_fit = None
         if params != DEFAULT_PARAMS_STUB:
             params_for_fit = params
 
         try:
-            self._eval_strategy = \
-                _eval_strategy_for_task(self.operation_type,
-                                        task.task_type,
-                                        self.operations_repo)(self.operation_type,
-                                                              params_for_fit)
+            if self.operation_type == 'default':
+                self._eval_strategy = \
+                    _eval_strategy_for_task(self.operation_type,
+                                            task.task_type,
+                                            self.operations_repo)(self.operation_type,
+                                                                  params_for_fit,
+                                                                  wrappers)
+            else:
+                self._eval_strategy = \
+                    _eval_strategy_for_task(self.operation_type,
+                                            task.task_type,
+                                            self.operations_repo)(self.operation_type,
+                                                                  params_for_fit)
         except Exception as ex:
             self.log.error(f'Can not find evaluation strategy because of {ex}')
             raise ex
@@ -65,31 +74,36 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], data: InputData, is_fit_pipeline_stage: bool = True):
+    def fit(self, params: Union[str, dict, None], wrappers: Union[dict, None], data: InputData,
+            is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
         :param params: hyperparameters for operation
+        :param wrappers: additional parameters for implementation
         :param data: data used for operation training
         :return: tuple of trained operation and prediction on train data
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
-        self._init(data.task, params=params)
+
+        self._init(data.task, params=params, wrappers=wrappers)
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
+        predict_train = self.predict(self.fitted_operation, params, wrappers, data, is_fit_pipeline_stage)
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData,
+    def predict(self, fitted_operation, params: Union[str, dict, None], wrappers: Union[dict, None], data: InputData,
                 is_fit_pipeline_stage: bool, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
         :param fitted_operation: trained operation object
+        :param params: hyperparameters for operation
+        :param wrappers: additional parameters for implementation
         :param data: data used for prediction
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :param output_mode: string with information about output of operation,
@@ -97,7 +111,7 @@ class Operation:
         """
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode)
+        self._init(data.task, output_mode=output_mode, wrappers=wrappers, params=params)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,
