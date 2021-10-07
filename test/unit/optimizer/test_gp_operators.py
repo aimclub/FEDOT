@@ -460,10 +460,9 @@ def test_pipeline_adapters_params_correct():
     # Convert into OptGraph object
     adapter = PipelineAdapter()
     opt_graph = adapter.adapt(pipeline)
-
     # Get Pipeline object back
     restored_pipeline = adapter.restore(opt_graph)
-
+    print(restored_pipeline.root_node.custom_params)
     # Get hyperparameter value after pipeline restoration
     restored_alpha = restored_pipeline.root_node.custom_params['alpha']
     assert np.isclose(init_alpha, restored_alpha)
