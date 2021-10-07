@@ -176,6 +176,8 @@ class Node(GraphNode):
                                                                           is_fit_pipeline_stage=True)
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                       params=self.content['params'],
+                                                       wrappers=self.content['wrappers'],
                                                        data=input_data,
                                                        is_fit_pipeline_stage=True)
 
