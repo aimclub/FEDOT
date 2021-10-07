@@ -23,7 +23,6 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task=None):
         self.models = get_operations_for_task(task, mode='model')
         self.data_operations = get_operations_for_task(task, mode='data_operation')
-        self.automl = get_operations_for_task(task, mode='automl')
         super().__init__(task)
 
     def propose_change(self, current_operation_id: str, possible_operations: List[str]):

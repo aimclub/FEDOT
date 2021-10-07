@@ -26,13 +26,12 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
     testing_target = test_data.target
 
     node_scaling = PrimaryNode('scaling')
-    node_tpot = PrimaryNode('tpot')
+    node_tpot = PrimaryNode('tpot_class')
 
-    node_tpot.operation.params = {'max_run_time_sec': max_run_time.seconds}
+    node_tpot.custom_params = {'timeout': max_run_time.seconds}
 
     node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
     node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])
-    OperationTypesRepository.assign_repo('model', 'automl_repository.json')
     pipeline = Pipeline(node_rf)
 
     pipeline.fit(train_data)

@@ -65,10 +65,18 @@ class OperationTypesRepository:
         self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
 
     @classmethod
+    def get_available_repositories(cls):
+        operation_types = []
+        for t in cls.__repository_dict__:
+            if cls.__repository_dict__[t]['initialized_repo'] is not None:
+                operation_types.append(t)
+        return operation_types
+
+    @classmethod
     @run_once
-    def _init_automl_repository(cls):  # TODO вставить этот метод в общую логику
+    def init_automl_repository(cls):  # TODO вставить этот метод в общую логику
         default_automl_repo_file = cls.__repository_dict__['automl']['file']
-        cls.assign_repo('automl', default_automl_repo_file)
+        return cls.assign_repo('automl', default_automl_repo_file)
 
     @classmethod
     @run_once
@@ -300,9 +308,7 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
         # Get data operations
         data_operation_types, _ = OperationTypesRepository('data_operation') \
             .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
-        automl_types, _ = OperationTypesRepository('automl') \
-            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
-        return model_types + data_operation_types+automl_types
+        return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
 

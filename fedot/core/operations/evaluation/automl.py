@@ -168,11 +168,11 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
                                     )
         if len(train_data.target.shape) > 1:
             model = MultiOutputRegressor(model)
-        model.fit(train_data.features, train_data.target)
+        model.fit(train_data.features.astype(float), train_data.target.astype(float))
         return model
 
     def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        prediction = trained_operation.predict(predict_data.features)
+        prediction = trained_operation.predict(predict_data.features.astype(float))
         out = self._convert_to_output(prediction, predict_data)
         return out
 
@@ -203,16 +203,16 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
                                     )
         model.classes_ = np.unique(train_data.target)
 
-        model.fit(train_data.features, train_data.target)
+        model.fit(train_data.features.astype(float), train_data.target.astype(int))
 
         return model
 
     def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
         n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
-            prediction = trained_operation.predict(predict_data.features)
+            prediction = trained_operation.predict(predict_data.features.astype(float))
         elif self.output_mode in ['probs', 'full_probs', 'default']:
-            prediction = trained_operation.predict_proba(predict_data.features)
+            prediction = trained_operation.predict_proba(predict_data.features.astype(float))
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs' and len(prediction.shape) > 1:

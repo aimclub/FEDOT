@@ -5,6 +5,8 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score as roc_auc
+
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data, get_rmse_value
@@ -76,6 +78,7 @@ def h2o_ts_pipeline_evaluation():
 
 
 if __name__ == '__main__':
-    h2o_classification_pipeline_evaluation()
-    h2o_regression_pipeline_evaluation()
-    h2o_ts_pipeline_evaluation()
+    with OperationTypesRepository.init_automl_repository() as _:
+        h2o_classification_pipeline_evaluation()
+        h2o_regression_pipeline_evaluation()
+        h2o_ts_pipeline_evaluation()
