@@ -1,5 +1,6 @@
 import numpy as np
 
+from examples.pipeline_import_export import run_import_export_example
 from examples.time_series.ts_forecasting_composing import display_validation_metric
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -79,6 +80,7 @@ def h2o_ts_pipeline_evaluation():
 
 if __name__ == '__main__':
     with OperationTypesRepository.init_automl_repository() as _:
+        run_import_export_example("h2o_import_export", pipeline_h2o_regr())
         h2o_classification_pipeline_evaluation()
         h2o_regression_pipeline_evaluation()
         h2o_ts_pipeline_evaluation()
