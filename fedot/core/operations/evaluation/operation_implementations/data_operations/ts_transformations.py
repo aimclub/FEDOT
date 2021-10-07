@@ -228,7 +228,7 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         return output_data
 
     def get_params(self):
-        return None
+        return {}
 
 
 class GaussianFilterImplementation(DataOperationImplementation):
