@@ -4,7 +4,9 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
-from fedot.core.operations.operation import Operation, get_default_params
+from fedot.core.operations.operation import Operation
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Node(GraphNode):
@@ -26,12 +28,27 @@ class Node(GraphNode):
         if passed_content:
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
+
+            default_params = get_default_params(operation.operation_type)
+            if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+                # Replace 'default_params' with params from json file
+                default_params = get_default_params(operation.operation_type)
+            else:
+                # Store passed
+                default_params = passed_content['params']
         else:
             # There is no content for node
             operation = self._process_direct_init(operation_type)
 
+            # Define operation with default parameters
+            default_params = get_default_params(operation.operation_type)
+
+        if not default_params:
+            default_params = DEFAULT_PARAMS_STUB
+
+        # Create Node with default content
         super().__init__(content={'name': operation,
-                                  'params': operation.params}, nodes_from=nodes_from)
+                                  'params': default_params}, nodes_from=nodes_from)
 
         if not log:
             self.log = default_log(__name__)
@@ -70,6 +87,42 @@ class Node(GraphNode):
 
         return operation
 
+    def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
+        """
+        Filters out the desired parameter values from what Implementation returns
+
+        :param returned_params: dictionary with
+        """
+        if isinstance(returned_params, tuple):
+            params_dict = returned_params[0]
+            changed_param_names = returned_params[1]
+            # Parameters were changed during the Implementation fitting
+            if self.custom_params != DEFAULT_PARAMS_STUB:
+                current_params = self.custom_params
+                # Delete keys from source params
+                for changed_param in changed_param_names:
+                    current_params.pop(changed_param, None)
+
+                # Take only changed parameters from returned ones
+                changed_params = {key: params_dict[key] for key in changed_param_names}
+
+                filtered_params = {**current_params, **changed_params}
+                return filtered_params
+            else:
+                # Default parameters were changed
+                changed_params = {key: params_dict[key] for key in changed_param_names}
+                return changed_params
+        else:
+            # Parameters were not changed
+            return self.custom_params
+
+    def update_params(self):
+        new_params = self.fitted_operation.get_params()
+        # Filter parameters
+        filtered_params = self._filter_params(new_params)
+        if filtered_params != DEFAULT_PARAMS_STUB:
+            self.custom_params = filtered_params
+
     # wrappers for 'operation' field from GraphNode class
     @property
     def operation(self):
@@ -105,13 +158,19 @@ class Node(GraphNode):
         """
 
         if self.fitted_operation is None:
-            self.fitted_operation, operation_predict = self.operation.fit(data=input_data,
+            self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
+                                                                          data=input_data,
                                                                           is_fit_pipeline_stage=True)
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        data=input_data,
                                                        is_fit_pipeline_stage=True)
 
+        # Update parameters after operation fitting (they can be corrected)
+        not_source_node = 'source' not in self.operation.operation_type
+        not_atomized_operation = 'atomized' not in self.operation.operation_type
+        if not_source_node and not_atomized_operation:
+            self.update_params()
         return operation_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
@@ -129,24 +188,17 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        # Operation is not fitted yet
-        if self.fitted_operation is None:
-            return self.operation.get_params
-        else:
-            try:
-                return self.fitted_operation.get_params()
-            except Exception as ex:
-                self.log.info(f'Operation get params failed due to: {ex}')
-                return {}
+        return self.content.get('params')
 
     @custom_params.setter
     def custom_params(self, params):
         if params:
-            # Complete the dictionary if it is incomplete
-            default_params = get_default_params(self.operation.operation_type)
-            if default_params is not None:
-                params = {**default_params, **params}
-            self.operation.params = params
+            if params != DEFAULT_PARAMS_STUB:
+                # Complete the dictionary if it is incomplete
+                default_params = get_default_params(self.operation.operation_type)
+                if default_params is not None:
+                    params = {**default_params, **params}
+            self.content.update({'params': params})
 
     def __str__(self):
         return str(self.operation.operation_type)
@@ -285,7 +337,7 @@ class SecondaryNode(Node):
 
         secondary_input = InputData.from_predictions(outputs=parent_results)
         # Update info about visited nodes
-        parent_operations = [node.content['name'].operation_type for node in parent_nodes]
+        parent_operations = [node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_operations
         return secondary_input
 
@@ -329,3 +381,8 @@ def _combine_parents(parent_nodes: List[Node],
             target = prediction.target
 
     return parent_results, target
+
+
+def get_default_params(model_name: str):
+    with DefaultOperationParamsRepository() as default_params_repo:
+        return default_params_repo.get_default_params_for_operation(model_name)

@@ -98,4 +98,4 @@ class TextCleanImplementation(DataOperationImplementation):
         return text
 
     def get_params(self):
-        raise NotImplementedError()
+        return {'language': self.lang}

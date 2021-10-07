@@ -8,7 +8,8 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, DEFAULT_PARAMS_STUB
+from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -82,3 +83,43 @@ def test_ransac_with_invalid_params_fit_correctly():
 
     assert ransac_pipeline.is_fitted
     assert predicted is not None
+
+
+def test_params_filter_correct_with_default():
+    """
+    Check custom_params returns updated parameters for lagged operation after fitting.
+    Default params for operation loaded from json file
+    """
+    input_ts = small_ts_dataset()
+
+    node_lagged = PrimaryNode('lagged')
+
+    # Correct parameters during fit
+    node_lagged.fit(input_ts)
+    updated_params = node_lagged.custom_params
+    assert 'window_size' in list(updated_params.keys())
+    assert len(list(updated_params.keys())) == 1
+
+
+def test_params_filter_with_non_default():
+    """
+    Check custom_params returns updated parameters only for changed keys.
+    Default params for operation setting as string 'default_params'
+    """
+    input_data = InputData(idx=np.arange(0, 3),
+                           features=np.array([[1, 0, 2],
+                                              [2, 0, 3],
+                                              [3, 1, 4]]),
+                           target=np.array([[1], [0], [1]]),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    # Params are default for now - 'default_params'
+    node_knn = PrimaryNode('knn')
+    default_params = node_knn.custom_params
+
+    node_knn.fit(input_data)
+    updated_params = node_knn.custom_params
+
+    assert default_params == DEFAULT_PARAMS_STUB
+    assert 'n_neighbors' in list(updated_params.keys())
+    assert len(list(updated_params.keys())) == 1

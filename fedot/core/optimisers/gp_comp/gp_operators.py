@@ -6,6 +6,7 @@ from typing import (Any, Callable, List, Tuple)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 MAX_ITERS = 1000
 
@@ -21,7 +22,7 @@ def random_graph(params, requirements, max_depth=None) -> OptGraph:
         graph = OptGraph()
         graph_root = OptNode(nodes_from=[],
                              content={'name': choice(requirements.secondary),
-                                      'params': 'default_params'})
+                                      'params': DEFAULT_PARAMS_STUB})
         graph.add_node(graph_root)
         graph_growth(graph, graph_root, requirements, max_depth)
         is_correct_graph = constraint_function(graph, params)
@@ -57,13 +58,13 @@ def graph_growth(graph: OptGraph, node_parent: OptNode, requirements, max_depth:
         if is_max_depth_exceeded or is_primary_node_selected:
             primary_node = OptNode(nodes_from=None,
                                    content={'name': choice(requirements.primary),
-                                            'params': 'default_params'})
+                                            'params': DEFAULT_PARAMS_STUB})
             node_parent.nodes_from.append(primary_node)
             graph.add_node(primary_node)
         else:
             secondary_node = OptNode(nodes_from=[],
                                      content={'name': choice(requirements.secondary),
-                                              'params': 'default_params'})
+                                              'params': DEFAULT_PARAMS_STUB})
             graph.add_node(secondary_node)
             node_parent.nodes_from.append(secondary_node)
             graph_growth(graph, secondary_node, requirements, max_depth)

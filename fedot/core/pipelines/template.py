@@ -253,7 +253,7 @@ class PipelineTemplate:
                 node = SecondaryNode(operation_object.operation_type)
             else:
                 node = PrimaryNode(operation_object.operation_type)
-            node.operation.params = operation_object.custom_params
+            node.custom_params = operation_object.custom_params
             node.rating = operation_object.rating
 
         if hasattr(operation_object,

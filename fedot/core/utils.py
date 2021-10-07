@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+DEFAULT_PARAMS_STUB = 'default_params'
+
 
 def fedot_project_root() -> Path:
     """Returns FEDOT project root folder."""

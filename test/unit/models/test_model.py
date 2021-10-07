@@ -11,11 +11,12 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, get_default_params
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
@@ -83,7 +84,7 @@ def test_classification_models_fit_correct(data_fixture, request):
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
-        _, train_predicted = model.fit(data=train_data)
+        _, train_predicted = model.fit(params=None, data=train_data)
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
@@ -106,7 +107,7 @@ def test_regression_models_fit_correct():
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
 
-        _, train_predicted = model.fit(data=train_data)
+        _, train_predicted = model.fit(params=None, data=train_data)
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
@@ -125,7 +126,12 @@ def test_ts_models_fit_correct():
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
         model = Model(operation_type=model_name)
-        _, train_predicted = model.fit(data=deepcopy(train_data))
+
+        default_params = get_default_params(model_name)
+        if not default_params:
+            default_params = None
+
+        _, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
         test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
@@ -144,7 +150,7 @@ def test_log_clustering_fit_correct(data_fixture, request):
     scaled_data = scaling_pipeline.predict(train_data)
 
     kmeans = Model(operation_type='kmeans')
-    _, train_predicted = kmeans.fit(data=scaled_data)
+    _, train_predicted = kmeans.fit(params=None, data=scaled_data)
 
     assert all(np.unique(train_predicted.predict) == [0, 1])
 
@@ -160,7 +166,7 @@ def test_svc_fit_correct(data_fixture, request):
     scaled_data = scaling_pipeline.predict(train_data)
 
     svc = Model(operation_type='svc')
-    _, train_predicted = svc.fit(data=scaled_data)
+    _, train_predicted = svc.fit(params=None, data=scaled_data)
 
     roc_on_train = get_roc_auc(valid_data=train_data,
                                predicted_data=train_predicted)
@@ -180,7 +186,7 @@ def test_pca_model_removes_redunant_features_correct():
     scaled_data = scaling_pipeline.predict(train_data)
 
     pca = DataOperation(operation_type='pca')
-    _, train_predicted = pca.fit(data=scaled_data)
+    _, train_predicted = pca.fit(params=DEFAULT_PARAMS_STUB, data=scaled_data)
     transformed_features = train_predicted.predict
 
     assert transformed_features.shape[1] < data.features.shape[1]

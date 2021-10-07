@@ -187,13 +187,8 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
-<<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
         :return: the ratio of modified pipeline score to origin score
-=======
-        :param node_id: the sequence number of the node as in DFS result
-        :return: the ratio of modified graph score to origin score
->>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
         if node is self._pipeline.root_node:
             # TODO or warning?
@@ -243,18 +238,9 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
-
-<<<<<<< HEAD:fedot/sensitivity/node_sa_approaches.py
         :param node: Node object to analyze
 
         :return: the ratio of modified pipeline score to origin score
-=======
-        :param node_id:the sequence number of the node as in DFS result
-        :param nodes_to_replace_to: nodes provided for old_node replacement
-        :param number_of_random_operations: number of replacement operations, \
-        if nodes_to_replace_to not provided
-        :return: the ratio of modified graph score to origin score
->>>>>>> Custom graph model optimization:fedot/sensitivity/node_sensitivity.py
         """
         requirements: ReplacementAnalysisMetaParams = self._requirements.replacement_meta
         node_id = self._pipeline.nodes.index(node)

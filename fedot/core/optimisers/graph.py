@@ -6,6 +6,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
@@ -35,7 +36,7 @@ class OptNode:
                  nodes_from: Optional[List['OptNode']] = None,
                  log: Optional[Log] = None
                  ):
-        default_dict = {'params': 'default_params'}
+        default_dict = {'params': DEFAULT_PARAMS_STUB}
 
         self.log = log
         if not log:

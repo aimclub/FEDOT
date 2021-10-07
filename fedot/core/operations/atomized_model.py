@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData
 from fedot.core.operations.operation import Operation
@@ -19,7 +19,8 @@ class AtomizedModel(Operation):
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
 
-    def fit(self, data: InputData, is_fit_pipeline_stage: bool = True,
+    def fit(self, params: Optional[Union[str, dict]], data: InputData,
+            is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):
 
         predicted_train = self.pipeline.fit(input_data=data)
@@ -67,8 +68,7 @@ class AtomizedModel(Operation):
                                            tags)
         return operation_info
 
-    @property
-    def description(self):
+    def description(self, operation_params: Optional[dict]):
         operation_type = self.operation_type
         operation_length = self.pipeline.length
         operation_depth = self.pipeline.depth

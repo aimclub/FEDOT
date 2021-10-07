@@ -79,7 +79,7 @@ class DecomposerImplementation(DataOperationImplementation):
         return prev_prediction, prev_features
 
     def get_params(self):
-        return None
+        return {}
 
 
 class DecomposerRegImplementation(DecomposerImplementation):
