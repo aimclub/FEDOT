@@ -40,10 +40,10 @@ class LogManager(metaclass=SingletonMeta):
     def get_logger(self, name, config_file: str, log_file: str = None):
         if name not in self.__logger_dict.keys():
             self.__logger_dict[name] = logging.getLogger(name)
-            if config_file != 'default':
-                self._setup_logger_from_json_file(config_file)
-            else:
-                self._setup_default_logger(log_file, name)
+        if config_file != 'default':
+            self._setup_logger_from_json_file(config_file)
+        else:
+            self._setup_default_logger(log_file, name)
 
         return self.__logger_dict[name]
 

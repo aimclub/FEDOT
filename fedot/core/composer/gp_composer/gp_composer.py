@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraph
     GraphGenerationParams
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, single_add_mutation, \
-    single_change_mutation, single_drop_mutation, single_edge_mutation
+    single_change_mutation, single_drop_mutation, single_edge_mutation, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
@@ -309,9 +309,10 @@ class GPComposerBuilder:
 
         if self.optimiser_parameters.mutation_types is None:
             self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,
-                                                        single_edge_mutation, single_change_mutation,
-                                                        single_drop_mutation,
-                                                        single_add_mutation]
+                                                        MutationTypesEnum.single_edge,
+                                                        MutationTypesEnum.single_change,
+                                                        MutationTypesEnum.single_drop,
+                                                        MutationTypesEnum.single_add]
 
         optimiser = optimiser_type(initial_graph=self._composer.initial_pipeline,
                                    requirements=self._composer.composer_requirements,

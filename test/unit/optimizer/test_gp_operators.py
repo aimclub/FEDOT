@@ -77,6 +77,17 @@ def generate_pipeline_with_single_node():
     return pipeline
 
 
+def generate_so_complex_pipeline():
+    node_imp = PrimaryNode('simple_imputation')
+    node_lagged = SecondaryNode('lagged', nodes_from=[node_imp])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_ridge])
+    node_pca = SecondaryNode('pca', nodes_from=[node_decompose])
+    node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_pca])
+    pipeline = Pipeline(node_final)
+    return pipeline
+
+
 def pipeline_with_custom_parameters(alpha_value):
     node_scaling = PrimaryNode('scaling')
     node_norm = PrimaryNode('normalization')
@@ -532,10 +543,10 @@ def test_no_opt_or_graph_nodes_after_mutation():
     test_log = default_log('test_log',
                            log_file=test_log_file)
 
-    adapter = PipelineAdapter()
+    adapter = PipelineAdapter(log=test_log)
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
-    mutation_types = [MutationTypesEnum.simple]
+    mutation_types = [MutationTypesEnum.growth]
     mutation_prob = 1
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
@@ -554,10 +565,28 @@ def test_no_opt_or_graph_nodes_after_mutation():
     if os.path.exists(test_log_file):
         with open(test_log_file, 'r') as file:
             content = file.readlines()
+    release_log(logger=test_log, log_file=test_log_file)
+
+    # Is there a required message in the logs
+    assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+
+
+def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
+    test_file_path = str(os.path.dirname(__file__))
+    test_log_file = os.path.join(test_file_path, 'test_log.log')
+    test_log = default_log('test_log',
+                           log_file=test_log_file)
+
+    adapter = PipelineAdapter(log=test_log)
+    pipeline = generate_so_complex_pipeline()
+    adapter.adapt(pipeline)
+
+    if os.path.exists(test_log_file):
+        with open(test_log_file, 'r') as file:
+            content = file.readlines()
 
     release_log(logger=test_log, log_file=test_log_file)
     # Is there a required message in the logs
-    assert not any('Unexpected: GraphNode found in PipelineAdapter instead'
-                   'PrimaryNode or SecondaryNode.' in log_message for log_message in content)
-    assert not any('Unexpected: OptNode found in PipelineAdapter instead'
-                   'PrimaryNode or SecondaryNode.' in log_message for log_message in content)
+    assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)

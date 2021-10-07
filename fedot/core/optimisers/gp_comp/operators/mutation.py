@@ -86,7 +86,6 @@ def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List
                                     mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
                                     requirements=requirements, params=params, max_depth=max_depth)
         mutation_names.append(str(mutation_type))
-
         if not isinstance(new_graph, OptGraph):
             new_graph = params.adapter.adapt(new_graph)
         if is_custom_mutation:
@@ -99,7 +98,7 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                     is_custom_mutation: bool, requirements, params: 'GraphGenerationParams', max_depth: int):
     """
       Apply mutation for adapted graph
-      """
+    """
     if _will_mutation_be_applied(mutation_prob, mutation_type):
         if mutation_type in mutation_by_type or is_custom_mutation:
             if is_custom_mutation:
