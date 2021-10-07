@@ -6,6 +6,7 @@ import pandas as pd
 from hyperopt import hp
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -19,7 +20,7 @@ def custom_model_imitation(train_data, test_data, params):
     a = params.get('a')
     b = params.get('b')
     shape = train_data.shape
-    res = train_data*a + b
+    res = np.random.rand(shape[0], shape[1])*a + b
     return res
 
 def get_custom_pipeline():
@@ -91,9 +92,11 @@ def run_model():
     custom_search_space = {'default': {'a': (hp.uniform, [-100, 100]),
                                        'b': (hp.uniform, [0, 1000])}}
     replace_default_search_space = True
-    pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                   iterations=10, custom_search_space=custom_search_space,
-                                   replace_default_search_space=replace_default_search_space)
+    pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                   task=task,
+                                   iterations=10,
+                                   search_space=SearchSpace(custom_search_space=custom_search_space,
+                                                            replace_default_search_space=replace_default_search_space))
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_squared_error,
                                             loss_params={'squared': False},
