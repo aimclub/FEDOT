@@ -134,10 +134,9 @@ def _check_nodes_references_correct(graph):
 
 
 def _transform_node(node, primary_class, secondary_class=None, transform_func=None):
-    if not transform_func:
-        return
-    if not secondary_class:
-        secondary_class = primary_class
-    transform_func(node=node,
-                   primary_class=primary_class,
-                   secondary_class=secondary_class)
+    if transform_func:
+        if not secondary_class:
+            secondary_class = primary_class  # if there are no differences between primary and secondary class
+        transform_func(node=node,
+                       primary_class=primary_class,
+                       secondary_class=secondary_class)
