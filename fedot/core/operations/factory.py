@@ -49,8 +49,7 @@ class OperationFactory:
         # Get available models from model_repository.json file
         operations_repo = OperationTypesRepository('data_operation')
         models_operations = operations_repo.operations
-        a = OperationTypesRepository.get_available_repositories()
-        if 'automl' in a:
+        if 'automl' in OperationTypesRepository.get_available_repositories():
             automl_repo = OperationTypesRepository('automl')
             models_automl = automl_repo.operations
         else:
