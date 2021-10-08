@@ -1,6 +1,6 @@
-from fedot.core.data.data import InputData
 from typing import Callable
 from typing import Optional
+import warnings
 from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
@@ -9,37 +9,38 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 class DefaultModelImplementation(ModelImplementation):
     """
-    Implementation of container for custom model
+    Implementation of container for custom model, which is presented as function with input
+    train_data(np.array), test_data(np.array), parameters(dict)
+    into wrappers dictionary {'model': function}
     """
-    def __init__(self, wrappers: dict, params: dict, log: Log = None):
+    def __init__(self, wrappers: dict = None, params: dict = None, log: Log = None):
         super().__init__(log)
         self.wrappers = wrappers
         self.params = params
-        if 'model' not in self.wrappers.keys():
-            raise KeyError('There is no key word "model" for model definition in input dictionary')
+        if not self.wrappers or 'model' not in self.wrappers.keys():
+            warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
         else:
+            if not isinstance(self.model, Callable):
+                raise ValueError('Input model is not Callable')
             self.model = self.wrappers.get('model')
-        if not isinstance(self.model, Callable):
-            raise ValueError('Input model is not Callable')
 
     def fit(self, input_data):
-
         """
         Default implementation does not support fitting,
-        it should be presented inside model parameter
+        it should be presented inside wrappers.model parameter
         """
-        return self.model
+        pass
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         train_data = input_data.features
         target_data = input_data.target
-        if is_fit_pipeline_stage:
-            predict = train_data
-        else:
+        predict = train_data
+        # If custom model has exceptions inviolate train data goes to Output
+        if not is_fit_pipeline_stage:
             try:
                 predict = self.model(train_data, target_data, self.params)
             except Exception as e:
-                raise AttributeError(f'{e}\nInput model has incorrect behaviour. Check type hints model: \
+                warnings.warn(f'{e}\nInput model has incorrect behaviour. Check type hints for model: \
                                       Callable[[np.array, np.array, dict], np.array]')
 
         output_data = self._convert_to_output(input_data,

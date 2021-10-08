@@ -130,7 +130,8 @@
         "CustomDefaultModelStrategy"
       ],
       "tags": [
-        "all_purpose"
+        "all_purpose",
+        "non-default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
     }
@@ -365,7 +366,8 @@
     "default": {
 		"meta": "default_model",
 		"tags": [
-          "all_purpose"
+          "all_purpose",
+          "non-default"
         ]
 	}
   }

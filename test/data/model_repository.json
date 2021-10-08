@@ -64,6 +64,14 @@
 	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
+	},
+    "default_model": {
+		"description": "Implementations of the models specified by user with external code source",
+		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
+		"output_type": "[DataTypesEnum.table]",
+		"strategies": ["fedot.core.operations.evaluation.default","CustomDefaultModelStrategy"],
+		"tags": ["all_purpose", "non-default"],
+		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}
   },
   "operations": {
@@ -179,6 +187,10 @@
     "tfidf": {
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
-    }
+    },
+    "default": {
+		"meta": "default_model",
+		"tags": ["all_purpose", "non-default"]
+	}
   }
 }
