@@ -14,7 +14,6 @@ from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.utils import resample as SklearnResample
 from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
@@ -117,8 +116,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     :param dict params: hyperparameters to fit the operation with
     """
     __operations_by_types = {
-        'resample': SklearnResample,
-
         'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,

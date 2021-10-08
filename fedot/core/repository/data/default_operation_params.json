@@ -90,7 +90,7 @@
     "population_size": 3
   },
   "resample": {
-    "balance": "minority",
+    "balance": "expand_minority",
     "replace": true,
     "n_samples": null
   }
