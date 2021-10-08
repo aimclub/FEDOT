@@ -20,9 +20,9 @@ class DefaultModelImplementation(ModelImplementation):
         if not self.wrappers or 'model' not in self.wrappers.keys():
             warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
         else:
+            self.model = self.wrappers.get('model')
             if not isinstance(self.model, Callable):
                 raise ValueError('Input model is not Callable')
-            self.model = self.wrappers.get('model')
 
     def fit(self, input_data):
         """
