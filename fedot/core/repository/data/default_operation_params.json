@@ -92,6 +92,6 @@
   "resample": {
     "balance": "expand_minority",
     "replace": true,
-    "n_samples": null
+    "n_samples": 0
   }
 }

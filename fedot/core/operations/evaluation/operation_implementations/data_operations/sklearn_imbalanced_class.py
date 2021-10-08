@@ -73,13 +73,13 @@ class ResampleImplementation(DataOperationImplementation):
 
             if len(np.unique(target)) != 2:
                 self.log.info(f"Imbalanced multi-class balancing is not supported.")
-                return self._return_input_data(input_data)
+                return self._return_source_data(input_data)
 
             unique_class, counts_class = np.unique(target, return_counts=True)
 
             if counts_class[0] == counts_class[1]:
                 self.log.info(f"Number of elements from each class are equal. Transformation is not required.")
-                return self._return_input_data(input_data)
+                return self._return_source_data(input_data)
 
             min_data, maj_data = self._get_data_by_target(features, target,
                                                           unique_class[0], unique_class[1],
@@ -90,7 +90,7 @@ class ResampleImplementation(DataOperationImplementation):
             if self.balance == 'expand_minority':
                 min_data = self._resample_data(min_data)
 
-            if self.balance == 'reduce_majority':
+            elif self.balance == 'reduce_majority':
                 maj_data = self._resample_data(maj_data)
 
             transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
@@ -105,7 +105,7 @@ class ResampleImplementation(DataOperationImplementation):
                 supplementary_data=input_data.supplementary_data)
 
         else:
-            output_data = self._return_input_data(input_data)
+            output_data = self._return_source_data(input_data)
 
         return output_data
 
@@ -124,10 +124,10 @@ class ResampleImplementation(DataOperationImplementation):
         return minority_data, majority_data
 
     def _check_and_correct_sample_size(self, min_data, maj_data, log: Log):
-        """ Method check if params are not .. - correct it otherwise
+        """ Method checks if selected values in n_sample are incorrect - correct it otherwise
 
-        :param min_data:
-        :param maj_data:
+        :param min_data: minority data from input data
+        :param maj_data: majority data from input data
         :param log: logger for saving messages
         """
         prefix = "Warning: n_samples was changed"
@@ -151,13 +151,13 @@ class ResampleImplementation(DataOperationImplementation):
         if self.balance == 'expand_minority':
             return maj_data.shape[0]
 
-        if self.balance == 'reduce_majority':
+        elif self.balance == 'reduce_majority':
             return min_data.shape[0]
 
     def _resample_data(self, data):
         return resample(data, replace=self.replace, n_samples=self.n_samples)
 
-    def _return_input_data(self, input_data):
+    def _return_source_data(self, input_data):
         return OutputData(
             idx=input_data.idx,
             features=input_data.features,
