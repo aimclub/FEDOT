@@ -5,9 +5,11 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import (Any, List, Optional)
+from typing import Any, Callable, List, Optional
 from uuid import uuid4
 
+from fedot.core.composer.metrics import QualityMetric
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
@@ -33,13 +35,13 @@ class OptHistory:
     """
 
     def __init__(self, metrics=None, save_folder=None):
-        self.metrics = metrics
-        self.individuals = []
-        self.archive_history = []
+        self.metrics: List[Callable[..., float]] = metrics
+        self.individuals: List[List[Individual]] = []
+        self.archive_history: List[List[Individual]] = []
         self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
-        self.parent_operators = []
-        self.save_folder = save_folder if save_folder \
+        self.parent_operators: List[List[List[ParentOperator]]] = []
+        self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
     def _convert_pipeline_to_template(self, pipeline):
@@ -181,7 +183,7 @@ class OptHistory:
     def all_historical_quality(self):
         if self.is_multi_objective:
             if self.metrics:
-                metric_position = get_metric_position(self.metrics, QualityMetricsEnum)
+                metric_position = get_metric_position(self.metВАrics, QualityMetricsEnum)
             else:
                 metric_position = 0
             all_historical_quality = self.all_historical_fitness[metric_position]
