@@ -173,15 +173,15 @@ def test_forecast_with_exog():
     # Set window size for lagged transformation
     node_lagged.custom_params = {'window_size': window_size}
     # Exogenous variable for exog node
-    node_exog = PrimaryNode('exog_ts_data_source')
+    node_exog = PrimaryNode('exog_ts')
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged, node_exog])
     pipeline = Pipeline(node_final)
 
-    pipeline.fit(input_data=MultiModalData({'exog_ts_data_source': train_exog_ts,
+    pipeline.fit(input_data=MultiModalData({'exog_ts': train_exog_ts,
                                             'lagged': train_source_ts}))
 
-    forecast = pipeline.predict(input_data=MultiModalData({'exog_ts_data_source': predict_exog_ts,
+    forecast = pipeline.predict(input_data=MultiModalData({'exog_ts': predict_exog_ts,
                                                            'lagged': predict_source_ts}))
     prediction = np.ravel(np.array(forecast.predict))
 

@@ -69,7 +69,7 @@ def get_arima_nemo_pipeline():
     """
 
     node_arima = PrimaryNode('arima')
-    node_nemo = PrimaryNode('exog_ts_data_source')
+    node_nemo = PrimaryNode('exog_ts')
     node_final = SecondaryNode('ridge', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -77,7 +77,7 @@ def get_arima_nemo_pipeline():
 
 def return_working_pipeline():
     node_lagged_1 = PrimaryNode('lagged/1')
-    node_exog = PrimaryNode('exog_ts_data_source')
+    node_exog = PrimaryNode('exog_ts')
 
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
     pipeline = Pipeline(node_final)
@@ -141,11 +141,11 @@ print(f'ARIMA MAPE - {mape_before:.4f}\n')
 pipeline = return_working_pipeline()
 train_dataset = MultiModalData({
         'lagged/1': deepcopy(train_input),
-        'exog_ts_data_source': deepcopy(train_input_exog)
+        'exog_ts': deepcopy(train_input_exog)
     })
 predict_dataset = MultiModalData({
         'lagged/1': deepcopy(predict_input),
-        'exog_ts_data_source': deepcopy(predict_input_exog)
+        'exog_ts': deepcopy(predict_input_exog)
     })
 pipeline.fit_from_scratch(train_dataset)
 predicted_values = pipeline.predict(predict_dataset).predict
@@ -166,11 +166,11 @@ print(f'Lagged with nemo MAPE - {mape_before:.4f}\n')
 pipeline = get_arima_nemo_pipeline()
 train_dataset = MultiModalData({
         'arima': deepcopy(train_input),
-        'exog_ts_data_source': deepcopy(train_input_exog)
+        'exog_ts': deepcopy(train_input_exog)
     })
 predict_dataset = MultiModalData({
         'arima': deepcopy(predict_input),
-        'exog_ts_data_source': deepcopy(predict_input_exog)
+        'exog_ts': deepcopy(predict_input_exog)
     })
 pipeline.fit_from_scratch(train_dataset)
 predicted_values = pipeline.predict(predict_dataset).predict

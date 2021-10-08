@@ -88,7 +88,7 @@ class CustomTsTransformingStrategy(EvaluationStrategy):
         'lagged': LaggedTransformationImplementation,
         'sparse_lagged': SparseLaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,
-        'exog_ts_data_source': ExogDataTransformationImplementation,
+        'exog_ts': ExogDataTransformationImplementation,
         'gaussian_filter': GaussianFilterImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

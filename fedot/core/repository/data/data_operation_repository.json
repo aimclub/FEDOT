@@ -206,7 +206,7 @@
 				"non_lagged"
 			]
 		},
-		"exog_ts_data_source": {
+		"exog_ts": {
 			"meta": "custom_time_series_transformation",
 			"tags": [
 				"simple",

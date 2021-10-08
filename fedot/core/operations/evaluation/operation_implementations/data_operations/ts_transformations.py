@@ -197,31 +197,33 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with features as columns
         """
-        parameters = input_data.task.task_params
-        old_idx = input_data.idx
+        copied_data = copy(input_data)
+        parameters = copied_data.task.task_params
+        old_idx = copied_data.idx
         forecast_length = parameters.forecast_length
 
         if is_fit_pipeline_stage is True:
             # Transform features in "target-like way"
             _, _, features_columns = prepare_target(idx=old_idx,
-                                                    features_columns=input_data.features,
-                                                    target=input_data.features,
+                                                    features_columns=copied_data.features,
+                                                    target=copied_data.features,
                                                     forecast_length=forecast_length)
 
             # Transform target
             new_idx, _, new_target = prepare_target(idx=old_idx,
-                                                    features_columns=input_data.features,
-                                                    target=input_data.target,
+                                                    features_columns=copied_data.features,
+                                                    target=copied_data.target,
                                                     forecast_length=forecast_length)
             # Update target for Input Data
-            input_data.target = new_target
-            input_data.idx = new_idx
+            copied_data.target = new_target
+            copied_data.idx = new_idx
         else:
             # Transformation for predict stage of the pipeline
-            features_columns = np.array(input_data.features)
+            features_columns = np.array(copied_data.features)[-forecast_length:]
+            copied_data.idx = copied_data.idx[-forecast_length:]
             features_columns = features_columns.reshape(1, -1)
 
-        output_data = self._convert_to_output(input_data,
+        output_data = self._convert_to_output(copied_data,
                                               features_columns,
                                               data_type=DataTypesEnum.table)
 

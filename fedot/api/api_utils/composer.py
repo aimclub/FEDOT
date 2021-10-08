@@ -133,7 +133,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
                                                          mode='data_operation',
                                                          tags=["non_lagged"])
             # Remove exog data operation from the list
-            ts_data_operations.remove('exog_ts_data_source')
+            ts_data_operations.remove('exog_ts')
 
             primary_operations = ts_data_operations
             secondary_operations = available_operations

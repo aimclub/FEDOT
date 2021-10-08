@@ -50,7 +50,7 @@ def get_arima_nemo_pipeline():
     """
 
     node_arima = PrimaryNode('arima')
-    node_nemo = PrimaryNode('exog_ts_data_source')
+    node_nemo = PrimaryNode('exog_ts')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -65,7 +65,7 @@ def get_stlarima_nemo_pipeline():
 
     node_arima = PrimaryNode('stl_arima')
     node_arima.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
-    node_nemo = PrimaryNode('exog_ts_data_source')
+    node_nemo = PrimaryNode('exog_ts')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -85,7 +85,7 @@ def get_ridge_nemo_pipeline():
     node_lagged_2 = PrimaryNode('lagged/2')
     node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
     node_ridge_3 = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])
-    node_nemo = PrimaryNode('exog_ts_data_source')
+    node_nemo = PrimaryNode('exog_ts')
     node_final = SecondaryNode('linear', nodes_from=[node_ridge_3, node_nemo])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -166,25 +166,25 @@ def run_nemo_based_forecasting(time_series, exog_variable, len_forecast=60, is_v
              'model': get_ridge_pipeline()
              },
         'ARIMA_NEMO':
-            {'tr_nodes_data': {"arima": train_input, "exog_ts_data_source": train_input_exog},
+            {'tr_nodes_data': {"arima": train_input, "exog_ts": train_input_exog},
              'pr_nodes_data': {"arima": predict_input,
-                               "exog_ts_data_source": predict_input_exog},
+                               "exog_ts": predict_input_exog},
              'model': get_arima_nemo_pipeline()
              },
         'STL_ARIMA_NEMO':
             {'tr_nodes_data': {"stl_arima": train_input,
-                               "exog_ts_data_source": train_input_exog},
+                               "exog_ts": train_input_exog},
              'pr_nodes_data': {"stl_arima": predict_input,
-                               "exog_ts_data_source": predict_input_exog},
+                               "exog_ts": predict_input_exog},
              'model': get_stlarima_nemo_pipeline()
              },
         'RIDGE_NEMO':
             {'tr_nodes_data': {"lagged/1": train_input,
                                "lagged/2": train_input,
-                               "exog_ts_data_source": train_input_exog},
+                               "exog_ts": train_input_exog},
              'pr_nodes_data': {"lagged/1": predict_input,
                                "lagged/2": predict_input,
-                               "exog_ts_data_source": predict_input_exog},
+                               "exog_ts": predict_input_exog},
              'model': get_ridge_nemo_pipeline()
              }
     }
