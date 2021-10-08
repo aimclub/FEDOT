@@ -23,21 +23,27 @@ def custom_model_imitation(train_data, test_data, params):
     res = np.random.rand(shape[0], shape[1])*a + b
     return res
 
+
 def get_custom_pipeline():
     """
         Pipeline looking like this
         lagged -> custom -> ridge
     """
-    lagged_node = PrimaryNode('lagged')
+    '''lagged_node = PrimaryNode('lagged')
     lagged_node.custom_params = {'window_size': 50}
     custom_node = SecondaryNode('default', nodes_from=[lagged_node])
-    custom_node.custom_params = {"a": 0, "b": 3}
+    custom_node.custom_params = {"a": -50, "b": 500}
+    custom_node.custom_wrappers = {'model': custom_model_imitation}'''
+
+    custom_node = PrimaryNode('default')
+    custom_node.custom_params = {"a": -50, "b": 500}
     custom_node.custom_wrappers = {'model': custom_model_imitation}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
 
     return pipeline
+
 
 def prepare_input_data(len_forecast, train_data_features, train_data_target,
                        test_data_features):

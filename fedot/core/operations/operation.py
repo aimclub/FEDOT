@@ -74,7 +74,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], wrappers: Union[dict, None], data: InputData,
+    def fit(self, params: Union[str, dict, None],  data: InputData, wrappers: dict = None,
             is_fit_pipeline_stage: bool = True):
         """
         This method is used for defining and running of the evaluation strategy
@@ -91,12 +91,12 @@ class Operation:
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(self.fitted_operation, params, wrappers, data, is_fit_pipeline_stage)
+        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, wrappers, params)
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, params: Union[str, dict, None], wrappers: Union[dict, None], data: InputData,
-                is_fit_pipeline_stage: bool, output_mode: str = 'default'):
+    def predict(self, fitted_operation,  data: InputData, is_fit_pipeline_stage: bool,
+                wrappers: dict = None, params: Union[str, dict, None] = None, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
