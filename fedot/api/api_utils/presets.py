@@ -11,11 +11,11 @@ class ApiPresetHelper:
         """ Function filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
-        excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts_data_source', 'text_clean']
+        excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean']
 
         # TODO remove workaround
         extended_excluded = ['mlp', 'catboost', 'lda', 'qda', 'lgbm',
-                             'svc', 'svr', 'arima', 'exog_ts_data_source', 'text_clean',
+                             'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                              'one_hot_encoding', 'ransac_lin_reg', 'ransac_non_lin_reg']
         excluded_models_dict = {'light': excluded,
                                 'light_tun': excluded,

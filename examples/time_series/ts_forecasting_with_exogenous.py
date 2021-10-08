@@ -29,20 +29,20 @@ def make_forecast(pipeline, train: InputData, predict: InputData,
     # Fit it
     start_time = timeit.default_timer()
 
-    second_node_name = 'exog_ts_data_source'
+    second_node_name = 'exog_ts'
 
     if train_exog is None:
-        second_node_name = 'lagged/2'
+        second_node_name = 'data_source_ts/2'
         train_exog = train
         predict_exog = predict
 
     train_dataset = MultiModalData({
-        'lagged/1': train,
+        'data_source_ts/1': train,
         second_node_name: train_exog,
     })
 
     predict_dataset = MultiModalData({
-        'lagged/1': predict,
+        'data_source_ts/1': predict,
         second_node_name: predict_exog,
     })
 
@@ -95,15 +95,21 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
     if with_exog is True:
         # Example with exogenous time series
-        node_lagged_1 = PrimaryNode('lagged/1')
-        node_exog = PrimaryNode('exog_ts_data_source')
+        node_source = PrimaryNode('data_source_ts/1')
+        node_lagged = SecondaryNode('lagged', nodes_from=[node_source])
 
-        node_final = SecondaryNode('ridge', nodes_from=[node_lagged_1, node_exog])
+        node_exog = PrimaryNode('exog_ts')
+
+        node_final = SecondaryNode('ridge', nodes_from=[node_lagged, node_exog])
         pipeline = Pipeline(node_final)
     else:
         # Simple example without exogenous time series
-        node_lagged_1 = PrimaryNode('lagged/1')
-        node_lagged_2 = PrimaryNode('lagged/2')
+        node_source_1 = PrimaryNode('data_source_ts/1')
+        node_source_2 = PrimaryNode('data_source_ts/2')
+
+        node_lagged_1 = SecondaryNode('lagged', nodes_from=[node_source_1])
+        node_lagged_2 = SecondaryNode('lagged', nodes_from=[node_source_2])
+
         node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
         node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
         node_final = SecondaryNode('ridge', nodes_from=[node_ridge_1, node_ridge_2])

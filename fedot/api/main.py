@@ -31,7 +31,7 @@ class Fedot:
             'max_arity' - max arity of the pipeline nodes
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
-            'timeout':- composing time (minutes)
+            'timeout' - composing time (minutes)
             'available_operations' - list of model names to use
             'with_tuning' - allow huperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
@@ -70,6 +70,9 @@ class Fedot:
             self.composer_dict['problem'],
             self.composer_dict['metric_name'])
         self.composer_dict['tuner_metric'] = self.tuner_metrics
+
+        if timeout is not None:
+            self.composer_dict['timeout'] = timeout
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],

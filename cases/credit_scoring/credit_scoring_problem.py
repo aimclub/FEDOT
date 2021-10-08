@@ -26,7 +26,6 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                timeout: float = 5.0,
                                is_visualise=False,
                                with_tuning=False,
-                               cache_path=None,
                                target='target'):
 
     preset = 'light_tun' if with_tuning else 'light'
@@ -65,5 +64,4 @@ if __name__ == '__main__':
                                full_path_test,
                                timeout=5,
                                is_visualise=True,
-                               with_tuning=True,
-                               cache_path='credit_scoring_problem_cache')
+                               with_tuning=True)

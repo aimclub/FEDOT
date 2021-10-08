@@ -129,7 +129,7 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     # Remove lagged and sparse lagged transformation
     ts_data_operations.remove('lagged')
     ts_data_operations.remove('sparse_lagged')
-    ts_data_operations.remove('exog_ts_data_source')
+    ts_data_operations.remove('exog_ts')
 
     # Dictionary as {'current operation in the node': 'parent operations list'}
     # TODO refactor

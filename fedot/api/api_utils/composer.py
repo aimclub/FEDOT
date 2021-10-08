@@ -133,7 +133,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
                                                          mode='data_operation',
                                                          tags=["non_lagged"])
             # Remove exog data operation from the list
-            ts_data_operations.remove('exog_ts_data_source')
+            ts_data_operations.remove('exog_ts')
 
             primary_operations = ts_data_operations
             secondary_operations = available_operations
@@ -155,9 +155,9 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
             composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
 
         api_params['logger'].message('Composition started. Parameters tuning: {}. ''Set of candidate models: {}. '
-                                     'Composing time limit: {} min'.format(tuning_params['with_tuning'],
-                                                                           composer_params['available_operations'],
-                                                                           api_params['timeout']))
+                                     'Time limit: {} min'.format(tuning_params['with_tuning'],
+                                                                 composer_params['available_operations'],
+                                                                 api_params['timeout']))
 
         primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
                                                                           api_params['task'])

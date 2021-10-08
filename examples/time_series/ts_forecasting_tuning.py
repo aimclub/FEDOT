@@ -122,8 +122,8 @@ def prepare_input_data(len_forecast, train_data_features, train_data_target,
 
     start_forecast = len(train_data_features)
     end_forecast = start_forecast + len_forecast
-    predict_input = InputData(idx=np.arange(0, end_forecast),
-                              features=np.concatenate([train_data_features, test_data_features]),
+    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
+                              features=test_data_features,
                               target=None,
                               task=task,
                               data_type=DataTypesEnum.ts)
