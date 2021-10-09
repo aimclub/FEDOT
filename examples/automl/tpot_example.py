@@ -120,7 +120,6 @@ def tpot_ts_pipeline_evaluation():
 
     print(f'After import {prediction_after_export[:4]}')
 
-
     # Calculate metric
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
