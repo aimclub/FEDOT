@@ -169,8 +169,8 @@ class Node(GraphNode):
         # Update parameters after operation fitting (they can be corrected)
         not_source_node = 'source' not in self.operation.operation_type
         not_atomized_operation = 'atomized' not in self.operation.operation_type
-        is_automl = 'automl' in self.operation.metadata.tags
-        if not_source_node and not_atomized_operation and not is_automl:
+
+        if not_source_node and not_atomized_operation and 'automl' not in self.operation.metadata.tags:
             self.update_params()
         return operation_predict
 
