@@ -14,6 +14,9 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import atomized_model_type
 
 
+
+
+
 class PipelineTemplate:
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods
@@ -260,13 +263,7 @@ class PipelineTemplate:
                    'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
             path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
             if "h2o" in operation_object.operation_type:
-                from fedot.core.operations.evaluation.automl import H2OSerializationWrapper
-                try:
-                    fitted_operation = H2OSerializationWrapper.load_operation(path_to_operation)
-                except EnvironmentError as e:
-                    message = f"This type of H2O pipeline doesn't serializable"
-                    self.log.error(message)
-                    raise EnvironmentError(message)
+                fitted_operation = load_h2o(path, self.log)
 
             elif not os.path.isfile(path_to_operation):
                 message = f"Fitted operation on the path: {path_to_operation} does not exist."
@@ -305,3 +302,13 @@ def extract_subtree_root(root_operation_id: int, pipeline_template: PipelineTemp
     root_node = pipeline_template.roll_pipeline_structure(root_node, {})
 
     return root_node
+
+
+def load_h2o(path_to_operation, log):
+    from fedot.core.operations.evaluation.automl import H2OSerializationWrapper
+    try:
+        return H2OSerializationWrapper.load_operation(path_to_operation)
+    except EnvironmentError as e:
+        message = f"This type of H2O pipeline doesn't serializable"
+        log.error(message)
+        raise EnvironmentError(message)
