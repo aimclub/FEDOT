@@ -2,6 +2,8 @@ import os
 import h2o
 
 class TPOTRegressionSerializationWrapper:
+    """ Wrapper to serialize tpot algorithms.
+    Can be used for classification, multioutput regression and time series forecasting"""
     def __init__(self, estimators):
         self._estimators = estimators
 
@@ -10,7 +12,9 @@ class TPOTRegressionSerializationWrapper:
 
 
 class H2OSerializationWrapper:
-
+""" Wrapper to serialize h2o algorithms.
+    Can be used for classification, multioutput regression and time series forecasting.
+    Unfortunately there are no support for all types of h2o pipelines (for this version)"""
     def __init__(self, estimators):
         self._estimators = estimators
 
