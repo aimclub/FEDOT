@@ -5,7 +5,6 @@ import numpy as np
 
 from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
-from sklearn.multioutput import MultiOutputRegressor
 from tpot import TPOTClassifier, TPOTRegressor
 
 from fedot.core.data.data import InputData, OutputData
@@ -50,7 +49,6 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
                               max_runtime_secs=self.params.get("timeout") // target_len
                               )
             model.train(x=train_columns, y=name, training_frame=train_frame)
-            #            h2o.save_model(model.leader, "./")
             models.append(model.leader)
 
         return H2OSerializationWrapper(models)
@@ -262,7 +260,6 @@ class H2OSerializationWrapper:
     @classmethod
     def load_operation(cls, path_global):
         models = []
-        print(os.listdir(path_global))
         for path in os.listdir(path_global):
             path = os.path.join(path_global, path)
             imported_model = h2o.import_mojo(path)
