@@ -167,10 +167,9 @@ class Node(GraphNode):
                                                        is_fit_pipeline_stage=True)
 
         # Update parameters after operation fitting (they can be corrected)
-        not_source_node = 'source' not in self.operation.operation_type
         not_atomized_operation = 'atomized' not in self.operation.operation_type
 
-        if not_source_node and not_atomized_operation and 'automl' not in self.operation.metadata.tags:
+        if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
             self.update_params()
         return operation_predict
 

@@ -132,14 +132,15 @@
 		},
 		"pca": {
 			"meta": "dimension_transformation",
-			"tags": ["linear", "dimensionality_transforming"]
+			"tags": ["linear", "dimensionality_transforming", "correct_params"]
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
 			"tags": [
 				"non_linear",
 				"dimensionality_transforming",
-				"non-default"
+				"non-default",
+				"correct_params"
 			]
 		},
 		"poly_features": {
@@ -179,7 +180,8 @@
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
-				"non_lagged"
+				"non_lagged",
+				"correct_params"
 			]
 		},
 		"sparse_lagged": {
@@ -187,7 +189,8 @@
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
-				"non_lagged"
+				"non_lagged",
+				"correct_params"
 			]
 		},
 		"smoothing": {

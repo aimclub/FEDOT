@@ -74,3 +74,4 @@ dist/
 
 # test logs
 test/unit/test_log.log
+test/unit/catboost_info
