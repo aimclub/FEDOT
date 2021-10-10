@@ -309,6 +309,6 @@ def load_h2o(path_to_operation, log):
     try:
         return H2OSerializationWrapper.load_operation(path_to_operation)
     except EnvironmentError as e:
-        message = f"This type of H2O pipeline doesn't serializable"
+        message = f"Obtained type of H2O pipeline doesn't serializable"
         log.error(message)
         raise EnvironmentError(message)
