@@ -7,6 +7,8 @@ from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
+from fedot.core.pipelines.automl_wrappers import *
+
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -242,38 +244,3 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
             return self.__operations_by_types[operation_type]
         else:
             raise ValueError(f'Impossible to obtain H2O AutoML Classification Strategy for {operation_type}')
-
-
-class TPOTRegressionSerializationWrapper:
-    def __init__(self, estimators):
-        self._estimators = estimators
-
-    def get_estimators(self):
-        return self._estimators
-
-
-class H2OSerializationWrapper:
-
-    def __init__(self, estimators):
-        self._estimators = estimators
-
-    @classmethod
-    def load_operation(cls, path_global):
-        models = []
-        for path in os.listdir(path_global):
-            path = os.path.join(path_global, path)
-            imported_model = h2o.import_mojo(path)
-            models.append(imported_model)
-        return H2OSerializationWrapper(models)
-
-    def get_estimators(self):
-        return self._estimators
-
-    def save_operation(self, path, operation_id):
-        path = os.path.join(path, f'h2o_{operation_id}')
-        count = 0
-        for model in self._estimators:
-            model_name = f"{count}.zip"
-            model.save_mojo(os.path.join(path, model_name))
-            count += 1
-        return path
