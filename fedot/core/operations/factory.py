@@ -48,7 +48,7 @@ class OperationFactory:
 
         # Get available models from model_repository.json file
         operations_repo = OperationTypesRepository('data_operation')
-        models_operations = operations_repo.operations
+        operations = operations_repo.operations
         if 'automl' in OperationTypesRepository.get_available_repositories():
             automl_repo = OperationTypesRepository('automl')
             models_automl = automl_repo.operations
@@ -58,7 +58,7 @@ class OperationFactory:
         operation_name = get_operation_type_from_id(self.operation_name)
 
         # If there is a such model in the list
-        if any(operation_name == model.id for model in models_operations):
+        if any(operation_name == model.id for model in operations):
             operation_type = 'data_operation'
         elif any(operation_name == model.id for model in models_automl):
             operation_type = 'automl'
