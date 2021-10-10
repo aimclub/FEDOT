@@ -1,11 +1,8 @@
 import os
 from datetime import timedelta
 
-import pytest
-
-from examples.pipeline_from_automl import run_pipeline_from_automl
-from examples.tpot_vs_fedot import run_tpot_vs_fedot_example
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from examples.autoML.pipeline_from_automl import run_pipeline_from_automl
+from examples.autoML.tpot_vs_fedot import run_tpot_vs_fedot_example
 from fedot.core.utils import fedot_project_root
 
 
