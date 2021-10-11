@@ -107,6 +107,8 @@ class OperationTypesRepository:
 
     def __exit__(self, type, value, traceback):
         self.repo_path = None
+        default_model_repo_file = OperationTypesRepository.__repository_dict__['model']['file']
+        OperationTypesRepository.assign_repo('model', default_model_repo_file)
 
     def __repr__(self):
         return f"{self.__class__.__name__} for {self.repository_name}"

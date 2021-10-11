@@ -14,9 +14,6 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import atomized_model_type
 
 
-
-
-
 class PipelineTemplate:
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods

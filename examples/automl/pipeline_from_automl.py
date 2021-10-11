@@ -41,8 +41,7 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
         roc_auc_value = roc_auc(y_true=testing_target,
                                 y_score=results.predict)
         print(roc_auc_value)
-
-        return roc_auc_value
+    return roc_auc_value
 
 
 if __name__ == '__main__':
