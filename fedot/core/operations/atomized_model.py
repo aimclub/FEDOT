@@ -19,7 +19,7 @@ class AtomizedModel(Operation):
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
 
-    def fit(self, params: Optional[Union[str, dict]], data: InputData, wrappers: dict = None,
+    def fit(self, params: Optional[Union[str, dict]], data: InputData,
             is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):
 
@@ -28,9 +28,8 @@ class AtomizedModel(Operation):
 
         return fitted_atomized_operation, predicted_train
 
-    def predict(self, fitted_operation, data: InputData,
-                is_fit_pipeline_stage: bool = False, wrappers: dict = None,
-                params: Union[str, dict, None] = None, output_mode: str = 'default', ):
+    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool = False,
+                params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
         prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
 
         return prediction

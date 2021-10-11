@@ -12,13 +12,11 @@ class CustomDefaultModelStrategy(EvaluationStrategy):
     :param str operation_type: rudimentary of parent - type of the operation defined in operation or
            data operation repositories
     :param dict params: hyperparameters to fit the model with
-    :param wrappers: additional parameters for model implementation
     """
 
-    def __init__(self, operation_type: Optional[str], params: dict = None, wrappers: dict = None):
+    def __init__(self, operation_type: Optional[str], params: dict = None):
         super().__init__(operation_type, params)
-        self.wrappers = wrappers
-        self.operation_impl = DefaultModelImplementation(self.wrappers, params)
+        self.operation_impl = DefaultModelImplementation(params)
 
     def fit(self, train_data: InputData):
         """ This strategy does not support fitting the operation"""
