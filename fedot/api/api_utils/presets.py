@@ -15,7 +15,7 @@ class OperationPreset:
         based on defined preset
         """
         if self.preset is None and 'preset' in composer_params:
-            preset = composer_params['preset']
+            self.preset = composer_params['preset']
 
         if 'preset' in composer_params:
             del composer_params['preset']
