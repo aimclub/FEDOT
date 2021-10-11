@@ -28,7 +28,8 @@ class DefaultModelImplementation(ModelImplementation):
 
             # init model
             if 'model' not in self.params.keys():
-                warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
+                warnings.warn('There is no key word "model" for model definition in input dictionary. '
+                              'Model set to None')
             else:
                 self.model = self.params.get('model')
                 if not isinstance(self.model, Callable):
