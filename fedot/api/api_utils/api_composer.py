@@ -187,7 +187,7 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
                                                                           MutationTypesEnum.single_add],
                                                           crossover_types=[CrossoverTypesEnum.one_point,
                                                                            CrossoverTypesEnum.subtree],
-                                                          history_folder=composer_params['history_folder'])
+                                                          history_folder=composer_params.get('history_folder'))
 
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,
