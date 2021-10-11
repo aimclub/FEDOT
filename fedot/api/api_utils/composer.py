@@ -61,7 +61,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
 
         composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                     available_operations=None, composer_metric=None, validation_blocks=None,
-                                    cv_folds=None, genetic_scheme=None)
+                                    cv_folds=None, genetic_scheme=None, history_folder=None)
 
         tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 
@@ -187,7 +187,8 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
                                                                           MutationTypesEnum.single_drop,
                                                                           MutationTypesEnum.single_add],
                                                           crossover_types=[CrossoverTypesEnum.one_point,
-                                                                           CrossoverTypesEnum.subtree])
+                                                                           CrossoverTypesEnum.subtree],
+                                                          history_folder=composer_params['history_folder'])
 
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,
