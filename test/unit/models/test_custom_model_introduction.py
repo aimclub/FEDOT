@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -55,7 +56,8 @@ def get_starting_pipeline(with_params=True, with_wrappers=True):
 
 
 def get_input_data():
-    df = pd.read_csv('../../data/simple_sea_level.csv')
+    test_file_path = str(os.path.dirname(__file__))
+    df = pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv'))
     time_series = np.array(df['Level'])
     len_forecast = 50
     train_data = time_series[:-len_forecast]
