@@ -1,5 +1,4 @@
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
-from fedot.core.repository.tasks import Task
 
 
 class OperationPreset:
