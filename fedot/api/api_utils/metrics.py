@@ -13,7 +13,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import probs_to_labels
 
 
-class ApiMetricsHelper():
+class ApiMetrics():
 
     def get_tuner_metrics_mapping(self,
                                   metric_name):

@@ -100,7 +100,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
 
 
 if __name__ == '__main__':
-    # run_classification_example()
+    run_classification_example()
     run_regression_example()
-    # run_ts_forecasting_example()
-    # run_classification_multiobj_example()
+    run_ts_forecasting_example()
+    run_classification_multiobj_example()

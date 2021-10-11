@@ -53,7 +53,7 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_chain: Pipeline = None):
+                 initial_pipeline: Pipeline = None):
 
         self.helper = ApiFacade(**{'problem': problem,
                                    'preset': preset,
@@ -62,7 +62,7 @@ class Fedot:
                                    'task_params': task_params,
                                    'seed': seed,
                                    'verbose_level': verbose_level,
-                                   'initial_chain': initial_chain})
+                                   'initial_pipeline': initial_pipeline})
 
         self.composer_dict = self.helper.initialize_params()
         self.composer_dict['current_model'] = None

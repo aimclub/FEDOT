@@ -6,7 +6,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.api.api_utils.presets import ApiPresetHelper
 
 
-class ApiParamsHelper:
+class ApiParams:
 
     def __init__(self):
         self.default_forecast_length = 30

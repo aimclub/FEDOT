@@ -5,8 +5,8 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
 
-from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptionsHelper
-from fedot.api.api_utils.metrics import ApiMetricsHelper
+from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
+from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -25,7 +25,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
-class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
+class ApiComposer(ApiMetrics, ApiInitialAssumptions):
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
