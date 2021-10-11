@@ -3,7 +3,7 @@ import numpy as np
 
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.api.api_utils.presets import ApiPresetHelper
+from fedot.api.api_utils.presets import OperationPreset
 
 
 class ApiParams:
@@ -90,10 +90,8 @@ class ApiParams:
 
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
-        preset_model = ApiPresetHelper()
-        self.api_params = preset_model.get_preset(task=self.task,
-                                                  preset=input_params['preset'],
-                                                  composer_params=self.api_params)
+        preset_operations = OperationPreset(task=self.task, preset=input_params['preset'])
+        self.api_params = preset_operations.get_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
             'logger': self.log,

@@ -61,7 +61,8 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout=N
     task_parameters = TsForecastingParams(forecast_length=forecast_length)
 
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=timeout)
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=timeout,
+                  preset='ts_tun')
 
     # run AutoML model design in the same way
     pipeline = model.fit(features=train_data_path, target='target')
