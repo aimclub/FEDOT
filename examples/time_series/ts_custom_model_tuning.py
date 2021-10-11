@@ -14,11 +14,11 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def custom_model_imitation(train_data, test_data, params):
-    #TODO real custom model or more realistic imitation
+    # TODO real custom model or more realistic imitation
     a = params.get('a')
     b = params.get('b')
     shape = train_data.shape
-    result = np.random.rand(shape[0], shape[1])*a + b
+    result = np.random.rand(*shape) * a + b
     return result
 
 
@@ -33,12 +33,14 @@ def get_simple_pipeline():
     # For custom model params as initial approximation and wrappers with custom model as function is necessary
     custom_node = SecondaryNode('default', nodes_from=[lagged_node])
     custom_node.custom_params = {"a": -50, "b": 500}
-    custom_node.custom_wrappers = {'model': custom_model_imitation}
+    custom_node.custom_wrappers = {'model': custom_model_imitation,
+                                   'output_type': 'table'}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
 
     return pipeline
+
 
 def prepare_input_data(len_forecast, train_data_features, train_data_target,
                        test_data_features):

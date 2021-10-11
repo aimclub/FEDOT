@@ -9,16 +9,24 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 class DefaultModelImplementation(ModelImplementation):
     """
-    Implementation of container for custom model, which is presented as function with input
-    train_data(np.array), test_data(np.array), parameters(dict)
-    into wrappers dictionary {'model': function}
+    Implementation of container for custom model, which is presented as function with
+    input train_data(np.array), test_data(np.array), parameters(dict)
+    output type specification DataTypesEnum
+    into wrappers dictionary {'model': function, 'output_type': 'table'}
     """
     def __init__(self, wrappers: dict = None, params: dict = None, log: Log = None):
         super().__init__(log)
         self.wrappers = wrappers
         self.params = params
+        if 'output_type' not in self.wrappers.keys():
+            self.output_type = DataTypesEnum.table
+        else:
+            self.output_type = DataTypesEnum[self.wrappers.get('output_type')]
+
         if not self.wrappers or 'model' not in self.wrappers.keys():
             warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
+        if not self.params:
+            warnings.warn('There is no specified parameters for custom model! Skip node.')
         else:
             self.model = self.wrappers.get('model')
             if not isinstance(self.model, Callable):
@@ -45,7 +53,7 @@ class DefaultModelImplementation(ModelImplementation):
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
-                                              data_type=DataTypesEnum.table)
+                                              data_type=self.output_type)
         return output_data
 
     def get_params(self):
