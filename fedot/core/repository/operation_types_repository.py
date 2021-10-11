@@ -52,14 +52,31 @@ class OperationTypesRepository:
 
     __repository_dict__ = {
         'model': {'file': 'model_repository.json', 'initialized_repo': None},
-        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None}
+        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None},
+        'automl': {'file': 'automl_repository.json', 'initialized_repo': None}
+
     }
 
     def __init__(self, operation_type: str = 'model'):
         self._tags_excluded_by_default = ['non-default', 'expensive']
         OperationTypesRepository.init_default_repositories()
+
         self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
         self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+
+    @classmethod
+    def get_available_repositories(cls):
+        operation_types = []
+        for t in cls.__repository_dict__:
+            if cls.__repository_dict__[t]['initialized_repo'] is not None:
+                operation_types.append(t)
+        return operation_types
+
+    @classmethod
+    @run_once
+    def init_automl_repository(cls):  # TODO вставить этот метод в общую логику
+        default_automl_repo_file = cls.__repository_dict__['automl']['file']
+        return cls.assign_repo('automl', default_automl_repo_file)
 
     @classmethod
     @run_once
@@ -74,7 +91,7 @@ class OperationTypesRepository:
 
     @classmethod
     def assign_repo(cls, operation_type: str, repo_file: str):
-        if operation_type not in ['model', 'data_operation']:
+        if operation_type not in cls.__repository_dict__:
             raise Warning(f'The {operation_type} is not supported. The model type will be set')
 
         repo_path = create_repository_path(repo_file)
@@ -90,6 +107,8 @@ class OperationTypesRepository:
 
     def __exit__(self, type, value, traceback):
         self.repo_path = None
+        default_model_repo_file = OperationTypesRepository.__repository_dict__['model']['file']
+        OperationTypesRepository.assign_repo('model', default_model_repo_file)
 
     def __repr__(self):
         return f"{self.__class__.__name__} for {self.repository_name}"

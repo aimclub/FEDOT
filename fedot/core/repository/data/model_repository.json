@@ -198,13 +198,15 @@
     "knn": {
       "meta": "custom_class",
       "tags": [
-        "simple"
+        "simple",
+        "correct_params"
       ]
     },
     "knnreg": {
       "meta": "custom_regr",
       "tags": [
-        "simple"
+        "simple",
+        "correct_params"
       ]
     },
     "lasso": {

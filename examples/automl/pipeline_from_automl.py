@@ -20,28 +20,27 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
 
     :return roc_auc_value: ROC AUC metric for pipeline
     """
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
+    with OperationTypesRepository.init_automl_repository() as _:
+        train_data = InputData.from_csv(train_file_path)
+        test_data = InputData.from_csv(test_file_path)
 
-    testing_target = test_data.target
+        testing_target = test_data.target
 
-    node_scaling = PrimaryNode('scaling')
-    node_tpot = PrimaryNode('tpot')
+        node_scaling = PrimaryNode('scaling')
+        node_tpot = PrimaryNode('tpot_class')
 
-    node_tpot.operation.params = {'max_run_time_sec': max_run_time.seconds}
+        node_tpot.custom_params = {'timeout': max_run_time.seconds}
 
-    node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
-    node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])
-    OperationTypesRepository.assign_repo('model', 'automl_repository.json')
-    pipeline = Pipeline(node_rf)
+        node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
+        node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])
+        pipeline = Pipeline(node_rf)
 
-    pipeline.fit(train_data)
-    results = pipeline.predict(test_data)
+        pipeline.fit(train_data)
+        results = pipeline.predict(test_data)
 
-    roc_auc_value = roc_auc(y_true=testing_target,
-                            y_score=results.predict)
-    print(roc_auc_value)
-
+        roc_auc_value = roc_auc(y_true=testing_target,
+                                y_score=results.predict)
+        print(roc_auc_value)
     return roc_auc_value
 
 

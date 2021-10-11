@@ -36,7 +36,7 @@ def create_correct_path(path: str, dirname_flag: bool = False):
     return last_el
 
 
-def run_import_export_example(pipeline_path):
+def run_import_export_example(pipeline_path, pipeline):
     features_options = {'informative': 1, 'bias': 0.0}
     samples_amount = 100
     features_amount = 2
@@ -61,7 +61,6 @@ def run_import_export_example(pipeline_path):
                               data_type=DataTypesEnum.table)
 
     # Get pipeline and fit it
-    pipeline = get_pipeline()
     pipeline.fit_from_scratch(train_input)
 
     predicted_output = pipeline.predict(predict_input)
@@ -92,4 +91,4 @@ def run_import_export_example(pipeline_path):
 
 
 if __name__ == '__main__':
-    run_import_export_example(pipeline_path='import_export')
+    run_import_export_example(pipeline_path='import_export', pipeline=get_pipeline())

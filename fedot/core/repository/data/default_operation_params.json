@@ -68,5 +68,25 @@
     "teacher_forcing": 0.8,
     "optimizer": "adam",
     "loss": "mse"
+  },
+  "h2o_regr": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "h2o_class": {
+    "timeout": 20,
+    "seed": 42,
+    "max_models": 3
+  },
+  "tpot_class": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
+  },
+  "tpot_regr": {
+    "timeout": 2,
+    "generations": 3,
+    "population_size": 3
   }
 }

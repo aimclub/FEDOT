@@ -1,27 +1,103 @@
 {
   "base_repository": "model_repository.json",
   "metadata": {
-	"automl": {
-      "description": "Implementations of the regression and classification AutoML models from the H2O and TPOT frameworks",
+    "tpot_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of tpot AutoMl classification models",
       "forbidden_node_types": "[]",
       "input_type": "[DataTypesEnum.table]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.old_strategies",
-        "AutoMlStrategy"
+        "fedot.core.operations.evaluation.automl",
+        "TPOTAutoMLClassificationStrategy"
       ],
       "tags": [
-        "expensive",
         "automl",
-        "non-default"
+        "custom"
       ],
-      "tasks": "[TaskTypesEnum.classification, TaskTypesEnum.regression]"
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+    "tpot_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of tpot AutoMl models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "TPOTAutoMLRegressionStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
+    },
+    "h2o_regr": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of h2o regression AutoMl models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "H2OAutoMLRegressionStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
+    },
+    "h2o_class": {
+      "accepted_node_types": [
+        "any"
+      ],
+      "description": "Implementations of h2o classifier AutoMl models",
+      "forbidden_node_types": "[]",
+      "input_type": "[DataTypesEnum.table]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.automl",
+        "H2OAutoMLClassificationStrategy"
+      ],
+      "tags": [
+        "automl",
+        "custom"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
     }
   },
   "operations": {
-	"tpot": {
-      "meta": "automl",
-	  "tags": ["automl", "non-default"]
+    "h2o_regr": {
+      "meta": "h2o_regr",
+      "tags": [
+        "automl"
+      ]
+    },
+    "h2o_class": {
+      "meta": "h2o_class",
+      "tags": [
+        "automl"
+      ]
+    },
+    "tpot_regr": {
+      "meta": "tpot_regr",
+      "tags": [
+        "automl"
+      ]
+    },
+    "tpot_class": {
+      "meta": "tpot_class",
+      "tags": [
+        "automl"
+      ]
     }
   }
 }
