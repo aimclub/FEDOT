@@ -1,7 +1,7 @@
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 
 
-class OperationPreset:
+class OperationsPreset:
     """ Class for presets processing. Preset is a set of operations (data operations
     and models), which will be used during pipeline structure search
     """
@@ -10,7 +10,7 @@ class OperationPreset:
         self.task = task
         self.preset = preset
 
-    def get_preset(self, composer_params: dict):
+    def paste_preset_operations(self, composer_params: dict):
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
@@ -61,7 +61,6 @@ class OperationPreset:
                                     'ridge', 'linear', 'lasso', 'dtreg', 'decompose']
 
         if self.preset == 'gpu':
-            # OperationTypesRepository.assign_repo('model', 'gpu_models_repository.json')
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
             available_operations = repository.suitable_operation(task_type=self.task.task_type)
 

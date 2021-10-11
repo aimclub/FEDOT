@@ -83,7 +83,7 @@ class OptHistory:
             print(f'Cannot add to archive history: {ex}')
 
     def write_composer_history_to_csv(self, file='history.csv'):
-        if '/' in self.save_folder:
+        if '/' in self.save_folder or '\\' in self.save_folder:
             # Defined path is full - there is no need to use default dir
             history_dir = self.save_folder
         else:
