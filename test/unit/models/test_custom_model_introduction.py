@@ -22,33 +22,34 @@ def custom_model_imitation(train_data, _, params):
     return result
 
 
-def get_centered_pipeline(with_params=True, with_wrappers=True) -> Pipeline:
+def get_centered_pipeline(with_params=True) -> Pipeline:
     """
         lagged -> custom -> ridge
     """
     lagged_node = PrimaryNode('lagged')
     custom_node = SecondaryNode('default', nodes_from=[lagged_node])
     if with_params:
-        custom_node.custom_params = {"a": -50, "b": 500}
-    if with_wrappers:
-        custom_node.custom_wrappers = {'model': custom_model_imitation}
+        custom_node.custom_params = {"a": -50,
+                                     "b": 500,
+                                     'model': custom_model_imitation,
+                                     'output_type': 'table'}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
     return pipeline
 
 
-def get_starting_pipeline(with_params=True, with_wrappers=True):
+def get_starting_pipeline(with_params=True):
     """
         custom -> lagged -> ridge
     """
 
     custom_node = PrimaryNode('default')
     if with_params:
-        custom_node.custom_params = {"a": -50, "b": 500}
-    if with_wrappers:
-        custom_node.custom_wrappers = {'model': custom_model_imitation,
-                                       'output_type': 'ts'}
+        custom_node.custom_params = {"a": -50,
+                                     "b": 500,
+                                     'model': custom_model_imitation,
+                                     'output_type': 'ts'}
     lagged_node = SecondaryNode('lagged', nodes_from=[custom_node])
     node_final = SecondaryNode('ridge', nodes_from=[lagged_node])
     pipeline = Pipeline(node_final)

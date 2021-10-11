@@ -12,25 +12,27 @@ class DefaultModelImplementation(ModelImplementation):
     Implementation of container for custom model, which is presented as function with
     input train_data(np.array), test_data(np.array), parameters(dict)
     output type specification DataTypesEnum
-    into wrappers dictionary {'model': function, 'output_type': 'table'}
+    into parameters dictionary {'model': function, 'output_type': 'table'}
     """
-    def __init__(self, wrappers: dict = None, params: dict = None, log: Log = None):
+    def __init__(self, params: dict = None, log: Log = None):
         super().__init__(log)
-        self.wrappers = wrappers
         self.params = params
-        if not self.wrappers or 'output_type' not in self.wrappers.keys():
-            self.output_type = DataTypesEnum.table
-        else:
-            self.output_type = DataTypesEnum[self.wrappers.get('output_type')]
-
-        if not self.wrappers or 'model' not in self.wrappers.keys():
-            warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
         if not self.params:
             warnings.warn('There is no specified parameters for custom model! Skip node.')
         else:
-            self.model = self.wrappers.get('model')
-            if not isinstance(self.model, Callable):
-                raise ValueError('Input model is not Callable')
+            # init output_type
+            if 'output_type' not in self.params.keys():
+                self.output_type = DataTypesEnum.table
+            else:
+                self.output_type = DataTypesEnum[self.params.get('output_type')]
+
+            # init model
+            if 'model' not in self.params.keys():
+                warnings.warn('There is no key word "model" for model definition in input dictionary. Model set to None')
+            else:
+                self.model = self.params.get('model')
+                if not isinstance(self.model, Callable):
+                    raise ValueError('Input model is not Callable')
 
     def fit(self, input_data):
         """

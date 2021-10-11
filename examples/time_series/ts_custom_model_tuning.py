@@ -32,9 +32,7 @@ def get_simple_pipeline():
 
     # For custom model params as initial approximation and wrappers with custom model as function is necessary
     custom_node = SecondaryNode('default', nodes_from=[lagged_node])
-    custom_node.custom_params = {"a": -50, "b": 500}
-    custom_node.custom_wrappers = {'model': custom_model_imitation,
-                                   'output_type': 'table'}
+    custom_node.custom_params = {"a": -50, "b": 500, 'model': custom_model_imitation, 'output_type': 'table'}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -90,8 +88,11 @@ def run_pipeline_tuning(time_series, len_forecast):
     predicted_before_tuning = pipeline.predict(predict_input).predict
 
     # Setting custom search space for tuner (necessary)
+    # model and output_type should be wrapped into hyperopt
     custom_search_space = {'default': {'a': (hp.uniform, [-100, 100]),
-                                       'b': (hp.uniform, [0, 1000])}}
+                                       'b': (hp.uniform, [0, 1000]),
+                                       'model': (hp.choice, [[custom_model_imitation]]),
+                                       'output_type': (hp.choice, [['table']])}}
     replace_default_search_space = True
     pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                    task=task,
