@@ -1,4 +1,4 @@
-from fedot.api.api_utils.composer import ApiComposer
+from fedot.api.api_utils.api_composer import ApiComposer
 from ..api.test_main_api import get_dataset
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.log import default_log

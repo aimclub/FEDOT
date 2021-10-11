@@ -83,7 +83,11 @@ class OptHistory:
             print(f'Cannot add to archive history: {ex}')
 
     def write_composer_history_to_csv(self, file='history.csv'):
-        history_dir = os.path.join(default_fedot_data_dir(), self.save_folder)
+        if '/' in self.save_folder:
+            # Defined path is full - there is no need to use default dir
+            history_dir = self.save_folder
+        else:
+            history_dir = os.path.join(default_fedot_data_dir(), self.save_folder)
         file = os.path.join(history_dir, file)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)

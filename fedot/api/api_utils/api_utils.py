@@ -2,7 +2,7 @@ from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 import pandas as pd
 from fedot.core.data.data import OutputData
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.composer import ApiComposer
+from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.data import ApiDataHelper
 
