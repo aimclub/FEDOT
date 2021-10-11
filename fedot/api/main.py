@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -268,7 +269,8 @@ class Fedot:
                 metric_cls = MetricsRepository().metric_class_by_id(
                     self.helper.get_composer_metrics_mapping(metric_name))
 
-                prediction = self.prediction
+                prediction = deepcopy(self.prediction)
+                real = deepcopy(self.test_data)
                 real.target, prediction.predict = self.helper.check_prediction_shape(
                     task=self.composer_dict['task'].task_type,
                     metric_name=metric_name,

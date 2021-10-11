@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
                              roc_auc_score)
@@ -78,16 +80,14 @@ class ApiMetricsHelper():
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
         if metric_name == 'roc_auc' and len(prediction.predict.shape) == 1:
-            if real.num_classes == 2:
-                prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
-            else:
+            if real.num_classes != 2:
                 real.target, prediction.predict = self.multiclass_roc_auc_score(real.target,
                                                                                 prediction.predict)
-        elif metric_name == 'f1' and len(prediction.predict.shape) > len(real.target.shape):
-            prediction.predict = probs_to_labels(prediction.predict)
-        else:
-            pass
-
+        elif metric_name == 'f1':
+            if len(prediction.predict.shape) > len(real.target.shape):
+                prediction.predict = probs_to_labels(prediction.predict)
+            elif real.num_classes == 2:
+                prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
         return real.target, prediction.predict
 
     def multiclass_roc_auc_score(self,
@@ -100,4 +100,4 @@ class ApiMetricsHelper():
         return truth, pred
 
     def convert_to_two_classes(self, predict):
-        return np.vstack([1-predict, predict]).transpose()
+        return np.vstack([1 - predict, predict]).transpose()
