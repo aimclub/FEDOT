@@ -18,7 +18,7 @@ class DefaultModelImplementation(ModelImplementation):
         super().__init__(log)
         self.wrappers = wrappers
         self.params = params
-        if 'output_type' not in self.wrappers.keys():
+        if not self.wrappers or 'output_type' not in self.wrappers.keys():
             self.output_type = DataTypesEnum.table
         else:
             self.output_type = DataTypesEnum[self.wrappers.get('output_type')]
