@@ -25,9 +25,10 @@ class CustomModelImplementation(ModelImplementation):
                 warnings.warn('There is no key word "model" for model definition in input dictionary. '
                               'Model set to None')
             else:
-                self.model = self.params.get('model')
-                if not isinstance(self.model, Callable):
-                    raise ValueError('Input model is not Callable')
+                if self.params['model']:
+                    self.model = self.params.get('model')
+                    if not isinstance(self.model, Callable):
+                        raise ValueError('Input model is not Callable')
 
     def fit(self, input_data):
         """
