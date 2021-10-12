@@ -7,13 +7,12 @@ from sklearn.preprocessing import LabelBinarizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
-                                                              ComplexityMetricsEnum, MetricsRepository,
-                                                              RegressionMetricsEnum)
+                                                              ComplexityMetricsEnum, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import probs_to_labels
 
 
-class ApiMetricsHelper():
+class ApiMetrics:
 
     def get_tuner_metrics_mapping(self,
                                   metric_name):
