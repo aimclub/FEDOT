@@ -10,43 +10,12 @@ class ApiParams:
 
     def __init__(self):
         self.default_forecast_length = 30
-        return
-
-    def get_default_evo_params(self, problem: str):
-        """ Dictionary with default parameters for composer """
-        params = {'max_depth': 3,
-                  'max_arity': 4,
-                  'pop_size': 20,
-                  'num_of_generations': 20,
-                  'timeout': 2,
-                  'with_tuning': False,
-                  'preset': 'light_tun',
-                  'genetic_scheme': None,
-                  'history_folder': None}
-
-        if problem in ['classification', 'regression']:
-            params['cv_folds'] = 3
-        return params
-
-    def get_default_metric(self, problem: str):
-        default_test_metric_dict = {
-            'regression': ['rmse', 'mae'],
-            'classification': ['roc_auc', 'f1'],
-            'multiclassification': 'f1',
-            'clustering': 'silhouette',
-            'ts_forecasting': ['rmse', 'mae']
-        }
-        return default_test_metric_dict[problem]
-
-    def get_task_params(self,
-                        problem,
-                        task_params):
-        task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
-                     'classification': Task(TaskTypesEnum.classification, task_params=task_params),
-                     'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),
-                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
-                     }
-        return task_dict[problem]
+        self.api_params = None
+        self.log = None
+        self.task = None
+        self.metric_to_compose = None
+        self.task_params = None
+        self.metric_name = None
 
     def check_input_params(self, **input_params):
         self.metric_to_compose = None
@@ -90,8 +59,8 @@ class ApiParams:
 
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
-        preset_operations = OperationsPreset(task=self.task, preset=input_params['preset'])
-        self.api_params = preset_operations.paste_preset_operations(composer_params=self.api_params)
+        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
+        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
             'logger': self.log,
@@ -100,3 +69,41 @@ class ApiParams:
         }
 
         return {**param_dict, **self.api_params}
+
+    @staticmethod
+    def get_default_evo_params(problem: str):
+        """ Dictionary with default parameters for composer """
+        params = {'max_depth': 3,
+                  'max_arity': 4,
+                  'pop_size': 20,
+                  'num_of_generations': 20,
+                  'timeout': 2,
+                  'with_tuning': False,
+                  'preset': 'light_tun',
+                  'genetic_scheme': None,
+                  'history_folder': None}
+
+        if problem in ['classification', 'regression']:
+            params['cv_folds'] = 3
+        return params
+
+    @staticmethod
+    def get_default_metric(problem: str):
+        default_test_metric_dict = {
+            'regression': ['rmse', 'mae'],
+            'classification': ['roc_auc', 'f1'],
+            'multiclassification': 'f1',
+            'clustering': 'silhouette',
+            'ts_forecasting': ['rmse', 'mae']
+        }
+        return default_test_metric_dict[problem]
+
+    @staticmethod
+    def get_task_params(problem, task_params):
+        """ Return task parameters by machine learning task """
+        task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
+                     'classification': Task(TaskTypesEnum.classification, task_params=task_params),
+                     'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),
+                     'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
+                     }
+        return task_dict[problem]
