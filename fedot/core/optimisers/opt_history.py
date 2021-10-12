@@ -200,6 +200,9 @@ class OptHistory:
     def _get_save_path(self):
         if os.path.sep in self.save_folder:
             # Defined path is full - there is no need to use default dir
+            # Create folder if it's not exists
+            if os.path.isdir(self.save_folder) is False:
+                os.makedirs(self.save_folder)
             return self.save_folder
         else:
             return os.path.join(default_fedot_data_dir(), self.save_folder)

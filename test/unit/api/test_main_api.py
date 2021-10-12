@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+import shutil
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -308,3 +309,19 @@ def test_unshaffled_data():
     auto_model = Fedot(problem=problem, seed=42, composer_params={**{'metric': 'f1'}, **composer_params})
     pipeline = auto_model.fit(features=features, target=target)
     assert pipeline is not None
+
+
+def test_custom_history_folder_define_correct():
+    train_data, test_data, _ = get_dataset('ts_forecasting')
+
+    custom_path = os.path.join(os.path.abspath(os.getcwd()), 'history_folder')
+
+    model = Fedot(problem='ts_forecasting', composer_params={'history_folder': custom_path,
+                                                             'max_depth': 1, 'max_arity': 2,
+                                                             'timeout': 0.1},
+                  task_params=TsForecastingParams(forecast_length=5))
+
+    model.fit(features=train_data)
+
+    assert len(os.listdir(custom_path)) != 0
+    shutil.rmtree(custom_path)
