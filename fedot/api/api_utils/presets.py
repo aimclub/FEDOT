@@ -58,7 +58,8 @@ class OperationsPreset:
         elif self.preset in ['ts', 'ts_tun']:
             # Presets for time series forecasting
             available_operations = ['lagged', 'sparse_lagged', 'ar', 'gaussian_filter', 'smoothing',
-                                    'ridge', 'linear', 'lasso', 'dtreg', 'decompose']
+                                    'ridge', 'linear', 'lasso', 'dtreg', 'knnreg', 'scaling', 'normalization',
+                                    'pca']
 
         if self.preset == 'gpu':
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')

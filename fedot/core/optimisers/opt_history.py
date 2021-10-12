@@ -83,11 +83,7 @@ class OptHistory:
             print(f'Cannot add to archive history: {ex}')
 
     def write_composer_history_to_csv(self, file='history.csv'):
-        if '/' in self.save_folder or '\\' in self.save_folder:
-            # Defined path is full - there is no need to use default dir
-            history_dir = self.save_folder
-        else:
-            history_dir = os.path.join(default_fedot_data_dir(), self.save_folder)
+        history_dir = self._get_save_path()
         file = os.path.join(history_dir, file)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)
@@ -120,7 +116,7 @@ class OptHistory:
 
     def save_current_results(self, path: Optional[str] = None):
         if not path:
-            path = os.path.join(default_fedot_data_dir(), self.save_folder)
+            path = self._get_save_path()
         try:
             last_gen_id = len(self.individuals) - 1
             last_gen = self.individuals[last_gen_id]
@@ -200,3 +196,10 @@ class OptHistory:
     @property
     def is_multi_objective(self):
         return type(self.individuals[0][0].fitness) is MultiObjFitness
+
+    def _get_save_path(self):
+        if '/' in self.save_folder or '\\' in self.save_folder:
+            # Defined path is full - there is no need to use default dir
+            return self.save_folder
+        else:
+            return os.path.join(default_fedot_data_dir(), self.save_folder)
