@@ -104,7 +104,6 @@ def test_api_predict_correct(task_type: str = 'classification'):
     fedot_model = model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
-
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0

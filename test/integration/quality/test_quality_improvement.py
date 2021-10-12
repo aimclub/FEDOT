@@ -19,7 +19,7 @@ def test_classification_quality_improvement():
     baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
     expected_baseline_quality = 0.823
 
-    probas = baseline_model.predict_proba(features=test_data_path)
+    baseline_model.predict_proba(features=test_data_path)
 
     baseline_metrics = baseline_model.get_metrics()
 
@@ -35,7 +35,4 @@ def test_classification_quality_improvement():
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
-    print(baseline_metrics)
-    print(auto_metrics)
-    print(auto_metrics['roc_auc'])
     assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= expected_baseline_quality

@@ -77,25 +77,12 @@ class ApiMetricsHelper():
             real.target = real.target[~np.isnan(prediction.predict)]
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
-        if metric_name == 'roc_auc' and len(prediction.predict.shape) == 1:
-            if real.num_classes != 2:
-                real.target, prediction.predict = self.multiclass_roc_auc_score(real.target,
-                                                                                prediction.predict)
-        elif metric_name == 'f1':
+        if metric_name == 'f1':
             if len(prediction.predict.shape) > len(real.target.shape):
                 prediction.predict = probs_to_labels(prediction.predict)
             elif real.num_classes == 2:
                 prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
         return real.target, prediction.predict
-
-    def multiclass_roc_auc_score(self,
-                                 truth: List,
-                                 pred: List):
-        lb = LabelBinarizer()
-        lb.fit(truth)
-        truth = lb.transform(truth)
-        pred = lb.transform(pred)
-        return truth, pred
 
     @staticmethod
     def convert_to_two_classes(predict):
