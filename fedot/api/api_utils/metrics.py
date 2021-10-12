@@ -1,5 +1,3 @@
-from copy import copy, deepcopy
-
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_squared_error, r2_score,
                              roc_auc_score)
@@ -99,5 +97,6 @@ class ApiMetricsHelper():
         pred = lb.transform(pred)
         return truth, pred
 
-    def convert_to_two_classes(self, predict):
+    @staticmethod
+    def convert_to_two_classes(predict):
         return np.vstack([1 - predict, predict]).transpose()
