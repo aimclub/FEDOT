@@ -198,7 +198,7 @@ class OptHistory:
         return type(self.individuals[0][0].fitness) is MultiObjFitness
 
     def _get_save_path(self):
-        if '/' in self.save_folder or '\\' in self.save_folder:
+        if os.path.sep in self.save_folder:
             # Defined path is full - there is no need to use default dir
             return self.save_folder
         else:
