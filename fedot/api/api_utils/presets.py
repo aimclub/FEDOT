@@ -1,3 +1,5 @@
+from copy import copy
+
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 
 
@@ -14,20 +16,22 @@ class OperationsPreset:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
-        if self.preset_name is None and 'preset' in composer_params:
-            self.preset_name = composer_params['preset']
+        updated_params = copy(composer_params)
 
-        if 'preset' in composer_params:
-            del composer_params['preset']
+        if self.preset_name is None and 'preset' in updated_params:
+            self.preset_name = updated_params['preset']
+
+        if 'preset' in updated_params:
+            del updated_params['preset']
 
         if self.preset_name is not None:
             available_operations = self._filter_operations_by_preset()
-            composer_params['available_operations'] = available_operations
+            updated_params['available_operations'] = available_operations
 
-        if composer_params['with_tuning'] or '_tun' in self.preset_name:
-            composer_params['with_tuning'] = True
+        if updated_params['with_tuning'] or '_tun' in self.preset_name:
+            updated_params['with_tuning'] = True
 
-        return composer_params
+        return updated_params
 
     def _filter_operations_by_preset(self):
         """ Filter operations by preset, remove "heavy" operations and save
@@ -48,7 +52,7 @@ class OperationsPreset:
         available_data_operation = get_operations_for_task(self.task, mode='data_operation')
 
         # Exclude "heavy" operations if necessary
-        available_operations = self._remove_heavy_operations(excluded_models_dict, available_operations)
+        available_operations = self._new_operations_without_heavy(excluded_models_dict, available_operations)
 
         # Save only "light" operations
         if self.preset_name in ['ultra_light', 'ultra_light_tun', 'ultra_steady_state']:
@@ -67,8 +71,8 @@ class OperationsPreset:
 
         return available_operations
 
-    def _remove_heavy_operations(self, excluded_models_dict, available_operations) -> list:
-        """ Remove operations from operations list """
+    def _new_operations_without_heavy(self, excluded_models_dict, available_operations) -> list:
+        """ Create new list without heavy operations """
         if self.preset_name in excluded_models_dict.keys():
             excluded_operations = excluded_models_dict[self.preset_name]
             available_operations = [_ for _ in available_operations if _ not in excluded_operations]
