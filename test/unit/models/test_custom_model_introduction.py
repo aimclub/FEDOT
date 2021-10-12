@@ -6,6 +6,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 from examples.time_series.ts_custom_model_tuning import prepare_input_data
+from examples.pipeline_import_export import create_correct_path
 
 
 def custom_model_imitation(train_data, _, params):
@@ -72,7 +73,6 @@ def get_input_data():
 
 def test_pipeline_with_custom_node():
     train_input, predict_input = get_input_data()
-
     pipeline = get_centered_pipeline()
     pipeline.fit_from_scratch(train_input)
     predicted_centered = pipeline.predict(predict_input)
@@ -83,3 +83,20 @@ def test_pipeline_with_custom_node():
     predicted_starting = pipeline.predict(predict_input)
 
     assert predicted_centered and predicted_starting is not None
+
+
+def test_save_pipeline_with_custom():
+    train_input, predict_input = get_input_data()
+
+    pipeline = get_centered_pipeline()
+    pipeline.fit_from_scratch(train_input)
+
+    pipeline.save(path='test_pipeline')
+    json_path_load = create_correct_path('test_pipeline')
+    new_pipeline = Pipeline()
+    new_pipeline.load(json_path_load)
+    predicted_output_after_export = new_pipeline.predict(predict_input)
+    prediction_after_export = np.array(predicted_output_after_export.predict)
+    os.remove(json_path_load)
+
+    assert prediction_after_export is not None

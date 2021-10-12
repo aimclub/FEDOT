@@ -2,9 +2,8 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Callable
 from uuid import uuid4
-
 import joblib
 
 from fedot.core.log import Log, default_log
@@ -132,6 +131,12 @@ class PipelineTemplate:
 
     def convert_to_dict(self, root_node: Node = None) -> dict:
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
+        for node in json_nodes:
+            if 'custom_params' in node:
+                if isinstance(node['custom_params'], dict):
+                    for key in node['custom_params']:
+                        if isinstance(node['custom_params'][key], Callable):
+                            node['custom_params'][key] = None
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
             "depth": self.depth,
