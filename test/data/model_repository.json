@@ -69,7 +69,7 @@
 		"description": "Implementations of the models specified by user with external code source",
 		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
 		"output_type": "[DataTypesEnum.table]",
-		"strategies": ["fedot.core.operations.evaluation.custom","CustomOperationStrategy"],
+		"strategies": ["fedot.core.operations.evaluation.custom","CustomModelStrategy"],
 		"tags": ["all_purpose", "non-default"],
 		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}

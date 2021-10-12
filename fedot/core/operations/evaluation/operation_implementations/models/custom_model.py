@@ -11,7 +11,7 @@ class CustomModelImplementation(ModelImplementation):
     """
     Implementation of container for custom model, which is presented as function with
     input train_data(np.array), test_data(np.array), parameters(dict)
-    output type specification DataTypesEnum (string)
+    output type specification DataTypesEnum (string - 'ts', 'table', 'image', 'text')
     into parameters dictionary {'model': function}
     """
     def __init__(self, params: dict = None, log: Log = None):
