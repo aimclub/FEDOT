@@ -8,7 +8,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from examples.image_classification_problem import run_image_classification_problem
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.operations.evaluation.operation_implementations.models.keras import CustomCNNImplementation, \
+from fedot.core.operations.evaluation.operation_implementations.models.keras import FedotCNNImplementation, \
     check_input_array, create_deep_cnn, fit_cnn, predict_cnn
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -170,10 +170,10 @@ def test_image_classification_quality():
 
 
 def test_cnn_custom_class():
-    cnn_class = CustomCNNImplementation()
+    cnn_class = FedotCNNImplementation()
 
     assert type(cnn_class.model) == tf.keras.Sequential
-    assert type(cnn_class) == CustomCNNImplementation
+    assert type(cnn_class) == FedotCNNImplementation
 
 
 def test_cnn_methods():

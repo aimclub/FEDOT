@@ -16,7 +16,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.classification", "FedotClassificationStrategy"],
 	  "tags": ["ml", "custom"],
 	  "description": "Implementations of the custom classification models"
 	},
@@ -61,7 +61,7 @@
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
 	},

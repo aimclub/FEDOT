@@ -10,9 +10,9 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations.models. \
     discriminant_analysis import LDAImplementation, QDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
-    keras import CustomCNNImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnClassImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.svc import CustomSVCImplementation
+    keras import FedotCNNImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -39,13 +39,13 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         return converted
 
 
-class CustomClassificationStrategy(EvaluationStrategy):
+class FedotClassificationStrategy(EvaluationStrategy):
     __operations_by_types = {
         'lda': LDAImplementation,
         'qda': QDAImplementation,
-        'svc': CustomSVCImplementation,
-        'cnn': CustomCNNImplementation,
-        'knn': CustomKnnClassImplementation
+        'svc': FedotSVCImplementation,
+        'cnn': FedotCNNImplementation,
+        'knn': FedotKnnClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -98,10 +98,10 @@ class CustomClassificationStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain Custom Classification Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain Fedot Classification Strategy for {operation_type}')
 
 
-class CustomClassificationPreprocessingStrategy(EvaluationStrategy):
+class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
     """ Strategy for applying custom algorithms from FEDOT to preprocess data
     for classification task
     """
