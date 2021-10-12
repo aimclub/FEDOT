@@ -6,7 +6,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.custom_mo
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class CustomOperationStrategy(EvaluationStrategy):
+class CustomModelStrategy(EvaluationStrategy):
     """
     This class defines the default model container for custom of domain-specific implementations
     :param str operation_type: rudimentary of parent - type of the operation defined in operation or

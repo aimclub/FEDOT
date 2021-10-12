@@ -16,11 +16,9 @@ def custom_model_imitation(train_data, test_data, params):
     a = params.get('a')
     b = params.get('b')
     shape = train_data.shape
-    out_type = 'ts'
-    if len(shape) > 1:
-        out_type = 'table'
     result = np.random.rand(*shape) * a + b
-    return result, out_type
+    # Available output_type's 'table', 'ts', 'image', 'text'
+    return result, 'table'
 
 
 def get_simple_pipeline():
@@ -31,7 +29,7 @@ def get_simple_pipeline():
     lagged_node = PrimaryNode('lagged')
     lagged_node.custom_params = {'window_size': 50}
 
-    # For custom model params as initial approximation and wrappers with custom model as function is necessary
+    # For custom model params as initial approximation and model as function is necessary
     custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
     custom_node.custom_params = {"a": -50, "b": 500, 'model': custom_model_imitation}
 
