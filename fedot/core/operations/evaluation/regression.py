@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
-from fedot.core.operations.evaluation.operation_implementations.models.knn import CustomKnnRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -32,7 +32,7 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         return converted
 
 
-class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
+class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
     """ Strategy for applying custom algorithms from FEDOT to preprocess data
     for regression task
     """
@@ -88,13 +88,13 @@ class CustomRegressionPreprocessingStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain Custom Regression Preprocessing Strategy for {operation_type}')
 
 
-class CustomRegressionStrategy(EvaluationStrategy):
+class FedotRegressionStrategy(EvaluationStrategy):
     """
     Strategy for applying custom regression models from FEDOT make predictions
     """
 
     __operations_by_types = {
-        'knnreg': CustomKnnRegImplementation
+        'knnreg': FedotKnnRegImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -126,4 +126,4 @@ class CustomRegressionStrategy(EvaluationStrategy):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain Custom Regression Strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain Fedot Regression Strategy for {operation_type}')

@@ -132,7 +132,7 @@ cnn_model_dict = {'deep': create_deep_cnn,
                   'simplified': create_simple_cnn}
 
 
-class CustomCNNImplementation(ModelImplementation):
+class FedotCNNImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
         self.params = {'image_shape': (28, 28, 1),

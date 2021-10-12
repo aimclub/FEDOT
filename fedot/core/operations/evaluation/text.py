@@ -62,7 +62,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
 
-class CustomTextPreprocessingStrategy(EvaluationStrategy):
+class FedotTextPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'text_clean': TextCleanImplementation}
 

@@ -10,7 +10,7 @@
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.classification",
-        "CustomClassificationStrategy"
+        "FedotClassificationStrategy"
       ],
       "tags": [
         "ml",
@@ -28,7 +28,7 @@
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.regression",
-        "CustomRegressionStrategy"
+        "FedotRegressionStrategy"
       ],
       "tags": [
         "ml",
@@ -114,7 +114,7 @@
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.time_series",
-        "CustomTsForecastingStrategy"
+        "FedotTsForecastingStrategy"
       ],
       "tags": [
         "time_series"
