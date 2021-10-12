@@ -121,13 +121,13 @@
       ],
       "tasks": "[TaskTypesEnum.ts_forecasting]"
     },
-    "default_model": {
+    "custom_model": {
       "description": "Implementations of the models specified by user with external code source",
       "input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
-        "fedot.core.operations.evaluation.default",
-        "CustomDefaultModelStrategy"
+        "fedot.core.operations.evaluation.custom",
+        "CustomOperationStrategy"
       ],
       "tags": [
         "all_purpose",
@@ -363,8 +363,8 @@
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"
     },
-    "default": {
-		"meta": "default_model",
+    "custom": {
+		"meta": "custom_model",
 		"tags": [
           "all_purpose",
           "non-default"
