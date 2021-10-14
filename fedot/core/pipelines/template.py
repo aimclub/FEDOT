@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import List, Optional, Tuple, Union, Callable
 from uuid import uuid4
 import joblib
+import numpy as np
 
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
@@ -12,6 +13,11 @@ from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import atomized_model_type
 
+class NumpyIntEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+           return int(obj)
+        return json.JSONEncoder.default(self, obj)
 
 class PipelineTemplate:
     """
@@ -106,7 +112,7 @@ class PipelineTemplate:
                     else:
                         pipeline_template_dict['fitted_operation_path'] = None
 
-        json_data = json.dumps(pipeline_template_dict, indent=4)
+        json_data = json.dumps(pipeline_template_dict, indent=4, cls=NumpyIntEncoder)
 
         if path is None:
             return json_data, fitted_ops
@@ -121,7 +127,7 @@ class PipelineTemplate:
             pipeline_template_dict['additional_info'] = additional_info
 
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(pipeline_template_dict, indent='\t'))
+            f.write(json.dumps(pipeline_template_dict, indent='\t', cls=NumpyIntEncoder))
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
             self.log.message(f'The pipeline saved in the path: {resulted_path}.')
 
