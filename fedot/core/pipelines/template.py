@@ -13,10 +13,11 @@ from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import atomized_model_type
 
+
 class NumpyIntEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
-           return int(obj)
+            return int(obj)
         return json.JSONEncoder.default(self, obj)
 
 class PipelineTemplate:
