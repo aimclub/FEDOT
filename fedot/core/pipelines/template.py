@@ -132,11 +132,10 @@ class PipelineTemplate:
     def convert_to_dict(self, root_node: Node = None) -> dict:
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
         for node in json_nodes:
-            if 'custom_params' in node:
-                if isinstance(node['custom_params'], dict):
-                    for key in node['custom_params']:
-                        if isinstance(node['custom_params'][key], Callable):
-                            node['custom_params'][key] = None
+            if 'custom_params' in node and isinstance(node['custom_params'], dict):
+                for key in node['custom_params']:
+                    if isinstance(node['custom_params'][key], Callable):
+                        node['custom_params'][key] = None
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
             "depth": self.depth,
