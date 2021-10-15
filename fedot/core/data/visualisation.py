@@ -39,11 +39,18 @@ def plot_biplot(prediction: OutputData):
 
 
 def plot_roc_auc(input_data: InputData, prediction: OutputData):
-    fpr, tpr, threshold = ROCAUC.roc_curve(input_data, prediction)
-    roc_auc = ROCAUC.auc(fpr, tpr)
-    plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-    plt.legend(loc= 'lower right')
-    plt.plot([0, 1], [0, 1],'r--')
+    if input_data.num_classes == 2:
+        fpr, tpr, threshold = ROCAUC.roc_curve(input_data.target, prediction.predict)
+        roc_auc = ROCAUC.auc(fpr, tpr)
+        plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
+        plt.legend(loc=F'best')
+    else:
+        for cls in range(input_data.num_classes):
+            fpr, tpr, threshold = ROCAUC.roc_curve(input_data.target, prediction.predict[:, cls], pos_label=cls)
+            roc_auc = ROCAUC.auc(fpr, tpr)
+            plt.plot(fpr, tpr, 'b', label=f'label-{cls} AUC = %0.2f' % roc_auc)
+            plt.legend(loc=F'best')
+    plt.plot([0, 1], [0, 1], 'r--')
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.ylabel('True Positive Rate')

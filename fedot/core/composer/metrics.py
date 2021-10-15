@@ -219,14 +219,9 @@ class ROCAUC(QualityMetric):
         return score
 
     @staticmethod
-    def roc_curve(reference: InputData, predicted: OutputData):
-        n_classes = reference.num_classes
-        if n_classes > 2:
-            additional_params = {'multi_class': 'ovr', 'average': 'macro'}
-        else:
-            additional_params = {}
+    def roc_curve(target: np.ndarray, predict: np.ndarray, pos_label=None):
 
-        return  roc_curve(reference.target, predicted.predict, **additional_params)
+        return roc_curve(target, predict, pos_label=pos_label)
 
     @classmethod
     def auc(cls, fpr, tpr):
