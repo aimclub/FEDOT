@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from fedot.api.api_utils.api_utils import ApiFacade
 from fedot.core.data.data import InputData
-from fedot.core.data.visualisation import plot_forecast
+from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -225,6 +225,11 @@ class Fedot:
         if self.prediction is not None:
             if self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
                 plot_forecast(pre_history=self.train_data, forecast=self.prediction)
+            elif self.composer_dict['task'].task_type == TaskTypesEnum.regression:
+                plot_biplot(self.prediction)
+            elif self.composer_dict['task'].task_type == TaskTypesEnum.classification:
+                self.predict_proba(self.test_data)
+                plot_roc_auc(self.test_data, self.prediction)
             else:
                 # TODO implement other visualizations
                 self.composer_dict['logger'].error('Not supported yet')

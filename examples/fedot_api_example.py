@@ -23,6 +23,7 @@ def run_classification_example(timeout=None):
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
+    auto_model.plot_prediction()
 
     return prediction
 
@@ -42,11 +43,12 @@ def run_regression_example():
 
     baseline_model.predict(features=test)
     print(baseline_model.get_metrics())
-
-    auto_model = Fedot(problem=problem, seed=42)
+    baseline_model.plot_prediction()
+    auto_model = Fedot(problem=problem, seed=42, timeout=1)
     auto_model.fit(features=train, target='target')
     prediction = auto_model.predict(features=test)
     print(auto_model.get_metrics())
+    auto_model.plot_prediction()
 
     return prediction
 
@@ -93,7 +95,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)
     print(auto_model.get_metrics(target))
-
+    auto_model.plot_prediction()
     if with_plot:
         auto_model.best_models.show()
 
