@@ -164,12 +164,10 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        model = self.operation_impl(generations=self.params.get('generations'),
-                                    population_size=self.params.get('population_size'),
-                                    verbosity=2,
-                                    random_state=42,
-                                    max_time_mins=self.params.get('timeout')
-                                    )
+        if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            target_len = train_data.task.task_params.forecast_length
+        else:
+            target_len = 1
         models = []
         if len(train_data.target.shape) == 1:
             target = train_data.target.reshape(-1, 1)
@@ -177,6 +175,12 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
             target = train_data.target
 
         for i in range(target.shape[1]):
+            model = self.operation_impl(generations=self.params.get('generations'),
+                                        population_size=self.params.get('population_size'),
+                                        verbosity=2,
+                                        random_state=42,
+                                        max_time_mins=self.params.get('timeout') // target_len
+                                        )
             model.fit(train_data.features.astype(float), target.astype(float)[:, i])
             models.append(model.fitted_pipeline_)
         model = TPOTRegressionSerializationWrapper(models)

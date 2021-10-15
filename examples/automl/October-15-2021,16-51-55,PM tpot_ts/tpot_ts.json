@@ -1,0 +1,44 @@
+{
+	"total_pipeline_operations": [
+		"lagged",
+		"tpot_regr"
+	],
+	"depth": 2,
+	"nodes": [
+		{
+			"operation_id": 1,
+			"operation_type": "lagged",
+			"operation_name": "LaggedTransformationImplementation",
+			"custom_params": {
+				"window_size": 20
+			},
+			"params": {
+				"window_size": 20
+			},
+			"nodes_from": [],
+			"fitted_operation_path": "fitted_operations\\operation_1.pkl",
+			"rating": null
+		},
+		{
+			"operation_id": 0,
+			"operation_type": "tpot_regr",
+			"operation_name": "TPOTRegressionSerializationWrapper",
+			"custom_params": {
+				"timeout": 2,
+				"generations": 3,
+				"population_size": 3
+			},
+			"params": {
+				"timeout": 2,
+				"generations": 3,
+				"population_size": 3
+			},
+			"nodes_from": [
+				1
+			],
+			"fitted_operation_path": "fitted_operations\\operation_0.pkl",
+			"rating": null
+		}
+	],
+	"descriptive_id": "(/n_lagged_{'window_size': 20};)/n_tpot_regr_{'timeout': 2, 'generations': 3, 'population_size': 3}"
+}

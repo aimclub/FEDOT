@@ -1,0 +1,27 @@
+{
+	"total_pipeline_operations": [
+		"tpot_regr"
+	],
+	"depth": 1,
+	"nodes": [
+		{
+			"operation_id": 0,
+			"operation_type": "tpot_regr",
+			"operation_name": "TPOTRegressionSerializationWrapper",
+			"custom_params": {
+				"timeout": 2,
+				"generations": 3,
+				"population_size": 3
+			},
+			"params": {
+				"timeout": 2,
+				"generations": 3,
+				"population_size": 3
+			},
+			"nodes_from": [],
+			"fitted_operation_path": "fitted_operations\\operation_0.pkl",
+			"rating": null
+		}
+	],
+	"descriptive_id": "/n_tpot_regr_{'timeout': 2, 'generations': 3, 'population_size': 3}"
+}
