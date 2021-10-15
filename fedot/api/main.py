@@ -227,10 +227,10 @@ class Fedot:
                 plot_forecast(pre_history=self.train_data, forecast=self.prediction)
             else:
                 # TODO implement other visualizations
-                self.composer_dict['log'].error('Not supported yet')
+                self.composer_dict['logger'].error('Not supported yet')
 
         else:
-            self.composer_dict['log'].error('No prediction to visualize')
+            self.composer_dict['logger'].error('No prediction to visualize')
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
@@ -264,7 +264,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.helper.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.composer_dict['log'].warn(f'{metric_name} is not available as metric')
+                self.composer_dict['logger'].warn(f'{metric_name} is not available as metric')
             else:
                 metric_cls = MetricsRepository().metric_class_by_id(
                     self.helper.get_composer_metrics_mapping(metric_name))
