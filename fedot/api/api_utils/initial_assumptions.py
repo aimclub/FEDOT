@@ -9,7 +9,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 
-class ApiInitialAssumptionsHelper:
+class ApiInitialAssumptions:
     def get_initial_assumption(self,
                                data: Union[InputData, MultiModalData],
                                task: Task) -> Pipeline:

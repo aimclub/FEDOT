@@ -200,14 +200,12 @@ class R2(QualityMetric):
         return r2_score(y_true=reference.target, y_pred=predicted.predict)
 
 
-
 class ROCAUC(QualityMetric):
     default_value = 0.5
 
     @staticmethod
     @from_maximised_metric
     def metric(reference: InputData, predicted: OutputData) -> float:
-
         n_classes = reference.num_classes
         if n_classes > 2:
             additional_params = {'multi_class': 'ovr', 'average': 'macro'}
@@ -217,6 +215,7 @@ class ROCAUC(QualityMetric):
         score = round(roc_auc_score(y_score=predicted.predict,
                                     y_true=reference.target,
                                     **additional_params), 3)
+
         return score
 
 

@@ -1,5 +1,7 @@
 import warnings
 
+from sklearn.metrics import roc_auc_score
+
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
@@ -18,6 +20,7 @@ def test_classification_quality_improvement():
     expected_baseline_quality = 0.823
 
     baseline_model.predict_proba(features=test_data_path)
+
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
@@ -32,5 +35,4 @@ def test_classification_quality_improvement():
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
-    print(auto_metrics['roc_auc'])
     assert auto_metrics['roc_auc'] > baseline_metrics['roc_auc'] >= expected_baseline_quality

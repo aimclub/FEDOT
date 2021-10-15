@@ -5,8 +5,8 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
 
-from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptionsHelper
-from fedot.api.api_utils.metrics import ApiMetricsHelper
+from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
+from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -15,8 +15,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import single_drop_mutation, single_edge_mutation, \
-    single_change_mutation, single_add_mutation, MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -25,7 +24,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
-class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
+class ApiComposer(ApiMetrics, ApiInitialAssumptions):
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -61,7 +60,7 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
 
         composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                     available_operations=None, composer_metric=None, validation_blocks=None,
-                                    cv_folds=None, genetic_scheme=None)
+                                    cv_folds=None, genetic_scheme=None, history_folder=None)
 
         tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 
@@ -187,7 +186,8 @@ class ApiComposerHelper(ApiMetricsHelper, ApiInitialAssumptionsHelper):
                                                                           MutationTypesEnum.single_drop,
                                                                           MutationTypesEnum.single_add],
                                                           crossover_types=[CrossoverTypesEnum.one_point,
-                                                                           CrossoverTypesEnum.subtree])
+                                                                           CrossoverTypesEnum.subtree],
+                                                          history_folder=composer_params.get('history_folder'))
 
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,

@@ -1,11 +1,11 @@
-from fedot.api.api_utils.composer import ApiComposerHelper
+from fedot.api.api_utils.api_composer import ApiComposer
 from ..api.test_main_api import get_dataset
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.log import default_log
 
 from testfixtures import LogCapture
 
-composer_helper = ApiComposerHelper()
+composer_helper = ApiComposer()
 
 
 def test_compose_fedot_model_with_tuning():

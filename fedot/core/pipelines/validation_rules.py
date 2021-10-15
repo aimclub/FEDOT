@@ -232,6 +232,8 @@ def __check_decomposer_has_two_parents(nodes_to_check: list):
     for decompose_node in nodes_to_check:
         parents = decompose_node.nodes_from
 
-        if len(parents) != 2:
+        if parents is None:
+            raise ValueError('Decompose operation has no parents')
+        elif len(parents) != 2:
             raise ValueError(f'{ERROR_PREFIX} Two parents for decompose node were'
                              f' expected, but {len(parents)} were given')

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -53,7 +54,7 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_chain: Pipeline = None):
+                 initial_pipeline: Pipeline = None):
 
         self.helper = ApiFacade(**{'problem': problem,
                                    'preset': preset,
@@ -62,7 +63,7 @@ class Fedot:
                                    'task_params': task_params,
                                    'seed': seed,
                                    'verbose_level': verbose_level,
-                                   'initial_chain': initial_chain})
+                                   'initial_pipeline': initial_pipeline})
 
         self.composer_dict = self.helper.initialize_params()
         self.composer_dict['current_model'] = None
@@ -267,8 +268,10 @@ class Fedot:
             else:
                 metric_cls = MetricsRepository().metric_class_by_id(
                     self.helper.get_composer_metrics_mapping(metric_name))
-
-                prediction = self.prediction
+                prediction = deepcopy(self.prediction)
+                if metric_name == "roc_auc":  # for roc-auc we need probabilities
+                    prediction.predict = self.predict_proba(self.test_data)
+                real = deepcopy(self.test_data)
                 real.target, prediction.predict = self.helper.check_prediction_shape(
                     task=self.composer_dict['task'].task_type,
                     metric_name=metric_name,

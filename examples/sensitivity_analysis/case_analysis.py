@@ -42,9 +42,9 @@ def run_case_analysis(train_data: InputData, test_data: InputData,
     approaches = sa_class_with_approaches['approaches']
 
     pipeline_analysis_result = sa_class(pipeline=pipeline,
-                                     train_data=train_data,
-                                     test_data=test_data,
-                                     approaches=approaches,
-                                     path_to_save=result_path).analyze()
+                                        train_data=train_data,
+                                        test_data=test_data,
+                                        approaches=approaches,
+                                        path_to_save=result_path).analyze()
 
     print(f'pipeline analysis result {pipeline_analysis_result}')
