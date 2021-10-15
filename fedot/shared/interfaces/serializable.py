@@ -26,5 +26,8 @@ class Serializable(ABC):
             if k in signature(cls.__init__).parameters
         }
         obj = cls(**init_data)
-        vars(obj).update(json_obj)
+        vars(obj).update({
+            k: json_obj[k]
+            for k in json_obj.keys() ^ init_data.keys()
+        })
         return obj

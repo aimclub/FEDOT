@@ -10,8 +10,7 @@ class OperationMetaInfoSerializer(Serializable):
         basic_serialization = super().to_json()
         strategy = basic_serialization['supported_strategies']
         if isclass(strategy):
-            basic_serialization['supported_strategies'] = f'\
-                {strategy.__module__}{DELIMITER}{strategy.__qualname__}'
+            basic_serialization['supported_strategies'] = f'{strategy.__module__}{DELIMITER}{strategy.__qualname__}'
         return basic_serialization
 
     @classmethod
