@@ -111,7 +111,7 @@ class Log(LogSerializer):
     def __init__(self, logger_name: str,
                  config_json_file: str,
                  output_verbosity_level=1,
-                 log_file: str = None, ):
+                 log_file: str = None):
         if not log_file:
             self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
         else:
