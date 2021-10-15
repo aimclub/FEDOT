@@ -132,6 +132,6 @@ def tpot_ts_pipeline_evaluation():
 
 if __name__ == '__main__':
     with OperationTypesRepository.init_automl_repository() as _:
-        #tpot_classification_pipeline_evaluation()
+        tpot_classification_pipeline_evaluation()
         tpot_regression_pipeline_evaluation()
         tpot_ts_pipeline_evaluation()
