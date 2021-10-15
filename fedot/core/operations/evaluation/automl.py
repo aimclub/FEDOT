@@ -48,7 +48,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         for name in target_names:
             model = H2OAutoML(max_models=self.params.get("max_models"),
                               seed=self.params.get("seed"),
-                              max_runtime_secs=self.params.get("timeout") // target_len
+                              max_runtime_secs=self.params.get("timeout") * 60 // target_len
                               )
             model.train(x=train_columns, y=name, training_frame=train_frame)
             models.append(model.leader)
@@ -114,7 +114,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         train_frame[target_name] = train_frame[target_name].asfactor()
         model = self.operation_impl(max_models=self.params.get("max_models"),
                                     seed=self.params.get("seed"),
-                                    max_runtime_secs=self.params.get("timeout")
+                                    max_runtime_secs=self.params.get("timeout")*60
                                     )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
