@@ -90,6 +90,19 @@ class LinearRegRANSACImplementation(FilterImplementation):
                                              **params)
         self.params = params
 
+    def fit(self, input_data):
+        count = 10
+        while True:
+            try:
+                self.operation.fit(input_data.features, input_data.target)
+                return self.operation
+            except ValueError:
+                print("RASNAC: multiplied residual_threshold on 2")
+                self.params["residual_threshold"] *= 2
+                count += 1
+
+            return self.operation
+
 
 class NonLinearRegRANSACImplementation(FilterImplementation):
     """
@@ -108,3 +121,16 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params
+
+    def fit(self, input_data):
+        count = 10
+        while True:
+            try:
+                self.operation.fit(input_data.features, input_data.target)
+                return self.operation
+            except ValueError:
+                print("RASNAC: multiplied residual_threshold on 2")
+                self.params["residual_threshold"] *= 2
+                count += 1
+
+            return self.operation
