@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from fedot.shared import EnumSerializer
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
@@ -87,3 +88,7 @@ class ComparableEnum(Enum):
 
     def __hash__(self):
         return hash(str(self))
+
+
+class SerializableEnumMeta(type(EnumSerializer), type(ComparableEnum)):
+    pass

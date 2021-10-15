@@ -3,30 +3,34 @@ from abc import abstractmethod
 from typing import Optional
 
 from catboost import CatBoostClassifier, CatBoostRegressor
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import (
+    OperationTypesRepository, get_operation_type_from_id)
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.shared import BasicSerializer
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, GradientBoostingRegressor, RandomForestClassifier, \
-    RandomForestRegressor
-from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
-    LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
+from sklearn.ensemble import (AdaBoostRegressor, ExtraTreesRegressor,
+                              GradientBoostingRegressor,
+                              RandomForestClassifier, RandomForestRegressor)
+from sklearn.linear_model import Lasso as SklearnLassoReg
+from sklearn.linear_model import LinearRegression as SklearnLinReg
+from sklearn.linear_model import LogisticRegression as SklearnLogReg
+from sklearn.linear_model import Ridge as SklearnRidgeReg
+from sklearn.linear_model import SGDRegressor as SklearnSGD
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
+from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
-                                                              get_operation_type_from_id)
-from fedot.core.repository.tasks import TaskTypesEnum
-
 warnings.filterwarnings("ignore", category=UserWarning)
 
-
-class EvaluationStrategy:
+class EvaluationStrategy(BasicSerializer):
     """
     Base class to define the evaluation strategy of Operation object:
     the certain sklearn or any other operation with fit/predict methods.

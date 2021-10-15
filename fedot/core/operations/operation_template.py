@@ -4,9 +4,9 @@ from io import BytesIO
 
 import joblib
 import numpy as np
-
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import Node
+from fedot.shared import BasicSerializer
 
 
 class OperationTemplateAbstract(ABC):
@@ -64,7 +64,11 @@ class OperationTemplateAbstract(ABC):
                 raise RuntimeError(message)
 
 
-class OperationTemplate(OperationTemplateAbstract):
+class SerializableOperationTemplateMeta(type(BasicSerializer), OperationTemplateAbstract):
+    pass
+
+
+class OperationTemplate(BasicSerializer, metaclass=SerializableOperationTemplateMeta):
     def __init__(self, node: Node = None, operation_id: int = None,
                  nodes_from: list = None):
         super().__init__()

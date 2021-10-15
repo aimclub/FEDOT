@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utils import SerializableEnumMeta
+from fedot.shared import EnumSerializer
 
 
 @dataclass
@@ -18,7 +20,7 @@ class TsForecastingParams(TaskParams):
             raise ValueError('Forecast length should be more then 0')
 
 
-class TaskTypesEnum(Enum):
+class TaskTypesEnum(EnumSerializer, Enum, metaclass=SerializableEnumMeta):
     classification = 'classification'
     regression = 'regression'
     ts_forecasting = 'ts_forecasting'

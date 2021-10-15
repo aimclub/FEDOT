@@ -2,16 +2,18 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List, Optional, Tuple, Union, Callable
+from typing import Callable, List, Optional, Tuple, Union
 from uuid import uuid4
+
 import joblib
 import numpy as np
-
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.repository.operation_types_repository import atomized_model_type
+from fedot.core.repository.operation_types_repository import \
+    atomized_model_type
+from fedot.shared import BasicSerializer
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -20,7 +22,7 @@ class NumpyIntEncoder(json.JSONEncoder):
             return int(obj)
         return super().default(self, obj)
 
-class PipelineTemplate:
+class PipelineTemplate(BasicSerializer):
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods
     allowing user to upload a pipeline to JSON format and import it from JSON.

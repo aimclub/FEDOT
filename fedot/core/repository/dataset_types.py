@@ -1,7 +1,9 @@
 from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utils import SerializableEnumMeta
+from fedot.shared import EnumSerializer
 
 
-class DataTypesEnum(Enum):
+class DataTypesEnum(EnumSerializer, Enum, metaclass=SerializableEnumMeta):
     # Table with columns as features for predictions
     table = 'feature_table'
 

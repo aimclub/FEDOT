@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import numpy as np
-
 from fedot.core.data.data import OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.shared import BasicSerializer
 
 
 class DataOperationImplementation(ABC):
@@ -50,7 +50,11 @@ class DataOperationImplementation(ABC):
         return converted
 
 
-class EncodedInvariantImplementation(DataOperationImplementation):
+class SerializableDataOperationImplementationMeta(type(BasicSerializer), DataOperationImplementation):
+    pass
+
+
+class EncodedInvariantImplementation(BasicSerializer, metaclass=SerializableDataOperationImplementationMeta):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean

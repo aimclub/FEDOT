@@ -6,12 +6,15 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
+from fedot.core.repository.json_evaluation import (eval_field_str,
+                                                   eval_strategy_str,
+                                                   read_field)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.shared import BasicSerializer, OperationMetaInfoSerializer
 
 
 @dataclass
-class OperationMetaInfo:
+class OperationMetaInfo(OperationMetaInfoSerializer):
     id: str
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
@@ -44,7 +47,7 @@ def run_once(function):
     return wrapper
 
 
-class OperationTypesRepository:
+class OperationTypesRepository(BasicSerializer):
     """ Class for connecting models and data operations with json files with
     its descriptions and metadata"""
 
