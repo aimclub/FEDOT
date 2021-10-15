@@ -48,7 +48,7 @@ def plot_roc_auc(input_data: InputData, prediction: OutputData):
         for cls in range(input_data.num_classes):
             fpr, tpr, threshold = ROCAUC.roc_curve(input_data.target, prediction.predict[:, cls], pos_label=cls)
             roc_auc = ROCAUC.auc(fpr, tpr)
-            plt.plot(fpr, tpr, 'b', label=f'label-{cls} AUC = %0.2f' % roc_auc)
+            plt.plot(fpr, tpr, label=f'label-{cls} AUC = %0.2f' % roc_auc)
             plt.legend(loc=F'best')
     plt.plot([0, 1], [0, 1], 'r--')
     plt.xlim([0, 1])
