@@ -25,7 +25,7 @@
 			"forbidden_node_types": "[]",
 			"strategies": [
 				"fedot.core.operations.evaluation.common_preprocessing",
-				"CustomPreprocessingStrategy"
+				"FedotPreprocessingStrategy"
 			],
 			"tags": [
 				"sklearn"
@@ -38,7 +38,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["primary"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "FedotPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of OneHot encoding (etc.) from scikit-learn framework"},
 		"dimension_transformation": {
@@ -47,7 +47,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "CustomPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.common_preprocessing", "FedotPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the dimensionality transformation operations (e.g. PCA) from scikit-learn framework"},
 		"regression_preprocessing": {
@@ -56,7 +56,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.regression", "CustomRegressionPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.regression", "FedotRegressionPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for regression task"},
 		"classification_preprocessing": {
@@ -65,7 +65,7 @@
 			"output_type": "[DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationPreprocessingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.classification", "FedotClassificationPreprocessingStrategy"],
 			"tags": ["sklearn"],
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"custom_time_series_transformation": {
@@ -74,7 +74,7 @@
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
-			"strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsTransformingStrategy"],
+			"strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsTransformingStrategy"],
 			"tags": ["time_series"],
 			"description": "Preprocessing for converting uni-variate time-series into table form or transform it"},
 		"text_preprocessing": {
@@ -87,7 +87,7 @@
 			"forbidden_node_types": "[]",
 			"strategies": [
 				"fedot.core.operations.evaluation.text",
-				"CustomTextPreprocessingStrategy"
+				"FedotTextPreprocessingStrategy"
 			],
 			"tags": [
 				"text",

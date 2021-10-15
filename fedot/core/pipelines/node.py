@@ -181,6 +181,7 @@ class Node(GraphNode):
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
         """
         operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
+                                                   params=self.content['params'],
                                                    data=input_data,
                                                    output_mode=output_mode,
                                                    is_fit_pipeline_stage=False)

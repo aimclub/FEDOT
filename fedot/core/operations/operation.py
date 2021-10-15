@@ -75,16 +75,17 @@ class Operation:
         :return: tuple of trained operation and prediction on train data
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
+
         self._init(data.task, params=params)
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage)
+        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, params)
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData,
-                is_fit_pipeline_stage: bool, output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool,
+                params: Union[str, dict, None] = None, output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
         to predict with the data provided
@@ -92,12 +93,13 @@ class Operation:
         :param fitted_operation: trained operation object
         :param data: data used for prediction
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :param params: hyperparameters for operation
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode)
+        self._init(data.task, output_mode=output_mode, params=params)
 
         prediction = self._eval_strategy.predict(
             trained_operation=fitted_operation,

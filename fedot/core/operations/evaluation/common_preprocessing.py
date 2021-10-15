@@ -10,7 +10,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class CustomPreprocessingStrategy(EvaluationStrategy):
+class FedotPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'scaling': ScalingImplementation,
         'normalization': NormalizationImplementation,

@@ -67,7 +67,7 @@ class KNeighborsImplementation(ModelImplementation):
             return self.model.get_params()
 
 
-class CustomKnnClassImplementation(KNeighborsImplementation):
+class FedotKnnClassImplementation(KNeighborsImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
         if not params:
@@ -103,7 +103,7 @@ class CustomKnnClassImplementation(KNeighborsImplementation):
         return self.classes
 
 
-class CustomKnnRegImplementation(KNeighborsImplementation):
+class FedotKnnRegImplementation(KNeighborsImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
         if not params:

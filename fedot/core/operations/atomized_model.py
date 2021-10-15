@@ -28,8 +28,8 @@ class AtomizedModel(Operation):
 
         return fitted_atomized_operation, predicted_train
 
-    def predict(self, fitted_operation, data: InputData,
-                is_fit_pipeline_stage: bool = False, output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool = False,
+                params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
         prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
 
         return prediction

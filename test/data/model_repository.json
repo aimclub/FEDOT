@@ -16,7 +16,7 @@
 	  "output_type": "[DataTypesEnum.table, DataTypesEnum.table]",
 	  "accepted_node_types": ["any"],
 	  "forbidden_node_types": "[]",
-	  "strategies": ["fedot.core.operations.evaluation.classification", "CustomClassificationStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.classification", "FedotClassificationStrategy"],
 	  "tags": ["ml", "custom"],
 	  "description": "Implementations of the custom classification models"
 	},
@@ -61,9 +61,17 @@
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
 	  "input_type": "[DataTypesEnum.ts]",
 	  "output_type": "[DataTypesEnum.table]",
-	  "strategies": ["fedot.core.operations.evaluation.time_series", "CustomTsForecastingStrategy"],
+	  "strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsForecastingStrategy"],
 	  "tags": ["time_series"],
 	  "description": "Implementations of the time series models"
+	},
+    "custom_model": {
+		"description": "Implementations of the models specified by user with external code source",
+		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
+		"output_type": "[DataTypesEnum.table]",
+		"strategies": ["fedot.core.operations.evaluation.custom","CustomModelStrategy"],
+		"tags": ["all_purpose", "non-default"],
+		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}
   },
   "operations": {
@@ -179,6 +187,10 @@
     "tfidf": {
       "meta": "text_classification",
 	  "tags": ["text", "non-default"]
-    }
+    },
+    "custom": {
+		"meta": "custom_model",
+		"tags": ["all_purpose", "non-default"]
+	}
   }
 }

@@ -13,7 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class CustomTsForecastingStrategy(EvaluationStrategy):
+class FedotTsForecastingStrategy(EvaluationStrategy):
     """
     This class defines the certain classical models implementation for time
     series forecasting (e.g. AR, ARIMA)
@@ -74,7 +74,7 @@ class CustomTsForecastingStrategy(EvaluationStrategy):
                              f'strategy for {operation_type}')
 
 
-class CustomTsTransformingStrategy(EvaluationStrategy):
+class FedotTsTransformingStrategy(EvaluationStrategy):
     """
     This class defines the certain data operation implementation for time series
     forecasting

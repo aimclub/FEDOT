@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 
 
-class CustomSVCImplementation(ModelImplementation):
+class FedotSVCImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
         if not params:
