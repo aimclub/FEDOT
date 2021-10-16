@@ -24,16 +24,15 @@ def plot_forecast(data: InputData, prediction: OutputData):
     print(target)
     if target is not None:
         pred_start = len(actual_time_series) - len(predict)
-        first_idx = pred_start-padding
+        first_idx = pred_start - padding
     else:
         pred_start = len(actual_time_series)
-        first_idx = pred_start-padding
+        first_idx = pred_start - padding
 
     plt.plot(np.arange(pred_start, pred_start + len(predict)),
              predict, label='Predicted', c='blue')
     plt.plot(np.arange(first_idx, len(actual_time_series)),
              actual_time_series[first_idx:], label='Actual values', c='green')
-
 
     # Plot black line which divide our array into train and test
     plt.plot([pred_start, pred_start],
