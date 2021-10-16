@@ -4,13 +4,13 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root, DEFAULT_PARAMS_STUB
 from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
-from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def get_ts_pipeline(window_size):
@@ -23,9 +23,9 @@ def get_ts_pipeline(window_size):
     return pipeline
 
 
-def get_ransac_pipeline():
-    """ Function return pipeline with lagged transformation in it """
+def get_rasnac_pipeline():
     node_ransac = PrimaryNode('ransac_lin_reg')
+    node_ransac.custom_params['residual_threshold'] = 0.0002
     node_final = SecondaryNode('linear', nodes_from=[node_ransac])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -65,7 +65,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     assert fixed_params['window_size'] == 439
 
 
-def test_ransac_with_invalid_params_fit_correctly():
+def test_rasnac_with_invalid_params_fit_correctly():
     """ Check that on a small dataset the RANSAC anomaly search algorithm can
     adjust the values of hyperparameters
 
@@ -75,11 +75,14 @@ def test_ransac_with_invalid_params_fit_correctly():
     than the number of objects
     """
 
-    input_regression = get_synthetic_regression_data(n_samples=20, n_features=23)
+    data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
-    ransac_pipeline = get_ransac_pipeline()
-    ransac_pipeline.fit(input_regression)
-    predicted = ransac_pipeline.predict(input_regression)
+    data = InputData.from_csv(data_path)
+    train, test = train_test_data_setup(data)
+    train.task.task_type = TaskTypesEnum.regression
+    ransac_pipeline = get_rasnac_pipeline()
+    ransac_pipeline.fit(train)
+    predicted = ransac_pipeline.predict(train)
 
     assert ransac_pipeline.is_fitted
     assert predicted is not None

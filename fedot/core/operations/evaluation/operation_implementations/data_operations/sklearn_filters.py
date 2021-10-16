@@ -4,6 +4,7 @@ from typing import Optional
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.tree import DecisionTreeRegressor
 
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 
@@ -36,13 +37,16 @@ class FilterImplementation(DataOperationImplementation):
         """
 
         features = input_data.features
-        if is_fit_pipeline_stage:
+        if is_fit_pipeline_stage :
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
-            inner_features = features[mask]
-
-            # Update data
-            modified_input_data = self._update_data(input_data, mask)
+            if mask is not None:
+                inner_features = features[mask]
+                # Update data
+                modified_input_data = self._update_data(input_data, mask)
+            else:
+                inner_features = features
+                modified_input_data = copy(input_data)
 
         else:
             # For predict stage there is a need to safe all the data
@@ -82,6 +86,8 @@ class LinearRegRANSACImplementation(FilterImplementation):
         super().__init__()
         self.inner_model = LinearRegression(normalize=True)
 
+        self.log = default_log(__name__)
+
         if not params:
             # Default parameters
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
@@ -91,17 +97,19 @@ class LinearRegRANSACImplementation(FilterImplementation):
         self.params = params
 
     def fit(self, input_data):
-        count = 10
-        while True:
+        count = 0
+        max_count = 10
+        while count < max_count:
             try:
+                self.operation.inlier_mask_ = None
                 self.operation.fit(input_data.features, input_data.target)
                 return self.operation
             except ValueError:
-                print("RASNAC: multiplied residual_threshold on 2")
+                self.log.info("RASNAC: multiplied residual_threshold on 2")
                 self.params["residual_threshold"] *= 2
                 count += 1
 
-            return self.operation
+        return self.operation
 
 
 class NonLinearRegRANSACImplementation(FilterImplementation):
@@ -113,7 +121,7 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = DecisionTreeRegressor()
-
+        self.log = default_log(__name__)
         if not params:
             # Default parameters
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
@@ -123,14 +131,16 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
         self.params = params
 
     def fit(self, input_data):
-        count = 10
-        while True:
+        count = 0
+        max_count = 10
+        while count < max_count:
             try:
+                self.operation.inlier_mask_ = None
                 self.operation.fit(input_data.features, input_data.target)
                 return self.operation
             except ValueError:
-                print("RASNAC: multiplied residual_threshold on 2")
+                self.log.info("RASNAC: multiplied residual_threshold on 2")
                 self.params["residual_threshold"] *= 2
                 count += 1
 
-            return self.operation
+        return self.operation
