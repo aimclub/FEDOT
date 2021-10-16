@@ -1,4 +1,5 @@
 from copy import deepcopy
+from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -222,9 +223,10 @@ class Fedot:
         """
         Plot the prediction obtained from graph
         """
+
         if self.prediction is not None:
             if self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(pre_history=self.train_data, forecast=self.prediction)
+                plot_forecast(self.test_data, self.prediction)
             elif self.composer_dict['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif self.composer_dict['task'].task_type == TaskTypesEnum.classification:
@@ -289,3 +291,10 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
+
+
+class PlotTypesEnum(Enum):
+    classification = 'classification'
+    regression = 'regression'
+    ts_forecasting = 'ts_forecasting'
+    clustering = 'clustering'  # not applicable as main task yet

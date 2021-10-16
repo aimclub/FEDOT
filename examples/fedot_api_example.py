@@ -43,7 +43,6 @@ def run_regression_example():
 
     baseline_model.predict(features=test)
     print(baseline_model.get_metrics())
-    baseline_model.plot_prediction()
     auto_model = Fedot(problem=problem, seed=42, timeout=1)
     auto_model.fit(features=train, target='target')
     prediction = auto_model.predict(features=test)
@@ -103,7 +102,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
 
 
 if __name__ == '__main__':
-    run_classification_example()
-    run_regression_example()
+    #run_classification_example()
+    #run_regression_example()
     run_ts_forecasting_example()
-    run_classification_multiobj_example()
+    #run_classification_multiobj_example()

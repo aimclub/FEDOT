@@ -5,14 +5,42 @@ from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData, OutputData
 
 
-def plot_forecast(pre_history: 'InputData', forecast: 'OutputData'):
-    # TODO add docstring description and refactor for preprocessing PR
-    last_ind = int(round(pre_history.idx[-1]))
-    plt.figure(figsize=(20, 10))
-    plt.plot(pre_history.idx[-72:], pre_history.target[-72:])
-    ticks = range(last_ind, last_ind + len(forecast.predict) + 1)
-    ts = np.append(pre_history.target[-1], forecast.predict)
-    plt.plot(ticks, ts)
+def plot_forecast(data: InputData, prediction: OutputData):
+    """
+    Function for drawing plot with predictions
+
+    :param actual_time_series: the entire array with one-dimensional data
+    :param predicted_values: array with predicted values
+    :param len_train_data: number of elements in the training sample
+    :param y_name: name of the y axis
+    """
+    actual_time_series = data.features
+    target = data.target
+    predict = prediction.predict
+    if len(actual_time_series) < 72:
+        padding = len(actual_time_series)
+    else:
+        padding = 72
+    print(target)
+    if target is not None:
+        pred_start = len(actual_time_series) - len(predict)
+        first_idx = pred_start-padding
+    else:
+        pred_start = len(actual_time_series)
+        first_idx = pred_start-padding
+
+    plt.plot(np.arange(pred_start, pred_start + len(predict)),
+             predict, label='Predicted', c='blue')
+    plt.plot(np.arange(first_idx, len(actual_time_series)),
+             actual_time_series[first_idx:], label='Actual values', c='green')
+
+
+    # Plot black line which divide our array into train and test
+    plt.plot([pred_start, pred_start],
+             [min(actual_time_series[first_idx:]), max(actual_time_series[first_idx:])], c='black',
+             linewidth=1)
+    plt.legend(fontsize=15)
+    plt.grid()
     plt.show()
 
 
@@ -21,6 +49,14 @@ def plot_biplot(prediction: OutputData):
     predict = prediction.predict
     plt.figure(figsize=(10, 10))
     plt.scatter(target, predict)
+    plot_bisect(target, predict)
+    plt.title("Biplot")
+    plt.xlabel("target")
+    plt.ylabel("prediction")
+    plt.show()
+
+
+def plot_bisect(target, predict):
     plt.grid()
     bisect_x = []
     bisect_y = []
@@ -31,11 +67,7 @@ def plot_biplot(prediction: OutputData):
     bisect_y.append(min_coord)
     bisect_y.append(max_coord)
 
-    plt.plot(bisect_x, bisect_y)
-    plt.title("Biplot")
-    plt.xlabel("target")
-    plt.ylabel("prediction")
-    plt.show()
+    plt.plot(bisect_x, bisect_y, c='black', linewidth=1)
 
 
 def plot_roc_auc(input_data: InputData, prediction: OutputData):
