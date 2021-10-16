@@ -37,7 +37,7 @@ class FilterImplementation(DataOperationImplementation):
         """
 
         features = input_data.features
-        if is_fit_pipeline_stage :
+        if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
             if mask is not None:
