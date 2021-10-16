@@ -48,7 +48,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         for name in target_names:
             model = H2OAutoML(max_models=self.params.get("max_models"),
                               seed=self.params.get("seed"),
-                              max_runtime_secs=self.params.get("timeout") // target_len
+                              max_runtime_secs=self.params.get("timeout") * 60 // target_len
                               )
             model.train(x=train_columns, y=name, training_frame=train_frame)
             models.append(model.leader)
@@ -114,7 +114,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         train_frame[target_name] = train_frame[target_name].asfactor()
         model = self.operation_impl(max_models=self.params.get("max_models"),
                                     seed=self.params.get("seed"),
-                                    max_runtime_secs=self.params.get("timeout")
+                                    max_runtime_secs=self.params.get("timeout")*60
                                     )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
@@ -164,12 +164,10 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        model = self.operation_impl(generations=self.params.get('generations'),
-                                    population_size=self.params.get('population_size'),
-                                    verbosity=2,
-                                    random_state=42,
-                                    max_time_mins=self.params.get('timeout')
-                                    )
+        if train_data.task.task_type == TaskTypesEnum.ts_forecasting:
+            target_len = train_data.task.task_params.forecast_length
+        else:
+            target_len = 1
         models = []
         if len(train_data.target.shape) == 1:
             target = train_data.target.reshape(-1, 1)
@@ -177,6 +175,12 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
             target = train_data.target
 
         for i in range(target.shape[1]):
+            model = self.operation_impl(generations=self.params.get('generations'),
+                                        population_size=self.params.get('population_size'),
+                                        verbosity=2,
+                                        random_state=42,
+                                        max_time_mins=self.params.get('timeout') // target_len
+                                        )
             model.fit(train_data.features.astype(float), target.astype(float)[:, i])
             models.append(model.fitted_pipeline_)
         model = TPOTRegressionSerializationWrapper(models)
