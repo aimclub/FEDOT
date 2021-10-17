@@ -1,11 +1,11 @@
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.remote.remote_fit import ComputationalSetup, RemoteEvalParams
+from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
 pipeline_1 = Pipeline(PrimaryNode('linear'))
 pipeline_2 = Pipeline(PrimaryNode('ridge'))
 
-fitter = ComputationalSetup(RemoteEvalParams(
+fitter = RemoteEvaluator(RemoteTaskParams(
     mode='remote',
     dataset_name='cholesterol',
     task_type='Task(TaskTypesEnum.regression)',
@@ -22,7 +22,7 @@ fitter = ComputationalSetup(RemoteEvalParams(
         'DATA_ID': 'your_data_id'
     }))
 
-if fitter.is_remote:
-    fitted_pipelines = fitter.fit([pipeline_1, pipeline_2])
+if fitter.use_remote:
+    fitted_pipelines = fitter.compute_pipelines([pipeline_1, pipeline_2])
     print(fitted_pipelines[0].is_fitted)
     print(fitted_pipelines[1].is_fitted)
