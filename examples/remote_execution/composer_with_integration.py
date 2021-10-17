@@ -5,12 +5,12 @@ import numpy as np
 
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
-from fedot.remote.remote_fit import ComputationalSetup, RemoteEvalParams
+from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
 random.seed(1)
 np.random.seed(1)
 
-fitter = ComputationalSetup(RemoteEvalParams(
+fitter = RemoteEvaluator(RemoteTaskParams(
     mode='remote',
     dataset_name='scoring',
     task_type='Task(TaskTypesEnum.classification)',

@@ -410,7 +410,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     """
 
     # Update target (clip first "window size" values)
-    ts_target = target[[list(all_idx).index(i) for i in idx]]
+    row_nums = [list(all_idx).index(i) for i in idx]
+    ts_target = target[row_nums]
 
     # Multi-target transformation
     if forecast_length > 1:

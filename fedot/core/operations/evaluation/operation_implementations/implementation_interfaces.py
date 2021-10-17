@@ -143,6 +143,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         """
         # TODO perhaps there is a more effective way to do this
         source_shape = features.shape
+
+        if len(source_shape) <= 1:
+            # if single column
+            return [], []
+
         columns_amount = source_shape[1]
 
         # Indices of boolean columns in features table

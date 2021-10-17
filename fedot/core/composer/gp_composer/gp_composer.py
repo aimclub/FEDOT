@@ -31,7 +31,7 @@ from fedot.core.repository.quality_metrics_repository import (ClassificationMetr
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
-from fedot.remote.remote_fit import init_data_for_remote_execution
+from fedot.remote.remote_evaluator import init_data_for_remote_execution, RemoteEvaluator
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -133,7 +133,8 @@ class GPComposer(Composer):
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
             train_data, test_data = train_test_data_setup(data, split_ratio)
 
-            init_data_for_remote_execution(train_data)
+            if RemoteEvaluator().use_remote:
+                init_data_for_remote_execution(train_data)
 
             objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
 

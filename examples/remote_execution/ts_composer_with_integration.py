@@ -5,7 +5,7 @@ import pandas as pd
 
 from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results, \
     prepare_multimodal_data
-from fedot.remote.remote_fit import ComputationalSetup, RemoteEvalParams
+from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
 random.seed(1)
 np.random.seed(1)
@@ -23,7 +23,7 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
 
-    setup = ComputationalSetup(RemoteEvalParams(
+    setup = RemoteEvaluator(RemoteTaskParams(
         mode='remote',
         dataset_name='pw_dataset',
         task_type=f'Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length={forecast_horizon}))',

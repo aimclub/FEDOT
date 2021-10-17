@@ -3,16 +3,40 @@ import json
 import os
 import shutil
 import time
-from typing import List
+from typing import List, Optional
 
 import requests
+
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.remote.infrastructure.clients.client import Client
 
 USER_TOKEN_KEY = 'x-jwt-auth'
 GROUP_TOKEN_KEY = 'x-jwt-models-execution'
 
+DEFAULT_EXEC_PARAMS = {
+    'container_input_path': "/home/FEDOT/input_data_dir",
+    'container_output_path': "/home/FEDOT/output_data_dir",
+    'container_config_path': "/home/FEDOT/.config",
+    'container_image': "fedot:dm-7",
+    'timeout': 360
+}
 
-class Client:
-    def __init__(self, authorization_server: str = None, controller_server: str = None):
+DEFAULT_CONNECT_PARAMS = {
+    'FEDOT_LOGIN': 'your_login',
+    'FEDOT_PASSWORD': 'your_password',
+    'AUTH_SERVER': 'your_url',
+    'CONTR_SERVER': 'your_url',
+    'PROJECT_ID': 'your_project_id',
+    'DATA_ID': 'your_data_id'
+}
+
+
+# TO BE MOVED TO PYPI AS EXTERNAL LIB
+
+class DataMallClient(Client):
+    def __init__(self, connect_params: dict, exec_params: dict, output_path: Optional[str] = None):
+        authorization_server = connect_params['AUTH_SERVER'],
+        controller_server = connect_params['CONTR_SERVER']
         self.authorization_server = os.environ['AUTH_SERVER'] if authorization_server is None else authorization_server
         self.controller_server = os.environ['CONTR_SERVER'] if controller_server is None else controller_server
         self._user_token = None
@@ -20,7 +44,40 @@ class Client:
         self._current_project_id = None
         self.group_token = None
 
-    def login(self, login: str, password: str) -> None:
+        self._login(login=connect_params['FEDOT_LOGIN'],
+                    password=connect_params['FEDOT_PASSWORD'])
+
+        pid = self.connect_params['PROJECT_ID']
+        group = self._create_execution_group(project_id=pid)
+        self._set_group_token(project_id=pid, group_id=group['id'])
+
+        super().__init__(connect_params, exec_params, output_path)
+
+    def create_task(self, config):
+        '''
+        Create task for execution
+        :return: id of created task
+        '''
+        created_ex = self._create_execution(self.exec_params,
+                                            config=config
+                                            )
+        return created_ex['id']
+
+    def wait_until_ready(self):
+        statuses = ['']
+        all_executions = self.get_executions()
+        self._logger.info(all_executions)
+        start = datetime.now()
+        while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
+            executions = self._get_executions()
+            statuses = [execution['status'] for execution in executions]
+            self._logger.info([f"{execution['id']}={execution['status']};" for execution in executions])
+            time.sleep(5)
+        end = datetime.now()
+        ex_time = end - start
+        return ex_time
+
+    def _login(self, login: str, password: str) -> None:
         response = requests.post(
             url=f'{self.authorization_server}/users/login',
             json={
@@ -35,14 +92,7 @@ class Client:
         self._user_token = response.cookies['x-jwt-auth']
         self.user = json.loads(response.text)
 
-    def set_user_token(self, token):
-        self._user_token = token
-
-    @property
-    def user_token(self):
-        return self._user_token
-
-    def set_group_token(self, project_id: int, group_token: str = None, group_id: int = None) -> None:
+    def _set_group_token(self, project_id: int, group_token: str = None, group_id: int = None) -> None:
         if group_token is not None:
             self.group_token = group_token
             self._current_project_id = project_id
@@ -61,7 +111,7 @@ class Client:
 
         raise ValueError(f'You have to specify project_id and token/group_id!')
 
-    def get_execution_groups(self, project_id: int) -> List[dict]:
+    def _get_execution_groups(self, project_id: int) -> List[dict]:
         response = requests.get(
             url=f'{self.controller_server}/execution-groups/{project_id}',
             cookies={USER_TOKEN_KEY: self._user_token}
@@ -72,7 +122,7 @@ class Client:
 
         return json.loads(response.text)
 
-    def get_execution_group(self, project_id: int, group_id: int) -> dict:
+    def _get_execution_group(self, project_id: int, group_id: int) -> dict:
         response = requests.get(
             url=f'{self.controller_server}/execution-groups/{project_id}/{group_id}',
             cookies={USER_TOKEN_KEY: self._user_token}
@@ -83,7 +133,7 @@ class Client:
 
         return json.loads(response.text)
 
-    def create_execution_group(self, project_id: int) -> dict:
+    def _create_execution_group(self, project_id: int) -> dict:
         response = requests.post(
             url=f'{self.controller_server}/execution-groups/{project_id}',
             cookies={USER_TOKEN_KEY: self._user_token}
@@ -106,7 +156,7 @@ class Client:
 
         return json.loads(response.text)
 
-    def get_executions(self, wait_until_finished: bool = False):
+    def _get_executions(self, wait_until_finished: bool = False):
         if not wait_until_finished:
             return self._get_executions()
 
@@ -116,7 +166,7 @@ class Client:
                 return executions
             time.sleep(2)
 
-    def get_execution(self, execution_id: int):
+    def _get_execution(self, execution_id: int):
         response = requests.get(
             url=f'{self.controller_server}/executions/{self._current_project_id}/{execution_id}',
             cookies={USER_TOKEN_KEY: self._user_token},
@@ -128,12 +178,12 @@ class Client:
 
         return json.loads(response.text)
 
-    def create_execution(self, container_input_path: str,
-                         container_output_path: str,
-                         container_config_path: str,
-                         container_image: str,
-                         timeout: int,
-                         config: bytes) -> dict:
+    def _create_execution(self, container_input_path: str,
+                          container_output_path: str,
+                          container_config_path: str,
+                          container_image: str,
+                          timeout: int,
+                          config: bytes) -> dict:
         response = requests.post(
             url=f'{self.controller_server}/executions/{self._current_project_id}',
             cookies={USER_TOKEN_KEY: self._user_token},
@@ -153,7 +203,7 @@ class Client:
 
         return json.loads(response.text)
 
-    def stop_execution(self, execution_id: int) -> None:
+    def _stop_execution(self, execution_id: int) -> None:
         response = requests.delete(
             url=f'{self.controller_server}/executions/{self._current_project_id}/{execution_id}',
             cookies={USER_TOKEN_KEY: self._user_token},
@@ -163,7 +213,7 @@ class Client:
         if response.status_code != 204:
             raise ValueError(f'Unable to stop execution. Reason: {response.text}')
 
-    def download_result(self, execution_id: int, path: str, unpack: bool = False) -> None:
+    def download_result(self, execution_id: int):
         response = requests.get(
             url=f'{self.controller_server}/executions/{self._current_project_id}/{execution_id}/download',
             cookies={USER_TOKEN_KEY: self._user_token},
@@ -174,17 +224,30 @@ class Client:
         if response.status_code != 200:
             raise ValueError(f'Unable to download results. Reason: {response.text}')
 
-        if not unpack:
-            with open(path, 'wb') as out_file:
-                shutil.copyfileobj(response.raw, out_file)
-        else:
-            tmp_path = f'_tmp_{int(datetime.datetime.utcnow().timestamp() * 1000)}'
+        tmp_path = f'_tmp_{int(datetime.datetime.utcnow().timestamp() * 1000)}'
+        try:
+            with open(tmp_path, 'wb') as tmp_file:
+                shutil.copyfileobj(response.raw, tmp_file)
+            shutil.unpack_archive(tmp_path, f'{self.output_path}/execution-{execution_id}', 'zip')
+        finally:
             try:
-                with open(tmp_path, 'wb') as tmp_file:
-                    shutil.copyfileobj(response.raw, tmp_file)
-                shutil.unpack_archive(tmp_path, f'{path}/execution-{execution_id}', 'zip')
-            finally:
-                try:
-                    os.remove(tmp_path)
-                except FileNotFoundError:
-                    pass
+                os.remove(tmp_path)
+            except FileNotFoundError:
+                pass
+
+        results_path_out = os.path.join(self.output_path,
+                                        f'execution-{execution_id}',
+                                        'out')
+        results_folder = os.listdir(results_path_out)[0]
+        pipeline = Pipeline()
+        pipeline.load(os.path.join(results_path_out, results_folder,
+                                   'fitted_pipeline.json'))
+
+        clean_dir(results_path_out)
+        return pipeline
+
+
+def clean_dir(results_path_out):
+    for root, dirs, files in os.walk(results_path_out):
+        for file in files:
+            os.remove(os.path.join(root, file))

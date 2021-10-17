@@ -67,8 +67,7 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
     chosen = []
     for _ in range(pop_size):
         group = random_selection(individuals, group_size)
-        non_empty_group = [g for g in group if g.fitness is not None]
-        best = min(non_empty_group, key=lambda ind: ind.fitness)
+        best = min(group, key=lambda ind: ind.fitness)
         chosen.append(best)
     return chosen
 

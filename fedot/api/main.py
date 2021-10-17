@@ -1,17 +1,18 @@
 from copy import deepcopy
-from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+
 from fedot.api.api_utils.api_utils import ApiFacade
 from fedot.core.data.data import InputData
-from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
+from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
+from fedot.remote.remote_evaluator import RemoteEvaluator
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -94,6 +95,8 @@ class Fedot:
                                                   features=features,
                                                   target=target,
                                                   is_predict=False)
+
+        self._init_remote_if_necessary()
 
         is_composing_required = True
         if self.composer_dict['current_model'] is not None:
@@ -291,3 +294,16 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
+
+    def _init_remote_if_necessary(self):
+        remote = RemoteEvaluator()
+        if remote.use_remote and remote.remote_eval_params is not None:
+            task = self.composer_dict['task']
+            if task.task_type == TaskTypesEnum.ts_forecasting:
+                task_str = \
+                    f'Task(TaskTypesEnum.ts_forecasting, ' \
+                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
+            else:
+                task_str = f'Task({str(task.task_type)})'
+            remote.remote_eval_params.task_type = task_str
+            remote.remote_eval_params.is_multi_modal = isinstance(self.train_data, MultiModalData)

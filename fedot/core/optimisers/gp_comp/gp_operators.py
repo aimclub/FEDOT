@@ -6,8 +6,12 @@ from typing import (Any, Callable, List, Tuple, Union)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+<<<<<<< HEAD
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.remote.remote_fit import ComputationalSetup
+=======
+from fedot.remote.remote_evaluator import RemoteEvaluator
+>>>>>>> Refactoring
 
 MAX_ITERS = 1000
 
@@ -115,12 +119,14 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
 
-    fitter = ComputationalSetup()
+
+    # TODO refactor
+    fitter = RemoteEvaluator()
     pre_evaluated_objects = []
-    if fitter.is_remote:
+    if fitter.use_remote:
         print('Remote fit used')
         restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
-        pre_evaluated_objects = fitter.fit(restored_graphs)
+        pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
 
     evaluated_individuals = []
     for ind_num, ind in enumerate(reversed_set):

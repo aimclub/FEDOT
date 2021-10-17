@@ -73,7 +73,17 @@ class Data:
                              is_predict=False,
                              target_column: Optional[str] = ''):
         data_frame = pd.read_csv(file_path, sep=delimiter)
+        idx = None
+        if 'datetime' in data_frame.columns:
+            df = pd.read_csv(file_path,
+                             parse_dates=['datetime'])
+            idx = [str(d) for d in df['datetime']]
+
         time_series = np.array(data_frame[target_column])
+
+        if idx is None:
+            idx = np.arange(0, len(target_column))
+
         if is_predict:
             # Prepare data for prediction
             len_forecast = task.task_params.forecast_length
@@ -87,7 +97,7 @@ class Data:
                                    data_type=DataTypesEnum.ts)
         else:
             # Prepare InputData for train the pipeline
-            input_data = InputData(idx=np.arange(0, len(time_series)),
+            input_data = InputData(idx=idx,
                                    features=time_series,
                                    target=time_series,
                                    task=task,
@@ -248,13 +258,16 @@ class InputData(Data):
 
     def subset_list(self, selected_idx: List):
         idx_list = [str(i) for i in self.idx]
-        indices = [idx_list.index(str(sel_ind)) for sel_ind in selected_idx if str(sel_ind) in idx_list]
+
+        # extractions of row number for each existing index from selected_idx
+        row_nums = [idx_list.index(str(selected_ind)) for selected_ind in selected_idx
+                    if str(selected_ind) in idx_list]
         new_features = None
 
         if self.features is not None:
-            new_features = self.features[indices]
-        return InputData(idx=np.asarray(self.idx)[indices], features=new_features,
-                         target=self.target[indices], task=self.task, data_type=self.data_type)
+            new_features = self.features[row_nums]
+        return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
+                         target=self.target[row_nums], task=self.task, data_type=self.data_type)
 
     def shuffle(self):
         """
