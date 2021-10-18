@@ -38,8 +38,6 @@ class RemoteTaskParams:
     :param is_multi_modal: is train data multi-modal?
     :param var_names: variable names for fitting?
     :param max_parallel maximal number of parallel remote task
-    :param access_params optional set of parameters for remote server connection.
-        If None, the environmental variables are used.
     """
     mode: str = 'remote'
     dataset_name: str = None
@@ -48,16 +46,15 @@ class RemoteTaskParams:
     is_multi_modal: bool = False
     var_names: Optional[List] = None
     max_parallel: int = 7
-    access_params: Optional[dict] = None
 
 
 @singleton
 class RemoteEvaluator:
     def __init__(self, client: Client = None, remote_task_params: Optional[RemoteTaskParams] = None):
         """
+        Class for the batch evaluation of pipelines using remote client
         :param client: client class for connection to external computational server.
         :param remote_task_params: dictionary with the parameters of remote evaluation.
-        :param from_scratch: clean the existing configuration
         """
         self._logger = default_log('RemoteFitterLog')
 
@@ -136,7 +133,7 @@ def _get_config(pipeline_json, data_id, params: RemoteTaskParams, client_params:
         if params.train_data_idx is not None else []
 
     return f"""[DEFAULT]
-        pipeline_description = {pipeline_json}
+        pipeline_template = {pipeline_json}
         train_data = {client_params['container_input_path']}/{params.dataset_name}.csv
         task = {params.task_type}
         output_path = {client_params['container_output_path']}

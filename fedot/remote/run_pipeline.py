@@ -88,7 +88,7 @@ def fit_pipeline(config_file) -> bool:
     config = \
         _extract_data_from_config_file(config_file)
 
-    pipeline = pipeline_from_json(config.pipeline_description)
+    pipeline = pipeline_from_json(config.pipeline_template)
 
     train_data = _load_data(config)
 

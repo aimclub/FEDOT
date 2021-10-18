@@ -1,8 +1,8 @@
-import datetime
 import json
 import os
 import shutil
 import time
+from datetime import datetime
 from typing import List, Optional
 
 import requests
@@ -58,14 +58,17 @@ class DataMallClient(Client):
         Create task for execution
         :return: id of created task
         '''
-        created_ex = self._create_execution(self.exec_params,
-                                            config=config
-                                            )
+        created_ex = self._create_execution(self.exec_params['container_input_path'],
+                                            self.exec_params['container_output_path'],
+                                            self.exec_params['container_config_path'],
+                                            self.exec_params['container_image'],
+                                            self.exec_params['timeout'],
+                                            config=config)
         return created_ex['id']
 
     def wait_until_ready(self):
         statuses = ['']
-        all_executions = self.get_executions()
+        all_executions = self._get_executions()
         self._logger.info(all_executions)
         start = datetime.now()
         while any(s not in ['Succeeded', 'Failed', 'Timeout', 'Interrupted'] for s in statuses):
@@ -99,7 +102,7 @@ class DataMallClient(Client):
             return
 
         if group_id is not None:
-            group = self.get_execution_group(
+            group = self._get_execution_group(
                 project_id=project_id,
                 group_id=group_id
             )

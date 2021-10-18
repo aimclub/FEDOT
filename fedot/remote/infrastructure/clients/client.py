@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from fedot.core.log import default_log
 from fedot.core.utils import default_fedot_data_dir
 
 
@@ -10,6 +11,7 @@ class Client:
         self.exec_params = exec_params
         self.output_path = output_path if output_path else \
             os.path.join(default_fedot_data_dir(), 'remote_fit_results')
+        self._logger = default_log('ClientLog')
 
     def create_task(self, config):
         raise NotImplementedError()

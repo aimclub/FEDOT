@@ -11,7 +11,7 @@ class PipelineRunConfig:
     """
 
     def __init__(self, config):
-        self.pipeline_description = config['DEFAULT']['pipeline_description']
+        self.pipeline_template = config['DEFAULT']['pipeline_template']
         self.input_data = config['DEFAULT']['train_data']
         self.task = eval(config['DEFAULT']['task'])
         self.output_path = config['DEFAULT']['output_path']
