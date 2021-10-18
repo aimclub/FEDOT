@@ -401,6 +401,4 @@ def test_one_hot_encoder_serialization():
 def test_save_pipeline_with_np_int_type():
     pipeline = get_simple_ts_pipeline()
     pipeline.nodes[1].custom_params["test"] = np.int32(42)
-    train_input, predict_input = get_ts_data()
-    pipeline.fit_from_scratch(train_input)
     pipeline.save(path='test_save_pipeline_with_np_int_type')
