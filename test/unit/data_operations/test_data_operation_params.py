@@ -65,7 +65,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     assert fixed_params['window_size'] == 439
 
 
-def test_rasnac_with_invalid_params_fit_correctly():
+def test_ransac_with_invalid_params_fit_correctly():
     """ Check that on a small dataset the RANSAC anomaly search algorithm can
     adjust the values of hyperparameters
 

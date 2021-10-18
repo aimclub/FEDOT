@@ -2,6 +2,8 @@ from copy import copy
 from typing import Optional
 
 from sklearn.linear_model import LinearRegression, RANSACRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
 from fedot.core.log import default_log
@@ -16,6 +18,8 @@ class FilterImplementation(DataOperationImplementation):
         super().__init__()
         self.inner_model = None
         self.operation = None
+
+        self.log = default_log(__name__)
 
     def fit(self, input_data):
         """ Method for fit filter
@@ -45,6 +49,7 @@ class FilterImplementation(DataOperationImplementation):
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
+                self.log.info("RASNAC: didn't fit correctly. Return all features")
                 inner_features = features
                 modified_input_data = copy(input_data)
 
@@ -76,25 +81,9 @@ class FilterImplementation(DataOperationImplementation):
         return modified_input_data
 
 
-class LinearRegRANSACImplementation(FilterImplementation):
-    """
-    RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
-    Task type - regression
-    """
-
+class RANSACAlgorithmImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = LinearRegression(normalize=True)
-
-        self.log = default_log(__name__)
-
-        if not params:
-            # Default parameters
-            self.operation = RANSACRegressor(base_estimator=self.inner_model)
-        else:
-            self.operation = RANSACRegressor(base_estimator=self.inner_model,
-                                             **params)
-        self.params = params
 
     def fit(self, input_data):
         count = 0
@@ -112,7 +101,26 @@ class LinearRegRANSACImplementation(FilterImplementation):
         return self.operation
 
 
-class NonLinearRegRANSACImplementation(FilterImplementation):
+class LinearRegRANSACImplementation(RANSACAlgorithmImplementation):
+    """
+    RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
+    Task type - regression
+    """
+
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
+
+        if not params:
+            # Default parameters
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
+        else:
+            self.operation = RANSACRegressor(base_estimator=self.inner_model,
+                                             **params)
+        self.params = params
+
+
+class NonLinearRegRANSACImplementation(RANSACAlgorithmImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with DecisionTreeRegressor as core
     Task type - regression
@@ -121,7 +129,6 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = DecisionTreeRegressor()
-        self.log = default_log(__name__)
         if not params:
             # Default parameters
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
@@ -129,18 +136,3 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params
-
-    def fit(self, input_data):
-        count = 0
-        max_count = 10
-        while count < max_count:
-            try:
-                self.operation.inlier_mask_ = None
-                self.operation.fit(input_data.features, input_data.target)
-                return self.operation
-            except ValueError:
-                self.log.info("RASNAC: multiplied residual_threshold on 2")
-                self.params["residual_threshold"] *= 2
-                count += 1
-
-        return self.operation
