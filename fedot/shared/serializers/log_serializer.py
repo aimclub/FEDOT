@@ -2,7 +2,7 @@ from inspect import signature
 from pathlib import Path
 from typing import Any, Dict
 
-from ..interfaces.serializable import Serializable
+from fedot.shared.interfaces.serializable import Serializable
 
 
 class LogSerializer(Serializable):

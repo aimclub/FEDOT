@@ -1,7 +1,9 @@
 from inspect import isclass
 from typing import Any, Dict
 
-from ..interfaces.serializable import DELIMITER, Serializable, _get_class
+from fedot.shared.interfaces.serializable import DELIMITER, Serializable
+
+from .json_helpers import _get_class
 
 
 class OperationMetaInfoSerializer(Serializable):
