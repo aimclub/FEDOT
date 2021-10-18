@@ -81,14 +81,15 @@ class FilterImplementation(DataOperationImplementation):
         return modified_input_data
 
 
-class RANSACAlgorithmImplementation(FilterImplementation):
+class RegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        self.max_iter = 10
 
     def fit(self, input_data):
-        count = 0
-        max_count = 10
-        while count < max_count:
+        iter_ = 0
+
+        while iter_ < self.max_iter:
             try:
                 self.operation.inlier_mask_ = None
                 self.operation.fit(input_data.features, input_data.target)
@@ -96,12 +97,12 @@ class RANSACAlgorithmImplementation(FilterImplementation):
             except ValueError:
                 self.log.info("RASNAC: multiplied residual_threshold on 2")
                 self.params["residual_threshold"] *= 2
-                count += 1
+                iter_ += 1
 
         return self.operation
 
 
-class LinearRegRANSACImplementation(RANSACAlgorithmImplementation):
+class LinearRegRANSACImplementation(RegRANSACImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
     Task type - regression
@@ -120,7 +121,7 @@ class LinearRegRANSACImplementation(RANSACAlgorithmImplementation):
         self.params = params
 
 
-class NonLinearRegRANSACImplementation(RANSACAlgorithmImplementation):
+class NonLinearRegRANSACImplementation(RegRANSACImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with DecisionTreeRegressor as core
     Task type - regression
