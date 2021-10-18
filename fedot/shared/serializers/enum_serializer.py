@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
-from fedot.shared.interfaces.serializable import (CLASS_PATH_KEY, DELIMITER,
-                                                  Serializable)
+from ..interfaces.serializable import CLASS_PATH_KEY, DELIMITER, Serializable
 
 
 class EnumSerializer(Serializable):

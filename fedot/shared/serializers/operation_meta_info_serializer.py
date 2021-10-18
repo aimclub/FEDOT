@@ -1,8 +1,7 @@
 from inspect import isclass
 from typing import Any, Dict
 
-from fedot.shared.interfaces.serializable import DELIMITER, Serializable
-
+from ..interfaces.serializable import DELIMITER, Serializable
 from .json_helpers import _get_class
 
 

@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from fedot.shared.interfaces.serializable import Serializable
+from ..interfaces.serializable import Serializable
 
 
 class BasicSerializer(Serializable):

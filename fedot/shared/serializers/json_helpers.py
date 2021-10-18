@@ -2,8 +2,7 @@ from importlib import import_module
 from typing import Any, Dict
 from uuid import UUID
 
-from fedot.shared.interfaces.serializable import (CLASS_PATH_KEY, DELIMITER,
-                                                  Serializable)
+from ..interfaces.serializable import CLASS_PATH_KEY, DELIMITER, Serializable
 
 
 def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.dumps(...)
