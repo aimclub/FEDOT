@@ -49,7 +49,7 @@ class FilterImplementation(DataOperationImplementation):
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
-                self.log.info("RASNAC: didn't fit correctly. Return all features")
+                self.log.info("Filtering Algorithm: didn't fit correctly. Return all features")
                 inner_features = features
                 modified_input_data = copy(input_data)
 
@@ -85,6 +85,14 @@ class RegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.max_iter = 10
+        self.parameters_changed = False
+
+    def get_params(self):
+        params_dict = self.params
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['residual_threshold']])
+        else:
+            return params_dict
 
     def fit(self, input_data):
         iter_ = 0
@@ -97,6 +105,7 @@ class RegRANSACImplementation(FilterImplementation):
             except ValueError:
                 self.log.info("RASNAC: multiplied residual_threshold on 2")
                 self.params["residual_threshold"] *= 2
+                self.parameters_changed = True
                 iter_ += 1
 
         return self.operation

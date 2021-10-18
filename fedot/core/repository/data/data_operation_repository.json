@@ -153,11 +153,11 @@
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["affects_target", "linear", "filtering"]
+			"tags": ["affects_target", "linear", "filtering", "correct_params"]
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["affects_target", "non_linear", "filtering"]
+			"tags": ["affects_target", "non_linear", "filtering", "correct_params"]
 		},
 		"rfe_lin_reg": {
 			"meta": "regression_preprocessing",
