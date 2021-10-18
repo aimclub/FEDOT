@@ -291,10 +291,3 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
-
-
-class PlotTypesEnum(Enum):
-    classification = 'classification'
-    regression = 'regression'
-    ts_forecasting = 'ts_forecasting'
-    clustering = 'clustering'  # not applicable as main task yet

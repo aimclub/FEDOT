@@ -7,12 +7,11 @@ from fedot.core.data.data import InputData, OutputData
 
 def plot_forecast(data: InputData, prediction: OutputData):
     """
-    Function for drawing plot with predictions
+    Function for drawing plot with time series forecast. If data.target is None function plot prediction
+    as future values. If not - we use last data features as validation.
 
-    :param actual_time_series: the entire array with one-dimensional data
-    :param predicted_values: array with predicted values
-    :param len_train_data: number of elements in the training sample
-    :param y_name: name of the y axis
+    :param data: the InputData with actual time series as features
+    :param prediction: the OutputData with predictions
     """
     actual_time_series = data.features
     target = data.target
@@ -44,8 +43,19 @@ def plot_forecast(data: InputData, prediction: OutputData):
 
 
 def plot_biplot(prediction: OutputData):
+    """
+    Function for drawing biplot with regression task.
+
+    :param prediction: the OutputData with prediction and target.
+    Target should be not null
+    """
+
     target = prediction.target
     predict = prediction.predict
+
+    if target is None:
+        raise ValueError('Target must be not None to plot biplot')
+
     plt.figure(figsize=(10, 10))
     plt.scatter(target, predict)
     plot_bisect(target, predict)
@@ -57,27 +67,28 @@ def plot_biplot(prediction: OutputData):
 
 def plot_bisect(target, predict):
     plt.grid()
-    bisect_x = []
-    bisect_y = []
     min_coord = min(np.min(target), np.min(predict))
     max_coord = max(np.max(target), np.max(predict))
-    bisect_x.append(min_coord)
-    bisect_x.append(max_coord)
-    bisect_y.append(min_coord)
-    bisect_y.append(max_coord)
-
+    bisect_x = [min_coord, max_coord]
+    bisect_y = [min_coord, max_coord]
     plt.plot(bisect_x, bisect_y, c='black', linewidth=1)
 
 
-def plot_roc_auc(input_data: InputData, prediction: OutputData):
-    if input_data.num_classes == 2:
-        fpr, tpr, threshold = ROCAUC.roc_curve(input_data.target, prediction.predict)
+def plot_roc_auc(data: InputData, prediction: OutputData):
+    """
+    Function for drawing roc curve for classification task.
+
+    :param data: the InputData with validation data
+    :param prediction: prediction for data
+    """
+    if data.num_classes == 2:
+        fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict)
         roc_auc = ROCAUC.auc(fpr, tpr)
         plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
         plt.legend(loc=F'best')
     else:
-        for cls in range(input_data.num_classes):
-            fpr, tpr, threshold = ROCAUC.roc_curve(input_data.target, prediction.predict[:, cls], pos_label=cls)
+        for cls in range(data.num_classes):
+            fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, cls], pos_label=cls)
             roc_auc = ROCAUC.auc(fpr, tpr)
             plt.plot(fpr, tpr, label=f'label-{cls} AUC = %0.2f' % roc_auc)
             plt.legend(loc=F'best')
