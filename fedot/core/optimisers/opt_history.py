@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, List, Optional
 from uuid import uuid4
 
+import fedot.core.optimisers.gp_comp.individual as Individual_m
 from fedot.core.composer.metrics import QualityMetric
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
@@ -37,8 +37,8 @@ class OptHistory(BasicSerializer):
 
     def __init__(self, metrics=None, save_folder=None):
         self.metrics: List[Callable[..., float]] = metrics
-        self.individuals: List[List[Individual]] = []
-        self.archive_history: List[List[Individual]] = []
+        self.individuals: List[List[Individual_m.Individual]] = []
+        self.archive_history: List[List[Individual_m.Individual]] = []
         self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
         self.parent_operators: List[List[List[ParentOperator]]] = []
