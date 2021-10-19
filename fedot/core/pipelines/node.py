@@ -11,7 +11,7 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.shared import BasicSerializer
 
 
-class Node(GraphNode, BasicSerializer):
+class Node(GraphNode):
     """
     Base class for Node definition in Pipeline structure
 
