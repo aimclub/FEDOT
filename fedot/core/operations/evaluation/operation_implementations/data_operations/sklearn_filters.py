@@ -2,8 +2,11 @@ from copy import copy
 from typing import Optional
 
 from sklearn.linear_model import LinearRegression, RANSACRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
 
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 
@@ -15,6 +18,8 @@ class FilterImplementation(DataOperationImplementation):
         super().__init__()
         self.inner_model = None
         self.operation = None
+
+        self.log = default_log(__name__)
 
     def fit(self, input_data):
         """ Method for fit filter
@@ -39,10 +44,14 @@ class FilterImplementation(DataOperationImplementation):
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
-            inner_features = features[mask]
-
-            # Update data
-            modified_input_data = self._update_data(input_data, mask)
+            if mask is not None:
+                inner_features = features[mask]
+                # Update data
+                modified_input_data = self._update_data(input_data, mask)
+            else:
+                self.log.info("Filtering Algorithm: didn't fit correctly. Return all features")
+                inner_features = features
+                modified_input_data = copy(input_data)
 
         else:
             # For predict stage there is a need to safe all the data
@@ -72,7 +81,37 @@ class FilterImplementation(DataOperationImplementation):
         return modified_input_data
 
 
-class LinearRegRANSACImplementation(FilterImplementation):
+class RegRANSACImplementation(FilterImplementation):
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        self.max_iter = 10
+        self.parameters_changed = False
+
+    def get_params(self):
+        params_dict = self.params
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['residual_threshold']])
+        else:
+            return params_dict
+
+    def fit(self, input_data):
+        iter_ = 0
+
+        while iter_ < self.max_iter:
+            try:
+                self.operation.inlier_mask_ = None
+                self.operation.fit(input_data.features, input_data.target)
+                return self.operation
+            except ValueError:
+                self.log.info("RASNAC: multiplied residual_threshold on 2")
+                self.params["residual_threshold"] *= 2
+                self.parameters_changed = True
+                iter_ += 1
+
+        return self.operation
+
+
+class LinearRegRANSACImplementation(RegRANSACImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with LinearRegression as core
     Task type - regression
@@ -80,7 +119,7 @@ class LinearRegRANSACImplementation(FilterImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = LinearRegression(normalize=True)
+        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
 
         if not params:
             # Default parameters
@@ -91,7 +130,7 @@ class LinearRegRANSACImplementation(FilterImplementation):
         self.params = params
 
 
-class NonLinearRegRANSACImplementation(FilterImplementation):
+class NonLinearRegRANSACImplementation(RegRANSACImplementation):
     """
     RANdom SAmple Consensus (RANSAC) algorithm with DecisionTreeRegressor as core
     Task type - regression
@@ -100,7 +139,6 @@ class NonLinearRegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = DecisionTreeRegressor()
-
         if not params:
             # Default parameters
             self.operation = RANSACRegressor(base_estimator=self.inner_model)
