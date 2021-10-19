@@ -10,7 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.api.test_main_api import get_dataset
-from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data
+from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data, get_simple_ts_pipeline
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -23,7 +23,8 @@ def preprocessing_files_before_and_after_tests(request):
              'test_export_import_for_one_pipeline_object_correctly_2', 'data_model_forecasting',
              'test_export_import_for_one_pipeline_object_correctly_3', 'data_model_classification',
              'test_absolute_relative_paths_correctly_no_exception', 'test_export_one_hot_encoding_operation',
-             'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception']
+             'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
+             'test_save_pipeline_with_np_int_type']
 
     delete_files = create_func_delete_files(paths)
     delete_files()
@@ -395,3 +396,9 @@ def test_one_hot_encoder_serialization():
     prediction_after_export = pipeline_after.predict(test_data)
 
     assert np.array_equal(prediction_before_export.features, prediction_after_export.features)
+
+
+def test_save_pipeline_with_np_int_type():
+    pipeline = get_simple_ts_pipeline()
+    pipeline.nodes[1].custom_params["test"] = np.int32(42)
+    pipeline.save(path='test_save_pipeline_with_np_int_type')
