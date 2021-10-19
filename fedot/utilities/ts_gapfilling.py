@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 import numpy as np
 from scipy import interpolate
 
@@ -282,7 +284,8 @@ class ModelGapFiller(SimpleGapFiller):
             timeseries_train_part = output_data[:gap[0]]
 
             # Make forecast in the gap
-            predicted = self.__forecast_in_gap(timeseries_train_part,
+            predicted = self.__forecast_in_gap(self.pipeline,
+                                               timeseries_train_part,
                                                output_data, gap)
 
             # Replace gaps in an array with prediction values
@@ -307,7 +310,8 @@ class ModelGapFiller(SimpleGapFiller):
 
         # Adaptive prediction interval length
         len_gap = len(gap)
-        predicted = self.__forecast_in_gap(timeseries_train_part,
+        predicted = self.__forecast_in_gap(self.pipeline,
+                                           timeseries_train_part,
                                            output_data, gap)
         weights_list = np.arange(len_gap, 0, -1)
         return weights_list, predicted
@@ -326,34 +330,57 @@ class ModelGapFiller(SimpleGapFiller):
         """
 
         gap = new_gap_list[batch_index]
+        # Adaptive prediction interval length
+        len_gap = len(gap)
 
         # If the interval with a gap is the last one in the array
         if batch_index == len(new_gap_list) - 1:
             timeseries_train_part = output_data[(gap[-1] + 1):]
+
+            if len(timeseries_train_part) == 0:
+                # Take last observed value as predicted
+                last_known_value = output_data[gap[0]-1]
+                return [last_known_value] * len_gap
         else:
             next_gap = new_gap_list[batch_index + 1]
             timeseries_train_part = output_data[(gap[-1] + 1):next_gap[0]]
+
+            # Take part with known values to the left from the gap
+            extended_part = output_data[(gap[0]-1):next_gap[0]]
+
+            if gap[0] == 0:
+                # Gap in the first part of time series - take first observed value
+                first_known_value = timeseries_train_part[0]
+                return [first_known_value] * len_gap
         timeseries_train_part = np.flip(timeseries_train_part)
 
-        # Adaptive prediction interval length
-        len_gap = len(gap)
+        train_ts_len = len(timeseries_train_part) - len_gap
+        if train_ts_len < self.minimum_train_ts:
+            interpolated_part = self.linear_interpolation(extended_part)
+            # Clip pre-history
+            interpolated_part = interpolated_part[1:]
+            # Clip parts after gap interval
+            predicted = interpolated_part[:len_gap]
+        else:
+            predicted = self.__pipeline_fit_predict(self.pipeline,
+                                                    timeseries_train_part,
+                                                    len_gap)
 
-        predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
-                                                       len_gap)
-
-        predicted_values = np.flip(predicted_values)
+            predicted = np.flip(predicted)
         weights_list = np.arange(1, (len_gap + 1), 1)
-        return weights_list, predicted_values
+        return weights_list, predicted
 
-    def __pipeline_fit_predict(self, timeseries_train: np.array, len_gap: int):
+    def __pipeline_fit_predict(self, pipeline, timeseries_train: np.array, len_gap: int):
         """
         The method makes a prediction as a sequence of elements based on a
         training sample. There are two main parts: fit model and predict.
 
+        :param pipeline: pipeline for forecasting
         :param timeseries_train: part of the time series for training the model
         :param len_gap: number of elements in the gap
         :return: array without gaps
         """
+        pipeline_fo_forecast = deepcopy(pipeline)
 
         task = Task(TaskTypesEnum.ts_forecasting,
                     TsForecastingParams(forecast_length=len_gap))
@@ -365,7 +392,7 @@ class ModelGapFiller(SimpleGapFiller):
                                data_type=DataTypesEnum.ts)
 
         # Making predictions for the missing part in the time series
-        self.pipeline.fit_from_scratch(input_data)
+        pipeline_fo_forecast.fit_from_scratch(input_data)
 
         # "Test data" for making prediction for a specific length
         start_forecast = len(timeseries_train)
@@ -377,13 +404,14 @@ class ModelGapFiller(SimpleGapFiller):
                               task=task,
                               data_type=DataTypesEnum.ts)
 
-        predicted_values = self.pipeline.predict(test_data)
+        predicted_values = pipeline_fo_forecast.predict(test_data)
         predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values
 
-    def __forecast_in_gap(self, timeseries_train_part, output_data, gap):
+    def __forecast_in_gap(self, pipeline, timeseries_train_part, output_data, gap):
         """ Make forecast for desired part of time series with gap
 
+        :param pipeline: pipeline for forecasting
         :param timeseries_train_part: part of time series without gaps to fit pipeline
         :param output_data: array with gaps (some og them may be filled previously)
         :param gap: indices of continuous batch (gap)
@@ -401,7 +429,8 @@ class ModelGapFiller(SimpleGapFiller):
             predicted = interpolated_part[:-1]
         else:
             # Pipeline for the task of filling in gaps
-            predicted = self.__pipeline_fit_predict(timeseries_train_part,
+            predicted = self.__pipeline_fit_predict(pipeline,
+                                                    timeseries_train_part,
                                                     len_gap)
 
         return predicted
