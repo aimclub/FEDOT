@@ -37,6 +37,9 @@ class SimpleGapFiller:
 
         output_data = np.array(input_data)
 
+        # Process first and last elements in time series
+        output_data = self._fill_first_last_gaps(input_data, output_data)
+
         # The indices of the known elements
         non_nan = np.ravel(np.argwhere(output_data != self.gap_value))
         # All known elements in the array
@@ -184,6 +187,21 @@ class SimpleGapFiller:
 
         return new_gap_list
 
+    def _fill_first_last_gaps(self, input_data: np.array, output_data: np.array):
+        """ Eliminate gaps, which place first or last index in time series """
+        non_nan_ids = np.ravel(np.argwhere(output_data != self.gap_value))
+        non_nan = output_data[non_nan_ids]
+        if np.isclose(input_data[0], self.gap_value):
+            # First element is a gap - replace with first known value
+            self.log.info(f'First element in the array were replaced by first known value')
+            output_data[0] = non_nan[0]
+        if np.isclose(input_data[-1], self.gap_value):
+            # Last element is a gap - last known value
+            self.log.info(f'Last element in the array were replaced by last known value')
+            output_data[-1] = non_nan[-1]
+
+        return output_data
+
 
 class ModelGapFiller(SimpleGapFiller):
     """
@@ -196,6 +214,9 @@ class ModelGapFiller(SimpleGapFiller):
     def __init__(self, gap_value, pipeline, log: Log = None):
         super().__init__(gap_value, log)
         self.pipeline = pipeline
+
+        # At least 6 elements needed to train pipeline with lagged transformation
+        self.minimum_train_ts = 6
 
     def forward_inverse_filling(self, input_data):
         """
@@ -260,65 +281,58 @@ class ModelGapFiller(SimpleGapFiller):
             # The entire time series is used for training until the gap
             timeseries_train_part = output_data[:gap[0]]
 
-            # Adaptive prediction interval length
-            len_gap = len(gap)
-
-            # Pipeline for the task of filling in gaps
-            predicted = self.__pipeline_fit_predict(timeseries_train_part,
-                                                    len_gap)
+            # Make forecast in the gap
+            predicted = self.__forecast_in_gap(timeseries_train_part,
+                                               output_data, gap)
 
             # Replace gaps in an array with prediction values
             output_data[gap] = predicted
         return output_data
 
-    def _forward(self, timeseries_data, batch_index, new_gap_list):
+    def _forward(self, output_data, batch_index, new_gap_list):
         """
         The time series method makes a forward forecast based on the part
         of the time series that is located to the left of the gap.
 
-        :param timeseries_data: one-dimensional array of a time series
+        :param output_data: one-dimensional array of a time series
         :param batch_index: index of the interval (batch) with a gap
         :param new_gap_list: array with nested lists of gap indexes
 
-        :return weights_list: numpy array with prediction weights for
-        averaging
-        :return predicted_values: numpy array with prediction values in the
-        gap
+        :return weights_list: numpy array with prediction weights for averaging
+        :return predicted: numpy array with prediction values in the gap
         """
 
         gap = new_gap_list[batch_index]
-        timeseries_train_part = timeseries_data[:gap[0]]
+        timeseries_train_part = output_data[:gap[0]]
 
         # Adaptive prediction interval length
         len_gap = len(gap)
-        predicted_values = self.__pipeline_fit_predict(timeseries_train_part,
-                                                       len_gap)
+        predicted = self.__forecast_in_gap(timeseries_train_part,
+                                           output_data, gap)
         weights_list = np.arange(len_gap, 0, -1)
-        return weights_list, predicted_values
+        return weights_list, predicted
 
-    def _inverse(self, timeseries_data, batch_index, new_gap_list):
+    def _inverse(self, output_data, batch_index, new_gap_list):
         """
         The time series method makes an inverse forecast based on the part
         of the time series that is located to the right of the gap.
 
-        :param timeseries_data: one-dimensional array of a time series
+        :param output_data: one-dimensional array of a time series
         :param batch_index: index of the interval (batch) with a gap
         :param new_gap_list: array with nested lists of gap indexes
 
-        :return weights_list: numpy array with prediction weights for
-        averaging
-        :return predicted_values: numpy array with prediction values in the
-        gap
+        :return weights_list: numpy array with prediction weights for averaging
+        :return predicted_values: numpy array with prediction values in the gap
         """
 
         gap = new_gap_list[batch_index]
 
         # If the interval with a gap is the last one in the array
         if batch_index == len(new_gap_list) - 1:
-            timeseries_train_part = timeseries_data[(gap[-1] + 1):]
+            timeseries_train_part = output_data[(gap[-1] + 1):]
         else:
             next_gap = new_gap_list[batch_index + 1]
-            timeseries_train_part = timeseries_data[(gap[-1] + 1):next_gap[0]]
+            timeseries_train_part = output_data[(gap[-1] + 1):next_gap[0]]
         timeseries_train_part = np.flip(timeseries_train_part)
 
         # Adaptive prediction interval length
@@ -366,6 +380,31 @@ class ModelGapFiller(SimpleGapFiller):
         predicted_values = self.pipeline.predict(test_data)
         predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values
+
+    def __forecast_in_gap(self, timeseries_train_part, output_data, gap):
+        """ Make forecast for desired part of time series with gap
+
+        :param timeseries_train_part: part of time series without gaps to fit pipeline
+        :param output_data: array with gaps (some og them may be filled previously)
+        :param gap: indices of continuous batch (gap)
+        """
+        # Adaptive prediction interval length
+        len_gap = len(gap)
+
+        train_ts_len = len(timeseries_train_part) - len_gap
+        if train_ts_len < self.minimum_train_ts:
+            # Take part with gap [..., gap, gap, known_value]
+            gap_part = output_data[:gap[-1] + 2]
+
+            # Use linear interpolation
+            interpolated_part = self.linear_interpolation(gap_part)
+            predicted = interpolated_part[:-1]
+        else:
+            # Pipeline for the task of filling in gaps
+            predicted = self.__pipeline_fit_predict(timeseries_train_part,
+                                                    len_gap)
+
+        return predicted
 
 
 def series_has_gaps(time_series: np.array, gap_value: float, log: Log) -> bool:
