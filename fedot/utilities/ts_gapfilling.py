@@ -4,6 +4,7 @@ from scipy import interpolate
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.log import Log, default_log
 
 
 class SimpleGapFiller:
@@ -15,10 +16,14 @@ class SimpleGapFiller:
     :param gap_value: value, which identify gap elements in array
     """
 
-    def __init__(self, gap_value: float = -100.0):
+    def __init__(self, gap_value: float = -100.0, log: Log = None):
         self.gap_value = gap_value
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
-    def linear_interpolation(self, input_data):
+    def linear_interpolation(self, input_data: np.array):
         """
         Method allows to restore missing values in an array
         using linear interpolation
@@ -26,6 +31,9 @@ class SimpleGapFiller:
         :param input_data: array with gaps
         :return: array without gaps
         """
+
+        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+            return input_data
 
         output_data = np.array(input_data)
 
@@ -50,6 +58,9 @@ class SimpleGapFiller:
         series that the approximation is based on
         :return: array without gaps
         """
+
+        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+            return input_data
 
         output_data = np.array(input_data)
 
@@ -97,6 +108,9 @@ class SimpleGapFiller:
         time series that the approximation is based on
         :return: array without gaps
         """
+
+        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+            return input_data
 
         output_data = np.array(input_data)
 
@@ -179,8 +193,8 @@ class ModelGapFiller(SimpleGapFiller):
     :param pipeline: TsForecastingPipeline object for filling in the gaps
     """
 
-    def __init__(self, gap_value, pipeline):
-        super().__init__(gap_value)
+    def __init__(self, gap_value, pipeline, log: Log = None):
+        super().__init__(gap_value, log)
         self.pipeline = pipeline
 
     def forward_inverse_filling(self, input_data):
@@ -191,6 +205,8 @@ class ModelGapFiller(SimpleGapFiller):
         :param input_data: data with gaps to filling in the gaps in it
         :return: array without gaps
         """
+        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+            return input_data
 
         output_data = np.array(input_data)
 
@@ -229,6 +245,9 @@ class ModelGapFiller(SimpleGapFiller):
         :param input_data: data with gaps to filling in the gaps in it
         :return: array without gaps
         """
+
+        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+            return input_data
 
         output_data = np.array(input_data)
 
@@ -347,3 +366,14 @@ class ModelGapFiller(SimpleGapFiller):
         predicted_values = self.pipeline.predict(test_data)
         predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values
+
+
+def series_has_gaps(time_series: np.array, gap_value: float, log: Log) -> bool:
+    """ Check is time series has gaps or not """
+    gap_ids = np.ravel(np.argwhere(time_series == gap_value))
+    if len(gap_ids) == 0:
+        log.info(f"Array does not contain values marked as gaps {gap_value}")
+        return False
+    else:
+        log.debug(f"Array contain values marked as gaps {gap_value}. Start gap-filling")
+        return True
