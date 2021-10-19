@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 from dataclasses import is_dataclass
 from importlib import import_module
@@ -20,14 +21,20 @@ class Serializable(ABC):
     @classmethod
     @abstractmethod
     def from_json(cls, json_obj: Dict[str, Any]) -> Any:
-        init_data = {
-            k: v
-            for k, v in json_obj.items()
-            if k in signature(cls.__init__).parameters
-        }
-        obj = cls(**init_data)
-        vars(obj).update({
-            k: json_obj[k]
-            for k in json_obj.keys() ^ init_data.keys()
-        })
+        cls_parameters = signature(cls.__init__).parameters
+        if 'kwargs' not in cls_parameters:
+            init_data = {
+                k: v
+                for k, v in json_obj.items()
+                if k in cls_parameters
+            }
+            obj = cls(**init_data)
+            vars(obj).update({
+                k: json_obj[k]
+                for k in json_obj.keys() ^ init_data.keys()
+            })
+        else:
+            init_data = copy.deepcopy(json_obj)
+            obj = cls(**init_data)
+            vars(obj).update(json_obj)
         return obj
