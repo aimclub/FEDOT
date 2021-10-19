@@ -18,7 +18,7 @@ def get_nodes():
 
 
 def test_constraint_validation_with_opt_node():
-    first_node = PrimaryNode("ridge")
+    first_node = PrimaryNode('ridge')
     second_node = OptNode({'name': "opt"})
     root = SecondaryNode('ridge', nodes_from=[first_node, second_node])
     graph = PipelineAdapter().adapt(Pipeline(root))
