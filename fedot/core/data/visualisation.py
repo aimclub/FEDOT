@@ -20,7 +20,7 @@ def plot_forecast(data: InputData, prediction: OutputData):
         padding = len(actual_time_series)
     else:
         padding = 72
-    print(target)
+
     if target is not None:
         pred_start = len(actual_time_series) - len(predict)
         first_idx = pred_start - padding
@@ -58,20 +58,17 @@ def plot_biplot(prediction: OutputData):
 
     plt.figure(figsize=(10, 10))
     plt.scatter(target, predict)
-    plot_bisect(target, predict)
+    plt.grid()
+    # plot bisect
+    min_coord = min(np.min(target), np.min(predict))
+    max_coord = max(np.max(target), np.max(predict))
+    min_max_bisect = [min_coord, max_coord]
+    plt.plot(min_max_bisect, min_max_bisect, c='black', linewidth=1)
+
     plt.title("Biplot")
     plt.xlabel("target")
     plt.ylabel("prediction")
     plt.show()
-
-
-def plot_bisect(target, predict):
-    plt.grid()
-    min_coord = min(np.min(target), np.min(predict))
-    max_coord = max(np.max(target), np.max(predict))
-    bisect_x = [min_coord, max_coord]
-    bisect_y = [min_coord, max_coord]
-    plt.plot(bisect_x, bisect_y, c='black', linewidth=1)
 
 
 def plot_roc_auc(data: InputData, prediction: OutputData):
