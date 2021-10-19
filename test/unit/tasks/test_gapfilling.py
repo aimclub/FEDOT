@@ -20,8 +20,8 @@ def test_get_array_with_gaps():
 
 def test_gapfilling_inverse_ridge_correct():
     """ Testing bidirectional forecast method on the row where gaps are
-        frequent, placed at the beginning and at the end of the time series
-        """
+    frequent, placed at the beginning and at the end of the time series
+    """
     arr_with_gaps = np.array([-100, -100, 2, 3, 5, 6, 5, 4, 5, -100, 8, 7, -100,
                               9, 15, 10, 11, -100, -100, 50, -100, -100])
 
