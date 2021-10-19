@@ -6,12 +6,8 @@ from typing import (Any, Callable, List, Tuple, Union)
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-<<<<<<< HEAD
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.remote.remote_fit import ComputationalSetup
-=======
 from fedot.remote.remote_evaluator import RemoteEvaluator
->>>>>>> Refactoring
 
 MAX_ITERS = 1000
 
