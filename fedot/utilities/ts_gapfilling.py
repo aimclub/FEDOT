@@ -34,13 +34,13 @@ class SimpleGapFiller:
         :return: array without gaps
         """
 
-        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+        if not series_has_gaps(input_data, self.gap_value, self.log):
             return input_data
 
         output_data = np.array(input_data)
 
         # Process first and last elements in time series
-        output_data = self._fill_first_last_gaps(input_data, output_data)
+        output_data = self._fill_first_and_last_gaps(input_data, output_data)
 
         # The indices of the known elements
         non_nan = np.ravel(np.argwhere(output_data != self.gap_value))
@@ -64,7 +64,7 @@ class SimpleGapFiller:
         :return: array without gaps
         """
 
-        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+        if not series_has_gaps(input_data, self.gap_value, self.log):
             return input_data
 
         output_data = np.array(input_data)
@@ -114,7 +114,7 @@ class SimpleGapFiller:
         :return: array without gaps
         """
 
-        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+        if not series_has_gaps(input_data, self.gap_value, self.log):
             return input_data
 
         output_data = np.array(input_data)
@@ -189,7 +189,7 @@ class SimpleGapFiller:
 
         return new_gap_list
 
-    def _fill_first_last_gaps(self, input_data: np.array, output_data: np.array):
+    def _fill_first_and_last_gaps(self, input_data: np.array, output_data: np.array):
         """ Eliminate gaps, which place first or last index in time series """
         non_nan_ids = np.ravel(np.argwhere(output_data != self.gap_value))
         non_nan = output_data[non_nan_ids]
@@ -218,7 +218,7 @@ class ModelGapFiller(SimpleGapFiller):
         self.pipeline = pipeline
 
         # At least 6 elements needed to train pipeline with lagged transformation
-        self.minimum_train_ts = 6
+        self.min_train_ts_length = 6
 
     def forward_inverse_filling(self, input_data):
         """
@@ -228,7 +228,7 @@ class ModelGapFiller(SimpleGapFiller):
         :param input_data: data with gaps to filling in the gaps in it
         :return: array without gaps
         """
-        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+        if not series_has_gaps(input_data, self.gap_value, self.log):
             return input_data
 
         output_data = np.array(input_data)
@@ -269,7 +269,7 @@ class ModelGapFiller(SimpleGapFiller):
         :return: array without gaps
         """
 
-        if series_has_gaps(input_data, self.gap_value, self.log) is False:
+        if not series_has_gaps(input_data, self.gap_value, self.log):
             return input_data
 
         output_data = np.array(input_data)
@@ -281,7 +281,8 @@ class ModelGapFiller(SimpleGapFiller):
         # Iterately fill in the gaps in the time series
         for gap in new_gap_list:
             # The entire time series is used for training until the gap
-            timeseries_train_part = output_data[:gap[0]]
+            first_gap_element_id = gap[0]
+            timeseries_train_part = output_data[:first_gap_element_id]
 
             # Make forecast in the gap
             predicted = self.__forecast_in_gap(self.pipeline,
@@ -306,7 +307,8 @@ class ModelGapFiller(SimpleGapFiller):
         """
 
         gap = new_gap_list[batch_index]
-        timeseries_train_part = output_data[:gap[0]]
+        first_gap_element_id = gap[0]
+        timeseries_train_part = output_data[:first_gap_element_id]
 
         # Adaptive prediction interval length
         len_gap = len(gap)
@@ -334,28 +336,30 @@ class ModelGapFiller(SimpleGapFiller):
         len_gap = len(gap)
 
         # If the interval with a gap is the last one in the array
+        first_gap_element_id = gap[0]
+        latest_gap_element_id = gap[-1]
         if batch_index == len(new_gap_list) - 1:
-            timeseries_train_part = output_data[(gap[-1] + 1):]
+            timeseries_train_part = output_data[(latest_gap_element_id + 1):]
 
             if len(timeseries_train_part) == 0:
                 # Take last observed value as predicted
-                last_known_value = output_data[gap[0]-1]
+                last_known_value = output_data[first_gap_element_id - 1]
                 return [last_known_value] * len_gap
         else:
             next_gap = new_gap_list[batch_index + 1]
-            timeseries_train_part = output_data[(gap[-1] + 1):next_gap[0]]
+            timeseries_train_part = output_data[(latest_gap_element_id + 1): next_gap[0]]
 
             # Take part with known values to the left from the gap
-            extended_part = output_data[(gap[0]-1):next_gap[0]]
+            extended_part = output_data[(first_gap_element_id - 1): next_gap[0]]
 
-            if gap[0] == 0:
+            if first_gap_element_id == 0:
                 # Gap in the first part of time series - take first observed value
                 first_known_value = timeseries_train_part[0]
                 return [first_known_value] * len_gap
         timeseries_train_part = np.flip(timeseries_train_part)
 
         train_ts_len = len(timeseries_train_part) - len_gap
-        if train_ts_len < self.minimum_train_ts:
+        if train_ts_len < self.min_train_ts_length:
             interpolated_part = self.linear_interpolation(extended_part)
             # Clip pre-history
             interpolated_part = interpolated_part[1:]
@@ -380,7 +384,7 @@ class ModelGapFiller(SimpleGapFiller):
         :param len_gap: number of elements in the gap
         :return: array without gaps
         """
-        pipeline_fo_forecast = deepcopy(pipeline)
+        pipeline_for_forecast = deepcopy(pipeline)
 
         task = Task(TaskTypesEnum.ts_forecasting,
                     TsForecastingParams(forecast_length=len_gap))
@@ -392,7 +396,7 @@ class ModelGapFiller(SimpleGapFiller):
                                data_type=DataTypesEnum.ts)
 
         # Making predictions for the missing part in the time series
-        pipeline_fo_forecast.fit_from_scratch(input_data)
+        pipeline_for_forecast.fit_from_scratch(input_data)
 
         # "Test data" for making prediction for a specific length
         start_forecast = len(timeseries_train)
@@ -404,7 +408,7 @@ class ModelGapFiller(SimpleGapFiller):
                               task=task,
                               data_type=DataTypesEnum.ts)
 
-        predicted_values = pipeline_fo_forecast.predict(test_data)
+        predicted_values = pipeline_for_forecast.predict(test_data)
         predicted_values = np.ravel(np.array(predicted_values.predict))
         return predicted_values
 
@@ -416,11 +420,9 @@ class ModelGapFiller(SimpleGapFiller):
         :param output_data: array with gaps (some og them may be filled previously)
         :param gap: indices of continuous batch (gap)
         """
-        # Adaptive prediction interval length
-        len_gap = len(gap)
 
-        train_ts_len = len(timeseries_train_part) - len_gap
-        if train_ts_len < self.minimum_train_ts:
+        train_ts_len = len(timeseries_train_part) - len(gap)
+        if train_ts_len < self.min_train_ts_length:
             # Take part with gap [..., gap, gap, known_value]
             gap_part = output_data[:gap[-1] + 2]
 
@@ -431,7 +433,7 @@ class ModelGapFiller(SimpleGapFiller):
             # Pipeline for the task of filling in gaps
             predicted = self.__pipeline_fit_predict(pipeline,
                                                     timeseries_train_part,
-                                                    len_gap)
+                                                    len(gap))
 
         return predicted
 
@@ -440,8 +442,8 @@ def series_has_gaps(time_series: np.array, gap_value: float, log: Log) -> bool:
     """ Check is time series has gaps or not """
     gap_ids = np.ravel(np.argwhere(time_series == gap_value))
     if len(gap_ids) == 0:
-        log.info(f"Array does not contain values marked as gaps {gap_value}")
+        log.info(f'Array does not contain values marked as gaps {gap_value}')
         return False
     else:
-        log.debug(f"Array contain values marked as gaps {gap_value}. Start gap-filling")
+        log.debug(f'Array contain values marked as gaps {gap_value}. Start gap-filling')
         return True
