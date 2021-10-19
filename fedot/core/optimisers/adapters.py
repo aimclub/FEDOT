@@ -42,14 +42,14 @@ class DirectAdapter(BaseOptimizationAdapter):
         super().__init__(base_graph_class=base_graph_class, base_node_class=base_node_class, log=log)
 
     def adapt(self, adaptee: Any):
-        opt_graph = adaptee
+        opt_graph = deepcopy(adaptee)
         opt_graph.__class__ = OptGraph
         for node in opt_graph.nodes:
             node.__class__ = OptNode
         return opt_graph
 
     def restore(self, opt_graph: OptGraph):
-        obj = opt_graph
+        obj = deepcopy(opt_graph)
         obj.__class__ = self.base_graph_class
         for node in obj.nodes:
             node.__class__ = self.base_node_class
