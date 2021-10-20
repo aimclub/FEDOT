@@ -4,7 +4,7 @@ from abc import abstractmethod
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
-                             silhouette_score)
+                             silhouette_score, roc_curve, auc)
 from sklearn.preprocessing import OneHotEncoder
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -217,6 +217,15 @@ class ROCAUC(QualityMetric):
                                     **additional_params), 3)
 
         return score
+
+    @staticmethod
+    def roc_curve(target: np.ndarray, predict: np.ndarray, pos_label=None):
+
+        return roc_curve(target, predict, pos_label=pos_label)
+
+    @classmethod
+    def auc(cls, fpr, tpr):
+        return auc(fpr, tpr)
 
 
 class Precision(QualityMetric):
