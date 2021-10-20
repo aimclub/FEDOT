@@ -7,11 +7,13 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.time_series.ts_forecasting_tuning import prepare_input_data
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TsForecastingParams, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
@@ -73,25 +75,23 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     time_series = np.array(df['Level'])
     exog_variable = np.array(df['Neighboring level'])
 
-    # Let's divide our data on train and test samples
-    train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
-
-    # Exog feature
-    train_data_exog = exog_variable[:-len_forecast]
-    test_data_exog = exog_variable[-len_forecast:]
-
     # Source time series
-    train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
-                                                          train_data_features=train_data,
-                                                          train_data_target=train_data,
-                                                          test_data_features=train_data)
+    train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
+                                                                 features=time_series,
+                                                                 target=time_series,
+                                                                 task=Task(TaskTypesEnum.ts_forecasting,
+                                                                           TsForecastingParams(
+                                                                               forecast_length=len_forecast)),
+                                                                 data_type=DataTypesEnum.ts))
 
     # Exogenous time series
-    train_input_exog, predict_input_exog, _ = prepare_input_data(len_forecast=len_forecast,
-                                                                 train_data_features=train_data_exog,
-                                                                 train_data_target=train_data,
-                                                                 test_data_features=test_data_exog)
+    train_input_exog, predict_input_exog = train_test_data_setup(InputData(idx=range(len(exog_variable)),
+                                                                           features=exog_variable,
+                                                                           target=time_series,
+                                                                           task=Task(TaskTypesEnum.ts_forecasting,
+                                                                                     TsForecastingParams(
+                                                                                         forecast_length=len_forecast)),
+                                                                           data_type=DataTypesEnum.ts))
 
     if with_exog is True:
         # Example with exogenous time series
@@ -120,7 +120,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
     predicted = make_forecast(pipeline, train_input, predict_input, train_input_exog, predict_input_exog)
 
     predicted = np.ravel(np.array(predicted))
-    test_data = np.ravel(test_data)
+    test_data = np.ravel(predict_input.target)
 
     print(f'Predicted values: {predicted[:5]}')
     print(f'Actual values: {test_data[:5]}')
@@ -132,7 +132,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
 
     if with_visualisation:
         plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-        plt.plot(range(len(train_data), len(time_series)), predicted, label='Forecast')
+        plt.plot(range(len(train_input.target), len(time_series)), predicted, label='Forecast')
         plt.legend()
         plt.grid()
         plt.show()

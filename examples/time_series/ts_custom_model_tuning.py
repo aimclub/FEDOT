@@ -1,14 +1,17 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from hyperopt import hp
 from sklearn.metrics import mean_squared_error
-from fedot.core.pipelines.tuning.search_space import SearchSpace
 
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from examples.time_series.ts_forecasting_tuning import prepare_input_data
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
 def custom_model_imitation(train_data, test_data, params):
@@ -40,15 +43,14 @@ def get_simple_pipeline():
 
 
 def run_pipeline_tuning(time_series, len_forecast):
-    len_forecast = len_forecast
-    train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
-
     # Source time series
-    train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
-                                                          train_data_features=train_data,
-                                                          train_data_target=train_data,
-                                                          test_data_features=train_data)
+    train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
+                                                                 features=time_series,
+                                                                 target=time_series,
+                                                                 task=Task(TaskTypesEnum.ts_forecasting,
+                                                                           TsForecastingParams(
+                                                                               forecast_length=len_forecast)),
+                                                                 data_type=DataTypesEnum.ts))
     pipeline = get_simple_pipeline()
     pipeline.fit_from_scratch(train_input)
     pipeline.print_structure()
@@ -62,7 +64,7 @@ def run_pipeline_tuning(time_series, len_forecast):
                                       'model': (hp.choice, [[custom_model_imitation]])}}
     replace_default_search_space = True
     pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                   task=task,
+                                   task=train_input.task,
                                    iterations=10,
                                    search_space=SearchSpace(custom_search_space=custom_search_space,
                                                             replace_default_search_space=replace_default_search_space))
@@ -80,7 +82,7 @@ def run_pipeline_tuning(time_series, len_forecast):
 
     plt.plot(np.arange(len(predicted_before_tuning[0])), predicted_before_tuning[0], label='Before tuning')
     plt.plot(np.arange(len(predicted_values[0])), predicted_values[0], label='After tuning')
-    plt.plot(np.arange(len(test_data)), test_data, label='Real')
+    plt.plot(np.arange(len(predict_input.target)), predict_input.target, label='Real')
     plt.legend()
     plt.show()
 
