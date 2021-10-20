@@ -35,29 +35,6 @@ def get_pipeline():
     return preset_pipeline
 
 
-def get_pipeline():
-    svc_node_with_custom_params = PrimaryNode('svc')
-    svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10,
-                                                     gamma=1, cache_size=2000,
-                                                     probability=True)
-
-    svc_primary_node = PrimaryNode('svc')
-    svc_primary_node.custom_params = dict(probability=True)
-
-    knn_primary_node = PrimaryNode('knn')
-    logit_secondary_node = SecondaryNode('logit', nodes_from=[svc_primary_node])
-
-    knn_secondary_node = SecondaryNode('knn', nodes_from=[knn_primary_node, logit_secondary_node])
-
-    logit_secondary_node = SecondaryNode('logit')
-
-    rf_node = SecondaryNode('rf', nodes_from=[logit_secondary_node, knn_secondary_node])
-
-    preset_pipeline = Pipeline(rf_node)
-
-    return preset_pipeline
-
-
 def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str = None):
     """
     Runs the example with one model svc.
