@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 
 import numpy as np
 from scipy import interpolate
@@ -7,6 +7,22 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.log import Log, default_log
+
+
+def series_has_gaps_check(gapfilling_method):
+    """ Check is time series has gaps or not. Return source array, if not """
+
+    def wrapper(self, input_data, *args, **kwargs):
+        gap_ids = np.ravel(np.argwhere(input_data == self.gap_value))
+        if len(gap_ids) == 0:
+            self.log.info(f'Array does not contain values marked as gaps {self.gap_value}')
+            return input_data
+        else:
+            self.log.debug(f'Array contain values marked as gaps {self.gap_value}. Start gap-filling')
+            filled_array = gapfilling_method(self, input_data, *args, **kwargs)
+            return filled_array
+
+    return wrapper
 
 
 class SimpleGapFiller:
@@ -25,6 +41,7 @@ class SimpleGapFiller:
         else:
             self.log = log
 
+    @series_has_gaps_check
     def linear_interpolation(self, input_data: np.array):
         """
         Method allows to restore missing values in an array
@@ -33,10 +50,6 @@ class SimpleGapFiller:
         :param input_data: array with gaps
         :return: array without gaps
         """
-
-        if not series_has_gaps(input_data, self.gap_value, self.log):
-            return input_data
-
         output_data = np.array(input_data)
 
         # Process first and last elements in time series
@@ -51,6 +64,7 @@ class SimpleGapFiller:
         output_data = f_interploate(x)
         return output_data
 
+    @series_has_gaps_check
     def local_poly_approximation(self, input_data, degree: int = 2,
                                  n_neighbors: int = 5):
         """
@@ -63,10 +77,6 @@ class SimpleGapFiller:
         series that the approximation is based on
         :return: array without gaps
         """
-
-        if not series_has_gaps(input_data, self.gap_value, self.log):
-            return input_data
-
         output_data = np.array(input_data)
 
         i_gaps = np.ravel(np.argwhere(output_data == self.gap_value))
@@ -99,6 +109,7 @@ class SimpleGapFiller:
 
         return output_data
 
+    @series_has_gaps_check
     def batch_poly_approximation(self, input_data, degree: int = 3,
                                  n_neighbors: int = 10):
         """
@@ -113,10 +124,6 @@ class SimpleGapFiller:
         time series that the approximation is based on
         :return: array without gaps
         """
-
-        if not series_has_gaps(input_data, self.gap_value, self.log):
-            return input_data
-
         output_data = np.array(input_data)
 
         # Gap indices
@@ -220,6 +227,7 @@ class ModelGapFiller(SimpleGapFiller):
         # At least 6 elements needed to train pipeline with lagged transformation
         self.min_train_ts_length = 6
 
+    @series_has_gaps_check
     def forward_inverse_filling(self, input_data):
         """
         Method fills in the gaps in the input array using forward and inverse
@@ -228,9 +236,6 @@ class ModelGapFiller(SimpleGapFiller):
         :param input_data: data with gaps to filling in the gaps in it
         :return: array without gaps
         """
-        if not series_has_gaps(input_data, self.gap_value, self.log):
-            return input_data
-
         output_data = np.array(input_data)
 
         # Gap indices
@@ -260,6 +265,7 @@ class ModelGapFiller(SimpleGapFiller):
 
         return output_data
 
+    @series_has_gaps_check
     def forward_filling(self, input_data):
         """
         Method fills in the gaps in the input array using graph with only
@@ -268,10 +274,6 @@ class ModelGapFiller(SimpleGapFiller):
         :param input_data: data with gaps to filling in the gaps in it
         :return: array without gaps
         """
-
-        if not series_has_gaps(input_data, self.gap_value, self.log):
-            return input_data
-
         output_data = np.array(input_data)
 
         # Gap indices
@@ -436,14 +438,3 @@ class ModelGapFiller(SimpleGapFiller):
                                                     len(gap))
 
         return predicted
-
-
-def series_has_gaps(time_series: np.array, gap_value: float, log: Log) -> bool:
-    """ Check is time series has gaps or not """
-    gap_ids = np.ravel(np.argwhere(time_series == gap_value))
-    if len(gap_ids) == 0:
-        log.info(f'Array does not contain values marked as gaps {gap_value}')
-        return False
-    else:
-        log.debug(f'Array contain values marked as gaps {gap_value}. Start gap-filling')
-        return True

@@ -60,3 +60,13 @@ def test_linear_interpolation_fill_start_end():
     without_gap_linear = simple_gapfill.linear_interpolation(gap_arr)
 
     assert len(np.ravel(np.argwhere(without_gap_linear == -100))) == 0
+
+
+def test_gapfilling_ts_with_no_gaps():
+    """ If array doesn't contain gaps, algorithm should return source array """
+    no_gap_arr = np.array([1, 1, 2, 3, 4, -50, 6, 7, 8])
+
+    simple_gapfill = SimpleGapFiller(gap_value=-100)
+    without_gap = simple_gapfill.local_poly_approximation(no_gap_arr)
+
+    assert tuple(without_gap) == tuple(no_gap_arr)
