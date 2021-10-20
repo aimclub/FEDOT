@@ -375,9 +375,6 @@ class GPGraphOptimiser:
 
     def default_on_next_iteration_callback(self, individuals, archive):
         try:
-            for individual in individuals:
-                individual.graph = \
-                    self.graph_generation_params.adapter.restore(individual.graph)
             self.history.add_to_history(individuals)
             self.history.save_current_results()
             archive = deepcopy(archive)
