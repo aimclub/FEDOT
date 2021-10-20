@@ -82,7 +82,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
                     self.graph_generation_params.adapter.restore(individual.graph)
 
             if self.archive is not None:
-                self.archive.update(self.population) 
+                self.archive.update(self.population)
 
             on_next_iteration_callback(self.population, self.archive)
 
