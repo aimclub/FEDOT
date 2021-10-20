@@ -63,8 +63,8 @@ def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.a
 
 
 def display_metrics(test_part, predicted_values, pipeline_name):
-    mse = mean_squared_error(test_part, predicted_values, squared=False)
-    mae = mean_absolute_error(test_part, predicted_values)
+    mse = mean_squared_error(test_part.target, predicted_values, squared=False)
+    mae = mean_absolute_error(test_part.target, predicted_values)
     print(f'RMSE {pipeline_name} - {mse:.4f}')
     print(f'MAE {pipeline_name} - {mae:.4f}\n')
 
@@ -91,7 +91,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Get simple pipeline without decomposing operation
     simple_pipeline = get_non_refinement_pipeline(lagged)
 
-    train_part, test_part = train_input, predict_input = train_test_data_setup(
+    train_input, predict_input = train_test_data_setup(
         InputData(idx=range(len(time_series)),
                   features=time_series,
                   target=time_series,
@@ -103,10 +103,10 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Forecast of pipeline with decomposition
     predicted_values = in_sample_fit_predict(pipeline, train_input,
                                              predict_input, horizon)
-    display_metrics(test_part, predicted_values, pipeline_name='with decomposition')
+    display_metrics(predict_input, predicted_values, pipeline_name='with decomposition')
 
     # Range for visualisation
-    ids_for_test = range(len(train_part), len(time_series))
+    ids_for_test = range(len(train_input.target), len(time_series))
     plt.plot(time_series, label='Actual time series')
     plt.plot(ids_for_test, predicted_values, label='With decomposition')
 
@@ -124,9 +124,9 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
         predicted_simple = in_sample_fit_predict(simple_pipeline, train_input,
                                                  predict_input, horizon)
         plt.plot(ids_for_test, predicted_simple, label='Non decomposition')
-        display_metrics(test_part, predicted_simple, pipeline_name='without decomposition')
+        display_metrics(predict_input, predicted_simple, pipeline_name='without decomposition')
 
-    i = len(train_part)
+    i = len(train_input.target)
     for _ in range(0, validation_blocks):
         deviation = np.std(predicted_values)
         plt.plot([i, i], [min(predicted_values) - deviation, max(predicted_values) + deviation],
