@@ -33,10 +33,15 @@ class PipelineTemplate(BasicSerializer):
 
     def __init__(self, pipeline=None, log: Log = None):
         self.total_pipeline_operations = Counter()
-        self.depth = pipeline.depth
         self.operation_templates = []
-        self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
-        self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+        if pipeline is not None:
+            self.depth = pipeline.depth
+            self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
+            self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+        else:
+            self.depth = 0  # TODO: should be None or 0?
+            self.unique_pipeline_id = str(uuid4())
+            self.struct_id = ''
 
         try:
             self.computation_time = pipeline.computation_time
