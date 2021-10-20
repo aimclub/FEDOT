@@ -2,7 +2,8 @@ from importlib import import_module
 from typing import Any, Dict
 from uuid import UUID
 
-from ..interfaces.serializable import CLASS_PATH_KEY, DELIMITER, Serializable
+from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
+                                       dump_path_to_obj)
 
 
 def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.dumps(...)
@@ -10,6 +11,8 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
         return obj.to_json()
     elif isinstance(obj, UUID):
         return obj.hex
+    elif callable(obj):
+        return dump_path_to_obj(obj)
     raise TypeError(f'{obj=} can\'t be serialized!')
 
 
@@ -27,5 +30,7 @@ def decoder(json_obj: Dict[str, Any]) -> Any:  # serves as 'object_hook' decoder
         del json_obj[CLASS_PATH_KEY]
         if issubclass(obj_cls, Serializable):
             return obj_cls.from_json(json_obj)
+        elif callable(obj_cls):
+            return obj_cls
         raise TypeError(f'Parsed {obj_cls=} is not serializable, but should be')
     return json_obj

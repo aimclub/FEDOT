@@ -1,13 +1,19 @@
 import copy
 from abc import ABC, abstractmethod
-from dataclasses import is_dataclass
-from importlib import import_module
-from inspect import signature
+from inspect import isclass, signature
 from typing import Any, Dict
 
 DELIMITER = '/'
 CLASS_PATH_KEY = '_class_path'
 
+def dump_path_to_obj(obj: object) -> Dict[str, str]:
+    if isclass(obj) or callable(obj):
+        obj_name = obj.__qualname__
+    else:
+        obj_name = obj.__class__.__qualname__
+    return {
+        CLASS_PATH_KEY: f'{obj.__module__}{DELIMITER}{obj_name}'
+    }
 
 class Serializable(ABC):
 
@@ -15,7 +21,7 @@ class Serializable(ABC):
     def to_json(self) -> Dict[str, Any]:
         return {
             **vars(self),
-            CLASS_PATH_KEY: f'{self.__module__}{DELIMITER}{self.__class__.__qualname__}'
+            **dump_path_to_obj(self)
         }
 
     @classmethod

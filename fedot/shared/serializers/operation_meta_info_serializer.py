@@ -1,7 +1,8 @@
 from inspect import isclass
 from typing import Any, Dict
 
-from ..interfaces.serializable import DELIMITER, Serializable
+from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
+                                       dump_path_to_obj)
 from .json_helpers import _get_class
 
 
@@ -11,7 +12,7 @@ class OperationMetaInfoSerializer(Serializable):
         basic_serialization = super().to_json()
         strategy = basic_serialization['supported_strategies']
         if isclass(strategy):
-            basic_serialization['supported_strategies'] = f'{strategy.__module__}{DELIMITER}{strategy.__qualname__}'
+            basic_serialization['supported_strategies'] = dump_path_to_obj(strategy)[CLASS_PATH_KEY]
         return basic_serialization
 
     @classmethod
