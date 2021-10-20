@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Optional
 
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.validation import validate
 

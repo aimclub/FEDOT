@@ -1,6 +1,8 @@
 import json
 import os
 
+import pytest
+
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
@@ -89,6 +91,7 @@ def test_names_with_postfix():
     assert name_without_postfix == 'xgboost'
 
 
+@pytest.mark.skip('There are no automl in base framework configuration')
 def test_cls_method_assign_repo():
     repository = OperationTypesRepository().assign_repo('model', 'automl_repository.json')
     assert repository.repository_name == 'automl_repository.json'
