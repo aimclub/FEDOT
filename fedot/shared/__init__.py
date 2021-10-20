@@ -1,3 +1,3 @@
 from .serializers import (BasicSerializer, EnumSerializer, GraphNodeSerializer,
-                          LogSerializer, OperationMetaInfoSerializer,
-                          json_helpers)
+                          GraphSerializer, LogSerializer,
+                          OperationMetaInfoSerializer, json_helpers)

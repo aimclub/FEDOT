@@ -68,7 +68,7 @@ class SerializableOperationTemplateMeta(type(BasicSerializer), OperationTemplate
     pass
 
 
-class OperationTemplate(BasicSerializer, metaclass=SerializableOperationTemplateMeta):
+class OperationTemplate(BasicSerializer, OperationTemplateAbstract, metaclass=SerializableOperationTemplateMeta):
     def __init__(self, node: Node = None, operation_id: int = None,
                  nodes_from: list = None):
         super().__init__()

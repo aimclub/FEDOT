@@ -4,13 +4,13 @@ from uuid import uuid4
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.visualisation.graph_viz import GraphVisualiser
-from fedot.shared import BasicSerializer
+from fedot.shared import GraphSerializer
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
 
 
-class Graph(BasicSerializer):
+class Graph(GraphSerializer):
     """
     Base class used for the pipeline structure definition
 
