@@ -1,13 +1,13 @@
 import copy
 from abc import ABC, abstractmethod
-from inspect import isclass, signature
+from inspect import isclass, isfunction, ismethod, signature
 from typing import Any, Dict
 
 DELIMITER = '/'
 CLASS_PATH_KEY = '_class_path'
 
 def dump_path_to_obj(obj: object) -> Dict[str, str]:
-    if isclass(obj) or callable(obj):
+    if isclass(obj) or isfunction(obj) or ismethod(obj):
         obj_name = obj.__qualname__
     else:
         obj_name = obj.__class__.__qualname__
