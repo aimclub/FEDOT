@@ -39,7 +39,7 @@ class RemoteTaskParams:
     :param var_names: variable names for fitting?
     :param max_parallel maximal number of parallel remote task
     """
-    mode: str = 'remote'
+    mode: str = 'local'
     dataset_name: Optional[str] = None
     task_type: Optional[str] = None
     train_data_idx: Optional[List] = None

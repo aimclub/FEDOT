@@ -44,6 +44,7 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
     client = TestClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
 
     remote_task_params = RemoteTaskParams(
+        mode='remote',
         dataset_name='pw_dataset',
         max_parallel=20,
         var_names=features_to_use
