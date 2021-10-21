@@ -1,5 +1,7 @@
 import numpy as np
+import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.model_selection import train_test_split
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from fedot.core.data.data import InputData
@@ -7,6 +9,7 @@ from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.utils import fedot_project_root
 
 
 def get_pipeline_with_balancing(custom_params=None):
@@ -26,18 +29,27 @@ def get_pipeline_without_balancing():
     return Pipeline(node)
 
 
-if __name__ == '__main__':
-    samples = 1000
-    features = 10
-    classes = 2
-    weights = [0.45, 0.55]
-    features_options = {'informative': 1, 'redundant': 1, 'repeated': 1, 'clusters_per_class': 1}
+def run_resample_example(path_to_data=None):
+    if path_to_data == None:
+        samples = 1000
+        features = 10
+        classes = 2
+        weights = [0.45, 0.55]
+        features_options = {'informative': 1, 'redundant': 1, 'repeated': 1, 'clusters_per_class': 1}
 
-    x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
-                                                                  samples,
-                                                                  features,
-                                                                  classes,
-                                                                  weights)
+        x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
+                                                                      samples,
+                                                                      features,
+                                                                      classes,
+                                                                      weights)
+    else:
+        data = pd.read_csv(path_to_data, header=0)
+
+        features = data.drop('Class', 1)
+        target = data['Class']
+
+        x_train, x_test, y_train, y_test = train_test_split(np.array(features),
+                                                            np.array(target), test_size=0.3)
 
     unique_class, counts_class = np.unique(y_train, return_counts=True)
     print(f'Two classes: {unique_class}')
@@ -61,8 +73,6 @@ if __name__ == '__main__':
     print(f'Begin fit Pipeline without balancing')
     # Pipeline without balancing
     pipeline = get_pipeline_without_balancing()
-
-    # pipeline.fit(train_input)
     pipeline.fit_from_scratch(train_input)
 
     # Predict
@@ -83,3 +93,9 @@ if __name__ == '__main__':
     preds = predict_labels.predict
     print('---')
     print(f"ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n")
+
+
+if __name__ == '__main__':
+    run_resample_example()
+    print('=' * 25)
+    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv')

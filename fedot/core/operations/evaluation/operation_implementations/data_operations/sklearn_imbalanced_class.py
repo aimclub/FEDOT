@@ -36,7 +36,7 @@ class ResampleImplementation(DataOperationImplementation):
         if not log:
             self.log = default_log(__name__)
         else:
-            self.log = Log
+            self.log = log
 
     def fit(self, input_data: Optional[InputData]):
         """ Class doesn't support fit operation
@@ -84,14 +84,22 @@ class ResampleImplementation(DataOperationImplementation):
             min_data, maj_data = self._get_data_by_target(features, target,
                                                           unique_class[0], unique_class[1],
                                                           counts_class[0], counts_class[1])
+            # Convert from relative to absolute
+            if self.balance == 'expand_minority':
+                self.n_samples = self._convert_to_absolute(min_data)
 
-            self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data, self.log)
+            elif self.balance == 'reduce_majority':
+                self.n_samples = self._convert_to_absolute(maj_data)
+
+            self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
 
             if self.balance == 'expand_minority':
                 min_data = self._resample_data(min_data)
+                self.n_samples = self._convert_to_relative(min_data)
 
             elif self.balance == 'reduce_majority':
                 maj_data = self._resample_data(maj_data)
+                self.n_samples = self._convert_to_relative(maj_data)
 
             transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
@@ -123,12 +131,11 @@ class ResampleImplementation(DataOperationImplementation):
 
         return minority_data, majority_data
 
-    def _check_and_correct_sample_size(self, min_data, maj_data, log: Log):
+    def _check_and_correct_sample_size(self, min_data, maj_data):
         """ Method checks if selected values in n_sample are incorrect - correct it otherwise
 
         :param min_data: minority data from input data
         :param maj_data: majority data from input data
-        :param log: logger for saving messages
         """
         prefix = "Warning: n_samples was changed"
         was_changed = False
@@ -136,16 +143,24 @@ class ResampleImplementation(DataOperationImplementation):
         if self.n_samples == 0 or self.n_samples is None:
             prev_n_samples = self.n_samples
             self.n_samples = self._set_sample_size(min_data, maj_data)
-            log.info(f"{prefix} from {prev_n_samples} to {self.n_samples}")
+            self.log.info(f"{prefix} from {prev_n_samples} to {self.n_samples}")
             was_changed = True
 
         if self.replace is False and (self.n_samples > min_data.shape[0] or self.n_samples > maj_data.shape[0]):
             prev_n_samples = self.n_samples
             self.n_samples = self._set_sample_size(min_data, maj_data)
-            log.info(f"{prefix[0]} from {prev_n_samples} to {self.n_samples}")
+            self.log.info(f"{prefix[0]} from {prev_n_samples} to {self.n_samples}")
             was_changed = True
 
         return was_changed
+
+    def _convert_to_absolute(self, data):
+        self.log.info(f"n_samples was converted to absolute values")
+        return np.around(data.shape[0] * self.n_samples)
+
+    def _convert_to_relative(self, data):
+        self.log.info(f"n_samples was converted to relative values")
+        return np.around(self.n_samples / data.shape[0], decimals=2)
 
     def _set_sample_size(self, min_data, maj_data):
         if self.balance == 'expand_minority':
