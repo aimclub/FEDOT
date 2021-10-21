@@ -1,4 +1,3 @@
-import configparser
 import json
 import os
 import sys
@@ -13,27 +12,9 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
-# required for the import of task from file
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.pipeline_run_config import PipelineRunConfig
-
-tmp_task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=1))
-
-
-def _extract_data_from_config_file(file):
-    config = configparser.ConfigParser()
-
-    if isinstance(file, bytes):
-        config.read_string(file.decode('utf-8'))
-    else:
-        if not os.path.exists(file):
-            raise ValueError('Config not found')
-        config.read(file, encoding='utf-8')
-
-    processed_config = PipelineRunConfig(config)
-
-    return processed_config
 
 
 def _load_data(config):
@@ -56,7 +37,7 @@ def _load_data(config):
             if config.target is not None:
                 target = np.array(df[config.target])
             else:
-                target = np.array(df.columns[-1])
+                target = np.array(df[df.columns[-1]])
 
             # create labels for data sources
             data_part_transformation_func = partial(array_to_input_data, idx=idx,
@@ -86,7 +67,7 @@ def fit_pipeline(config_file) -> bool:
     status = True
 
     config = \
-        _extract_data_from_config_file(config_file)
+        PipelineRunConfig().load_from_file(config_file)
 
     pipeline = pipeline_from_json(config.pipeline_template)
 
@@ -96,8 +77,11 @@ def fit_pipeline(config_file) -> bool:
     if config.train_data_idx not in [None, []]:
         train_data = train_data.subset_list(config.train_data_idx)
 
-    if not validate(pipeline, task=config.task):
-        raise ValueError('Pipeline not valid.')
+    try:
+        validate(pipeline, task=config.task)
+    except ValueError:
+        print('Pipeline not valid')
+        return False
 
     try:
         pipeline.fit_from_scratch(train_data)

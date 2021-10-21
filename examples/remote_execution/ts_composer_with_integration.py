@@ -1,3 +1,4 @@
+import os
 import random
 
 import numpy as np
@@ -5,11 +6,15 @@ import pandas as pd
 
 from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results, \
     prepare_multimodal_data
+from fedot.core.utils import fedot_project_root
+from fedot.remote.infrastructure.clients.test_client import TestClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
 random.seed(1)
 np.random.seed(1)
 
+
+# WARNING - THIS SCRIPT CAN BE EVALUATED ONLY WITH THE ACCESS TO DATAMALL SYSTEM
 
 def clip_dataframe(df, forecast_horizon, history_size):
     # Take last n elements from dataframe to train
@@ -18,18 +23,37 @@ def clip_dataframe(df, forecast_horizon, history_size):
     return dataframe_cutted
 
 
+folder = os.path.join(fedot_project_root(), 'cases', 'industrial')
+path = os.path.join(folder, 'pw_dataset.csv')
+
+
 def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                forecast_horizon: int = 10, history_size: int = 397,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
 
-    setup = RemoteEvaluator(RemoteTaskParams(
-        mode='remote',
+    connect_params = {}
+    exec_params = {
+        'container_input_path': folder,
+        'container_output_path': os.path.join(folder, 'remote'),
+        'container_config_path': ".",
+        'container_image': "test",
+        'timeout': 1
+    }
+
+    client = TestClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
+
+    remote_task_params = RemoteTaskParams(
         dataset_name='pw_dataset',
-        task_type=f'Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length={forecast_horizon}))',
         max_parallel=20,
-        is_multi_modal=True,
-        var_names=features_to_use))
+        var_names=features_to_use
+    )
+
+    evaluator = RemoteEvaluator()
+    evaluator.init(
+        client=client,
+        remote_task_params=remote_task_params
+    )
 
     dataframe_cutted = clip_dataframe(df, forecast_horizon, history_size)
 

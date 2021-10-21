@@ -13,8 +13,8 @@ from fedot.remote.infrastructure.clients.client import Client
 
 def init_data_for_remote_execution(train_data: InputData):
     setup = RemoteEvaluator()
-    if setup.remote_eval_params is not None:
-        setup.remote_eval_params.train_data_idx = train_data.idx
+    if setup.remote_task_params is not None:
+        setup.remote_task_params.train_data_idx = train_data.idx
 
 
 def singleton(class_):
@@ -40,42 +40,40 @@ class RemoteTaskParams:
     :param max_parallel maximal number of parallel remote task
     """
     mode: str = 'remote'
-    dataset_name: str = None
-    task_type: str = None
+    dataset_name: Optional[str] = None
+    task_type: Optional[str] = None
     train_data_idx: Optional[List] = None
     is_multi_modal: bool = False
     var_names: Optional[List] = None
+    target: Optional[str] = None
     max_parallel: int = 7
 
 
 @singleton
 class RemoteEvaluator:
-    def __init__(self, client: Client = None, remote_task_params: Optional[RemoteTaskParams] = None):
+    def __init__(self):
         """
         Class for the batch evaluation of pipelines using remote client
-        :param client: client class for connection to external computational server.
-        :param remote_task_params: dictionary with the parameters of remote evaluation.
         """
         self._logger = default_log('RemoteFitterLog')
-
+        self.remote_task_params = None
         self.client = None
-        self.remote_eval_params = None
 
-        if remote_task_params is not None or not hasattr(self, 'remote_task_params'):
-            self.remote_eval_params = remote_task_params
-        if client is not None or not hasattr(self, 'client'):
-            self.client = client
+    def init(self, client: Client = None, remote_task_params: Optional[RemoteTaskParams] = None):
+        """
+        :param client: client class for connection to external computational server.
+        :param remote_task_params: dictionary with the parameters of remote evaluation.
 
-    def clean(self):
-        inst = RemoteEvaluator()
-        del inst
+        """
+        self.remote_task_params = remote_task_params
+        self.client = client
 
     @property
     def use_remote(self):
-        return self.remote_eval_params is not None and self.remote_eval_params.mode == 'remote'
+        return self.remote_task_params is not None and self.remote_task_params.mode == 'remote'
 
     def compute_pipelines(self, pipelines: List['Pipeline']) -> List['Pipeline']:
-        params = self.remote_eval_params
+        params = self.remote_task_params
 
         client = self.client
         pipelines_parts = _prepare_batches(pipelines, params)
@@ -100,7 +98,7 @@ class RemoteEvaluator:
 
                 pipeline.execution_id = task_id
 
-            # waiting for readyness of all pipelines
+            # waiting for readiness of all pipelines
             ex_time = client.wait_until_ready()
 
             # download of remote execution result for each pipeline
@@ -140,6 +138,7 @@ def _get_config(pipeline_json, data_id, params: RemoteTaskParams, client_params:
         train_data_idx = {train_data_idx}
         var_names = {var_names}
         is_multi_modal = {params.is_multi_modal}
+        target = {params.target}
         [OPTIONAL]
         """.encode('utf-8')
 

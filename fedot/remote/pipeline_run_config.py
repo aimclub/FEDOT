@@ -1,4 +1,7 @@
 import ast
+import configparser
+import os
+from typing import Union
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
@@ -10,7 +13,10 @@ class PipelineRunConfig:
     Quasi-dataclass for the input parameters of external pipeline fitting
     """
 
-    def __init__(self, config):
+    def __init__(self, config=None):
+        if config is None:
+            return
+
         self.pipeline_template = config['DEFAULT']['pipeline_template']
         self.input_data = config['DEFAULT']['train_data']
         self.task = eval(config['DEFAULT']['task'])
@@ -30,6 +36,25 @@ class PipelineRunConfig:
 
         self.target = None
         if 'target' in config['DEFAULT'] and config['DEFAULT']['target'] != 'None':
-            self.target = ast.literal_eval(config['DEFAULT']['target'])
+            try:
+                # list of target values
+                self.target = ast.literal_eval(config['DEFAULT']['target'])
+            except ValueError:
+                # name of target column
+                self.target = config['DEFAULT']['target']
 
         self.test_data_path = config['OPTIONAL'].get('test_data')
+
+    def load_from_file(self, file: Union[str, bytes]):
+        config = configparser.ConfigParser()
+
+        if isinstance(file, bytes):
+            config.read_string(file.decode('utf-8'))
+        else:
+            if not os.path.exists(file):
+                raise ValueError('Config not found')
+            config.read(file, encoding='utf-8')
+
+        processed_config = PipelineRunConfig(config)
+
+        return processed_config

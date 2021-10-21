@@ -297,7 +297,7 @@ class Fedot:
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
-        if remote.use_remote and remote.remote_eval_params is not None:
+        if remote.use_remote and remote.remote_task_params is not None:
             task = self.composer_dict['task']
             if task.task_type == TaskTypesEnum.ts_forecasting:
                 task_str = \
@@ -305,5 +305,8 @@ class Fedot:
                     f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
             else:
                 task_str = f'Task({str(task.task_type)})'
-            remote.remote_eval_params.task_type = task_str
-            remote.remote_eval_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+            remote.remote_task_params.task_type = task_str
+            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+
+            if isinstance(self.target_name, str):
+                remote.remote_task_params.target = self.target_name
