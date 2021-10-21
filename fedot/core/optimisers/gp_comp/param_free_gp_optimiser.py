@@ -77,10 +77,6 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
-            for individual in self.population:
-                individual.graph = \
-                    self.graph_generation_params.adapter.restore(individual.graph)
-
             if self.archive is not None:
                 self.archive.update(self.population)
 
