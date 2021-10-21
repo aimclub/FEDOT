@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Union, Any
+from typing import Any, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
@@ -8,6 +8,7 @@ from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+from fedot.shared.serializers.graph_node_serializer import GraphNodeSerializer
 
 
 def node_ops_adaptation(func):
@@ -24,7 +25,7 @@ def node_ops_adaptation(func):
     return _decorator
 
 
-class OptNode:
+class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to nodes
     """
     Class for node definition in optimization graph (OptGraph)
 
