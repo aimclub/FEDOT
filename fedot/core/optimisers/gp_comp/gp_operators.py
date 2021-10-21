@@ -120,7 +120,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 
         ind.fitness = calculate_objective(ind.graph, objective_function,
                                           is_multi_objective, graph_generation_params)
-        ind.graph.computation_time = timeit.default_timer() - start_time
+        ind.computation_time = timeit.default_timer() - start_time
         if ind.fitness is not None:
             num_of_successful_evals += 1
             evaluated_individuals.append(ind)
