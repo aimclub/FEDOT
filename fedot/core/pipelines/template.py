@@ -13,7 +13,7 @@ from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import \
     atomized_model_type
-from fedot.shared import BasicSerializer
+from fedot.shared import BasicSerializer, json_helpers
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -120,7 +120,7 @@ class PipelineTemplate(BasicSerializer):
                     else:
                         pipeline_template_dict['fitted_operation_path'] = None
 
-        json_data = json.dumps(pipeline_template_dict, indent=4, cls=NumpyIntEncoder)
+        json_data = json.dumps(pipeline_template_dict, default=json_helpers.encoder, indent=4, cls=NumpyIntEncoder)  # TODO: maybe we should save info about np.int32? Not just converting it to int
 
         if path is None:
             return json_data, fitted_ops

@@ -11,8 +11,12 @@ def dump_path_to_obj(obj: object) -> Dict[str, str]:
         obj_name = obj.__qualname__
     else:
         obj_name = obj.__class__.__qualname__
+    if '__module__' not in dir(obj):
+        obj_module = obj.__class__.__module__
+    else:
+        obj_module = obj.__module__
     return {
-        CLASS_PATH_KEY: f'{obj.__module__}{DELIMITER}{obj_name}'
+        CLASS_PATH_KEY: f'{obj_module}{DELIMITER}{obj_name}'
     }
 
 class Serializable(ABC):
