@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import (Any, List, Optional)
 from uuid import uuid4
 
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
