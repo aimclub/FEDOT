@@ -82,7 +82,7 @@ class Data:
         time_series = np.array(data_frame[target_column])
 
         if idx is None:
-            idx = np.arange(0, len(target_column))
+            idx = np.arange(0, len(data_frame))
 
         if is_predict:
             # Prepare data for prediction

@@ -77,7 +77,6 @@ class RemoteEvaluator:
 
         client = self.client
         pipelines_parts = _prepare_batches(pipelines, params)
-        data_id = 0
         final_pipelines = []
 
         # start of the remote execution for each pipeline
@@ -92,7 +91,7 @@ class RemoteEvaluator:
                 pipeline_json, _ = pipeline.save()
                 pipeline_json = pipeline_json.replace('\n', '')
 
-                config = _get_config(pipeline_json, data_id, params, self.client.exec_params)
+                config = _get_config(pipeline_json, params, self.client.exec_params)
 
                 task_id = client.create_task(config=config)
 
@@ -124,7 +123,7 @@ def _prepare_batches(pipelines, params):
     return pipelines_parts
 
 
-def _get_config(pipeline_json, data_id, params: RemoteTaskParams, client_params: dict):
+def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict):
     var_names = [str(name) for name in params.var_names] \
         if params.var_names is not None else []
     train_data_idx = [str(idx) for idx in params.train_data_idx] \

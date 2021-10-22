@@ -179,12 +179,17 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
+        mutations = [boosting_mutation, parameter_change_mutation,
+                     MutationTypesEnum.single_change,
+                     MutationTypesEnum.single_drop,
+                     MutationTypesEnum.single_add]
+
+        # TODO remove workaround after validation fix
+        if api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
+            mutations.append(MutationTypesEnum.single_edge)
+
         optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
-                                                          mutation_types=[boosting_mutation, parameter_change_mutation,
-                                                                          MutationTypesEnum.single_edge,
-                                                                          MutationTypesEnum.single_change,
-                                                                          MutationTypesEnum.single_drop,
-                                                                          MutationTypesEnum.single_add],
+                                                          mutation_types=mutations,
                                                           crossover_types=[CrossoverTypesEnum.one_point,
                                                                            CrossoverTypesEnum.subtree],
                                                           history_folder=composer_params.get('history_folder'))

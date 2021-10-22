@@ -23,14 +23,14 @@ def clip_dataframe(df, forecast_horizon, history_size):
     return dataframe_cutted
 
 
-folder = os.path.join(fedot_project_root(), 'cases', 'industrial')
-path = os.path.join(folder, 'pw_dataset.csv')
 
 
 def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                forecast_horizon: int = 10, history_size: int = 397,
                timeout: int = 1):
     """ Launch AutoML FEDOT algorithm for time series forecasting task """
+
+    folder = os.path.join(fedot_project_root(), 'cases', 'industrial')
 
     connect_params = {}
     exec_params = {
