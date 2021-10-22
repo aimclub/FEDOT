@@ -1,3 +1,4 @@
+import timeit
 import warnings
 from copy import deepcopy
 from random import choice, randint
@@ -115,8 +116,11 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     reversed_set = individuals_set[::-1]
     evaluated_individuals = []
     for ind in reversed_set:
+        start_time = timeit.default_timer()
+
         ind.fitness = calculate_objective(ind.graph, objective_function,
                                           is_multi_objective, graph_generation_params)
+        ind.computation_time = timeit.default_timer() - start_time
         if ind.fitness is not None:
             num_of_successful_evals += 1
             evaluated_individuals.append(ind)

@@ -106,7 +106,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         graph.uid = source_pipeline.uid
         return graph
 
-    def restore(self, opt_graph: OptGraph):
+    def restore(self, opt_graph: OptGraph, computation_time=None):
         """ Convert OptGraph class into Pipeline class """
         source_graph = deepcopy(opt_graph)
 
@@ -116,6 +116,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
         pipeline.uid = source_graph.uid
+        pipeline.computation_time = computation_time
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph):

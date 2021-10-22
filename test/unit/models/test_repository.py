@@ -91,12 +91,6 @@ def test_names_with_postfix():
     assert name_without_postfix == 'xgboost'
 
 
-@pytest.mark.skip('There are no automl in base framework configuration')
-def test_cls_method_assign_repo():
-    repository = OperationTypesRepository().assign_repo('model', 'automl_repository.json')
-    assert repository.repository_name == 'automl_repository.json'
-
-
 def test_operation_types_repository_repr():
     repository = OperationTypesRepository().assign_repo('model', 'model_repository.json')
 

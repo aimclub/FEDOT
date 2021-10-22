@@ -375,13 +375,19 @@ class GPGraphOptimiser:
 
     def default_on_next_iteration_callback(self, individuals, archive):
         try:
-            for individual in individuals:
+            for individual in self.population:
                 individual.graph = \
-                    self.graph_generation_params.adapter.restore(individual.graph)
+                    self.graph_generation_params.adapter.restore(individual.graph,
+                                                                 computation_time=individual.computation_time)
             self.history.add_to_history(individuals)
             self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
+                restored_archive = deepcopy(archive.items)
+                for individual in restored_archive:
+                    individual.graph = \
+                        self.graph_generation_params.adapter.restore(individual.graph,
+                                                                     computation_time=individual.computation_time)
                 self.history.add_to_archive_history(archive.items)
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
