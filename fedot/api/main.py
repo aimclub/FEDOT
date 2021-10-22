@@ -1,15 +1,14 @@
 from copy import deepcopy
-from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+
 from fedot.api.api_utils.api_utils import ApiFacade
 from fedot.core.data.data import InputData
 from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 
@@ -75,6 +74,9 @@ class Fedot:
 
         if timeout is not None:
             self.composer_dict['timeout'] = timeout
+
+        if initial_pipeline is not None:
+            self.composer_dict['initial_pipeline'] = initial_pipeline
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
