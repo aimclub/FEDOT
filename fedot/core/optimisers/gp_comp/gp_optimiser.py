@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
+from tqdm import tqdm
 
 import numpy as np
 
@@ -184,8 +185,10 @@ class GPGraphOptimiser:
 
             self.log_info_about_best()
 
+            pbar = tqdm(total=self.requirements.num_of_generations, desc="Generations", unit='gen', initial=1)
             while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
+                pbar.update(1)
 
                 self.log.info(f'Generation num: {self.generation_num}')
 
@@ -245,11 +248,14 @@ class GPGraphOptimiser:
                     self.archive.clear()
 
                 clean_operators_history(self.population)
+            pbar.close()
+
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph) for ind in best] if isinstance(best, list) \
+        output = [self.graph_generation_params.adapter.restore(ind.graph)
+                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
             else self.graph_generation_params.adapter.restore(best.graph)
 
         return output
