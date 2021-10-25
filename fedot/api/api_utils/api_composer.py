@@ -46,14 +46,6 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             metric_function.append(specific_metric_function)
         return metric_function
 
-    def obtain_initial_assumption(self,
-                                  task: Task,
-                                  data) -> Pipeline:
-
-        init_pipeline = self.get_initial_assumption(data=data, task=task)
-
-        return init_pipeline
-
     def get_composer_dict(self, composer_dict):
 
         api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
@@ -112,14 +104,16 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             with_metrics(metric_function).with_logger(logger)
 
         if initial_pipeline is None:
-            initial_pipeline = self.obtain_initial_assumption(task, data)
+            initial_pipeline = self.get_initial_assumption(data, task)
 
         if initial_pipeline is not None:
             if not isinstance(initial_pipeline, Pipeline):
                 prefix = 'Incorrect type of initial_pipeline'
                 raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
-            builder = builder.with_initial_pipeline(initial_pipeline)
 
+        # Check initial assumption
+        check_initial_pipeline_correctness(initial_pipeline, data, logger=logger)
+        builder = builder.with_initial_pipeline(initial_pipeline)
         return builder
 
     def divide_operations(self,
@@ -289,3 +283,15 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             raise ValueError(f'Incorrect tuner metric {loss_function}')
 
         return loss_function, loss_params
+
+
+def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
+                                       data: Union[InputData, MultiModalData],
+                                       logger: Log):
+    """ Test is initial pipeline can be fitted on presented data and give predictions """
+    try:
+        initial_pipeline.fit(data)
+        predicted_data = initial_pipeline.predict(data)
+    except Exception as ex:
+        logger.info(f'Initial pipeline fit were failed due to: {ex}')
+        raise ex
