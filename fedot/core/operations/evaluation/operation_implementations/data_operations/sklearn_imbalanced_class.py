@@ -150,11 +150,11 @@ class ResampleImplementation(DataOperationImplementation):
 
     def _convert_to_absolute(self, data):
         self.log.info(f'n_samples was converted to absolute values')
-        return int(np.around(data.shape[0] * self.n_samples))
+        return round(data.shape[0] * self.n_samples)
 
     def _convert_to_relative(self, data):
         self.log.info(f'n_samples was converted to relative values')
-        return np.around(self.n_samples / data.shape[0], decimals=2)
+        return round(self.n_samples / data.shape[0], 2)
 
     def _set_sample_size(self, min_data, maj_data):
         if self.balance == 'expand_minority':
