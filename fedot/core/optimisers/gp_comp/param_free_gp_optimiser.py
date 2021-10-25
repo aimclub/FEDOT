@@ -66,7 +66,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
         self.suppl_metric = suppl_metric
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
+    def optimise(self, objective_function, offspring_rate: float = 0.5,
+                 on_next_iteration_callback=None, show_progress: bool = True):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -85,7 +86,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
             self.log_info_about_best()
 
-            pbar = tqdm(total=self.requirements.num_of_generations, desc="Generations", unit='gen', initial=1)
+            pbar = tqdm(total=self.requirements.num_of_generations,
+                        desc="Generations", unit='gen', initial=1) if show_progress else None
             while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
 
@@ -152,8 +154,11 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
                 self.generation_num += 1
                 clean_operators_history(self.population)
-                pbar.update(1)
-            pbar.close()
+
+                if pbar:
+                    pbar.update(1)
+            if pbar:
+                pbar.close()
 
             best = self.result_individual()
             self.log.info('Result:')
