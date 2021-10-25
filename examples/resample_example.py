@@ -111,6 +111,6 @@ def run_resample_example(path_to_data=None, tuner=None):
 
 
 if __name__ == '__main__':
-    # run_resample_example(tuner=SequentialTuner)
-    # print('=' * 25)
+    run_resample_example()
+    print('=' * 25)
     run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tuner=PipelineTuner)

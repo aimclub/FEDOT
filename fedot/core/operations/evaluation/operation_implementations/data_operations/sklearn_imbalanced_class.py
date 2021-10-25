@@ -85,23 +85,21 @@ class ResampleImplementation(DataOperationImplementation):
                                                           unique_class[0], unique_class[1],
                                                           counts_class[0], counts_class[1])
             # Convert from relative to absolute
-            if self.n_samples is not None:
-                if self.balance == 'expand_minority':
-                    self.n_samples = self._convert_to_absolute(min_data)
+            if self.balance == 'expand_minority':
+                self.n_samples = self._convert_to_absolute(min_data)
 
-                elif self.balance == 'reduce_majority':
-                    self.n_samples = self._convert_to_absolute(maj_data)
+            elif self.balance == 'reduce_majority':
+                self.n_samples = self._convert_to_absolute(maj_data)
 
             self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
 
-            if self.n_samples is not None:
-                if self.balance == 'expand_minority':
-                    min_data = self._resample_data(min_data)
-                    self.n_samples = self._convert_to_relative(min_data)
+            if self.balance == 'expand_minority':
+                min_data = self._resample_data(min_data)
+                self.n_samples = self._convert_to_relative(min_data)
 
-                elif self.balance == 'reduce_majority':
-                    maj_data = self._resample_data(maj_data)
-                    self.n_samples = self._convert_to_relative(maj_data)
+            elif self.balance == 'reduce_majority':
+                maj_data = self._resample_data(maj_data)
+                self.n_samples = self._convert_to_relative(maj_data)
 
             transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
