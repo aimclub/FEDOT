@@ -219,8 +219,8 @@ class SearchSpace:
                 'l2_leaf_reg': (hp.uniform, [1e-8, 10.0])
             },
             'resample': {
-                'balance': (hp.choice, ['expand_minority', 'reduce_majority']),
-                'replace': (hp.choice, [True, False]),
+                'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
+                'replace': (hp.choice, [[True, False]]),
                 'n_samples': (hp.uniform, [0.3, 1])
             }
         }

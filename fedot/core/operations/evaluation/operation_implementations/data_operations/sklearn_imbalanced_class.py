@@ -29,8 +29,8 @@ class ResampleImplementation(DataOperationImplementation):
         super().__init__()
 
         self.balance = params.get('balance')
-        self.replace = params.get("replace")
-        self.n_samples = params.get("n_samples")
+        self.replace = params.get('replace')
+        self.n_samples = params.get('n_samples')
         self.parameters_changed = False
 
         if not log:
@@ -72,34 +72,36 @@ class ResampleImplementation(DataOperationImplementation):
             target = new_input_data.target
 
             if len(np.unique(target)) != 2:
-                self.log.info(f"Imbalanced multi-class balancing is not supported.")
+                self.log.info(f'Imbalanced multi-class balancing is not supported.')
                 return self._return_source_data(input_data)
 
             unique_class, counts_class = np.unique(target, return_counts=True)
 
             if counts_class[0] == counts_class[1]:
-                self.log.info(f"Number of elements from each class are equal. Transformation is not required.")
+                self.log.info(f'Number of elements from each class are equal. Transformation is not required.')
                 return self._return_source_data(input_data)
 
             min_data, maj_data = self._get_data_by_target(features, target,
                                                           unique_class[0], unique_class[1],
                                                           counts_class[0], counts_class[1])
             # Convert from relative to absolute
-            if self.balance == 'expand_minority':
-                self.n_samples = self._convert_to_absolute(min_data)
+            if self.n_samples is not None:
+                if self.balance == 'expand_minority':
+                    self.n_samples = self._convert_to_absolute(min_data)
 
-            elif self.balance == 'reduce_majority':
-                self.n_samples = self._convert_to_absolute(maj_data)
+                elif self.balance == 'reduce_majority':
+                    self.n_samples = self._convert_to_absolute(maj_data)
 
             self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
 
-            if self.balance == 'expand_minority':
-                min_data = self._resample_data(min_data)
-                self.n_samples = self._convert_to_relative(min_data)
+            if self.n_samples is not None:
+                if self.balance == 'expand_minority':
+                    min_data = self._resample_data(min_data)
+                    self.n_samples = self._convert_to_relative(min_data)
 
-            elif self.balance == 'reduce_majority':
-                maj_data = self._resample_data(maj_data)
-                self.n_samples = self._convert_to_relative(maj_data)
+                elif self.balance == 'reduce_majority':
+                    maj_data = self._resample_data(maj_data)
+                    self.n_samples = self._convert_to_relative(maj_data)
 
             transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
@@ -140,26 +142,20 @@ class ResampleImplementation(DataOperationImplementation):
         prefix = "Warning: n_samples was changed"
         was_changed = False
 
-        if self.n_samples == 0 or self.n_samples is None:
-            prev_n_samples = self.n_samples
-            self.n_samples = self._set_sample_size(min_data, maj_data)
-            self.log.info(f"{prefix} from {prev_n_samples} to {self.n_samples}")
-            was_changed = True
-
         if self.replace is False and (self.n_samples > min_data.shape[0] or self.n_samples > maj_data.shape[0]):
             prev_n_samples = self.n_samples
             self.n_samples = self._set_sample_size(min_data, maj_data)
-            self.log.info(f"{prefix[0]} from {prev_n_samples} to {self.n_samples}")
+            self.log.info(f'{prefix[0]} from {prev_n_samples} to {self.n_samples}')
             was_changed = True
 
         return was_changed
 
     def _convert_to_absolute(self, data):
-        self.log.info(f"n_samples was converted to absolute values")
-        return np.around(data.shape[0] * self.n_samples)
+        self.log.info(f'n_samples was converted to absolute values')
+        return int(np.around(data.shape[0] * self.n_samples))
 
     def _convert_to_relative(self, data):
-        self.log.info(f"n_samples was converted to relative values")
+        self.log.info(f'n_samples was converted to relative values')
         return np.around(self.n_samples / data.shape[0], decimals=2)
 
     def _set_sample_size(self, min_data, maj_data):

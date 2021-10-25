@@ -7,6 +7,7 @@ from examples.classification_with_tuning_example import get_classification_datas
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
@@ -29,8 +30,8 @@ def get_pipeline_without_balancing():
     return Pipeline(node)
 
 
-def run_resample_example(path_to_data=None):
-    if path_to_data == None:
+def run_resample_example(path_to_data=None, tuner=None):
+    if path_to_data is None:
         samples = 1000
         features = 10
         classes = 2
@@ -45,7 +46,7 @@ def run_resample_example(path_to_data=None):
     else:
         data = pd.read_csv(path_to_data, header=0)
 
-        features = data.drop('Class', 1)
+        features = data.drop(columns='Class')
         target = data['Class']
 
         x_train, x_test, y_train, y_test = train_test_split(np.array(features),
@@ -79,7 +80,7 @@ def run_resample_example(path_to_data=None):
     predict_labels = pipeline.predict(predict_input)
     preds = predict_labels.predict
     print('---')
-    print(f"ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n")
+    print(f'ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n')
 
     # Pipeline with balancing
     pipeline = get_pipeline_with_balancing()
@@ -92,10 +93,24 @@ def run_resample_example(path_to_data=None):
     predict_labels = pipeline.predict(predict_input)
     preds = predict_labels.predict
     print('---')
-    print(f"ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n")
+    print(f'ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n')
+
+    if tuner is not None:
+        print(f'Start tuning process ...')
+        tuned_pipeline = pipeline.fine_tune_all_nodes(iterations=50,
+                                                      timeout=1,
+                                                      input_data=train_input,
+                                                      loss_function=roc_auc)
+
+        # Predict
+        predicted_values_tuned = tuned_pipeline.predict(predict_input)
+        preds_tuned = predicted_values_tuned.predict
+
+        print(f'Obtained metrics after tuning:')
+        print(f'ROC-AUC of tuned pipeline with balancing - {roc_auc(y_test, preds_tuned):.4f}\n')
 
 
 if __name__ == '__main__':
-    run_resample_example()
-    print('=' * 25)
-    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv')
+    # run_resample_example(tuner=SequentialTuner)
+    # print('=' * 25)
+    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tuner=PipelineTuner)

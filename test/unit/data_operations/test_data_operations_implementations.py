@@ -1,9 +1,9 @@
-from itertools import product
 import os
-import pytest
+from itertools import product
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.regression_with_tuning_example import get_regression_dataset
@@ -142,9 +142,10 @@ def get_one_hot_encoding_data(task=None):
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+        task_type=TaskTypesEnum.regression)
 
-    for data_operation in model_names:
+    for data_operation in operation_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
@@ -160,9 +161,10 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.classification)
+    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+        task_type=TaskTypesEnum.classification)
 
-    for data_operation in model_names:
+    for data_operation in operation_names:
         node_data_operation = PrimaryNode(data_operation)
         node_final = SecondaryNode('logit', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
