@@ -27,4 +27,4 @@ lightgbm>=2.3.*
 catboost>=0.25.*
 testfixtures>=6.18.*
 torch>=1.9.0
-tqdm>=4.62.*
+tqdm
