@@ -7,7 +7,6 @@ from examples.classification_with_tuning_example import get_classification_datas
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
@@ -30,7 +29,7 @@ def get_pipeline_without_balancing():
     return Pipeline(node)
 
 
-def run_resample_example(path_to_data=None, tuner=None):
+def run_resample_example(path_to_data=None, tune=False):
     if path_to_data is None:
         samples = 1000
         features = 10
@@ -95,7 +94,7 @@ def run_resample_example(path_to_data=None, tuner=None):
     print('---')
     print(f'ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n')
 
-    if tuner is not None:
+    if tune:
         print(f'Start tuning process ...')
         tuned_pipeline = pipeline.fine_tune_all_nodes(iterations=50,
                                                       timeout=1,
@@ -113,4 +112,4 @@ def run_resample_example(path_to_data=None, tuner=None):
 if __name__ == '__main__':
     run_resample_example()
     print('=' * 25)
-    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tuner=PipelineTuner)
+    run_resample_example(f'{fedot_project_root()}/examples/data/credit_card_anomaly.csv', tune=True)
