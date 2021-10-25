@@ -188,7 +188,6 @@ class GPGraphOptimiser:
             pbar = tqdm(total=self.requirements.num_of_generations, desc="Generations", unit='gen', initial=1)
             while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
-                pbar.update(1)
 
                 self.log.info(f'Generation num: {self.generation_num}')
 
@@ -248,6 +247,7 @@ class GPGraphOptimiser:
                     self.archive.clear()
 
                 clean_operators_history(self.population)
+                pbar.update(1)
             pbar.close()
 
             best = self.result_individual()
