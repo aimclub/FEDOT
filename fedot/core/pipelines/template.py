@@ -22,6 +22,7 @@ class NumpyIntEncoder(json.JSONEncoder):
             return int(obj)
         return super().default(self, obj)
 
+
 class PipelineTemplate(BasicSerializer):
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods
@@ -120,7 +121,12 @@ class PipelineTemplate(BasicSerializer):
                     else:
                         pipeline_template_dict['fitted_operation_path'] = None
 
-        json_data = json.dumps(pipeline_template_dict, default=json_helpers.encoder, indent=4, cls=NumpyIntEncoder)  # TODO: maybe we should save info about np.int32? Not just converting it to int
+        json_data = json.dumps(
+            pipeline_template_dict,
+            default=json_helpers.encoder,
+            indent=4,
+            cls=NumpyIntEncoder
+        )  # TODO: maybe we should save info about np.int32? Not just converting it to int
 
         if path is None:
             return json_data, fitted_ops

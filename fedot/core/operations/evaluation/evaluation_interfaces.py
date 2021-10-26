@@ -30,6 +30,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
+
 class EvaluationStrategy(BasicSerializer):
     """
     Base class to define the evaluation strategy of Operation object:

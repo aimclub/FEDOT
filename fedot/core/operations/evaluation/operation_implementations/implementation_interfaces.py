@@ -54,7 +54,9 @@ class SerializableDataOperationImplementationMeta(type(BasicSerializer), DataOpe
     pass
 
 
-class EncodedInvariantImplementation(BasicSerializer, DataOperationImplementation, metaclass=SerializableDataOperationImplementationMeta):
+class EncodedInvariantImplementation(
+    BasicSerializer, DataOperationImplementation,
+    metaclass=SerializableDataOperationImplementationMeta):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean

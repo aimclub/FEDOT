@@ -11,6 +11,7 @@ def dump_path_to_obj(obj: object) -> Dict[str, str]:
         obj_name = obj.__qualname__
     else:
         obj_name = obj.__class__.__qualname__
+
     if getattr(obj, '__module__', None) is None:
         obj_module = obj.__class__.__module__
     else:
