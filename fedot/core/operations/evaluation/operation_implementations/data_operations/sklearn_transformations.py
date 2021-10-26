@@ -198,10 +198,26 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         return transformed_features
 
     def _check_same_categories(self, categorical_features):
-        encoder_unique_categories = sorted(list(np.hstack(self.encoder.categories_)))
-        features_unique_categories = sorted(np.unique(np.array(categorical_features)))
+        encoder_unique_categories = list(np.hstack(self.encoder.categories_))
+        features_unique_categories = np.unique(np.array(categorical_features))
 
-        if encoder_unique_categories != features_unique_categories:
+        # Find duplicated symbols in array, it is the case when
+        # Feature 1 | Feature 2 | Feature 3 |
+        #     0     |     2     |     4     |
+        #     ?     |     ?     |     5     |
+        #     1     |     3     |     ?     |
+        labels, count = np.unique(encoder_unique_categories, return_counts=True)
+        duplicates_numbers = count[count > 1]
+
+        if len(duplicates_numbers) == 0:
+            # There is no duplicates per columns
+            corrected_encoder_unique_len = len(encoder_unique_categories)
+        else:
+            sum_counts = np.sum(duplicates_numbers)
+            # Save only one element from duplicates
+            corrected_encoder_unique_len = len(encoder_unique_categories) - sum_counts + 1
+
+        if corrected_encoder_unique_len != len(features_unique_categories):
             raise ValueError('Category in test data was not exist in train.')
 
     def get_params(self):
