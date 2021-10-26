@@ -26,7 +26,7 @@ class Serializable(ABC):
     def to_json(self) -> Dict[str, Any]:
         useless_fields = ['log', 'operation_templates']
         return {
-            **{k: v for k, v in vars(self) if k not in useless_fields},
+            **{k: v for k, v in vars(self).items() if k not in useless_fields},
             **dump_path_to_obj(self)
         }
 
