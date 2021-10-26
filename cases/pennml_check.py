@@ -52,4 +52,4 @@ def run_classification_exp(dataset_numbers: List[int]):
 
 
 if __name__ == '__main__':
-    run_classification_exp(dataset_numbers=[0, 1, 2, 3])
+    run_classification_exp(dataset_numbers=[0])
