@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from fedot.shared import EnumSerializer
 from sklearn.model_selection import train_test_split
 
 DEFAULT_PARAMS_STUB = 'default_params'
