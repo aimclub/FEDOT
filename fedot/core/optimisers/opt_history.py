@@ -8,14 +8,14 @@ from dataclasses import dataclass
 from typing import Any, Callable, List, Optional
 from uuid import uuid4
 
-import fedot.core.optimisers.gp_comp.individual as Individual_m
+import fedot.core.optimisers.gp_comp.individual as individual_m
 from fedot.core.composer.metrics import QualityMetric
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
-from fedot.shared import BasicSerializer
+from fedot.shared import BasicSerializer, OptHistorySerializer
 
 
 @dataclass
@@ -30,15 +30,15 @@ class ParentOperator(BasicSerializer):
             self.uid = str(uuid4())
 
 
-class OptHistory(BasicSerializer):
+class OptHistory(OptHistorySerializer):
     """
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
     def __init__(self, metrics=None, save_folder=None):
         self.metrics: List[Callable[..., float]] = metrics
-        self.individuals: List[List[Individual_m.Individual]] = []
-        self.archive_history: List[List[Individual_m.Individual]] = []
+        self.individuals: List[List[individual_m.Individual]] = []
+        self.archive_history: List[List[individual_m.Individual]] = []
         self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
         self.parent_operators: List[List[List[ParentOperator]]] = []
