@@ -40,6 +40,7 @@ def run_classification_exp(dataset_numbers: List[int]):
 
         dataset_path = os.path.join(data_path, dataset_name)
         data = pd.read_csv(dataset_path)
+        data = data.head(15)
 
         predictors = np.array(data.iloc[:, :-1])
         target = np.array(data.iloc[:, -1])

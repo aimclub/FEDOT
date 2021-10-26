@@ -250,6 +250,7 @@ class Pipeline(Graph):
             data = imputation_implementation(data)
 
         data = clean_data(data)
+
         if data_has_categorical_features(data) and not has_encoder_operation:
             encode_data_for_prediction(data, self.pre_proc_encoders)
 

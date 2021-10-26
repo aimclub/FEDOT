@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Callable, ClassVar
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import timedelta
 
 import numpy as np
@@ -217,6 +217,9 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     """
 
     if loss_params is None:
+        if isinstance(target[0], str):
+            # Target for classification contain string objects
+            target = _convert_to_numeric(target)
         metric = loss_function(target, target)
     else:
         try:
@@ -228,3 +231,16 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         return False
     else:
         return True
+
+
+def _convert_to_numeric(str_array: np.array):
+    copied_array = copy(str_array)
+    unique_values = np.unique(copied_array)
+
+    i = 0
+    for label in unique_values:
+        copied_array[copied_array == label] = i
+        i += 1
+    # Convert into int
+    copied_array = copied_array.astype('int')
+    return copied_array

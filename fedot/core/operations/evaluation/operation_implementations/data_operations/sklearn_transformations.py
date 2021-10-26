@@ -122,7 +122,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         default_params = {
-            'drop': 'if_binary'
+            'handle_unknown': 'ignore'
         }
         if not params:
             # Default parameters
@@ -183,8 +183,15 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
 
         categorical_features = np.array(features[:, self.categorical_ids])
-        self._check_same_categories(categorical_features)
-        transformed_categorical = self.encoder.transform(categorical_features).toarray()
+        try:
+            transformed_categorical = self.encoder.transform(categorical_features).toarray()
+        except ValueError as ex:
+            if 'Found unknown categories' in str(ex):
+                # See https://stackoverflow.com/questions/60008477
+                # TODO to implement
+                raise ex
+            else:
+                raise ex
 
         # If there are non-categorical features in the data
         if len(self.non_categorical_ids) == 0:
@@ -196,29 +203,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
-
-    def _check_same_categories(self, categorical_features):
-        encoder_unique_categories = list(np.hstack(self.encoder.categories_))
-        features_unique_categories = np.unique(np.array(categorical_features))
-
-        # Find duplicated symbols in array, it is the case when
-        # Feature 1 | Feature 2 | Feature 3 |
-        #     0     |     2     |     4     |
-        #     ?     |     ?     |     5     |
-        #     1     |     3     |     ?     |
-        labels, count = np.unique(encoder_unique_categories, return_counts=True)
-        duplicates_numbers = count[count > 1]
-
-        if len(duplicates_numbers) == 0:
-            # There is no duplicates per columns
-            corrected_encoder_unique_len = len(encoder_unique_categories)
-        else:
-            sum_counts = np.sum(duplicates_numbers)
-            # Save only one element from duplicates
-            corrected_encoder_unique_len = len(encoder_unique_categories) - sum_counts + 1
-
-        if corrected_encoder_unique_len != len(features_unique_categories):
-            raise ValueError('Category in test data was not exist in train.')
 
     def get_params(self):
         return self.encoder.get_params()
