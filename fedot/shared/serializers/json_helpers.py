@@ -1,3 +1,4 @@
+from enum import Enum
 from importlib import import_module
 from inspect import isclass, isfunction, ismethod
 from typing import Any, Dict
@@ -23,9 +24,9 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
     #         OBJECT_ENCODING_KEY: {'object': obj.tolist(), 'dtype': str(obj.dtype)},
     #         CLASS_PATH_KEY: f'numpy{DELIMITER}array'
     #     }
-    elif isinstance(obj, numpy.integer):
+    elif isinstance(obj, Enum):
         return {
-            OBJECT_ENCODING_KEY: int(obj),
+            OBJECT_ENCODING_KEY: obj.value,
             **dump_path_to_obj(obj)
         }
     elif isfunction(obj) or ismethod(obj):

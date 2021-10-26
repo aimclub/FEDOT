@@ -88,7 +88,3 @@ class ComparableEnum(Enum):
 
     def __hash__(self):
         return hash(str(self))
-
-
-class SerializableEnumMeta(type(EnumSerializer), type(ComparableEnum)):
-    pass
