@@ -9,7 +9,6 @@ from threading import RLock
 from typing import Optional
 
 from fedot.core.utils import default_fedot_data_dir
-from fedot.shared import LogSerializer
 
 
 class SingletonMeta(type):
@@ -99,7 +98,7 @@ def default_log(logger_name: str,
     return log
 
 
-class Log(LogSerializer):
+class Log:
     """
     This class provides with basic logging object
 

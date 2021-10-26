@@ -5,6 +5,7 @@ from typing import Any, Dict
 from uuid import UUID
 
 import numpy
+from fedot.core.log import Log
 
 from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
                                        dump_path_to_obj)
@@ -29,6 +30,8 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
             OBJECT_ENCODING_KEY: obj.value,
             **dump_path_to_obj(obj)
         }
+    elif isinstance(obj, Log):
+        return None
     elif isfunction(obj) or ismethod(obj):
         return dump_path_to_obj(obj)
     raise TypeError(f'{obj=} of type {type(obj)} can\'t be serialized!')
