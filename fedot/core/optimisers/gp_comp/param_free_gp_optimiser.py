@@ -77,6 +77,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
+            pbar = tqdm(total=self.requirements.num_of_generations,
+                        desc="Generations", unit='gen', initial=1) if show_progress else None
+
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
@@ -86,8 +89,6 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
             self.log_info_about_best()
 
-            pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc="Generations", unit='gen', initial=1) if show_progress else None
             while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
 
