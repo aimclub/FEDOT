@@ -12,15 +12,11 @@ from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.preprocessing import imputation_implementation, encode_data_for_prediction, \
-    encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing
+    encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 
-# The allowed empirical partition limit of the number of rows to delete.
-# Rows that have 'string' type, instead of other 'integer' observes.
-# Example: 90% objects in column are 'integer', other are 'string'. Then
-# we will try to convert 'string' data to 'integer', otherwise delete it.
-EMPIRICAL_PARTITION = 0.1
+
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
@@ -227,7 +223,25 @@ class Pipeline(Graph):
         return result
 
     def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
-        """ Delete missing values from InputData for fitting """
+        """ Delete missing values and use encoders for InputData for fitting """
+        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
+
+        data = custom_preprocessing(data)
+
+        if data_has_missing_values(data) and not has_imputation_operation:
+            # Fill in the gaps
+            data = imputation_implementation(data)
+
+        # Clean data from leading and trailing spaces and so on
+        data = clean_data(data)
+
+        if data_has_categorical_features(data) and not has_encoder_operation:
+            # Encode features with strings
+            self.pre_proc_encoders = encode_data_for_fit(data)
+        return data
+
+    def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
+        """ Delete missing values and use encoders for InputData for predict """
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
         data = custom_preprocessing(data)
@@ -235,21 +249,9 @@ class Pipeline(Graph):
         if data_has_missing_values(data) and not has_imputation_operation:
             data = imputation_implementation(data)
 
+        data = clean_data(data)
         if data_has_categorical_features(data) and not has_encoder_operation:
-            self.pre_proc_encoders = encode_data_for_fit(data)
-        return data
-
-    def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
-        """ Delete missing values from InputData for predict """
-        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
-
-        copied_input_data = custom_preprocessing(data)
-
-        if data_has_missing_values(copied_input_data) and not has_imputation_operation:
-            copied_input_data = imputation_implementation(copied_input_data)
-
-        if data_has_categorical_features(copied_input_data) and not has_encoder_operation:
-            encode_data_for_prediction(copied_input_data, self.pre_proc_encoders)
+            encode_data_for_prediction(data, self.pre_proc_encoders)
 
         return data
 
