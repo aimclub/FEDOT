@@ -227,6 +227,23 @@ def has_correct_data_sources(pipeline: Pipeline):
     return True
 
 
+def has_no_conflict_with_reshape(pipeline: Pipeline):
+    """ 'Resample' node should be single primary node and this function check this rule
+    """
+
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
+
+    for node in pipeline.nodes:
+        if node.operation.operation_type == 'resample':
+            children_nodes = pipeline.operator.node_children(node)
+            for child_node in children_nodes:
+                if len(child_node.nodes_from) > 1:
+                    raise ValueError(f'{ERROR_PREFIX} Resample node is not single primary node')
+
+    return True
+
+
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')

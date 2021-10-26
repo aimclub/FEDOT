@@ -84,22 +84,18 @@ class ResampleImplementation(DataOperationImplementation):
             min_data, maj_data = self._get_data_by_target(features, target,
                                                           unique_class[0], unique_class[1],
                                                           counts_class[0], counts_class[1])
-            # Convert from relative to absolute
-            if self.balance == 'expand_minority':
-                self.n_samples = self._convert_to_absolute(min_data)
 
-            elif self.balance == 'reduce_majority':
-                self.n_samples = self._convert_to_absolute(maj_data)
+            self.n_samples = self._convert_to_absolute(min_data, maj_data)
 
             self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
 
             if self.balance == 'expand_minority':
                 min_data = self._resample_data(min_data)
-                self.n_samples = self._convert_to_relative(min_data)
 
             elif self.balance == 'reduce_majority':
                 maj_data = self._resample_data(maj_data)
-                self.n_samples = self._convert_to_relative(maj_data)
+
+            self.n_samples = self._convert_to_relative(min_data, maj_data)
 
             transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
@@ -148,13 +144,23 @@ class ResampleImplementation(DataOperationImplementation):
 
         return was_changed
 
-    def _convert_to_absolute(self, data):
+    def _convert_to_absolute(self, min_data, maj_data):
         self.log.info(f'n_samples was converted to absolute values')
-        return round(data.shape[0] * self.n_samples)
 
-    def _convert_to_relative(self, data):
+        if self.balance == 'expand_minority':
+            return round(min_data.shape[0] * self.n_samples)
+
+        elif self.balance == 'reduce_majority':
+            return round(maj_data.shape[0] * self.n_samples)
+
+    def _convert_to_relative(self, min_data, maj_data):
         self.log.info(f'n_samples was converted to relative values')
-        return round(self.n_samples / data.shape[0], 2)
+
+        if self.balance == 'expand_minority':
+            return round(self.n_samples / min_data.shape[0], 2)
+
+        elif self.balance == 'reduce_majority':
+            return round(self.n_samples / maj_data.shape[0], 2)
 
     def _set_sample_size(self, min_data, maj_data):
         if self.balance == 'expand_minority':
