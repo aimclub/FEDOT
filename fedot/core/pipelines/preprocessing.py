@@ -10,8 +10,13 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.pipelines.node import Node
-from fedot.core.pipelines.pipeline import EMPIRICAL_PARTITION, \
-    Pipeline
+
+
+# The allowed empirical partition limit of the number of rows to delete.
+# Rows that have 'string' type, instead of other 'integer' observes.
+# Example: 90% objects in column are 'integer', other are 'string'. Then
+# we will try to convert 'string' data to 'integer', otherwise delete it.
+EMPIRICAL_PARTITION = 0.1
 
 
 def imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
@@ -80,7 +85,7 @@ def encode_data_for_prediction(data: Union[InputData, MultiModalData],
                 data[data_source_name].features = transformed
 
 
-def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
+def pipeline_encoders_validation(pipeline) -> (bool, bool):
     """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
 
     :param pipeline: pipeline to check
@@ -123,6 +128,30 @@ def is_np_array_has_nan(array):
         if x is np.nan:
             return True
     return False
+
+
+def remove_leading_trailing_spaces(data):
+    """ Transform cells in columns from ' x ' to 'x' """
+    features_df = pd.DataFrame(data.features)
+    for column in features_df.columns:
+        try:
+            features_df[column] = features_df[column].str.strip()
+        except AttributeError:
+            # Column not a string and cannot be converted into str
+            pass
+    data.features = np.array(features_df)
+    return data
+
+
+def clean_data(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
+    """ Remove extra spaces from dataframe """
+    if isinstance(data, InputData):
+        data = remove_leading_trailing_spaces(data)
+    elif isinstance(data, MultiModalData):
+        for data_source_name, local_data in data.items():
+            local_data = remove_leading_trailing_spaces(local_data)
+            data.update({data_source_name: local_data})
+    return data
 
 
 def _create_encoder(data: InputData):

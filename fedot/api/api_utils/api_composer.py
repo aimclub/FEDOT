@@ -291,7 +291,8 @@ def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         initial_pipeline.fit(data)
-        predicted_data = initial_pipeline.predict(data)
+        initial_pipeline.predict(data)
+        logger.debug(f'Initial pipeline were fitted successfully')
     except Exception as ex:
         logger.info(f'Initial pipeline fit were failed due to: {ex}')
         raise ex
