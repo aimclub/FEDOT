@@ -64,11 +64,7 @@ class OperationTemplateAbstract(ABC):
                 raise RuntimeError(message)
 
 
-class SerializableOperationTemplateMeta(type(BasicSerializer), OperationTemplateAbstract):
-    pass
-
-
-class OperationTemplate(BasicSerializer, OperationTemplateAbstract, metaclass=SerializableOperationTemplateMeta):
+class OperationTemplate(OperationTemplateAbstract):
     def __init__(self, node: Node = None, operation_id: int = None,
                  nodes_from: list = None):
         super().__init__()
