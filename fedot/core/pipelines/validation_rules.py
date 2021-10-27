@@ -227,8 +227,8 @@ def has_correct_data_sources(pipeline: Pipeline):
     return True
 
 
-def has_no_conflict_with_reshape(pipeline: Pipeline):
-    """ 'Resample' node should be single primary node and this function check this rule
+def has_parent_contain_single_resample(pipeline: Pipeline):
+    """ 'Resample' should be single parent node for child operation.
     """
 
     if not isinstance(pipeline, Pipeline):
@@ -239,7 +239,7 @@ def has_no_conflict_with_reshape(pipeline: Pipeline):
             children_nodes = pipeline.operator.node_children(node)
             for child_node in children_nodes:
                 if len(child_node.nodes_from) > 1:
-                    raise ValueError(f'{ERROR_PREFIX} Resample node is not single primary node')
+                    raise ValueError(f'{ERROR_PREFIX} Resample node is not single parent node for child operation')
 
     return True
 
