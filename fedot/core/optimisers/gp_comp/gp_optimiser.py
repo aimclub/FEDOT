@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
+from tqdm import tqdm
 
 import numpy as np
 
@@ -166,7 +167,7 @@ class GPGraphOptimiser:
         return self.population
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback: Optional[Callable] = None):
+                 on_next_iteration_callback: Optional[Callable] = None, show_progress: bool = True):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -175,6 +176,9 @@ class GPGraphOptimiser:
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
+            pbar = tqdm(total=self.requirements.num_of_generations,
+                        desc="Generations", unit='gen', initial=1) if show_progress else None
+
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
@@ -245,11 +249,18 @@ class GPGraphOptimiser:
                     self.archive.clear()
 
                 clean_operators_history(self.population)
+
+                if pbar:
+                    pbar.update(1)
+            if pbar:
+                pbar.close()
+
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph) for ind in best] if isinstance(best, list) \
+        output = [self.graph_generation_params.adapter.restore(ind.graph)
+                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
             else self.graph_generation_params.adapter.restore(best.graph)
 
         return output

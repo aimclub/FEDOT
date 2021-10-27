@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import (Any, List, Optional, Tuple)
+from tqdm import tqdm
 
 import numpy as np
 from deap import tools
@@ -65,7 +66,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
         self.suppl_metric = suppl_metric
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5, on_next_iteration_callback=None):
+    def optimise(self, objective_function, offspring_rate: float = 0.5,
+                 on_next_iteration_callback=None, show_progress: bool = True):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -75,6 +77,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
+            pbar = tqdm(total=self.requirements.num_of_generations,
+                        desc="Generations", unit='gen', initial=1) if show_progress else None
+
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
@@ -151,11 +156,17 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
                 self.generation_num += 1
                 clean_operators_history(self.population)
 
+                if pbar:
+                    pbar.update(1)
+            if pbar:
+                pbar.close()
+
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph) for ind in best] if isinstance(best, list) \
+        output = [self.graph_generation_params.adapter.restore(ind.graph)
+                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
             else self.graph_generation_params.adapter.restore(best.graph)
         return output
 
