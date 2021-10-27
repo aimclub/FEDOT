@@ -40,7 +40,7 @@ def run_classification_exp(dataset_numbers: List[int]):
 
         dataset_path = os.path.join(data_path, dataset_name)
         data = pd.read_csv(dataset_path)
-        data = data.head(15)
+        data = data.head(500)
 
         predictors = np.array(data.iloc[:, :-1])
         target = np.array(data.iloc[:, -1])
@@ -49,7 +49,7 @@ def run_classification_exp(dataset_numbers: List[int]):
 
         fedot = Fedot(problem='classification', timeout=0.5)
         fedot.fit(features=train_data)
-        fedot.predict(test_data)
+        print(fedot.predict(test_data))
 
 
 if __name__ == '__main__':

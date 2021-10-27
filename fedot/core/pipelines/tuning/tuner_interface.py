@@ -4,6 +4,7 @@ from copy import deepcopy, copy
 from datetime import timedelta
 
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -219,7 +220,8 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     if loss_params is None:
         if isinstance(target[0], str):
             # Target for classification contain string objects
-            target = _convert_to_numeric(target)
+            le = LabelEncoder()
+            target = le.fit_transform(target)
         metric = loss_function(target, target)
     else:
         try:
@@ -231,16 +233,3 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         return False
     else:
         return True
-
-
-def _convert_to_numeric(str_array: np.array):
-    copied_array = copy(str_array)
-    unique_values = np.unique(copied_array)
-
-    i = 0
-    for label in unique_values:
-        copied_array[copied_array == label] = i
-        i += 1
-    # Convert into int
-    copied_array = copied_array.astype('int')
-    return copied_array
