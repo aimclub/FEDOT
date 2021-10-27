@@ -13,7 +13,7 @@ from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.repository.operation_types_repository import \
     atomized_model_type
-from fedot.shared import BasicSerializer, json_helpers
+from fedot.shared import BasicSerializer
 
 
 class NumpyIntEncoder(json.JSONEncoder):
