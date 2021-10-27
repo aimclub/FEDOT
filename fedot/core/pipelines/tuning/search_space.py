@@ -217,6 +217,11 @@ class SearchSpace:
                 'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
                 'border_count': (hp.randint, [2, 255]),
                 'l2_leaf_reg': (hp.uniform, [1e-8, 10.0])
+            },
+            'resample': {
+                'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
+                'replace': (hp.choice, [[True, False]]),
+                'n_samples': (hp.uniform, [0.3, 1])
             }
         }
 

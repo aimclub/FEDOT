@@ -1,13 +1,12 @@
 from typing import Dict
 
-from sklearn import datasets
-
 import numpy as np
+from sklearn import datasets
 
 
 def classification_dataset(samples_amount: int, features_amount: int, classes_amount: int,
                            features_options: Dict, noise_fraction: float = 0.1,
-                           full_shuffle: bool = True):
+                           full_shuffle: bool = True, weights: list = None):
     """
     Generates a random dataset for n-class classification problem
     using scikit-learn API.
@@ -23,6 +22,7 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
         - clusters_per_class: the amount of clusters for each class;
     :param noise_fraction: the fraction of noisy labels in the dataset;
     :param full_shuffle: if true then all features and samples will be shuffled.
+    :param weights: The proportions of samples assigned to each class. If None, then classes are balanced.
     :return: features and target as numpy-arrays.
     """
     features, target = datasets.make_classification(n_samples=samples_amount, n_features=features_amount,
@@ -31,6 +31,7 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
                                                     n_repeated=features_options['repeated'],
                                                     n_classes=classes_amount,
                                                     n_clusters_per_class=features_options['clusters_per_class'],
+                                                    weights=weights,
                                                     flip_y=noise_fraction,
                                                     shuffle=full_shuffle)
 

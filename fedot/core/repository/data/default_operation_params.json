@@ -88,5 +88,10 @@
     "timeout": 2,
     "generations": 3,
     "population_size": 3
+  },
+  "resample": {
+    "balance": "expand_minority",
+    "replace": true,
+    "n_samples": 0.5
   }
 }
