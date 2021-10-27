@@ -132,7 +132,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             self.encoder = OneHotEncoder(**{**params, **default_params})
         self.categorical_ids = None
         self.non_categorical_ids = None
-        self.binary_ids_to_convert = None
+        self.binary_ids_to_convert = []
 
     def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical features
@@ -151,8 +151,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             pass
         else:
             # If there is binary features in categorical - try to convert into float
-            categorical_features = np.array(features[:, self.categorical_ids], dtype=str)
-            self.remove_binary_features_from_ids(categorical_features)
+            self.remove_binary_features_from_ids(input_data)
 
             updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
             self.encoder.fit(updated_cat_features)
@@ -203,12 +202,14 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def remove_binary_features_from_ids(self, categorical_features: np.array) -> np.array:
+    def remove_binary_features_from_ids(self, input_data: InputData):
         """
         Find indices of columns which are contains binary features.
         If there are such features - convert it into float and then drop
         them from categorical indices list
         """
+        categorical_features = np.array(input_data.features[:, self.categorical_ids], dtype=str)
+
         updated_cat_ids = []
         binary_ids_to_convert = []
         for column_id in range(categorical_features.shape[-1]):
