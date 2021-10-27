@@ -50,13 +50,7 @@ class DataOperationImplementation(ABC):
         return converted
 
 
-class SerializableDataOperationImplementationMeta(type(BasicSerializer), DataOperationImplementation):
-    pass
-
-
-class EncodedInvariantImplementation(
-    BasicSerializer, DataOperationImplementation,
-    metaclass=SerializableDataOperationImplementationMeta):
+class EncodedInvariantImplementation(DataOperationImplementation):
     """ Class for processing data without transforming encoded features.
     Encoded features - features after OneHot encoding operation, when one
     feature (with categorical values) can be represented as several boolean
