@@ -126,14 +126,24 @@ def get_single_feature_data(task=None):
     return train_input
 
 
-def get_one_hot_encoding_data(task=None):
+def get_one_hot_encoding_data(task=None, extended=False):
+    if extended:
+        features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
+                             [2, '1', '0', 0, '4', 'blue', 'da'],
+                             [3, '1', '0', 1, '3', 'blue', 'ba'],
+                             [7, '1', '1', 1, '2', 'not blue', 'di'],
+                             [8, '1', '1', 0, '1', 'not blue', 'da bu'],
+                             [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
+    else:
+        features = np.array([[1, '0', 1],
+                             [2, '1', 0],
+                             [3, '1', 0],
+                             [7, '1', 1],
+                             [8, '1', 1],
+                             [9, '0', 0]], dtype=object)
+
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
-                            features=np.array([[1, 0, 1],
-                                               [2, 1, 0],
-                                               [3, 1, 0],
-                                               [7, 1, 1],
-                                               [8, 1, 1],
-                                               [9, 0, 0]]),
+                            features=features,
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
                             data_type=DataTypesEnum.table)
@@ -326,3 +336,19 @@ def test_knn_with_float_neighbors():
 
     pipeline.fit(input_data)
     pipeline.predict(input_data)
+
+
+def test_enconding_binary_correct():
+    """ Check if encoding operation can correctly process binary features """
+    final_columns_number = 18
+    true_binary_feature_id = 2
+    cat_data = get_one_hot_encoding_data(task=Task(TaskTypesEnum.classification),
+                                         extended=True)
+
+    encoding_node = PrimaryNode('one_hot_encoding')
+    encoding_node.fit(cat_data)
+    encoded_data = encoding_node.predict(cat_data)
+
+    binary_feature_column = encoded_data.predict[:, true_binary_feature_id]
+    assert encoded_data.predict.shape[-1] == final_columns_number
+    assert type(binary_feature_column[0]) is float
