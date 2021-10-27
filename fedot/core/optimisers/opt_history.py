@@ -183,7 +183,7 @@ class OptHistory(BasicSerializer):
     def all_historical_quality(self):
         if self.is_multi_objective:
             if self.metrics:
-                metric_position = get_metric_position(self.metВАrics, QualityMetricsEnum)
+                metric_position = get_metric_position(self.metrics, QualityMetricsEnum)
             else:
                 metric_position = 0
             all_historical_quality = self.all_historical_fitness[metric_position]

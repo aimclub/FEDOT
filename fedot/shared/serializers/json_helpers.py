@@ -11,6 +11,7 @@ from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
 
 OBJECT_ENCODING_KEY = 'kwargs'
 
+
 def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.dumps(...)
     if isinstance(obj, Serializable):
         return obj.to_json()

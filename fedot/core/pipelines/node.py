@@ -8,7 +8,6 @@ from fedot.core.operations.operation import Operation
 from fedot.core.repository.default_params_repository import \
     DefaultOperationParamsRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.shared import BasicSerializer
 
 
 class Node(GraphNode):
