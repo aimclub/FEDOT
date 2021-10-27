@@ -15,7 +15,7 @@ from fedot.core.pipelines.preprocessing import imputation_implementation, encode
     encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -165,7 +165,8 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        copied_input_data = self._preprocessing_fit_data(copied_input_data)
+        if copied_input_data.data_type == DataTypesEnum.table:
+            copied_input_data = self._preprocessing_fit_data(copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -216,7 +217,9 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        copied_input_data = self._preprocessing_predict_data(copied_input_data)
+        # No preprocessing for non tabular data
+        if copied_input_data.data_type == DataTypesEnum.table:
+            copied_input_data = self._preprocessing_predict_data(copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
