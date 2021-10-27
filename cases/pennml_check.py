@@ -40,7 +40,7 @@ def run_classification_exp(dataset_numbers: List[int]):
 
         dataset_path = os.path.join(data_path, dataset_name)
         data = pd.read_csv(dataset_path)
-        data = data.head(500)
+        data = data.head(1000)
 
         predictors = np.array(data.iloc[:, :-1])
         target = np.array(data.iloc[:, -1])
@@ -53,4 +53,4 @@ def run_classification_exp(dataset_numbers: List[int]):
 
 
 if __name__ == '__main__':
-    run_classification_exp(dataset_numbers=[0])
+    run_classification_exp(dataset_numbers=[20])
