@@ -1,4 +1,5 @@
-from typing import Optional
+from copy import copy
+from typing import Optional, List
 
 import numpy as np
 from sklearn.decomposition import KernelPCA, PCA
@@ -131,6 +132,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             self.encoder = OneHotEncoder(**{**params, **default_params})
         self.categorical_ids = None
         self.non_categorical_ids = None
+        self.binary_ids_to_convert = None
 
     def fit(self, input_data: InputData):
         """ Method for fit encoder with automatic determination of categorical features
@@ -148,8 +150,12 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         if len(categorical_ids) == 0:
             pass
         else:
-            categorical_features = np.array(features[:, categorical_ids])
-            self.encoder.fit(categorical_features)
+            # If there is binary features in categorical - try to convert into float
+            categorical_features = np.array(features[:, self.categorical_ids], dtype=str)
+            self.remove_binary_features_from_ids(categorical_features)
+
+            updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
+            self.encoder.fit(updated_cat_features)
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
@@ -160,6 +166,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
+        input_data = self.convert_binary_into_float(input_data)
 
         features = input_data.features
         if len(self.categorical_ids) == 0:
@@ -183,15 +190,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
 
         categorical_features = np.array(features[:, self.categorical_ids])
-        try:
-            transformed_categorical = self.encoder.transform(categorical_features).toarray()
-        except ValueError as ex:
-            if 'Found unknown categories' in str(ex):
-                # See https://stackoverflow.com/questions/60008477
-                # TODO to implement
-                raise ex
-            else:
-                raise ex
+        transformed_categorical = self.encoder.transform(categorical_features).toarray()
 
         # If there are non-categorical features in the data
         if len(self.non_categorical_ids) == 0:
@@ -203,6 +202,54 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
+
+    def remove_binary_features_from_ids(self, categorical_features: np.array) -> np.array:
+        """
+        Find indices of columns which are contains binary features.
+        If there are such features - convert it into float and then drop
+        them from categorical indices list
+        """
+        updated_cat_ids = []
+        binary_ids_to_convert = []
+        for column_id in range(categorical_features.shape[-1]):
+            column_uniques = np.unique(categorical_features[:, column_id])
+
+            if len(column_uniques) <= 2:
+                # Column contains binary feature - try to convert into float
+                try:
+                    np.array(categorical_features[:, column_id], dtype=float)
+                    binary_ids_to_convert.append(self.categorical_ids[column_id])
+                except ValueError:
+                    # Current column cannot be converted into float
+                    updated_cat_ids.append(self.categorical_ids[column_id])
+            else:
+                # Column contains string but not binary
+                updated_cat_ids.append(self.categorical_ids[column_id])
+
+        # Update categorical indices - there are no binary features there
+        self.categorical_ids = updated_cat_ids
+        self.binary_ids_to_convert = binary_ids_to_convert
+        self.non_categorical_ids = sorted(self.non_categorical_ids + binary_ids_to_convert)
+
+    def convert_binary_into_float(self, input_data: InputData) -> InputData:
+        """ Convert several columns in input data from string into float """
+        copied_data = copy(input_data)
+        if len(self.binary_ids_to_convert) == 0:
+            return input_data
+
+        converted_features = []
+        number_of_columns = copied_data.features.shape[-1]
+        for column_id, number in enumerate(range(number_of_columns)):
+            if column_id in self.binary_ids_to_convert:
+                converted_column = np.array(copied_data.features[:, column_id], dtype=float)
+            else:
+                converted_column = np.array(copied_data.features[:, column_id])
+
+            converted_features.append(converted_column.reshape((-1, 1)))
+
+        converted_features = np.hstack(converted_features)
+        copied_data.features = converted_features
+        return copied_data
 
     def get_params(self):
         return self.encoder.get_params()
