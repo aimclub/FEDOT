@@ -403,4 +403,4 @@ def test_pipeline_with_resample_node():
     with pytest.raises(ValueError) as exc:
         has_parent_contain_single_resample(incorrect_pipeline)
 
-    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single primary node'
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'
