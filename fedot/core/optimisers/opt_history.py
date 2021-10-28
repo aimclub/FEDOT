@@ -75,9 +75,8 @@ class OptHistory(BasicSerializer):
             new_individuals = []
             archive_comp_time = []
             for ind in individuals:
-                new_ind = self
-                new_ind.graph = self._convert_pipeline_to_template(ind.graph)
-                new_individuals.append(new_ind)
+                ind.graph = self._convert_pipeline_to_template(ind.graph)
+                new_individuals.append(ind)
                 archive_comp_time.append(ind.computation_time)
             self.archive_history.append(new_individuals)
             self.archive_comp_time_history.append(archive_comp_time)
