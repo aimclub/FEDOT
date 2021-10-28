@@ -11,8 +11,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.repository.operation_types_repository import \
-    atomized_model_type
+from fedot.core.repository.operation_types_repository import atomized_model_type
 from fedot.shared import BasicSerializer
 
 

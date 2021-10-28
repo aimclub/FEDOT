@@ -4,10 +4,7 @@ from inspect import isclass, isfunction, ismethod
 from typing import Any, Dict
 from uuid import UUID
 
-import numpy
-
-from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
-                                       dump_path_to_obj)
+from ..interfaces.serializable import CLASS_PATH_KEY, DELIMITER, Serializable, dump_path_to_obj
 
 OBJECT_ENCODING_KEY = 'kwargs'
 

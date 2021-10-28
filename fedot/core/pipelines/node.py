@@ -5,8 +5,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
-from fedot.core.repository.default_params_repository import \
-    DefaultOperationParamsRepository
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 

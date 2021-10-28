@@ -6,15 +6,18 @@ from catboost import CatBoostClassifier, CatBoostRegressor
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import (
-    OperationTypesRepository, get_operation_type_from_id)
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.shared import BasicSerializer
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.ensemble import (AdaBoostRegressor, ExtraTreesRegressor,
-                              GradientBoostingRegressor,
-                              RandomForestClassifier, RandomForestRegressor)
+from sklearn.ensemble import (
+    AdaBoostRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor
+)
 from sklearn.linear_model import Lasso as SklearnLassoReg
 from sklearn.linear_model import LinearRegression as SklearnLinReg
 from sklearn.linear_model import LogisticRegression as SklearnLogReg

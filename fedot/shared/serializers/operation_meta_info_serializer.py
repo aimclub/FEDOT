@@ -1,8 +1,7 @@
 from inspect import isclass
 from typing import Any, Dict
 
-from ..interfaces.serializable import (CLASS_PATH_KEY, DELIMITER, Serializable,
-                                       dump_path_to_obj)
+from ..interfaces.serializable import CLASS_PATH_KEY, Serializable, dump_path_to_obj
 from .json_helpers import _get_class
 
 
