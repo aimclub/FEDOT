@@ -47,7 +47,7 @@ class MultiModalData(dict):
             self[key] = self[key].subset_range(start, end)
         return self
 
-    def subset_list(self, selected_idx: List):
+    def subset_indices(self, selected_idx: List):
         for key in self.keys():
-            self[key] = self[key].subset_list(selected_idx)
+            self[key] = self[key].subset_indices(selected_idx)
         return self

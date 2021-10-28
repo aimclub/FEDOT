@@ -17,7 +17,7 @@ class TestClient(Client):
         self.pipelines = []
         super().__init__(connect_params, exec_params, output_path)
 
-    def create_task(self, config):
+    def create_task(self, config) -> str:
         fit_pipeline(config)
         return str(uuid4())
 

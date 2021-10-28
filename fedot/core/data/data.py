@@ -252,7 +252,12 @@ class InputData(Data):
         return InputData(idx=self.idx[start:end + 1], features=new_features,
                          target=self.target[start:end + 1], task=self.task, data_type=self.data_type)
 
-    def subset_list(self, selected_idx: List):
+    def subset_indices(self, selected_idx: List):
+        """
+        Get subset from InputData to extract all items with specified indices
+        :param selected_idx: list of indices for extraction
+        :return:
+        """
         idx_list = [str(i) for i in self.idx]
 
         # extractions of row number for each existing index from selected_idx

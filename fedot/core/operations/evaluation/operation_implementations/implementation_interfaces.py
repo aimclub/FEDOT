@@ -144,11 +144,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         # TODO perhaps there is a more effective way to do this
         source_shape = features.shape
 
-        if len(source_shape) <= 1:
-            # if single column
-            return [], []
-
-        columns_amount = source_shape[1]
+        columns_amount = source_shape[1] if len(source_shape) > 1 else 1
 
         # Indices of boolean columns in features table
         bool_ids = []
@@ -156,7 +152,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         # For every column in table make check
         for column_id in range(0, columns_amount):
-            column = features[:, column_id]
+            column = features[:, column_id] if columns_amount >= 1 else features
             if len(np.unique(column)) > 2:
                 non_bool_ids.append(column_id)
             else:

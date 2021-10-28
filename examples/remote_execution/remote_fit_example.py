@@ -24,7 +24,7 @@ path = os.path.join(folder, 'scoring_train.csv')
 
 start = datetime.now()
 data = InputData.from_csv(path)
-data.subset_list([1, 2, 3, 4, 5, 20])
+data.subset_indices([1, 2, 3, 4, 5, 20])
 pipeline = Pipeline(PrimaryNode('xgboost'))
 pipeline.fit_from_scratch(data)
 end = datetime.now()

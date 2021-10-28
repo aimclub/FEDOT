@@ -35,7 +35,7 @@ DEFAULT_CONNECT_PARAMS = {
 
 class DataMallClient(Client):
     def __init__(self, connect_params: dict, exec_params: dict, output_path: Optional[str] = None):
-        authorization_server = connect_params['AUTH_SERVER'],
+        authorization_server = connect_params['AUTH_SERVER']
         controller_server = connect_params['CONTR_SERVER']
         self.authorization_server = os.environ['AUTH_SERVER'] if authorization_server is None else authorization_server
         self.controller_server = os.environ['CONTR_SERVER'] if controller_server is None else controller_server
@@ -47,17 +47,13 @@ class DataMallClient(Client):
         self._login(login=connect_params['FEDOT_LOGIN'],
                     password=connect_params['FEDOT_PASSWORD'])
 
-        pid = self.connect_params['PROJECT_ID']
+        pid = connect_params['PROJECT_ID']
         group = self._create_execution_group(project_id=pid)
         self._set_group_token(project_id=pid, group_id=group['id'])
 
         super().__init__(connect_params, exec_params, output_path)
 
-    def create_task(self, config):
-        '''
-        Create task for execution
-        :return: id of created task
-        '''
+    def create_task(self, config) -> str:
         created_ex = self._create_execution(self.exec_params['container_input_path'],
                                             self.exec_params['container_output_path'],
                                             self.exec_params['container_config_path'],
@@ -158,16 +154,6 @@ class DataMallClient(Client):
             raise ValueError(f'Unable to get executions. Reason: {response.text}')
 
         return json.loads(response.text)
-
-    def _get_executions(self, wait_until_finished: bool = False):
-        if not wait_until_finished:
-            return self._get_executions()
-
-        while True:
-            executions = self._get_executions()
-            if len([ex for ex in executions if ex['status'] in ['Created', 'Waiting', 'Pending', 'Running']]) == 0:
-                return executions
-            time.sleep(2)
 
     def _get_execution(self, execution_id: int):
         response = requests.get(

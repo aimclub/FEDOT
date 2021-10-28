@@ -278,11 +278,12 @@ class Pipeline(Graph):
 
         return tuned_pipeline
 
-    def save(self, path: str = None, datetime_in_path=True) -> Tuple[str, dict]:
+    def save(self, path: str = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
         Save the pipeline to the json representation with pickled fitted operations.
 
         :param path to json file with operation
+        :param datetime_in_path flag for addition of the datetime stamp to saving path
         :return: json containing a composite operation description
         """
         self.template = PipelineTemplate(self, self.log)

@@ -75,7 +75,7 @@ def fit_pipeline(config_file) -> bool:
 
     # subset data using indices
     if config.train_data_idx not in [None, []]:
-        train_data = train_data.subset_list(config.train_data_idx)
+        train_data = train_data.subset_indices(config.train_data_idx)
 
     try:
         validate(pipeline, task=config.task)
