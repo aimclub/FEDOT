@@ -23,8 +23,6 @@ def clip_dataframe(df, forecast_horizon, history_size):
     return dataframe_cutted
 
 
-
-
 def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                forecast_horizon: int = 10, history_size: int = 397,
                timeout: int = 1):

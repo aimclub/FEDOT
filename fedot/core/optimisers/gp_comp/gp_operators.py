@@ -115,7 +115,6 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
 
-
     # TODO refactor
     fitter = RemoteEvaluator()
     pre_evaluated_objects = []

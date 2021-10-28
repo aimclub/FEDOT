@@ -73,11 +73,7 @@ class Data:
                              is_predict=False,
                              target_column: Optional[str] = ''):
         data_frame = pd.read_csv(file_path, sep=delimiter)
-        idx = None
-        if 'datetime' in data_frame.columns:
-            df = pd.read_csv(file_path,
-                             parse_dates=['datetime'])
-            idx = [str(d) for d in df['datetime']]
+        idx = _get_indices_from_file(data_frame, file_path)
 
         time_series = np.array(data_frame[target_column])
 
@@ -446,3 +442,13 @@ def _has_data_categorical(data: InputData) -> bool:
 def _is_values_categorical(values: List):
     # Check if any value in list has 'string' type
     return any(list(map(lambda x: isinstance(x, str), values)))
+
+
+def _get_indices_from_file(data_frame, file_path):
+    idx = None
+    if 'datetime' in data_frame.columns:
+        df = pd.read_csv(file_path,
+                         parse_dates=['datetime'])
+        idx = [str(d) for d in df['datetime']]
+        return idx
+    return idx
