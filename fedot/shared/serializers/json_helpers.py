@@ -17,11 +17,6 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
             OBJECT_ENCODING_KEY: {'hex': obj.hex},
             **dump_path_to_obj(obj)
         }
-    # elif isinstance(obj, numpy.ndarray):
-    #     return {
-    #         OBJECT_ENCODING_KEY: {'object': obj.tolist(), 'dtype': str(obj.dtype)},
-    #         CLASS_PATH_KEY: f'numpy{DELIMITER}array'
-    #     }
     elif isinstance(obj, Enum):
         return {
             OBJECT_ENCODING_KEY: obj.value,
