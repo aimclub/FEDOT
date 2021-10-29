@@ -14,7 +14,7 @@ from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
-from fedot.shared import BasicSerializer
+from fedot.shared import BasicSerializer, OptHistorySerializer
 
 
 @dataclass
@@ -29,7 +29,7 @@ class ParentOperator(BasicSerializer):
             self.uid = str(uuid4())
 
 
-class OptHistory(BasicSerializer):
+class OptHistory(OptHistorySerializer):
     """
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """

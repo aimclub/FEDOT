@@ -3,5 +3,6 @@ from .serializers import (
     GraphNodeSerializer,
     GraphSerializer,
     OperationMetaInfoSerializer,
+    OptHistorySerializer,
     json_helpers
 )
