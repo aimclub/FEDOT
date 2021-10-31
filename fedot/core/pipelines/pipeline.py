@@ -18,6 +18,9 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
+from fedot.explainability.explainer import Explainer
+from fedot.core.repository.tasks import TaskTypesEnum
+
 
 # The allowed empirical partition limit of the number of rows to delete.
 # Rows that have 'string' type, instead of other 'integer' observes.
@@ -47,6 +50,7 @@ class Pipeline(Graph):
         self.template = None
         self.fitted_on_data = {}
         self.pre_proc_encoders = {}
+        self.explainer = None
 
         self.log = log
         if not log:
@@ -339,6 +343,33 @@ class Pipeline(Graph):
         print(self.__str__())
         for node in self.nodes:
             print(f"{node.operation.operation_type} - {node.custom_params}")
+
+    def explain(self, data: InputData, method: str = 'surrogate_dt', plot: bool = True, **kwargs) -> Explainer:
+        # Avoiding circular import
+        from fedot.explainability.surrogate_explainer import SurrogateExplainer
+
+        assert self.is_fitted, 'The pipeline might be fit before explanation!'
+
+        if method == 'surrogate_dt':
+            if data.task.task_type != TaskTypesEnum.classification:
+                raise ValueError('Surrogate tree classifier is not applicable for this pipeline')
+            self.explainer = SurrogateExplainer(self, surrogate='dt')
+
+        elif method == 'surrogate_dtreg':
+            if data.task.task_type != TaskTypesEnum.regression:
+                raise ValueError('Surrogate tree regressor is not applicable for this pipeline')
+            self.explainer = SurrogateExplainer(self, surrogate='dtreg')
+
+        elif method == 'PDP':
+            pass
+
+        elif method == 'ICE':
+            pass
+
+        else:
+            return ValueError(f'Explanation method {method} is not supported')
+        self.explainer(data, plot=plot, **kwargs)
+        return self.explainer
 
 
 def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):
