@@ -15,5 +15,5 @@ class Explainer:
         raise NotImplementedError
 
     @abstractmethod
-    def plot(self, *args, **kwargs):
+    def output(self, *args, **kwargs):
         raise NotImplementedError

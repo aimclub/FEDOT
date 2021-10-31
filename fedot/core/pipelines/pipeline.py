@@ -344,7 +344,20 @@ class Pipeline(Graph):
         for node in self.nodes:
             print(f"{node.operation.operation_type} - {node.custom_params}")
 
-    def explain(self, data: InputData, method: str = 'surrogate_dt', plot: bool = True, **kwargs) -> Explainer:
+    def explain(self, data: InputData, method: str = 'surrogate_dt', instant_output: bool = True, **kwargs) -> Explainer:
+        """Create explanation for the pipeline according to the selected metod.
+        An object is both put into pipeline.explainer attribute and returned.
+
+        :param data: samples to be explained.
+        :type data: InputData
+        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
+        :type method: str, optional
+        :param instant_output: print and plot the explanation simultaneously, defaults to True.
+            The explanation can be plotted later.
+        :type instant_output: bool, optional
+        :return: Explainer object.
+        :rtype: Explainer
+        """
         # Avoiding circular import
         from fedot.explainability.surrogate_explainer import SurrogateExplainer
 
@@ -367,8 +380,8 @@ class Pipeline(Graph):
             pass
 
         else:
-            return ValueError(f'Explanation method {method} is not supported')
-        self.explainer(data, plot=plot, **kwargs)
+            raise ValueError(f'Explanation method {method} is not supported')
+        self.explainer(data, instant_output=instant_output, **kwargs)
         return self.explainer
 
 

@@ -13,7 +13,9 @@ from fedot.core.composer.metrics import Metric, F1
 from fedot.core.data.data import InputData
 
 
-def _build_naive_surrogate_model(black_box_model, surrogate_model, data: InputData, metric: Metric = None, **kwargs) -> Optional[float]:
+def _build_naive_surrogate_model(
+    black_box_model: Pipeline, surrogate_model: Pipeline, data: InputData, 
+    metric: Metric = None, **kwargs) -> Optional[float]:
     
     output_mode = 'default'
     if data.task.task_type == TaskTypesEnum.classification:
@@ -27,6 +29,9 @@ def _build_naive_surrogate_model(black_box_model, surrogate_model, data: InputDa
         data_c = deepcopy(data)
         data_c.target = surrogate_model.predict(data, output_mode=output_mode).predict
         score = -metric.metric(data_c, prediction)
+
+    else:
+        score = None
 
     return score
 
@@ -54,11 +59,11 @@ class SurrogateExplainer(Explainer):
                 self.surrogate = Pipeline(surrogate_node)
 
             else:
-                raise ValueError(f'Surrogate {surrogate} is not supported as surrogate model')
+                raise ValueError(f'{surrogate} is not supported as a surrogate model')
         else:
-            raise ValueError(f'{type(surrogate)} is not supported as Fedot model')
+            raise ValueError(f'{type(surrogate)} is not supported as a surrogate model')
 
-    def __call__(self, data: InputData, plot: bool = True, **kwargs):
+    def __call__(self, data: InputData, instant_output: bool = True, **kwargs):
         try:
             self.score = _build_naive_surrogate_model(self.model, self.surrogate, data)
         
@@ -66,22 +71,31 @@ class SurrogateExplainer(Explainer):
             print(f'Failed to fit the surrogate: {ex}')
             return
 
-        if plot:
-            self.plot(**kwargs)
+        if instant_output:
+            self.output(**kwargs)
 
-    def plot(self, figsize: Tuple[int, int] = (16, 8), max_depth: int = None, proportion: bool = True, filled: bool = True, rounded: bool = True, **kwargs):
-        
-        plt.figure(figsize=figsize, dpi=100)
+    def output(self, dpi=300, **kwargs):
+        """Print and plot results of the last explanation. Suitable keyword parameters 
+        are passed to the corresponding plot function.
+
+        :param dpi:The figure DPI, defaults to 100
+        :type dpi: int, optional
+        """
+        plt.figure(dpi=dpi)
         if self.surrogate_str in ['dt']:
 
             if self.score is not None:
                 print(f'Surrogate\'s model reproduction quality: {self.score}')
-           
-            # Tree parameters defined by user 
+            # Plot default parameters
+            plot_params = {
+                'proportion': True,
+                'filled': True,
+                'rounded': True,
+            }
+            # Plot parameters defined by user 
             kwargs_params = \
-                {arg: kwargs[arg] for arg in kwargs if arg in signature(tree.plot_tree).parameters}
+                {par: kwargs[par] for par in kwargs if par in signature(tree.plot_tree).parameters}
+    
+            plot_params.update(kwargs_params)
 
-
-            tree.plot_tree(self.surrogate.root_node.fitted_operation,
-                           max_depth=max_depth, proportion=proportion, filled=filled, rounded=rounded,
-                           **kwargs_params)
+            tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
