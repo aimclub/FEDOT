@@ -11,12 +11,11 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 from fedot.core.pipelines.node import Node
 
-
 # The allowed empirical partition limit of the number of rows to delete.
 # Rows that have 'string' type, instead of other 'integer' observes.
 # Example: 90% objects in column are 'integer', other are 'string'. Then
 # we will try to convert 'string' data to 'integer', otherwise delete it.
-EMPIRICAL_PARTITION = 0.1
+EMPIRICAL_PARTITION = 0.5
 
 
 def imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
@@ -214,7 +213,9 @@ def _preprocessing_input_data(data: InputData) -> InputData:
             # if EMPIRICAL_PARTITION < partition < 1, then some data in column are
             # integer and some data are string, can not handle this case
             elif partition_not_numeric < 0.9:
-                raise ValueError("The data in the column has a different type. Need to preprocessing data manually.")
+                print("The data in the column has a different type. Need to preprocessing data manually.")
+                # TODO remove workaround
+                data.features[:, i] = np.asarray(np.repeat(0, len(data.features[:, i])))
 
     return data
 
