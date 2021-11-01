@@ -1,7 +1,5 @@
 from typing import Any, Dict
 
-from fedot.core.optimisers.opt_history import OptHistory
-
 from ..interfaces.serializable import Serializable
 
 
@@ -11,7 +9,7 @@ class OptHistorySerializer(Serializable):
         duplicate_fields = set([
             'historical_fitness', 'all_historical_fitness',
             'all_historical_quality', 'short_metrics_names',
-            'historical_pipelines', 'parent_operators'
+            'historical_pipelines'
         ])
         return {
             k: v
@@ -21,9 +19,4 @@ class OptHistorySerializer(Serializable):
 
     @classmethod
     def from_json(cls, json_obj: Dict[str, Any]):
-        obj: OptHistory = super().from_json(json_obj)
-        obj.parent_operators = [
-            [ind.parent_operators for ind in ind_lst]
-            for ind_lst in obj.individuals
-        ]
-        return obj
+        return super().from_json(json_obj)

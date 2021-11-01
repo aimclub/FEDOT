@@ -40,7 +40,6 @@ class OptHistory(OptHistorySerializer):
         self.archive_history: List[List] = []
         self.pipelines_comp_time_history = []
         self.archive_comp_time_history = []
-        self.parent_operators: List[List[List[ParentOperator]]] = []
         self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
@@ -51,7 +50,6 @@ class OptHistory(OptHistorySerializer):
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
         pipelines_comp_time = []
-        parent_operators = []
         try:
             for ind in individuals:
                 pipeline = ind.graph  # was restored outside
@@ -62,13 +60,10 @@ class OptHistory(OptHistorySerializer):
                     pipelines_comp_time.append(pipeline.computation_time)
                 else:
                     pipelines_comp_time.append(-1)
-                parent_operators.append(ind.parent_operators)
             self.individuals.append(new_individuals)
             self.pipelines_comp_time_history.append(pipelines_comp_time)
         except Exception as ex:
             print(f'Cannot add to history: {ex}')
-
-        self.parent_operators.append(parent_operators)
 
     def add_to_archive_history(self, individuals: List[Any]):
         try:

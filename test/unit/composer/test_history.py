@@ -31,6 +31,6 @@ def test_operators_in_history():
     auto_model.fit(features=file_path_train, target='Y')
 
     assert auto_model.history is not None
-    assert 1 <= len(auto_model.history.parent_operators) <= 3
+    assert 1 <= len(auto_model.history.individuals) <= 3
 
     # TODO extend test
