@@ -9,6 +9,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 from fedot.shared.serializers.graph_node_serializer import GraphNodeSerializer
+from fedot.shared.serializers.graph_serializer import GraphSerializer
 
 
 def node_ops_adaptation(func):
@@ -72,7 +73,7 @@ class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to 
         return self._operator.distance_to_primary_level()
 
 
-class OptGraph:
+class OptGraph(GraphSerializer):
     """
     Base class used for optimized structure
 
