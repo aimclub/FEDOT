@@ -344,7 +344,8 @@ class Pipeline(Graph):
         for node in self.nodes:
             print(f"{node.operation.operation_type} - {node.custom_params}")
 
-    def explain(self, data: InputData, method: str = 'surrogate_dt', instant_output: bool = True, **kwargs) -> Explainer:
+    def explain(self, data: InputData, method: str = 'surrogate_dt',
+                instant_output: bool = True, **kwargs) -> Explainer:
         """Create explanation for the pipeline according to the selected metod.
         An object is both put into pipeline.explainer attribute and returned.
 

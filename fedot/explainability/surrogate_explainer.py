@@ -14,9 +14,9 @@ from fedot.core.data.data import InputData
 
 
 def _build_naive_surrogate_model(
-    black_box_model: Pipeline, surrogate_model: Pipeline, data: InputData, 
-    metric: Metric = None, **kwargs) -> Optional[float]:
-    
+        black_box_model: Pipeline, surrogate_model: Pipeline, data: InputData,
+        metric: Metric = None, **kwargs) -> Optional[float]:
+
     output_mode = 'default'
     if data.task.task_type == TaskTypesEnum.classification:
         output_mode = 'labels'
@@ -50,9 +50,9 @@ class SurrogateExplainer(Explainer):
             self.surrogate = surrogate
 
         elif isinstance(surrogate, str):
-            
+
             self.surrogate_str = surrogate
-            
+
             if surrogate in self.surrogates_default_params:
                 surrogate_node = PrimaryNode(surrogate)
                 surrogate_node.custom_params = self.surrogates_default_params[surrogate]
@@ -66,7 +66,7 @@ class SurrogateExplainer(Explainer):
     def __call__(self, data: InputData, instant_output: bool = True, **kwargs):
         try:
             self.score = _build_naive_surrogate_model(self.model, self.surrogate, data)
-        
+
         except Exception as ex:
             print(f'Failed to fit the surrogate: {ex}')
             return
@@ -75,7 +75,7 @@ class SurrogateExplainer(Explainer):
             self.output(**kwargs)
 
     def output(self, dpi=300, **kwargs):
-        """Print and plot results of the last explanation. Suitable keyword parameters 
+        """Print and plot results of the last explanation. Suitable keyword parameters
         are passed to the corresponding plot function.
 
         :param dpi:The figure DPI, defaults to 100
@@ -92,10 +92,10 @@ class SurrogateExplainer(Explainer):
                 'filled': True,
                 'rounded': True,
             }
-            # Plot parameters defined by user 
+            # Plot parameters defined by user
             kwargs_params = \
                 {par: kwargs[par] for par in kwargs if par in signature(tree.plot_tree).parameters}
-    
+
             plot_params.update(kwargs_params)
 
             tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
