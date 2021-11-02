@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Optional, List
+from typing import Optional
 
 import numpy as np
 from sklearn.decomposition import KernelPCA, PCA
@@ -359,14 +359,16 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_has_categorical_features(input_data):
             numerical, categorical = divide_data_categorical_numerical(input_data)
-            if len(categorical.features.shape) == 1:
-                self.imputer_cat.fit(categorical.features.reshape(-1, 1))
-            else:
-                self.imputer_cat.fit(categorical.features)
-            if len(numerical.features.shape) == 1:
-                self.imputer_num.fit(numerical.features.reshape(-1, 1))
-            else:
-                self.imputer_num.fit(numerical.features)
+            if categorical.features is not None and categorical.features.size > 0:
+                if len(categorical.features.shape) == 1:
+                    self.imputer_cat.fit(categorical.features.reshape(-1, 1))
+                else:
+                    self.imputer_cat.fit(categorical.features)
+            if numerical.features is not None and numerical.features.size > 0:
+                if len(numerical.features.shape) == 1:
+                    self.imputer_num.fit(numerical.features.reshape(-1, 1))
+                else:
+                    self.imputer_num.fit(numerical.features)
         else:
             if len(input_data.features.shape) == 1:
                 self.imputer_num.fit(input_data.features.reshape(-1, 1))
@@ -389,15 +391,27 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_has_categorical_features(input_data):
             numerical, categorical = divide_data_categorical_numerical(input_data)
-            if len(categorical.features.shape) == 1:
-                categorical_features = self.imputer_cat.transform(categorical.features.reshape(-1, 1))
-            else:
-                categorical_features = self.imputer_cat.transform(categorical.features)
-            if len(numerical.features.shape) == 1:
-                numerical_features = self.imputer_num.transform(numerical.features.reshape(-1, 1))
-            else:
-                numerical_features = self.imputer_num.transform(numerical.features)
-            transformed_features = np.hstack((categorical_features, numerical_features))
+            categorical_features = None
+            numerical_features = None
+
+            if categorical.features is not None and categorical.features.size > 0:
+                if len(categorical.features.shape) == 1:
+                    categorical_features = self.imputer_cat.transform(categorical.features.reshape(-1, 1))
+                else:
+                    categorical_features = self.imputer_cat.transform(categorical.features)
+
+            if numerical.features is not None and numerical.features.size > 0:
+                if len(numerical.features.shape) == 1:
+                    numerical_features = self.imputer_num.transform(numerical.features.reshape(-1, 1))
+                else:
+                    numerical_features = self.imputer_num.transform(numerical.features)
+
+            if categorical_features is not None and numerical_features is not None:
+                transformed_features = np.hstack((categorical_features, numerical_features))
+            elif categorical_features is not None:
+                transformed_features = categorical_features
+            elif numerical_features is not None:
+                transformed_features = numerical_features
         else:
             if len(input_data.features.shape) == 1:
                 transformed_features = self.imputer_num.transform(input_data.features.reshape(-1, 1))

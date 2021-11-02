@@ -1,7 +1,8 @@
 import os
-import pandas as pd
-import numpy as np
 from typing import List
+
+import numpy as np
+import pandas as pd
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
@@ -39,18 +40,24 @@ def run_classification_exp(dataset_numbers: List[int]):
         print(f'Processing dataset with name {dataset_name}')
 
         dataset_path = os.path.join(data_path, dataset_name)
-        data = pd.read_csv(dataset_path)
-        data = data.head(1000)
+        data = pd.read_csv(dataset_path, na_values=['?', 'NaN'])
+
+        # For balanced target
+        data = data.sample(1000, random_state=1)
+
+        # For unbalanced target
+        # class_1 = data[data['APPETENCY'] == -1].sample(n=700, random_state=1)
+        # class_2 = data[data['APPETENCY'] == 1].sample(n=300, random_state=1)
+        # data = pd.concat([class_1, class_2])
 
         predictors = np.array(data.iloc[:, :-1])
         target = np.array(data.iloc[:, -1])
 
         train_data, test_data = data_setup(predictors, target)
-
         fedot = Fedot(problem='classification', timeout=0.5)
         fedot.fit(features=train_data)
         print(fedot.predict(test_data))
 
 
 if __name__ == '__main__':
-    run_classification_exp(dataset_numbers=[20])
+    run_classification_exp(dataset_numbers=[25])
