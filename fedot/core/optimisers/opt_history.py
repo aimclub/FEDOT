@@ -9,6 +9,7 @@ from typing import Any, Callable, List, Optional
 from uuid import uuid4
 
 from fedot.core.composer.metrics import QualityMetric
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
@@ -49,9 +50,9 @@ class OptHistory(OptHistorySerializer):
         new_individuals = []
         try:
             for ind in individuals:
-                pipeline = ind.graph  # was restored outside
+                # pipeline = ind.graph  # was restored outside
                 new_ind = deepcopy(ind)
-                new_ind.graph = self._convert_pipeline_to_template(pipeline)
+                # new_ind.graph = self._convert_pipeline_to_template(pipeline)
                 new_individuals.append(new_ind)
             self.individuals.append(new_individuals)
         except Exception as ex:
@@ -61,7 +62,7 @@ class OptHistory(OptHistorySerializer):
         try:
             new_individuals = []
             for ind in individuals:
-                ind.graph = self._convert_pipeline_to_template(ind.graph)
+                # ind.graph = self._convert_pipeline_to_template(ind.graph)
                 new_individuals.append(ind)
             self.archive_history.append(new_individuals)
         except Exception as ex:
@@ -80,9 +81,10 @@ class OptHistory(OptHistorySerializer):
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
+                cur_ind_graph = PipelineAdapter().restore_as_template(ind.graph)
                 row = [
                     idx, gen_num, fitness,
-                    len(ind.graph.operation_templates), ind.graph.depth,
+                    len(cur_ind_graph.operation_templates), cur_ind_graph.depth,
                     self.individuals[gen_num][ind_num].graph.computation_time
                 ]
                 self._add_history_to_csv(file, row)
@@ -110,12 +112,13 @@ class OptHistory(OptHistorySerializer):
             last_gen = self.individuals[last_gen_id]
             for ind_id, individual in enumerate(last_gen):
                 # TODO support multi-objective case
-                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.unique_pipeline_id))
+                ind_path = os.path.join(path, str(last_gen_id), individual.graph.uid)
                 additional_info = \
                     {'fitness_name': self.short_metrics_names[0],
                      'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
-                individual.graph.export_pipeline(path=ind_path, additional_info=additional_info,
-                                                 datetime_in_path=False)
+                PipelineAdapter().restore_as_template(
+                    individual.graph
+                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             print(ex)
 
@@ -179,7 +182,8 @@ class OptHistory(OptHistorySerializer):
 
     @property
     def historical_pipelines(self):
-        return [ind.graph for ind in list(itertools.chain(*self.individuals))]
+        adapter = PipelineAdapter()
+        return [adapter.restore_as_template(ind.graph) for ind in list(itertools.chain(*self.individuals))]
 
     @property
     def is_multi_objective(self):
