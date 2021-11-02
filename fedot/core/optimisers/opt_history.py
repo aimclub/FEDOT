@@ -38,8 +38,6 @@ class OptHistory(OptHistorySerializer):
         self.metrics: List[Callable[..., float]] = metrics
         self.individuals: List[List] = []
         self.archive_history: List[List] = []
-        self.pipelines_comp_time_history = []
-        self.archive_comp_time_history = []
         self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
@@ -49,32 +47,23 @@ class OptHistory(OptHistorySerializer):
 
     def add_to_history(self, individuals: List[Any]):
         new_individuals = []
-        pipelines_comp_time = []
         try:
             for ind in individuals:
                 pipeline = ind.graph  # was restored outside
                 new_ind = deepcopy(ind)
                 new_ind.graph = self._convert_pipeline_to_template(pipeline)
                 new_individuals.append(new_ind)
-                if hasattr(pipeline, 'computation_time'):
-                    pipelines_comp_time.append(pipeline.computation_time)
-                else:
-                    pipelines_comp_time.append(-1)
             self.individuals.append(new_individuals)
-            self.pipelines_comp_time_history.append(pipelines_comp_time)
         except Exception as ex:
             print(f'Cannot add to history: {ex}')
 
     def add_to_archive_history(self, individuals: List[Any]):
         try:
             new_individuals = []
-            archive_comp_time = []
             for ind in individuals:
                 ind.graph = self._convert_pipeline_to_template(ind.graph)
                 new_individuals.append(ind)
-                archive_comp_time.append(ind.computation_time)
             self.archive_history.append(new_individuals)
-            self.archive_comp_time_history.append(archive_comp_time)
         except Exception as ex:
             print(f'Cannot add to archive history: {ex}')
 
@@ -91,8 +80,11 @@ class OptHistory(OptHistorySerializer):
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
-                row = [idx, gen_num, fitness, len(ind.graph.operation_templates), ind.graph.depth,
-                       self.pipelines_comp_time_history[gen_num][ind_num]]
+                row = [
+                    idx, gen_num, fitness,
+                    len(ind.graph.operation_templates), ind.graph.depth,
+                    self.individuals[gen_num][ind_num].graph.computation_time
+                ]
                 self._add_history_to_csv(file, row)
                 idx += 1
 
