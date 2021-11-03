@@ -119,8 +119,8 @@ class PipelineAdapter(BaseOptimizationAdapter):
         pipeline.computation_time = computation_time
         return pipeline
 
-    def restore_as_template(self, opt_graph: OptGraph):
-        pipeline = self.restore(opt_graph)
+    def restore_as_template(self, opt_graph: OptGraph, computation_time=None):
+        pipeline = self.restore(opt_graph, computation_time)
         return PipelineTemplate(pipeline)
 
 

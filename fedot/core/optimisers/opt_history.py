@@ -75,17 +75,17 @@ class OptHistory(OptHistorySerializer):
             os.mkdir(history_dir)
         self._write_header_to_csv(file)
         idx = 0
+        adapter = PipelineAdapter()
         for gen_num, gen_inds in enumerate(self.individuals):
             for ind_num, ind in enumerate(gen_inds):
                 if self.is_multi_objective:
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
-                cur_ind_graph = PipelineAdapter().restore_as_template(ind.graph)
+                cur_ind_graph = adapter.restore_as_template(ind.graph, ind.computation_time)
                 row = [
                     idx, gen_num, fitness,
-                    len(cur_ind_graph.operation_templates), cur_ind_graph.depth,
-                    self.individuals[gen_num][ind_num].graph.computation_time
+                    len(cur_ind_graph.operation_templates), cur_ind_graph.depth, ind.computation_time
                 ]
                 self._add_history_to_csv(file, row)
                 idx += 1
@@ -117,7 +117,7 @@ class OptHistory(OptHistorySerializer):
                     {'fitness_name': self.short_metrics_names[0],
                      'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
                 PipelineAdapter().restore_as_template(
-                    individual.graph
+                    individual.graph, individual.computation_time
                 ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             print(ex)
@@ -183,7 +183,10 @@ class OptHistory(OptHistorySerializer):
     @property
     def historical_pipelines(self):
         adapter = PipelineAdapter()
-        return [adapter.restore_as_template(ind.graph) for ind in list(itertools.chain(*self.individuals))]
+        return [
+            adapter.restore_as_template(ind.graph, ind.computation_time)
+            for ind in list(itertools.chain(*self.individuals))
+        ]
 
     @property
     def is_multi_objective(self):
