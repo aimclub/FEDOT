@@ -153,8 +153,12 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             # If there is binary features in categorical - try to convert into float
             self.remove_binary_features_from_ids(input_data)
 
-            updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
-            self.encoder.fit(updated_cat_features)
+            # If all categorical features were binary
+            if len(self.categorical_ids) == 0:
+                pass
+            else:
+                updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
+                self.encoder.fit(updated_cat_features)
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """
