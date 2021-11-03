@@ -13,7 +13,7 @@ from fedot.core.optimisers.utils.population_utils import input_data_characterist
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.preprocessing import imputation_implementation, encode_data_for_prediction, \
     encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data, \
-    preprocessing_features_full_of_nans
+    drop_features_full_of_nans
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -230,7 +230,7 @@ class Pipeline(Graph):
         """ Delete missing values and use encoders for InputData for fitting """
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
-        data = preprocessing_features_full_of_nans(data)
+        data = drop_features_full_of_nans(data)
 
         data = custom_preprocessing(data)
 
@@ -250,7 +250,7 @@ class Pipeline(Graph):
         """ Delete missing values and use encoders for InputData for predict """
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
-        data = preprocessing_features_full_of_nans(data)
+        data = drop_features_full_of_nans(data)
 
         data = custom_preprocessing(data)
 

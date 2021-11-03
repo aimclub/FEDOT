@@ -42,7 +42,7 @@ def custom_preprocessing(data: Union[InputData, MultiModalData]):
     return data
 
 
-def preprocessing_features_full_of_nans(data: InputData):
+def drop_features_full_of_nans(data: InputData):
     """ Dropping features with more than 30% nan's
 
     :param data: data to transform
