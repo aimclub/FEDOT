@@ -7,11 +7,12 @@ from sklearn import tree
 
 from fedot.core.data.data import InputData
 import fedot.core.explainability.utils as utils
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class Explainer:
     """
-    This class is an abstract class for various explanation methods.
+    An abstract class for various explanation methods.
     """
     def __init__(self, model):
         self.model = model
@@ -26,12 +27,23 @@ class Explainer:
 
 
 class SurrogateExplainer(Explainer):
+    """
+    Base class used for composite model structure definition
+
+    :param model: Pipeline object to be explained
+    :param surrogate: surrogate name. Supported surrogates: [dt, dtreg]
+
+    .. note::
+        score stores the score of surrogate's prediction on model (equals None if the 'explain' method hasn't been
+        called yet)
+    """
+
     surrogates_default_params = {
         'dt': {'max_depth': 3},
         'dtreg': {'max_depth': 3},
     }
 
-    def __init__(self, model, surrogate: str):
+    def __init__(self, model: 'Pipeline', surrogate: str):
         super().__init__(model)
 
         self.score: Optional[float] = None
@@ -40,7 +52,8 @@ class SurrogateExplainer(Explainer):
 
             if surrogate in self.surrogates_default_params:
                 self.surrogate_str = surrogate
-                self.surrogate = utils.single_node_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
+                self.surrogate = \
+                    utils.single_node_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
             else:
                 raise ValueError(f'{surrogate} is not supported as a surrogate model')
 
@@ -83,3 +96,19 @@ class SurrogateExplainer(Explainer):
             plot_params.update(kwargs_params)
 
             tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
+
+
+def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTypesEnum):
+    if method == 'surrogate_dt':
+        if task_type == TaskTypesEnum.classification:
+            surrogate = 'dt'
+        elif task_type == TaskTypesEnum.regression:
+            surrogate = 'dtreg'
+        else:
+            raise ValueError(f'Surrogate tree is not applicable for the {task_type} task')
+        explainer = SurrogateExplainer(pipeline, surrogate=surrogate)
+
+    else:
+        raise ValueError(f'Explanation method {method} is not supported')
+
+    return explainer

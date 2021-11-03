@@ -357,19 +357,7 @@ class Pipeline(Graph):
         if not self.is_fitted:
             raise AssertionError('The pipeline might be fit before explanation!')
 
-        if method == 'surrogate_dt':
-            if data.task.task_type == TaskTypesEnum.classification:
-                surrogate = 'dt'
-            elif data.task.task_type == TaskTypesEnum.regression:
-                surrogate = 'dtreg'
-            else:
-                raise ValueError(f'Surrogate tree is not applicable for the {data.task.task_type} task')
-
-            explainer = explainers.SurrogateExplainer(self, surrogate=surrogate)
-
-        else:
-            raise ValueError(f'Explanation method {method} is not supported')
-
+        explainer = explainers.pick_pipeline_explainer(self, method, data.task.task_type)
         explainer.explain(data, instant_output=instant_output, **kwargs)
 
         return explainer
