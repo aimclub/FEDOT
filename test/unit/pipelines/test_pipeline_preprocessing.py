@@ -1,7 +1,7 @@
 import numpy as np
 
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -53,7 +53,14 @@ def test_only_categorical_data_process_correct():
 
 def test_nans_columns_processed_correct():
     """ Check if data with nans processed correctly """
-    pipeline = Pipeline(PrimaryNode('rfr'))
-    nan_data = data_with_too_mach_nans()
+    pipeline = Pipeline(PrimaryNode('ridge'))
+    data_with_nans = data_with_too_mach_nans()
 
-    pipeline.fit(nan_data)
+    pipeline.fit(data_with_nans)
+
+    # Ridge should use only one feature to make prediction
+    fitted_ridge = pipeline.nodes[0]
+    coefficients = fitted_ridge.operation.fitted_operation.coef_
+    coefficients_shape = coefficients.shape
+
+    assert 1 == coefficients_shape[1]
