@@ -5,10 +5,8 @@ import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score)
-from sklearn.preprocessing import OneHotEncoder
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 
@@ -26,7 +24,7 @@ class Metric:
 
     @classmethod
     @abstractmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+    def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int) -> float:
         """ Get metrics values based on pipeline and InputData for validation """
         raise NotImplementedError()
@@ -43,7 +41,7 @@ class QualityMetric:
     default_value = 0
 
     @classmethod
-    def get_value(cls, pipeline: Pipeline, reference_data: InputData,
+    def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int = None) -> float:
         metric = cls.default_value
         try:
@@ -59,7 +57,7 @@ class QualityMetric:
         return metric
 
     @classmethod
-    def _simple_prediction(cls, pipeline: Pipeline, reference_data: InputData):
+    def _simple_prediction(cls, pipeline: 'Pipeline', reference_data: InputData):
         """ Method prepares data for metric evaluation and perform simple validation """
         results = pipeline.predict(reference_data, output_mode=cls.output_mode)
 
@@ -93,7 +91,7 @@ class QualityMetric:
         return results, reference_data
 
     @classmethod
-    def get_value_with_penalty(cls, pipeline: Pipeline, reference_data: InputData,
+    def get_value_with_penalty(cls, pipeline: 'Pipeline', reference_data: InputData,
                                validation_blocks: int = None) -> float:
         quality_metric = cls.get_value(pipeline, reference_data)
         structural_metric = StructuralComplexity.get_value(pipeline)
@@ -257,19 +255,19 @@ class Silhouette(QualityMetric):
 
 class StructuralComplexity(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
         norm_constant = 30
         return (pipeline.depth ** 2 + pipeline.length) / norm_constant
 
 
 class NodeNum(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
         norm_constant = 10
         return pipeline.length / norm_constant
 
 
 class ComputationTime(Metric):
     @classmethod
-    def get_value(cls, pipeline: Pipeline, **args) -> float:
+    def get_value(cls, pipeline: 'Pipeline', **args) -> float:
         return pipeline.computation_time
