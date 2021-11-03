@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Union, List, Optional
 
 import numpy as np
@@ -39,6 +40,29 @@ def custom_preprocessing(data: Union[InputData, MultiModalData]):
                 data[data_source_name] = _preprocessing_input_data(values)
 
     return data
+
+
+def drop_features_full_of_nans(data: InputData):
+    """ Dropping features with more than 30% nan's
+
+    :param data: data to transform
+    :return: transformed data
+    """
+    output = deepcopy(data)
+
+    features = data.features
+    n_samples = features.shape[0]
+    relevant_feature = []
+    t_features = np.transpose(features)
+
+    for i, feature in enumerate(t_features):
+        if np.sum(pd.isna(feature)) / n_samples < 0.3:
+            relevant_feature.append(i)
+
+    if relevant_feature is not None:
+        output.features = np.transpose(t_features[relevant_feature])
+
+    return output
 
 
 def encode_data_for_fit(data: Union[InputData, MultiModalData]) -> \
@@ -193,29 +217,6 @@ def _preprocessing_input_data(data: InputData) -> InputData:
         data.features = np.delete(features, target_index_with_nan, 0)
         data.target = np.delete(data.target, target_index_with_nan, 0)
         data.idx = np.delete(data.idx, target_index_with_nan, 0)
-
-    source_shape = features.shape
-    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
-
-    for i in range(columns_amount):
-        values = pd.Series(features[:, i])
-        # check for each column, if values converted to numeric. remember index of rows that not converted
-        if any(list(map(lambda x: isinstance(x, str), values))):
-            not_numeric = list(map(lambda x: not _is_numeric(x), values))
-            rows_to_nan = list(values.index[not_numeric])
-            partition_not_numeric = len(rows_to_nan) / source_shape[0]
-
-            # if partition of numerical rows less then EMPIRICAL_PARTITION,
-            # then convert to numerical and others to Nan
-            if partition_not_numeric < EMPIRICAL_PARTITION:
-                values[rows_to_nan] = np.nan
-                data.features[:, i] = _try_convert_to_numeric(values)
-            # if EMPIRICAL_PARTITION < partition < 1, then some data in column are
-            # integer and some data are string, can not handle this case
-            elif partition_not_numeric < 0.9:
-                print("The data in the column has a different type. Need to preprocessing data manually.")
-                # TODO remove workaround
-                data.features[:, i] = np.asarray(np.repeat(0, len(data.features[:, i])))
 
     return data
 

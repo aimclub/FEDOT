@@ -1,6 +1,7 @@
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
                                            QuadraticDiscriminantAnalysis)
 
@@ -86,7 +87,7 @@ def nan_to_num(prediction):
 
     :return prediction: prediction without nans
     """
-    if np.array([np.isnan(_) for _ in prediction]).any():
+    if np.array([pd.isna(_) for _ in prediction]).any():
         prediction = np.nan_to_num(prediction)
 
     return prediction
