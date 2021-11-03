@@ -18,8 +18,8 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
-from fedot.explainability.explainer import Explainer
 from fedot.core.repository.tasks import TaskTypesEnum
+import fedot.core.explainability.explainers as explainers
 
 
 # The allowed empirical partition limit of the number of rows to delete.
@@ -50,7 +50,6 @@ class Pipeline(Graph):
         self.template = None
         self.fitted_on_data = {}
         self.pre_proc_encoders = {}
-        self.explainer = None
 
         self.log = log
         if not log:
@@ -345,45 +344,35 @@ class Pipeline(Graph):
             print(f"{node.operation.operation_type} - {node.custom_params}")
 
     def explain(self, data: InputData, method: str = 'surrogate_dt',
-                instant_output: bool = True, **kwargs) -> Explainer:
+                instant_output: bool = True, **kwargs) -> 'Explainer':
         """Create explanation for the pipeline according to the selected metod.
         An object is both put into pipeline.explainer attribute and returned.
 
         :param data: samples to be explained.
-        :type data: InputData
         :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
-        :type method: str, optional
         :param instant_output: print and plot the explanation simultaneously, defaults to True.
-            The explanation can be plotted later.
-        :type instant_output: bool, optional
-        :return: Explainer object.
-        :rtype: Explainer
+            The explanation can be retrieved later by executing `explainer.output()`.
         """
-        # Avoiding circular import
-        from fedot.explainability.surrogate_explainer import SurrogateExplainer
 
-        assert self.is_fitted, 'The pipeline might be fit before explanation!'
+        if not self.is_fitted:
+            raise AssertionError('The pipeline might be fit before explanation!')
 
         if method == 'surrogate_dt':
-            if data.task.task_type != TaskTypesEnum.classification:
-                raise ValueError('Surrogate tree classifier is not applicable for this pipeline')
-            self.explainer = SurrogateExplainer(self, surrogate='dt')
+            if data.task.task_type == TaskTypesEnum.classification:
+                surrogate = 'dt'
+            elif data.task.task_type == TaskTypesEnum.regression:
+                surrogate = 'dtreg'
+            else:
+                raise ValueError(f'Surrogate tree is not applicable for the {data.task.task_type} task')
 
-        elif method == 'surrogate_dtreg':
-            if data.task.task_type != TaskTypesEnum.regression:
-                raise ValueError('Surrogate tree regressor is not applicable for this pipeline')
-            self.explainer = SurrogateExplainer(self, surrogate='dtreg')
-
-        elif method == 'PDP':
-            pass
-
-        elif method == 'ICE':
-            pass
+            explainer = explainers.SurrogateExplainer(self, surrogate=surrogate)
 
         else:
             raise ValueError(f'Explanation method {method} is not supported')
-        self.explainer(data, instant_output=instant_output, **kwargs)
-        return self.explainer
+
+        explainer.explain(data, instant_output=instant_output, **kwargs)
+
+        return explainer
 
 
 def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):

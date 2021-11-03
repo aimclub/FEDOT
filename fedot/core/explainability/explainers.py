@@ -1,71 +1,55 @@
-from typing import Optional, Union, Tuple
+from abc import abstractmethod
+from typing import Optional
 from inspect import signature
-from copy import deepcopy
 
 from matplotlib import pyplot as plt
 from sklearn import tree
 
-from fedot.explainability.explainer import Explainer
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.composer.metrics import Metric, F1
 from fedot.core.data.data import InputData
+import fedot.core.explainability.utils as utils
 
 
-def _build_naive_surrogate_model(
-        black_box_model: Pipeline, surrogate_model: Pipeline, data: InputData,
-        metric: Metric = None, **kwargs) -> Optional[float]:
+class Explainer:
+    """
+    This class is an abstract class for various explanation methods.
+    """
+    def __init__(self, model):
+        self.model = model
 
-    output_mode = 'default'
-    if data.task.task_type == TaskTypesEnum.classification:
-        output_mode = 'labels'
-        metric = F1 if metric is None else metric
+    @abstractmethod
+    def explain(self, *args, **kwargs):
+        raise NotImplementedError
 
-    prediction = black_box_model.predict(data, output_mode=output_mode)
-    surrogate_model.fit(data, prediction)
-
-    if metric:
-        data_c = deepcopy(data)
-        data_c.target = surrogate_model.predict(data, output_mode=output_mode).predict
-        score = -metric.metric(data_c, prediction)
-
-    else:
-        score = None
-
-    return score
+    @abstractmethod
+    def output(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 class SurrogateExplainer(Explainer):
     surrogates_default_params = {
         'dt': {'max_depth': 3},
+        'dtreg': {'max_depth': 3},
     }
 
-    def __init__(self, model, surrogate: Union[str, Pipeline]):
+    def __init__(self, model, surrogate: str):
         super().__init__(model)
 
         self.score: Optional[float] = None
 
-        if isinstance(surrogate, Pipeline):
-            self.surrogate = surrogate
-
-        elif isinstance(surrogate, str):
-
-            self.surrogate_str = surrogate
+        if isinstance(surrogate, str):
 
             if surrogate in self.surrogates_default_params:
-                surrogate_node = PrimaryNode(surrogate)
-                surrogate_node.custom_params = self.surrogates_default_params[surrogate]
-                self.surrogate = Pipeline(surrogate_node)
-
+                self.surrogate_str = surrogate
+                self.surrogate = utils.single_node_pipeline(self.surrogate_str, self.surrogates_default_params[surrogate])
             else:
                 raise ValueError(f'{surrogate} is not supported as a surrogate model')
+
         else:
             raise ValueError(f'{type(surrogate)} is not supported as a surrogate model')
 
-    def __call__(self, data: InputData, instant_output: bool = True, **kwargs):
+    def explain(self, data: InputData, instant_output: bool = True, **kwargs):
         try:
-            self.score = _build_naive_surrogate_model(self.model, self.surrogate, data)
+            self.score = utils.fit_naive_surrogate_model(self.model, self.surrogate, data)
 
         except Exception as ex:
             print(f'Failed to fit the surrogate: {ex}')
@@ -82,7 +66,7 @@ class SurrogateExplainer(Explainer):
         :type dpi: int, optional
         """
         plt.figure(dpi=dpi)
-        if self.surrogate_str in ['dt']:
+        if self.surrogate_str in ['dt', 'dtreg']:
 
             if self.score is not None:
                 print(f'Surrogate\'s model reproduction quality: {self.score}')
