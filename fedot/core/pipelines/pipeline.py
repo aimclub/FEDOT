@@ -12,7 +12,8 @@ from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.preprocessing import imputation_implementation, encode_data_for_prediction, \
-    encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data
+    encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data, \
+    drop_features_full_of_nans
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -229,6 +230,8 @@ class Pipeline(Graph):
         """ Delete missing values and use encoders for InputData for fitting """
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
 
+        data = drop_features_full_of_nans(data)
+
         data = custom_preprocessing(data)
 
         if data_has_missing_values(data) and not has_imputation_operation:
@@ -246,6 +249,8 @@ class Pipeline(Graph):
     def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
         """ Delete missing values and use encoders for InputData for predict """
         has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
+
+        data = drop_features_full_of_nans(data)
 
         data = custom_preprocessing(data)
 
