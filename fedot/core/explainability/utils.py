@@ -7,9 +7,10 @@ from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def single_node_pipeline(model: str, custom_params: dict) -> 'Pipeline':
+def single_node_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
     surrogate_node = PrimaryNode(model)
-    surrogate_node.custom_params = custom_params
+    if custom_params:
+        surrogate_node.custom_params = custom_params
     return pipeline.Pipeline(surrogate_node)
 
 
