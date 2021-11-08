@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, List, Optional
 from uuid import uuid4
 
-from fedot.core.composer.metrics import QualityMetric
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
@@ -42,31 +41,11 @@ class OptHistory(OptHistorySerializer):
         self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
-    def _convert_pipeline_to_template(self, pipeline):
-        pipeline_template = PipelineTemplate(pipeline)
-        return pipeline_template
-
     def add_to_history(self, individuals: List[Any]):
-        new_individuals = []
-        try:
-            for ind in individuals:
-                # pipeline = ind.graph  # was restored outside
-                new_ind = deepcopy(ind)
-                # new_ind.graph = self._convert_pipeline_to_template(pipeline)
-                new_individuals.append(new_ind)
-            self.individuals.append(new_individuals)
-        except Exception as ex:
-            print(f'Cannot add to history: {ex}')
+        self.individuals.append([deepcopy(ind) for ind in individuals])
 
     def add_to_archive_history(self, individuals: List[Any]):
-        try:
-            new_individuals = []
-            for ind in individuals:
-                # ind.graph = self._convert_pipeline_to_template(ind.graph)
-                new_individuals.append(ind)
-            self.archive_history.append(new_individuals)
-        except Exception as ex:
-            print(f'Cannot add to archive history: {ex}')
+        self.archive_history.append([ind for ind in individuals])
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()

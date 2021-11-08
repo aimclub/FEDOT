@@ -38,13 +38,13 @@ def test_history_adding():
         assert len(history.individuals[gen]) == pop_size
 
 
-def test_convert_pipeline_to_pipeline_template():
+def test_individual_graph_type_is_optgraph():
     generations_quantity = 2
     pop_size = 10
     history = generate_history(generations_quantity, pop_size)
     for gen in range(generations_quantity):
         for ind in range(pop_size):
-            assert type(history.individuals[gen][ind].graph) == PipelineTemplate
+            assert type(history.individuals[gen][ind].graph) == OptGraph
 
 
 def test_prepare_for_visualisation():
