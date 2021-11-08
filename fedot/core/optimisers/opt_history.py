@@ -112,7 +112,7 @@ class OptHistory(OptHistorySerializer):
             last_gen = self.individuals[last_gen_id]
             for ind_id, individual in enumerate(last_gen):
                 # TODO support multi-objective case
-                ind_path = os.path.join(path, str(last_gen_id), individual.graph.uid)
+                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.uid))
                 additional_info = \
                     {'fitness_name': self.short_metrics_names[0],
                      'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
