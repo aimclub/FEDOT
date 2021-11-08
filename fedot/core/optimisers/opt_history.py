@@ -5,10 +5,14 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.individual import Individual
+
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
@@ -36,15 +40,15 @@ class OptHistory(OptHistorySerializer):
 
     def __init__(self, metrics=None, save_folder=None):
         self.metrics: List[Callable[..., float]] = metrics
-        self.individuals: List[List] = []
-        self.archive_history: List[List] = []
+        self.individuals: List[List[Individual]] = []
+        self.archive_history: List[List[Individual]] = []
         self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
-    def add_to_history(self, individuals: List[Any]):
+    def add_to_history(self, individuals: List[Individual]):
         self.individuals.append([deepcopy(ind) for ind in individuals])
 
-    def add_to_archive_history(self, individuals: List[Any]):
+    def add_to_archive_history(self, individuals: List[Individual]):
         self.archive_history.append([ind for ind in individuals])
 
     def write_composer_history_to_csv(self, file='history.csv'):
