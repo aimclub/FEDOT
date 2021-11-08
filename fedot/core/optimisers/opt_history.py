@@ -40,15 +40,15 @@ class OptHistory(OptHistorySerializer):
 
     def __init__(self, metrics=None, save_folder=None):
         self.metrics: List[Callable[..., float]] = metrics
-        self.individuals: List[List[Individual]] = []
-        self.archive_history: List[List[Individual]] = []
+        self.individuals: List[List['Individual']] = []
+        self.archive_history: List[List['Individual']] = []
         self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
-    def add_to_history(self, individuals: List[Individual]):
+    def add_to_history(self, individuals: List['Individual']):
         self.individuals.append([deepcopy(ind) for ind in individuals])
 
-    def add_to_archive_history(self, individuals: List[Individual]):
+    def add_to_archive_history(self, individuals: List['Individual']):
         self.archive_history.append([ind for ind in individuals])
 
     def write_composer_history_to_csv(self, file='history.csv'):
