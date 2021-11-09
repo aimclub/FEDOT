@@ -294,5 +294,8 @@ def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
         initial_pipeline.predict(data)
         logger.debug(f'Initial pipeline were fitted successfully')
     except Exception as ex:
-        logger.info(f'Initial pipeline fit were failed due to: {ex}')
-        raise ex
+        fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
+        advice_info = f'{fit_failed_info} Check the correctness of the data and matching the task to solve'
+
+        logger.info(fit_failed_info)
+        raise ValueError(advice_info)

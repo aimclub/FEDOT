@@ -21,7 +21,7 @@ def data_with_only_categorical_features():
     return input
 
 
-def data_with_too_mach_nans():
+def data_with_too_much_nans():
     """ Generate tabular data with too much nan's in numpy array.
     Columns with ids 1 and 2 have nans more than 30% in their structure.
     """
@@ -43,6 +43,25 @@ def data_with_too_mach_nans():
     return train_input
 
 
+def data_with_leading_trailing_spaces():
+    """
+    Generate InputData with categorical features with leading and
+    trailing spaces. Dataset contains np.nan also.
+    """
+    task = Task(TaskTypesEnum.regression)
+    features = np.array([['1 ', '1 '],
+                         [np.nan, ' 0'],
+                         [' 1 ', np.nan],
+                         ['1 ', '0  '],
+                         ['0  ', '  1'],
+                         ['1 ', '  0']], dtype=object)
+    target = np.array([[0], [1], [2], [3], [4], [5]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.table)
+
+    return train_input
+
+
 def test_only_categorical_data_process_correct():
     """ Check if data with only categorical features processed correctly """
     pipeline = Pipeline(PrimaryNode('ridge'))
@@ -54,7 +73,7 @@ def test_only_categorical_data_process_correct():
 def test_nans_columns_processed_correct():
     """ Check if data with nans processed correctly """
     pipeline = Pipeline(PrimaryNode('ridge'))
-    data_with_nans = data_with_too_mach_nans()
+    data_with_nans = data_with_too_much_nans()
 
     pipeline.fit(data_with_nans)
 
@@ -64,3 +83,17 @@ def test_nans_columns_processed_correct():
     coefficients_shape = coefficients.shape
 
     assert 1 == coefficients_shape[1]
+
+
+def test_spaces_columns_processed_correct():
+    """ Train simple pipeline on the dataset with spaces in categorical features.
+    For example, ' x ' instead of 'x'.
+    """
+    pipeline = Pipeline(PrimaryNode('ridge'))
+    data_with_spaces = data_with_leading_trailing_spaces()
+
+    pipeline.fit(data_with_spaces)
+    coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
+    coefficients_shape = coefficients.shape
+
+    assert 2 == coefficients_shape[1]

@@ -149,7 +149,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         if len(self.categorical_ids) > 0:
             # If there is binary features in categorical - try to convert into float
-            self.remove_binary_features_from_ids(input_data)
+            # And remove ids of such features from categorical
+            self.process_binary_str_features(input_data)
 
         # One more check after updating - if all categorical features were binary - do not process
         if len(self.categorical_ids) > 0:
@@ -202,11 +203,10 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def remove_binary_features_from_ids(self, input_data: InputData):
+    def process_binary_str_features(self, input_data: InputData):
         """
-        Find indices of columns which are contains binary features.
-        If there are such features - convert it into float and then drop
-        them from categorical indices list
+        Find indices of columns which are contains binary features and at the same time has str objects.
+        If there are such features - convert it into float and then drop them from categorical indices list
         """
         categorical_features = np.array(input_data.features[:, self.categorical_ids], dtype=str)
 
