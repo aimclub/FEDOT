@@ -12,12 +12,6 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 from fedot.core.pipelines.node import Node
 
-# The allowed empirical partition limit of the number of rows to delete.
-# Rows that have 'string' type, instead of other 'integer' observes.
-# Example: 90% objects in column are 'integer', other are 'string'. Then
-# we will try to convert 'string' data to 'integer', otherwise delete it.
-EMPIRICAL_PARTITION = 0.5
-
 
 def imputation_implementation(data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
     if isinstance(data, InputData):
@@ -141,8 +135,8 @@ def pipeline_encoders_validation(pipeline) -> (bool, bool):
     if not has_imputers and not has_encoders:
         return False, False
 
-    has_imputer = len([_ for _ in has_imputers if not _]) == 0
-    has_encoder = len([_ for _ in has_encoders if not _]) == 0
+    has_imputer = all(branch_has_imp is True for branch_has_imp in has_imputers)
+    has_encoder = all(branch_has_imp is True for branch_has_imp in has_encoders)
     return has_imputer, has_encoder
 
 
@@ -156,12 +150,8 @@ def is_np_array_has_nan(array):
 def remove_leading_trailing_spaces(data):
     """ Transform cells in columns from ' x ' to 'x' """
     features_df = pd.DataFrame(data.features)
-    for column in features_df.columns:
-        try:
-            features_df[column] = features_df[column].str.strip()
-        except AttributeError:
-            # Column not a string and cannot be converted into str
-            pass
+
+    features_df = features_df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
     data.features = np.array(features_df)
     return data
 
