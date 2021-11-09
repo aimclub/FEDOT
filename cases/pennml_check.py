@@ -50,8 +50,8 @@ def run_classification_exp(dataset_numbers: List[int]):
         # class_2 = data[data['APPETENCY'] == 1].sample(n=300, random_state=1)
         # data = pd.concat([class_1, class_2])
 
-        predictors = np.array(data.iloc[:, :-1])
-        target = np.array(data.iloc[:, -1])
+        predictors = np.array(data.iloc[:, 1:])
+        target = np.array(data.iloc[:, 0])
 
         train_data, test_data = data_setup(predictors, target)
         fedot = Fedot(problem='classification', timeout=0.5)
@@ -60,4 +60,4 @@ def run_classification_exp(dataset_numbers: List[int]):
 
 
 if __name__ == '__main__':
-    run_classification_exp(dataset_numbers=[25])
+    run_classification_exp(dataset_numbers=[2])

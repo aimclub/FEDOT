@@ -5,15 +5,13 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.data.data import InputData, data_has_categorical_features, data_has_missing_values
+from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
-from fedot.core.pipelines.preprocessing import imputation_implementation, encode_data_for_prediction, \
-    encode_data_for_fit, pipeline_encoders_validation, custom_preprocessing, clean_data, \
-    drop_features_full_of_nans
+from fedot.core.pipelines.preprocessing import DataProcessing
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -27,7 +25,6 @@ class Pipeline(Graph):
 
     :param nodes: Node object(s)
     :param log: Log object to record messages
-    :param tag: uniq part of the repository filename
 
     .. note::
         fitted_on_data stores the data which were used in last pipeline fitting (equals None if pipeline hasn't been
@@ -41,12 +38,13 @@ class Pipeline(Graph):
         self.template = None
         self.fitted_on_data = {}
         self.pre_proc_encoders = {}
-
         self.log = log
         if not log:
             self.log = default_log(__name__)
         else:
             self.log = log
+
+        self.preprocesser = DataProcessing(self.log)
         super().__init__(nodes)
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
@@ -228,41 +226,11 @@ class Pipeline(Graph):
 
     def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
         """ Delete missing values and use encoders for InputData for fitting """
-        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
-
-        data = drop_features_full_of_nans(data)
-
-        data = custom_preprocessing(data)
-
-        if data_has_missing_values(data) and not has_imputation_operation:
-            # Fill in the gaps
-            data = imputation_implementation(data)
-
-        # Clean data from leading and trailing spaces and so on
-        data = clean_data(data)
-
-        if data_has_categorical_features(data) and not has_encoder_operation:
-            # Encode features with strings
-            self.pre_proc_encoders = encode_data_for_fit(data)
-        return data
+        return self.preprocesser.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
 
     def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
         """ Delete missing values and use encoders for InputData for predict """
-        has_imputation_operation, has_encoder_operation = pipeline_encoders_validation(self)
-
-        data = drop_features_full_of_nans(data)
-
-        data = custom_preprocessing(data)
-
-        if data_has_missing_values(data) and not has_imputation_operation:
-            data = imputation_implementation(data)
-
-        data = clean_data(data)
-
-        if data_has_categorical_features(data) and not has_encoder_operation:
-            encode_data_for_prediction(data, self.pre_proc_encoders)
-
-        return data
+        return self.preprocesser.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
 
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: dict = None,
