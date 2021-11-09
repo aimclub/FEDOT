@@ -118,12 +118,8 @@ class DataProcessing:
             Transform cells in columns from ' x ' to 'x'
         """
         features = pd.DataFrame(data.features)
-        for column in features.columns:
-            try:
-                features[column] = features[column].str.strip()
-            except AttributeError:
-                # Column not a string and cannot be converted into str
-                pass
+        features = features.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
         data.features = np.array(features)
         return data
 
@@ -161,8 +157,8 @@ class DataProcessing:
         if not has_imputers and not has_encoders:
             return False, False
 
-        has_imputer = len([_ for _ in has_imputers if not _]) == 0
-        has_encoder = len([_ for _ in has_encoders if not _]) == 0
+        has_imputer = all(branch_has_imp is True for branch_has_imp in has_imputers)
+        has_encoder = all(branch_has_imp is True for branch_has_imp in has_encoders)
         return has_imputer, has_encoder
 
     def imputation_implementation(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
