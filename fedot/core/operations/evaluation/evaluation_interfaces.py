@@ -8,7 +8,6 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.shared import BasicSerializer
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
@@ -34,7 +33,7 @@ from xgboost import XGBClassifier, XGBRegressor
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-class EvaluationStrategy(BasicSerializer):
+class EvaluationStrategy:
     """
     Base class to define the evaluation strategy of Operation object:
     the certain sklearn or any other operation with fit/predict methods.

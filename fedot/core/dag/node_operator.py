@@ -1,15 +1,13 @@
 from copy import copy
 from typing import TYPE_CHECKING, List
 
-from fedot.shared import BasicSerializer
-
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
 
 MAX_DEPTH = 100
 
 
-class NodeOperator(BasicSerializer):
+class NodeOperator:
     def __init__(self, node):
         self._node = node
 

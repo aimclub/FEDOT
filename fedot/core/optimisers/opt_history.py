@@ -18,11 +18,11 @@ from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
-from fedot.shared import BasicSerializer, OptHistorySerializer
+from fedot.shared import OptHistorySerializer
 
 
 @dataclass
-class ParentOperator(BasicSerializer):
+class ParentOperator:
     operator_name: str
     operator_type: str
     parent_objects: List[PipelineTemplate]

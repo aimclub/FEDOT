@@ -3,10 +3,9 @@ from typing import Any, List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.shared import BasicSerializer
 
 
-class GraphOperator(BasicSerializer):
+class GraphOperator:
     def __init__(self, graph=None):
         self._graph = graph
 
