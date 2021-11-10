@@ -8,11 +8,9 @@ from sklearn.datasets import load_iris
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.preprocessing import remove_leading_trailing_spaces
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.pipelines.test_pipeline_preprocessing import data_with_leading_trailing_spaces
 from test.unit.tasks.test_classification import get_image_classification_data
 
 

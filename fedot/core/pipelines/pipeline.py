@@ -14,7 +14,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
-from fedot.core.pipelines.preprocessing import DataProcessing
+from fedot.core.pipelines.preprocessing import DataPreprocessing
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -47,7 +47,8 @@ class Pipeline(Graph):
         else:
             self.log = log
 
-        self.preprocesser = DataProcessing(self.log)
+        # Define data preprocessor for pip
+        self.preprocessor = DataPreprocessing(self.log)
         super().__init__(nodes)
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
@@ -228,11 +229,11 @@ class Pipeline(Graph):
 
     def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
         """ Delete missing values and use encoders for InputData for fitting """
-        return self.preprocesser.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
+        return self.preprocessor.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
 
     def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
         """ Delete missing values and use encoders for InputData for predict """
-        return self.preprocesser.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
+        return self.preprocessor.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
 
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: dict = None,

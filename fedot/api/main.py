@@ -4,7 +4,8 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils.api_utils import ApiFacade
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
@@ -12,6 +13,10 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
+from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.api_data import ApiDataSources
+from fedot.api.api_utils.metrics import ApiMetrics
+from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
@@ -20,7 +25,8 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
 class Fedot:
     """
-    Main class for FEDOT API
+    Main class for FEDOT API.
+    Facade for ApiDataSources, ApiComposer, ApiMetrics, ApiInitialAssumptions.
 
     :param problem: the name of modelling problem to solve:
         - classification
@@ -48,6 +54,7 @@ class Fedot:
     :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
+    :param check_mode: if True, perform only initial pipeline fit and predict
     """
 
     def __init__(self,
@@ -57,29 +64,37 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_pipeline: Pipeline = None):
+                 initial_pipeline: Pipeline = None,
+                 check_mode: bool = False):
 
-        self.helper = ApiFacade(**{'problem': problem,
-                                   'preset': preset,
-                                   'timeout': timeout,
-                                   'composer_params': composer_params,
-                                   'task_params': task_params,
-                                   'seed': seed,
-                                   'verbose_level': verbose_level,
-                                   'initial_pipeline': initial_pipeline})
+        # Classes for dealing with metrics, data sources and hyperparameters
+        self.data_sources = ApiDataSources()
+        self.metrics = ApiMetrics(problem)
+        self.api_composer = ApiComposer(problem)
 
-        self.composer_dict = self.helper.initialize_params()
-        self.composer_dict['current_model'] = None
-        self.task_metrics, self.composer_metrics, self.tuner_metrics = self.helper.get_metrics_for_task(
-            self.composer_dict['problem'],
-            self.composer_dict['metric_name'])
-        self.composer_dict['tuner_metric'] = self.tuner_metrics
+        self.composer_params = ApiParams()
+        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
+                        'composer_params': composer_params, 'task_params': task_params,
+                        'seed': seed, 'verbose_level': verbose_level,
+                        'initial_pipeline': initial_pipeline}
+        self.api_params = self.composer_params.initialize_params(**input_params)
+        self.api_params['current_model'] = None
+        self.api_params['check_mode'] = check_mode
 
-        if timeout is not None:
-            self.composer_dict['timeout'] = timeout
+        metric_names = self.api_params['metric_name']
+        self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_names)
+        self.api_params['tuner_metric'] = self.tuner_metrics
 
-        if initial_pipeline is not None:
-            self.composer_dict['initial_pipeline'] = initial_pipeline
+        # Update timeout and initial_pipeline parameters
+        self.update_params(timeout, initial_pipeline)
+
+        self.target_name = None
+        self.train_data = None
+        self.current_pipeline = None
+        self.best_models = None
+        self.history = None
+        self.test_data = None
+        self.prediction = None
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -95,15 +110,13 @@ class Fedot:
         """
 
         self.target_name = target
-        self.train_data = self.helper.define_data(ml_task=self.composer_dict['task'],
-                                                  features=features,
-                                                  target=target,
-                                                  is_predict=False)
-
+        self.train_data = self.data_sources.define_data(ml_task=self.api_params['task'],
+                                                        features=features, target=target,
+                                                        is_predict=False)
         self._init_remote_if_necessary()
 
         is_composing_required = True
-        if self.composer_dict['current_model'] is not None:
+        if self.api_params['current_model'] is not None:
             is_composing_required = False
 
         if predefined_model is not None:
@@ -117,11 +130,11 @@ class Fedot:
                 self.current_pipeline = Pipeline(model)
             else:
                 raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-            self.composer_dict['current_model'] = self.current_pipeline
+            self.api_params['current_model'] = self.current_pipeline
 
-        self.composer_dict['is_composing_required'] = is_composing_required
-        self.composer_dict['train_data'] = self.train_data
-        self.current_pipeline, self.best_models, self.history = self.helper.obtain_model(**self.composer_dict)
+        self.api_params['is_composing_required'] = is_composing_required
+        self.api_params['train_data'] = self.train_data
+        self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
         return self.current_pipeline
 
     def predict(self,
@@ -137,15 +150,15 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        self.test_data = self.helper.define_data(ml_task=self.composer_dict['task'], target=self.target_name,
-                                                 features=features, is_predict=True)
+        self.test_data = self.data_sources.define_data(ml_task=self.api_params['task'], target=self.target_name,
+                                                       features=features, is_predict=True)
 
-        self.prediction = self.helper.define_predictions(task_type=self.composer_dict['task'].task_type,
-                                                         current_pipeline=self.current_pipeline,
-                                                         test_data=self.test_data)
+        self.prediction = self.data_sources.define_predictions(task_type=self.api_params['task'].task_type,
+                                                               current_pipeline=self.current_pipeline,
+                                                               test_data=self.test_data)
 
         if save_predictions:
-            self.helper.save_predict(self.prediction)
+            self.save_predict(self.prediction)
 
         return self.prediction.predict
 
@@ -165,16 +178,16 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.composer_dict['task'].task_type == TaskTypesEnum.classification:
-            self.test_data = self.helper.define_data(ml_task=self.composer_dict['task'], target=self.target_name,
-                                                     features=features, is_predict=True)
+        if self.api_params['task'].task_type == TaskTypesEnum.classification:
+            self.test_data = self.data_sources.define_data(ml_task=self.api_params['task'], target=self.target_name,
+                                                           features=features, is_predict=True)
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
             self.prediction = self.current_pipeline.predict(self.test_data, output_mode=mode)
 
             if save_predictions:
-                self.helper.save_predict(self.prediction)
+                self.save_predict(self.prediction)
         else:
             raise ValueError('Probabilities of predictions are available only for classification')
 
@@ -198,15 +211,13 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.composer_dict['task'].task_type != TaskTypesEnum.ts_forecasting:
+        if self.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
-        self.problem = self.train_data.task
-
-        self.test_data = self.helper.define_data(ml_task=self.composer_dict['task'],
-                                                 target=self.target_name,
-                                                 features=pre_history,
-                                                 is_predict=True)
+        self.test_data = self.data_sources.define_data(ml_task=self.api_params['task'],
+                                                       target=self.target_name,
+                                                       features=pre_history,
+                                                       is_predict=True)
 
         self.current_pipeline = Pipeline(self.current_pipeline.root_node)
         # TODO add incremental forecast
@@ -215,7 +226,7 @@ class Fedot:
             self.prediction.predict = np.squeeze(self.prediction.predict)
 
         if save_predictions:
-            self.helper.save_predict(self.prediction)
+            self.save_predict(self.prediction)
         return self.prediction.predict
 
     def load(self, path):
@@ -232,19 +243,19 @@ class Fedot:
         """
 
         if self.prediction is not None:
-            if self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
+            if self.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
                 plot_forecast(self.test_data, self.prediction)
-            elif self.composer_dict['task'].task_type == TaskTypesEnum.regression:
+            elif self.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
-            elif self.composer_dict['task'].task_type == TaskTypesEnum.classification:
+            elif self.api_params['task'].task_type == TaskTypesEnum.classification:
                 self.predict_proba(self.test_data)
                 plot_roc_auc(self.test_data, self.prediction)
             else:
                 # TODO implement other visualizations
-                self.composer_dict['logger'].error('Not supported yet')
+                self.api_params['logger'].error('Not supported yet')
 
         else:
-            self.composer_dict['logger'].error('No prediction to visualize')
+            self.api_params['logger'].error('No prediction to visualize')
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
@@ -257,7 +268,7 @@ class Fedot:
         :return: the values of quality metrics
         """
         if metric_names is None:
-            metric_names = self.composer_dict['metric_name']
+            metric_names = self.api_params['metric_name']
 
         if target is not None:
             if self.test_data is None:
@@ -277,20 +288,21 @@ class Fedot:
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if self.helper.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.composer_dict['logger'].warn(f'{metric_name} is not available as metric')
+            if self.metrics.get_composer_metrics_mapping(metric_name) is NotImplemented:
+                self.api_params['logger'].warn(f'{metric_name} is not available as metric')
             else:
                 metric_cls = MetricsRepository().metric_class_by_id(
-                    self.helper.get_composer_metrics_mapping(metric_name))
+                    self.metrics.get_composer_metrics_mapping(metric_name))
                 prediction = deepcopy(self.prediction)
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities
                     prediction.predict = self.predict_proba(self.test_data)
                 real = deepcopy(self.test_data)
-                real.target, prediction.predict = self.helper.check_prediction_shape(
-                    task=self.composer_dict['task'].task_type,
-                    metric_name=metric_name,
-                    real=real,
-                    prediction=prediction)
+
+                task_type = self.api_params['task'].task_type
+                real.target, prediction.predict = self.metrics.check_prediction_shape(task=task_type,
+                                                                                      metric_name=metric_name,
+                                                                                      real=real,
+                                                                                      prediction=prediction)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
@@ -299,6 +311,37 @@ class Fedot:
 
         return calculated_metrics
 
+    def save_predict(self, predicted_data: OutputData):
+        if len(predicted_data.predict.shape) >= 2:
+            prediction = predicted_data.predict.tolist()
+        else:
+            prediction = predicted_data.predict
+        pd.DataFrame({'Index': predicted_data.idx,
+                      'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
+        self.api_params['logger'].info('Predictions was saved in current directory.')
+
+    def update_params(self, timeout, initial_pipeline):
+        if timeout is not None:
+            self.api_params['timeout'] = timeout
+
+        if initial_pipeline is not None:
+            self.api_params['initial_pipeline'] = initial_pipeline
+
+    def _init_remote_if_necessary(self):
+        remote = RemoteEvaluator()
+        if remote.use_remote and remote.remote_task_params is not None:
+            task = self.api_params['task']
+            if task.task_type == TaskTypesEnum.ts_forecasting:
+                task_str = \
+                    f'Task(TaskTypesEnum.ts_forecasting, ' \
+                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
+            else:
+                task_str = f'Task({str(task.task_type)})'
+            remote.remote_task_params.task_type = task_str
+            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+
+            if isinstance(self.target_name, str):
+                remote.remote_task_params.target = self.target_name
 
     def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
@@ -314,28 +357,11 @@ class Fedot:
         if features is None:
             data = self.train_data
         else:
-            data = self.helper.define_data(
-                ml_task=self.composer_dict['task'],
+            data = self.data_sources.define_data(
+                ml_task=self.api_params['task'],
                 features=features,
-                # target=self.train_data,
                 is_predict=False,
             )
         explainer = explain_pipeline(pipeline=pipeline, data=data, method=method, visualize=visualize, **kwargs)
 
         return explainer
-
-    def _init_remote_if_necessary(self):
-        remote = RemoteEvaluator()
-        if remote.use_remote and remote.remote_task_params is not None:
-            task = self.composer_dict['task']
-            if task.task_type == TaskTypesEnum.ts_forecasting:
-                task_str = \
-                    f'Task(TaskTypesEnum.ts_forecasting, ' \
-                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
-            else:
-                task_str = f'Task({str(task.task_type)})'
-            remote.remote_task_params.task_type = task_str
-            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
-
-            if isinstance(self.target_name, str):
-                remote.remote_task_params.target = self.target_name

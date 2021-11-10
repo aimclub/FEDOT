@@ -9,7 +9,16 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-class ApiDataHelper:
+class ApiDataSources:
+    """
+    Class for selecting optimal data processing strategies based on type of data.
+    Available data sources are:
+        * numpy array
+        * pandas DataFrame
+        * string (path to csv file)
+        * InputData (FEDOT dataclass)
+    """
+
     def define_data(self,
                     ml_task: Task,
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],

@@ -16,7 +16,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.preprocessing import pipeline_encoders_validation
+from fedot.core.pipelines.preprocessing import DataPreprocessing
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -470,7 +470,7 @@ def test_pipeline_encoder_validation():
 
     pipeline = Pipeline(root)
 
-    has_imputer, has_encoder = pipeline_encoders_validation(pipeline)
+    has_imputer, has_encoder = DataPreprocessing.pipeline_encoders_validation(pipeline)
 
-    assert has_imputer == True
-    assert has_encoder == False
+    assert has_imputer is True
+    assert has_encoder is False

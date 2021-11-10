@@ -24,7 +24,11 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
-class ApiComposer(ApiMetrics, ApiInitialAssumptions):
+class ApiComposer:
+    """ TODO class use ApiMetrics, ApiInitialAssumptions - need to fix """
+
+    def __init__(self, problem):
+        self.metrics = ApiMetrics(problem)
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -39,33 +43,13 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
             else:
-                metric_id = self.get_composer_metrics_mapping(metric_name=specific_metric)
+                # Composer metric was defined by name (str)
+                metric_id = self.metrics.get_composer_metrics_mapping(metric_name=specific_metric)
                 if metric_id is None:
                     raise ValueError(f'Incorrect metric {specific_metric}')
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
             metric_function.append(specific_metric_function)
         return metric_function
-
-    def get_composer_dict(self, composer_dict):
-
-        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
-
-        composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
-                                    available_operations=None, composer_metric=None, validation_blocks=None,
-                                    cv_folds=None, genetic_scheme=None, history_folder=None)
-
-        tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
-
-        dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-        for i, dct in enumerate(dict_list):
-            update_dict = dct.copy()
-            update_dict.update(composer_dict)
-            for key in composer_dict.keys():
-                if key not in dct.keys():
-                    update_dict.pop(key)
-            dict_list[i] = update_dict
-
-        return dict_list
 
     def obtain_model(self, **composer_dict):
         self.best_models = None
@@ -288,6 +272,28 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             raise ValueError(f'Incorrect tuner metric {loss_function}')
 
         return loss_function, loss_params
+
+    @staticmethod
+    def get_composer_dict(composer_dict):
+
+        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
+
+        composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
+                                    available_operations=None, composer_metric=None, validation_blocks=None,
+                                    cv_folds=None, genetic_scheme=None, history_folder=None)
+
+        tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
+
+        dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
+        for i, dct in enumerate(dict_list):
+            update_dict = dct.copy()
+            update_dict.update(composer_dict)
+            for key in composer_dict.keys():
+                if key not in dct.keys():
+                    update_dict.pop(key)
+            dict_list[i] = update_dict
+
+        return dict_list
 
 
 def check_initial_pipeline_correctness(initial_pipeline: Pipeline,

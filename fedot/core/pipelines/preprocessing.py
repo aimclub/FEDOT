@@ -18,18 +18,7 @@ from fedot.core.pipelines.node import Node
 ALLOWED_NAN_PERCENT = 0.3
 
 
-def _is_nan(array):
-    return np.array([True if x is np.nan else False for x in array])
-
-
-def _is_any_nan(array):
-    if True in _is_nan(array):
-        return True
-    else:
-        return False
-
-
-class DataProcessing:
+class DataPreprocessing:
     """ Class which contains functions for data preprocessing """
 
     def __init__(self, log: Log, **params: Optional[dict]):
@@ -46,7 +35,7 @@ class DataProcessing:
             self.log = log
 
     def process_input_data(self, pipeline, data: Union[InputData, MultiModalData], is_fitted=False):
-        has_imputation_operation, has_encoder_operation = self._pipeline_encoders_validation(pipeline)
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(pipeline)
 
         if isinstance(data, InputData):
             if data_type_is_table(data):
@@ -123,7 +112,8 @@ class DataProcessing:
         data.features = np.array(features)
         return data
 
-    def _pipeline_encoders_validation(self, pipeline) -> (bool, bool):
+    @staticmethod
+    def pipeline_encoders_validation(pipeline) -> (bool, bool):
         """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
 
             :param pipeline: pipeline to check
@@ -242,3 +232,14 @@ class DataProcessing:
             transformed = data.features
 
         return transformed, encoder
+
+
+def _is_nan(array):
+    return np.array([True if x is np.nan else False for x in array])
+
+
+def _is_any_nan(array):
+    if True in _is_nan(array):
+        return True
+    else:
+        return False
