@@ -6,14 +6,10 @@ from ..interfaces.serializable import Serializable
 class GraphSerializer(Serializable):
 
     def to_json(self) -> Dict[str, Any]:
-        useless_fields = set([
-            'operator',  # to prevent circular reference
-            'root_node', 'length', 'depth',
-        ])
         return {
             k: v
             for k, v in super().to_json().items()
-            if k not in useless_fields
+            if k != 'operator'  # to prevent circular reference
         }
 
     @classmethod

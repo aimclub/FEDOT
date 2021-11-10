@@ -6,13 +6,10 @@ from ..interfaces.serializable import Serializable
 class OperationSerializer(Serializable):
 
     def to_json(self) -> Dict[str, Any]:
-        useless_fields = set([
-            'operations_repo', 'metadata'
-        ])
         return {
             k: v
             for k, v in super().to_json().items()
-            if k not in useless_fields
+            if k != 'operations_repo'
         }
 
     @classmethod
