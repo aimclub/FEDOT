@@ -25,10 +25,10 @@ from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTas
 
 
 class ApiComposer:
-    """ TODO class use ApiMetrics, ApiInitialAssumptions - need to fix """
 
     def __init__(self, problem):
         self.metrics = ApiMetrics(problem)
+        self.initial_assumptions = ApiInitialAssumptions()
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -78,6 +78,7 @@ class ApiComposer:
                                 optimizer_parameters: GPGraphOptimiserParameters,
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
+                                check_mode: bool,
                                 initial_pipeline: Pipeline = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
         init_pipeline in it """
@@ -88,7 +89,7 @@ class ApiComposer:
             with_metrics(metric_function).with_logger(logger)
 
         if initial_pipeline is None:
-            initial_pipeline = self.get_initial_assumption(data, task)
+            initial_pipeline = self.initial_assumptions.get_initial_assumption(data, task)
 
         if initial_pipeline is not None:
             if not isinstance(initial_pipeline, Pipeline):
@@ -96,7 +97,8 @@ class ApiComposer:
                 raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
 
         # Check initial assumption
-        check_initial_pipeline_correctness(initial_pipeline, data, logger=logger)
+        check_initial_pipeline_correctness(initial_pipeline, data, logger=logger,
+                                           check_mode=check_mode)
         builder = builder.with_initial_pipeline(initial_pipeline)
         return builder
 
@@ -178,7 +180,8 @@ class ApiComposer:
                                                optimizer_parameters=optimizer_parameters,
                                                data=api_params['train_data'],
                                                initial_pipeline=api_params['initial_pipeline'],
-                                               logger=api_params['logger'])
+                                               logger=api_params['logger'],
+                                               check_mode=api_params['check_mode'])
 
         gp_composer = builder.build()
 
@@ -215,14 +218,8 @@ class ApiComposer:
             timeout_for_tuning = api_params['timeout'] / 2
 
             # Tune all nodes in the pipeline
-
             vb_number = composer_requirements.validation_blocks
             folds = composer_requirements.cv_folds
-            if api_params['train_data'].task.task_type != TaskTypesEnum.ts_forecasting:
-                # TODO remove after implementation of CV for class/regr
-                api_params['logger'].warn('Cross-validation is not supported for tuning of ts-forecasting pipeline: '
-                                          'hold-out validation used instead')
-                folds = None
             pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
                                                                           loss_params=loss_params,
                                                                           input_data=api_params['train_data'],
@@ -252,7 +249,7 @@ class ApiComposer:
         loss_function = None
 
         if type(metric_name) is str:
-            loss_function = self.get_tuner_metrics_mapping(metric_name)
+            loss_function = self.metrics.get_tuner_metrics_mapping(metric_name)
 
         if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
             loss_function = mean_squared_error
@@ -276,7 +273,8 @@ class ApiComposer:
     @staticmethod
     def get_composer_dict(composer_dict):
 
-        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
+        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None,
+                               check_mode=False)
 
         composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                     available_operations=None, composer_metric=None, validation_blocks=None,
@@ -298,12 +296,17 @@ class ApiComposer:
 
 def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
                                        data: Union[InputData, MultiModalData],
-                                       logger: Log):
+                                       logger: Log, check_mode: bool):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         initial_pipeline.fit(data)
         initial_pipeline.predict(data)
-        logger.debug(f'Initial pipeline were fitted successfully')
+
+        message_success = 'Initial pipeline were fitted successfully'
+        logger.debug(message_success)
+
+        if check_mode:
+            raise SystemExit(message_success)
     except Exception as ex:
         fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
         advice_info = f'{fit_failed_info} Check the correctness of the data and matching the task to solve'
