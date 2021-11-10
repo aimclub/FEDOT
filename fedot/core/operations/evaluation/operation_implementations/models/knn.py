@@ -66,6 +66,12 @@ class KNeighborsImplementation(ModelImplementation):
         else:
             return self.model.get_params()
 
+    @staticmethod
+    def round_n_neighbors(params):
+        """ Convert n_neighbors into integer value. Operation work inplace. """
+        if params.get('n_neighbors') is not None:
+            params['n_neighbors'] = round(params.get('n_neighbors'))
+
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
@@ -73,6 +79,7 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
         if not params:
             self.model = KNeighborsClassifier()
         else:
+            self.round_n_neighbors(params)
             self.model = KNeighborsClassifier(**params)
         self.params = params
         self.classes = None
@@ -109,6 +116,7 @@ class FedotKnnRegImplementation(KNeighborsImplementation):
         if not params:
             self.model = KNeighborsRegressor()
         else:
+            self.round_n_neighbors(params)
             self.model = KNeighborsRegressor(**params)
         self.params = params
 

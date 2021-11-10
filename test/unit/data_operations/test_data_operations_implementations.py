@@ -300,3 +300,18 @@ def test_one_hot_encoding_new_category_in_test():
 
     with pytest.raises(ValueError):
         pipeline.predict(test_data)
+
+
+def test_knn_with_float_neighbors():
+    """
+    Check pipeline with k-nn fit and predict correctly if n_neighbors value
+    is float value
+    """
+    node_knn = PrimaryNode('knnreg')
+    node_knn.custom_params = {'n_neighbors': 2.5}
+    pipeline = Pipeline(node_knn)
+
+    input_data = get_single_feature_data(task=Task(TaskTypesEnum.regression))
+
+    pipeline.fit(input_data)
+    pipeline.predict(input_data)
