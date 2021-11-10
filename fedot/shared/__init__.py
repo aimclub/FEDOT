@@ -4,6 +4,5 @@ from .serializers import (
     GraphSerializer,
     OperationMetaInfoSerializer,
     OperationSerializer,
-    OptHistorySerializer,
     json_helpers
 )
