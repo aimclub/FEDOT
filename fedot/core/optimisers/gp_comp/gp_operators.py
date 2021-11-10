@@ -4,6 +4,7 @@ from random import choice, randint
 from typing import (Any, Callable, List, Tuple, Union)
 
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import DEFAULT_PARAMS_STUB
@@ -112,6 +113,8 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
 
 def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
                          is_multi_objective: bool, timer=None):
+    logger = default_log('individuals evaluation logger')
+
     num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
 
@@ -119,7 +122,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     fitter = RemoteEvaluator()
     pre_evaluated_objects = []
     if fitter.use_remote:
-        print('Remote fit used')
+        logger.info('Remote fit used')
         restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
         pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
 
