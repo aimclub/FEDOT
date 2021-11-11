@@ -47,7 +47,7 @@ class Pipeline(Graph):
         else:
             self.log = log
 
-        # Define data preprocessor for pip
+        # Define data preprocessor
         self.preprocessor = DataPreprocessing(self.log)
         super().__init__(nodes)
 
@@ -167,8 +167,9 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        if copied_input_data.data_type == DataTypesEnum.table:
-            copied_input_data = self._preprocessing_fit_data(copied_input_data)
+        copied_input_data = self.preprocessor.prepare_for_fit(pipeline=self,
+                                                              data=copied_input_data)
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -219,21 +220,12 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        # No preprocessing for non tabular data
-        if copied_input_data.data_type == DataTypesEnum.table:
-            copied_input_data = self._preprocessing_predict_data(copied_input_data)
+        copied_input_data = self.preprocessor.prepare_for_predict(pipeline=self,
+                                                                  data=copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
         return result
-
-    def _preprocessing_fit_data(self, data: Union[InputData, MultiModalData]):
-        """ Delete missing values and use encoders for InputData for fitting """
-        return self.preprocessor.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
-
-    def _preprocessing_predict_data(self, data: Union[InputData, MultiModalData]):
-        """ Delete missing values and use encoders for InputData for predict """
-        return self.preprocessor.process_input_data(pipeline=self, data=data, is_fitted=self.is_fitted)
 
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: dict = None,

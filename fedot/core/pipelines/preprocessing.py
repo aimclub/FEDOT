@@ -13,19 +13,28 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 from fedot.core.pipelines.node import Node
 
 # The allowed percent of empty samples in features.
-# Example: 90% objects in features are 'nan',
-# then drop this feature from data.
+# Example: 30% objects in features are 'nan', then drop this feature from data.
 ALLOWED_NAN_PERCENT = 0.3
 
 
 class DataPreprocessing:
-    """ Class which contains functions for data preprocessing """
+    """
+    Class which contains methods for data preprocessing.
+    The class performs two types of preprocessing: obligatory and optional
 
-    def __init__(self, log: Log, **params: Optional[dict]):
+    obligatory - delete rows where nans in the target, remove features,
+    which full of nans, delete extra_spaces
+    optional - depends on what operations are in the pipeline, gap-filling
+    is applied if there is no imputation operation in the pipeline, categorical
+    encoding is applied if there is no encoder in the structure of the pipeline etc.
+    """
+
+    def __init__(self, log: Log):
         super().__init__()
-        self.is_not_fitted = False
         self.process_features = {}
         self.ids_relevant_features = []
+
+        # Cannot be processed due to incorrect types or large amount of nans
         self.ids_incorrect_features = []
         self.log = log
 
@@ -34,7 +43,15 @@ class DataPreprocessing:
         else:
             self.log = log
 
-    def process_input_data(self, pipeline, data: Union[InputData, MultiModalData], is_fitted=False):
+    def prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]):
+        """ Launch preprocessing operations (encoding, nan removing or imputation,
+        speces deleting etc.) if it is necessary for pipeline fitting
+
+        :param pipeline: pipeline to prepare data for
+        :param data: data to preprocess
+        """
+
+        # Check if pipeline has encoders in its structure
         has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(pipeline)
 
         if isinstance(data, InputData):
@@ -51,35 +68,61 @@ class DataPreprocessing:
                     data[data_source_name] = self._clean_extra_spaces(values)
 
         if data_has_missing_values(data) and not has_imputation_operation:
-            data = self.imputation_implementation(data)
+            data = self.apply_imputation(data)
 
-        if data_has_categorical_features(data) and not has_encoder_operation:
-            if not is_fitted:
-                self.process_features = self._encode_data_for_fit(data)
-            elif is_fitted:
-                self._encode_data_for_predict(data, self.process_features)
-
+        self.process_features = self._encode_data_for_fit(data)
         return data
 
-    def _drop_features_full_of_nans(self, data: InputData):
+    def prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):
+        """ Launch preprocessing operations (encoding, nan removing or imputation, speces deleting etc.)
+        if it is necessary for pipeline predict stage. Preprocessor should already must be fitted.
+
+        :param pipeline: pipeline to prepare data for
+        :param data: data to preprocess
+        """
+        # Check if pipeline has encoders in its structure
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(
+            pipeline)
+
+        if isinstance(data, InputData):
+            if data_type_is_table(data):
+                self.take_only_correct_features(data)
+                data = self._clean_extra_spaces(data)
+
+        elif isinstance(data, MultiModalData):
+            for data_source_name, values in data.items():
+                if data_type_is_table(values):
+                    self.take_only_correct_features(values)
+                    data[data_source_name] = self._clean_extra_spaces(values)
+
+        if data_has_missing_values(data) and not has_imputation_operation:
+            data = self.apply_imputation(data)
+
+        self._encode_data_for_predict(data, self.process_features)
+        return data
+
+    def take_only_correct_features(self, data: InputData):
+        """ Take only correct features in the table """
+        if len(self.ids_relevant_features) != 0:
+            data.features = data.features[:, self.ids_relevant_features]
+
+    def _drop_features_full_of_nans(self, data: InputData) -> InputData:
         """ Dropping features with more than 30% nan's
 
         :param data: data to transform
         :return: transformed data
         """
         features = data.features
-        n_samples = features.shape[0]
-        transposed_features = np.transpose(features)
+        n_samples, n_columns = features.shape
 
-        for i, feature in enumerate(transposed_features):
+        for i in range(n_columns):
+            feature = features[:, i]
             if np.sum(pd.isna(feature)) / n_samples < ALLOWED_NAN_PERCENT:
                 self.ids_relevant_features.append(i)
             else:
                 self.ids_incorrect_features.append(i)
 
-        if not self.ids_relevant_features:
-            data.features = np.transpose(transposed_features[self.ids_relevant_features])
-
+        self.take_only_correct_features(data)
         return data
 
     @staticmethod
@@ -114,11 +157,12 @@ class DataPreprocessing:
 
     @staticmethod
     def pipeline_encoders_validation(pipeline) -> (bool, bool):
-        """ Check whether Imputation and OneHotEncoder operation exist in pipeline.
+        """
+        Check whether Imputation and OneHotEncoder operation exist in pipeline.
 
-            :param pipeline: pipeline to check
-            :return (bool, bool): has Imputation and OneHotEncoder in pipeline
-            """
+        :param pipeline: pipeline to check
+        :return (bool, bool): has Imputation and OneHotEncoder in pipeline
+        """
 
         has_imputers, has_encoders = [], []
 
@@ -151,18 +195,17 @@ class DataPreprocessing:
         has_encoder = all(branch_has_imp is True for branch_has_imp in has_encoders)
         return has_imputer, has_encoder
 
-    def imputation_implementation(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
+    def apply_imputation(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
-            return self._imputation_implementation_unidata(data)
+            return self._apply_imputation_unidata(data)
         if isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
-                if data_source_name.startswith('data_source_table') or data_source_name.startswith('data_source_ts'):
-                    data[data_source_name].features = self._imputation_implementation_unidata(values)
+                data[data_source_name].features = self._apply_imputation_unidata(values)
             return data
         raise ValueError(f"Data format is not supported.")
 
     @staticmethod
-    def _imputation_implementation_unidata(data: InputData):
+    def _apply_imputation_unidata(data: InputData):
         """ Fill in the gaps in the data inplace.
 
         :param data: data for fill in the gaps
