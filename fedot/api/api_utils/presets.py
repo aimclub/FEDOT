@@ -1,6 +1,7 @@
 from copy import copy
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.tasks import Task
 
 
 class OperationsPreset:
@@ -8,7 +9,7 @@ class OperationsPreset:
     and models), which will be used during pipeline structure search
     """
 
-    def __init__(self, task, preset_name: str):
+    def __init__(self, task: Task, preset_name: str):
         self.task = task
         self.preset_name = preset_name
 

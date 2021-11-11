@@ -1,8 +1,10 @@
 import random
+from typing import Optional
+
 import numpy as np
 
 from fedot.core.log import default_log
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
 from fedot.api.api_utils.presets import OperationsPreset
 
 
@@ -99,8 +101,8 @@ class ApiParams:
         return default_test_metric_dict[problem]
 
     @staticmethod
-    def get_task_params(problem, task_params):
-        """ Return task parameters by machine learning task """
+    def get_task_params(problem, task_params: Optional[TaskParams] = None):
+        """ Return task parameters by machine learning problem name (string) """
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=task_params),
                      'clustering': Task(TaskTypesEnum.clustering, task_params=task_params),

@@ -26,9 +26,13 @@ from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTas
 
 class ApiComposer:
 
-    def __init__(self, problem):
+    def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
         self.initial_assumptions = ApiInitialAssumptions()
+
+        self.current_model = None
+        self.best_models = None
+        self.history = None
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -246,10 +250,6 @@ class ApiComposer:
         """
         loss_params_dict = {roc_auc: {'multi_class': 'ovr'},
                             mean_squared_error: {'squared': False}}
-        loss_function = None
-
-        if type(metric_name) is str:
-            loss_function = self.metrics.get_tuner_metrics_mapping(metric_name)
 
         if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
             loss_function = mean_squared_error
