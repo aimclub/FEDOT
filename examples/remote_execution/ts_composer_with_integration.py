@@ -4,10 +4,11 @@ import random
 import numpy as np
 import pandas as pd
 
-from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results, \
-    prepare_multimodal_data
+from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results
+from fedot.core.data.multi_modal import prepare_multimodal_data
 from fedot.core.utils import fedot_project_root
-from fedot.remote.infrastructure.clients.test_client import TestClient
+from fedot.remote.infrastructure.clients.datamall_client import DEFAULT_CONNECT_PARAMS, DEFAULT_EXEC_PARAMS, \
+    DataMallClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
 random.seed(1)
@@ -30,16 +31,10 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
 
     folder = os.path.join(fedot_project_root(), 'cases', 'industrial')
 
-    connect_params = {}
-    exec_params = {
-        'container_input_path': folder,
-        'container_output_path': os.path.join(folder, 'remote'),
-        'container_config_path': ".",
-        'container_image': "test",
-        'timeout': 1
-    }
+    connect_params = DEFAULT_CONNECT_PARAMS
+    exec_params = DEFAULT_EXEC_PARAMS
 
-    client = TestClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
+    client = DataMallClient(connect_params, exec_params, output_path=os.path.join(folder, 'remote'))
 
     remote_task_params = RemoteTaskParams(
         mode='remote',

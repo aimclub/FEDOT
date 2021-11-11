@@ -64,37 +64,6 @@ def prepare_unimodal_for_validation(time_series: Union[np.array, pd.Series],
     return train_input, validation_input
 
 
-def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_length: int):
-    """ Prepare MultiModal data for time series forecasting task in a form of
-    dictionary
-
-    :param dataframe: pandas DataFrame to process
-    :param features: columns, which should be used as features in forecasting
-    :param forecast_length: length of forecast
-
-    :return multi_modal_train: dictionary with numpy arrays for train
-    :return multi_modal_test: dictionary with numpy arrays for test
-    """
-    multi_modal_train = {}
-    multi_modal_test = {}
-    for feature in features:
-        if forecast_length > 0:
-            feature_ts = np.array(dataframe[feature])[:-forecast_length]
-            idx = list(dataframe['datetime'])[:-forecast_length]
-        else:
-            feature_ts = np.array(dataframe[feature])
-            idx = list(dataframe['datetime'])
-
-        # Will be the same
-        multi_modal_train.update({feature: feature_ts})
-        multi_modal_test.update({feature: feature_ts})
-
-    multi_modal_test['idx'] = np.asarray(idx)
-    multi_modal_train['idx'] = np.asarray(idx)
-
-    return multi_modal_train, multi_modal_test
-
-
 def automl_fit_forecast(train_input, predict_input, composer_params: dict,
                         vis=True, in_sample_forecasting=False, horizon: int = None):
     """ Running AutoML algorithm for identification and configuration of pipeline

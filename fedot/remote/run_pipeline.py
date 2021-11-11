@@ -1,14 +1,8 @@
 import json
 import os
 import sys
-from functools import partial
 from typing import Union
 
-import numpy as np
-import pandas as pd
-
-from cases.industrial.processing import prepare_multimodal_data
-from fedot.api.api_utils.data_definition import array_to_input_data
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -26,39 +20,16 @@ def new_key_name(data_part_key):
 
 
 def _load_ts_data(config):
-    data_type = DataTypesEnum.ts
-    df = pd.read_csv(config.input_data,
-                     parse_dates=['datetime'])
-    idx = [str(d) for d in df['datetime']]
-
+    task = config.task
     if config.is_multi_modal:
-        var_names = config.var_names
-        if not var_names:
-            var_names = list(set(df.columns) - set('datetime'))
-        train_data, _ = \
-            prepare_multimodal_data(dataframe=df,
-                                    features=var_names,
-                                    forecast_length=0)
-
-        if config.target is not None:
-            target = np.array(df[config.target])
-        else:
-            target = np.array(df[df.columns[-1]])
-
-        # create labels for data sources
-        data_part_transformation_func = partial(array_to_input_data, idx=idx,
-                                                target_array=target, task=config.task)
-
-        sources = dict((new_key_name(data_part_key),
-                        data_part_transformation_func(features_array=data_part))
-                       for (data_part_key, data_part) in train_data.items())
-        train_data = MultiModalData(sources)
+        train_data = MultiModalData.from_csv_time_series(
+            file_path=config.input_data,
+            task=task, target_column=config.target,
+            var_names=config.var_names)
     else:
-        train_data = InputData.from_csv(file_path=config.input_data,
-                                        task=config.task, data_type=data_type)
-        train_data.features = np.squeeze(train_data.features, axis=1)
-        train_data.idx = idx
-
+        train_data = InputData.from_csv_time_series(
+            file_path=config.input_data,
+            task=task, target_column=config.target)
     return train_data
 
 

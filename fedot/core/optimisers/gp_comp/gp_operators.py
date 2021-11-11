@@ -144,7 +144,8 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     return evaluated_individuals
 
 
-def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable, is_multi_objective: bool,
+def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,
+                        is_multi_objective: bool,
                         graph_generation_params) -> Any:
     if isinstance(graph, OptGraph):
         converted_object = graph_generation_params.adapter.restore(graph)

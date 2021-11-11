@@ -17,17 +17,17 @@ DEFAULT_EXEC_PARAMS = {
     'container_input_path': "/home/FEDOT/input_data_dir",
     'container_output_path': "/home/FEDOT/output_data_dir",
     'container_config_path': "/home/FEDOT/.config",
-    'container_image': "fedot:dm-7",
+    'container_image': "fedot:dm-9",
     'timeout': 360
 }
 
 DEFAULT_CONNECT_PARAMS = {
-    'FEDOT_LOGIN': 'your_login',
-    'FEDOT_PASSWORD': 'your_password',
-    'AUTH_SERVER': 'your_url',
-    'CONTR_SERVER': 'your_url',
-    'PROJECT_ID': 'your_project_id',
-    'DATA_ID': 'your_data_id'
+    'FEDOT_LOGIN': 'fedot',
+    'FEDOT_PASSWORD': 'fedot-password',
+    'AUTH_SERVER': 'http://10.32.0.51:30880/b',
+    'CONTR_SERVER': 'http://10.32.0.51:30880/models-controller',
+    'PROJECT_ID': '83',
+    'DATA_ID': '60'
 }
 
 
@@ -54,7 +54,8 @@ class DataMallClient(Client):
         super().__init__(connect_params, exec_params, output_path)
 
     def create_task(self, config) -> str:
-        created_ex = self._create_execution(self.exec_params['container_input_path'],
+        data_id = self.connect_params['DATA_ID']
+        created_ex = self._create_execution(f"{self.exec_params['container_input_path']}/data/{data_id}/",
                                             self.exec_params['container_output_path'],
                                             self.exec_params['container_config_path'],
                                             self.exec_params['container_image'],
@@ -213,7 +214,7 @@ class DataMallClient(Client):
         if response.status_code != 200:
             raise ValueError(f'Unable to download results. Reason: {response.text}')
 
-        tmp_path = f'_tmp_{int(datetime.datetime.utcnow().timestamp() * 1000)}'
+        tmp_path = f'_tmp_{int(datetime.utcnow().timestamp() * 1000)}'
         try:
             with open(tmp_path, 'wb') as tmp_file:
                 shutil.copyfileobj(response.raw, tmp_file)

@@ -4,7 +4,8 @@ from pylab import rcParams
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Additional custom functions
-from cases.industrial.processing import multi_automl_fit_forecast, plot_results, prepare_multimodal_data
+from cases.industrial.processing import multi_automl_fit_forecast, plot_results
+from fedot.core.data.multi_modal import prepare_multimodal_data
 
 rcParams['figure.figsize'] = 15, 7
 
