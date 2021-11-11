@@ -71,7 +71,7 @@ def test_only_categorical_data_process_correct():
 
 
 def test_nans_columns_processed_correct():
-    """ Check if data with nans processed correctly """
+    """ Check if data with nans processed correctly. Columns with nans should be ignored """
     pipeline = Pipeline(PrimaryNode('ridge'))
     data_with_nans = data_with_too_much_nans()
 

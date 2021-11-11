@@ -40,14 +40,14 @@ class DataPreprocessing:
         if isinstance(data, InputData):
             if data_type_is_table(data):
                 data = self._drop_features_full_of_nans(data)
-                data = self._drop_cols_with_nan_in_target(data)
+                data = self._drop_rows_with_nan_in_target(data)
                 data = self._clean_extra_spaces(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
                 if data_type_is_table(values):
                     data[data_source_name] = self._drop_features_full_of_nans(values)
-                    data[data_source_name] = self._drop_cols_with_nan_in_target(values)
+                    data[data_source_name] = self._drop_rows_with_nan_in_target(values)
                     data[data_source_name] = self._clean_extra_spaces(values)
 
         if data_has_missing_values(data) and not has_imputation_operation:
@@ -83,9 +83,9 @@ class DataPreprocessing:
         return data
 
     @staticmethod
-    def _drop_cols_with_nan_in_target(data: InputData):
+    def _drop_rows_with_nan_in_target(data: InputData):
         """
-
+        Drop rows where in target column there are nans
         :param data:
         :return:
         """

@@ -24,7 +24,6 @@ from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
-data_checker = ApiDataSources()
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,
@@ -146,15 +145,16 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
 
 
 def test_api_check_data_correct():
+    data_checker = ApiDataSources(task=Task(TaskTypesEnum.regression))
+
+    # Get data
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
-    string_data_input = data_checker.define_data(ml_task=Task(TaskTypesEnum.regression),
-                                                 features=path_to_train)
-    array_data_input = data_checker.define_data(ml_task=Task(TaskTypesEnum.regression),
-                                                features=x_train)
-    fedot_data_input = data_checker.define_data(ml_task=Task(TaskTypesEnum.regression),
-                                                features=train_data)
+
+    string_data_input = data_checker.define_data(features=path_to_train)
+    array_data_input = data_checker.define_data(features=x_train)
+    fedot_data_input = data_checker.define_data(features=train_data)
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)
