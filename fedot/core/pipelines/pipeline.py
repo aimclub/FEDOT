@@ -18,8 +18,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
-from fedot.core.repository.tasks import TaskTypesEnum
-import fedot.core.explainability.explainers as explainers
+from fedot.core.explainability.explainers import pick_pipeline_explainer
 
 
 # The allowed empirical partition limit of the number of rows to delete.
@@ -357,7 +356,7 @@ class Pipeline(Graph):
         if not self.is_fitted:
             raise AssertionError('The pipeline might be fit before explanation!')
 
-        explainer = explainers.pick_pipeline_explainer(self, method, data.task.task_type)
+        explainer = pick_pipeline_explainer(self, method, data.task.task_type)
         explainer.explain(data, instant_output=instant_output, **kwargs)
 
         return explainer

@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 import numpy as np
-import pandas as pd
 import pytest
 from sklearn.datasets import load_iris, load_boston
 
@@ -10,8 +9,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.explainability import explainers
-from fedot.core.explainability.utils import single_node_pipeline
+from fedot.core.explainability.surrogate_explainer import SurrogateExplainer, single_node_pipeline
 
 np.random.seed(1)
 
@@ -55,11 +53,6 @@ def task_type_fixture(request, classification, regression) -> 'InputData, Pipeli
         raise ValueError(f'Unsupported task type: {task_type}')
 
 
-def _to_numerical(categorical_ids: np.ndarray):
-    encoded = pd.factorize(categorical_ids)[0]
-    return encoded
-
-
 def _successful_output(explainer: 'Explainer'):
     try:
         explainer.output()
@@ -80,7 +73,7 @@ def test_surrogate_explainer(method, task_type, request):
 
     explainer = pipeline.explain(data=train, method=method, instant_output=False)
 
-    assert isinstance(explainer, explainers.SurrogateExplainer)
+    assert isinstance(explainer, SurrogateExplainer)
     assert isinstance(explainer.surrogate, Pipeline)
     assert explainer.surrogate.is_fitted
     assert isinstance(explainer.score, float) and explainer.score > 0
