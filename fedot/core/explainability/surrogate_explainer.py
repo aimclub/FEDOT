@@ -5,12 +5,12 @@ from inspect import signature
 from matplotlib import pyplot as plt
 from sklearn import tree
 
+import fedot.core.pipelines.pipeline as pipeline
+from fedot.core.explainability.explainer import Explainer
 from fedot.core.composer.metrics import R2, F1
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.explainability.explainers import Explainer
 
 
 class SurrogateExplainer(Explainer):
@@ -84,7 +84,7 @@ def single_node_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
     surrogate_node = PrimaryNode(model)
     if custom_params:
         surrogate_node.custom_params = custom_params
-    return Pipeline(surrogate_node)
+    return pipeline.Pipeline(surrogate_node)
 
 
 def fit_naive_surrogate_model(

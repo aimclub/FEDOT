@@ -1,23 +1,5 @@
-from abc import abstractmethod
-
 from fedot.core.explainability.surrogate_explainer import SurrogateExplainer
 from fedot.core.repository.tasks import TaskTypesEnum
-
-
-class Explainer:
-    """
-    An abstract class for various explanation methods.
-    """
-    def __init__(self, model):
-        self.model = model
-
-    @abstractmethod
-    def explain(self, *args, **kwargs):
-        raise NotImplementedError
-
-    @abstractmethod
-    def output(self, *args, **kwargs):
-        raise NotImplementedError
 
 
 def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTypesEnum):
