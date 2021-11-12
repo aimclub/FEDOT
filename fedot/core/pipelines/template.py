@@ -43,7 +43,7 @@ class PipelineTemplate(BasicSerializer):
             self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
             self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
         else:
-            self.depth = 0  # TODO: should be None or 0?
+            self.depth = 0
             self.unique_pipeline_id = str(uuid4())
             self.struct_id = ''
 
