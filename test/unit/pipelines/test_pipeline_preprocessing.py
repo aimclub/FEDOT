@@ -1,68 +1,12 @@
-import numpy as np
-
-from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
+    data_with_leading_trailing_spaces, data_with_nans_in_target_column, data_with_nans_in_multi_target
+
+# Tests for pipeline fitting correctly with "bad" data as input - checking preprocessing
 
 
-def data_with_only_categorical_features():
-    """ Generate tabular data with only categorical features """
-    task = Task(TaskTypesEnum.regression)
-    features = np.array([['1', '0', '1'],
-                         ['0', '1', '0'],
-                         ['1', '1', '0'],
-                         ['1', '1', '1']], dtype=object)
-    input = InputData(idx=[0, 1, 2, 3], features=features,
-                      target=np.array([[0], [1], [2], [3]]),
-                      task=task,  data_type=DataTypesEnum.table)
-
-    return input
-
-
-def data_with_too_much_nans():
-    """ Generate tabular data with too much nan's in numpy array.
-    Columns with ids 1 and 2 have nans more than 30% in their structure.
-    """
-    task = Task(TaskTypesEnum.regression)
-    features = np.array([[1, np.nan, np.nan],
-                         [np.nan, np.nan, np.nan],
-                         [3, np.nan, np.nan],
-                         [7, np.nan, np.nan],
-                         [8, '1', np.nan],
-                         [np.nan, '0', 23],
-                         [9, '0', 22],
-                         [9, '0', 2],
-                         [9, np.nan, 14],
-                         [9, '1', np.nan]], dtype=object)
-    target = np.array([[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], features=features,
-                            target=target, task=task, data_type=DataTypesEnum.table)
-
-    return train_input
-
-
-def data_with_leading_trailing_spaces():
-    """
-    Generate InputData with categorical features with leading and
-    trailing spaces. Dataset contains np.nan also.
-    """
-    task = Task(TaskTypesEnum.regression)
-    features = np.array([['1 ', '1 '],
-                         [np.nan, ' 0'],
-                         [' 1 ', np.nan],
-                         ['1 ', '0  '],
-                         ['0  ', '  1'],
-                         ['1 ', '  0']], dtype=object)
-    target = np.array([[0], [1], [2], [3], [4], [5]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
-                            target=target, task=task, data_type=DataTypesEnum.table)
-
-    return train_input
-
-
-def test_only_categorical_data_process_correct():
+def test_only_categorical_data_process_correctly():
     """ Check if data with only categorical features processed correctly """
     pipeline = Pipeline(PrimaryNode('ridge'))
     categorical_data = data_with_only_categorical_features()
@@ -70,7 +14,7 @@ def test_only_categorical_data_process_correct():
     pipeline.fit(categorical_data)
 
 
-def test_nans_columns_processed_correct():
+def test_nans_columns_process_correctly():
     """ Check if data with nans processed correctly. Columns with nans should be ignored """
     pipeline = Pipeline(PrimaryNode('ridge'))
     data_with_nans = data_with_too_much_nans()
@@ -85,7 +29,7 @@ def test_nans_columns_processed_correct():
     assert 1 == coefficients_shape[1]
 
 
-def test_spaces_columns_processed_correct():
+def test_spaces_columns_process_correctly():
     """ Train simple pipeline on the dataset with spaces in categorical features.
     For example, ' x ' instead of 'x'.
     """
@@ -97,3 +41,24 @@ def test_spaces_columns_processed_correct():
     coefficients_shape = coefficients.shape
 
     assert 2 == coefficients_shape[1]
+
+
+def test_data_with_nans_in_target_process_correctly():
+    """ K-nn model should use 5 samples to train instead of 6 source due to
+    one row will be removed.
+    """
+
+    pipeline = Pipeline(PrimaryNode('knnreg'))
+
+    # Single target column processing
+    single_target_data = data_with_nans_in_target_column()
+    pipeline.fit(single_target_data)
+    single_hyperparams = pipeline.nodes[0].custom_params
+
+    # Multi-target columns processing
+    multi_target_data = data_with_nans_in_multi_target()
+    pipeline.fit(multi_target_data)
+    multi_hyperparams = pipeline.nodes[0].custom_params
+
+    assert 5 == single_hyperparams['n_samples']
+    assert 3 == multi_hyperparams['n_samples']

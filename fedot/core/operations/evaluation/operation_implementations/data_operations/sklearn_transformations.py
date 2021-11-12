@@ -383,11 +383,7 @@ class ImputationImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
-        features_with_replaced_inf = np.where(np.isin(input_data.features,
-                                                      [np.inf, -np.inf]),
-                                              np.nan,
-                                              input_data.features)
-        input_data.features = features_with_replaced_inf
+        input_data = replace_inf_with_nans(input_data)
 
         if data_has_categorical_features(input_data):
             numerical, categorical = divide_data_categorical_numerical(input_data)
@@ -436,3 +432,13 @@ class ImputationImplementation(DataOperationImplementation):
     def get_params(self) -> dict:
         dictionary = {'imputer_categorical': self.params_cat, 'imputer_numerical': self.params_num}
         return dictionary
+
+
+def replace_inf_with_nans(data):
+    values_to_replace = [np.inf, -np.inf]
+    features_with_replaced_inf = np.where(np.isin(data.features,
+                                                  values_to_replace),
+                                          np.nan,
+                                          data.features)
+    data.features = features_with_replaced_inf
+    return data

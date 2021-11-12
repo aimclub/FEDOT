@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData, data_type_is_table, data_has_missing
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, OneHotEncodingImplementation
+    ImputationImplementation, OneHotEncodingImplementation, replace_inf_with_nans
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.pipelines.node import Node
@@ -17,7 +17,7 @@ from fedot.core.pipelines.node import Node
 ALLOWED_NAN_PERCENT = 0.3
 
 
-class DataPreprocessing:
+class DataPreprocessor:
     """
     Class which contains methods for data preprocessing.
     The class performs two types of preprocessing: obligatory and optional
@@ -27,10 +27,11 @@ class DataPreprocessing:
     optional - depends on what operations are in the pipeline, gap-filling
     is applied if there is no imputation operation in the pipeline, categorical
     encoding is applied if there is no encoder in the structure of the pipeline etc.
+
+    TODO refactor for multimodal data preprocessing
     """
 
     def __init__(self, log: Log):
-        super().__init__()
         self.process_features = {}
         self.ids_relevant_features = []
 
@@ -43,47 +44,30 @@ class DataPreprocessing:
         else:
             self.log = log
 
-    def prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]):
-        """ Launch preprocessing operations (encoding, nan removing or imputation,
-        speces deleting etc.) if it is necessary for pipeline fitting
-
-        :param pipeline: pipeline to prepare data for
-        :param data: data to preprocess
+    def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
-
-        # Check if pipeline has encoders in its structure
-        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(pipeline)
-
-        if isinstance(data, InputData):
-            if data_type_is_table(data):
-                data = self._drop_features_full_of_nans(data)
-                data = self._drop_rows_with_nan_in_target(data)
-                data = self._clean_extra_spaces(data)
+        Perform obligatory preprocessing for pipeline fit method.
+        It includes removing features full of nans, extra spaces in features deleteing,
+        drop rows where target cells are none
+        """
+        if isinstance(data, InputData) and data_type_is_table(data):
+            data = replace_inf_with_nans(data)
+            data = self._drop_features_full_of_nans(data)
+            data = self._drop_rows_with_nan_in_target(data)
+            data = self._clean_extra_spaces(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
                 if data_type_is_table(values):
+                    data = replace_inf_with_nans(data)
                     data[data_source_name] = self._drop_features_full_of_nans(values)
                     data[data_source_name] = self._drop_rows_with_nan_in_target(values)
                     data[data_source_name] = self._clean_extra_spaces(values)
 
-        if data_has_missing_values(data) and not has_imputation_operation:
-            data = self.apply_imputation(data)
-
-        self.process_features = self._encode_data_for_fit(data)
         return data
 
-    def prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):
-        """ Launch preprocessing operations (encoding, nan removing or imputation, speces deleting etc.)
-        if it is necessary for pipeline predict stage. Preprocessor should already must be fitted.
-
-        :param pipeline: pipeline to prepare data for
-        :param data: data to preprocess
-        """
-        # Check if pipeline has encoders in its structure
-        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(
-            pipeline)
-
+    def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]):
+        """ Perform obligatory preprocessing for pipeline predict method """
         if isinstance(data, InputData):
             if data_type_is_table(data):
                 self.take_only_correct_features(data)
@@ -94,6 +78,35 @@ class DataPreprocessing:
                 if data_type_is_table(values):
                     self.take_only_correct_features(values)
                     data[data_source_name] = self._clean_extra_spaces(values)
+
+        return data
+
+    def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]):
+        """ Launch preprocessing operations if it is necessary for pipeline fitting
+
+        :param pipeline: pipeline to prepare data for
+        :param data: data to preprocess
+        """
+
+        # Check if pipeline has encoders in its structure
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(pipeline)
+
+        if data_has_missing_values(data) and not has_imputation_operation:
+            data = self.apply_imputation(data)
+
+        self.process_features = self._encode_data_for_fit(data)
+        return data
+
+    def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):
+        """ Launch preprocessing operations if it is necessary for pipeline predict stage.
+        Preprocessor should already must be fitted.
+
+        :param pipeline: pipeline to prepare data for
+        :param data: data to preprocess
+        """
+        # Check if pipeline has encoders in its structure
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(
+            pipeline)
 
         if data_has_missing_values(data) and not has_imputation_operation:
             data = self.apply_imputation(data)
@@ -107,7 +120,7 @@ class DataPreprocessing:
             data.features = data.features[:, self.ids_relevant_features]
 
     def _drop_features_full_of_nans(self, data: InputData) -> InputData:
-        """ Dropping features with more than 30% nan's
+        """ Dropping features with more than ALLOWED_NAN_PERCENT nan's
 
         :param data: data to transform
         :return: transformed data
@@ -127,20 +140,22 @@ class DataPreprocessing:
 
     @staticmethod
     def _drop_rows_with_nan_in_target(data: InputData):
-        """
-        Drop rows where in target column there are nans
-        :param data:
-        :return:
-        """
+        """ Drop rows where in target column there are nans  """
         features = data.features
         target = data.target
 
-        if _is_any_nan(target):
-            ids_with_nan = np.hstack(np.argwhere(_is_nan(target)))
+        # Find indices of nans rows
+        bool_target = np.isnan(target)
+        number_nans_per_rows = bool_target.sum(axis=1)
 
-            data.features = np.delete(features, ids_with_nan, axis=0)
-            data.target = np.delete(features, ids_with_nan, axis=0)
-            data.idx = np.delete(features, ids_with_nan, axis=0)
+        # Ids of rows which doesn't contain nans in target
+        non_nan_row_ids = np.ravel(np.argwhere(number_nans_per_rows == 0))
+
+        if len(non_nan_row_ids) == 0:
+            raise ValueError('Data contains too much nans in the target column(s)')
+        data.features = features[non_nan_row_ids, :]
+        data.target = target[non_nan_row_ids, :]
+        data.idx = np.array(data.idx)[non_nan_row_ids]
 
         return data
 
@@ -218,11 +233,12 @@ class DataPreprocessing:
 
     def _encode_data_for_fit(self, data: Union[InputData, MultiModalData]) -> \
             Union[List[DataOperationImplementation], DataOperationImplementation]:
-        """ Encode categorical features to numerical. In additional,
-            save encoders to use later for prediction data.
+        """
+        Encode categorical features to numerical. In additional,
+        save encoders to use later for prediction data.
 
-            :param data: data to transform
-            :return encoders: operation preprocessing categorical features or list of it
+        :param data: data to transform
+        :return encoders: operation preprocessing categorical features or list of it
         """
 
         encoders = None
@@ -244,10 +260,11 @@ class DataPreprocessing:
     @staticmethod
     def _encode_data_for_predict(data: Union[InputData, MultiModalData],
                                  encoders: Union[dict, DataOperationImplementation]):
-        """ Transformation the prediction data inplace. Use the same transformations as for the training data.
+        """
+        Transformation the prediction data inplace. Use the same transformations as for the training data.
 
-            :param data: data to transformation
-            :param encoders: encoders f transformation
+        :param data: data to transformation
+        :param encoders: encoders f transformation
         """
         if encoders:
             if isinstance(data, InputData):
@@ -260,7 +277,8 @@ class DataPreprocessing:
 
     @staticmethod
     def _create_encoder(data: InputData):
-        """ Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
+        """
+        Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
         :param data: data to preprocess
         :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
@@ -275,14 +293,3 @@ class DataPreprocessing:
             transformed = data.features
 
         return transformed, encoder
-
-
-def _is_nan(array):
-    return np.array([True if x is np.nan else False for x in array])
-
-
-def _is_any_nan(array):
-    if True in _is_nan(array):
-        return True
-    else:
-        return False
