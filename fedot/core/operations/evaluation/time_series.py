@@ -5,7 +5,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
-    TsSmoothingImplementation, SparseLaggedTransformationImplementation
+    TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation, \
     CLSTMImplementation
@@ -89,7 +89,8 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         'sparse_lagged': SparseLaggedTransformationImplementation,
         'smoothing': TsSmoothingImplementation,
         'exog_ts': ExogDataTransformationImplementation,
-        'gaussian_filter': GaussianFilterImplementation}
+        'gaussian_filter': GaussianFilterImplementation,
+        'cut': CutImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)

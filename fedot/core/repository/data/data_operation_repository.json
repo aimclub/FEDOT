@@ -209,6 +209,14 @@
 				"non_lagged"
 			]
 		},
+		"cut": {
+			"meta": "custom_time_series_transformation",
+			"tags": [
+				"simple",
+				"cutting",
+				"non_lagged"
+			]
+		},
 		"exog_ts": {
 			"meta": "custom_time_series_transformation",
 			"tags": [

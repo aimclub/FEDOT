@@ -81,6 +81,18 @@ def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
     return pipeline
 
 
+def get_ts_pipeline_with_cut(model_root: str = 'ridge', window_size: int = 5):
+    node_cut = PrimaryNode('cut')
+    node_cut.custom_params = {'cut_part': 0.5}
+    node_lagged = SecondaryNode('lagged', nodes_from=[node_cut])
+    node_lagged.custom_params = {'window_size': window_size}
+    node_root = SecondaryNode(model_root, nodes_from=[node_lagged])
+
+    pipeline = Pipeline(node_root)
+
+    return pipeline
+
+
 def get_statsmodels_pipeline():
     node_ar = PrimaryNode('ar')
     node_ar.custom_params = {'lag_1': 20, 'lag_2': 100}
@@ -159,6 +171,27 @@ def test_regression_multiscale_pipeline_forecast_correct():
                                                 is_strict=True)
 
     assert rmse_test < rmse_threshold
+
+
+def test_cut_pipeline_forecast_fit_correct():
+    horizon =5
+    train_data, test_data = get_ts_data(forecast_length=horizon)
+
+    pipeline = get_ts_pipeline_with_cut()
+
+    pipeline.fit(input_data=train_data)
+    test_pred = pipeline.predict(input_data=test_data)
+
+    # Calculate metric
+    test_pred_ravel = np.ravel(np.array(test_pred.predict))
+    test_target = np.ravel(np.array(test_data.target))
+    rmse_test = mean_squared_error(test_target, test_pred_ravel, squared=False)
+
+    rmse_threshold = _max_rmse_threshold_by_std(test_data.target,
+                                                is_strict=True)
+
+    assert rmse_test < rmse_threshold
+    assert test_data.features.shape[0] == 2 * test_pred.idx.shape[0] - horizon
 
 
 def test_ts_single_pipeline_model_without_multiotput_support():

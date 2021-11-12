@@ -430,3 +430,43 @@ def prepare_target(idx, features_columns: np.array, target, forecast_length: int
         updated_target = ts_target
 
     return updated_idx, updated_features, updated_target
+
+
+class CutImplementation(DataOperationImplementation):
+    def __init__(self, **params):
+        super().__init__()
+        cut_part = params.get('cut_part')
+        if not cut_part:
+            # Default parameter
+            self.cut_part = 0
+        else:
+            if 0 <= cut_part <= 0.9:
+                self.cut_part = cut_part
+            else:
+                # Default parameter
+                self.cut_part = 0
+
+    def fit(self, input_data):
+        """ Class doesn't support fit operation
+
+            :param input_data: data with features, target and ids to process
+        """
+        pass
+
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+        horizon = input_data.task.task_params.forecast_length
+        input_copy = copy(input_data)
+        input_values = input_copy.features
+        cut_len = int(self.cut_part * (input_values.shape[0]-horizon))
+        output_values = input_values[cut_len::]
+
+        input_copy.idx = np.arange(output_values.shape[0])
+        input_copy.features = output_values
+        input_copy.target = output_values
+        output_data = self._convert_to_output(input_copy,
+                                              output_values,
+                                              data_type=DataTypesEnum.ts)
+        return output_data
+
+    def get_params(self):
+        return {"cut_part": self.cut_part}
