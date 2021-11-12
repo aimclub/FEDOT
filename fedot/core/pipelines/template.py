@@ -2,7 +2,7 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import Callable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import joblib
@@ -11,6 +11,10 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+
+if TYPE_CHECKING:
+    from fedot.core.pipelines.pipeline import Pipeline
+
 from fedot.core.repository.operation_types_repository import atomized_model_type
 from fedot.shared import BasicSerializer
 
@@ -31,9 +35,9 @@ class PipelineTemplate(BasicSerializer):
     :params log: Log object to record messages
     """
 
-    def __init__(self, pipeline=None, log: Log = None):
+    def __init__(self, pipeline: 'Pipeline' = None, log: Log = None):
         self.total_pipeline_operations = Counter()
-        self.operation_templates = []
+        self.operation_templates: List[OperationTemplate] = []
         if pipeline is not None:
             self.depth = pipeline.depth
             self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
