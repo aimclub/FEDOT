@@ -255,6 +255,7 @@ class GPGraphOptimiser:
 
                 if pbar:
                     pbar.update(1)
+
             if pbar:
                 pbar.close()
 

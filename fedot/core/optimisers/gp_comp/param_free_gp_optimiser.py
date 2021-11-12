@@ -1,9 +1,9 @@
 from copy import deepcopy
 from typing import (Any, List, Optional, Tuple)
-from tqdm import tqdm
 
 import numpy as np
 from deap import tools
+from tqdm import tqdm
 
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
@@ -41,7 +41,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None,
+                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None, use_stopping_criteria=True,
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log, archive_type)
 
@@ -60,6 +60,10 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
         self.requirements.pop_size = self.iterator.next()
         self.metrics = metrics
+
+        if use_stopping_criteria:
+            self.was_early_stopped = False
+            self.stopping_after_n_generation = 7
 
         self.qual_position = 0
         self.compl_position = 1
@@ -90,7 +94,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
             self.log_info_about_best()
 
             while t.is_time_limit_reached(self.generation_num) is False \
-                    and self.generation_num != self.requirements.num_of_generations - 1:
+                    and self.generation_num != self.requirements.num_of_generations - 1 \
+                    or self._is_stopping_criteria_triggered():
 
                 self.log.info(f'Generation num: {self.generation_num}')
 
@@ -161,6 +166,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
             if pbar:
                 pbar.close()
 
+            if self.was_early_stopped:
+                self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and generation finished')
+
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
@@ -224,6 +232,11 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         complexity_decreased = self.suppl_metric(best_in_offspring.graph) < self.suppl_metric(
             self.best_individual.graph) and best_in_offspring.fitness <= self.best_individual.fitness
         return fitness_improved, complexity_decreased
+
+    def _is_stopping_criteria_triggered(self):
+        if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+            self.was_early_stopped = True
+            return True
 
     def next_population_size(self, offspring: List[Any]) -> int:
         improvements_checker = self._check_so_improvements
