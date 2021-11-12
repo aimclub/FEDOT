@@ -65,10 +65,10 @@ class OptHistory(BasicSerializer):
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
-                cur_ind_graph = adapter.restore_as_template(ind.graph, ind.computation_time)
+                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.computation_time)
                 row = [
                     idx, gen_num, fitness,
-                    len(cur_ind_graph.operation_templates), cur_ind_graph.depth, ind.computation_time
+                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time
                 ]
                 self._add_history_to_csv(file, row)
                 idx += 1
