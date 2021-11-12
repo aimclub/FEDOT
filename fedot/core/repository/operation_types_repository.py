@@ -12,7 +12,7 @@ from fedot.shared import BasicSerializer, OperationMetaInfoSerializer
 
 
 @dataclass
-class OperationMetaInfo(OperationMetaInfoSerializer):
+class OperationMetaInfo:
     id: str
     input_types: List[DataTypesEnum]
     output_types: List[DataTypesEnum]
@@ -45,7 +45,7 @@ def run_once(function):
     return wrapper
 
 
-class OperationTypesRepository(BasicSerializer):
+class OperationTypesRepository:
     """ Class for connecting models and data operations with json files with
     its descriptions and metadata"""
 
