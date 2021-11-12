@@ -38,8 +38,8 @@ class OptHistory(BasicSerializer):
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, metrics=None, save_folder=None):
-        self.metrics: List[Callable[..., float]] = metrics
+    def __init__(self, metrics: List[Callable[..., float]] = None, save_folder=None):
+        self.metrics = metrics
         self.individuals: List[List['Individual']] = []
         self.archive_history: List[List['Individual']] = []
         self.save_folder: str = save_folder if save_folder \
