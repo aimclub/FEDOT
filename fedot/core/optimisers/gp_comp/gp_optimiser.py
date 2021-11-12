@@ -414,6 +414,11 @@ class GPGraphOptimiser:
         individuals_set = correct_if_population_has_nans(evaluated_individuals, self.log)
         return individuals_set
 
+    def _is_stopping_criteria_triggered(self):
+        if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
+            return True
+
 
 @dataclass
 class GraphGenerationParams:

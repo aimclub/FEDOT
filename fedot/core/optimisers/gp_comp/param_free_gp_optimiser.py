@@ -42,6 +42,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  sequence_function=fibonacci_sequence, log: Log = None, archive_type=None, use_stopping_criteria=True,
+                 stopping_after_n_generation=7,
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log, archive_type)
 
@@ -62,8 +63,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.metrics = metrics
 
         if use_stopping_criteria:
-            self.was_early_stopped = False
-            self.stopping_after_n_generation = 7
+            self.stopping_after_n_generation = stopping_after_n_generation
 
         self.qual_position = 0
         self.compl_position = 1
@@ -166,9 +166,6 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
             if pbar:
                 pbar.close()
 
-            if self.was_early_stopped:
-                self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and generation finished')
-
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
@@ -235,7 +232,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
     def _is_stopping_criteria_triggered(self):
         if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
-            self.was_early_stopped = True
+            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
             return True
 
     def next_population_size(self, offspring: List[Any]) -> int:
