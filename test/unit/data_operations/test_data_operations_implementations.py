@@ -11,6 +11,8 @@ from examples.time_series.ts_gapfilling_example import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
+    CutImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -189,6 +191,15 @@ def test_ts_forecasting_lagged_data_operation():
     predicted = np.ravel(predicted_output.predict)
 
     assert len(predicted) == len(np.ravel(y_test))
+
+
+def test_ts_forecasting_cut_data_operation():
+    train_input, predict_input, y_test = get_time_series()
+    horizon = train_input.task.task_params.forecast_length
+    operation_cut = CutImplementation(cut_part=0.5)
+
+    transformed_input = operation_cut.transform(train_input, is_fit_pipeline_stage=False)
+    assert train_input.idx.shape[0] == 2 * transformed_input.idx.shape[0] - horizon
 
 
 def test_ts_forecasting_smoothing_data_operation():

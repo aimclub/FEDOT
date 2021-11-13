@@ -10,7 +10,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 
 
 class LaggedImplementation(DataOperationImplementation):
@@ -275,6 +275,63 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
+class CutImplementation(DataOperationImplementation):
+    def __init__(self, log: Log = None, **params):
+        super().__init__()
+        cut_part = params.get('cut_part')
+
+        # Define logger object
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
+        if 0 < cut_part <= 0.9:
+            self.cut_part = cut_part
+            self.parameters_changed = False
+        else:
+            # Default parameter
+            self.log.info(f"Change invalid parameter cut_part ({cut_part}) on default value (0.5)")
+            self.cut_part = 0.5
+            self.parameters_changed = True
+
+    def fit(self, input_data: InputData):
+        """ Class doesn't support fit operation
+
+            :param input_data: data with features, target and ids to process
+        """
+        pass
+
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]) -> OutputData:
+        """ Cut first cut_part from time series
+            new_len = len - int(self.cut_part * (input_values.shape[0]-horizon))
+
+            :param input_data: data with features, target and ids to process
+            :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+            :return output_data: output data with cutted time series
+        """
+        horizon = input_data.task.task_params.forecast_length
+        input_copy = copy(input_data)
+        input_values = input_copy.features
+        cut_len = int(self.cut_part * (input_values.shape[0] - horizon))
+        output_values = input_values[cut_len::]
+
+        input_copy.idx = np.arange(cut_len, input_values.shape[0])
+        input_copy.features = output_values
+        input_copy.target = output_values
+        output_data = self._convert_to_output(input_copy,
+                                              output_values,
+                                              data_type=DataTypesEnum.ts)
+        return output_data
+
+    def get_params(self):
+        params_dict = {"cut_part": self.cut_part}
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['cut_part']])
+        else:
+            return params_dict
+
+
 def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
                                    window_size_minimum: int, log: Log):
     """ Method check if the length of the time series is not enough for
@@ -430,43 +487,3 @@ def prepare_target(idx, features_columns: np.array, target, forecast_length: int
         updated_target = ts_target
 
     return updated_idx, updated_features, updated_target
-
-
-class CutImplementation(DataOperationImplementation):
-    def __init__(self, **params):
-        super().__init__()
-        cut_part = params.get('cut_part')
-        if not cut_part:
-            # Default parameter
-            self.cut_part = 0
-        else:
-            if 0 <= cut_part <= 0.9:
-                self.cut_part = cut_part
-            else:
-                # Default parameter
-                self.cut_part = 0
-
-    def fit(self, input_data):
-        """ Class doesn't support fit operation
-
-            :param input_data: data with features, target and ids to process
-        """
-        pass
-
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        horizon = input_data.task.task_params.forecast_length
-        input_copy = copy(input_data)
-        input_values = input_copy.features
-        cut_len = int(self.cut_part * (input_values.shape[0]-horizon))
-        output_values = input_values[cut_len::]
-
-        input_copy.idx = np.arange(output_values.shape[0])
-        input_copy.features = output_values
-        input_copy.target = output_values
-        output_data = self._convert_to_output(input_copy,
-                                              output_values,
-                                              data_type=DataTypesEnum.ts)
-        return output_data
-
-    def get_params(self):
-        return {"cut_part": self.cut_part}

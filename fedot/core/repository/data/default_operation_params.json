@@ -28,6 +28,9 @@
   "lagged": {
     "window_size": 10
   },
+  "cut": {
+    "cut_part": 0.5
+  },
   "sparse_lagged": {
     "window_size": 10,
     "n_components": 0.5,
