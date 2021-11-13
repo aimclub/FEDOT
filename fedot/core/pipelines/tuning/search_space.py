@@ -186,6 +186,9 @@ class SearchSpace:
             'gaussian_filter': {
                 'sigma': (hp.uniform, [1, 5])
             },
+            'cut': {
+                'cut_part': (hp.uniform, [0, 0.9])
+            },
             'lgbm': {
                 'class_weight': (hp.choice, [[None, 'balanced']]),
                 'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
