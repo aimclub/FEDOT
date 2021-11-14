@@ -44,11 +44,16 @@ def test_spaces_columns_process_correctly():
 
 
 def test_data_with_nans_in_target_process_correctly():
-    """ K-nn model should use 5 samples to train instead of 6 source due to
-    one row will be removed.
+    """ K-nn model should use 4 samples to train instead of 6 source due to
+    two rows will be removed. So, when n_neighbors was corrected, value must be
+    replaced using the following: new value = round(4 / 2). So, 2 instead of 3.
+
+    The same test for multi target table.
     """
 
-    pipeline = Pipeline(PrimaryNode('knnreg'))
+    knn_node = PrimaryNode('knnreg')
+    knn_node.custom_params = {'n_neighbors': 10}
+    pipeline = Pipeline(knn_node)
 
     # Single target column processing
     single_target_data = data_with_nans_in_target_column()
@@ -60,5 +65,5 @@ def test_data_with_nans_in_target_process_correctly():
     pipeline.fit(multi_target_data)
     multi_hyperparams = pipeline.nodes[0].custom_params
 
-    assert 5 == single_hyperparams['n_samples']
-    assert 3 == multi_hyperparams['n_samples']
+    assert 2 == single_hyperparams['n_neighbors']
+    assert 2 == multi_hyperparams['n_neighbors']
