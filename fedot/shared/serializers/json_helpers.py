@@ -4,9 +4,26 @@ from inspect import isclass, isfunction, ismethod
 from typing import Any, Dict
 from uuid import UUID
 
-from ..interfaces.serializable import CLASS_PATH_KEY, DELIMITER, Serializable, dump_path_to_obj
+from ..interfaces.serializable import Serializable
 
 OBJECT_ENCODING_KEY = 'kwargs'
+DELIMITER = '/'
+CLASS_PATH_KEY = '_class_path'
+
+
+def dump_path_to_obj(obj: object) -> Dict[str, str]:
+    if isclass(obj) or isfunction(obj) or ismethod(obj):
+        obj_name = obj.__qualname__
+    else:
+        obj_name = obj.__class__.__qualname__
+
+    if getattr(obj, '__module__', None) is None:
+        obj_module = obj.__class__.__module__
+    else:
+        obj_module = obj.__module__
+    return {
+        CLASS_PATH_KEY: f'{obj_module}{DELIMITER}{obj_name}'
+    }
 
 
 def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.dumps(...)

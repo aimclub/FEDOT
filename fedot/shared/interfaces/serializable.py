@@ -1,25 +1,9 @@
 import copy
 from abc import ABC, abstractmethod
-from inspect import isclass, isfunction, ismethod, signature
+from inspect import signature
 from typing import Any, Dict
 
-DELIMITER = '/'
-CLASS_PATH_KEY = '_class_path'
-
-
-def dump_path_to_obj(obj: object) -> Dict[str, str]:
-    if isclass(obj) or isfunction(obj) or ismethod(obj):
-        obj_name = obj.__qualname__
-    else:
-        obj_name = obj.__class__.__qualname__
-
-    if getattr(obj, '__module__', None) is None:
-        obj_module = obj.__class__.__module__
-    else:
-        obj_module = obj.__module__
-    return {
-        CLASS_PATH_KEY: f'{obj_module}{DELIMITER}{obj_name}'
-    }
+import fedot.shared.serializers.json_helpers as json_helpers
 
 
 class Serializable(ABC):
@@ -29,7 +13,7 @@ class Serializable(ABC):
         useless_fields = ['log', 'operation_templates']
         return {
             **{k: v for k, v in vars(self).items() if k not in useless_fields},
-            **dump_path_to_obj(self)
+            **json_helpers.dump_path_to_obj(self)
         }
 
     @classmethod
