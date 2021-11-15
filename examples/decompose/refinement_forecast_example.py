@@ -37,6 +37,26 @@ def get_refinement_pipeline(lagged):
     return pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline
 
 
+def get_refinement_pipeline_with_polyfit():
+    """ Create 4-level pipeline with decompose operation """
+
+    node_polyfit = PrimaryNode('arima')
+    node_lagged = PrimaryNode('lagged')
+    node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_polyfit])
+    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
+    node_dtreg.custom_params = {'max_depth': 3}
+
+    # Pipelines with different outputs
+    pipeline_with_decompose_finish = Pipeline(node_dtreg)
+    pipeline_with_main_finish = Pipeline(node_polyfit)
+
+    # Combining branches with different targets (T and T_decomposed)
+    final_node = SecondaryNode('ridge', nodes_from=[node_polyfit, node_dtreg])
+
+    pipeline = Pipeline(final_node)
+    return pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline
+
+
 def get_non_refinement_pipeline(lagged):
     """ Create 4-level pipeline without decompose operation """
 
@@ -104,7 +124,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     test_part = time_series[-horizon:]
 
     # Get pipeline with decomposing operation
-    pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline = get_refinement_pipeline(lagged)
+    pipeline_with_main_finish, pipeline_with_decompose_finish, pipeline = get_refinement_pipeline_with_polyfit()
     # Get simple pipeline without decomposing operation
     simple_pipeline = get_non_refinement_pipeline(lagged)
 

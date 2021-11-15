@@ -346,7 +346,7 @@ class SecondaryNode(Node):
         if self.nodes_from is not None:
             return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
         else:
-            return None
+            return Noneа
 
 
 def _combine_parents(parent_nodes: List[Node],

@@ -4,6 +4,7 @@ from copy import copy
 import numpy as np
 import torch
 import torch.nn as nn
+from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 from scipy import stats
 from scipy.special import inv_boxcox, boxcox
@@ -15,7 +16,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    ts_to_table, prepare_target
+    ts_to_table, prepare_target, LaggedTransformationImplementation
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
@@ -592,3 +593,68 @@ class LSTMNetwork(nn.Module):
         predictions = self.linear(hidden_cat)
 
         return predictions
+
+
+class PolyfitImplementation(ModelImplementation):
+    def __init__(self, log: Log = None, **params: Optional[dict]):
+        super().__init__(log)
+        self.min_degree = 2
+        self.max_degree = 10
+        self.parameters_changed = False
+
+        self.params = params
+        self.degree = params.get('degree')
+        if not self.min_degree <= self.degree <= self.max_degree:
+            # default value
+            self.log.info(f"Change invalid parameter degree ({self.degree}) on default value (3)")
+            self.degree = 3
+            self.parameters_changed = True
+        self.coefs = None
+
+    def fit(self, input_data):
+        f_x = input_data.idx
+        f_y = input_data.features
+        self.coefs = np.polyfit(f_x, f_y, deg=self.degree)
+        return self.coefs
+
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+        f_x = input_data.idx
+        f_y = np.polyval(self.coefs, f_x)
+        input_data = copy(input_data)
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
+        old_idx = input_data.idx
+        target = input_data.target
+        if is_fit_pipeline_stage:
+            _, predict = ts_to_table(idx=old_idx,
+                                     time_series=f_y,
+                                     window_size=forecast_length)
+            new_idx, target_columns = ts_to_table(idx=old_idx,
+                                                  time_series=target,
+                                                  window_size=forecast_length)
+
+            # Update idx and target
+            input_data.idx = new_idx
+            input_data.target = target_columns
+
+        else:
+            start_id = old_idx[-1] - forecast_length + 1
+            end_id = old_idx[-1]
+            predict = f_y
+            predict = np.array(predict).reshape(1, -1)
+            new_idx = np.arange(start_id, end_id + 1)
+
+            # Update idx
+            input_data.idx = new_idx
+
+        output_data = self._convert_to_output(input_data,
+                                                predict=predict,
+                                                data_type=DataTypesEnum.table)
+        return output_data
+
+    def get_params(self):
+        params_dict = {"degree": self.degree}
+        if self.parameters_changed is True:
+            return tuple([params_dict, ['cut_part']])
+        else:
+            return params_dict
