@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from fedot.shared.serializers.json_helpers import CLASS_PATH_KEY, DELIMITER, dump_path_to_obj
@@ -8,7 +8,7 @@ from .test_input import *
 
 DUMPING_CASES = [
     DumpObjectTestCase(
-        input_data=TEST_UUID,
+        input_data=UUID(TEST_UUID),
         result={
             CLASS_PATH_KEY: f'uuid{DELIMITER}UUID'
         }
