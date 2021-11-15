@@ -176,14 +176,25 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
     if horizon_step is not None:
         # Take particular forecast step
         copied_data.predict = copied_data.predict[:, horizon_step]
-        copied_data.idx = copied_data.idx + horizon_step
+        if isinstance(copied_data.idx, list):
+            # if indices can not be incremented, replace it
+            copied_data.idx = range(len(copied_data.idx))
+        else:
+            # if indices can be incremented
+            copied_data.idx = copied_data.idx + horizon_step
         return copied_data
     else:
         # Perform collapse with averaging
         forecast_length = copied_data.task.task_params.forecast_length
 
         # Extend source index range
-        indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
+        if isinstance(copied_data.idx, list):
+            # if indices can not be incremented, replace it
+            indices_range = np.arange(0, len(copied_data.idx) + forecast_length)
+
+        else:
+            # if indices can be incremented
+            indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
 
         # Lagged matrix with indices in cells
         _, idx_matrix = ts_to_table(idx=indices_range,
@@ -223,7 +234,10 @@ def in_sample_fitted_values(train_predicted: OutputData) -> OutputData:
     copied_data.predict = np.array(all_values)
     # Update indices
     first_id = copied_data.idx[0]
-    copied_data.idx = np.arange(first_id, first_id + len(all_values))
+    if isinstance(first_id, str):
+        copied_data.idx = np.arange(0, len(all_values))
+    else:
+        copied_data.idx = np.arange(first_id, first_id + len(all_values))
 
     return copied_data
 
