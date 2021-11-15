@@ -8,7 +8,6 @@ from typing import Any, List, Optional
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.shared import BasicSerializer, OperationMetaInfoSerializer
 
 
 @dataclass
