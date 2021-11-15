@@ -23,7 +23,7 @@ def get_refinement_pipeline(lagged):
     node_lagged.custom_params = {'window_size': lagged}
     node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
     node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_lasso])
-    node_dtreg = SecondaryNode('ridge', nodes_from=[node_decompose])
+    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
     node_dtreg.custom_params = {'max_depth': 3}
 
     # Pipelines with different outputs
@@ -173,4 +173,4 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
 if __name__ == '__main__':
     path = '../../cases/data/time_series/economic_data.csv'
     run_refinement_forecast(path, len_forecast=50, validation_blocks=5,
-                            lagged=50, vis_with_decompose=False)
+                            lagged=50, vis_with_decompose=True)
