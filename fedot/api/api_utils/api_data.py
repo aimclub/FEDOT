@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.data_definition import data_strategy_selector
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.data.data import InputData
@@ -60,7 +61,8 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
-        data.supplementary_data.was_preprocessed = True
+
+        self.mark_as_preprocessed(data)
         return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: InputData):
@@ -93,6 +95,15 @@ class ApiDataProcessor:
             elif real.num_classes == 2:
                 prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
         return real.target, prediction.predict
+
+    @staticmethod
+    def mark_as_preprocessed(data: Union[InputData, MultiModalData]):
+        if isinstance(data, InputData):
+            data.supplementary_data.was_preprocessed = True
+        else:
+            # Multimodal data
+            for data_source_name, values in data.items():
+                values.supplementary_data.was_preprocessed = True
 
     @staticmethod
     def convert_to_two_classes(predict):

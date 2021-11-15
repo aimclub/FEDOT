@@ -164,8 +164,7 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        if copied_input_data.supplementary_data.was_preprocessed is False:
-            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
                                                                        data=copied_input_data)
@@ -220,8 +219,7 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        if copied_input_data.supplementary_data.was_preprocessed is False:
-            copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
+        copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
                                                                            data=copied_input_data)

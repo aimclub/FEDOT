@@ -56,44 +56,22 @@ class DataPreprocessor:
         # TODO add advanced gapfilling for time series
 
         if isinstance(data, InputData):
-            data = self._correct_shapes(data)
-
-            if data_type_is_table(data):
-                data = replace_inf_with_nans(data)
-                data = self._drop_features_full_of_nans(data)
-                data = self._drop_rows_with_nan_in_target(data)
-                data = self._clean_extra_spaces(data)
-
-                # Process categorical features
-                self.categorical_processor.fit(data)
-                data = self.categorical_processor.transform(data)
+            data = self._prepare_unimodal_for_fit(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
-                # Fix shapes
-                data[data_source_name] = self._correct_shapes(values)
-
-                if data_type_is_table(values):
-                    data = replace_inf_with_nans(data)
-                    data[data_source_name] = self._drop_features_full_of_nans(values)
-                    data[data_source_name] = self._drop_rows_with_nan_in_target(values)
-                    data[data_source_name] = self._clean_extra_spaces(values)
+                data[data_source_name] = self._prepare_unimodal_for_fit(values)
 
         return data
 
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]):
         """ Perform obligatory preprocessing for pipeline predict method """
         if isinstance(data, InputData):
-            if data_type_is_table(data):
-                self.take_only_correct_features(data)
-                data = self._clean_extra_spaces(data)
-                data = self.categorical_processor.transform(data)
+            data = self._prepare_unimodal_for_predict(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
-                if data_type_is_table(values):
-                    self.take_only_correct_features(values)
-                    data[data_source_name] = self._clean_extra_spaces(values)
+                data[data_source_name] = self._prepare_unimodal_for_predict(values)
 
         return data
 
@@ -134,6 +112,39 @@ class DataPreprocessor:
         """ Take only correct features in the table """
         if len(self.ids_relevant_features) != 0:
             data.features = data.features[:, self.ids_relevant_features]
+
+    def _prepare_unimodal_for_fit(self, data: InputData) -> InputData:
+        """ Method process InputData for pipeline fit method """
+        if data.supplementary_data.was_preprocessed is True:
+            # Preprocessing was already done - return data
+            return data
+
+        # Fix tables / time series sizes
+        data = self._correct_shapes(data)
+
+        if data_type_is_table(data):
+            data = replace_inf_with_nans(data)
+            data = self._drop_features_full_of_nans(data)
+            data = self._drop_rows_with_nan_in_target(data)
+            data = self._clean_extra_spaces(data)
+
+            # Process categorical features
+            self.categorical_processor.fit(data)
+            data = self.categorical_processor.transform(data)
+        return data
+
+    def _prepare_unimodal_for_predict(self, data: InputData) -> InputData:
+        """ Method process InputData for pipeline predict method """
+
+        data = self._correct_shapes(data)
+        if data_type_is_table(data):
+            data = replace_inf_with_nans(data)
+            self.take_only_correct_features(data)
+
+            data = self._clean_extra_spaces(data)
+            data = self.categorical_processor.transform(data)
+
+        return data
 
     def _drop_features_full_of_nans(self, data: InputData) -> InputData:
         """ Dropping features with more than ALLOWED_NAN_PERCENT nan's
@@ -194,37 +205,28 @@ class DataPreprocessor:
         :param pipeline: pipeline to check
         :return (bool, bool): has Imputation and OneHotEncoder in pipeline
         """
-
-        has_imputers, has_encoders = [], []
-
-        def _check_imputer_encoder_recursion(root: Optional[Node], has_imputer: bool = False,
-                                             has_encoder: bool = False):
+        has_operations = []
+        def _check_operation_recursion(root: Optional[Node],
+                                       operation_name: str,
+                                       has_operation: bool = False):
+            # Check if the operation in the node
             node_type = root.operation.operation_type
-            if node_type == 'simple_imputation':
-                has_imputer = True
-            if node_type == 'one_hot_encoding':
-                has_encoder = True
+            if node_type == operation_name:
+                has_operation = True
 
-            if has_imputer and has_encoder:
-                return has_imputer, has_encoder
+            if has_operation:
+                return has_operation
             elif root.nodes_from is None:
-                return has_imputer, has_encoder
+                return has_operation
 
             for node in root.nodes_from:
-                answer = _check_imputer_encoder_recursion(node, has_imputer, has_encoder)
+                answer = _check_operation_recursion(node, operation_name, has_operation)
                 if answer is not None:
-                    imputer, encoder = answer
-                    has_imputers.append(imputer)
-                    has_encoders.append(encoder)
+                    has_operations.append(answer)
 
-        _check_imputer_encoder_recursion(pipeline.root_node)
-
-        if not has_imputers and not has_encoders:
-            return False, False
-
-        has_imputer = all(branch_has_imp is True for branch_has_imp in has_imputers)
-        has_encoder = all(branch_has_imp is True for branch_has_imp in has_encoders)
-        return has_imputer, has_encoder
+        _check_operation_recursion(pipeline.root_node, operation_name='simple_imputation')
+        has_imputer = all(branch_has_imp is True for branch_has_imp in has_operations)
+        return has_imputer
 
     def apply_imputation(self, data: Union[InputData, MultiModalData]) -> Union[InputData, MultiModalData]:
         if isinstance(data, InputData):
@@ -280,7 +282,7 @@ class DataPreprocessor:
         Transformation the prediction data inplace. Use the same transformations as for the training data.
 
         :param data: data to transformation
-        :param encoders: encoders f transformation
+        :param encoders: encoders for transformation
         """
         if encoders:
             if isinstance(data, InputData):
