@@ -598,8 +598,8 @@ class LSTMNetwork(nn.Module):
 class PolyfitImplementation(ModelImplementation):
     def __init__(self, log: Log = None, **params: Optional[dict]):
         super().__init__(log)
-        self.min_degree = 2
-        self.max_degree = 10
+        self.min_degree = 1
+        self.max_degree = 5
         self.parameters_changed = False
 
         self.params = params
@@ -615,6 +615,7 @@ class PolyfitImplementation(ModelImplementation):
         f_x = input_data.idx
         f_y = input_data.features
         self.coefs = np.polyfit(f_x, f_y, deg=self.degree)
+
         return self.coefs
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):

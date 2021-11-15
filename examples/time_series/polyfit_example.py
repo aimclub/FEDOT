@@ -43,7 +43,7 @@ def run_experiment_with_polyfit(time_series, len_forecast=250,
                                                           train_data_target=train_data,
                                                           test_data_features=train_data)
 
-    pipeline = polyfit_ridge_pipeline(2)
+    pipeline = polyfit_pipeline(3)
     pipeline.fit(train_input)
 
     predict = np.ravel(np.array(pipeline.predict(predict_input).predict))

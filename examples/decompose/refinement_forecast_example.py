@@ -23,7 +23,7 @@ def get_refinement_pipeline(lagged):
     node_lagged.custom_params = {'window_size': lagged}
     node_lasso = SecondaryNode('lasso', nodes_from=[node_lagged])
     node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_lasso])
-    node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
+    node_dtreg = SecondaryNode('ridge', nodes_from=[node_decompose])
     node_dtreg.custom_params = {'max_depth': 3}
 
     # Pipelines with different outputs
@@ -40,7 +40,8 @@ def get_refinement_pipeline(lagged):
 def get_refinement_pipeline_with_polyfit():
     """ Create 4-level pipeline with decompose operation """
 
-    node_polyfit = PrimaryNode('arima')
+    node_polyfit = PrimaryNode('polyfit')
+    node_polyfit.custom_params = {'degree': 2}
     node_lagged = PrimaryNode('lagged')
     node_decompose = SecondaryNode('decompose', nodes_from=[node_lagged, node_polyfit])
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
