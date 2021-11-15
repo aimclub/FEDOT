@@ -14,7 +14,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
-from fedot.core.pipelines.preprocessing import DataPreprocessor
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 
@@ -27,7 +27,6 @@ class Pipeline(Graph):
 
     :param nodes: Node object(s)
     :param log: Log object to record messages
-    :param preprocessing_needed: is there a need to preprocess tabular data
 
     .. note::
         fitted_on_data stores the data which were used in last pipeline fitting (equals None if pipeline hasn't been
@@ -35,10 +34,7 @@ class Pipeline(Graph):
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = None, preprocessing_needed: bool = True):
-
-        self.preprocessing_needed = preprocessing_needed
-
+                 log: Log = None):
         self.computation_time = None
         self.template = None
         self.fitted_on_data = {}
@@ -168,7 +164,7 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        if self.preprocessing_needed:
+        if copied_input_data.supplementary_data.was_preprocessed is False:
             copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
@@ -224,7 +220,7 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = copy(input_data)
-        if self.preprocessing_needed:
+        if copied_input_data.supplementary_data.was_preprocessed is False:
             copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,

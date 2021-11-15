@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.data_definition import data_strategy_selector
+from fedot.core.log import Log
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.data.data import InputData
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.utils import probs_to_labels
@@ -13,7 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-class ApiDataSources:
+class ApiDataProcessor:
     """
     Class for selecting optimal data processing strategies based on type of data.
     Available data sources are:
@@ -21,16 +23,21 @@ class ApiDataSources:
         * pandas DataFrame
         * string (path to csv file)
         * InputData (FEDOT dataclass)
+
+    Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task):
+    def __init__(self, task: Task, log: Log = None):
         self.task = task
+        self.preprocessor = DataPreprocessor(log)
 
     def define_data(self,
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                     target: Union[str, np.ndarray, pd.Series] = None,
                     is_predict=False):
-        """ Prepare data for composing """
+        """ Prepare data for fedot pipeline composing.
+        Obligatory preprocessing steps are applying also
+        """
         try:
             # TODO remove workaround
             idx = None
@@ -45,7 +52,15 @@ class ApiDataSources:
                 for k in data.keys():
                     data[k].idx = idx
         except Exception as ex:
-            raise ValueError(f'Please specify a features as path to csv file or as Numpy array: {ex}')
+            raise ValueError('Please specify a features as path to csv file, as Numpy array, '
+                             'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
+
+        # Perform obligatory steps of data preprocessing
+        if is_predict is False:
+            data = self.preprocessor.obligatory_prepare_for_fit(data)
+        else:
+            data = self.preprocessor.obligatory_prepare_for_predict(data)
+        data.supplementary_data.was_preprocessed = True
         return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: InputData):

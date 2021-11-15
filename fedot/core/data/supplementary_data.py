@@ -21,6 +21,8 @@ class SupplementaryData:
     features_mask: Optional[dict] = None
     # Last visited nodes
     previous_operations: Optional[list] = None
+    # Is there a data was preprocessed or not
+    was_preprocessed: bool = False
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)

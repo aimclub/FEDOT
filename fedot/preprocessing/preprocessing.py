@@ -11,6 +11,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 from fedot.core.pipelines.node import Node
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.categorical import CategoricalPreprocessor
 
 # The allowed percent of empty samples in features.
 # Example: 30% objects in features are 'nan', then drop this feature from data.
@@ -31,12 +33,13 @@ class DataPreprocessor:
     TODO refactor for multimodal data preprocessing
     """
 
-    def __init__(self, log: Log):
+    def __init__(self, log: Log = None):
         self.process_features = {}
         self.ids_relevant_features = []
 
         # Cannot be processed due to incorrect types or large amount of nans
         self.ids_incorrect_features = []
+        self.categorical_processor = CategoricalPreprocessor()
         self.log = log
 
         if not log:
@@ -47,17 +50,29 @@ class DataPreprocessor:
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
         Perform obligatory preprocessing for pipeline fit method.
-        It includes removing features full of nans, extra spaces in features deleteing,
+        It includes removing features full of nans, extra spaces in features deleting,
         drop rows where target cells are none
         """
-        if isinstance(data, InputData) and data_type_is_table(data):
-            data = replace_inf_with_nans(data)
-            data = self._drop_features_full_of_nans(data)
-            data = self._drop_rows_with_nan_in_target(data)
-            data = self._clean_extra_spaces(data)
+        # TODO add advanced gapfilling for time series
+
+        if isinstance(data, InputData):
+            data = self._correct_shapes(data)
+
+            if data_type_is_table(data):
+                data = replace_inf_with_nans(data)
+                data = self._drop_features_full_of_nans(data)
+                data = self._drop_rows_with_nan_in_target(data)
+                data = self._clean_extra_spaces(data)
+
+                # Process categorical features
+                self.categorical_processor.fit(data)
+                data = self.categorical_processor.transform(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
+                # Fix shapes
+                data[data_source_name] = self._correct_shapes(values)
+
                 if data_type_is_table(values):
                     data = replace_inf_with_nans(data)
                     data[data_source_name] = self._drop_features_full_of_nans(values)
@@ -72,6 +87,7 @@ class DataPreprocessor:
             if data_type_is_table(data):
                 self.take_only_correct_features(data)
                 data = self._clean_extra_spaces(data)
+                data = self.categorical_processor.transform(data)
 
         elif isinstance(data, MultiModalData):
             for data_source_name, values in data.items():
@@ -89,7 +105,7 @@ class DataPreprocessor:
         """
 
         # Check if pipeline has encoders in its structure
-        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(pipeline)
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_imputers_validation(pipeline)
 
         if data_has_missing_values(data) and not has_imputation_operation:
             data = self.apply_imputation(data)
@@ -105,7 +121,7 @@ class DataPreprocessor:
         :param data: data to preprocess
         """
         # Check if pipeline has encoders in its structure
-        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_validation(
+        has_imputation_operation, has_encoder_operation = self.pipeline_encoders_imputers_validation(
             pipeline)
 
         if data_has_missing_values(data) and not has_imputation_operation:
@@ -171,9 +187,9 @@ class DataPreprocessor:
         return data
 
     @staticmethod
-    def pipeline_encoders_validation(pipeline) -> (bool, bool):
+    def pipeline_encoders_imputers_validation(pipeline) -> (bool, bool):
         """
-        Check whether Imputation and OneHotEncoder operation exist in pipeline.
+        Check whether Imputation or OneHotEncoder operation exist in pipeline.
 
         :param pipeline: pipeline to check
         :return (bool, bool): has Imputation and OneHotEncoder in pipeline
@@ -293,3 +309,23 @@ class DataPreprocessor:
             transformed = data.features
 
         return transformed, encoder
+
+    @staticmethod
+    def _correct_shapes(data: InputData) -> InputData:
+        """
+        Correct shapes of tabular data or time series: tabular must be
+        two-dimensional arrays, time series - one-dim array
+        """
+
+        if data.data_type is DataTypesEnum.table:
+            if len(data.features.shape) < 2:
+                data.features = data.features.reshape((-1, 1))
+            if data.target is not None and len(data.target.shape) < 2:
+                data.target = data.target.reshape((-1, 1))
+
+        elif data.data_type is DataTypesEnum.ts:
+            data.features = np.ravel(data.features)
+            if data.target is not None:
+                data.target = np.ravel(data.target)
+
+        return data

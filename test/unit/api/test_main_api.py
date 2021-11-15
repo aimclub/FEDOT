@@ -10,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.multi_modal_pipeline import (prepare_multi_modal_data)
-from fedot.api.api_utils.api_data import ApiDataSources
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -145,7 +145,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
 
 
 def test_api_check_data_correct():
-    data_checker = ApiDataSources(task=Task(TaskTypesEnum.regression))
+    data_checker = ApiDataProcessor(task=Task(TaskTypesEnum.regression))
 
     # Get data
     task_type, x_train, x_test, y_train, y_test = get_split_data()

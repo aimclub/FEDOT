@@ -147,12 +147,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.categorical_ids = categorical_ids
         self.non_categorical_ids = non_categorical_ids
 
-        if len(self.categorical_ids) > 0:
-            # If there is binary features in categorical - try to convert into float
-            # And remove ids of such features from categorical
-            self.process_binary_str_features(input_data)
-
-        # One more check after updating - if all categorical features were binary - do not process
+        # If there are categorical features - process it
         if len(self.categorical_ids) > 0:
             updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
             self.encoder.fit(updated_cat_features)
@@ -166,8 +161,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
-        input_data = self.convert_binary_into_float(input_data)
-
         features = input_data.features
         if len(self.categorical_ids) == 0:
             # If there are no categorical features in the table
@@ -202,55 +195,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
-
-    def process_binary_str_features(self, input_data: InputData):
-        """
-        Find indices of columns which are contains binary features and at the same time has str objects.
-        If there are such features - convert it into float and then drop them from categorical indices list
-        """
-        categorical_features = np.array(input_data.features[:, self.categorical_ids], dtype=str)
-
-        updated_cat_ids = []
-        binary_ids_to_convert = []
-        for column_id in range(categorical_features.shape[-1]):
-            column_uniques = np.unique(categorical_features[:, column_id])
-
-            if len(column_uniques) <= 2:
-                # Column contains binary feature - try to convert into float
-                try:
-                    np.array(categorical_features[:, column_id], dtype=float)
-                    binary_ids_to_convert.append(self.categorical_ids[column_id])
-                except ValueError:
-                    # Current column cannot be converted into float
-                    updated_cat_ids.append(self.categorical_ids[column_id])
-            else:
-                # Column contains string but not binary
-                updated_cat_ids.append(self.categorical_ids[column_id])
-
-        # Update categorical indices - there are no binary features there
-        self.categorical_ids = updated_cat_ids
-        self.binary_ids_to_convert = binary_ids_to_convert
-        self.non_categorical_ids = sorted(self.non_categorical_ids + binary_ids_to_convert)
-
-    def convert_binary_into_float(self, input_data: InputData) -> InputData:
-        """ Convert several columns in input data from string into float """
-        copied_data = copy(input_data)
-        if len(self.binary_ids_to_convert) == 0:
-            return input_data
-
-        converted_features = []
-        number_of_columns = copied_data.features.shape[-1]
-        for column_id, number in enumerate(range(number_of_columns)):
-            if column_id in self.binary_ids_to_convert:
-                converted_column = np.array(copied_data.features[:, column_id], dtype=float)
-            else:
-                converted_column = np.array(copied_data.features[:, column_id])
-
-            converted_features.append(converted_column.reshape((-1, 1)))
-
-        converted_features = np.hstack(converted_features)
-        copied_data.features = converted_features
-        return copied_data
 
     def get_params(self):
         return self.encoder.get_params()

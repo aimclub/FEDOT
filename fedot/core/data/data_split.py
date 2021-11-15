@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Tuple, Union
 
 from sklearn.model_selection import train_test_split
@@ -180,6 +181,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
     """
     if isinstance(data, InputData):
         train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag)
+        train_data.supplementary_data = copy(data.supplementary_data)
+        test_data.supplementary_data = copy(data.supplementary_data)
     elif isinstance(data, MultiModalData):
         train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag)
     else:

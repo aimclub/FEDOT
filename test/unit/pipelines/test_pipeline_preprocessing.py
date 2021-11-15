@@ -1,7 +1,9 @@
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
-    data_with_leading_trailing_spaces, data_with_nans_in_target_column, data_with_nans_in_multi_target
+    data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target
 
 # Tests for pipeline fitting correctly with "bad" data as input - checking preprocessing
 
@@ -34,7 +36,7 @@ def test_spaces_columns_process_correctly():
     For example, ' x ' instead of 'x'.
     """
     pipeline = Pipeline(PrimaryNode('ridge'))
-    data_with_spaces = data_with_leading_trailing_spaces()
+    data_with_spaces = data_with_spaces_and_nans_in_features()
 
     pipeline.fit(data_with_spaces)
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
@@ -67,3 +69,43 @@ def test_data_with_nans_in_target_process_correctly():
 
     assert 2 == single_hyperparams['n_neighbors']
     assert 2 == multi_hyperparams['n_neighbors']
+
+
+def test_pipeline_encoder_validation():
+    """ DataPreprocessor should correctly identify is pipeline has needed operations (encoding, imputation) or not """
+    first_scaling = PrimaryNode('simple_imputation')
+    first_encoder = PrimaryNode('one_hot_encoding')
+    linear = PrimaryNode('linear')
+    xgb_second = SecondaryNode('xgboost', nodes_from=[linear])
+    second_scaling = SecondaryNode('simple_imputation', nodes_from=[first_encoder])
+    second_encoder = SecondaryNode('one_hot_encoding', nodes_from=[first_scaling])
+    xgb = SecondaryNode('xgboost', nodes_from=[second_encoder, second_scaling])
+    ridge = SecondaryNode('ridge', nodes_from=[first_scaling, xgb_second])
+    encoder_second = SecondaryNode('one_hot_encoding', nodes_from=[ridge])
+    ridge_second = SecondaryNode('ridge', nodes_from=[xgb_second])
+    root = SecondaryNode('simple_imputation', nodes_from=[encoder_second, xgb, ridge_second])
+
+    pipeline = Pipeline(root)
+
+    has_imputer, has_encoder = DataPreprocessor.pipeline_encoders_imputers_validation(pipeline)
+
+    assert has_imputer is True
+    assert has_encoder is False
+
+
+def test_preprocessing_binary_categorical_train_test_correct():
+    """ Generate tabular InputData with categorical features with only two values (binary).
+    During preprocessing such a features must be converted into int values. The same mapping
+    should be performed on test part.
+
+    The dataset used below has an important property. The first feature in train will always
+    be binary (a + b, or a + c, etc.), but a new category (a or c pr b) will appear in the test
+    """
+    pipeline = Pipeline(PrimaryNode('ridge'))
+    
+    categorical_data = data_with_only_categorical_features()
+    train_data, test_data = train_test_data_setup(categorical_data)
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+    
+    assert prediction is not None

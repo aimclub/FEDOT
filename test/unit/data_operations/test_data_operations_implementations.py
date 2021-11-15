@@ -127,7 +127,12 @@ def get_single_feature_data(task=None):
     return train_input
 
 
-def get_one_hot_encoding_data(task=None, extended=False):
+def get_data_with_categories(task=None, extended=False):
+    """ Generate InputData with five categorical features. The categorical features
+    are created in such a way that in any splitting there will be categories in the
+    test part that were not in the train.
+    """
+
     if extended:
         features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
                              [2, '1', '0', 0, '4', 'blue', 'da'],
@@ -274,7 +279,7 @@ def test_feature_selection_of_single_features():
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
-        data_functions = [get_single_feature_data(task), get_one_hot_encoding_data(task)]
+        data_functions = [get_single_feature_data(task), get_data_with_categories(task)]
         list_with_operations = list(product(model_names, data_functions))
 
         for data_operation, train_input in list_with_operations:
@@ -295,8 +300,8 @@ def test_one_hot_encoding_new_category_in_test():
     """ Check if One Hot Encoding can correctly predict data with new categories
     (which algorithm were not process during train stage)
     """
-    cat_data = get_one_hot_encoding_data(task=Task(TaskTypesEnum.classification),
-                                         extended=True)
+    cat_data = get_data_with_categories(task=Task(TaskTypesEnum.classification),
+                                        extended=True)
     train, test = train_test_data_setup(cat_data)
 
     # Create pipeline with encoding operation
@@ -329,8 +334,8 @@ def test_enconding_binary_correct():
     """ Check if encoding operation can correctly process binary features """
     final_columns_number = 18
     true_binary_feature_id = 2
-    cat_data = get_one_hot_encoding_data(task=Task(TaskTypesEnum.classification),
-                                         extended=True)
+    cat_data = get_data_with_categories(task=Task(TaskTypesEnum.classification),
+                                        extended=True)
 
     encoding_node = PrimaryNode('one_hot_encoding')
     encoding_node.fit(cat_data)

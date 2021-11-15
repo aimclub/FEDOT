@@ -14,7 +14,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.api.api_utils.params import ApiParams
-from fedot.api.api_utils.api_data import ApiDataSources
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.explainability.explainers import explain_pipeline
@@ -26,7 +26,7 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 class Fedot:
     """
     Main class for FEDOT API.
-    Facade for ApiDataSources, ApiComposer, ApiMetrics, ApiInitialAssumptions.
+    Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
 
     :param problem: the name of modelling problem to solve:
         - classification
@@ -86,7 +86,8 @@ class Fedot:
 
         # Update timeout and initial_pipeline parameters
         self.update_params(timeout, initial_pipeline)
-        self.data_sources = ApiDataSources(task=self.api_params['task'])
+        self.data_processor = ApiDataProcessor(task=self.api_params['task'],
+                                               log=self.api_params['logger'])
 
         self.target = None
         self.train_data = None
@@ -110,7 +111,7 @@ class Fedot:
         """
 
         self.target = target
-        self.train_data = self.data_sources.define_data(features=features, target=target, is_predict=False)
+        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self._init_remote_if_necessary()
 
         is_composing_required = True
@@ -148,10 +149,10 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        self.test_data = self.data_sources.define_data(target=self.target, features=features, is_predict=True)
+        self.test_data = self.data_processor.define_data(target=self.target, features=features, is_predict=True)
 
-        self.prediction = self.data_sources.define_predictions(current_pipeline=self.current_pipeline,
-                                                               test_data=self.test_data)
+        self.prediction = self.data_processor.define_predictions(current_pipeline=self.current_pipeline,
+                                                                 test_data=self.test_data)
 
         if save_predictions:
             self.save_predict(self.prediction)
@@ -175,8 +176,8 @@ class Fedot:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.api_params['task'].task_type == TaskTypesEnum.classification:
-            self.test_data = self.data_sources.define_data(target=self.target,
-                                                           features=features, is_predict=True)
+            self.test_data = self.data_processor.define_data(target=self.target,
+                                                             features=features, is_predict=True)
 
             mode = 'full_probs' if probs_for_all_classes else 'probs'
 
@@ -210,9 +211,9 @@ class Fedot:
         if self.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
-        self.test_data = self.data_sources.define_data(target=self.target,
-                                                       features=pre_history,
-                                                       is_predict=True)
+        self.test_data = self.data_processor.define_data(target=self.target,
+                                                         features=pre_history,
+                                                         is_predict=True)
 
         self.current_pipeline = Pipeline(self.current_pipeline.root_node)
         # TODO add incremental forecast
@@ -291,9 +292,9 @@ class Fedot:
                     prediction.predict = self.predict_proba(self.test_data)
                 real = deepcopy(self.test_data)
 
-                real.target, prediction.predict = self.data_sources.correct_shape(metric_name=metric_name,
-                                                                                  real=real,
-                                                                                  prediction=prediction)
+                real.target, prediction.predict = self.data_processor.correct_shape(metric_name=metric_name,
+                                                                                    real=real,
+                                                                                    prediction=prediction)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
@@ -349,8 +350,9 @@ class Fedot:
         if features is None:
             data = self.train_data
         else:
-            data = self.data_sources.define_data(features=features,
-                                                 is_predict=False)
-        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method, visualize=visualize, **kwargs)
+            data = self.data_processor.define_data(features=features,
+                                                   is_predict=False)
+        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
+                                     visualize=visualize, **kwargs)
 
         return explainer
