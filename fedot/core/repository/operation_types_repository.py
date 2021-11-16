@@ -74,7 +74,7 @@ class OperationTypesRepository:
 
     @classmethod
     @run_once
-    def init_automl_repository(cls):  # TODO вставить этот метод в общую логику
+    def init_automl_repository(cls):
         default_automl_repo_file = cls.__repository_dict__['automl']['file']
         return cls.assign_repo('automl', default_automl_repo_file)
 

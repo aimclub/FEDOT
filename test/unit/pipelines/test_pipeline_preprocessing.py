@@ -2,6 +2,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.preprocessing.structure import StructureExplorer
 from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
     data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target
 
@@ -71,26 +72,24 @@ def test_data_with_nans_in_target_process_correctly():
     assert 2 == multi_hyperparams['n_neighbors']
 
 
-def test_pipeline_encoder_validation():
-    """ DataPreprocessor should correctly identify is pipeline has needed operations (encoding, imputation) or not """
-    first_scaling = PrimaryNode('simple_imputation')
+def test_non_correct_pipeline_encoder_validation():
+    """
+    DataPreprocessor should correctly identify is pipeline has needed operations
+    (encoding, imputation) in right order or not.
+    In the case presented below incorrect ynimodal pipeline generated.
+    """
+    first_imputation = PrimaryNode('simple_imputation')
     first_encoder = PrimaryNode('one_hot_encoding')
-    linear = PrimaryNode('linear')
-    xgb_second = SecondaryNode('xgboost', nodes_from=[linear])
-    second_scaling = SecondaryNode('simple_imputation', nodes_from=[first_encoder])
-    second_encoder = SecondaryNode('one_hot_encoding', nodes_from=[first_scaling])
-    xgb = SecondaryNode('xgboost', nodes_from=[second_encoder, second_scaling])
-    ridge = SecondaryNode('ridge', nodes_from=[first_scaling, xgb_second])
-    encoder_second = SecondaryNode('one_hot_encoding', nodes_from=[ridge])
-    ridge_second = SecondaryNode('ridge', nodes_from=[xgb_second])
-    root = SecondaryNode('simple_imputation', nodes_from=[encoder_second, xgb, ridge_second])
 
+    second_rfr = SecondaryNode('rfr', nodes_from=[first_imputation])
+    second_ridge = SecondaryNode('ridge', nodes_from=[first_encoder])
+    second_encoder = SecondaryNode('one_hot_encoding', nodes_from=[first_imputation])
+
+    third_imputer = SecondaryNode('simple_imputation', nodes_from=[second_ridge])
+    root = SecondaryNode('linear', nodes_from=[second_rfr, third_imputer, second_encoder])
     pipeline = Pipeline(root)
 
-    has_imputer, has_encoder = DataPreprocessor.pipeline_encoders_imputers_validation(pipeline)
-
-    assert has_imputer is True
-    assert has_encoder is False
+    has_encoder = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
 
 
 def test_preprocessing_binary_categorical_train_test_correct():
@@ -99,7 +98,8 @@ def test_preprocessing_binary_categorical_train_test_correct():
     should be performed on test part.
 
     The dataset used below has an important property. The first feature in train will always
-    be binary (a + b, or a + c, etc.), but a new category (a or c pr b) will appear in the test
+    be binary (a + b, or a + c, etc.), but a new category (a or c pr b) will appear in the test.
+    So it is needed to extend dictionary for Label encoder.
     """
     pipeline = Pipeline(PrimaryNode('ridge'))
     

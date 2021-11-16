@@ -6,6 +6,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
@@ -156,7 +157,6 @@ class Node(GraphNode):
 
         :param input_data: data used for operation training
         """
-
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
                                                                           data=input_data,
@@ -203,6 +203,18 @@ class Node(GraphNode):
 
     def __str__(self):
         return str(self.operation.operation_type)
+
+    @property
+    def tags(self):
+        """ Return tags of operation in the node. """
+        models_repo = OperationTypesRepository()
+        data_operations_repo = OperationTypesRepository(operation_type='data_operation')
+        automl_repo = OperationTypesRepository(operation_type='automl')
+
+        for repo in [data_operations_repo, models_repo, automl_repo]:
+            info = repo.operation_info_by_id(self.operation.operation_type)
+            if info is not None:
+                return info.tags
 
 
 class PrimaryNode(Node):
