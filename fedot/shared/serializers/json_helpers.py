@@ -38,7 +38,7 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
         }
     elif isfunction(obj) or ismethod(obj):
         return dump_path_to_obj(obj)
-    raise TypeError(f'{obj=} of type {type(obj)} can\'t be serialized!')
+    raise TypeError(f'obj={obj} of type {type(obj)} can\'t be serialized!')
 
 
 def _get_class(class_path: str) -> Any:
@@ -62,5 +62,5 @@ def decoder(json_obj: Dict[str, Any]) -> Any:  # serves as 'object_hook' decoder
             if type(value) is dict:
                 return obj_cls(**value)
             return obj_cls(value)
-        raise TypeError(f'Parsed {obj_cls=} is not serializable, but should be')
+        raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')
     return json_obj
