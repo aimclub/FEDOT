@@ -1,6 +1,7 @@
+from typing import Callable, List, Union
+
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
                              mean_squared_error, r2_score, roc_auc_score)
-from typing import List, Union
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
@@ -56,7 +57,11 @@ class ApiMetrics:
         return tuner_dict.get(metric_name)
 
     @staticmethod
-    def get_composer_metrics_mapping(metric_name: str):
+    def get_composer_metrics_mapping(metric_name: Union[str, Callable]):
+        if isinstance(metric_name, Callable):
+            # for custom metric
+            return metric_name
+
         composer_metric_dict = {
             'acc': ClassificationMetricsEnum.accuracy,
             'roc_auc': ClassificationMetricsEnum.ROCAUC,

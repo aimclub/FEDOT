@@ -4,7 +4,7 @@ from typing import Callable, Union, List
 
 import numpy as np
 from deap import tools
-from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error
+from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
@@ -14,7 +14,7 @@ from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.utils.pareto import ParetoFront

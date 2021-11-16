@@ -2,7 +2,7 @@ import math
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
 from tqdm import tqdm
@@ -153,12 +153,22 @@ class GPGraphOptimiser:
         """
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
-        randomized_pop = ([mutation(types=self.parameters.mutation_types,
-                                    params=self.graph_generation_params,
-                                    ind=Individual(deepcopy(initial_pipeline)), requirements=initial_req,
-                                    max_depth=self.max_depth, log=self.log,
-                                    add_to_history=False)
-                           for _ in range(self.requirements.pop_size)])
+        randomized_pop = []
+        n_iter = self.requirements.pop_size * 10
+        while len(randomized_pop) < self.requirements.pop_size - 1 and n_iter > 0:
+            n_iter -= 1
+            new_ind = mutation(types=self.parameters.mutation_types,
+                               params=self.graph_generation_params,
+                               ind=Individual(deepcopy(initial_pipeline)),
+                               requirements=initial_req,
+                               max_depth=self.max_depth, log=self.log,
+                               add_to_history=False)
+            if new_ind not in randomized_pop:
+                # to suppress duplicated
+                randomized_pop.append(new_ind)
+
+        randomized_pop.append(Individual(deepcopy(initial_pipeline)))
+
         return randomized_pop
 
     def _init_population(self):

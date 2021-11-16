@@ -8,7 +8,7 @@ from deap import tools
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, \
     GPComposerRequirements, sample_split_ratio_for_tasks
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
+from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -23,14 +23,13 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, \
-    get_default_params
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from test.unit.composer.test_composer import _to_numerical
+from test.unit.composer.test_composer import to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
     pipeline_third
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -43,7 +42,7 @@ def file_data():
     file = '../../data/simple_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
-    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
+    input_data.idx = to_numerical(categorical_ids=input_data.idx)
     return input_data
 
 
