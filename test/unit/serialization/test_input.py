@@ -18,7 +18,7 @@ def foo():
 
 
 class Bar:
-    def foo():
+    def foo(self):
         pass
 
 
