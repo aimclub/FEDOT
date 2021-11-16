@@ -179,7 +179,7 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
         copied_data.predict = copied_data.predict[:, horizon_step]
         if isinstance(copied_data.idx, list):
             # if indices can not be incremented, replace it
-            copied_data.idx = generate_ids(source_input, copied_data, extent=False)
+            copied_data.idx = generate_ids(source_input, copied_data, expand=False)
         copied_data.idx = copied_data.idx + horizon_step
         return copied_data
     else:
@@ -188,10 +188,11 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
 
         # Extend source index range
         if isinstance(copied_data.idx, list):
-            indices_range = generate_ids(source_input, copied_data, extent=True)
+            indices_range = generate_ids(source_input, copied_data, expand=True)
         else:
             # if indices can be incremented
-            indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
+            indices_range = np.arange(copied_data.idx[0],
+                                      copied_data.idx[-1] + forecast_length + 1)
 
         # Lagged matrix with indices in cells
         _, idx_matrix = ts_to_table(idx=indices_range,
@@ -232,7 +233,7 @@ def in_sample_fitted_values(source_input: InputData, train_predicted: OutputData
     # Update indices
     first_id = copied_data.idx[0]
     if isinstance(first_id, str):
-        indices_range = generate_ids(source_input, copied_data, extent=True)
+        indices_range = generate_ids(source_input, copied_data, expand=True)
         copied_data.idx = indices_range[:-1]
     else:
         copied_data.idx = np.arange(first_id, first_id + len(all_values))
@@ -301,18 +302,23 @@ def exception_if_not_ts_task(task):
         raise ValueError(f'Method forecast is available only for time series forecasting task')
 
 
-def generate_ids(source_input, copied_data, extent: bool):
+def generate_ids(source_input, output_data, expand: bool):
     """
     Create new indices for fitted time series values. Process shift after
     starting clipping.
+
+    :param source_input: source idx, features and target
+    :param output_data: OutputData after pipeline fit
+    :param expand: there is a need to take into account the forecasting horizon.
+    If True, expand indices.
     """
     forecast_len = source_input.task.task_params.forecast_length
     source_idx = source_input.idx[:-forecast_len]
 
     # Calculate difference between source idx len and new
-    clipped_starting_values = len(source_idx) - len(copied_data.idx)
+    clipped_starting_values = len(source_idx) - len(output_data.idx)
 
-    if extent:
+    if expand:
         indices_range = np.arange(clipped_starting_values + 1,
                                   len(source_idx) + forecast_len + 1)
     else:
