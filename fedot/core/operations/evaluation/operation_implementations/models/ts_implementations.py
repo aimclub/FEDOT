@@ -649,13 +649,13 @@ class PolyfitImplementation(ModelImplementation):
             input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,
-                                                predict=predict,
-                                                data_type=DataTypesEnum.table)
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
         return output_data
 
     def get_params(self):
         params_dict = {"degree": self.degree}
         if self.parameters_changed is True:
-            return tuple([params_dict, ['cut_part']])
+            return tuple([params_dict, ['degree']])
         else:
             return params_dict

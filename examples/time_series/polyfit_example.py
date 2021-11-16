@@ -25,12 +25,13 @@ def polyfit_ridge_pipeline(degree):
 
 
 def run_experiment_with_polyfit(time_series, len_forecast=250,
-                                cv_folds=None):
-    """ Function with example how time series forecasting can be made
+                                degree=2):
+    """ Function with example how time series trend could be approximated by a polynomial function
+    for next extrapolation. Try different degree params to see a difference.
 
     :param time_series: time series for prediction
-    :param with_ar_pipeline: is it needed to use pipeline with AR model or not
     :param len_forecast: forecast length
+    :param degree: degree of polynomial function
     """
 
     # Let's divide our data on train and test samples
@@ -43,7 +44,7 @@ def run_experiment_with_polyfit(time_series, len_forecast=250,
                                                           train_data_target=train_data,
                                                           test_data_features=train_data)
 
-    pipeline = polyfit_pipeline(3)
+    pipeline = polyfit_pipeline(degree)
     pipeline.fit(train_input)
 
     predict = np.ravel(np.array(pipeline.predict(predict_input).predict))
@@ -63,8 +64,8 @@ def run_experiment_with_polyfit(time_series, len_forecast=250,
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/monthly-beer-production-in-austr.csv')
+    df = pd.read_csv('../data/beer.csv')
     time_series = np.array(df.iloc[:, -1])
     run_experiment_with_polyfit(time_series,
                                 len_forecast=50,
-                                cv_folds=2)
+                                degree=2)
