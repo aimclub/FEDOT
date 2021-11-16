@@ -28,5 +28,6 @@ lightgbm>=2.3.*
 catboost>=0.25.*
 testfixtures>=6.18.*
 torch>=1.9.0
+gensim>=4.1.2
 tqdm
 requests>=2.*

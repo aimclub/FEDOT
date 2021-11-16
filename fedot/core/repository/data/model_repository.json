@@ -91,7 +91,7 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
-    "text_classification": {
+    "text_classification_sklearn": {
       "description": "Text classification",
       "forbidden_node_types": [
         "secondary"
@@ -101,6 +101,23 @@
       "strategies": [
         "fedot.core.operations.evaluation.text",
         "SkLearnTextVectorizeStrategy"
+      ],
+      "tags": [
+        "nlp",
+        "non-default"
+      ],
+      "tasks": "[TaskTypesEnum.classification]"
+    },
+     "text_classification_gensim": {
+      "description": "Text classification",
+      "forbidden_node_types": [
+        "secondary"
+      ],
+      "input_type": "[DataTypesEnum.text]",
+      "output_type": "[DataTypesEnum.table]",
+      "strategies": [
+        "fedot.core.operations.evaluation.text",
+        "GensimTextVectorizeStrategy"
       ],
       "tags": [
         "nlp",
@@ -175,7 +192,8 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "bayesian"
+        "bayesian",
+        "non_multi"
       ]
     },
     "catboost": {
@@ -191,6 +209,13 @@
       "tags": [
         "boosting",
         "non_multi"
+      ]
+    },
+    "cntvect": {
+      "meta": "text_classification_sklearn",
+      "tags": [
+        "non-default",
+        "text"
       ]
     },
     "dt": {
@@ -286,7 +311,8 @@
       "tags": [
         "simple",
         "linear",
-        "interpretable"
+        "interpretable",
+        "non_multi"
       ]
     },
     "mlp": {
@@ -300,7 +326,8 @@
       "presets": ["fast_train"],
       "tags": [
         "non-default",
-        "bayesian"
+        "bayesian",
+        "non_multi"
       ]
     },
     "qda": {
@@ -391,7 +418,7 @@
       ]
     },
     "tfidf": {
-      "meta": "text_classification",
+      "meta": "text_classification_sklearn",
       "tags": [
         "non-default",
         "text"
@@ -402,6 +429,13 @@
       "presets": ["*tree"],
       "tags": [
         "tree"
+      ]
+    },
+    "word2vec": {
+      "meta": "text_classification_gensim",
+      "tags": [
+        "non-default",
+        "text"
       ]
     },
     "xgboost": {
