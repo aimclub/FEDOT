@@ -164,11 +164,12 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     return final_forecast
 
 
-def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> OutputData:
+def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_step: int = None) -> OutputData:
     """ The method converts a multidimensional lagged array into an
     one-dimensional array - time series based on predicted values for training sample
 
-    :param train_predicted: OutputData
+    :param source_input: InputData which were used to train pipeline
+    :param train_predicted: OutputData with trained values
     :param horizon_step: index of elements for forecast. If None - perform
     averaging for all forecasting steps
     """
@@ -178,10 +179,8 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
         copied_data.predict = copied_data.predict[:, horizon_step]
         if isinstance(copied_data.idx, list):
             # if indices can not be incremented, replace it
-            copied_data.idx = range(len(copied_data.idx))
-        else:
-            # if indices can be incremented
-            copied_data.idx = copied_data.idx + horizon_step
+            copied_data.idx = generate_ids(source_input, copied_data, extent=False)
+        copied_data.idx = copied_data.idx + horizon_step
         return copied_data
     else:
         # Perform collapse with averaging
@@ -189,9 +188,7 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
 
         # Extend source index range
         if isinstance(copied_data.idx, list):
-            # if indices can not be incremented, replace it
-            indices_range = np.arange(0, len(copied_data.idx) + forecast_length)
-
+            indices_range = generate_ids(source_input, copied_data, extent=True)
         else:
             # if indices can be incremented
             indices_range = np.arange(copied_data.idx[0], copied_data.idx[-1] + forecast_length + 1)
@@ -214,7 +211,7 @@ def fitted_values(train_predicted: OutputData, horizon_step: int = None) -> Outp
         return copied_data
 
 
-def in_sample_fitted_values(train_predicted: OutputData) -> OutputData:
+def in_sample_fitted_values(source_input: InputData, train_predicted: OutputData) -> OutputData:
     """ Perform in sample validation based on training sample """
     forecast_length = train_predicted.task.task_params.forecast_length
     all_values = []
@@ -235,7 +232,8 @@ def in_sample_fitted_values(train_predicted: OutputData) -> OutputData:
     # Update indices
     first_id = copied_data.idx[0]
     if isinstance(first_id, str):
-        copied_data.idx = np.arange(0, len(all_values))
+        indices_range = generate_ids(source_input, copied_data, extent=True)
+        copied_data.idx = indices_range[:-1]
     else:
         copied_data.idx = np.arange(first_id, first_id + len(all_values))
 
@@ -301,3 +299,23 @@ def _calculate_intervals(last_index_pre_history, amount_of_iterations, scope_len
 def exception_if_not_ts_task(task):
     if task.task_type != TaskTypesEnum.ts_forecasting:
         raise ValueError(f'Method forecast is available only for time series forecasting task')
+
+
+def generate_ids(source_input, copied_data, extent: bool):
+    """
+    Create new indices for fitted time series values. Process shift after
+    starting clipping.
+    """
+    forecast_len = source_input.task.task_params.forecast_length
+    source_idx = source_input.idx[:-forecast_len]
+
+    # Calculate difference between source idx len and new
+    clipped_starting_values = len(source_idx) - len(copied_data.idx)
+
+    if extent:
+        indices_range = np.arange(clipped_starting_values + 1,
+                                  len(source_idx) + forecast_len + 1)
+    else:
+        indices_range = np.arange(clipped_starting_values + 1,
+                                  len(source_idx) + 1)
+    return indices_range
