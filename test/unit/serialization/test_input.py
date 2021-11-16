@@ -23,18 +23,35 @@ class Bar:
 
 
 class Baz(BasicSerializer):
-    def __init__(self):
-        self.test_a = 'test_a'
-        self.test_b = 42
-        self.test_c = [self.test_a, self.test_b]
-        self.test_d = {
-            self.test_a: self.test_b
-        }
+    def __init__(self, data_dct: dict = None):
+        if data_dct is None:
+            self.test_a = 'test_a'
+            self.test_b = 42
+            self.test_c = [self.test_a, self.test_b]
+            self.test_d = {
+                self.test_a: self.test_b
+            }
+        else:
+            self.test_a = data_dct['test_a']
+            self.test_b = data_dct['test_b']
+            self.test_c = data_dct['test_c']
+            self.test_d = data_dct['test_d']
+
+    def __eq__(self, other):
+        return (
+            self.test_a == other.test_a and
+            self.test_b == other.test_b and
+            self.test_c == other.test_c and
+            self.test_d == other.test_d
+        )
 
 
 class MockOperation(OperationSerializer):
     def __init__(self):
         self.operations_repo = 'operations_repo'
+
+    def __eq__(self, other):
+        return self.operations_repo == other.operations_repo
 
 
 class MockNode(GraphNodeSerializer):
@@ -42,6 +59,13 @@ class MockNode(GraphNodeSerializer):
         self.name = name
         self.nodes_from = nodes_from if nodes_from else []
         self._operator = '_operator'
+
+    def __eq__(self, other):
+        return (
+            self.name == other.name and
+            self.nodes_from == other.nodes_from and
+            self._operator == other._operator
+        )
 
 
 MOCK_NODE_1 = MockNode('node1')
@@ -55,3 +79,9 @@ class MockGraph(GraphSerializer):
     def __init__(self, nodes: list = None):
         self.nodes = nodes if nodes else []
         self.operator = 'operator'
+
+    def __eq__(self, other):
+        return (
+            self.operator == other.operator and
+            self.nodes == other.nodes
+        )
