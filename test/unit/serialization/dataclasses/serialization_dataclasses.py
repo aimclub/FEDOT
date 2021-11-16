@@ -19,4 +19,5 @@ class EncoderTestCase:
 @dataclass
 class DecoderTestCase:
     input_data: Dict[str, Any]
-    result: ClassOrFuncObject
+    result_type: ClassOrFuncObject
+    result: Union[object, Dict[str, Any]]
