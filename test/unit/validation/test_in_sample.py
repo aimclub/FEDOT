@@ -43,8 +43,14 @@ def wrap_into_input(forecast_length, time_series):
 
 
 def test_in_sample_ar():
-    """ Ar in-sample force_refit quality test"""
-    train, test, variable, test_size = init_data
+    """
+    Ar in-sample force_refit quality test
+    In in-sample the model trains on the part of time series and
+    prediction goes in iterative way.
+    So if model trained not on full history time-series quality decrease
+    With force_refit there is refitting on each in-sample iteration
+    """
+    train, test, variable, test_size = init_data()
     input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
     input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
 
@@ -67,8 +73,14 @@ def test_in_sample_ar():
 
 
 def test_in_sample_arima():
-    """ Arima in-sample force_refit quality test"""
-    train, test, variable, test_size = init_data
+    """
+    Arima in-sample force_refit quality test
+    In in-sample the model trains on the part of time series and
+    prediction goes in iterative way.
+    So if model trained not on full history time-series quality decrease
+    With force_refit there is refitting on each in-sample iteration
+    """
+    train, test, variable, test_size = init_data()
     input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
     input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
 
