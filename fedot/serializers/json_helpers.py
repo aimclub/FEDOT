@@ -4,7 +4,7 @@ from inspect import isclass, isfunction, ismethod
 from typing import Any, Dict
 from uuid import UUID
 
-from ..interfaces.serializable import Serializable
+from .interfaces.serializable import Serializable
 
 OBJECT_ENCODING_KEY = 'kwargs'
 DELIMITER = '/'

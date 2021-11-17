@@ -5,7 +5,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.shared import OperationSerializer
+from fedot.serializers import OperationSerializer
 
 
 class Operation(OperationSerializer):

@@ -4,7 +4,7 @@ from types import FunctionType, MethodType
 from uuid import UUID
 
 import pytest
-from fedot.shared.serializers.json_helpers import CLASS_PATH_KEY, DELIMITER, OBJECT_ENCODING_KEY, _get_class, decoder
+from fedot.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, decoder
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture

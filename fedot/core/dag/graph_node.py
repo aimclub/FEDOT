@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from fedot.core.dag.node_operator import NodeOperator
-from fedot.shared import GraphNodeSerializer
+from fedot.serializers import GraphNodeSerializer
 
 
 class GraphNode(GraphNodeSerializer):

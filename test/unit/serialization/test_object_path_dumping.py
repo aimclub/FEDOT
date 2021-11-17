@@ -1,7 +1,7 @@
 from uuid import UUID, uuid4
 
 import pytest
-from fedot.shared.serializers.json_helpers import CLASS_PATH_KEY, DELIMITER, dump_path_to_obj
+from fedot.serializers.json_helpers import CLASS_PATH_KEY, DELIMITER, dump_path_to_obj
 
 from .dataclasses.serialization_dataclasses import DumpObjectTestCase
 from .test_input import *

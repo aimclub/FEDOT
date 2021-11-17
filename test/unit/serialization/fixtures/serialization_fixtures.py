@@ -1,5 +1,5 @@
 import pytest
-from fedot.shared import json_helpers
+from fedot.serializers import json_helpers
 
 
 @pytest.fixture

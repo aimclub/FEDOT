@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.visualisation.graph_viz import GraphVisualiser
-from fedot.shared import GraphSerializer
+from fedot.serializers import GraphSerializer
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode

@@ -4,10 +4,10 @@ from inspect import signature
 from typing import Any, Dict
 
 try:
-    from fedot.shared import json_helpers
+    from fedot.serializers import json_helpers
 except ImportError:
     import sys
-    json_helpers = sys.modules['fedot.shared.serializers.json_helpers']
+    json_helpers = sys.modules['fedot.serializers.json_helpers']
 
 
 class Serializable(ABC):

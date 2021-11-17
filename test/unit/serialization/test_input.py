@@ -1,9 +1,6 @@
 from enum import Enum
 
-from fedot.shared import BasicSerializer
-from fedot.shared.serializers.graph_node_serializer import GraphNodeSerializer
-from fedot.shared.serializers.graph_serializer import GraphSerializer
-from fedot.shared.serializers.operation_serializer import OperationSerializer
+from fedot.serializers import BasicSerializer, GraphNodeSerializer, GraphSerializer, OperationSerializer
 
 TEST_UUID = '41d79d06c3d8478f89e7d1008c96a864'
 TEST_INPUT_MODULE_PATH = 'test.unit.serialization.test_input'

@@ -1,15 +1,15 @@
 from typing import Any, Dict
 
-from ..interfaces.serializable import Serializable
+from .interfaces.serializable import Serializable
 
 
-class OperationSerializer(Serializable):
+class GraphNodeSerializer(Serializable):
 
     def to_json(self) -> Dict[str, Any]:
         return {
             k: v
             for k, v in super().to_json().items()
-            if k != 'operations_repo'
+            if k != '_operator'  # to prevent circular references
         }
 
     @classmethod
