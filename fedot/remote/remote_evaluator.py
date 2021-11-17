@@ -130,9 +130,13 @@ def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict, co
         if params.train_data_idx is not None else []
 
     data_name = params.dataset_name
+    if conn_params is not None and len(conn_params) > 0:
+        train_data = f"{client_params['container_input_path']}/data/{conn_params['DATA_ID']}/{data_name}.csv"
+    else:
+        train_data = f"{client_params['container_input_path']}/{data_name}.csv"
     return f"""[DEFAULT]
         pipeline_template = {pipeline_json}
-        train_data = {client_params['container_input_path']}/{data_name}.csv
+        train_data = {train_data}
         task = {params.task_type}
         output_path = {client_params['container_output_path']}
         train_data_idx = {train_data_idx}

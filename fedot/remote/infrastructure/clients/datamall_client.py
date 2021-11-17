@@ -21,6 +21,7 @@ DEFAULT_EXEC_PARAMS = {
     'timeout': 360
 }
 
+# example of connection params for DataMall
 DEFAULT_CONNECT_PARAMS = {
     'FEDOT_LOGIN': 'fedot',
     'FEDOT_PASSWORD': 'fedot-password',
