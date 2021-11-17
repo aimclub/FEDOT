@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from inspect import signature
 from typing import Any, Dict
 
-import fedot.shared.serializers.json_helpers as json_helpers
+import fedot.shared as shared
 
 
 class Serializable(ABC):
@@ -13,7 +13,7 @@ class Serializable(ABC):
         useless_fields = ['log', 'operation_templates']
         return {
             **{k: v for k, v in vars(self).items() if k not in useless_fields},
-            **json_helpers.dump_path_to_obj(self)
+            **shared.json_helpers.dump_path_to_obj(self)
         }
 
     @classmethod
