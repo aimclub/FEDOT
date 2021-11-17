@@ -10,9 +10,11 @@ from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from sklearn.metrics import mean_absolute_error
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def get_pipeline():
+def get_pipeline_arima():
     node_arima = PrimaryNode('arima')
     return Pipeline(node_arima)
 
@@ -22,63 +24,68 @@ def get_pipeline_lagged():
     return Pipeline(node_lasso)
 
 
-def in_sample_fit_predict(pipeline, train_input, predict_input, horizon) -> np.array:
-    """ Fit pipeline and make predictions (in-sample forecasting) """
-    pipeline.fit(train_input)
+def wrap_into_input(forecast_length, time_series):
+    """ Convert data for FEDOT framework """
+    time_series = np.array(time_series)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
 
-    predicted_main = in_sample_ts_forecast(pipeline=pipeline,
-                                           input_data=predict_input,
-                                           horizon=horizon)
-    return predicted_main
+    input_data = InputData(idx=np.arange(0, len(time_series)),
+                           features=time_series, target=time_series,
+                           task=task, data_type=DataTypesEnum.ts)
 
-
-def time_series_into_input(len_forecast, train_part, time_series):
-    """ Function wrap univariate time series into InputData """
-    train_input, _, task = prepare_input_data(len_forecast=len_forecast,
-                                              train_data_features=train_part,
-                                              train_data_target=train_part,
-                                              test_data_features=train_part)
-    # Create data for validation
-    predict_input = InputData(idx=range(0, len(time_series)),
-                              features=time_series,
-                              target=time_series,
-                              task=task,
-                              data_type=DataTypesEnum.ts)
-
-    return train_input, predict_input
+    return input_data
 
 
 def run_test():
-    df = pd.read_csv('../../cases/data/lena_levels/multi_sample.csv')
-    len_forecast = 500
-    validation_blocks = 2
-    time_series = np.array(df['stage_max_mean'][2500:])
-    horizon = len_forecast * validation_blocks
-    train_part = time_series[:-horizon]
-    test_part = time_series[-horizon:]
+    df = pd.read_csv('../../cases/data/waves_mod.csv')
+    test_size = 750
+    variable = df['Hsig']
+    train, test = variable[1: len(variable) - test_size], variable[len(variable) - test_size:]
 
-    train_input, predict_input = time_series_into_input(len_forecast,
-                                                        train_part,
-                                                        time_series)
-
-    pipeline = get_pipeline()
-    predicted_values = in_sample_fit_predict(pipeline, train_input,
-                                             predict_input, horizon)
-
-    ids_for_test = range(len(train_part), len(time_series))
-    plt.plot(time_series, label='Actual time series')
-    plt.plot(ids_for_test, predicted_values, label='ARIMA')
-    plt.legend()
+    plt.plot(train)
+    plt.plot(test)
     plt.show()
 
-    pipeline = get_pipeline_lagged()
-    predicted_values = in_sample_fit_predict(pipeline, train_input,
-                                             predict_input, horizon)
+    input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
+    input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
 
-    ids_for_test = range(len(train_part), len(time_series))
-    plt.plot(time_series, label='Actual time series')
-    plt.plot(ids_for_test, predicted_values, label='lagged')
+    pipeline = get_pipeline_lagged()
+    pipeline = pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                            loss_params=None, input_data=input_data_short_train,
+                                            iterations=10, timeout=5,
+                                            cv_folds=3, validation_blocks=20)
+    pipeline.print_structure()
+    pipeline.fit(input_data_short_train)
+    short_val_predict = in_sample_ts_forecast(pipeline=pipeline,
+                                              input_data=input_data_short_test,
+                                              horizon=test_size,
+                                              force_fit=True)
+
+    plt.plot(input_data_short_test.idx, input_data_short_test.target, label='Actual time series')
+    plt.plot(np.arange(len(train), len(train) + len(short_val_predict)), short_val_predict,
+             label='Forecast for 2 elements ahead')
     plt.legend()
     plt.show()
 
 run_test()
+
+'''def test_naive():
+    df = pd.read_csv('../../cases/data/waves_mod.csv')
+    test_size = 750
+    variable = df['Hsig']
+    train, test = variable[1: len(variable) - test_size], variable[len(variable) - test_size:]
+
+    input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
+    input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
+
+    pipeline = get_pipeline_arima()
+    pipeline = pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                            loss_params=None, input_data=input_data_short_train,
+                                            iterations=100, timeout=5,
+                                            cv_folds=3, validation_blocks=20)
+    pipeline.print_structure()
+    pipeline.fit(input_data_short_train)
+    prediction = []
+    for i in range (0, 300):'''
+

@@ -29,12 +29,13 @@ class ARIMAImplementation(ModelImplementation):
 
     def __init__(self, log: Log = None, **params):
         super().__init__(log)
-        self.params = params
+        self.params = {'order': (int(params.get('p')),
+                                 int(params.get('d')),
+                                 int(params.get('q')))}
         self.arima = None
         self.lambda_value = None
         self.scope = None
         self.actual_ts_len = None
-        self.sts = None
 
     def fit(self, input_data):
         """ Class fit arima model on data
@@ -44,26 +45,12 @@ class ARIMAImplementation(ModelImplementation):
         source_ts = np.array(input_data.features)
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
-        self.sts = source_ts
 
         # Apply box-cox transformation for positive values
-        min_value = np.min(source_ts)
-        if min_value > 0:
-            pass
-        else:
-            # Making a shift to positive values
-            self.scope = abs(min_value) + 1
-            source_ts = source_ts + self.scope
-
-        _, self.lambda_value = stats.boxcox(source_ts)
-        transformed_ts = boxcox(source_ts, self.lambda_value)
+        transformed_ts = self._apply_boxcox(source_ts)
 
         # Set parameters
-        p = int(self.params.get('p'))
-        d = int(self.params.get('d'))
-        q = int(self.params.get('q'))
-        params = {'order': (p, d, q)}
-        self.arima = ARIMA(transformed_ts, **params).fit()
+        self.arima = ARIMA(transformed_ts, **self.params).fit()
 
         return self.arima
 
@@ -139,6 +126,20 @@ class ARIMAImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
+    def _apply_boxcox(self, source_ts):
+        min_value = np.min(source_ts)
+        if min_value > 0:
+            pass
+        else:
+            # Making a shift to positive values
+            self.scope = abs(min_value) + 1
+            source_ts = source_ts + self.scope
+
+        _, self.lambda_value = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lambda_value)
+
+        return transformed_ts
+
     def _inverse_boxcox(self, predicted, lambda_param):
         """ Method apply inverse Box-Cox transformation """
         if lambda_param == 0:
@@ -180,7 +181,7 @@ class AutoRegImplementation(ModelImplementation):
 
     def __init__(self, log: Log = None, **params):
         super().__init__(log)
-        self.params = params
+        self.params = {'lags': [int(params.get('lag_1')), int(params.get('lag_2'))]}
         self.actual_ts_len = None
         self.autoreg = None
 
@@ -192,10 +193,7 @@ class AutoRegImplementation(ModelImplementation):
 
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
-        lag_1 = int(self.params.get('lag_1'))
-        lag_2 = int(self.params.get('lag_2'))
-        params = {'lags': [lag_1, lag_2]}
-        self.autoreg = AutoReg(source_ts, **params).fit()
+        self.autoreg = AutoReg(source_ts, **self.params).fit()
 
         return self.autoreg
 
@@ -261,14 +259,17 @@ class AutoRegImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Log = None, **params):
         super().__init__(log)
-        self.params = params
+        self.params = {'period': int(params.get('period')),
+                       'model_kwargs': {
+                           'order': (int(params.get('p')),
+                                     int(params.get('d')),
+                                     int(params.get('q')))}}
         self.model = None
         self.lambda_param = None
         self.scope = None
         self.actual_ts_len = None
-        self.sts = None
 
     def fit(self, input_data):
         """ Class fit STLForecast arima model on data
@@ -279,18 +280,12 @@ class STLForecastARIMAImplementation(ModelImplementation):
         source_ts = np.array(input_data.features)
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
-        self.sts = source_ts
 
         if not self.params:
             # Default data
             self.params = {'p': 2, 'd': 0, 'q': 2, 'period': 365}
 
-        p = int(self.params.get('p'))
-        d = int(self.params.get('d'))
-        q = int(self.params.get('q'))
-        period = int(self.params.get('period'))
-        params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
-        self.model = STLForecast(source_ts, ARIMA, **params).fit()
+        self.model = STLForecast(source_ts, ARIMA, **self.params).fit()
 
         return self.model
 
