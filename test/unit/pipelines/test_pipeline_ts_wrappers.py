@@ -4,10 +4,10 @@ from sklearn.metrics import mean_absolute_error
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast, in_sample_fitted_values
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.pipelines.ts_wrappers import fitted_values
 
 
 def prepare_input_data(forecast_length, horizon):
@@ -99,6 +99,6 @@ def test_fitted_values_correct():
         pipeline = get_simple_short_lagged_pipeline()
         train_predicted = pipeline.fit(ts_input)
 
-        fitted_ts_values = fitted_func(train_predicted)
+        fitted_ts_values = fitted_func(ts_input, train_predicted)
 
         assert len(fitted_ts_values.predict) == len(ts_input.target) - 4
