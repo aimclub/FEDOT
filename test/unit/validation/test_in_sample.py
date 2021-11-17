@@ -9,11 +9,15 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from sklearn.metrics import mean_absolute_error
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-test_file_path = str(os.path.dirname(__file__))
-df = pd.read_csv(os.path.join(test_file_path, '../../data/waves_mod.csv'))
-test_size = 50
-variable = df['Hsig'][:100]
-train, test = variable[1: len(variable) - test_size], variable[len(variable) - test_size:]
+
+def init_data():
+    """ Function for init data for test"""
+    test_file_path = str(os.path.dirname(__file__))
+    df = pd.read_csv(os.path.join(test_file_path, '../../data/waves_mod.csv'))
+    test_size = 50
+    variable = df['Hsig'][:100]
+    train, test = variable[1: len(variable) - test_size], variable[len(variable) - test_size:]
+    return train, test, variable, test_size
 
 
 def get_pipeline_arima():
@@ -27,6 +31,7 @@ def get_pipeline_ar():
 
 
 def wrap_into_input(forecast_length, time_series):
+    """ Function for prepare data to input"""
     time_series = np.array(time_series)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
@@ -38,6 +43,8 @@ def wrap_into_input(forecast_length, time_series):
 
 
 def test_in_sample_ar():
+    """ Ar in-sample force_refit quality test"""
+    train, test, variable, test_size = init_data
     input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
     input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
 
@@ -60,6 +67,8 @@ def test_in_sample_ar():
 
 
 def test_in_sample_arima():
+    """ Arima in-sample force_refit quality test"""
+    train, test, variable, test_size = init_data
     input_data_short_train = wrap_into_input(forecast_length=2, time_series=train)
     input_data_short_test = wrap_into_input(forecast_length=2, time_series=variable)
 
