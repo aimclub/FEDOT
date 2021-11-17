@@ -79,5 +79,3 @@ def test_in_sample_arima():
                                               force_refit=False)
     mae = mean_absolute_error(test, short_val_predict)
     assert mae_refit < mae
-
-
