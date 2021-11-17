@@ -12,12 +12,24 @@ from .test_input import *
 
 DECODER_CASES = [
     DecoderTestCase(
+        input_data={'a': 1, 'b': 2},
+        result_type=dict,
+        result={'a': 1, 'b': 2}
+    ),
+    DecoderTestCase(
         input_data={
             OBJECT_ENCODING_KEY: {'hex': TEST_UUID},
             CLASS_PATH_KEY: UUID
         },
         result_type=UUID,
         result=UUID(TEST_UUID)
+    ),
+    DecoderTestCase(
+        input_data={
+            CLASS_PATH_KEY: UUID
+        },
+        result_type=TypeError,
+        result=TypeError()
     ),
     DecoderTestCase(
         input_data={
@@ -145,6 +157,10 @@ DECODER_CASES.extend([
 
 @pytest.mark.parametrize('case', DECODER_CASES)
 def test_decoder(case: DecoderTestCase, _get_class_fixture):
-    decoded = decoder(case.input_data)
-    assert type(decoded) == case.result_type, 'Decoded object has wrong type'
-    assert decoded == case.result, f'Object was decoded incorrectly'
+    if isinstance(case.result, Exception):
+        with pytest.raises(type(case.result)):
+            decoder(case.input_data)
+    else:
+        decoded = decoder(case.input_data)
+        assert type(decoded) == case.result_type, 'Decoded object has wrong type'
+        assert decoded == case.result, f'Object was decoded incorrectly'
