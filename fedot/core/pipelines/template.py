@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.repository.operation_types_repository import atomized_model_type
-from fedot.serializers import BasicSerializer
+from fedot.serializers import PipelineTemplateSerializer
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -26,7 +26,7 @@ class NumpyIntEncoder(json.JSONEncoder):
         return super().default(self, obj)
 
 
-class PipelineTemplate(BasicSerializer):
+class PipelineTemplate(PipelineTemplateSerializer):
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods
     allowing user to upload a pipeline to JSON format and import it from JSON.
