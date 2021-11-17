@@ -46,6 +46,9 @@
     "d": 0,
     "q": 2
   },
+  "polyfit": {
+    "degree": 2
+  },
   "ransac_lin_reg": {
     "min_samples": 0.4,
     "residual_threshold": 10,

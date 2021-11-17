@@ -172,6 +172,9 @@ class SearchSpace:
                 'degree': (hp.choice, [[2, 3, 4]]),
                 'interaction_only': (hp.choice, [[True, False]])
             },
+            'polyfit': {
+                'degree': (hp.choice, [[1, 2, 3, 4, 5]])
+            },
             'lagged': {
                 'window_size': (hp.uniform, [5, 500])
             },

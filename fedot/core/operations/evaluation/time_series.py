@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations import ARIMAImplementation, AutoRegImplementation, STLForecastARIMAImplementation, \
-    CLSTMImplementation
+    CLSTMImplementation, PolyfitImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -27,7 +27,9 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'arima': ARIMAImplementation,
         'ar': AutoRegImplementation,
         'stl_arima': STLForecastARIMAImplementation,
-        'clstm': CLSTMImplementation}
+        'clstm': CLSTMImplementation,
+        'polyfit': PolyfitImplementation
+    }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
