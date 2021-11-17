@@ -48,6 +48,10 @@ ENCODER_CASES = [
         result={}
     ),
     EncoderTestCase(
+        input_data=MockPipelineTemplate(),
+        result={}
+    ),
+    EncoderTestCase(
         input_data=MOCK_NODE_1,
         result={
             'name': 'node1',

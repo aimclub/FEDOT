@@ -72,6 +72,13 @@ DECODER_CASES = [
         },
         result_type=MockOperation,
         result=MockOperation()
+    ),
+    DecoderTestCase(
+        input_data={
+            CLASS_PATH_KEY: MockPipelineTemplate
+        },
+        result_type=MockPipelineTemplate,
+        result=MockPipelineTemplate()
     )
 ]
 
