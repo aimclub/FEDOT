@@ -1,6 +1,12 @@
 from enum import Enum
 
-from fedot.serializers import BasicSerializer, GraphNodeSerializer, GraphSerializer, OperationSerializer
+from fedot.serializers import (
+    BasicSerializer,
+    GraphNodeSerializer,
+    GraphSerializer,
+    OperationSerializer,
+    PipelineTemplateSerializer
+)
 
 TEST_UUID = '41d79d06c3d8478f89e7d1008c96a864'
 TEST_INPUT_MODULE_PATH = 'test.unit.serialization.test_input'
@@ -44,11 +50,19 @@ class Baz(BasicSerializer):
 
 
 class MockOperation(OperationSerializer):
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.operations_repo = 'operations_repo'
 
     def __eq__(self, other):
         return self.operations_repo == other.operations_repo
+
+
+class MockPipelineTemplate(PipelineTemplateSerializer):
+    def __init__(self):
+        self.operation_templates = 'operation_templates'
+
+    def __eq__(self, other):
+        return self.operation_templates == other.operation_templates
 
 
 class MockNode(GraphNodeSerializer):
