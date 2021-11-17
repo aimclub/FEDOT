@@ -79,7 +79,7 @@ def out_of_sample_ts_forecast(pipeline, input_data: InputData,
 
 
 def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData],
-                          horizon: int = None, force_fit: bool = False) -> np.array:
+                          horizon: int = None, force_refit: bool = False) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
@@ -90,6 +90,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     :param pipeline: Pipeline for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
+    :param force_refit: is there need to fit on supplemented time-series
     :return final_forecast: array with forecast
     """
 
@@ -141,8 +142,12 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     for _, border in zip(range(0, number_of_iterations), intervals):
 
         # add fit by flag
-        if force_fit:
-            pipeline.fit(input_data)
+        if force_refit:
+            predict_ind = data.idx
+            data.idx = np.arange(0, len(data.features))
+            data.target = data.features
+            pipeline.fit_from_scratch(data)
+            data.idx = predict_ind
 
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
