@@ -3,9 +3,12 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.time_series.ts_forecasting_tuning import prepare_input_data
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
 def polyfit_pipeline(degree):
@@ -35,29 +38,30 @@ def run_experiment_with_polyfit(time_series, len_forecast=250,
     """
 
     # Let's divide our data on train and test samples
-    train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=len_forecast))
 
-    # Source time series
-    train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
-                                                          train_data_features=train_data,
-                                                          train_data_target=train_data,
-                                                          test_data_features=train_data)
+    train_input = InputData(idx=np.arange(0, len(time_series)),
+                            features=time_series,
+                            target=time_series,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+    train_data, test_data = train_test_data_setup(train_input)
 
     pipeline = polyfit_pipeline(degree)
-    pipeline.fit(train_input)
+    pipeline.fit(train_data)
 
-    predict = np.ravel(np.array(pipeline.predict(predict_input).predict))
-    test_data = np.ravel(test_data)
+    predict = np.ravel(np.array(pipeline.predict(test_data).predict))
+    test_target = np.ravel(test_data.target)
 
-    mse_before = mean_squared_error(test_data, predict, squared=False)
-    mae_before = mean_absolute_error(test_data, predict)
-    print(f'RMSE before tuning - {mse_before:.4f}')
+    rmse_before = mean_squared_error(test_target, predict, squared=False)
+    mae_before = mean_absolute_error(test_target, predict)
+    print(f'RMSE before tuning - {rmse_before:.4f}')
     print(f'MAE before tuning - {mae_before:.4f}\n')
 
     pipeline.print_structure()
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(train_data), len(time_series)), predict, label='Forecast with polyfit')
+    plt.plot(range(len(test_data.features), len(time_series)), predict, label='Forecast with polyfit')
     plt.legend()
     plt.grid()
     plt.show()

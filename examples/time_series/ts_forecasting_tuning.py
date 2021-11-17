@@ -164,14 +164,14 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
     new_predicted = np.ravel(np.array(new_predicted))
     test_data = np.ravel(test_data)
 
-    mse_before = mean_squared_error(test_data, old_predicted, squared=False)
+    rmse_before = mean_squared_error(test_data, old_predicted, squared=False)
     mae_before = mean_absolute_error(test_data, old_predicted)
-    print(f'RMSE before tuning - {mse_before:.4f}')
+    print(f'RMSE before tuning - {rmse_before:.4f}')
     print(f'MAE before tuning - {mae_before:.4f}\n')
 
-    mse_after = mean_squared_error(test_data, new_predicted, squared=False)
+    rmse_after = mean_squared_error(test_data, new_predicted, squared=False)
     mae_after = mean_absolute_error(test_data, new_predicted)
-    print(f'RMSE after tuning - {mse_after:.4f}')
+    print(f'RMSE after tuning - {rmse_after:.4f}')
     print(f'MAE after tuning - {mae_after:.4f}\n')
 
     pipeline.print_structure()

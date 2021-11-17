@@ -4,7 +4,6 @@ from copy import copy
 import numpy as np
 import torch
 import torch.nn as nn
-from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 from scipy import stats
 from scipy.special import inv_boxcox, boxcox
@@ -600,15 +599,17 @@ class PolyfitImplementation(ModelImplementation):
         super().__init__(log)
         self.min_degree = 1
         self.max_degree = 5
+        self.default_degree = 3
         self.parameters_changed = False
 
         self.params = params
         self.degree = params.get('degree')
-        if not self.min_degree <= self.degree <= self.max_degree:
+        if not self.degree or not self.min_degree <= self.degree <= self.max_degree:
             # default value
             self.log.info(f"Change invalid parameter degree ({self.degree}) on default value (3)")
-            self.degree = 3
+            self.degree = self.default_degree
             self.parameters_changed = True
+        self.degree = int(self.degree)
         self.coefs = None
 
     def fit(self, input_data):
