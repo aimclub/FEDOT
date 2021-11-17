@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, TypeVar
 
 ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 
@@ -20,6 +20,7 @@ class EncoderTestCase:
 class GetClassCase:
     input_data: str
     result: ClassOrFuncObject
+
 
 @dataclass
 class DecoderTestCase:
