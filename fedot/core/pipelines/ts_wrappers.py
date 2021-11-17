@@ -143,10 +143,13 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
 
         # add fit by flag
         if force_refit:
+            # change index for fitting
             predict_idx = data.idx
             data.idx = np.arange(0, len(data.features))
+            # change target for fitting
             data.target = data.features
             pipeline.fit_from_scratch(data)
+            # change index for predict
             data.idx = predict_idx
 
         iter_predict = pipeline.predict(input_data=data)
