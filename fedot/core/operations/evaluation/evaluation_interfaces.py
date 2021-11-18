@@ -17,14 +17,15 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     RandomForestRegressor
 )
-from sklearn.linear_model import Lasso as SklearnLassoReg
-from sklearn.linear_model import LinearRegression as SklearnLinReg
-from sklearn.linear_model import LogisticRegression as SklearnLogReg
-from sklearn.linear_model import Ridge as SklearnRidgeReg
-from sklearn.linear_model import SGDRegressor as SklearnSGD
+from sklearn.linear_model import (
+    Lasso as SklearnLassoReg,
+    LinearRegression as SklearnLinReg,
+    LogisticRegression as SklearnLogReg,
+    Ridge as SklearnRidgeReg,
+    SGDRegressor as SklearnSGD
+)
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB
-from sklearn.naive_bayes import MultinomialNB as SklearnMultinomialNB
+from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
