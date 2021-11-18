@@ -5,7 +5,7 @@ from fedot.core.serializers import BasicSerializer
 from .mocks.serialization_mocks import MockNode
 
 TEST_UUID = '41d79d06c3d8478f89e7d1008c96a864'
-TEST_INPUT_MODULE_PATH = 'test.unit.serialization.test_input'
+TEST_INPUT_MODULE_PATH = 'test.unit.serialization.shared_data'
 MOCK_NODE_1 = MockNode('node1')
 MOCK_NODE_2 = MockNode('node2')
 MOCK_NODE_3 = MockNode('node3')

@@ -6,24 +6,24 @@ ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 
 @dataclass
 class DumpObjectTestCase:
-    input_data: ClassOrFuncObject
-    result: Dict[str, str]
+    test_input: ClassOrFuncObject
+    test_answer: Dict[str, str]
 
 
 @dataclass
 class EncoderTestCase:
-    input_data: ClassOrFuncObject
-    result: Dict[str, Any]
+    test_input: ClassOrFuncObject
+    test_answer: Dict[str, Any]
 
 
 @dataclass
 class GetClassCase:
-    input_data: str
-    result: ClassOrFuncObject
+    test_input: str
+    test_answer: ClassOrFuncObject
 
 
 @dataclass
 class DecoderTestCase:
-    input_data: Dict[str, Any]
-    result_type: ClassOrFuncObject
-    result: ClassOrFuncObject
+    test_input: Dict[str, Any]
+    test_answer_type: ClassOrFuncObject
+    test_answer: ClassOrFuncObject

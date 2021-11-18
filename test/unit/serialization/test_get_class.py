@@ -5,45 +5,45 @@ from fedot.core.serializers.json_helpers import DELIMITER, _get_class
 
 from .dataclasses.serialization_dataclasses import GetClassCase
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
-from .test_input import Bar, Baz, TestEnum, foo
+from .shared_data import Bar, Baz, TestEnum, foo
 
 GET_CLASS_CASES = [
     GetClassCase(
-        input_data=f'{UUID.__module__}{DELIMITER}{UUID.__qualname__}',
-        result=UUID
+        test_input=f'{UUID.__module__}{DELIMITER}{UUID.__qualname__}',
+        test_answer=UUID
     ),
     GetClassCase(
-        input_data=f'{TestEnum.__module__}{DELIMITER}{TestEnum.__qualname__}',
-        result=TestEnum
+        test_input=f'{TestEnum.__module__}{DELIMITER}{TestEnum.__qualname__}',
+        test_answer=TestEnum
     ),
     GetClassCase(
-        input_data=f'{foo.__module__}{DELIMITER}{foo.__qualname__}',
-        result=foo
+        test_input=f'{foo.__module__}{DELIMITER}{foo.__qualname__}',
+        test_answer=foo
     ),
     GetClassCase(
-        input_data=f'{Bar().foo.__module__}{DELIMITER}{Bar().foo.__qualname__}',
-        result=Bar.foo
+        test_input=f'{Bar().foo.__module__}{DELIMITER}{Bar().foo.__qualname__}',
+        test_answer=Bar.foo
     ),
     GetClassCase(
-        input_data=f'{Baz.__module__}{DELIMITER}{Baz.__qualname__}',
-        result=Baz
+        test_input=f'{Baz.__module__}{DELIMITER}{Baz.__qualname__}',
+        test_answer=Baz
     ),
     GetClassCase(
-        input_data=f'{MockOperation.__module__}{DELIMITER}{MockOperation.__qualname__}',
-        result=MockOperation
+        test_input=f'{MockOperation.__module__}{DELIMITER}{MockOperation.__qualname__}',
+        test_answer=MockOperation
     ),
     GetClassCase(
-        input_data=f'{MockNode.__module__}{DELIMITER}{MockNode.__qualname__}',
-        result=MockNode
+        test_input=f'{MockNode.__module__}{DELIMITER}{MockNode.__qualname__}',
+        test_answer=MockNode
     ),
     GetClassCase(
-        input_data=f'{MockGraph.__module__}{DELIMITER}{MockGraph.__qualname__}',
-        result=MockGraph
+        test_input=f'{MockGraph.__module__}{DELIMITER}{MockGraph.__qualname__}',
+        test_answer=MockGraph
     )
 ]
 
 
 @pytest.mark.parametrize('case', GET_CLASS_CASES)
 def test_encoder(case: GetClassCase):
-    cls_obj = _get_class(case.input_data)
-    assert cls_obj == case.result, 'Decoded class is wrong'
+    cls_obj = _get_class(case.test_input)
+    assert cls_obj == case.test_answer, 'Decoded class is wrong'

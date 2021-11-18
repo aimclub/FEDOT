@@ -6,36 +6,36 @@ from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
-from .test_input import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
+from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
 
 ENCODER_CASES = [
     EncoderTestCase(
-        input_data=Bar(),
-        result=TypeError()
+        test_input=Bar(),
+        test_answer=TypeError()
     ),
     EncoderTestCase(
-        input_data=UUID(TEST_UUID),
-        result={
+        test_input=UUID(TEST_UUID),
+        test_answer={
             OBJECT_ENCODING_KEY: {'hex': TEST_UUID}
         }
     ),
     EncoderTestCase(
-        input_data=TestEnum.test_val,
-        result={
+        test_input=TestEnum.test_val,
+        test_answer={
             OBJECT_ENCODING_KEY: 'test_val'
         }
     ),
     EncoderTestCase(
-        input_data=foo,
-        result={}
+        test_input=foo,
+        test_answer={}
     ),
     EncoderTestCase(
-        input_data=Bar().foo,
-        result={}
+        test_input=Bar().foo,
+        test_answer={}
     ),
     EncoderTestCase(
-        input_data=Baz(),
-        result={
+        test_input=Baz(),
+        test_answer={
             'test_a': 'test_a',
             'test_b': 42,
             'test_c': ['test_a', 42],
@@ -45,16 +45,16 @@ ENCODER_CASES = [
         }
     ),
     EncoderTestCase(
-        input_data=MockOperation(),
-        result={}
+        test_input=MockOperation(),
+        test_answer={}
     ),
     EncoderTestCase(
-        input_data=MockPipelineTemplate(),
-        result={}
+        test_input=MockPipelineTemplate(),
+        test_answer={}
     ),
     EncoderTestCase(
-        input_data=MOCK_NODE_1,
-        result={
+        test_input=MOCK_NODE_1,
+        test_answer={
             'name': 'node1',
             'nodes_from': [
                 MOCK_NODE_2,
@@ -70,8 +70,8 @@ MOCK_NODE_3_COPY = deepcopy(MOCK_NODE_3)
 
 ENCODER_CASES.extend([
     EncoderTestCase(
-        input_data=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY]),
-        result={
+        test_input=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY]),
+        test_answer={
             'nodes': [
                 MOCK_NODE_1_COPY,
                 MOCK_NODE_2_COPY,
@@ -84,20 +84,20 @@ ENCODER_CASES.extend([
 
 @pytest.mark.parametrize('case', ENCODER_CASES)
 def test_encoder(case: EncoderTestCase):
-    if isinstance(case.result, Exception):
-        with pytest.raises(type(case.result)):
-            encoder(case.input_data)
+    if isinstance(case.test_answer, Exception):
+        with pytest.raises(type(case.test_answer)):
+            encoder(case.test_input)
     else:
-        if getattr(case.input_data, '__dict__', None) is not None:
-            keys_before = vars(case.input_data).keys()
-            encoded = {k: v for k, v in encoder(case.input_data).items() if k != CLASS_PATH_KEY}
-            keys_after = vars(case.input_data).keys()
+        if getattr(case.test_input, '__dict__', None) is not None:
+            keys_before = vars(case.test_input).keys()
+            encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+            keys_after = vars(case.test_input).keys()
         else:
             keys_before = keys_after = {}
-            encoded = {k: v for k, v in encoder(case.input_data).items() if k != CLASS_PATH_KEY}
-        assert encoded == case.result, 'Encoded json objects are not the same'
+            encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+        assert encoded == case.test_answer, 'Encoded json objects are not the same'
         assert keys_before == keys_after, 'Object instance was changed'
-        if isinstance(case.input_data, MockGraph):
+        if isinstance(case.test_input, MockGraph):
             assert vars(MOCK_NODE_1).keys() != vars(MOCK_NODE_1_COPY).keys()
-            for node in case.input_data.nodes:
+            for node in case.test_input.nodes:
                 assert getattr(node, '_serialization_id', None) is not None
