@@ -25,5 +25,4 @@ class GetClassCase:
 @dataclass
 class DecoderTestCase:
     test_input: Dict[str, Any]
-    test_answer_type: ClassOrFuncObject
     test_answer: ClassOrFuncObject

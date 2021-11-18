@@ -14,7 +14,6 @@ from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, 
 DECODER_CASES = [
     DecoderTestCase(
         test_input={'a': 1, 'b': 2},
-        test_answer_type=dict,
         test_answer={'a': 1, 'b': 2}
     ),
     DecoderTestCase(
@@ -22,14 +21,12 @@ DECODER_CASES = [
             OBJECT_ENCODING_KEY: {'hex': TEST_UUID},
             CLASS_PATH_KEY: UUID
         },
-        test_answer_type=UUID,
         test_answer=UUID(TEST_UUID)
     ),
     DecoderTestCase(
         test_input={
             CLASS_PATH_KEY: UUID
         },
-        test_answer_type=TypeError,
         test_answer=TypeError()
     ),
     DecoderTestCase(
@@ -37,14 +34,12 @@ DECODER_CASES = [
             OBJECT_ENCODING_KEY: 'test_val',
             CLASS_PATH_KEY: TestEnum
         },
-        test_answer_type=TestEnum,
         test_answer=TestEnum.test_val
     ),
     DecoderTestCase(
         test_input={
             CLASS_PATH_KEY: foo
         },
-        test_answer_type=FunctionType,
         test_answer=foo
     ),
     DecoderTestCase(
@@ -57,7 +52,6 @@ DECODER_CASES = [
             },
             CLASS_PATH_KEY: Baz
         },
-        test_answer_type=Baz,
         test_answer=Baz({
             'test_a': 'test_a',
             'test_b': 42,
@@ -71,14 +65,12 @@ DECODER_CASES = [
         test_input={
             CLASS_PATH_KEY: MockOperation
         },
-        test_answer_type=MockOperation,
         test_answer=MockOperation()
     ),
     DecoderTestCase(
         test_input={
             CLASS_PATH_KEY: MockPipelineTemplate
         },
-        test_answer_type=MockPipelineTemplate,
         test_answer=MockPipelineTemplate()
     )
 ]
@@ -89,7 +81,6 @@ DECODER_CASES.extend([
         test_input={
             CLASS_PATH_KEY: METHOD_FUNC
         },
-        test_answer_type=MethodType,
         test_answer=METHOD_FUNC
     )
 ])
@@ -109,7 +100,6 @@ DECODER_CASES.extend([
             '_serialization_id': 0,
             CLASS_PATH_KEY: MockNode
         },
-        test_answer_type=MockNode,
         test_answer=MOCK_NODE_1_COPY
     ),
 ])
@@ -157,7 +147,6 @@ DECODER_CASES.extend([
             ],
             CLASS_PATH_KEY: MockGraph
         },
-        test_answer_type=MockGraph,
         test_answer=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY])
     )
 ])
@@ -170,5 +159,5 @@ def test_decoder(case: DecoderTestCase, _get_class_fixture):
             decoder(case.test_input)
     else:
         decoded = decoder(case.test_input)
-        assert type(decoded) == case.test_answer_type, 'Decoded object has wrong type'
+        assert isinstance(decoded, type(case.test_answer)), 'Decoded object has wrong type'
         assert decoded == case.test_answer, f'Object was decoded incorrectly'
