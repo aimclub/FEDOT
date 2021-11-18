@@ -17,16 +17,16 @@ class TestEnum(Enum):
     test_val = 'test_val'
 
 
-def foo():
+def test_func():
     pass
 
 
-class Bar:
-    def foo(self):
+class TestClass:
+    def test_func(self):
         pass
 
 
-class Baz(BasicSerializer):
+class TestSerializableClass(BasicSerializer):
     def __init__(self, data_dct: dict = None):
         if data_dct is None:
             self.test_a = 'test_a'

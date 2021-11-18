@@ -6,11 +6,20 @@ from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
-from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
+from .shared_data import (
+    MOCK_NODE_1,
+    MOCK_NODE_2,
+    MOCK_NODE_3,
+    TEST_UUID,
+    TestClass,
+    TestEnum,
+    TestSerializableClass,
+    test_func
+)
 
 ENCODER_CASES = [
     EncoderTestCase(
-        test_input=Bar(),
+        test_input=TestClass(),
         test_answer=TypeError()
     ),
     EncoderTestCase(
@@ -26,15 +35,15 @@ ENCODER_CASES = [
         }
     ),
     EncoderTestCase(
-        test_input=foo,
+        test_input=test_func,
         test_answer={}
     ),
     EncoderTestCase(
-        test_input=Bar().foo,
+        test_input=TestClass().test_func,
         test_answer={}
     ),
     EncoderTestCase(
-        test_input=Baz(),
+        test_input=TestSerializableClass(),
         test_answer={
             'test_a': 'test_a',
             'test_b': 42,

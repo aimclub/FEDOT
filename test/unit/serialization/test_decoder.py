@@ -9,7 +9,16 @@ from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
-from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
+from .shared_data import (
+    MOCK_NODE_1,
+    MOCK_NODE_2,
+    MOCK_NODE_3,
+    TEST_UUID,
+    TestClass,
+    TestEnum,
+    TestSerializableClass,
+    test_func
+)
 
 DECODER_CASES = [
     DecoderTestCase(
@@ -38,9 +47,9 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            CLASS_PATH_KEY: foo
+            CLASS_PATH_KEY: test_func
         },
-        test_answer=foo
+        test_answer=test_func
     ),
     DecoderTestCase(
         test_input={
@@ -50,9 +59,9 @@ DECODER_CASES = [
             'test_d': {
                 'test_a': 42
             },
-            CLASS_PATH_KEY: Baz
+            CLASS_PATH_KEY: TestSerializableClass
         },
-        test_answer=Baz({
+        test_answer=TestSerializableClass({
             'test_a': 'test_a',
             'test_b': 42,
             'test_c': ['test_a', 42],
@@ -75,7 +84,7 @@ DECODER_CASES = [
     )
 ]
 
-METHOD_FUNC = Bar().foo
+METHOD_FUNC = TestClass().test_func
 DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
