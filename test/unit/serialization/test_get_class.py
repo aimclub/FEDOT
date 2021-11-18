@@ -4,7 +4,7 @@ import pytest
 from fedot.core.serializers.json_helpers import DELIMITER, _get_class
 
 from .dataclasses.serialization_dataclasses import GetClassCase
-from .test_input import *
+from .test_input import Bar, Baz, MockGraph, MockNode, MockOperation, TestEnum, foo
 
 GET_CLASS_CASES = [
     GetClassCase(

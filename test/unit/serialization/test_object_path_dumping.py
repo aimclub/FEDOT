@@ -4,7 +4,7 @@ import pytest
 from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, DELIMITER, dump_path_to_obj
 
 from .dataclasses.serialization_dataclasses import DumpObjectTestCase
-from .test_input import *
+from .test_input import TEST_INPUT_MODULE_PATH, TEST_UUID, Bar, Baz, TestEnum, foo
 
 DUMPING_CASES = [
     DumpObjectTestCase(
