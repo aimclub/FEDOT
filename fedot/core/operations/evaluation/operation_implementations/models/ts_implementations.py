@@ -34,7 +34,6 @@ class ARIMAImplementation(ModelImplementation):
         self.lambda_value = None
         self.scope = None
         self.actual_ts_len = None
-        self.sts = None
 
     def fit(self, input_data):
         """ Class fit arima model on data
@@ -44,19 +43,9 @@ class ARIMAImplementation(ModelImplementation):
         source_ts = np.array(input_data.features)
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
-        self.sts = source_ts
 
         # Apply box-cox transformation for positive values
-        min_value = np.min(source_ts)
-        if min_value > 0:
-            pass
-        else:
-            # Making a shift to positive values
-            self.scope = abs(min_value) + 1
-            source_ts = source_ts + self.scope
-
-        _, self.lambda_value = stats.boxcox(source_ts)
-        transformed_ts = boxcox(source_ts, self.lambda_value)
+        transformed_ts = self._apply_boxcox(source_ts)
 
         # Set parameters
         p = int(self.params.get('p'))
@@ -138,6 +127,20 @@ class ARIMAImplementation(ModelImplementation):
 
     def get_params(self):
         return self.params
+
+    def _apply_boxcox(self, source_ts):
+        min_value = np.min(source_ts)
+        if min_value > 0:
+            pass
+        else:
+            # Making a shift to positive values
+            self.scope = abs(min_value) + 1
+            source_ts = source_ts + self.scope
+
+        _, self.lambda_value = stats.boxcox(source_ts)
+        transformed_ts = boxcox(source_ts, self.lambda_value)
+
+        return transformed_ts
 
     def _inverse_boxcox(self, predicted, lambda_param):
         """ Method apply inverse Box-Cox transformation """
@@ -268,7 +271,6 @@ class STLForecastARIMAImplementation(ModelImplementation):
         self.lambda_param = None
         self.scope = None
         self.actual_ts_len = None
-        self.sts = None
 
     def fit(self, input_data):
         """ Class fit STLForecast arima model on data
@@ -279,7 +281,6 @@ class STLForecastARIMAImplementation(ModelImplementation):
         source_ts = np.array(input_data.features)
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
-        self.sts = source_ts
 
         if not self.params:
             # Default data
