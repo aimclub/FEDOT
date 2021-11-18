@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.serializers import BasicSerializer
+from fedot.core.serializers import BasicSerializer
 
 ERROR_PREFIX = 'Invalid graph configuration:'
 

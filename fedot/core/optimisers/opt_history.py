@@ -17,8 +17,8 @@ from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
+from fedot.core.serializers import BasicSerializer
 from fedot.core.utils import default_fedot_data_dir
-from fedot.serializers import BasicSerializer
 
 
 @dataclass

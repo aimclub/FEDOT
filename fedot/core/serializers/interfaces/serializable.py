@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from inspect import signature
 from typing import Any, Dict
 
-from fedot.serializers import json_helpers
+from fedot.core.serializers import json_helpers
 
 
 class Serializable(ABC):

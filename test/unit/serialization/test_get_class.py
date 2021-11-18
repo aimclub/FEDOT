@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import pytest
-from fedot.serializers.json_helpers import DELIMITER, _get_class
+from fedot.core.serializers.json_helpers import DELIMITER, _get_class
 
 from .dataclasses.serialization_dataclasses import GetClassCase
 from .test_input import *

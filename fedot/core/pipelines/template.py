@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.repository.operation_types_repository import atomized_model_type
-from fedot.serializers import PipelineTemplateSerializer
+from fedot.core.serializers import PipelineTemplateSerializer
 
 
 class NumpyIntEncoder(json.JSONEncoder):

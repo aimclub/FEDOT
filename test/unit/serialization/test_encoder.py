@@ -2,7 +2,7 @@ from copy import deepcopy
 from uuid import UUID
 
 import pytest
-from fedot.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, encoder
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, encoder
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .test_input import *

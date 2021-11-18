@@ -1,6 +1,6 @@
 from enum import Enum
 
-from fedot.serializers import (
+from fedot.core.serializers import (
     BasicSerializer,
     GraphNodeSerializer,
     GraphSerializer,

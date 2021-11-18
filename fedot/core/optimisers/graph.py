@@ -6,9 +6,9 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
+from fedot.core.serializers import GraphNodeSerializer, GraphSerializer
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
-from fedot.serializers import GraphNodeSerializer, GraphSerializer
 
 
 def node_ops_adaptation(func):
