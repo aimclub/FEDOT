@@ -1,12 +1,8 @@
 from enum import Enum
 
-from fedot.core.serializers import (
-    BasicSerializer,
-    GraphNodeSerializer,
-    GraphSerializer,
-    OperationSerializer,
-    PipelineTemplateSerializer
-)
+from fedot.core.serializers import BasicSerializer
+
+from .mocks.serialization_mocks import MockNode
 
 TEST_UUID = '41d79d06c3d8478f89e7d1008c96a864'
 TEST_INPUT_MODULE_PATH = 'test.unit.serialization.test_input'
@@ -49,50 +45,8 @@ class Baz(BasicSerializer):
         )
 
 
-class MockOperation(OperationSerializer):
-    def __init__(self, **kwargs):
-        self.operations_repo = 'operations_repo'
-
-    def __eq__(self, other):
-        return self.operations_repo == other.operations_repo
-
-
-class MockPipelineTemplate(PipelineTemplateSerializer):
-    def __init__(self):
-        self.operation_templates = 'operation_templates'
-
-    def __eq__(self, other):
-        return self.operation_templates == other.operation_templates
-
-
-class MockNode(GraphNodeSerializer):
-    def __init__(self, name: str, nodes_from: list = None):
-        self.name = name
-        self.nodes_from = nodes_from if nodes_from else []
-        self._operator = '_operator'
-
-    def __eq__(self, other):
-        return (
-            self.name == other.name and
-            self.nodes_from == other.nodes_from and
-            self._operator == other._operator
-        )
-
-
 MOCK_NODE_1 = MockNode('node1')
 MOCK_NODE_2 = MockNode('node2')
 MOCK_NODE_3 = MockNode('node3')
 MOCK_NODE_1.nodes_from.extend([MOCK_NODE_2, MOCK_NODE_3])
 MOCK_NODE_2.nodes_from.extend([MOCK_NODE_3])
-
-
-class MockGraph(GraphSerializer):
-    def __init__(self, nodes: list = None):
-        self.nodes = nodes if nodes else []
-        self.operator = 'operator'
-
-    def __eq__(self, other):
-        return (
-            self.operator == other.operator and
-            self.nodes == other.nodes
-        )

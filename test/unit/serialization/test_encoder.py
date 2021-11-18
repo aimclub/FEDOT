@@ -5,19 +5,8 @@ import pytest
 from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, encoder
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
-from .test_input import (
-    MOCK_NODE_1,
-    MOCK_NODE_2,
-    MOCK_NODE_3,
-    TEST_UUID,
-    Bar,
-    Baz,
-    MockGraph,
-    MockOperation,
-    MockPipelineTemplate,
-    TestEnum,
-    foo
-)
+from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
+from .test_input import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
 
 ENCODER_CASES = [
     EncoderTestCase(

@@ -8,20 +8,8 @@ from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture
-from .test_input import (
-    MOCK_NODE_1,
-    MOCK_NODE_2,
-    MOCK_NODE_3,
-    TEST_UUID,
-    Bar,
-    Baz,
-    MockGraph,
-    MockNode,
-    MockOperation,
-    MockPipelineTemplate,
-    TestEnum,
-    foo
-)
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
+from .test_input import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, Bar, Baz, TestEnum, foo
 
 DECODER_CASES = [
     DecoderTestCase(
