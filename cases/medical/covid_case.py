@@ -13,10 +13,15 @@ from matplotlib import pyplot as plt
 def launch_covid_forecasting(df, test_size, forecast_length, timeout):
     # Time series only for country
     first_row = np.array(df.iloc[0])
+    dates_df = pd.DataFrame({'datetime': np.array(df.columns[4:], dtype=str)})
+    dates_df['datetime'] = pd.to_datetime(dates_df['datetime'], format="%m/%d/%y")
+
     ts = np.array(first_row[4:], dtype=int)
 
     test_len = round(len(ts) * test_size)
     train, test = ts[1: len(ts) - test_len], ts[len(ts) - test_len:]
+    # Dates for test set
+    dates = dates_df['datetime'].iloc[-test_len:]
 
     # Wrap train part into InputData
     train_ts = wrap_into_input(forecast_length, train)
@@ -35,15 +40,15 @@ def launch_covid_forecasting(df, test_size, forecast_length, timeout):
                                         horizon=test_len)
     display_metrics(val_predict, test)
     # plot forecasting result
-    plt.plot(validation_ts.idx, validation_ts.target, label='Actual time series')
-    plt.plot(np.arange(len(train), len(train) + len(val_predict)), val_predict,
-             label=f'Forecast for {forecast_length} elements ahead')
+    plt.plot(dates_df['datetime'], validation_ts.target, label='Actual time series')
+    plt.plot(dates, val_predict,
+             label=f'Forecast for {forecast_length} days ahead')
     plt.title(f'In-sample validation. Covid case')
-    plt.xlabel('Time index')
+    plt.xlabel('Datetime')
     plt.legend()
     plt.show()
 
-    save_forecast(forecast=val_predict, actual=test, path='covid_forecasts.csv')
+    save_forecast(dates=dates, forecast=val_predict, actual=test, path='covid_forecasts.csv')
     pipeline.save('')
 
 
@@ -70,13 +75,13 @@ def run_covid_experiment(timeout: Union[int, float] = 2, forecast_length: int = 
         df_country = df[df['Country/Region'] == country]
 
         if len(df_country) == 1:
-            print(f'Country{country}')
+            print(f'Country {country}')
             # Time series only for country
             launch_covid_forecasting(df_country, test_size, forecast_length, timeout)
         else:
             # Time series for several cities in country
             for province in df_country['Province/State']:
-                print(f'Province {province}, Country{country}')
+                print(f'Province {province}, Country {country}')
                 df_province = df[df['Province/State'] == province]
                 launch_covid_forecasting(df_province, test_size, forecast_length, timeout)
 

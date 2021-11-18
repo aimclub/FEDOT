@@ -21,9 +21,9 @@ def wrap_into_input(forecast_length, time_series):
     return input_data
 
 
-def save_forecast(forecast: np.array, actual: np.array, path: str):
+def save_forecast(forecast: np.array, actual: np.array, dates, path: str):
     """ Save forecast in csv file """
-    df = pd.DataFrame({'actual': actual, 'forecast': forecast})
+    df = pd.DataFrame({'datetime': dates, 'actual': actual, 'forecast': forecast})
     df.to_csv(path, index=False)
 
 
