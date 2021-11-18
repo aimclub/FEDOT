@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.constraint import constraint_function
@@ -29,6 +30,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 
 
@@ -367,3 +369,17 @@ def test_gp_composer_random_graph_generation_looping():
         assert primary_node in nodes_name
         assert nodes_name.count(primary_node) == 1
     assert constraint_function(graph, params) is True
+
+
+def test_gp_composer_early_stopping():
+    """ Test checks early stopping criteria """
+    train_data_path = f'{fedot_project_root()}/test/data/simple_classification.csv'
+    problem = 'classification'
+    time_limit = datetime.timedelta(minutes=10)
+    start = datetime.datetime.now()
+    model = Fedot(problem=problem, timeout=1000, composer_params={'stopping_after_n_generation': 1},
+                  preset='ultra_light', verbose_level=3)
+    model.fit(features=train_data_path, target='Y')
+    spent_time = datetime.datetime.now() - start
+
+    assert spent_time < time_limit

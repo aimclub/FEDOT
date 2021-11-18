@@ -8,24 +8,26 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_classification_example(timeout=None):
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+    # train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+    # test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
+    train_data_path = f'{fedot_project_root()}/test/data/simple_classification.csv'
     problem = 'classification'
 
-    baseline_model = Fedot(problem=problem, timeout=timeout)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    # baseline_model = Fedot(problem=problem, timeout=timeout)
+    # baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    #
+    # baseline_model.predict(features=test_data_path)
+    # print(baseline_model.get_metrics())
 
-    baseline_model.predict(features=test_data_path)
-    print(baseline_model.get_metrics())
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, composer_params={'stopping_after_n_generation': 1},
+                       preset='ultra_light', verbose_level=3)
+    auto_model.fit(features=train_data_path, target='Y')
+    # prediction = auto_model.predict_proba(features=test_data_path)
+    # print(auto_model.get_metrics())
+    # auto_model.plot_prediction()
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=timeout)
-    auto_model.fit(features=train_data_path, target='target')
-    prediction = auto_model.predict_proba(features=test_data_path)
-    print(auto_model.get_metrics())
-    auto_model.plot_prediction()
-
-    return prediction
+    # return prediction
 
 
 def run_regression_example():
@@ -102,7 +104,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
 
 
 if __name__ == '__main__':
-    run_classification_example()
-    run_regression_example()
-    run_ts_forecasting_example()
-    run_classification_multiobj_example()
+    run_classification_example(timeout=1000)
+    # run_regression_example()
+    # run_ts_forecasting_example()
+    # run_classification_multiobj_example()

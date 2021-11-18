@@ -9,7 +9,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import DataOperationImplementation
 
-
+GLOBAL_PREFIX = 'sklearn_imbalanced_class:'
 # TODO: ResampleImplementation to multi-class imbalanced data
 
 
@@ -72,13 +72,14 @@ class ResampleImplementation(DataOperationImplementation):
             target = new_input_data.target
 
             if len(np.unique(target)) != 2:
-                self.log.info(f'Imbalanced multi-class balancing is not supported.')
+                self.log.info(f'{GLOBAL_PREFIX} Imbalanced multi-class balancing is not supported.')
                 return self._return_source_data(input_data)
 
             unique_class, counts_class = np.unique(target, return_counts=True)
 
             if counts_class[0] == counts_class[1]:
-                self.log.info(f'Number of elements from each class are equal. Transformation is not required.')
+                self.log.info(
+                    f'{GLOBAL_PREFIX} Number of elements from each class are equal. Transformation is not required.')
                 return self._return_source_data(input_data)
 
             min_data, maj_data = self._get_data_by_target(features, target,
@@ -134,7 +135,7 @@ class ResampleImplementation(DataOperationImplementation):
         :param min_data: minority data from input data
         :param maj_data: majority data from input data
         """
-        prefix = "Warning: n_samples was changed"
+        prefix = "sklearn_imbalanced_class Warning: n_samples was changed"
         was_changed = False
 
         if self.replace is False and (self.n_samples > min_data.shape[0] or self.n_samples > maj_data.shape[0]):
@@ -146,7 +147,7 @@ class ResampleImplementation(DataOperationImplementation):
         return was_changed
 
     def _convert_to_absolute(self, min_data, maj_data):
-        self.log.info(f'n_samples was converted to absolute values')
+        self.log.info(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
 
         if self.balance == 'expand_minority':
             return round(min_data.shape[0] * self.n_samples)
@@ -155,7 +156,7 @@ class ResampleImplementation(DataOperationImplementation):
             return round(maj_data.shape[0] * self.n_samples)
 
     def _convert_to_relative(self, min_data, maj_data):
-        self.log.info(f'n_samples was converted to relative values')
+        self.log.info(f'{GLOBAL_PREFIX} n_samples was converted to relative values')
 
         if self.balance == 'expand_minority':
             return round(self.n_samples / min_data.shape[0], 2)
