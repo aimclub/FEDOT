@@ -9,7 +9,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.explainability.surrogate_explainer import SurrogateExplainer, simple_pipeline
+from fedot.core.explainability.surrogate_explainer import SurrogateExplainer, get_simple_pipeline
 
 np.random.seed(1)
 
@@ -25,7 +25,7 @@ def classification_fixture() -> 'InputData, Pipeline':
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
-    return data, simple_pipeline('xgboost')
+    return data, get_simple_pipeline('xgboost')
 
 
 @pytest.fixture(scope='module', name='regression')
@@ -39,7 +39,7 @@ def regression_fixture() -> 'InputData, Pipeline':
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
                      task=Task(TaskTypesEnum.regression),
                      data_type=DataTypesEnum.table)
-    return data, simple_pipeline('xgbreg')
+    return data, get_simple_pipeline('xgbreg')
 
 
 @pytest.fixture(scope='module', name="task_type")
