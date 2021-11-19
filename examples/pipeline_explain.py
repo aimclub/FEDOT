@@ -10,7 +10,7 @@ if __name__ == '__main__':
     fedot_root = str(fedot_project_root())
     train_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_train.csv')
     test_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_test.csv')
-    figure_path = os.path.join(fedot_root, 'explanation_wo_pruning.png')
+    figure_path = os.path.join(fedot_root, 'explanation.png')
 
     # Feature and class names for visualization
     feature_names = pd.read_csv(train_file_path, index_col=0, nrows=0).columns.tolist()
@@ -33,4 +33,5 @@ if __name__ == '__main__':
 
     # Visualizing explanation and saving the plot
     print(f'Built surrogate model: {explainer.surrogate_str}')
-    explainer.visualize(save_path=figure_path, feature_names=feature_names, class_names=class_names, dpi=200)
+    explainer.visualize(save_path=figure_path, dpi=200, feature_names=feature_names, class_names=class_names,
+                        precision=6)
