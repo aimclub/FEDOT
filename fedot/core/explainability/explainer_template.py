@@ -13,5 +13,5 @@ class Explainer:
         raise NotImplementedError
 
     @abstractmethod
-    def output(self, *args, **kwargs):
+    def visualize(self, *args, **kwargs):
         raise NotImplementedError
