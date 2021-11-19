@@ -150,3 +150,22 @@ def test_cv_api_correct():
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(dataset_to_validate.target)
     assert metric['f1'] > 0
+
+
+# TODO exception here
+def test_resample_pipeline():
+    resample = PrimaryNode("resample")
+    resample.custom_params = {"balance": "expand_minority",
+                                  "replace": True,
+                                  "n_samples": 0.5
+                                  }
+    scaling = SecondaryNode("scaling", nodes_from=[resample])
+    estimator = SecondaryNode("xgboost", nodes_from=[scaling])
+    model = Pipeline(estimator)
+
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose, dataset_to_validate = get_data(task)
+    fedot_model = model.fit(dataset_to_compose)
+    prediction = model.predict(dataset_to_validate)
+
+
