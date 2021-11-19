@@ -10,9 +10,13 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
+from examples.pipeline_import_export import create_correct_path
+from sklearn.linear_model import Lasso
+
+import matplotlib.pyplot as plt
 
 
-def custom_model_imitation(train_data, _, params):
+def custom_model_imitation(_, train_data, __, params):
     """
     Function imitates custom model behaviour
     :param train_data: np.array for training the model
@@ -29,6 +33,33 @@ def custom_model_imitation(train_data, _, params):
     return result, out_type
 
 
+def custom_regression_model_fit(features, target, params):
+    alpha = params.get('alpha')
+    reg = Lasso(alpha=alpha)
+    reg.fit(features, target)
+    return reg
+
+
+def custom_regression_model_predict(model, features, target, params):
+    res = model.predict(features)
+    return res, 'table'
+
+
+def get_custom_fitting_pipeline():
+    """
+        lagged -> custom -> ridge
+    """
+    lagged_node = PrimaryNode('lagged')
+    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
+    custom_node.custom_params = {"alpha": 0.1,
+                                 "model_predict": custom_regression_model_predict,
+                                 "model_fit": custom_regression_model_fit}
+
+    node_final = SecondaryNode('ridge', nodes_from=[custom_node])
+    pipeline = Pipeline(node_final)
+    return pipeline
+
+
 def get_centered_pipeline(with_params=True) -> Pipeline:
     """
         lagged -> custom -> ridge
@@ -38,7 +69,7 @@ def get_centered_pipeline(with_params=True) -> Pipeline:
     if with_params:
         custom_node.custom_params = {"a": -50,
                                      "b": 500,
-                                     'model': custom_model_imitation}
+                                     'model_predict': custom_model_imitation}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -54,7 +85,7 @@ def get_starting_pipeline(with_params=True):
     if with_params:
         custom_node.custom_params = {"a": -50,
                                      "b": 500,
-                                     'model': custom_model_imitation}
+                                     'model_predict': custom_model_imitation}
     lagged_node = SecondaryNode('lagged', nodes_from=[custom_node])
     node_final = SecondaryNode('ridge', nodes_from=[lagged_node])
     pipeline = Pipeline(node_final)
@@ -89,6 +120,18 @@ def test_pipeline_with_custom_node():
     predicted_starting = pipeline.predict(predict_input)
 
     assert predicted_centered and predicted_starting is not None
+
+
+def test_pipeline_with_custom_fitted_node():
+    train_input, predict_input = get_input_data()
+    pipeline = get_custom_fitting_pipeline()
+    pipeline.fit_from_scratch(train_input)
+    predicted_centered = pipeline.predict(predict_input)
+
+    plt.plot(np.arange(len(predicted_centered)))
+    plt.show()
+
+    assert predicted_centered is not None
 
 
 def test_save_pipeline_with_custom():

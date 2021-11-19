@@ -21,7 +21,6 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def fit(self, train_data: InputData):
         """ Fit method for custom strategy"""
-        self.operation_impl = CustomModelImplementation(self.params)
         self.operation_impl.fit(train_data)
         return self.operation_impl
 
