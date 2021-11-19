@@ -373,7 +373,7 @@ class ExpSmoothingImplementation(ModelImplementation):
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         self.model = ETSModel(
-            input_data.features,
+            input_data.features.astype("float64"),
             error=self.params.get("error"),
             trend=self.params.get("trend"),
             seasonal=self.params.get("seasonal"),
