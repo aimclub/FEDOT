@@ -1,3 +1,4 @@
+from itertools import product
 from typing import Any, Dict
 
 from .interfaces.serializable import Serializable
@@ -21,11 +22,9 @@ class GraphSerializer(Serializable):
         nodes = json_obj['nodes']
         for node in nodes:
             if node.nodes_from:
-                for j, inner_node in enumerate(node.nodes_from):
-                    for node_outer in nodes:
-                        if inner_node._serialization_id == node_outer._serialization_id:
-                            node.nodes_from[j] = node_outer
-                            break
+                for (idx, inner_node), outer_node in product(enumerate(node.nodes_from), nodes):
+                    if inner_node._serialization_id == outer_node._serialization_id:
+                        node.nodes_from[idx] = outer_node
         obj.nodes = nodes
         vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})
         return obj
