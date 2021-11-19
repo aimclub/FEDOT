@@ -4,7 +4,7 @@ from types import FunctionType, MethodType
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, decoder
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, decoder
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture
@@ -27,7 +27,7 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            OBJECT_ENCODING_KEY: {'hex': TEST_UUID},
+            SIMPLE_OBJECT_INIT_DATA: {'hex': TEST_UUID},
             CLASS_PATH_KEY: UUID
         },
         test_answer=UUID(TEST_UUID)
@@ -40,7 +40,7 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            OBJECT_ENCODING_KEY: 'test_val',
+            SIMPLE_OBJECT_INIT_DATA: 'test_val',
             CLASS_PATH_KEY: TestEnum
         },
         test_answer=TestEnum.test_val

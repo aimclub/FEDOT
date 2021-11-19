@@ -2,7 +2,7 @@ from copy import deepcopy
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, OBJECT_ENCODING_KEY, encoder
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, encoder
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
@@ -25,13 +25,13 @@ ENCODER_CASES = [
     EncoderTestCase(
         test_input=UUID(TEST_UUID),
         test_answer={
-            OBJECT_ENCODING_KEY: {'hex': TEST_UUID}
+            SIMPLE_OBJECT_INIT_DATA: {'hex': TEST_UUID}
         }
     ),
     EncoderTestCase(
         test_input=TestEnum.test_val,
         test_answer={
-            OBJECT_ENCODING_KEY: 'test_val'
+            SIMPLE_OBJECT_INIT_DATA: 'test_val'
         }
     ),
     EncoderTestCase(

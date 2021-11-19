@@ -6,8 +6,8 @@ from uuid import UUID
 
 from .interfaces.serializable import Serializable
 
-OBJECT_ENCODING_KEY = 'kwargs'
-DELIMITER = '/'
+SIMPLE_OBJECT_INIT_DATA = '_init_data'
+MODULE_X_NAME_DELIMITER = '/'
 CLASS_PATH_KEY = '_class_path'
 
 
@@ -19,21 +19,21 @@ def dump_path_to_obj(obj: object) -> Dict[str, str]:
 
     obj_module = obj.__module__
     return {
-        CLASS_PATH_KEY: f'{obj_module}{DELIMITER}{obj_name}'
+        CLASS_PATH_KEY: f'{obj_module}{MODULE_X_NAME_DELIMITER}{obj_name}'
     }
 
 
-def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.dumps(...)
+def encoder(obj: Any) -> Dict[str, Any]:
     if isinstance(obj, Serializable):
         return obj.to_json()
     elif isinstance(obj, UUID):
         return {
-            OBJECT_ENCODING_KEY: {'hex': obj.hex},
+            SIMPLE_OBJECT_INIT_DATA: {'hex': obj.hex},
             **dump_path_to_obj(obj)
         }
     elif isinstance(obj, Enum):
         return {
-            OBJECT_ENCODING_KEY: obj.value,
+            SIMPLE_OBJECT_INIT_DATA: obj.value,
             **dump_path_to_obj(obj)
         }
     elif isfunction(obj) or ismethod(obj):
@@ -42,7 +42,7 @@ def encoder(obj: Any) -> Dict[str, Any]:  # serves as 'default' encoder in json.
 
 
 def _get_class(class_path: str) -> Any:
-    module_name, class_name = class_path.split(DELIMITER)
+    module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
     obj_cls = import_module(module_name)
     for sub in class_name.split('.'):
         obj_cls = getattr(obj_cls, sub)
@@ -57,10 +57,10 @@ def decoder(json_obj: Dict[str, Any]) -> Any:  # serves as 'object_hook' decoder
             return obj_cls.from_json(json_obj)
         elif isfunction(obj_cls) or ismethod(obj_cls):
             return obj_cls
-        elif OBJECT_ENCODING_KEY in json_obj:
-            value = json_obj[OBJECT_ENCODING_KEY]
-            if type(value) is dict:
-                return obj_cls(**value)
-            return obj_cls(value)
+        elif SIMPLE_OBJECT_INIT_DATA in json_obj:
+            init_data = json_obj[SIMPLE_OBJECT_INIT_DATA]
+            if type(init_data) is dict:
+                return obj_cls(**init_data)
+            return obj_cls(init_data)
         raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')
     return json_obj
