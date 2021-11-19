@@ -62,8 +62,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.metrics = metrics
 
         self.use_stopping_criteria = parameters.use_stopping_criteria
-        if self.use_stopping_criteria:
-            self.stopping_after_n_generation = parameters.stopping_after_n_generation
+        self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
         self.qual_position = 0
         self.compl_position = 1

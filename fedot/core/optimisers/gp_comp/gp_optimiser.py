@@ -136,6 +136,9 @@ class GPGraphOptimiser:
         if not self.requirements.pop_size:
             self.requirements.pop_size = 10
 
+        self.use_stopping_criteria = parameters.use_stopping_criteria
+        self.stopping_after_n_generation = parameters.stopping_after_n_generation
+
         self.population = None
         self.initial_graph = initial_graph
         self.history = OptHistory(metrics, parameters.history_folder)
