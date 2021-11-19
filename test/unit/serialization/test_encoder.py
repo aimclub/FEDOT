@@ -55,11 +55,11 @@ ENCODER_CASES = [
     ),
     EncoderTestCase(
         test_input=MockOperation(),
-        test_answer={}
+        test_answer={'operation_type': 'op'}
     ),
     EncoderTestCase(
         test_input=MockPipelineTemplate(),
-        test_answer={}
+        test_answer={'struct_id': 'id'}
     ),
     EncoderTestCase(
         test_input=MOCK_NODE_1,

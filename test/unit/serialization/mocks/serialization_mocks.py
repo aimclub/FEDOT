@@ -2,19 +2,21 @@ from fedot.core.serializers import GraphNodeSerializer, GraphSerializer, Operati
 
 
 class MockOperation(OperationSerializer):
-    def __init__(self, **kwargs):
+    def __init__(self, operation_type='op', **kwargs):
+        self.operation_type = operation_type
         self.operations_repo = 'operations_repo'
 
     def __eq__(self, other):
-        return self.operations_repo == other.operations_repo
+        return self.operation_type == other.operation_type
 
 
 class MockPipelineTemplate(PipelineTemplateSerializer):
-    def __init__(self):
+    def __init__(self, struct_id='id'):
+        self.struct_id = struct_id
         self.operation_templates = 'operation_templates'
 
     def __eq__(self, other):
-        return self.operation_templates == other.operation_templates
+        return self.struct_id == other.struct_id
 
 
 class MockNode(GraphNodeSerializer):

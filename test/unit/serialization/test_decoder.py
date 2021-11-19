@@ -72,15 +72,17 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
+            'operation_type': 'my_operation',
             CLASS_PATH_KEY: MockOperation
         },
-        test_answer=MockOperation()
+        test_answer=MockOperation('my_operation')
     ),
     DecoderTestCase(
         test_input={
+            'struct_id': 'my_id',
             CLASS_PATH_KEY: MockPipelineTemplate
         },
-        test_answer=MockPipelineTemplate()
+        test_answer=MockPipelineTemplate('my_id')
     )
 ]
 
