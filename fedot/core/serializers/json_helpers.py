@@ -15,9 +15,9 @@ def dump_path_to_obj(obj: object) -> Dict[str, str]:
     '''
     Dumps the full path (module + name) to the input object into the dict
 
-    obj - object which path should be resolved (class, function or method)
+    :param obj: object which path should be resolved (class, function or method)
 
-    returns: dict[str, str] with path to the object
+    :return dict[str, str] with path to the object
     '''
     if isclass(obj) or isfunction(obj) or ismethod(obj):
         obj_name = obj.__qualname__
@@ -34,9 +34,9 @@ def encoder(obj: Any) -> Dict[str, Any]:
     '''
     Serves as 'default' parameter in json.dumps(...)
 
-    obj - object to be encoded (class, function or method)
+    :param obj: object to be encoded (class, function or method)
 
-    returns: dict[str, Any], which is in fact json object
+    :return dict[str, Any] which is in fact json object
     '''
     if isinstance(obj, Serializable):
         return obj.to_json()
@@ -59,9 +59,9 @@ def _get_class(class_path: str) -> Any:
     '''
     Gets the object type from the class_path
 
-    class_path - full path (module + name) of the class
+    :param class_path: full path (module + name) of the class
 
-    returns: class, function or method type
+    :return class, function or method type
     '''
     module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
     obj_cls = import_module(module_name)
@@ -72,12 +72,12 @@ def _get_class(class_path: str) -> Any:
 
 def decoder(json_obj: Dict[str, Any]) -> Any:
     '''
-    Serves as 'object_hook' parameter in json.loads(...)
+    Serves as "object_hook" parameter in json.loads(...)
 
-    json_obj - dict[str, Any] to be decoded into Python class, function or
+    :param json_obj: dict[str, Any] to be decoded into Python class, function or
         method object only if it has some special fields
 
-    returns: Python class, function or method object OR input if it's just a regular dict
+    :return Python class, function or method object OR input if it's just a regular dict
     '''
     if CLASS_PATH_KEY in json_obj:
         obj_cls = _get_class(json_obj[CLASS_PATH_KEY])
