@@ -1,8 +1,10 @@
 import os
 import pandas as pd
+
 from examples.pipeline_tune import get_simple_pipeline
 from fedot.core.utils import fedot_project_root
 from fedot.core.data.data import InputData
+from fedot.explainability.explainers import explain_pipeline
 
 
 if __name__ == '__main__':
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     pipeline.fit(train_data, use_fitted=False)
 
     # Pipeline explaining
-    explainer = pipeline.explain(data=train_data, method='surrogate_dt', visualize=False)
+    explainer = explain_pipeline(pipeline, data=train_data, method='surrogate_dt', visualize=False)
 
     # Visualizing explanation and saving the plot
     print(f'Built surrogate model: {explainer.surrogate_str}')

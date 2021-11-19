@@ -11,6 +11,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
+from fedot.explainability.explainers import explain_pipeline
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -293,3 +294,18 @@ class Fedot:
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
+
+    def explain(self, data: InputData, method: str = 'surrogate_dt',
+                visualize: bool = True, **kwargs) -> 'Explainer':
+        """Create explanation for 'current_pipeline' according to the selected 'method'.
+        An `Explainer` instance is returned.
+
+        :param data: samples to be explained.
+        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
+        :param visualize: print and plot the explanation simultaneously, defaults to True.
+            The explanation can be retrieved later by executing `explainer.output()`.
+        """
+        pipeline = self.current_pipeline
+        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method, visualize=visualize, **kwargs)
+
+        return explainer

@@ -9,7 +9,8 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.explainability.surrogate_explainer import SurrogateExplainer, get_simple_pipeline
+from fedot.explainability.explainers import explain_pipeline
+from fedot.explainability.surrogate_explainer import SurrogateExplainer, get_simple_pipeline
 
 np.random.seed(1)
 
@@ -71,7 +72,7 @@ def test_surrogate_explainer(method, task_type, request):
 
     pipeline.fit(input_data=train)
 
-    explainer = pipeline.explain(data=train, method=method, visualize=False)
+    explainer = explain_pipeline(pipeline, data=train, method=method, visualize=False)
 
     assert isinstance(explainer, SurrogateExplainer)
     assert isinstance(explainer.surrogate, Pipeline)
@@ -89,7 +90,7 @@ def test_pipeline_explain(method, task_type, request):
     pipeline.fit(input_data=train)
     old_pipeline = deepcopy(pipeline)
 
-    explainer = pipeline.explain(data=train, method=method, visualize=False)
+    explainer = explain_pipeline(pipeline, data=train, method=method, visualize=False)
 
     assert pipeline == old_pipeline
     assert _successful_output(explainer)

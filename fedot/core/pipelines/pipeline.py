@@ -18,7 +18,6 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
-from fedot.core.explainability.explainers import pick_pipeline_explainer
 
 
 # The allowed empirical partition limit of the number of rows to delete.
@@ -341,25 +340,6 @@ class Pipeline(Graph):
         print(self.__str__())
         for node in self.nodes:
             print(f"{node.operation.operation_type} - {node.custom_params}")
-
-    def explain(self, data: InputData, method: str = 'surrogate_dt',
-                visualize: bool = True, **kwargs) -> 'Explainer':
-        """Create explanation for the pipeline according to the selected metod.
-        An object is both put into pipeline.explainer attribute and returned.
-
-        :param data: samples to be explained.
-        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
-        :param visualize: print and plot the explanation simultaneously, defaults to True.
-            The explanation can be retrieved later by executing `explainer.output()`.
-        """
-
-        if not self.is_fitted:
-            raise AssertionError('The pipeline might be fit before explanation!')
-
-        explainer = pick_pipeline_explainer(self, method, data.task.task_type)
-        explainer.explain(data, visualize=visualize, **kwargs)
-
-        return explainer
 
 
 def pipeline_encoders_validation(pipeline: Pipeline) -> (bool, bool):

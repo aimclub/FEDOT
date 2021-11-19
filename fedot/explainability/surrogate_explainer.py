@@ -8,7 +8,7 @@ from sklearn import tree
 from sklearn.tree._tree import TREE_LEAF
 
 import fedot.core.pipelines.pipeline as pipeline
-from fedot.core.explainability.explainer_template import Explainer
+from fedot.explainability.explainer_template import Explainer
 from fedot.core.composer.metrics import R2, F1
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
