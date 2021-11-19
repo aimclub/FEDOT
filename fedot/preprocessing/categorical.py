@@ -1,6 +1,8 @@
 from copy import copy
 import bisect
 import numpy as np
+import pandas as pd
+
 from sklearn.preprocessing import LabelEncoder
 from fedot.core.data.data import InputData, str_columns_check
 
@@ -27,14 +29,32 @@ class CategoricalPreprocessor:
         number_of_columns = input_data.features.shape[-1]
         for column_id, number in enumerate(range(number_of_columns)):
             column = input_data.features[:, column_id]
-            column_uniques = np.unique(column)
 
-            if len(column_uniques) <= 2 and column_id in categorical_ids:
-                # Column contains binary string feature
-                binary_ids_to_convert.append(categorical_ids[column_id])
+            # Numpy with strings cannot be processed for nans search - so use pandas
+            pd_column = pd.Series(column)
+            is_row_has_nan = pd.isna(pd_column)
+            nans_number = is_row_has_nan.sum()
+            if nans_number > 0:
+                # There are nans in the columns - find indices of such objects
+                # Warning - sign '==' is vital here, do not change it
+                gap_ids = np.ravel(np.argwhere(is_row_has_nan.values == True))
 
-                # Train encoder for current column
-                self._train_encoder(column, column_id)
+                column[gap_ids] = 'fedot_nan'
+                column_uniques = np.unique(column)
+
+                if len(column_uniques) <= 3 and column_id in categorical_ids:
+                    # There is column with binary categories and gaps
+                    binary_ids_to_convert.append(categorical_ids[column_id])
+                    self._train_encoder(column, column_id)
+                    # TODO change strategy for nans in
+            else:
+                column_uniques = np.unique(column)
+                if len(column_uniques) <= 2 and column_id in categorical_ids:
+                    # Column contains binary string feature
+                    binary_ids_to_convert.append(categorical_ids[column_id])
+
+                    # Train encoder for current column
+                    self._train_encoder(column, column_id)
 
         self.binary_ids_to_convert = binary_ids_to_convert
         return self

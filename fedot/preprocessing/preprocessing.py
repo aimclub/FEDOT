@@ -86,28 +86,34 @@ class DataPreprocessor:
         :param data: data to preprocess
         """
         if isinstance(data, InputData):
-            if data_has_categorical_features(data) and data_has_missing_values(data) is False:
+            if data_has_categorical_features(data) and not data_has_missing_values(data):
                 # Data contains only categorical features
-                has_encoder = self.structure_analysis.primary_operation_search(pipeline, tag_to_check='encoding')
+                has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
                 if has_encoder is False:
                     self.process_features = self._encode_data_for_fit(data)
 
-            elif data_has_categorical_features(data) is False and data_has_missing_values(data):
+            elif not data_has_categorical_features(data) and data_has_missing_values(data):
                 # Data contains only missing values
-                has_imputer = True
+                has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
                 if has_imputer is False:
                     data = self.apply_imputation(data)
-            else:
-                # Data contains both missing values and categorical features
-                has_imputer = True
-                has_encoder = True
 
-                if has_imputer is False and has_encoder is False:
-                    self.process_features = self._encode_data_for_fit(data)
+            elif data_has_categorical_features(data) and data_has_missing_values(data):
+                # Data contains both missing values and categorical features
+                has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
+                has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
+
+                if not has_imputer and not has_encoder:
+                    # Apply imputation firstly and encoding secondly because there is no encoding and imputer
                     data = self.apply_imputation(data)
-                elif has_imputer and has_encoder is False:
                     self.process_features = self._encode_data_for_fit(data)
-                elif has_imputer is False and has_encoder:
+
+                elif has_imputer and not has_encoder:
+                    # Only imputer in pipeline
+                    self.process_features = self._encode_data_for_fit(data)
+
+                elif not has_imputer and has_encoder:
+                    # Only encoder in pipeline
                     data = self.apply_imputation(data)
         return data
 
@@ -118,12 +124,8 @@ class DataPreprocessor:
         :param pipeline: pipeline to prepare data for
         :param data: data to preprocess
         """
-        # Check if pipeline has encoders and imputation operations in its structure
-        presence_dict = self.pipeline_encoders_imputers_validation(pipeline)
-        has_imputation_operation = presence_dict['imputation']
-        has_encoder_operation = presence_dict['encoding']
-
-        if data_has_missing_values(data) and not has_imputation_operation:
+        has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
+        if data_has_missing_values(data) and not has_imputer:
             data = self.apply_imputation(data)
 
         self._encode_data_for_predict(data, self.process_features)

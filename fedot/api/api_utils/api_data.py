@@ -57,7 +57,7 @@ class ApiDataProcessor:
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
 
         # Perform obligatory steps of data preprocessing
-        if is_predict is False:
+        if not is_predict:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
