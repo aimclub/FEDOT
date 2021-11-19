@@ -301,6 +301,15 @@
         "interpretable"
       ]
     },
+    "polyfit": {
+      "meta": "ts_model",
+      "tags": [
+        "simple",
+        "non_lagged",
+        "non_linear",
+        "interpretable"
+      ]
+    },
     "sgdr": {
       "meta": "sklearn_regr",
       "tags": [

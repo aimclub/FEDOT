@@ -172,6 +172,9 @@ class SearchSpace:
                 'degree': (hp.choice, [[2, 3, 4]]),
                 'interaction_only': (hp.choice, [[True, False]])
             },
+            'polyfit': {
+                'degree': (hp.choice, [[1, 2, 3, 4, 5]])
+            },
             'lagged': {
                 'window_size': (hp.uniform, [5, 500])
             },
@@ -185,6 +188,9 @@ class SearchSpace:
             },
             'gaussian_filter': {
                 'sigma': (hp.uniform, [1, 5])
+            },
+            'cut': {
+                'cut_part': (hp.uniform, [0, 0.9])
             },
             'lgbm': {
                 'class_weight': (hp.choice, [[None, 'balanced']]),
@@ -217,6 +223,11 @@ class SearchSpace:
                 'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
                 'border_count': (hp.randint, [2, 255]),
                 'l2_leaf_reg': (hp.uniform, [1e-8, 10.0])
+            },
+            'resample': {
+                'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
+                'replace': (hp.choice, [[True, False]]),
+                'n_samples': (hp.uniform, [0.3, 1])
             }
         }
 

@@ -8,7 +8,7 @@ from fedot.core.pipelines.validation import (validate)
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
     has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
-    has_correct_data_sources
+    has_correct_data_sources, has_parent_contain_single_resample
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -233,6 +233,19 @@ def pipeline_with_incorrect_data_sources():
     return pipeline
 
 
+def pipeline_with_incorrect_resample_node():
+    """ Incorrect pipeline
+        resample \
+                   model
+        scaling  /
+    """
+    resample_node = PrimaryNode(operation_type='resample')
+    scaling_node = PrimaryNode(operation_type='scaling')
+    pipeline = Pipeline(SecondaryNode(operation_type='logit', nodes_from=[resample_node, scaling_node]))
+
+    return pipeline
+
+
 def test_pipeline_with_cycle_raise_exception():
     pipeline = pipeline_with_cycle()
     with pytest.raises(Exception) as exc:
@@ -382,3 +395,12 @@ def custom_validation_test():
     incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
 
     assert validate(incorrect_pipeline, rules=[has_no_cycle])
+
+
+def test_pipeline_with_resample_node():
+    incorrect_pipeline = pipeline_with_incorrect_resample_node()
+
+    with pytest.raises(ValueError) as exc:
+        has_parent_contain_single_resample(incorrect_pipeline)
+
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Resample node is not single parent node for child operation'

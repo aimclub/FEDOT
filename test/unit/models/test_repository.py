@@ -1,6 +1,8 @@
 import json
 import os
 
+import pytest
+
 from fedot.core.operations.evaluation.classification import SkLearnClassificationStrategy
 from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
@@ -35,11 +37,11 @@ def test_search_in_repository_by_tag_correct():
     with OperationTypesRepository() as repo:
         model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
-        assert len(model_names) == 4
+        assert len(model_names) > 0
 
         model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'])
-        assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge'}.issubset(model_names)
-        assert len(model_names) == 10
+        assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge', 'polyfit'}.issubset(model_names)
+        assert len(model_names) > 0
 
         model_names, _ = repo.operations_with_tag(tags=['non_real_tag'])
         assert len(model_names) == 0
@@ -87,11 +89,6 @@ def test_names_with_postfix():
     name_with_postfix = 'xgboost/best_model_ever'
     name_without_postfix = get_operation_type_from_id(name_with_postfix)
     assert name_without_postfix == 'xgboost'
-
-
-def test_cls_method_assign_repo():
-    repository = OperationTypesRepository().assign_repo('model', 'automl_repository.json')
-    assert repository.repository_name == 'automl_repository.json'
 
 
 def test_operation_types_repository_repr():

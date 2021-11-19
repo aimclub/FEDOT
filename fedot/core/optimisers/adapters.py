@@ -42,14 +42,14 @@ class DirectAdapter(BaseOptimizationAdapter):
         super().__init__(base_graph_class=base_graph_class, base_node_class=base_node_class, log=log)
 
     def adapt(self, adaptee: Any):
-        opt_graph = adaptee
+        opt_graph = deepcopy(adaptee)
         opt_graph.__class__ = OptGraph
         for node in opt_graph.nodes:
             node.__class__ = OptNode
         return opt_graph
 
     def restore(self, opt_graph: OptGraph):
-        obj = opt_graph
+        obj = deepcopy(opt_graph)
         obj.__class__ = self.base_graph_class
         for node in obj.nodes:
             node.__class__ = self.base_node_class
@@ -78,10 +78,8 @@ class PipelineAdapter(BaseOptimizationAdapter):
             else:
                 content = {'name': node.operation,
                            'params': node.custom_params}
-                if node.nodes_from:
-                    node.__class__ = params.get('secondary_class')
-                else:
-                    node.__class__ = params.get('primary_class')
+
+                node.__class__ = OptNode
                 node.content = content
 
     def _transform_to_pipeline_node(self, node, *args, **params):
@@ -108,20 +106,21 @@ class PipelineAdapter(BaseOptimizationAdapter):
         graph.uid = source_pipeline.uid
         return graph
 
-    def restore(self, opt_graph: OptGraph):
+    def restore(self, opt_graph: OptGraph, computation_time=None):
         """ Convert OptGraph class into Pipeline class """
         source_graph = deepcopy(opt_graph)
 
         # Inverse transformation since root node
         for node in source_graph.nodes:
-            _transform_node(node, PrimaryNode, SecondaryNode,
+            _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
         pipeline.uid = source_graph.uid
+        pipeline.computation_time = computation_time
         return pipeline
 
-    def restore_as_template(self, opt_graph: OptGraph):
-        pipeline = self.restore(opt_graph)
+    def restore_as_template(self, opt_graph: OptGraph, computation_time=None):
+        pipeline = self.restore(opt_graph, computation_time)
         return PipelineTemplate(pipeline)
 
 

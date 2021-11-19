@@ -2,6 +2,7 @@ from typing import Optional
 
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -12,6 +13,8 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 def has_correct_operation_positions(pipeline: 'Pipeline', task: Optional[Task] = None):
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     is_root_satisfy_task_type = True
     if task:
         is_root_satisfy_task_type = task.task_type in pipeline.root_node.operation.acceptable_task_types
@@ -23,6 +26,8 @@ def has_correct_operation_positions(pipeline: 'Pipeline', task: Optional[Task] =
 
 
 def has_primary_nodes(pipeline: 'Pipeline'):
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     if not any(node for node in pipeline.nodes if isinstance(node, PrimaryNode)):
         raise ValueError(f'{ERROR_PREFIX} Pipeline does not have primary nodes')
     return True
@@ -30,6 +35,8 @@ def has_primary_nodes(pipeline: 'Pipeline'):
 
 def has_final_operation_as_model(pipeline: 'Pipeline'):
     """ Check if the operation in root node is model or not """
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     root_node = pipeline.root_node
 
     if type(root_node.operation) is not Model and type(root_node.operation) is not AtomizedModel:
@@ -40,6 +47,8 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
 
 def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between nodes """
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     operation_repo = OperationTypesRepository(operation_type='data_operation')
     forbidden_parents_combination, _ = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
@@ -65,6 +74,8 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
     operation_repo = OperationTypesRepository(operation_type='data_operation')
     models_repo = OperationTypesRepository(operation_type='model')
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
 
     for node in pipeline.nodes:
         parent_nodes = node.nodes_from
@@ -99,6 +110,8 @@ def get_supported_data_types(node, operation_repo, models_repo):
 def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     """ Function checks is the model contains operations for time series
     forecasting """
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     # Get time series specific operations with tag "non_lagged"
     ts_operations = get_operations_for_task(task=Task(TaskTypesEnum.ts_forecasting),
                                             tags=["non_lagged"], mode='all')
@@ -116,6 +129,9 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
 
 def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     """ Function checks the correctness of connection between nodes """
+
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
 
     task = Task(TaskTypesEnum.ts_forecasting)
     models = get_operations_for_task(task=task, mode='model')
@@ -168,6 +184,9 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
 
 def only_non_lagged_operations_are_primary(pipeline: 'Pipeline'):
     """ Only time series specific operations could be placed in primary nodes """
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
+
     # Check only primary nodes
     for node in pipeline.nodes:
         if type(node) == PrimaryNode and DataTypesEnum.ts not in node.operation.metadata.input_types:
@@ -182,6 +201,8 @@ def has_no_conflicts_in_decompose(pipeline: Pipeline):
     operation has two ancestors
     """
 
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     for decomposer in ['decompose', 'class_decompose']:
         decompose_nodes = nodes_with_operation(pipeline,
                                                decomposer)
@@ -197,10 +218,29 @@ def has_correct_data_sources(pipeline: Pipeline):
     """ Checks that data sources and other nodes are not mixed
     """
 
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
     is_data_source_in_names_conds = ['data_source' in str(n) for n in pipeline.nodes if isinstance(n, PrimaryNode)]
 
     if any(is_data_source_in_names_conds) and not all(is_data_source_in_names_conds):
         raise ValueError(f'{ERROR_PREFIX} Data sources are mixed with other primary nodes')
+    return True
+
+
+def has_parent_contain_single_resample(pipeline: Pipeline):
+    """ 'Resample' should be single parent node for child operation.
+    """
+
+    if not isinstance(pipeline, Pipeline):
+        pipeline = PipelineAdapter().restore(pipeline)
+
+    for node in pipeline.nodes:
+        if node.operation.operation_type == 'resample':
+            children_nodes = pipeline.operator.node_children(node)
+            for child_node in children_nodes:
+                if len(child_node.nodes_from) > 1:
+                    raise ValueError(f'{ERROR_PREFIX} Resample node is not single parent node for child operation')
+
     return True
 
 

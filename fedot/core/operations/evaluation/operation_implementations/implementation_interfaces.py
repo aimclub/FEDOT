@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import numpy as np
-
 from fedot.core.data.data import OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum

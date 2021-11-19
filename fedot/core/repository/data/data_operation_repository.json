@@ -209,6 +209,14 @@
 				"non_lagged"
 			]
 		},
+		"cut": {
+			"meta": "custom_time_series_transformation",
+			"tags": [
+				"simple",
+				"cutting",
+				"non_lagged"
+			]
+		},
 		"exog_ts": {
 			"meta": "custom_time_series_transformation",
 			"tags": [
@@ -227,6 +235,12 @@
 		"class_decompose": {
 		  "meta": "classification_preprocessing",
 		  "tags": ["non-default", "decompose"]
+        },
+      "resample": {
+        "meta": "classification_preprocessing",
+        "tags": [
+          "imbalanced"
+        ]
 		}
 	}
 }

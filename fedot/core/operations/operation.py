@@ -4,10 +4,11 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
+from fedot.core.serializers import OperationSerializer
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-class Operation:
+class Operation(OperationSerializer):
     """
     Base class for operations in nodes. Operations could be machine learning
     (or statistical) models or data operations

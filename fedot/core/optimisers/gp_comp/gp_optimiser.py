@@ -2,28 +2,32 @@ import math
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from typing import (Any, Callable, List, Optional, Tuple, Union)
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
-
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
-from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, \
-    duplicates_filtration, evaluate_individuals, num_of_parents_in_crossover, random_graph
+from fedot.core.optimisers.gp_comp.gp_operators import (
+    clean_operators_history,
+    duplicates_filtration,
+    evaluate_individuals,
+    num_of_parents_in_crossover,
+    random_graph
+)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, \
-    regularized_population
+from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from tqdm import tqdm
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
@@ -166,7 +170,7 @@ class GPGraphOptimiser:
         return self.population
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback: Optional[Callable] = None):
+                 on_next_iteration_callback: Optional[Callable] = None, show_progress: bool = True):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -175,6 +179,9 @@ class GPGraphOptimiser:
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
+            pbar = tqdm(total=self.requirements.num_of_generations,
+                        desc="Generations", unit='gen', initial=1) if show_progress else None
+
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
             if self.archive is not None:
@@ -245,11 +252,18 @@ class GPGraphOptimiser:
                     self.archive.clear()
 
                 clean_operators_history(self.population)
+
+                if pbar:
+                    pbar.update(1)
+            if pbar:
+                pbar.close()
+
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph) for ind in best] if isinstance(best, list) \
+        output = [self.graph_generation_params.adapter.restore(ind.graph)
+                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
             else self.graph_generation_params.adapter.restore(best.graph)
 
         return output
@@ -375,9 +389,6 @@ class GPGraphOptimiser:
 
     def default_on_next_iteration_callback(self, individuals, archive):
         try:
-            for individual in individuals:
-                individual.graph = \
-                    self.graph_generation_params.adapter.restore(individual.graph)
             self.history.add_to_history(individuals)
             self.history.save_current_results()
             archive = deepcopy(archive)

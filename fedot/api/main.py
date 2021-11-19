@@ -3,12 +3,12 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+
 from fedot.api.api_utils.api_utils import ApiFacade
 from fedot.core.data.data import InputData
-from fedot.core.data.visualisation import plot_forecast
+from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 
@@ -74,6 +74,9 @@ class Fedot:
 
         if timeout is not None:
             self.composer_dict['timeout'] = timeout
+
+        if initial_pipeline is not None:
+            self.composer_dict['initial_pipeline'] = initial_pipeline
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -222,15 +225,21 @@ class Fedot:
         """
         Plot the prediction obtained from graph
         """
+
         if self.prediction is not None:
             if self.composer_dict['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(pre_history=self.train_data, forecast=self.prediction)
+                plot_forecast(self.test_data, self.prediction)
+            elif self.composer_dict['task'].task_type == TaskTypesEnum.regression:
+                plot_biplot(self.prediction)
+            elif self.composer_dict['task'].task_type == TaskTypesEnum.classification:
+                self.predict_proba(self.test_data)
+                plot_roc_auc(self.test_data, self.prediction)
             else:
                 # TODO implement other visualizations
-                self.composer_dict['log'].error('Not supported yet')
+                self.composer_dict['logger'].error('Not supported yet')
 
         else:
-            self.composer_dict['log'].error('No prediction to visualize')
+            self.composer_dict['logger'].error('No prediction to visualize')
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
@@ -264,7 +273,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.helper.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.composer_dict['log'].warn(f'{metric_name} is not available as metric')
+                self.composer_dict['logger'].warn(f'{metric_name} is not available as metric')
             else:
                 metric_cls = MetricsRepository().metric_class_by_id(
                     self.helper.get_composer_metrics_mapping(metric_name))

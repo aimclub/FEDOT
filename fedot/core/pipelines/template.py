@@ -2,16 +2,21 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
-from typing import List, Optional, Tuple, Union, Callable
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 from uuid import uuid4
+
 import joblib
 import numpy as np
-
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+
+if TYPE_CHECKING:
+    from fedot.core.pipelines.pipeline import Pipeline
+
 from fedot.core.repository.operation_types_repository import atomized_model_type
+from fedot.core.serializers import PipelineTemplateSerializer
 
 
 class NumpyIntEncoder(json.JSONEncoder):
@@ -20,7 +25,8 @@ class NumpyIntEncoder(json.JSONEncoder):
             return int(obj)
         return super().default(self, obj)
 
-class PipelineTemplate:
+
+class PipelineTemplate(PipelineTemplateSerializer):
     """
     Pipeline wrapper with 'export_pipeline'/'import_pipeline' methods
     allowing user to upload a pipeline to JSON format and import it from JSON.
@@ -29,12 +35,17 @@ class PipelineTemplate:
     :params log: Log object to record messages
     """
 
-    def __init__(self, pipeline=None, log: Log = None):
+    def __init__(self, pipeline: 'Pipeline' = None, log: Log = None):
         self.total_pipeline_operations = Counter()
-        self.depth = pipeline.depth
-        self.operation_templates = []
-        self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
-        self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+        self.operation_templates: List[OperationTemplate] = []
+        if pipeline is not None:
+            self.depth = pipeline.depth
+            self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
+            self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+        else:
+            self.depth = 0
+            self.unique_pipeline_id = str(uuid4())
+            self.struct_id = ''
 
         try:
             self.computation_time = pipeline.computation_time
