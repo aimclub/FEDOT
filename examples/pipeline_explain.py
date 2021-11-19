@@ -1,13 +1,26 @@
-from examples.pipeline_tune import get_case_train_test_data
+import os
+import pandas as pd
 from examples.pipeline_tune import get_simple_pipeline
+from fedot.core.utils import fedot_project_root
+from fedot.core.data.data import InputData
 
 
 if __name__ == '__main__':
-    train_data, test_data = get_case_train_test_data()
+    # Specifying paths
+    fedot_root = str(fedot_project_root())
+    train_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_train.csv')
+    test_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_test.csv')
+    figure_path = os.path.join(fedot_root, 'explanation_wo_pruning.png')
 
-    # Synthetic names for visualization
-    feature_names = [f'feature {f}' for f in range(len(train_data.features[0]))]
-    class_names = list({f'class {cl[0]}' for cl in train_data.target})
+    # Feature and class names for visualization
+    feature_names = pd.read_csv(train_file_path, index_col=0, nrows=0).columns.tolist()
+    target_name = feature_names.pop()
+    target = pd.read_csv(train_file_path, usecols=[target_name])[target_name]
+    class_names = target.unique().astype(str).tolist()
+
+    # Data load
+    train_data = InputData.from_csv(train_file_path)
+    test_data = InputData.from_csv(test_file_path)
 
     # Pipeline composition
     pipeline = get_simple_pipeline()
@@ -18,6 +31,6 @@ if __name__ == '__main__':
     # Pipeline explaining
     explainer = pipeline.explain(data=train_data, method='surrogate_dt', visualize=False)
 
-    # Visualizing explanation
+    # Visualizing explanation and saving the plot
     print(f'Built surrogate model: {explainer.surrogate_str}')
-    explainer.visualize(save_path='explanation.png', feature_names=feature_names, class_names=class_names, dpi=300)
+    explainer.visualize(save_path=figure_path, feature_names=feature_names, class_names=class_names, dpi=200)

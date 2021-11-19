@@ -5,6 +5,7 @@ from copy import deepcopy
 from inspect import signature
 from matplotlib import pyplot as plt
 from sklearn import tree
+from sklearn.tree._tree import TREE_LEAF
 
 import fedot.core.pipelines.pipeline as pipeline
 from fedot.core.explainability.explainer_template import Explainer
@@ -27,8 +28,8 @@ class SurrogateExplainer(Explainer):
     """
 
     surrogates_default_params = {
-        'dt': {'max_depth': 5, 'ccp_alpha': 5*10**-4},
-        'dtreg': {'max_depth': 5, 'ccp_alpha': 5*10**-4},
+        'dt': {'max_depth': 5},
+        'dtreg': {'max_depth': 5},
     }
 
     def __init__(self, model: 'Pipeline', surrogate: str):
@@ -51,6 +52,10 @@ class SurrogateExplainer(Explainer):
         except Exception as ex:
             print(f'Failed to fit the surrogate: {ex}')
             return
+
+        # Pruning redundant branches and leaves
+        # if self.surrogate_str in ('dt', 'dtreg'):
+        #     prune_duplicate_leaves(self.surrogate.root_node.fitted_operation)
 
         if visualize:
             self.visualize(**kwargs)
@@ -97,7 +102,6 @@ def get_simple_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
 def fit_naive_surrogate_model(
         black_box_model: 'Pipeline', surrogate_model: 'Pipeline', data: 'InputData',
         metric: 'Metric' = None) -> Optional[float]:
-
     output_mode = 'default'
 
     if data.task.task_type == TaskTypesEnum.classification:
@@ -115,3 +119,39 @@ def fit_naive_surrogate_model(
     score = round(abs(metric.metric(data_c, prediction)), 2)
 
     return score
+
+
+def is_leaf(inner_tree, index):
+    # Check whether node is leaf node
+    return (inner_tree.children_left[index] == TREE_LEAF and
+            inner_tree.children_right[index] == TREE_LEAF)
+
+
+def prune_index(inner_tree, decisions, index=0):
+    # Start pruning from the bottom - if we start from the top, we might miss
+    # nodes that become leaves during pruning.
+    # Do not use this directly - use prune_duplicate_leaves instead.
+    if not is_leaf(inner_tree, inner_tree.children_left[index]):
+        prune_index(inner_tree, decisions, inner_tree.children_left[index])
+    if not is_leaf(inner_tree, inner_tree.children_right[index]):
+        prune_index(inner_tree, decisions, inner_tree.children_right[index])
+
+    # Prune children if both children are leaves now and make the same decision:
+    if (is_leaf(inner_tree, inner_tree.children_left[index]) and
+            is_leaf(inner_tree, inner_tree.children_right[index]) and
+            (decisions[index] == decisions[inner_tree.children_left[index]]) and
+            (decisions[index] == decisions[inner_tree.children_right[index]])):
+        # turn node into a leaf by "unlinking" its children
+        inner_tree.children_left[index] = TREE_LEAF
+        inner_tree.children_right[index] = TREE_LEAF
+
+
+def prune_duplicate_leaves(mdl):
+    '''
+    Function for pruning redundant leaves of a tree by Thomas (https://stackoverflow.com/users/4629950/thomas).
+    Source: https://stackoverflow.com/questions/51397109/prune-unnecessary-leaves-in-sklearn-decisiontreeclassifier
+    :param mdl: `DecisionTree` or `DecisionTreeRegressor` instance by sklearn.
+    '''
+    # Remove leaves if both
+    decisions = mdl.tree_.value.argmax(axis=2).flatten().tolist()  # Decision for each node
+    prune_index(mdl.tree_, decisions)
