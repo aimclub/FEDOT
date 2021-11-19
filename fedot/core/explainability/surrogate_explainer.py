@@ -54,8 +54,8 @@ class SurrogateExplainer(Explainer):
             return
 
         # Pruning redundant branches and leaves
-        # if self.surrogate_str in ('dt', 'dtreg'):
-        #     prune_duplicate_leaves(self.surrogate.root_node.fitted_operation)
+        if self.surrogate_str in ('dt', 'dtreg'):
+            prune_duplicate_leaves(self.surrogate.root_node.fitted_operation)
 
         if visualize:
             self.visualize(**kwargs)
