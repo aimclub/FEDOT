@@ -5,6 +5,14 @@ from .interfaces.serializable import Serializable
 
 
 class GraphSerializer(Serializable):
+    '''
+    Serializer for "Graph" class
+
+    Serialization: excludes "operator" field to rid of circular references
+        also saves idx of each node from 'nodes' field to simplify deserialization
+    Deserialization: assigns each <inner_node> from "nodes_from" to equal <outer_node> from "nodes"
+        (cause each node from "nodes_from" in fact should point to the same node from "nodes")
+    '''
 
     def to_json(self) -> Dict[str, Any]:
         serialized_obj = {

@@ -4,6 +4,12 @@ from .interfaces.serializable import Serializable
 
 
 class PipelineTemplateSerializer(Serializable):
+    '''
+    Serializer for "PipelineTemplate" class
+
+    Serialization: excludes "operation_templates" field cause it has no any important info about class
+    Deserialization: uses basic method from superclass
+    '''
 
     def to_json(self) -> Dict[str, Any]:
         return {

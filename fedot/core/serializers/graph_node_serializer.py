@@ -4,6 +4,12 @@ from .interfaces.serializable import Serializable
 
 
 class GraphNodeSerializer(Serializable):
+    '''
+    Serializer for "GraphNode" class
+
+    Serialization: excludes "_operator" field to rid of circular references
+    Deserialization: uses basic method from superclass
+    '''
 
     def to_json(self) -> Dict[str, Any]:
         return {

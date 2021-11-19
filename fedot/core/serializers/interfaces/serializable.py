@@ -7,6 +7,14 @@ from fedot.core.serializers import json_helpers
 
 
 class Serializable(ABC):
+    '''
+    Base abstract class for serialization/deserialization process.
+
+    Serialization: stores every field except "log" and properties,
+        also dumps path to serialized object
+    Deserialization: creates object based on its input (args, kwargs) and then updates object with
+        other fields if needed
+    '''
 
     @abstractmethod
     def to_json(self) -> Dict[str, Any]:
