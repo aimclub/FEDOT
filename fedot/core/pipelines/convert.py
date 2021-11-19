@@ -1,6 +1,11 @@
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import networkx as nx
+
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.pipelines.template import PipelineTemplate
 
 
 def graph_structure_as_nx_graph(structural_graph: 'Graph'):

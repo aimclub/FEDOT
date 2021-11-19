@@ -5,18 +5,24 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import (Any, List, Optional)
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 from uuid import uuid4
+
+from fedot.core.optimisers.adapters import PipelineAdapter
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.individual import Individual
 
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
+from fedot.core.serializers import BasicSerializer
 from fedot.core.utils import default_fedot_data_dir
 
 
 @dataclass
-class ParentOperator:
+class ParentOperator(BasicSerializer):
     operator_name: str
     operator_type: str
     parent_objects: List[PipelineTemplate]
@@ -27,60 +33,23 @@ class ParentOperator:
             self.uid = str(uuid4())
 
 
-class OptHistory:
+class OptHistory(BasicSerializer):
     """
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, metrics=None, save_folder=None):
+    def __init__(self, metrics: List[Callable[..., float]] = None, save_folder=None):
         self.metrics = metrics
-        self.individuals = []
-        self.archive_history = []
-        self.pipelines_comp_time_history = []
-        self.archive_comp_time_history = []
-        self.parent_operators = []
-        self.save_folder = save_folder if save_folder \
+        self.individuals: List[List['Individual']] = []
+        self.archive_history: List[List['Individual']] = []
+        self.save_folder: str = save_folder if save_folder \
             else f'composing_history_{datetime.datetime.now().timestamp()}'
 
-    def _convert_pipeline_to_template(self, pipeline):
-        pipeline_template = PipelineTemplate(pipeline)
-        return pipeline_template
+    def add_to_history(self, individuals: List['Individual']):
+        self.individuals.append([deepcopy(ind) for ind in individuals])
 
-    def add_to_history(self, individuals: List[Any]):
-        new_individuals = []
-        pipelines_comp_time = []
-        parent_operators = []
-        try:
-            for ind in individuals:
-                pipeline = ind.graph  # was restored outside
-                new_ind = deepcopy(ind)
-                new_ind.graph = self._convert_pipeline_to_template(pipeline)
-                new_individuals.append(new_ind)
-                if hasattr(pipeline, 'computation_time'):
-                    pipelines_comp_time.append(pipeline.computation_time)
-                else:
-                    pipelines_comp_time.append(-1)
-                parent_operators.append(ind.parent_operators)
-            self.individuals.append(new_individuals)
-            self.pipelines_comp_time_history.append(pipelines_comp_time)
-        except Exception as ex:
-            print(f'Cannot add to history: {ex}')
-
-        self.parent_operators.append(parent_operators)
-
-    def add_to_archive_history(self, individuals: List[Any]):
-        try:
-            new_individuals = []
-            archive_comp_time = []
-            for ind in individuals:
-                new_ind = self
-                new_ind.graph = self._convert_pipeline_to_template(ind.graph)
-                new_individuals.append(new_ind)
-                archive_comp_time.append(ind.computation_time)
-            self.archive_history.append(new_individuals)
-            self.archive_comp_time_history.append(archive_comp_time)
-        except Exception as ex:
-            print(f'Cannot add to archive history: {ex}')
+    def add_to_archive_history(self, individuals: List['Individual']):
+        self.archive_history.append([ind for ind in individuals])
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
@@ -89,14 +58,18 @@ class OptHistory:
             os.mkdir(history_dir)
         self._write_header_to_csv(file)
         idx = 0
+        adapter = PipelineAdapter()
         for gen_num, gen_inds in enumerate(self.individuals):
             for ind_num, ind in enumerate(gen_inds):
                 if self.is_multi_objective:
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
-                row = [idx, gen_num, fitness, len(ind.graph.operation_templates), ind.graph.depth,
-                       self.pipelines_comp_time_history[gen_num][ind_num]]
+                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.computation_time)
+                row = [
+                    idx, gen_num, fitness,
+                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time
+                ]
                 self._add_history_to_csv(file, row)
                 idx += 1
 
@@ -122,12 +95,13 @@ class OptHistory:
             last_gen = self.individuals[last_gen_id]
             for ind_id, individual in enumerate(last_gen):
                 # TODO support multi-objective case
-                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.unique_pipeline_id))
+                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.uid))
                 additional_info = \
                     {'fitness_name': self.short_metrics_names[0],
                      'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
-                individual.graph.export_pipeline(path=ind_path, additional_info=additional_info,
-                                                 datetime_in_path=False)
+                PipelineAdapter().restore_as_template(
+                    individual.graph, individual.computation_time
+                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             print(ex)
 
@@ -191,7 +165,11 @@ class OptHistory:
 
     @property
     def historical_pipelines(self):
-        return [ind.graph for ind in list(itertools.chain(*self.individuals))]
+        adapter = PipelineAdapter()
+        return [
+            adapter.restore_as_template(ind.graph, ind.computation_time)
+            for ind in list(itertools.chain(*self.individuals))
+        ]
 
     @property
     def is_multi_objective(self):

@@ -3,25 +3,33 @@ from abc import abstractmethod
 from typing import Optional
 
 from catboost import CatBoostClassifier, CatBoostRegressor
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
+from fedot.core.repository.tasks import TaskTypesEnum
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
-from sklearn.ensemble import AdaBoostRegressor, ExtraTreesRegressor, GradientBoostingRegressor, RandomForestClassifier, \
+from sklearn.ensemble import (
+    AdaBoostRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
     RandomForestRegressor
-from sklearn.linear_model import Lasso as SklearnLassoReg, LinearRegression as SklearnLinReg, \
-    LogisticRegression as SklearnLogReg, Ridge as SklearnRidgeReg, SGDRegressor as SklearnSGD
+)
+from sklearn.linear_model import (
+    Lasso as SklearnLassoReg,
+    LinearRegression as SklearnLinReg,
+    LogisticRegression as SklearnLogReg,
+    Ridge as SklearnRidgeReg,
+    SGDRegressor as SklearnSGD
+)
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB as SklearnMultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
-
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
-                                                              get_operation_type_from_id)
-from fedot.core.repository.tasks import TaskTypesEnum
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
