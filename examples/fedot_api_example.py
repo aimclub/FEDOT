@@ -130,4 +130,4 @@ if __name__ == '__main__':
     run_regression_example()
     run_ts_forecasting_example()
     run_classification_multiobj_example()
-    run_explainability_example()
+    run_explain_example()
