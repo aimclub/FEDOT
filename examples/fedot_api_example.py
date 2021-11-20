@@ -101,7 +101,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     return prediction
 
 
-def run_explainability_example(timeout=None):
+def run_explain_example(visualize=True, timeout=None):
     train_data = pd.read_csv(f'{fedot_project_root()}/cases/data/cancer/cancer_train.csv', index_col=0)
     figure_path = f'{fedot_project_root()}/explain_api_example.png'
 
@@ -116,8 +116,11 @@ def run_explainability_example(timeout=None):
     model.fit(features=train_data, target=target_name, predefined_model='xgboost')
 
     # Current pipeline explaining
-    explainer = model.explain(method='surrogate_dt', save_path=figure_path, dpi=200,
-                              feature_names=feature_names, class_names=class_names, precision=6)
+    explainer = model.explain(method='surrogate_dt', visualize=False)
+
+    if visualize:
+        explainer.visualize(save_path=figure_path, dpi=200, feature_names=feature_names, class_names=class_names,
+                            precision=6)
 
     return explainer
 
