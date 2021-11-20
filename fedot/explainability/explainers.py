@@ -27,7 +27,7 @@ def explain_pipeline(pipeline: 'Pipeline', data: 'InputData', method: str = 'sur
     :param data: samples to be explained.
     :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
     :param visualize: print and plot the explanation simultaneously, defaults to True.
-        The explanation can be retrieved later by executing `explainer.output()`.
+        The explanation can be retrieved later by executing `explainer.visualize()`.
     """
     if not pipeline:
         raise AssertionError('The pipeline might be fit before explanation!')

@@ -301,10 +301,9 @@ class Fedot:
         An `Explainer` instance is returned.
 
         :param features: samples to be explained. If `None`, `train_data` from last fit is used.
-            Should not contain target values, unless it is instance of `InputData`.
         :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
         :param visualize: print and plot the explanation simultaneously, defaults to True.
-            The explanation can be retrieved later by executing `explainer.output()`.
+            The explanation can be retrieved later by executing `explainer.visualize()`.
         """
         pipeline = self.current_pipeline
         if features is None:
