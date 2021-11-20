@@ -10,19 +10,17 @@ from fedot.explainability.explainers import explain_pipeline
 if __name__ == '__main__':
     # Specifying paths
     fedot_root = str(fedot_project_root())
-    train_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_train.csv')
-    test_file_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_test.csv')
-    figure_path = os.path.join(fedot_root, 'explanation.png')
+    train_data_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_train.csv')
+    figure_path = os.path.join(fedot_root, 'explain_pipeline_example.png')
 
     # Feature and class names for visualization
-    feature_names = pd.read_csv(train_file_path, index_col=0, nrows=0).columns.tolist()
+    feature_names = pd.read_csv(train_data_path, index_col=0, nrows=0).columns.tolist()
     target_name = feature_names.pop()
-    target = pd.read_csv(train_file_path, usecols=[target_name])[target_name]
+    target = pd.read_csv(train_data_path, usecols=[target_name])[target_name]
     class_names = target.unique().astype(str).tolist()
 
     # Data load
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
+    train_data = InputData.from_csv(train_data_path)
 
     # Pipeline composition
     pipeline = get_simple_pipeline()

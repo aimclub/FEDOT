@@ -295,17 +295,27 @@ class Fedot:
 
         return calculated_metrics
 
-    def explain(self, data: InputData, method: str = 'surrogate_dt',
-                visualize: bool = True, **kwargs) -> 'Explainer':
+    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
+                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
         """Create explanation for 'current_pipeline' according to the selected 'method'.
         An `Explainer` instance is returned.
 
-        :param data: samples to be explained.
+        :param features: samples to be explained. If `None`, `train_data` from last fit is used.
+            Should not contain target values, unless it is instance of `InputData`.
         :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
         :param visualize: print and plot the explanation simultaneously, defaults to True.
             The explanation can be retrieved later by executing `explainer.output()`.
         """
         pipeline = self.current_pipeline
+        if features is None:
+            data = self.train_data
+        else:
+            data = self.helper.define_data(
+                ml_task=self.composer_dict['task'],
+                features=features,
+                # target=self.train_data,
+                is_predict=False,
+            )
         explainer = explain_pipeline(pipeline=pipeline, data=data, method=method, visualize=visualize, **kwargs)
 
         return explainer

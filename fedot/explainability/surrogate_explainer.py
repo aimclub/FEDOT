@@ -112,7 +112,8 @@ def fit_naive_surrogate_model(
         metric = R2
 
     prediction = black_box_model.predict(data, output_mode=output_mode)
-    surrogate_model.fit(data, prediction)
+    data.target = prediction.predict
+    surrogate_model.fit(data)
 
     data_c = deepcopy(data)
     data_c.target = surrogate_model.predict(data, output_mode=output_mode).predict

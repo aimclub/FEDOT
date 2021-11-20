@@ -20,10 +20,10 @@ def pick_pipeline_explainer(pipeline: 'Pipeline', method: str, task_type: TaskTy
 
 def explain_pipeline(pipeline: 'Pipeline', data: 'InputData', method: str = 'surrogate_dt',
                      visualize: bool = True, **kwargs) -> 'Explainer':
-    """Create explanation for the pipeline according to the selected metod.
-    An object is both put into pipeline.explainer attribute and returned.
+    """Create explanation for the `pipeline` according to the selected `method`.
+    An `Explainer` instance is returned.
 
-    :param pipeline:
+    :param pipeline: pipeline to explain.
     :param data: samples to be explained.
     :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
     :param visualize: print and plot the explanation simultaneously, defaults to True.
