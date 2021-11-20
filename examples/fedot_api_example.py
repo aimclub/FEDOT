@@ -103,7 +103,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
 
 def run_explain_example(visualize=True, timeout=None):
     train_data = pd.read_csv(f'{fedot_project_root()}/cases/data/cancer/cancer_train.csv', index_col=0)
-    figure_path = f'{fedot_project_root()}/explain_api_example.png'
+    figure_path = 'explain_api_example.png'
 
     # Feature and class names for visualization
     feature_names = train_data.columns.tolist()

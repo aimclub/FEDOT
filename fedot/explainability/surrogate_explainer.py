@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from sklearn import tree
 from sklearn.tree._tree import TREE_LEAF
 
+from fedot.core.utils import default_fedot_data_dir
 from fedot.explainability.explainer_template import Explainer
 from fedot.core.composer.metrics import R2, F1
 from fedot.core.data.data import InputData
@@ -88,6 +89,8 @@ class SurrogateExplainer(Explainer):
             tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
 
         if save_path is not None:
+            if not os.path.isabs(save_path):
+                save_path = os.path.join(default_fedot_data_dir(), save_path)
             plt.savefig(save_path)
             print(f'Saved the plot to "{os.path.abspath(save_path)}"')
 

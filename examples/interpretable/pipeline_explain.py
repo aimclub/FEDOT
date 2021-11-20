@@ -2,16 +2,15 @@ import os
 import pandas as pd
 
 from examples.pipeline_tune import get_simple_pipeline
-from fedot.core.utils import fedot_project_root
 from fedot.core.data.data import InputData
+from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
 
 
 if __name__ == '__main__':
     # Specifying paths
-    fedot_root = str(fedot_project_root())
-    train_data_path = os.path.join(fedot_root, 'cases', 'data', 'cancer', 'cancer_train.csv')
-    figure_path = os.path.join(fedot_root, 'explain_pipeline_example.png')
+    train_data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'cancer', 'cancer_train.csv')
+    figure_path = 'explain_pipeline_example.png'
 
     # Feature and class names for visualization
     feature_names = pd.read_csv(train_data_path, index_col=0, nrows=0).columns.tolist()
