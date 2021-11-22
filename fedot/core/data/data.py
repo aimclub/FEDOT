@@ -386,15 +386,18 @@ def str_columns_check(features):
     :return non_categorical_ids: indices of non categorical columns in table
     """
     source_shape = features.shape
-    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
+    columns_number = source_shape[1] if len(source_shape) > 1 else 1
 
     categorical_ids = []
     non_categorical_ids = []
     # For every column in table make check for first element
-    for column_id in range(0, columns_amount):
-        column = features[:, column_id] if columns_amount > 1 else features
-        if isinstance(column[0], str):
-            categorical_ids.append(column_id)
+    for column_id in range(0, columns_number):
+        column = features[:, column_id] if columns_number > 1 else features
+        for i in column:
+            # Check if element is string object or not
+            if isinstance(i, str):
+                categorical_ids.append(column_id)
+                break
         else:
             non_categorical_ids.append(column_id)
 
@@ -402,16 +405,29 @@ def str_columns_check(features):
 
 
 def divide_data_categorical_numerical(input_data: InputData) -> (InputData, InputData):
+    """ Split tabular InputData into two parts: with numerical and categorical features """
     categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
-    numerical_features = input_data.features[:, non_categorical_ids]
-    categorical_features = input_data.features[:, categorical_ids]
+    if len(categorical_ids) > 0 and len(non_categorical_ids) > 0:
+        # Both categorical and numerical features
+        numerical_input = _return_subsample_features(input_data, non_categorical_ids)
+        categorical_input = _return_subsample_features(input_data, categorical_ids)
+        return numerical_input, categorical_input
 
-    numerical = InputData(features=numerical_features, data_type=input_data.data_type,
-                          target=input_data.target, task=input_data.task, idx=input_data.idx)
-    categorical = InputData(features=categorical_features, data_type=input_data.data_type,
-                            target=input_data.target, task=input_data.task, idx=input_data.idx)
+    elif len(categorical_ids) == 0 and len(non_categorical_ids) > 0:
+        # Only numerical
+        numerical_input = _return_subsample_features(input_data,
+                                                     non_categorical_ids)
+        return numerical_input, None
 
-    return numerical, categorical
+    elif len(categorical_ids) > 0 and len(non_categorical_ids) == 0:
+        # Only categorical
+        categorical_input = _return_subsample_features(input_data,
+                                                       categorical_ids)
+        return None, categorical_input
+
+    else:
+        prefix = 'InputData contains no categorical and no numerical features.'
+        raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
 def data_type_is_table(data: InputData) -> bool:
@@ -434,6 +450,17 @@ def _has_data_categorical(data: InputData) -> bool:
         return False
     else:
         return True
+
+
+def _return_subsample_features(input_data: InputData, ids: list):
+    subsample_features = input_data.features[:, ids]
+    subsample_input = InputData(features=subsample_features,
+                                data_type=input_data.data_type,
+                                target=input_data.target, task=input_data.task,
+                                idx=input_data.idx,
+                                supplementary_data=input_data.supplementary_data)
+
+    return subsample_input
 
 
 def get_indices_from_file(data_frame, file_path):

@@ -6,7 +6,12 @@ from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
 class StructureExplorer:
-    """ Class for performing pipeline structure exploration """
+    """ Class for performing pipeline structure exploration.
+    The class allows you to convert pipelines into a networkx graph and considers
+    all possible paths from PrimaryNode (or PrimaryNodes) to root node. If at least
+    one of the paths contains an invalid sequence of operations, the search performed
+    by this class will detect it
+    """
 
     _invariant_tags = {'encoding': 'categorical-ignore',
                        'imputation': 'nans-ignore'}
@@ -59,6 +64,23 @@ class StructureExplorer:
             # At least one branch in th graph cannot process desired type of data
             return False
 
+    def check_path(self, path: list, tag_to_check: str):
+        """
+        Checking the path for operations take right places in the pipeline.
+
+        :param path: path in the graph from PrimaryNode to root
+        :param tag_to_check: find appropriate operation by desired tag
+        """
+        is_appropriate_operation, is_independent_operation = self._calculate_binary_paths(path, tag_to_check)
+
+        # Define is branch correct or not
+        is_branch_correct = self.is_current_branch_correct(is_appropriate_operation,
+                                                           is_independent_operation,
+                                                           len(path))
+
+        self.paths[self.path_id].update({'correctness': is_branch_correct})
+        return is_branch_correct
+
     def _enrich_with_information(self, node_labels: dict):
         """
         Set additional information (operation name and node type) to nodes as attributes.
@@ -92,23 +114,6 @@ class StructureExplorer:
         info_df = pd.DataFrame(info_df, columns=['node_id', 'node_type', 'node_label',
                                                  'parent_number', 'child_number'])
         return self.graph, info_df
-
-    def check_path(self, path: list, tag_to_check: str):
-        """
-        Checking the path for operations take right places in the pipeline.
-
-        :param path: path in the graph from PrimaryNode to root
-        :param tag_to_check: find appropriate operation by desired tag
-        """
-        is_appropriate_operation, is_independent_operation = self._calculate_binary_paths(path, tag_to_check)
-
-        # Define is branch correct or not
-        is_branch_correct = self.is_current_branch_correct(is_appropriate_operation,
-                                                           is_independent_operation,
-                                                           len(path))
-
-        self.paths[self.path_id].update({'correctness': is_branch_correct})
-        return is_branch_correct
 
     def _calculate_binary_paths(self, path: list, tag_to_check: str) -> (list, list):
         """
@@ -181,7 +186,8 @@ class StructureExplorer:
         Incorrect branch is:
             1) False -> False -> True
             2) True -> False -> False
-            Second operation is now wanted one and at the same time cannot
+            Second operation is not wanted one and at the same time cannot
+            process data without any transformation. So it will have an error
             True -> X False X -> True
 
         :param is_appropriate_operation: list with bool values is wanted operation placed in the node or not

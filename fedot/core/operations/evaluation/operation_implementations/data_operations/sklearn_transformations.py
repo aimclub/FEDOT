@@ -6,7 +6,7 @@ from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.data.data import data_has_categorical_features, divide_data_categorical_numerical, str_columns_check
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
@@ -295,29 +295,21 @@ class ImputationImplementation(DataOperationImplementation):
         :return imputer: trained SimpleImputer model
         """
 
-        features_with_replaced_inf = np.where(np.isin(input_data.features,
-                                                      [np.inf, -np.inf]),
-                                              np.nan,
-                                              input_data.features)
-        input_data.features = features_with_replaced_inf
+        input_data = replace_inf_with_nans(input_data)
 
-        if data_has_categorical_features(input_data):
+        if data_type_is_table(input_data) and data_has_categorical_features(input_data):
+            # Tabular data contains categorical features
             numerical, categorical = divide_data_categorical_numerical(input_data)
-            if categorical.features is not None and categorical.features.size > 0:
-                if len(categorical.features.shape) == 1:
-                    self.imputer_cat.fit(categorical.features.reshape(-1, 1))
-                else:
-                    self.imputer_cat.fit(categorical.features)
-            if numerical.features is not None and numerical.features.size > 0:
-                if len(numerical.features.shape) == 1:
-                    self.imputer_num.fit(numerical.features.reshape(-1, 1))
-                else:
-                    self.imputer_num.fit(numerical.features)
+
+            if categorical is not None and categorical.features.size > 0:
+                # Imputing for categorical values
+                self.imputer_cat.fit(categorical.features)
+            if numerical is not None and numerical.features.size > 0:
+                # Imputing for numerical values
+                self.imputer_num.fit(numerical.features)
         else:
-            if len(input_data.features.shape) == 1:
-                self.imputer_num.fit(input_data.features.reshape(-1, 1))
-            else:
-                self.imputer_num.fit(input_data.features)
+            # Time series or other type of non-tabular data
+            self.imputer_num.fit(input_data.features)
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
         """
@@ -329,34 +321,25 @@ class ImputationImplementation(DataOperationImplementation):
         """
         input_data = replace_inf_with_nans(input_data)
 
-        if data_has_categorical_features(input_data):
+        if data_type_is_table(input_data) and data_has_categorical_features(input_data):
             numerical, categorical = divide_data_categorical_numerical(input_data)
-            categorical_features = None
-            numerical_features = None
 
-            if categorical.features is not None and categorical.features.size > 0:
-                if len(categorical.features.shape) == 1:
-                    categorical_features = self.imputer_cat.transform(categorical.features.reshape(-1, 1))
-                else:
-                    categorical_features = self.imputer_cat.transform(categorical.features)
+            if categorical is not None and categorical.features.size > 0:
+                categorical_features = self.imputer_cat.transform(categorical.features)
 
-            if numerical.features is not None and numerical.features.size > 0:
-                if len(numerical.features.shape) == 1:
-                    numerical_features = self.imputer_num.transform(numerical.features.reshape(-1, 1))
-                else:
-                    numerical_features = self.imputer_num.transform(numerical.features)
+            if numerical is not None and numerical.features.size > 0:
+                numerical_features = self.imputer_num.transform(numerical.features)
 
-            if categorical_features is not None and numerical_features is not None:
+            if categorical is not None and numerical is not None:
+                # Stack both categorical and numerical features
                 transformed_features = np.hstack((categorical_features, numerical_features))
-            elif categorical_features is not None:
+            elif categorical is not None:
                 transformed_features = categorical_features
-            elif numerical_features is not None:
+            elif numerical is not None:
                 transformed_features = numerical_features
+
         else:
-            if len(input_data.features.shape) == 1:
-                transformed_features = self.imputer_num.transform(input_data.features.reshape(-1, 1))
-            else:
-                transformed_features = self.imputer_num.transform(input_data.features)
+            transformed_features = self.imputer_num.transform(input_data.features)
 
         output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
         return output_data
@@ -374,8 +357,9 @@ class ImputationImplementation(DataOperationImplementation):
         return output_data
 
     def get_params(self) -> dict:
-        dictionary = {'imputer_categorical': self.params_cat, 'imputer_numerical': self.params_num}
-        return dictionary
+        features_imputers = {'imputer_categorical': self.params_cat,
+                             'imputer_numerical': self.params_num}
+        return features_imputers
 
 
 def replace_inf_with_nans(data):

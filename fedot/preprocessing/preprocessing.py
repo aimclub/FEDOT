@@ -12,7 +12,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
     DataOperationImplementation
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.categorical import CategoricalPreprocessor
+from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 
 # The allowed percent of empty samples in features.
 # Example: 30% objects in features are 'nan', then drop this feature from data.
@@ -41,8 +41,8 @@ class DataPreprocessor:
 
         # Cannot be processed due to incorrect types or large number of nans
         self.ids_incorrect_features = []
-        # Categorical preprocessor especially for binary categorical features preprocessing
-        self.categorical_processor = CategoricalPreprocessor()
+        # Categorical preprocessor for binary categorical features
+        self.binary_categorical_processor = BinaryCategoricalPreprocessor()
         self.structure_analysis = StructureExplorer()
         self.log = log
 
@@ -86,6 +86,9 @@ class DataPreprocessor:
         :param data: data to preprocess
         """
         if isinstance(data, InputData):
+            if not data_type_is_table(data):
+                return data
+
             if data_has_categorical_features(data) and not data_has_missing_values(data):
                 # Data contains only categorical features
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
@@ -152,8 +155,8 @@ class DataPreprocessor:
             data = self._clean_extra_spaces(data)
 
             # Process categorical features
-            self.categorical_processor.fit(data)
-            data = self.categorical_processor.transform(data)
+            self.binary_categorical_processor.fit(data)
+            data = self.binary_categorical_processor.transform(data)
         return data
 
     def _prepare_unimodal_for_predict(self, data: InputData) -> InputData:
@@ -165,7 +168,7 @@ class DataPreprocessor:
             self.take_only_correct_features(data)
 
             data = self._clean_extra_spaces(data)
-            data = self.categorical_processor.transform(data)
+            data = self.binary_categorical_processor.transform(data)
 
         return data
 
@@ -311,13 +314,13 @@ class DataPreprocessor:
         two-dimensional arrays, time series - one-dim array
         """
 
-        if data.data_type is DataTypesEnum.table:
+        if data_type_is_table(data):
             if len(data.features.shape) < 2:
                 data.features = data.features.reshape((-1, 1))
             if data.target is not None and len(data.target.shape) < 2:
                 data.target = data.target.reshape((-1, 1))
 
-        elif data.data_type is DataTypesEnum.ts:
+        elif data.data_type == DataTypesEnum.ts:
             data.features = np.ravel(data.features)
             if data.target is not None:
                 data.target = np.ravel(data.target)

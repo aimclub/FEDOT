@@ -137,7 +137,7 @@ def get_mixed_data(task=None, extended=False):
         features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
                              [2, '1', '0', 0, '4', 'blue', 'da'],
                              [3, '1', '0', 1, '3', 'blue', 'ba'],
-                             [7, '1', '1', 1, '2', 'not blue', 'di'],
+                             [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
     else:
@@ -328,3 +328,18 @@ def test_knn_with_float_neighbors():
 
     pipeline.fit(input_data)
     pipeline.predict(input_data)
+
+
+def test_imputation_with_categorical_correct():
+    """
+    Check if SimpleImputer can process mixed data with binary categorical feature correctly
+    """
+    cat_data = get_mixed_data(task=Task(TaskTypesEnum.classification),
+                              extended=True)
+
+    # Create pipeline with imputation operation
+    imputation_node = PrimaryNode('simple_imputation')
+    final_node = SecondaryNode('dt', nodes_from=[imputation_node])
+    pipeline = Pipeline(final_node)
+
+    pipeline.fit(cat_data)

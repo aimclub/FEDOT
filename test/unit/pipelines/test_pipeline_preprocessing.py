@@ -1,12 +1,8 @@
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.preprocessing import DataPreprocessor
-from fedot.preprocessing.structure import StructureExplorer
 from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
     data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target
-
-# Tests for pipeline fitting correctly with "bad" data as input - checking preprocessing
 
 
 def test_only_categorical_data_process_correctly():
@@ -72,46 +68,6 @@ def test_data_with_nans_in_target_process_correctly():
     assert 2 == multi_hyperparams['n_neighbors']
 
 
-def test_non_correct_pipeline_encoder_imputer_validation():
-    """
-    DataPreprocessor should correctly identify is pipeline has needed operations
-    (encoding, imputation) in right order or not.
-    In the case presented below incorrect unimodal pipeline generated.
-    """
-    first_imputation = PrimaryNode('simple_imputation')
-    first_encoder = PrimaryNode('one_hot_encoding')
-
-    second_rfr = SecondaryNode('rfr', nodes_from=[first_imputation])
-    second_ridge = SecondaryNode('ridge', nodes_from=[first_encoder])
-    second_encoder = SecondaryNode('one_hot_encoding', nodes_from=[first_imputation])
-
-    third_imputer = SecondaryNode('simple_imputation', nodes_from=[second_ridge])
-    root = SecondaryNode('linear', nodes_from=[second_rfr, third_imputer, second_encoder])
-    pipeline = Pipeline(root)
-
-    encoding_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
-
-    assert encoding_correct is False
-    assert imputer_correct is False
-
-
-def test_correct_pipeline_encoder_imputer_validation():
-    """ Validate correct pipeline """
-    first_source = PrimaryNode('data_source_table')
-    second_imputer = SecondaryNode('simple_imputation', nodes_from=[first_source])
-    third_encoder = SecondaryNode('one_hot_encoding', nodes_from=[second_imputer])
-    fourth_imputer = SecondaryNode('simple_imputation', nodes_from=[third_encoder])
-    root = SecondaryNode('linear', nodes_from=[fourth_imputer])
-    pipeline = Pipeline(root)
-
-    encoding_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
-
-    assert encoding_correct is True
-    assert imputer_correct is True
-
-
 def test_preprocessing_binary_categorical_train_test_correct():
     """ Generate tabular InputData with categorical features with only two values (binary).
     During preprocessing such a features must be converted into int values. The same mapping
@@ -129,3 +85,35 @@ def test_preprocessing_binary_categorical_train_test_correct():
     prediction = pipeline.predict(test_data)
     
     assert prediction is not None
+
+
+def test_pipeline_with_imputer():
+    """
+    Check the correctness of pipeline fitting on data with gaps and categorical features.
+    Pipeline has only imputation operation in it's structure. So encoding must be performed
+    as preprocessing.
+    """
+    imputation_node = PrimaryNode('simple_imputation')
+    final_node = SecondaryNode('ridge', nodes_from=[imputation_node])
+    pipeline = Pipeline(final_node)
+    # TODO implement it
+
+
+def test_pipeline_with_encoder():
+    """
+    Check the correctness of pipeline fitting on data with gaps and categorical features.
+    Pipeline has only encoding operation in it's structure. So imputation must be performed
+    as preprocessing.
+    """
+    encoding_node = PrimaryNode('one_hot_encoding')
+    final_node = SecondaryNode('ridge', nodes_from=[encoding_node])
+    pipeline = Pipeline(final_node)
+    # TODO implement it
+
+
+def test_pipeline_with_preprocessing_serialized_correctly():
+    """
+    Pipeline with preprocessing blocks must be serializable as well as any other pipeline
+    """
+    pass
+    # TODO implement it
