@@ -1,4 +1,4 @@
-from copy import copy
+from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
@@ -163,7 +163,7 @@ class Pipeline(Graph):
             self.unfit()
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
+        copied_input_data = deepcopy(input_data)
         copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
@@ -218,7 +218,7 @@ class Pipeline(Graph):
             raise ValueError(ex)
 
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
+        copied_input_data = deepcopy(input_data)
         copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
@@ -240,7 +240,7 @@ class Pipeline(Graph):
         :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
         """
         # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = copy(input_data)
+        copied_input_data = deepcopy(input_data)
 
         timeout = timedelta(minutes=timeout)
         pipeline_tuner = PipelineTuner(pipeline=self,

@@ -109,7 +109,7 @@ def test_distance_to_primary_level():
 
 def test_node_return_correct_operation_info():
     node = PrimaryNode('simple_imputation')
-    operation_tags = node.tags()
+    operation_tags = node.tags
 
     correct_tags = ["simple", "imputation", "non-default"]
     assert all(correct_tag in operation_tags for correct_tag in correct_tags)

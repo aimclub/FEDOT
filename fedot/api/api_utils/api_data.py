@@ -10,7 +10,7 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.data.data import InputData
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.utils import probs_to_labels
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData, OutputData, data_type_is_table, convert_into_column
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -82,19 +82,26 @@ class ApiDataProcessor:
 
         return output_prediction
 
-    def correct_shape(self, metric_name: str,
-                      real: InputData, prediction: OutputData):
-        """ Change shape for models predictions if its necessary """
+    def correct_predictions(self, metric_name: str,
+                            real: InputData, prediction: OutputData):
+        """ Change shape for models predictions if its necessary. Apply """
         if self.task == TaskTypesEnum.ts_forecasting:
             real.target = real.target[~np.isnan(prediction.predict)]
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
         if metric_name == 'f1':
-            if len(prediction.predict.shape) > len(real.target.shape):
-                prediction.predict = probs_to_labels(prediction.predict)
-            elif real.num_classes == 2:
+            if real.num_classes == 2:
                 prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
-        return real.target, prediction.predict
+            else:
+                # Multiclass classification
+                prediction.predict = probs_to_labels(prediction.predict)
+
+        if data_type_is_table(prediction):
+            # Check dimensions for real and predicted values
+            if len(real.target.shape) != len(prediction.predict.shape):
+
+                prediction.predict = convert_into_column(prediction.predict)
+                real.target = convert_into_column(real.target)
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData]):

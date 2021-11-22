@@ -207,6 +207,10 @@ class Node(GraphNode):
     @property
     def tags(self):
         """ Return tags of operation in the node. """
+        if 'atomized' in self.operation.operation_type:
+            # There are no tags for atomized operation
+            return []
+
         models_repo = OperationTypesRepository()
         data_operations_repo = OperationTypesRepository(operation_type='data_operation')
         automl_repo = OperationTypesRepository(operation_type='automl')

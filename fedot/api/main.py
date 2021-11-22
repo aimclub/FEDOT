@@ -292,9 +292,10 @@ class Fedot:
                     prediction.predict = self.predict_proba(self.test_data)
                 real = deepcopy(self.test_data)
 
-                real.target, prediction.predict = self.data_processor.correct_shape(metric_name=metric_name,
-                                                                                    real=real,
-                                                                                    prediction=prediction)
+                # Work inplace - correct predictions
+                self.data_processor.correct_predictions(metric_name=metric_name,
+                                                        real=real,
+                                                        prediction=prediction)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))

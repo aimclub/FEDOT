@@ -95,7 +95,8 @@ def data_with_nans_in_multi_target():
                          [1, 3]], dtype=object)
     target = np.array([[0, 2], [1, 3], [np.nan, np.nan], [3, np.nan], [4, 4], [5, 6]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
-                            target=target, task=task, data_type=DataTypesEnum.table)
+                            target=target, task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
 
     return train_input
 

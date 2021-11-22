@@ -1,4 +1,4 @@
-from copy import copy
+from copy import deepcopy
 import bisect
 import numpy as np
 import pandas as pd
@@ -16,9 +16,8 @@ class BinaryCategoricalPreprocessor:
         self.binary_encoders = {}
         self.binary_ids_to_convert = []
 
-        # Dict where with binary categorical features which contain Nans as keys
-        # and ids of rows with gaps as values
-        self.binary_features_with_nans = {}
+        # List with binary categorical features ids which contain Nans
+        self.binary_features_with_nans = []
 
     def fit(self, input_data: InputData):
         """
@@ -41,12 +40,13 @@ class BinaryCategoricalPreprocessor:
             is_row_has_nan = pd.isna(pd_column)
             nans_number = is_row_has_nan.sum()
             if nans_number > 0 and column_id in categorical_ids:
+                # This categorical column has nans
                 column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
                 column_uniques = np.unique(column)
 
                 if len(column_uniques) <= 3:
                     # There is column with binary categories and gaps
-                    self.binary_features_with_nans.update({column_id: gap_ids})
+                    self.binary_features_with_nans.append(column_id)
                     binary_ids_to_convert.append(column_id)
                     self._train_encoder(column, column_id)
             else:
@@ -66,6 +66,7 @@ class BinaryCategoricalPreprocessor:
         Apply transformation (converting str into integers) for selected (while training) features.
         """
         if len(self.binary_ids_to_convert) == 0:
+            # There are no binary categorical features
             return input_data
 
         converted_features = []
@@ -82,7 +83,7 @@ class BinaryCategoricalPreprocessor:
             converted_features.append(converted_column.reshape((-1, 1)))
 
         # Store transformed features
-        copied_data = copy(input_data)
+        copied_data = deepcopy(input_data)
         copied_data.features = np.hstack(converted_features)
         return copied_data
 
@@ -99,17 +100,15 @@ class BinaryCategoricalPreprocessor:
     def _apply_encoder(self, column: np.array, column_id: int) -> np.array:
         """ Apply already fitted encoders """
         encoder = self.binary_encoders[column_id]
-        encoder_classes = encoder.classes_.tolist()
+        encoder_classes = list(encoder.classes_)
 
         # If column contains nans - replace them with fedot nans special string
-        if FEDOT_STR_NAN in encoder_classes:
-            is_row_has_nan = pd.isna(pd.Series(column))
-            column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
+        is_row_has_nan = pd.isna(pd.Series(column))
+        column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
 
         try:
             converted = encoder.transform(column)
-            if FEDOT_STR_NAN in encoder_classes:
-                gap_ids = self.binary_features_with_nans[column_id]
+            if len(gap_ids) > 0:
                 # Column has nans in its structure - after conversion replace it
                 converted = converted.astype(float)
                 converted[gap_ids] = np.nan

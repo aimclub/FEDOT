@@ -1,16 +1,15 @@
-from typing import Union, List, Optional
+from copy import deepcopy
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, data_has_categorical_features
+from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, data_has_categorical_features, \
+    replace_inf_with_nans
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, OneHotEncodingImplementation, replace_inf_with_nans
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
-    DataOperationImplementation
-from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
+    ImputationImplementation, OneHotEncodingImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 
@@ -36,7 +35,7 @@ class DataPreprocessor:
     """
 
     def __init__(self, log: Log = None):
-        self.process_features = {}
+        self.current_encoder = None
         self.ids_relevant_features = []
 
         # Cannot be processed due to incorrect types or large number of nans
@@ -57,7 +56,7 @@ class DataPreprocessor:
         It includes removing features full of nans, extra spaces in features deleting,
         drop rows where target cells are none
         """
-        # TODO add advanced gapfilling for time series
+        # TODO add advanced gapfilling for time series and advanced gap-filling
 
         if isinstance(data, InputData):
             data = self._prepare_unimodal_for_fit(data)
@@ -86,6 +85,7 @@ class DataPreprocessor:
         :param data: data to preprocess
         """
         if isinstance(data, InputData):
+            # TODO implement preprocessing for MultiModal data
             if not data_type_is_table(data):
                 return data
 
@@ -93,13 +93,13 @@ class DataPreprocessor:
                 # Data contains only categorical features
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
                 if has_encoder is False:
-                    self.process_features = self._encode_data_for_fit(data)
+                    self._encode_data_for_fit(data)
 
             elif not data_has_categorical_features(data) and data_has_missing_values(data):
                 # Data contains only missing values
                 has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
                 if has_imputer is False:
-                    data = self.apply_imputation(data)
+                    self.apply_imputation(data)
 
             elif data_has_categorical_features(data) and data_has_missing_values(data):
                 # Data contains both missing values and categorical features
@@ -108,16 +108,16 @@ class DataPreprocessor:
 
                 if not has_imputer and not has_encoder:
                     # Apply imputation firstly and encoding secondly because there is no encoding and imputer
-                    data = self.apply_imputation(data)
-                    self.process_features = self._encode_data_for_fit(data)
+                    self.apply_imputation(data)
+                    self._encode_data_for_fit(data)
 
                 elif has_imputer and not has_encoder:
                     # Only imputer in pipeline
-                    self.process_features = self._encode_data_for_fit(data)
+                    self._encode_data_for_fit(data)
 
                 elif not has_imputer and has_encoder:
                     # Only encoder in pipeline
-                    data = self.apply_imputation(data)
+                    self.apply_imputation(data)
         return data
 
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):
@@ -127,11 +127,12 @@ class DataPreprocessor:
         :param pipeline: pipeline to prepare data for
         :param data: data to preprocess
         """
-        has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
-        if data_has_missing_values(data) and not has_imputer:
-            data = self.apply_imputation(data)
+        if isinstance(data, InputData):
+            has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
+            if data_has_missing_values(data) and not has_imputer:
+                data = self.apply_imputation(data)
 
-        self._encode_data_for_predict(data, self.process_features)
+            self._encode_data_for_predict(data)
         return data
 
     def take_only_correct_features(self, data: InputData):
@@ -149,7 +150,7 @@ class DataPreprocessor:
         data = self._correct_shapes(data)
 
         if data_type_is_table(data):
-            data = replace_inf_with_nans(data)
+            replace_inf_with_nans(data)
             data = self._drop_features_full_of_nans(data)
             data = self._drop_rows_with_nan_in_target(data)
             data = self._clean_extra_spaces(data)
@@ -164,7 +165,7 @@ class DataPreprocessor:
 
         data = self._correct_shapes(data)
         if data_type_is_table(data):
-            data = replace_inf_with_nans(data)
+            replace_inf_with_nans(data)
             self.take_only_correct_features(data)
 
             data = self._clean_extra_spaces(data)
@@ -240,53 +241,36 @@ class DataPreprocessor:
         """
         imputer = ImputationImplementation()
         output_data = imputer.fit_transform(data)
-        transformed = InputData(features=output_data.predict, data_type=output_data.data_type,
-                                target=output_data.target, task=output_data.task, idx=output_data.idx)
-        return transformed
+        data.features = output_data.predict
+        return data
 
-    def _encode_data_for_fit(self, data: Union[InputData, MultiModalData]) -> \
-            Union[List[DataOperationImplementation], DataOperationImplementation]:
+    def _encode_data_for_fit(self, data: Union[InputData]):
         """
         Encode categorical features to numerical. In additional,
         save encoders to use later for prediction data.
 
         :param data: data to transform
-        :return encoders: operation preprocessing categorical features or list of it
+        :return encoder: operation for preprocessing categorical features
         """
 
-        encoders = None
-        if isinstance(data, InputData):
-            transformed, encoder = self._create_encoder(data)
-            encoders = encoder
-            data.features = transformed
-        elif isinstance(data, MultiModalData):
-            encoders = {}
-            for data_source_name, values in data.items():
-                if data_source_name.startswith('data_source_table'):
-                    transformed, encoder = self._create_encoder(values)
-                    if encoder is not None:
-                        encoders[data_source_name] = encoder
-                    data[data_source_name].features = transformed
+        transformed, encoder = self._create_encoder(data)
+        data.features = transformed
+        # Store encoder to make prediction in th future
+        self.current_encoder = encoder
 
-        return encoders
-
-    @staticmethod
-    def _encode_data_for_predict(data: Union[InputData, MultiModalData],
-                                 encoders: Union[dict, DataOperationImplementation]):
+    def _encode_data_for_predict(self, data: InputData):
         """
         Transformation the prediction data inplace. Use the same transformations as for the training data.
 
         :param data: data to transformation
-        :param encoders: encoders for transformation
         """
-        if encoders:
-            if isinstance(data, InputData):
-                transformed = encoders.transform(data, True).predict
-                data.features = transformed
-            elif isinstance(data, MultiModalData):
-                for data_source_name, encoder in encoders.items():
-                    transformed = encoder.transform(data[data_source_name], True).predict
-                    data[data_source_name].features = transformed
+        if self.current_encoder is None:
+            # No encoding needed
+            pass
+        else:
+            # Perform encoding
+            transformed = self.current_encoder.transform(data, True).predict
+            data.features = transformed
 
     @staticmethod
     def _create_encoder(data: InputData):

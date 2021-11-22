@@ -404,9 +404,13 @@ def str_columns_check(features):
     return categorical_ids, non_categorical_ids
 
 
-def divide_data_categorical_numerical(input_data: InputData) -> (InputData, InputData):
-    """ Split tabular InputData into two parts: with numerical and categorical features """
-    categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
+def divide_data_categorical_numerical(input_data: InputData, categorical_ids: list,
+                                      non_categorical_ids: list) -> (InputData, InputData):
+    """
+    Split tabular InputData into two parts: with numerical and categorical features
+    using list with ids of categorical and numerical features.
+    """
+
     if len(categorical_ids) > 0 and len(non_categorical_ids) > 0:
         # Both categorical and numerical features
         numerical_input = _return_subsample_features(input_data, non_categorical_ids)
@@ -430,7 +434,24 @@ def divide_data_categorical_numerical(input_data: InputData) -> (InputData, Inpu
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def data_type_is_table(data: InputData) -> bool:
+def convert_into_column(array: np.array):
+    """ Perform conversion for data if it is necessary """
+    if len(array.shape) == 1:
+        return array.reshape(-1, 1)
+    else:
+        return array
+
+
+def replace_inf_with_nans(input_data: InputData):
+    values_to_replace = [np.inf, -np.inf]
+    features_with_replaced_inf = np.where(np.isin(input_data.features,
+                                                  values_to_replace),
+                                          np.nan,
+                                          input_data.features)
+    input_data.features = features_with_replaced_inf
+
+
+def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
     return data.data_type == DataTypesEnum.table
 
 
