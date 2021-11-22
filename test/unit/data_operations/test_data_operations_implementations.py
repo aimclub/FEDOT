@@ -157,6 +157,23 @@ def get_mixed_data(task=None, extended=False):
     return train_input
 
 
+def get_nan_binary_data(task=None):
+    """ Generate table with two numerical and one categorical features.
+    Both them contain nans, which need to be filled in.
+    """
+    features = np.array([[1, '0', 0],
+                         [np.nan, np.nan, np.nan],
+                         [0, '2', 1],
+                         [1, '1', 1],
+                         [5, '1', 0]], dtype=object)
+
+    input_data = InputData(idx=[0, 1, 2, 3], features=features,
+                           target=np.array([[0], [0], [1], [1]]),
+                           task=task, data_type=DataTypesEnum.table)
+
+    return input_data
+
+
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
@@ -330,16 +347,18 @@ def test_knn_with_float_neighbors():
     pipeline.predict(input_data)
 
 
-def test_imputation_with_categorical_correct():
+def test_imputation_with_binary_correct():
     """
-    Check if SimpleImputer can process mixed data with binary categorical feature correctly
+    Check if SimpleImputer can process mixed data with both numerical and categorical
+    features correctly. Moreover, check if the imputer swaps the columns (it shouldn't)
     """
-    cat_data = get_mixed_data(task=Task(TaskTypesEnum.classification),
-                              extended=True)
+    nan_data = get_nan_binary_data(task=Task(TaskTypesEnum.classification))
 
     # Create pipeline with imputation operation
     imputation_node = PrimaryNode('simple_imputation')
-    final_node = SecondaryNode('dt', nodes_from=[imputation_node])
-    pipeline = Pipeline(final_node)
+    imputation_node.fit(nan_data)
+    predicted = imputation_node.predict(nan_data)
 
-    pipeline.fit(cat_data)
+    assert np.isclose(predicted.predict[1, 0], 1.75)
+    assert predicted.predict[1, 1] == '1'
+    assert np.isclose(predicted.predict[1, 2], 0.5)

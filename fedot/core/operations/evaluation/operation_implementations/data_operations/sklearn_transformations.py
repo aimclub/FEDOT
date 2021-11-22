@@ -10,6 +10,7 @@ from fedot.core.data.data import InputData, data_type_is_table, convert_into_col
 from fedot.core.data.data import data_has_categorical_features, divide_data_categorical_numerical, str_columns_check
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
+from fedot.preprocessing.categorical import replace_nans_with_fedot_nans
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
@@ -300,7 +301,8 @@ class ImputationImplementation(DataOperationImplementation):
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
             # Tabular data contains categorical features
             categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
-            numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids, non_categorical_ids)
+            numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids,
+                                                                       non_categorical_ids)
 
             if categorical is not None and categorical.features.size > 0:
                 categorical.features = convert_into_column(categorical.features)
