@@ -62,6 +62,7 @@ def make_measurement(func,
     tracemalloc.start()
 
     start_time = time()
+    tracemalloc.start()
 
     pipeline = func(train, **params)
 
