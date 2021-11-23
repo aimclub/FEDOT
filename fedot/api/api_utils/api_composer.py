@@ -154,6 +154,7 @@ class ApiComposer:
                                                                           api_params['task'])
 
         timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+        starting_time_for_composing = datetime.datetime.now()
         # the choice and initialisation of the GP composer
         composer_requirements = \
             GPComposerRequirements(primary=primary_operations,
@@ -166,6 +167,8 @@ class ApiComposer:
                                    validation_blocks=composer_params['validation_blocks'],
                                    timeout=datetime.timedelta(minutes=timeout_for_composing))
 
+        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
+        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -226,7 +229,11 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
-            timeout_for_tuning = api_params['timeout'] / 2
+
+            if spending_time_for_composing < timeout_for_composing:
+                timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
+            else:
+                timeout_for_tuning = api_params['timeout'] / 2
 
             # Tune all nodes in the pipeline
             vb_number = composer_requirements.validation_blocks
