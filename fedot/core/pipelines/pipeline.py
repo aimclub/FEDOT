@@ -19,6 +19,7 @@ from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.data.data import data_type_is_table
 
+
 # The allowed empirical partition limit of the number of rows to delete.
 # Rows that have 'string' type, instead of other 'integer' observes.
 # Example: 90% objects in column are 'integer', other are 'string'. Then
