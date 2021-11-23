@@ -89,8 +89,6 @@ class SurrogateExplainer(Explainer):
             tree.plot_tree(self.surrogate.root_node.fitted_operation, **plot_params)
 
         if save_path is not None:
-            if not os.path.isabs(save_path):
-                save_path = os.path.join(default_fedot_data_dir(), save_path)
             plt.savefig(save_path)
             print(f'Saved the plot to "{os.path.abspath(save_path)}"')
 
