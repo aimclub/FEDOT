@@ -1,5 +1,4 @@
 import os
-import random
 from time import time
 import tracemalloc
 
@@ -17,12 +16,6 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.tuning.search_space import SearchSpace
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
-from fedot.core.composer.gp_composer.gp_composer import GPComposer, GPComposerBuilder, GPComposerRequirements, \
-    GPGraphOptimiser, GPGraphOptimiserParameters
-from fedot.api.api_utils.api_composer import ApiComposer
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 
 
 def get_data(file_path,
@@ -110,67 +103,6 @@ def fixed_structure_with_bayesian_optimization(train, search_space=SearchSpace()
 
     return tuned_pipeline
 
-
-# not ready
-
-"""
-def variable_structure_with_mutual_bayesian_optimization(train,
-                                                         max_arity=None,
-                                                         max_depth=None,
-                                                         pop_size=None,
-                                                         num_of_generations=None,
-                                                         crossover_prob=None,
-                                                         mutation_prob=None):
-    fixed_pipeline = get_fixed_pipeline(train.task.task_type)
-
-    pipeline_ = Pipeline(fixed_pipeline)
-
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=train.task.task_type)
-
-    optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
-                                                      mutation_types=[boosting_mutation, parameter_change_mutation,
-                                                                      MutationTypesEnum.single_edge,
-                                                                      MutationTypesEnum.single_change,
-                                                                      MutationTypesEnum.single_drop,
-                                                                      MutationTypesEnum.single_add],
-                                                      crossover_types=[CrossoverTypesEnum.one_point,
-                                                                       CrossoverTypesEnum.subtree],
-                                                      history_folder=composer_params.get('history_folder'))
-
-    req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                 max_arity=5 if max_arity is None else max_arity,
-                                 max_depth=5 if max_depth is None else max_depth,
-                                 pop_size=10 if pop_size is None else pop_size,
-                                 num_of_generations=5 if num_of_generations is None else num_of_generations,
-                                 crossover_prob=0.4 if crossover_prob is None else crossover_prob,
-                                 mutation_prob=0.5 if mutation_prob is None else mutation_prob,)
-
-    builder = ApiComposer.get_gp_composer_builder(task=api_params['task'],
-                                           metric_function=metric_function,
-                                           composer_requirements=composer_requirements,
-                                           optimizer_parameters=optimizer_parameters,
-                                           data=api_params['train_data'],
-                                           initial_pipeline=api_params['initial_pipeline'],
-                                           logger=api_params['logger'])
-
-    builder = GPComposerBuilder(train.task).with_requirements(req).with_metrics(RegressionMetricsEnum.RMSE)
-    print(1)
-
-    gp_composer = builder.build()
-    print(2)
-    pipeline_gp_composed = gp_composer.compose_pipeline(data=train)
-    print(3)
-
-    pipeline_gp_composed.fit_from_scratch(input_data=train)
-    print(4)
-
-    pipeline_tuner = PipelineTuner(pipeline_gp_composed, task=train.task.task_type, algo=tpe.suggest)
-    print(5)
-    tuned_pipeline = pipeline_tuner.tune_pipeline(train, loss_function=mean_squared_error)
-    print(6)
-
-    return tuned_pipeline
-"""
 
 score, time_spent, memory_spent, pipeline = {}, {}, {}, {}
 
