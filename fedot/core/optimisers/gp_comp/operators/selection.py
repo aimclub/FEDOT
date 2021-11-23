@@ -2,12 +2,9 @@ import math
 from random import choice, randint
 from typing import Any, List, TYPE_CHECKING
 
-from typing import (Any, List)
-from copy import copy
 from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import ComparableEnum as Enum
 
 if TYPE_CHECKING:

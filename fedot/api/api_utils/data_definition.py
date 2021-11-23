@@ -1,29 +1,14 @@
 from abc import ABC, abstractmethod
 from functools import partial
 from typing import Union
-import pandas as pd
-import numpy as np
 
-from fedot.core.data.data import InputData
+import numpy as np
+import pandas as pd
+
+from fedot.core.data.data import InputData, array_to_input_data
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-
-
-def autodetect_data_type(task: Task) -> DataTypesEnum:
-    if task.task_type == TaskTypesEnum.ts_forecasting:
-        return DataTypesEnum.ts
-    else:
-        return DataTypesEnum.table
-
-
-def array_to_input_data(features_array: np.array,
-                        target_array: np.array,
-                        task: Task = Task(TaskTypesEnum.classification)):
-    data_type = autodetect_data_type(task)
-    idx = np.arange(len(features_array))
-
-    return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class DataDefiner:
@@ -152,7 +137,8 @@ class MulitmodalStrategy(StrategyDefineData):
     def define_data(self, features: dict,
                     ml_task: str,
                     target: str = None,
-                    is_predict: bool = False) -> MultiModalData:
+                    is_predict: bool = False,
+                    idx=None) -> MultiModalData:
         if target is None:
             target = np.array([])
         target_array = target

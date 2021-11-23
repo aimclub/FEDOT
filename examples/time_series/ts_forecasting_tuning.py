@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -96,41 +97,6 @@ def get_ar_pipeline():
 
     return pipeline
 
-
-def prepare_input_data(len_forecast, train_data_features, train_data_target,
-                       test_data_features):
-    """ Return prepared data for fit and predict
-
-    :param len_forecast: forecast length
-    :param train_data_features: time series which can be used as predictors for train
-    :param train_data_target: time series which can be used as target for train
-    :param test_data_features: time series which can be used as predictors for prediction
-
-    :return train_input: Input Data for fit
-    :return predict_input: Input Data for predict
-    :return task: Time series forecasting task with parameters
-    """
-
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=len_forecast))
-
-    train_input = InputData(idx=np.arange(0, len(train_data_features)),
-                            features=train_data_features,
-                            target=train_data_target,
-                            task=task,
-                            data_type=DataTypesEnum.ts)
-
-    start_forecast = len(train_data_features)
-    end_forecast = start_forecast + len_forecast
-    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
-                              features=test_data_features,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.ts)
-
-    return train_input, predict_input, task
-
-
 def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast=250,
                                cv_folds=None):
     """ Function with example how time series forecasting can be made
@@ -140,15 +106,14 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
     :param len_forecast: forecast length
     """
 
-    # Let's divide our data on train and test samples
-    train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
-
     # Source time series
-    train_input, predict_input, task = prepare_input_data(len_forecast=len_forecast,
-                                                          train_data_features=train_data,
-                                                          train_data_target=train_data,
-                                                          test_data_features=train_data)
+    train_input, predict_input, = \
+        train_test_data_setup(InputData(idx=range(len(time_series)),
+                                        features=time_series,
+                                        target=time_series,
+                                        task=Task(TaskTypesEnum.ts_forecasting,
+                                                  TsForecastingParams(forecast_length=len_forecast)),
+                                        data_type=DataTypesEnum.ts))
 
     # Get graph with several models and with arima pipeline
     if with_ar_pipeline:
@@ -157,12 +122,12 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
         pipeline = get_complex_pipeline()
 
     old_predicted, new_predicted = make_forecast_with_tuning(pipeline, train_input,
-                                                             predict_input, task,
+                                                             predict_input, train_input.task,
                                                              cv_folds)
 
     old_predicted = np.ravel(np.array(old_predicted))
     new_predicted = np.ravel(np.array(new_predicted))
-    test_data = np.ravel(test_data)
+    test_data = np.ravel(predict_input.target)
 
     rmse_before = mean_squared_error(test_data, old_predicted, squared=False)
     mae_before = mean_absolute_error(test_data, old_predicted)
@@ -176,8 +141,8 @@ def run_experiment_with_tuning(time_series, with_ar_pipeline=False, len_forecast
 
     pipeline.print_structure()
     plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(train_data), len(time_series)), old_predicted, label='Forecast before tuning')
-    plt.plot(range(len(train_data), len(time_series)), new_predicted, label='Forecast after tuning')
+    plt.plot(range(len(train_input.target), len(time_series)), old_predicted, label='Forecast before tuning')
+    plt.plot(range(len(train_input.target), len(time_series)), new_predicted, label='Forecast after tuning')
     plt.legend()
     plt.grid()
     plt.show()

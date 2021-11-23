@@ -1,12 +1,15 @@
-import numpy as np
-import pandas as pd
 import os
 
+import numpy as np
+import pandas as pd
+
+from examples.pipeline_import_export import create_correct_path
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-
-from examples.time_series.ts_custom_model_tuning import prepare_input_data
-from examples.pipeline_import_export import create_correct_path
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
 def custom_model_imitation(train_data, _, params):
@@ -19,7 +22,7 @@ def custom_model_imitation(train_data, _, params):
     """
     a = params.get('a')
     b = params.get('b')
-    result = np.random.rand(*train_data.shape)*a + b
+    result = np.random.rand(*train_data.shape) * a + b
     out_type = 'ts'
     if len(train_data.shape) > 1:
         out_type = 'table'
@@ -63,11 +66,14 @@ def get_input_data():
     df = pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv'))
     time_series = np.array(df['Level'])
     len_forecast = 50
-    train_data = time_series[:-len_forecast]
-    train_input, predict_input, _ = prepare_input_data(len_forecast=len_forecast,
-                                                       train_data_features=train_data,
-                                                       train_data_target=train_data,
-                                                       test_data_features=train_data)
+    train_input, predict_input = \
+        train_test_data_setup(InputData(idx=range(len(time_series)),
+                                        features=time_series,
+                                        target=time_series,
+                                        task=Task(TaskTypesEnum.ts_forecasting,
+                                                  TsForecastingParams(
+                                                      forecast_length=len_forecast)),
+                                        data_type=DataTypesEnum.ts))
     return train_input, predict_input
 
 

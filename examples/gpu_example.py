@@ -35,7 +35,7 @@ def get_pipeline():
     return preset_pipeline
 
 
-def run_one_model_with_specific_evaluation_mod(train_data, test_data, mode: str = None):
+def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str = None):
     """
     Runs the example with one model svc.
     :param train_data: train data for pipeline training
@@ -81,19 +81,13 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
 
     preset_pipeline = get_pipeline()
 
-    n_times = None
-
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
     finish = datetime.now() - start
     print(f'Completed in: {finish}')
-    if n_times:
-        total_time = float(f'{finish.seconds}.{finish.microseconds}')
-        n_times.append(total_time)
 
     baseline_model.predict(features=test_data)
     print(baseline_model.get_metrics())
-    return n_times
 
 
 def get_scoring_data() -> Tuple[InputData, InputData]:
@@ -122,8 +116,7 @@ def make_moons_input_data(samples):
 if __name__ == '__main__':
     train_data, test_data = get_scoring_data()
 
-    run_one_model_with_specific_evaluation_mod(train_data=train_data, test_data=test_data,
-                                               mode='gpu')
-
+    run_one_model_with_specific_evaluation_mode(train_data=train_data, test_data=test_data,
+                                                mode='gpu')
     run_pipeline_with_specific_evaluation_mode(train_data=train_data, test_data=test_data,
                                                mode='gpu')

@@ -8,7 +8,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 # fedot api
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -65,29 +64,6 @@ def prepare_unimodal_for_validation(time_series: Union[np.array, pd.Series],
     return train_input, validation_input
 
 
-def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_length: int):
-    """ Prepare MultiModal data for time series forecasting task in a form of
-    dictionary
-
-    :param dataframe: pandas DataFrame to process
-    :param features: columns, which should be used as features in forecasting
-    :param forecast_length: length of forecast
-
-    :return multi_modal_train: dictionary with numpy arrays for train
-    :return multi_modal_test: dictionary with numpy arrays for test
-    """
-    multi_modal_train = {}
-    multi_modal_test = {}
-    for feature in features:
-        feature_ts = np.array(dataframe[feature])[:-forecast_length]
-
-        # Will be the same
-        multi_modal_train.update({feature: feature_ts})
-        multi_modal_test.update({feature: feature_ts})
-
-    return multi_modal_train, multi_modal_test
-
-
 def automl_fit_forecast(train_input, predict_input, composer_params: dict,
                         vis=True, in_sample_forecasting=False, horizon: int = None):
     """ Running AutoML algorithm for identification and configuration of pipeline
@@ -126,7 +102,8 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
 
 def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
                               composer_params: dict, target: np.array,
-                              forecast_length: int, vis=True):
+                              forecast_length: int, vis: bool = True,
+                              verbose_level: int = 1):
     """ Multi modal forecasting
 
     :param train_input: dictionary with InputData classes for train
@@ -135,11 +112,12 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     :param vis: is there a need to display structure of obtained pipeline
     :param target: numpy array (time series) for forecasting
     :param forecast_length: forecast length
+    :param verbose_level: verbosity of logger
     """
     task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
                   composer_params=composer_params,
-                  task_params=task_params, verbose_level=4)
+                  task_params=task_params, verbose_level=verbose_level)
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)
 

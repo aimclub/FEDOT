@@ -59,6 +59,8 @@ def custom_mutation(graph: OptGraph, **kwargs):
                                  [n.descriptive_id for n in other_random_node.ordered_subnodes_hierarchy()] and
                                  other_random_node.descriptive_id not in
                                  [n.descriptive_id for n in random_node.ordered_subnodes_hierarchy()])
+            if random_node.nodes_from is not None and len(random_node.nodes_from) == 0:
+                random_node.nodes_from = None
             if nodes_not_cycling:
                 graph.operator.connect_nodes(random_node, other_random_node)
     except Exception as ex:
@@ -68,7 +70,7 @@ def custom_mutation(graph: OptGraph, **kwargs):
 
 def run_custom_example(timeout: datetime.timedelta = None):
     if not timeout:
-        timeout = datetime.timedelta(minutes=0.2)
+        timeout = datetime.timedelta(minutes=1)
     data = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'custom_encoded.csv'))
     nodes_types = ['V1', 'V2', 'V3',
                    'V4', 'V5', 'V6',

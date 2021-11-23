@@ -1,10 +1,12 @@
 from typing import Union
+
 import numpy as np
 import pandas as pd
+
 from fedot.api.api_utils.data_definition import data_strategy_selector
 from fedot.core.data.data import InputData
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class ApiDataHelper:
@@ -13,14 +15,22 @@ class ApiDataHelper:
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                     target: Union[str, np.ndarray, pd.Series] = None,
                     is_predict=False):
-        """ Prepare data for fedot pipeline composing """
+        """ Prepare data for composing """
         try:
+            # TODO remove workaround
+            idx = None
+            if isinstance(features, dict) and 'idx' in features:
+                idx = features['idx']
+                del features['idx']
             data = data_strategy_selector(features=features,
                                           target=target,
                                           ml_task=ml_task,
                                           is_predict=is_predict)
+            if isinstance(data, dict) and idx is not None:
+                for k in data.keys():
+                    data[k].idx = idx
         except Exception as ex:
-            raise ValueError('Please specify a features as path to csv file or as Numpy array')
+            raise ValueError(f'Please specify a features as path to csv file or as Numpy array: {ex}')
         return data
 
     def define_predictions(self,
