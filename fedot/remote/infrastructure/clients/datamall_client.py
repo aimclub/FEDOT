@@ -56,7 +56,7 @@ class DataMallClient(Client):
 
     def create_task(self, config) -> str:
         data_id = self.connect_params['DATA_ID']
-        created_ex = self._create_execution(f"{self.exec_params['container_input_path']}/data/{data_id}/",
+        created_ex = self._create_execution(f"{self.exec_params['container_input_path']}",
                                             self.exec_params['container_output_path'],
                                             self.exec_params['container_config_path'],
                                             self.exec_params['container_image'],
