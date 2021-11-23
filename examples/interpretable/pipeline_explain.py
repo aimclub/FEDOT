@@ -10,7 +10,7 @@ from fedot.explainability.explainers import explain_pipeline
 if __name__ == '__main__':
     # Specifying paths
     train_data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'cancer', 'cancer_train.csv')
-    figure_path = 'explain_pipeline_example.png'
+    figure_path = 'pipeline_explain_example.png'
 
     # Feature and class names for visualization
     feature_names = pd.read_csv(train_data_path, index_col=0, nrows=0).columns.tolist()

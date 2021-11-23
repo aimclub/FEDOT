@@ -6,7 +6,8 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from examples.fedot_api_example import (run_classification_example, run_classification_multiobj_example,
-                                        run_ts_forecasting_example, run_explainability_example)
+                                        run_ts_forecasting_example)
+from examples.interpretable.api_explain import run_api_explain_example
 from examples.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.multiclass_prediction import get_model
 from examples.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
@@ -109,7 +110,7 @@ def test_api_example():
     pareto = run_classification_multiobj_example(timeout=1)
     assert pareto is not None
 
-    explainer = run_explainability_example(visualize=False, timeout=1)
+    explainer = run_api_explain_example(visualize=False, timeout=1)
     assert explainer is not None
 
 
