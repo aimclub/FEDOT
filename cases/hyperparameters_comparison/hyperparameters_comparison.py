@@ -1,9 +1,9 @@
 import os
+import random
 from time import time
-from datetime import timedelta
 import tracemalloc
 
-from sklearn.metrics import mean_squared_error, mean_absolute_error, roc_auc_score, f1_score, accuracy_score
+from sklearn.metrics import mean_squared_error
 from functools import partial
 import numpy as np
 import pandas as pd
