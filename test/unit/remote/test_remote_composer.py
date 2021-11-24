@@ -4,7 +4,7 @@ import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.remote.infrastructure.clients.test_client import TestClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
@@ -20,9 +20,9 @@ def run_around_tests():
 def test_pseudo_remote_composer_classification():
     connect_params = {}
     exec_params = {
-        'container_input_path': "./test/data/",
-        'container_output_path': "./test/data/remote/",
-        'container_config_path': "./test/data/.",
+        'container_input_path': os.path.join(fedot_project_root(), 'test', 'data'),
+        'container_output_path': os.path.join(fedot_project_root(), 'test', 'data', 'remote'),
+        'container_config_path': os.path.join(fedot_project_root(), 'test', 'data', '.'),
         'container_image': "test",
         'timeout': 1
     }
@@ -31,7 +31,8 @@ def test_pseudo_remote_composer_classification():
         mode='remote',
         dataset_name='advanced_classification')
 
-    client = TestClient(connect_params, exec_params, output_path='./test/data/remote')
+    client = TestClient(connect_params, exec_params,
+                        output_path=os.path.join(fedot_project_root(), 'test', 'data', 'remote'))
 
     evaluator = RemoteEvaluator()
 
@@ -59,9 +60,9 @@ def test_pseudo_remote_composer_classification():
 def test_pseudo_remote_composer_ts_forecasting():
     connect_params = {}
     exec_params = {
-        'container_input_path': "./test/data/",
-        'container_output_path': "./test/data/remote/",
-        'container_config_path': "./test/data/.",
+        'container_input_path': os.path.join(fedot_project_root(), 'test', 'data'),
+        'container_output_path': os.path.join(fedot_project_root(), 'test', 'data', 'remote'),
+        'container_config_path': os.path.join(fedot_project_root(), 'test', 'data', '.'),
         'container_image': "test",
         'timeout': 1
     }

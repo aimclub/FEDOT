@@ -5,8 +5,6 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.visualisation import plot_forecast, plot_biplot, plot_roc_auc
-from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

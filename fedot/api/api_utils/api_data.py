@@ -7,11 +7,8 @@ from fedot.api.api_utils.data_definition import data_strategy_selector
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from fedot.core.data.data import InputData
-from fedot.api.api_utils.params import ApiParams
 from fedot.core.utils import probs_to_labels
 from fedot.core.data.data import InputData, OutputData, data_type_is_table, convert_into_column
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
