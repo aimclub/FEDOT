@@ -4,8 +4,8 @@ from typing import Union, List
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, data_has_categorical_features, \
-    replace_inf_with_nans
+from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values,\
+    data_has_categorical_features, replace_inf_with_nans
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
@@ -14,10 +14,10 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 
 # The allowed percent of empty samples in features.
-# Example: 30% objects in features are 'nan', then drop this feature from data.
-from fedot.preprocessing.structure import StructureExplorer
+# Example: 90% objects in features are 'nan', then drop this feature from data.
+from fedot.preprocessing.structure import PipelineStructureExplorer
 
-ALLOWED_NAN_PERCENT = 0.3
+ALLOWED_NAN_PERCENT = 0.9
 
 
 class DataPreprocessor:
@@ -42,7 +42,7 @@ class DataPreprocessor:
         self.ids_incorrect_features = []
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processor = BinaryCategoricalPreprocessor()
-        self.structure_analysis = StructureExplorer()
+        self.structure_analysis = PipelineStructureExplorer()
         self.log = log
 
         if not log:
@@ -162,6 +162,9 @@ class DataPreprocessor:
 
     def _prepare_unimodal_for_predict(self, data: InputData) -> InputData:
         """ Method process InputData for pipeline predict method """
+        if data.supplementary_data.was_preprocessed is True:
+            # Preprocessing was already done - return data
+            return data
 
         data = self._correct_shapes(data)
         if data_type_is_table(data):

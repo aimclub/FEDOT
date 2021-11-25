@@ -128,9 +128,9 @@ class BinaryCategoricalPreprocessor:
 
 def replace_nans_with_fedot_nans(column: np.array, is_row_has_nan):
     # There are nans in the columns - find indices of such objects
-    # Warning - sign '==' is vital here, do not change it
-    gap_ids = np.ravel(np.argwhere(is_row_has_nan.values == True))
+    # True > 0
+    gap_ids = np.ravel(np.argwhere(is_row_has_nan.values > 0))
 
-    # Add new category - 'fedot_nan' after convertation it will be replaced by nans
+    # Add new category - 'fedot_nan' after converting it will be replaced by nans
     column[gap_ids] = FEDOT_STR_NAN
     return column, gap_ids

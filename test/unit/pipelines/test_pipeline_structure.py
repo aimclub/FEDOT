@@ -1,6 +1,6 @@
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.structure import StructureExplorer
+from fedot.preprocessing.structure import PipelineStructureExplorer
 
 
 def test_correct_pipeline_encoder_imputer_validation():
@@ -15,8 +15,8 @@ def test_correct_pipeline_encoder_imputer_validation():
     root = SecondaryNode('linear', nodes_from=[fourth_imputer])
     pipeline = Pipeline(root)
 
-    encoding_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
 
     assert encoding_correct is True
     assert imputer_correct is True
@@ -39,8 +39,8 @@ def test_non_correct_pipeline_encoder_imputer_validation():
     root = SecondaryNode('linear', nodes_from=[second_rfr, third_imputer, second_encoder])
     pipeline = Pipeline(root)
 
-    encoding_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
-    imputer_correct = StructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
+    encoding_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='encoding')
+    imputer_correct = PipelineStructureExplorer().check_structure_by_tag(pipeline, tag_to_check='imputation')
 
     assert encoding_correct is False
     assert imputer_correct is False

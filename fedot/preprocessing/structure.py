@@ -5,7 +5,7 @@ import numpy as np
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
-class StructureExplorer:
+class PipelineStructureExplorer:
     """ Class for performing pipeline structure exploration.
     The class allows you to convert pipelines into a networkx graph and considers
     all possible paths from PrimaryNode (or PrimaryNodes) to root node. If at least
@@ -200,8 +200,8 @@ class StructureExplorer:
         # Number of True in list
         number_operations = is_appropriate_operation.sum()
 
-        # Warning sign "==" doesnt allow to replace with "is"
-        operation_ids = np.ravel(np.argwhere(is_appropriate_operation == True))
+        # True > 0 - so find ids with appropriate operations
+        operation_ids = np.ravel(np.argwhere(is_appropriate_operation > 0))
 
         # Find independent operations in the path
         if len(is_independent_operation) > 0:

@@ -1,6 +1,8 @@
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.tasks import TaskTypesEnum, Task
+from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
     data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target
 
@@ -78,12 +80,11 @@ def test_preprocessing_binary_categorical_train_test_correct():
     So it is needed to extend dictionary for Label encoder.
     """
     pipeline = Pipeline(PrimaryNode('ridge'))
-    
     categorical_data = data_with_only_categorical_features()
     train_data, test_data = train_test_data_setup(categorical_data)
+
     pipeline.fit(train_data)
     prediction = pipeline.predict(test_data)
-    
     assert prediction is not None
 
 
@@ -96,7 +97,15 @@ def test_pipeline_with_imputer():
     imputation_node = PrimaryNode('simple_imputation')
     final_node = SecondaryNode('ridge', nodes_from=[imputation_node])
     pipeline = Pipeline(final_node)
-    # TODO implement it
+
+    mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
+                                 extended=True)
+    pipeline.fit(mixed_input)
+
+    # Coefficients for ridge regression
+    coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
+    # Linear must use 17 features - several of them are encoded ones
+    assert 17 == coefficients.shape[1]
 
 
 def test_pipeline_with_encoder():
@@ -106,14 +115,16 @@ def test_pipeline_with_encoder():
     as preprocessing.
     """
     encoding_node = PrimaryNode('one_hot_encoding')
-    final_node = SecondaryNode('ridge', nodes_from=[encoding_node])
+    final_node = SecondaryNode('knnreg', nodes_from=[encoding_node])
+    final_node.custom_params = {'n_neighbors': 20}
     pipeline = Pipeline(final_node)
-    # TODO implement it
 
+    mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
+                                 extended=True)
+    # Train pipeline with knn model and then check
+    pipeline.fit(mixed_input)
+    knn_params = pipeline.nodes[0].custom_params
 
-def test_pipeline_with_preprocessing_serialized_correctly():
-    """
-    Pipeline with preprocessing blocks must be serializable as well as any other pipeline
-    """
-    pass
-    # TODO implement it
+    # The number of neighbors must be equal to half of the objects in the table.
+    # This means that the row with nan has been adequately processed
+    assert 3 == knn_params['n_neighbors']

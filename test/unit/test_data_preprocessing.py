@@ -23,21 +23,22 @@ def data_with_only_categorical_features():
 
 def data_with_too_much_nans():
     """ Generate tabular data with too much nan's in numpy array (inf values also must be signed as nan).
-    Columns with ids 1 and 2 have nans more than 30% in their structure.
+    Columns with ids 1 and 2 have nans more than 90% in their structure.
     """
     task = Task(TaskTypesEnum.regression)
     features = np.array([[1, np.inf, np.nan],
                          [np.nan, np.inf, np.nan],
                          [3, np.inf, np.nan],
                          [7, np.inf, np.nan],
-                         [8, '1', np.nan],
-                         [np.nan, '0', 23],
-                         [9, np.inf, 22],
+                         [8, np.nan, np.nan],
+                         [np.nan, np.nan, 23],
                          [9, np.inf, np.nan],
                          [9, np.inf, np.nan],
-                         [9, '1', np.inf]], dtype=object)
-    target = np.array([[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]])
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], features=features,
+                         [9, np.inf, np.nan],
+                         [9, '1', np.inf],
+                         [8, np.nan, np.inf]], dtype=object)
+    target = np.array([[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
