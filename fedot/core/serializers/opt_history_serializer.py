@@ -1,7 +1,6 @@
 import itertools
 from typing import Any, Dict
 
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.serializers.interfaces.serializable import Serializable
 
 
@@ -12,6 +11,7 @@ class OptHistorySerializer(Serializable):
 
     @classmethod
     def from_json(cls, json_obj: Dict[str, Any]):
+        from fedot.core.pipelines.template import PipelineTemplate
         deserialized_hist = super().from_json(json_obj)
         for ind in list(itertools.chain(*deserialized_hist.individuals)):
             for parent_op in ind.parent_operators:

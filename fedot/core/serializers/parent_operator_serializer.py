@@ -1,7 +1,5 @@
 from typing import Any, Dict
 
-from fedot.core.pipelines.template import PipelineTemplate
-
 from .interfaces.serializable import Serializable
 
 
