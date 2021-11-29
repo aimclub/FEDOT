@@ -407,7 +407,7 @@ def test_save_pipeline_with_np_int_type():
     pipeline.save(path='test_save_pipeline_with_np_int_type')
 
 
-@pytest.mark.skip('Implementation of preprocessing serialization in progress')
+# @pytest.mark.skip('Implementation of preprocessing serialization in progress')
 def test_pipeline_with_preprocessing_serialized_correctly():
     """
     Pipeline with preprocessing blocks must be serializable as well as any other pipeline.

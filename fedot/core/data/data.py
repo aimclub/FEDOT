@@ -393,12 +393,19 @@ def str_columns_check(features):
     # For every column in table make check for first element
     for column_id in range(0, columns_number):
         column = features[:, column_id] if columns_number > 1 else features
+        col_shape = column.shape
         for i in column:
-            # Check if element is string object or not
-            if isinstance(i, str):
+            # Check if element is string object or not until the first appearance
+            if len(col_shape) == 2 and isinstance(i[0], str):
+                # Column looks like [[n], [n], [n]]
                 categorical_ids.append(column_id)
                 break
-        else:
+            elif len(col_shape) == 1 and isinstance(i, str):
+                # Column [n, n, n]
+                categorical_ids.append(column_id)
+                break
+
+        if column_id not in categorical_ids:
             non_categorical_ids.append(column_id)
 
     return categorical_ids, non_categorical_ids

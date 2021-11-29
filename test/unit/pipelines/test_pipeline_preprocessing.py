@@ -1,10 +1,13 @@
+import numpy as np
+
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
-    data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target
+    data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target, \
+    data_with_categorical_target
 
 
 def test_only_categorical_data_process_correctly():
@@ -128,3 +131,42 @@ def test_pipeline_with_encoder():
     # The number of neighbors must be equal to half of the objects in the table.
     # This means that the row with nan has been adequately processed
     assert 3 == knn_params['n_neighbors']
+
+
+def test_pipeline_target_encoding_correct():
+    """
+    The correct processing of the categorical target at the Pipeline
+    is tested. Moreover, target contains nans and has incorrect shape.
+    Source and predicted labels should not differ.
+    """
+    classification_data = data_with_categorical_target(with_nan=True)
+
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline.fit(classification_data)
+    predicted = pipeline.predict(classification_data, output_mode='labels')
+    predicted_labels = predicted.predict
+
+    assert predicted_labels[0] == 'blue'
+    assert predicted_labels[-1] == 'di'
+
+
+def test_pipeline_target_encoding_for_probs():
+    """
+    Pipeline's ability to correctly make predictions when probabilities return
+    is being tested for categorical target
+    """
+    classification_data = data_with_categorical_target(with_nan=False)
+
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline.fit(classification_data)
+    predicted = pipeline.predict(classification_data, output_mode='probs')
+    predicted_probs = predicted.predict
+
+    # label 'blue' - after LabelEncoder 1
+    assert np.isclose(predicted_probs[0, 1], 1)
+    # label 'da' - after LabelEncoder 2
+    assert np.isclose(predicted_probs[1, 2], 1)
+    # label 'ba' - after LabelEncoder 0
+    assert np.isclose(predicted_probs[2, 0], 1)
+    # label 'di' - after LabelEncoder 3
+    assert np.isclose(predicted_probs[3, 3], 1)

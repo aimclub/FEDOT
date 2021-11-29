@@ -1,11 +1,14 @@
 import numpy as np
 import pytest
+
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.api.test_main_api import composer_params
 
 
 def data_with_only_categorical_features():
@@ -73,7 +76,7 @@ def data_with_nans_in_target_column():
                          [0, 3],
                          [2, 3],
                          [3, 4],
-                         [1, 3]], dtype=object)
+                         [1, 3]])
     target = np.array([[0], [1], [np.nan], [np.nan], [4], [5]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
@@ -93,9 +96,34 @@ def data_with_nans_in_multi_target():
                          [0, 3],
                          [2, 3],
                          [3, 4],
-                         [1, 3]], dtype=object)
+                         [1, 3]])
     target = np.array([[0, 2], [1, 3], [np.nan, np.nan], [3, np.nan], [4, 4], [5, 6]])
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
+
+
+def data_with_categorical_target(with_nan: bool = False):
+    """
+    Generate dataset for classification task where target column is defined as
+    string categories (e.g. 'red', 'green'). Dataset is generated so that when
+    split into training and test in the test sample in the target will always
+    be a new category.
+
+    :param with_nan: is there a need to generate target column with np.nan
+    """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([[0, 1],
+                         [1, 2],
+                         [0, 3],
+                         [1, 4]])
+    if with_nan:
+        target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
+    else:
+        target = np.array(['blue', 'da', 'ba', 'di'], dtype=str)
+    train_input = InputData(idx=[0, 1, 2, 3], features=features,
                             target=target, task=task, data_type=DataTypesEnum.table,
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
@@ -115,3 +143,21 @@ def test_correct_api_dataset_preprocessing():
         with pytest.raises(SystemExit) as exc:
             assert fedot_model.fit(input_data)
         assert str(exc.value) == f'Initial pipeline were fitted successfully'
+
+
+def test_categorical_target_processed_correctly():
+    """ Check if categorical target for classification task first converted
+    into integer values and then perform inverse operation. API tested in this
+    test.
+    """
+
+    classification_data = data_with_categorical_target()
+    train_data, test_data = train_test_data_setup(classification_data)
+
+    fedot_model = Fedot(problem='classification', check_mode=False,
+                        composer_params=composer_params)
+    fedot_model.fit(train_data)
+    predicted = fedot_model.predict(test_data)
+
+    # Predicted label must be close to 'di' label
+    assert predicted[0] == 'ba'

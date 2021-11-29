@@ -11,6 +11,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -204,7 +205,7 @@ class Pipeline(Graph):
         :param output_mode: desired form of output for operations. Available options are:
                 'default' (as is),
                 'labels' (numbers of classes - for classification) ,
-                'probs' (probabilities - for classification =='default'),
+                'probs' (probabilities - for classification == 'default'),
                 'full_probs' (return all probabilities - for binary classification).
         :return: OutputData with prediction
         """
@@ -224,6 +225,10 @@ class Pipeline(Graph):
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
+
+        # Prediction should be converted into source labels (if it is needed)
+        if output_mode == 'labels':
+            result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,

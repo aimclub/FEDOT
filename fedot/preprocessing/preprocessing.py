@@ -1,11 +1,11 @@
-from copy import deepcopy
-from typing import Union, List
-
+from typing import Union
+import bisect
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values,\
-    data_has_categorical_features, replace_inf_with_nans
+from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, \
+    data_has_categorical_features, replace_inf_with_nans, str_columns_check, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
@@ -35,7 +35,9 @@ class DataPreprocessor:
     """
 
     def __init__(self, log: Log = None):
-        self.current_encoder = None
+        # There was performed encoding for string target column or not
+        self.target_encoder = None
+        self.features_encoder = None
         self.ids_relevant_features = []
 
         # Cannot be processed due to incorrect types or large number of nans
@@ -153,6 +155,11 @@ class DataPreprocessor:
             replace_inf_with_nans(data)
             data = self._drop_features_full_of_nans(data)
             data = self._drop_rows_with_nan_in_target(data)
+
+            # Train Label Encoder for categorical data if necessary and apply it
+            self._train_target_encoder(data)
+            data.target = self._apply_target_encoding(data.target)
+
             data = self._clean_extra_spaces(data)
 
             # Process categorical features
@@ -201,8 +208,8 @@ class DataPreprocessor:
         features = data.features
         target = data.target
 
-        # Find indices of nans rows
-        bool_target = np.isnan(target)
+        # Find indices of nans rows. Using pd instead of np because it is needed for string columns
+        bool_target = np.array(pd.isna(target))
         number_nans_per_rows = bool_target.sum(axis=1)
 
         # Ids of rows which doesn't contain nans in target
@@ -259,7 +266,7 @@ class DataPreprocessor:
         transformed, encoder = self._create_encoder(data)
         data.features = transformed
         # Store encoder to make prediction in th future
-        self.current_encoder = encoder
+        self.features_encoder = encoder
 
     def _encode_data_for_predict(self, data: InputData):
         """
@@ -267,13 +274,43 @@ class DataPreprocessor:
 
         :param data: data to transformation
         """
-        if self.current_encoder is None:
+        if self.features_encoder is None:
             # No encoding needed
             pass
         else:
             # Perform encoding
-            transformed = self.current_encoder.transform(data, True).predict
+            transformed = self.features_encoder.transform(data, True).predict
             data.features = transformed
+
+    def _train_target_encoder(self, data: InputData):
+        """ Convert string categorical target into integer column using LabelEncoder """
+        categorical_ids, non_categorical_ids = str_columns_check(data.target)
+
+        if len(categorical_ids) > 0:
+            # Target is categorical
+            self.target_encoder = LabelEncoder()
+            self.target_encoder.fit(data.target)
+
+    def _apply_target_encoding(self, column_to_transform: np.array) -> np.array:
+        """ Apply trained encoder for target column
+
+        For example, target [['red'], ['green'], ['red']] will be converted into
+        [[0], [1], [0]]
+        """
+        if self.target_encoder is not None:
+            # Target encoder has already been fitted
+            return self.target_encoder.transform(column_to_transform)
+        else:
+            return column_to_transform
+
+    def apply_inverse_target_encoding(self, column_to_transform: np.array) -> np.array:
+        """ Apply inverse Label Encoding operation for target column """
+        if self.target_encoder is not None:
+            # It is needed to apply fitted encoder to apply inverse transformation
+            return self.target_encoder.inverse_transform(column_to_transform)
+        else:
+            # Return source column
+            return column_to_transform
 
     @staticmethod
     def _create_encoder(data: InputData):
