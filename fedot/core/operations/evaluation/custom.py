@@ -26,7 +26,7 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
-        prediction = self.operation_impl.predict(predict_data, is_fit_pipeline_stage)
+        prediction = trained_operation.predict(predict_data, is_fit_pipeline_stage)
         # Convert prediction to output
         converted = self._convert_to_output(prediction, predict_data)
         return converted

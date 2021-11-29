@@ -11,7 +11,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from examples.pipeline_import_export import create_correct_path
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Ridge
 
 import matplotlib.pyplot as plt
 
@@ -35,12 +35,12 @@ def custom_model_imitation(_, train_data, __, params):
 
 def custom_regression_model_fit(features, target, params):
     alpha = params.get('alpha')
-    reg = Lasso(alpha=alpha)
+    reg = Ridge(alpha=alpha)
     reg.fit(features, target)
     return reg
 
 
-def custom_regression_model_predict(model, features, target, params):
+def custom_regression_model_predict(model, features, params):
     res = model.predict(features)
     return res, 'table'
 
@@ -127,8 +127,9 @@ def test_pipeline_with_custom_fitted_node():
     pipeline = get_custom_fitting_pipeline()
     pipeline.fit_from_scratch(train_input)
     predicted_centered = pipeline.predict(predict_input)
+    print(predicted_centered)
 
-    plt.plot(np.arange(len(predicted_centered)))
+    plt.plot(np.arange(len(predicted_centered.predict[0])), predicted_centered.predict[0])
     plt.show()
 
     assert predicted_centered is not None

@@ -46,12 +46,9 @@ class CustomModelImplementation(ModelImplementation):
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         self.output_type = input_data.data_type
         # If custom model has exceptions inviolate train data goes to Output
-        if self.model_fit:
-            self.fitted_model = self.model_fit(input_data.features, input_data.target, self.params)
         try:
             predict, output_type = self.model_predict(self.fitted_model,
                                                       input_data.features,
-                                                      input_data.target,
                                                       self.params)
             self.output_type = DataTypesEnum[output_type]
         except Exception as e:
