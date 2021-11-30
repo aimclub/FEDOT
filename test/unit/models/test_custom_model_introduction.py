@@ -3,7 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from examples.pipeline_import_export import create_correct_path
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
