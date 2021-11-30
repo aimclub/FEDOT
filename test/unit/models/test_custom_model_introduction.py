@@ -13,8 +13,6 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from examples.pipeline_import_export import create_correct_path
 from sklearn.linear_model import Ridge
 
-import matplotlib.pyplot as plt
-
 
 def custom_model_imitation(_, train_data, params):
     """
