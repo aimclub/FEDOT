@@ -160,6 +160,8 @@ class DataPreprocessor:
             data.target = self._apply_target_encoding(data.target)
 
             data = self._clean_extra_spaces(data)
+            # Wrap indices in numpy array
+            data.idx = np.array(data.idx)
 
             # Process categorical features
             self.binary_categorical_processor.fit(data)
@@ -178,6 +180,8 @@ class DataPreprocessor:
             self.take_only_correct_features(data)
 
             data = self._clean_extra_spaces(data)
+            # Wrap indices in numpy array
+            data.idx = np.array(data.idx)
             data = self.binary_categorical_processor.transform(data)
 
         return data
@@ -305,6 +309,11 @@ class DataPreprocessor:
     def apply_inverse_target_encoding(self, column_to_transform: np.array) -> np.array:
         """ Apply inverse Label Encoding operation for target column """
         if self.target_encoder is not None:
+            # Check if column contains string objects
+            categorical_ids, non_categorical_ids = str_columns_check(column_to_transform)
+            if len(categorical_ids) > 0:
+                # There is no need to perform converting (it was performed already)
+                return column_to_transform
             # It is needed to apply fitted encoder to apply inverse transformation
             return self.target_encoder.inverse_transform(column_to_transform)
         else:

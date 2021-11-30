@@ -2,6 +2,7 @@ import json
 import os
 from collections import Counter
 from datetime import datetime
+from io import BytesIO
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
 from uuid import uuid4
 
@@ -341,14 +342,15 @@ class PipelineTemplate(PipelineTemplateSerializer):
             check_existing_path(path_fitted_preprocessing)
 
             data_preprocessor_path = os.path.join(path_fitted_preprocessing, 'data_preprocessor.pkl')
-            if self.data_preprocessor is None:
-                return None
-            else:
+            if self.data_preprocessor is not None:
                 joblib.dump(self.data_preprocessor, data_preprocessor_path)
                 return data_preprocessor_path
         else:
-            # TODO fix it for FEDOT.Web
-            return None
+            # dictionary with bytes of fitted operations
+            if self.data_preprocessor:
+                bytes_container = BytesIO()
+                joblib.dump(self.data_preprocessor, bytes_container)
+                return bytes_container
 
 
 def _is_nested_path(path):
