@@ -9,7 +9,7 @@ import joblib
 import numpy as np
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
-from fedot.core.operations.operation_template import OperationTemplate
+from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 
 if TYPE_CHECKING:
@@ -42,10 +42,14 @@ class PipelineTemplate(PipelineTemplateSerializer):
             self.depth = pipeline.depth
             self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
             self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+
+            # Save preprocessing operations
+            self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
             self.unique_pipeline_id = str(uuid4())
             self.struct_id = ''
+            self.data_preprocessor = None
 
         try:
             self.computation_time = pipeline.computation_time
@@ -148,16 +152,23 @@ class PipelineTemplate(PipelineTemplateSerializer):
         return json_data, dict_fitted_operations
 
     def convert_to_dict(self, root_node: Node = None) -> dict:
+        """ Generate pipeline description in a form of dictionary """
+
         json_nodes = list(map(lambda op_template: op_template.convert_to_dict(), self.operation_templates))
         for node in json_nodes:
             if 'custom_params' in node and isinstance(node['custom_params'], dict):
                 for key in node['custom_params']:
                     if isinstance(node['custom_params'][key], Callable):
                         node['custom_params'][key] = None
+
+        # Store information about preprocessing
+        preprocessing_path = os.path.join('preprocessing', 'data_preprocessor.pkl')
+
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
             "depth": self.depth,
             "nodes": json_nodes,
+            "preprocessing": preprocessing_path
         }
         if root_node:
             json_object['descriptive_id'] = root_node.descriptive_id
@@ -165,6 +176,7 @@ class PipelineTemplate(PipelineTemplateSerializer):
         return json_object
 
     def _create_fitted_operations(self, path=None):
+        """ Create .pkl files for operations using absolute path """
         dict_fitted_operations = {}
         for operation in self.operation_templates:
             dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(path)
@@ -172,6 +184,8 @@ class PipelineTemplate(PipelineTemplateSerializer):
         if all([val is None for val in dict_fitted_operations.values()]):
             return None
 
+        # Save preprocessing module
+        dict_fitted_operations['preprocessing'] = self.export_preprocessing(path)
         return dict_fitted_operations
 
     def _prepare_paths(self, path: str, with_time: bool = True):
@@ -226,6 +240,7 @@ class PipelineTemplate(PipelineTemplateSerializer):
     def _extract_operations(self, pipeline_json, path):
         operation_objects = pipeline_json['nodes']
 
+        # Update info about fitted operation
         for operation_object in operation_objects:
             if operation_object['operation_type'] == atomized_model_type():
                 filename = operation_object['atomized_model_json_path'] + '.json'
@@ -247,6 +262,12 @@ class PipelineTemplate(PipelineTemplateSerializer):
         root_node = self.roll_pipeline_structure(root_template, visited_nodes, path, dict_fitted_operations)
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
+
+        if 'preprocessing' in os.listdir(path):
+            # Load data preprocessor and store it into the
+            path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
+            restored_data_preprocessor = joblib.load(path_to_preprocessor)
+            pipeline.preprocessor = restored_data_preprocessor
 
     def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
                                                          'AtomizedModelTemplate'],
@@ -312,6 +333,22 @@ class PipelineTemplate(PipelineTemplateSerializer):
 
         visited_nodes[operation_object.operation_id] = node
         return node
+
+    def export_preprocessing(self, path: str = None):
+        """ Save preprocessing operations in pkl files and store full paths into dictionary """
+        if path:
+            path_fitted_preprocessing = os.path.join(path, 'preprocessing')
+            check_existing_path(path_fitted_preprocessing)
+
+            data_preprocessor_path = os.path.join(path_fitted_preprocessing, 'data_preprocessor.pkl')
+            if self.data_preprocessor is None:
+                return None
+            else:
+                joblib.dump(self.data_preprocessor, data_preprocessor_path)
+                return data_preprocessor_path
+        else:
+            # TODO fix it for FEDOT.Web
+            return None
 
 
 def _is_nested_path(path):

@@ -4,12 +4,12 @@ from .interfaces.serializable import Serializable
 
 
 class OperationSerializer(Serializable):
-    '''
+    """
     Serializer for "Operation" class
 
     Serialization: excludes "operations_repo" field cause it has no any important info about class
     Deserialization: uses basic method from superclass
-    '''
+    """
 
     def to_json(self) -> Dict[str, Any]:
         return {

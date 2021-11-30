@@ -268,7 +268,7 @@ def test_local_save_for_pipeline_correctly():
     pipeline_fitted = create_fitted_pipeline()
     json, dict_fitted = pipeline_fitted.save()
     assert json is not None
-    assert len(dict_fitted) == 9
+    assert len(dict_fitted) == 10
     assert dict_fitted['operation_3'] is not None
 
 
@@ -293,7 +293,7 @@ def test_export_import_for_one_pipeline_object_correctly():
     json_second, dict_fitted = pipeline_fitted_after.save('test_export_import_for_one_pipeline_object_correctly_3')
 
     assert json_first == json_second
-    assert len(dict_fitted) == 9
+    assert len(dict_fitted) == 10
     assert dict_fitted['operation_3'] is not None
 
 
@@ -415,7 +415,9 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     (imputation) should be performed as preprocessing
     """
     save_path = 'test_pipeline_with_preprocessing_serialized_correctly'
-    single_node_pipeline = Pipeline(PrimaryNode('ridge'))
+
+    scaling_node = PrimaryNode('scaling')
+    single_node_pipeline = Pipeline(SecondaryNode('ridge', nodes_from=[scaling_node]))
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)

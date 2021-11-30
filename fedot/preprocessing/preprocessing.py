@@ -1,11 +1,10 @@
 from typing import Union
-import bisect
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, \
-    data_has_categorical_features, replace_inf_with_nans, str_columns_check, OutputData
+    data_has_categorical_features, replace_inf_with_nans, str_columns_check
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \

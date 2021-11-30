@@ -12,13 +12,13 @@ CLASS_PATH_KEY = '_class_path'
 
 
 def dump_path_to_obj(obj: object) -> Dict[str, str]:
-    '''
+    """
     Dumps the full path (module + name) to the input object into the dict
 
     :param obj: object which path should be resolved (class, function or method)
 
     :return dict[str, str] with path to the object
-    '''
+    """
     if isclass(obj) or isfunction(obj) or ismethod(obj):
         obj_name = obj.__qualname__
     else:
@@ -31,13 +31,13 @@ def dump_path_to_obj(obj: object) -> Dict[str, str]:
 
 
 def encoder(obj: Any) -> Dict[str, Any]:
-    '''
+    """
     Serves as 'default' parameter in json.dumps(...)
 
     :param obj: object to be encoded (class, function or method)
 
     :return dict[str, Any] which is in fact json object
-    '''
+    """
     if isinstance(obj, Serializable):
         return obj.to_json()
     elif isinstance(obj, UUID):
@@ -56,13 +56,13 @@ def encoder(obj: Any) -> Dict[str, Any]:
 
 
 def _get_class(class_path: str) -> Any:
-    '''
+    """
     Gets the object type from the class_path
 
     :param class_path: full path (module + name) of the class
 
     :return class, function or method type
-    '''
+    """
     module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
     obj_cls = import_module(module_name)
     for sub in class_name.split('.'):
@@ -71,14 +71,14 @@ def _get_class(class_path: str) -> Any:
 
 
 def decoder(json_obj: Dict[str, Any]) -> Any:
-    '''
+    """
     Serves as "object_hook" parameter in json.loads(...)
 
     :param json_obj: dict[str, Any] to be decoded into Python class, function or
         method object only if it has some special fields
 
     :return Python class, function or method object OR input if it's just a regular dict
-    '''
+    """
     if CLASS_PATH_KEY in json_obj:
         obj_cls = _get_class(json_obj[CLASS_PATH_KEY])
         del json_obj[CLASS_PATH_KEY]
