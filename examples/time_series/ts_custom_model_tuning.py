@@ -58,7 +58,31 @@ def get_domain_pipeline():
     return pipeline
 
 
-def run_pipeline_tuning(time_series, len_forecast):
+def get_fitting_custom_pipeline():
+    """
+        Pipeline looking like this
+        lagged -> custom -> ridge
+    """
+    lagged_node = PrimaryNode('lagged')
+    lagged_node.custom_params = {'window_size': 50}
+
+    # For custom model params as initial approximation and model as function is necessary
+    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
+    custom_node.custom_params = {'alpha': 5,
+                                 'model_predict': custom_ml_model_imitation_predict,
+                                 'model_fit': custom_ml_model_imitation_fit}
+
+    node_final = SecondaryNode('lasso', nodes_from=[custom_node])
+    pipeline = Pipeline(node_final)
+
+    return pipeline
+
+
+def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
+    len_forecast = len_forecast
+    train_data = time_series[:-len_forecast]
+    test_data = time_series[-len_forecast:]
+
     # Source time series
     train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
                                                                  features=time_series,
@@ -67,17 +91,28 @@ def run_pipeline_tuning(time_series, len_forecast):
                                                                            TsForecastingParams(
                                                                                forecast_length=len_forecast)),
                                                                  data_type=DataTypesEnum.ts))
-    pipeline = get_domain_pipeline()
+
+
+    if pipeline_type == 'with_fit':
+        pipeline = get_fitting_custom_pipeline()
+        # Setting custom search space for tuner (necessary)
+        # model and output_type should be wrapped into hyperopt
+        custom_search_space = {'custom': {
+            'alpha': (hp.uniform, [0.01, 10]),
+            'model_predict': (hp.choice, [[custom_ml_model_imitation_predict]]),
+            'model_fit': (hp.choice, [[custom_ml_model_imitation_fit]])}}
+    if pipeline_type == 'without_fit':
+        pipeline = get_domain_pipeline()
+        # Setting custom search space for tuner (necessary)
+        # model and output_type should be wrapped into hyperopt
+        custom_search_space = {'custom': {'a': (hp.uniform, [-100, 100]),
+                                          'b': (hp.uniform, [0, 1000]),
+                                          'model_predict': (hp.choice, [[domain_model_imitation_predict]])}}
     pipeline.fit_from_scratch(train_input)
     pipeline.print_structure()
     # Get prediction with initial approximation
     predicted_before_tuning = pipeline.predict(predict_input).predict
 
-    # Setting custom search space for tuner (necessary)
-    # model and output_type should be wrapped into hyperopt
-    custom_search_space = {'custom': {'a': (hp.uniform, [-100, 100]),
-                                      'b': (hp.uniform, [0, 1000]),
-                                      'model_predict': (hp.choice, [[domain_model_imitation_predict]])}}
     replace_default_search_space = True
     pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                    task=train_input.task,
@@ -107,4 +142,5 @@ if __name__ == '__main__':
     df = pd.read_csv('../../cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_pipeline_tuning(time_series=time_series,
-                        len_forecast=50)
+                        len_forecast=50,
+                        pipeline_type='with_fit')  # mean custom ml model with fit, 'without_fit' - means domain model

@@ -127,10 +127,6 @@ def test_pipeline_with_custom_fitted_node():
     pipeline = get_custom_fitting_pipeline()
     pipeline.fit_from_scratch(train_input)
     predicted_centered = pipeline.predict(predict_input)
-    print(predicted_centered)
-
-    plt.plot(np.arange(len(predicted_centered.predict[0])), predicted_centered.predict[0])
-    plt.show()
 
     assert predicted_centered is not None
 

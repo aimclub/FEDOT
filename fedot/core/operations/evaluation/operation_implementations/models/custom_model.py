@@ -32,6 +32,7 @@ class CustomModelImplementation(ModelImplementation):
             else:
                 raise ValueError('There is no key word "model_predict" for model definition in input dictionary.')
 
+            # custom model can be without fitting
             if 'model_fit' in self.params.keys():
                 self.model_fit = self.params.get('model_fit')
                 if not isinstance(self.model_fit, Callable):
@@ -45,15 +46,20 @@ class CustomModelImplementation(ModelImplementation):
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         self.output_type = input_data.data_type
-        # If custom model has exceptions inviolate train data goes to Output
-        try:
-            predict, output_type = self.model_predict(self.fitted_model,
-                                                      input_data.features,
-                                                      self.params)
-            self.output_type = DataTypesEnum[output_type]
-        except Exception as e:
-            raise TypeError(f'{e}\nInput model has incorrect behaviour. Check type hints for model: \
-                                    Callable[[any, np.array, np.array, dict], np.array, str]')
+        # if there is no need in fitting custom model and it is fit call
+        if is_fit_pipeline_stage and not self.model_fit:
+            predict = input_data.features
+            # If custom model has exceptions inviolate train data goes to Output
+        # make prediction if predict call or there is need to fit custom model
+        else:
+            try:
+                predict, output_type = self.model_predict(self.fitted_model,
+                                                          input_data.features,
+                                                          self.params)
+                self.output_type = DataTypesEnum[output_type]
+            except Exception as e:
+                raise TypeError(f'{e}\nInput model has incorrect behaviour. Check type hints for model: \
+                                        Callable[[any, np.array, dict], np.array, str]')
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
