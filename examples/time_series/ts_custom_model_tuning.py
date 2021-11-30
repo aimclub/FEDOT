@@ -12,9 +12,11 @@ from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
+from sklearn.linear_model import Ridge
 
 
-def custom_model_imitation(train_data, test_data, params):
+# implementation of custom model without fitting
+def domain_model_imitation_predict(fitted_model, train_data, params):
     # TODO real custom model or more realistic imitation
     a = params.get('a')
     b = params.get('b')
@@ -24,7 +26,21 @@ def custom_model_imitation(train_data, test_data, params):
     return result, 'table'
 
 
-def get_simple_pipeline():
+# implementation of custom regression model imitation (fit)
+def custom_ml_model_imitation_fit(features, target, params):
+    alpha = params.get('alpha')
+    reg = Ridge(alpha=alpha)
+    reg.fit(features, target)
+    return reg
+
+
+# implementation of custom regression model imitation (predict)
+def custom_ml_model_imitation_predict(fitted_model, features, _):
+    res = fitted_model.predict(features)
+    return res, 'table'
+
+
+def get_domain_pipeline():
     """
         Pipeline looking like this
         lagged -> custom -> ridge
@@ -34,7 +50,7 @@ def get_simple_pipeline():
 
     # For custom model params as initial approximation and model as function is necessary
     custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
-    custom_node.custom_params = {"a": -50, "b": 500, 'model': custom_model_imitation}
+    custom_node.custom_params = {"a": -50, "b": 500, 'model_predict': domain_model_imitation_predict}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -51,7 +67,7 @@ def run_pipeline_tuning(time_series, len_forecast):
                                                                            TsForecastingParams(
                                                                                forecast_length=len_forecast)),
                                                                  data_type=DataTypesEnum.ts))
-    pipeline = get_simple_pipeline()
+    pipeline = get_domain_pipeline()
     pipeline.fit_from_scratch(train_input)
     pipeline.print_structure()
     # Get prediction with initial approximation
@@ -61,7 +77,7 @@ def run_pipeline_tuning(time_series, len_forecast):
     # model and output_type should be wrapped into hyperopt
     custom_search_space = {'custom': {'a': (hp.uniform, [-100, 100]),
                                       'b': (hp.uniform, [0, 1000]),
-                                      'model': (hp.choice, [[custom_model_imitation]])}}
+                                      'model_predict': (hp.choice, [[domain_model_imitation_predict]])}}
     replace_default_search_space = True
     pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                    task=train_input.task,

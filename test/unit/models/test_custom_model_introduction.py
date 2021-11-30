@@ -16,7 +16,7 @@ from sklearn.linear_model import Ridge
 import matplotlib.pyplot as plt
 
 
-def custom_model_imitation(_, train_data, __, params):
+def custom_model_imitation(_, train_data, params):
     """
     Function imitates custom model behaviour
     :param train_data: np.array for training the model
@@ -40,7 +40,7 @@ def custom_regression_model_fit(features, target, params):
     return reg
 
 
-def custom_regression_model_predict(model, features, params):
+def custom_regression_model_predict(model, features, _):
     res = model.predict(features)
     return res, 'table'
 
