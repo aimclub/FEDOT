@@ -4,15 +4,15 @@ import pandas as pd
 from hyperopt import hp
 from sklearn.metrics import mean_squared_error
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from sklearn.linear_model import Ridge
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
-from sklearn.linear_model import Ridge
 
 
 # implementation of custom model without fitting
@@ -79,10 +79,6 @@ def get_fitting_custom_pipeline():
 
 
 def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
-    len_forecast = len_forecast
-    train_data = time_series[:-len_forecast]
-    test_data = time_series[-len_forecast:]
-
     # Source time series
     train_input, predict_input = train_test_data_setup(InputData(idx=range(len(time_series)),
                                                                  features=time_series,
@@ -91,7 +87,6 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
                                                                            TsForecastingParams(
                                                                                forecast_length=len_forecast)),
                                                                  data_type=DataTypesEnum.ts))
-
 
     if pipeline_type == 'with_fit':
         pipeline = get_fitting_custom_pipeline()
