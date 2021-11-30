@@ -28,7 +28,7 @@ class CustomModelImplementation(ModelImplementation):
             if 'model_predict' in self.params.keys():
                 self.model_predict = self.params.get('model_predict')
                 if not isinstance(self.model_predict, Callable):
-                    raise ValueError('Input model_predict is not Callable')
+                    warnings.warn('Input model_predict is not Callable')
             else:
                 raise ValueError('There is no key word "model_predict" for model definition in input dictionary.')
 
