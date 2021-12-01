@@ -58,8 +58,6 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
-
-        self.mark_as_preprocessed(data)
         return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
@@ -90,7 +88,7 @@ class ApiDataProcessor:
 
         if metric_name == 'f1':
             if real.num_classes == 2:
-                prediction.predict = probs_to_labels(self.convert_to_two_classes(prediction.predict))
+                prediction.predict = probs_to_labels(_convert_to_two_classes(prediction.predict))
             else:
                 # Multiclass classification
                 prediction.predict = probs_to_labels(prediction.predict)
@@ -102,15 +100,6 @@ class ApiDataProcessor:
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(real.target)
 
-    @staticmethod
-    def mark_as_preprocessed(data: Union[InputData, MultiModalData]):
-        if isinstance(data, InputData):
-            data.supplementary_data.was_preprocessed = True
-        else:
-            # Multimodal data
-            for data_source_name, values in data.items():
-                values.supplementary_data.was_preprocessed = True
 
-    @staticmethod
-    def convert_to_two_classes(predict):
-        return np.vstack([1 - predict, predict]).transpose()
+def _convert_to_two_classes(predict):
+    return np.vstack([1 - predict, predict]).transpose()

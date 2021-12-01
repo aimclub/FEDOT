@@ -66,6 +66,7 @@ class DataPreprocessor:
             for data_source_name, values in data.items():
                 data[data_source_name] = self._prepare_unimodal_for_fit(values)
 
+        self.mark_as_preprocessed(data)
         return data
 
     def obligatory_prepare_for_predict(self, data: Union[InputData, MultiModalData]):
@@ -77,6 +78,7 @@ class DataPreprocessor:
             for data_source_name, values in data.items():
                 data[data_source_name] = self._prepare_unimodal_for_predict(values)
 
+        self.mark_as_preprocessed(data)
         return data
 
     def optional_prepare_for_fit(self, pipeline, data: Union[InputData, MultiModalData]):
@@ -358,3 +360,12 @@ class DataPreprocessor:
                 data.target = np.ravel(data.target)
 
         return data
+
+    @staticmethod
+    def mark_as_preprocessed(data: Union[InputData, MultiModalData]):
+        if isinstance(data, InputData):
+            data.supplementary_data.was_preprocessed = True
+        else:
+            # Multimodal data
+            for data_source_name, values in data.items():
+                values.supplementary_data.was_preprocessed = True

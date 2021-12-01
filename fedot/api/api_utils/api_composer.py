@@ -1,5 +1,6 @@
 import datetime
-from typing import Callable, Union
+import traceback
+from typing import Callable, Union, List
 
 import numpy as np
 from deap import tools
@@ -55,13 +56,13 @@ class ApiComposer:
             metric_function.append(specific_metric_function)
         return metric_function
 
-    def obtain_model(self, **composer_dict):
+    def obtain_model(self, **common_dict):
         self.best_models = None
         self.history = None
-        self.current_model = composer_dict['current_model']
+        self.current_model = common_dict['current_model']
 
-        if composer_dict['is_composing_required']:
-            api_params_dict, composer_params_dict, tuner_params_dict = self.get_composer_dict(composer_dict)
+        if common_dict['is_composing_required']:
+            api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
 
             self.current_model, self.best_models, self.history = self.compose_fedot_model(
                 api_params=api_params_dict,
@@ -70,9 +71,9 @@ class ApiComposer:
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
-            self.best_models.objective_names = composer_dict['composer_metric']
+            self.best_models.objective_names = common_dict['composer_metric']
 
-        self.current_model.fit_from_scratch(composer_dict['train_data'])
+        self.current_model.fit_from_scratch(common_dict['train_data'])
 
         return self.current_model, self.best_models, self.history
 
@@ -112,13 +113,21 @@ class ApiComposer:
         """ Function divide operations for primary and secondary """
 
         if task.task_type == TaskTypesEnum.ts_forecasting:
+            # Get time series operations for primary nodes
             ts_data_operations = get_operations_for_task(task=task,
                                                          mode='data_operation',
                                                          tags=["non_lagged"])
             # Remove exog data operation from the list
             ts_data_operations.remove('exog_ts')
 
-            primary_operations = ts_data_operations
+            ts_primary_models = get_operations_for_task(task=task,
+                                                        mode='model',
+                                                        tags=["non_lagged"])
+            # Union of the models and data operations
+            ts_primary_operations = ts_data_operations + ts_primary_models
+
+            # Filter - remain only operations, which were in available ones
+            primary_operations = list(set(ts_primary_operations).intersection(available_operations))
             secondary_operations = available_operations
         else:
             primary_operations = available_operations
@@ -270,29 +279,6 @@ class ApiComposer:
 
         return loss_function, loss_params
 
-    @staticmethod
-    def get_composer_dict(composer_dict):
-
-        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None,
-                               check_mode=False)
-
-        composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
-                                    available_operations=None, composer_metric=None, validation_blocks=None,
-                                    cv_folds=None, genetic_scheme=None, history_folder=None)
-
-        tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
-
-        dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-        for i, dct in enumerate(dict_list):
-            update_dict = dct.copy()
-            update_dict.update(composer_dict)
-            for key in composer_dict.keys():
-                if key not in dct.keys():
-                    update_dict.pop(key)
-            dict_list[i] = update_dict
-
-        return dict_list
-
 
 def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
                                        data: Union[InputData, MultiModalData],
@@ -312,4 +298,31 @@ def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
         advice_info = f'{fit_failed_info} Check the correctness of the data and matching the task to solve'
 
         logger.info(fit_failed_info)
+        print(traceback.format_exc())
         raise ValueError(advice_info)
+
+
+def _divide_parameters(common_dict: dict) -> List[dict]:
+    """ Divide common dictionary into dictionary with parameters for API, Composer and Tuner
+
+    :param common_dict: dictionary with parameters for all AutoML modules
+    """
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None,
+                           check_mode=False)
+
+    composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
+                                available_operations=None, composer_metric=None, validation_blocks=None,
+                                cv_folds=None, genetic_scheme=None, history_folder=None)
+
+    tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
+
+    dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
+    for i, dct in enumerate(dict_list):
+        update_dict = dct.copy()
+        update_dict.update(common_dict)
+        for key in common_dict.keys():
+            if key not in dct.keys():
+                update_dict.pop(key)
+        dict_list[i] = update_dict
+
+    return dict_list

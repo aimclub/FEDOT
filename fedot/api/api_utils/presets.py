@@ -64,7 +64,7 @@ class OperationsPreset:
             # Presets for time series forecasting
             available_operations = ['lagged', 'sparse_lagged', 'ar', 'gaussian_filter', 'smoothing',
                                     'ridge', 'linear', 'lasso', 'dtreg', 'scaling', 'normalization',
-                                    'pca']
+                                    'pca', 'cut']
 
         if self.preset_name == 'gpu':
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
