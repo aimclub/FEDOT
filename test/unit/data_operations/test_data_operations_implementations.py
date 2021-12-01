@@ -58,6 +58,8 @@ def get_small_classification_dataset():
                                                                   samples_amount=70,
                                                                   features_amount=4,
                                                                   classes_amount=2)
+    y_train = y_train.reshape((-1, 1))
+    y_test = y_test.reshape((-1, 1))
     # Define regression task
     task = Task(TaskTypesEnum.classification)
 
