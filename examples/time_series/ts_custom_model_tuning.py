@@ -96,7 +96,7 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
             'alpha': (hp.uniform, [0.01, 10]),
             'model_predict': (hp.choice, [[custom_ml_model_imitation_predict]]),
             'model_fit': (hp.choice, [[custom_ml_model_imitation_fit]])}}
-    if pipeline_type == 'without_fit':
+    elif pipeline_type == 'without_fit':
         pipeline = get_domain_pipeline()
         # Setting custom search space for tuner (necessary)
         # model and output_type should be wrapped into hyperopt

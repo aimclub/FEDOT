@@ -5,7 +5,6 @@ from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.data import InputData
 
 
 class CustomModelImplementation(ModelImplementation):
