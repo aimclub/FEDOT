@@ -6,8 +6,9 @@ from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData, data_type_is_table, convert_into_column, replace_inf_with_nans
-from fedot.core.data.data import data_has_categorical_features, divide_data_categorical_numerical, str_columns_check
+from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
+    divide_data_categorical_numerical, str_columns_check, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 from fedot.preprocessing.categorical import replace_nans_with_fedot_nans

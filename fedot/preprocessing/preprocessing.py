@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, data_type_is_table, data_has_missing_values, \
-    data_has_categorical_features, replace_inf_with_nans, str_columns_check
+from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data_preprocessing import replace_inf_with_nans, str_columns_check, data_has_missing_values, \
+    data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
@@ -92,35 +93,34 @@ class DataPreprocessor:
             if not data_type_is_table(data):
                 return data
 
-            if data_has_categorical_features(data) and not data_has_missing_values(data):
+            # Find out characteristics of the data
+            data_with_categorical_features_flag = data_has_categorical_features(data)
+            data_with_missing_values_flag = data_has_missing_values(data)
+
+            if data_with_categorical_features_flag and not data_with_missing_values_flag:
                 # Data contains only categorical features
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
                 if has_encoder is False:
                     self._encode_data_for_fit(data)
 
-            elif not data_has_categorical_features(data) and data_has_missing_values(data):
+            elif not data_with_categorical_features_flag and data_with_missing_values_flag:
                 # Data contains only missing values
                 has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
                 if has_imputer is False:
                     self.apply_imputation(data)
 
-            elif data_has_categorical_features(data) and data_has_missing_values(data):
+            elif data_with_categorical_features_flag and data_with_missing_values_flag:
                 # Data contains both missing values and categorical features
                 has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
 
-                if not has_imputer and not has_encoder:
-                    # Apply imputation firstly and encoding secondly because there is no encoding and imputer
+                if not has_imputer:
+                    # There is no imputer in pipeline but data contain missing values
                     self.apply_imputation(data)
-                    self._encode_data_for_fit(data)
 
-                elif has_imputer and not has_encoder:
-                    # Only imputer in pipeline
+                if not has_encoder:
+                    # There is no encoder in pipeline but data contain categorical features
                     self._encode_data_for_fit(data)
-
-                elif not has_imputer and has_encoder:
-                    # Only encoder in pipeline
-                    self.apply_imputation(data)
         return data
 
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):

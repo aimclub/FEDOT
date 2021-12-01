@@ -211,6 +211,7 @@ class Node(GraphNode):
             # There are no tags for atomized operation
             return []
 
+        # TODO replace with "all operations in one repository"-fix
         models_repo = OperationTypesRepository()
         data_operations_repo = OperationTypesRepository(operation_type='data_operation')
         automl_repo = OperationTypesRepository(operation_type='automl')

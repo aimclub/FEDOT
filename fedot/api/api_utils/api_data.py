@@ -8,7 +8,8 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.utils import probs_to_labels
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, convert_into_column
+from fedot.core.data.data import InputData, OutputData, data_type_is_table
+from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

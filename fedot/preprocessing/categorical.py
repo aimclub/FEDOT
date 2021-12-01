@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder
-from fedot.core.data.data import InputData, str_columns_check
+from fedot.core.data.data import InputData
+from fedot.core.data.data_preprocessing import str_columns_check
 
 FEDOT_STR_NAN = 'fedot_nan'
 
