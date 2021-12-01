@@ -9,6 +9,8 @@ from examples.classification_with_tuning_example import get_classification_datas
 from examples.regression_with_tuning_example import get_regression_dataset
 from examples.time_series.ts_gapfilling_example import generate_synthetic_data
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -56,6 +58,8 @@ def get_small_classification_dataset():
                                                                   samples_amount=70,
                                                                   features_amount=4,
                                                                   classes_amount=2)
+    y_train = y_train.reshape((-1, 1))
+    y_test = y_test.reshape((-1, 1))
     # Define regression task
     task = Task(TaskTypesEnum.classification)
 
@@ -126,19 +130,52 @@ def get_single_feature_data(task=None):
     return train_input
 
 
-def get_one_hot_encoding_data(task=None):
+def get_mixed_data(task=None, extended=False):
+    """ Generate InputData with five categorical features. The categorical features
+    are created in such a way that in any splitting there will be categories in the
+    test part that were not in the train.
+    """
+
+    if extended:
+        features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
+                             [2, '1', '0', 0, '4', 'blue', 'da'],
+                             [3, '1', '0', 1, '3', 'blue', 'ba'],
+                             [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
+                             [8, '1', '1', 0, '1', 'not blue', 'da bu'],
+                             [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
+    else:
+        features = np.array([[1, '0', 1],
+                             [2, '1', 0],
+                             [3, '1', 0],
+                             [7, '1', 1],
+                             [8, '1', 1],
+                             [9, '0', 0]], dtype=object)
+
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
-                            features=np.array([[1, 0, 1],
-                                               [2, 1, 0],
-                                               [3, 1, 0],
-                                               [7, 1, 1],
-                                               [8, 1, 1],
-                                               [9, 0, 0]]),
+                            features=features,
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
-                            data_type=DataTypesEnum.table)
+                            data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
 
     return train_input
+
+
+def get_nan_binary_data(task=None):
+    """ Generate table with two numerical and one categorical features.
+    Both them contain nans, which need to be filled in.
+    """
+    features = np.array([[1, '0', 0],
+                         [np.nan, np.nan, np.nan],
+                         [0, '2', 1],
+                         [1, '1', 1],
+                         [5, '1', 0]], dtype=object)
+
+    input_data = InputData(idx=[0, 1, 2, 3], features=features,
+                           target=np.array([[0], [0], [1], [1]]),
+                           task=task, data_type=DataTypesEnum.table)
+
+    return input_data
 
 
 def test_regression_data_operations():
@@ -263,7 +300,7 @@ def test_feature_selection_of_single_features():
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
-        data_functions = [get_single_feature_data(task), get_one_hot_encoding_data(task)]
+        data_functions = [get_single_feature_data(task), get_mixed_data(task)]
         list_with_operations = list(product(model_names, data_functions))
 
         for data_operation, train_input in list_with_operations:
@@ -281,36 +318,22 @@ def test_feature_selection_of_single_features():
 
 
 def test_one_hot_encoding_new_category_in_test():
-    file_path_train = 'cases/data/river_levels/station_levels.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-    data = pd.read_csv(full_path_train)
-    test_features = data[data['month'] == 'Декабрь']
-    test_target = test_features['level_station_2']
-    test_features.drop(['level_station_2'], axis=1, inplace=True)
+    """ Check if One Hot Encoding can correctly predict data with new categories
+    (which algorithm were not process during train stage)
+    """
+    cat_data = get_mixed_data(task=Task(TaskTypesEnum.classification),
+                              extended=True)
+    train, test = train_test_data_setup(cat_data)
 
-    train_features = data[data['month'] != 'Декабрь']
-    train_target = train_features['level_station_2']
-    train_features.drop(['level_station_2'], axis=1, inplace=True)
-
-    test_data = InputData(idx=np.arange(0, len(test_features)),
-                          features=np.array(test_features), target=np.array(test_target),
-                          task=Task(TaskTypesEnum.regression),
-                          data_type=DataTypesEnum.table)
-
-    train_data = InputData(idx=np.arange(0, len(train_features)),
-                           features=np.array(train_features),
-                           target=np.array(train_target),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-
-    pipeline = Pipeline()
+    # Create pipeline with encoding operation
     one_hot_node = PrimaryNode('one_hot_encoding')
     final_node = SecondaryNode('dt', nodes_from=[one_hot_node])
-    pipeline.add_node(final_node)
-    pipeline.fit(train_data)
+    pipeline = Pipeline(final_node)
 
-    with pytest.raises(ValueError):
-        pipeline.predict(test_data)
+    pipeline.fit(train)
+    predicted = pipeline.predict(test)
+
+    assert predicted is not None
 
 
 def test_knn_with_float_neighbors():
@@ -326,3 +349,20 @@ def test_knn_with_float_neighbors():
 
     pipeline.fit(input_data)
     pipeline.predict(input_data)
+
+
+def test_imputation_with_binary_correct():
+    """
+    Check if SimpleImputer can process mixed data with both numerical and categorical
+    features correctly. Moreover, check if the imputer swaps the columns (it shouldn't)
+    """
+    nan_data = get_nan_binary_data(task=Task(TaskTypesEnum.classification))
+
+    # Create pipeline with imputation operation
+    imputation_node = PrimaryNode('simple_imputation')
+    imputation_node.fit(nan_data)
+    predicted = imputation_node.predict(nan_data)
+
+    assert np.isclose(predicted.predict[1, 0], 1.75)
+    assert predicted.predict[1, 1] == '1'
+    assert np.isclose(predicted.predict[1, 2], 0.5)

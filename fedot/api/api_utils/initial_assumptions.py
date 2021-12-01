@@ -1,6 +1,7 @@
 from typing import List, Union
 
-from fedot.core.data.data import data_has_categorical_features, InputData
+from fedot.core.data.data import InputData
+from fedot.core.data.data_preprocessing import data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
 from fedot.core.pipelines.pipeline import Pipeline

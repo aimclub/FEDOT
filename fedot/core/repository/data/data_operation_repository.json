@@ -100,21 +100,24 @@
 		"data_source_img": {
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.image]",
-			"output_type": "[DataTypesEnum.image]"
+			"output_type": "[DataTypesEnum.image]",
+			"tags": ["nans-ignore", "categorical-ignore"]
 		},
 		"data_source_text": {
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.text]",
-			"output_type": "[DataTypesEnum.text]"
+			"output_type": "[DataTypesEnum.text]",
+			"tags": ["nans-ignore", "categorical-ignore"]
 		},
 		"data_source_table": {
 			"meta": "data_sources",
 			"input_type": "[DataTypesEnum.table]",
-			"output_type": "[DataTypesEnum.table]"
+			"output_type": "[DataTypesEnum.table]",
+			"tags": ["nans-ignore", "categorical-ignore"]
 		},
 		"data_source_ts": {
 		  "meta": "data_sources",
-		  "tags": ["non_lagged", "non-default"],
+		  "tags": ["non_lagged", "non-default", "nans-ignore", "categorical-ignore"],
 		  "input_type": "[DataTypesEnum.ts]",
 		  "output_type": "[DataTypesEnum.ts]"
 		},
@@ -128,7 +131,7 @@
 		},
 		"simple_imputation": {
 		  "meta": "custom_preprocessing",
-		  "tags": ["simple", "imputation", "non-default"]
+		  "tags": ["simple", "imputation", "non-default", "categorical-ignore"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
@@ -149,7 +152,7 @@
 		},
 		"one_hot_encoding": {
 			"meta": "sklearn_categorical",
-			"tags": ["categorical", "dimensionality_transforming"]
+			"tags": ["encoding", "categorical", "dimensionality_transforming"]
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",

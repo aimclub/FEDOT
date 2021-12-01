@@ -141,7 +141,7 @@ class OperationTemplate(OperationTemplateAbstract):
 
     def export_operation(self, path: str = None):
         if path:
-            _check_existing_path(path)
+            check_existing_path(path)
 
             # dictionary with paths to saved fitted operations
             if self.fitted_operation:
@@ -154,9 +154,9 @@ class OperationTemplate(OperationTemplateAbstract):
                     return self.fitted_operation_path
                 else:
                     path_fitted_operations = os.path.join(path, 'fitted_operations')
-                    _check_existing_path(path_fitted_operations)
+                    check_existing_path(path_fitted_operations)
                     joblib.dump(self.fitted_operation, os.path.join(path, self.fitted_operation_path))
-                    return os.path.join(path, 'fitted_operations', f'operation_{self.operation_id}.pkl')
+                    return os.path.join(path_fitted_operations, f'operation_{self.operation_id}.pkl')
             else:
                 return None
         else:
@@ -188,7 +188,7 @@ class OperationTemplate(OperationTemplateAbstract):
             self.rating = operation_object['rating']
 
 
-def _check_existing_path(path: str):
+def check_existing_path(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
 

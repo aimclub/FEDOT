@@ -115,6 +115,7 @@ class ResampleImplementation(DataOperationImplementation):
 
     @staticmethod
     def _get_data_by_target(features, target, fst_class, snd_class, fst_class_values, snd_class_values):
+        """ Unify features and target in one array and split into classes """
         if fst_class_values < snd_class_values:
             min_idx = np.where(target == fst_class)[0]
             maj_idx = np.where(target == snd_class)[0]
@@ -122,8 +123,8 @@ class ResampleImplementation(DataOperationImplementation):
             min_idx = np.where(target == fst_class)[0]
             maj_idx = np.where(target == snd_class)[0]
 
-        minority_data = np.hstack((features[min_idx], np.expand_dims(target[min_idx], 1)))
-        majority_data = np.hstack((features[maj_idx], np.expand_dims(target[maj_idx], 1)))
+        minority_data = np.hstack((features[min_idx], target[min_idx]))
+        majority_data = np.hstack((features[maj_idx], target[maj_idx]))
 
         return minority_data, majority_data
 

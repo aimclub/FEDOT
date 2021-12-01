@@ -90,11 +90,10 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     node_atomized_model_secondary_second.nodes_from = [node_knn_second]
 
     pipeline.add_node(node_atomized_model_secondary_second)
-
     return pipeline
 
 
-def create_data_for_train():
+def create_input_data():
     train_file_path, test_file_path = get_scoring_case_data_paths()
     train_data = InputData.from_csv(train_file_path)
     test_data = InputData.from_csv(test_file_path)
@@ -122,7 +121,7 @@ def test_save_load_atomized_pipeline_correctly():
 def test_save_load_fitted_atomized_pipeline_correctly():
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    train_data, test_data = create_data_for_train()
+    train_data, test_data = create_input_data()
     pipeline.fit(train_data)
 
     json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly')
@@ -148,7 +147,8 @@ def test_save_load_fitted_atomized_pipeline_correctly():
 
 
 def test_fit_predict_atomized_model_correctly():
-    train_data, test_data = create_data_for_train()
+    """ Check if pipeline nested in AtomizedModel can give the same result as Pipeline stand-alone """
+    train_data, test_data = create_input_data()
 
     pipeline = create_pipeline_with_several_nested_atomized_model()
     atomized_model = AtomizedModel(pipeline)
@@ -160,10 +160,10 @@ def test_fit_predict_atomized_model_correctly():
     predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
-    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
-    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
+    source_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
+    atomized_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
 
-    assert aft_tun_mse == bfr_tun_mse
+    assert atomized_mse == source_mse
 
 
 def test_create_empty_atomized_model_raised_exception():
@@ -173,7 +173,7 @@ def test_create_empty_atomized_model_raised_exception():
 
 
 def test_fine_tune_atomized_model_correct():
-    train_data, test_data = create_data_for_train()
+    train_data, test_data = create_input_data()
 
     atm_model = create_atomized_model()
     dummy_atomized_model = create_atomized_model()

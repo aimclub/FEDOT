@@ -1,7 +1,7 @@
 import os
 from typing import Tuple
 
-from fedot.core.operations.operation_template import OperationTemplateAbstract, _check_existing_path
+from fedot.core.operations.operation_template import OperationTemplateAbstract, check_existing_path
 from fedot.core.pipelines.node import Node
 
 
@@ -63,7 +63,7 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
 
     def export_operation(self, path: str):
         absolute_path = os.path.join(path, self.atomized_model_json_path)
-        _check_existing_path(absolute_path)
+        check_existing_path(absolute_path)
         self.pipeline_template.export_pipeline(absolute_path)
 
     def import_json(self, operation_object: dict):

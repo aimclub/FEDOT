@@ -1,5 +1,6 @@
 import datetime
-from typing import Callable, Union
+import traceback
+from typing import Callable, Union, List
 
 import numpy as np
 from deap import tools
@@ -24,7 +25,15 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
-class ApiComposer(ApiMetrics, ApiInitialAssumptions):
+class ApiComposer:
+
+    def __init__(self, problem: str):
+        self.metrics = ApiMetrics(problem)
+        self.initial_assumptions = ApiInitialAssumptions()
+
+        self.current_model = None
+        self.best_models = None
+        self.history = None
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -39,60 +48,33 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
             else:
-                metric_id = self.get_composer_metrics_mapping(metric_name=specific_metric)
+                # Composer metric was defined by name (str)
+                metric_id = self.metrics.get_composer_metrics_mapping(metric_name=specific_metric)
                 if metric_id is None:
                     raise ValueError(f'Incorrect metric {specific_metric}')
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
             metric_function.append(specific_metric_function)
         return metric_function
 
-    def obtain_initial_assumption(self,
-                                  task: Task,
-                                  data) -> Pipeline:
-
-        init_pipeline = self.get_initial_assumption(data=data, task=task)
-
-        return init_pipeline
-
-    def get_composer_dict(self, composer_dict):
-
-        api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
-
-        composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
-                                    available_operations=None, composer_metric=None, validation_blocks=None,
-                                    cv_folds=None, genetic_scheme=None, history_folder=None)
-
-        tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
-
-        dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-        for i, dct in enumerate(dict_list):
-            update_dict = dct.copy()
-            update_dict.update(composer_dict)
-            for key in composer_dict.keys():
-                if key not in dct.keys():
-                    update_dict.pop(key)
-            dict_list[i] = update_dict
-
-        return dict_list
-
-    def obtain_model(self, **composer_dict):
+    def obtain_model(self, **common_dict):
         self.best_models = None
         self.history = None
-        self.current_model = composer_dict['current_model']
 
-        if composer_dict['is_composing_required']:
-            api_params_dict, composer_params_dict, tuner_params_dict = self.get_composer_dict(composer_dict)
+        # Prepare parameters
+        api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
 
-            self.current_model, self.best_models, self.history = self.compose_fedot_model(
-                api_params=api_params_dict,
-                composer_params=composer_params_dict,
-                tuning_params=tuner_params_dict)
+        # Start composing - pipeline structure search
+        self.current_model, self.best_models, self.history = self.compose_fedot_model(
+            api_params=api_params_dict,
+            composer_params=composer_params_dict,
+            tuning_params=tuner_params_dict)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
-            self.best_models.objective_names = composer_dict['composer_metric']
+            self.best_models.objective_names = common_dict['composer_metric']
 
-        self.current_model.fit_from_scratch(composer_dict['train_data'])
+        # Final fit for obtained pipeline on full dataset
+        self.current_model.fit_from_scratch(common_dict['train_data'])
 
         return self.current_model, self.best_models, self.history
 
@@ -112,14 +94,16 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             with_metrics(metric_function).with_logger(logger)
 
         if initial_pipeline is None:
-            initial_pipeline = self.obtain_initial_assumption(task, data)
+            initial_pipeline = self.initial_assumptions.get_initial_assumption(data, task)
 
         if initial_pipeline is not None:
             if not isinstance(initial_pipeline, Pipeline):
                 prefix = 'Incorrect type of initial_pipeline'
                 raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
-            builder = builder.with_initial_pipeline(initial_pipeline)
 
+        # Check initial assumption
+        fit_and_check_correctness(initial_pipeline, data, logger=logger)
+        builder = builder.with_initial_pipeline(initial_pipeline)
         return builder
 
     def divide_operations(self,
@@ -128,13 +112,21 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
         """ Function divide operations for primary and secondary """
 
         if task.task_type == TaskTypesEnum.ts_forecasting:
+            # Get time series operations for primary nodes
             ts_data_operations = get_operations_for_task(task=task,
                                                          mode='data_operation',
                                                          tags=["non_lagged"])
             # Remove exog data operation from the list
             ts_data_operations.remove('exog_ts')
 
-            primary_operations = ts_data_operations
+            ts_primary_models = get_operations_for_task(task=task,
+                                                        mode='model',
+                                                        tags=["non_lagged"])
+            # Union of the models and data operations
+            ts_primary_operations = ts_data_operations + ts_primary_models
+
+            # Filter - remain only operations, which were in available ones
+            primary_operations = list(set(ts_primary_operations).intersection(available_operations))
             secondary_operations = available_operations
         else:
             primary_operations = available_operations
@@ -237,14 +229,8 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             timeout_for_tuning = api_params['timeout'] / 2
 
             # Tune all nodes in the pipeline
-
             vb_number = composer_requirements.validation_blocks
             folds = composer_requirements.cv_folds
-            if api_params['train_data'].task.task_type != TaskTypesEnum.ts_forecasting:
-                # TODO remove after implementation of CV for class/regr
-                api_params['logger'].warn('Cross-validation is not supported for tuning of ts-forecasting pipeline: '
-                                          'hold-out validation used instead')
-                folds = None
             pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
                                                                           loss_params=loss_params,
                                                                           input_data=api_params['train_data'],
@@ -271,10 +257,6 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
         """
         loss_params_dict = {roc_auc: {'multi_class': 'ovr'},
                             mean_squared_error: {'squared': False}}
-        loss_function = None
-
-        if type(metric_name) is str:
-            loss_function = self.get_tuner_metrics_mapping(metric_name)
 
         if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
             loss_function = mean_squared_error
@@ -294,3 +276,49 @@ class ApiComposer(ApiMetrics, ApiInitialAssumptions):
             raise ValueError(f'Incorrect tuner metric {loss_function}')
 
         return loss_function, loss_params
+
+
+def fit_and_check_correctness(initial_pipeline: Pipeline,
+                              data: Union[InputData, MultiModalData],
+                              logger: Log):
+    """ Test is initial pipeline can be fitted on presented data and give predictions """
+    try:
+        initial_pipeline.fit(data)
+        initial_pipeline.predict(data)
+
+        message_success = 'Initial pipeline were fitted successfully'
+        logger.debug(message_success)
+
+        return initial_pipeline
+    except Exception as ex:
+        fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
+        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
+
+        logger.info(fit_failed_info)
+        print(traceback.format_exc())
+        raise ValueError(advice_info)
+
+
+def _divide_parameters(common_dict: dict) -> List[dict]:
+    """ Divide common dictionary into dictionary with parameters for API, Composer and Tuner
+
+    :param common_dict: dictionary with parameters for all AutoML modules
+    """
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
+
+    composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
+                                available_operations=None, composer_metric=None, validation_blocks=None,
+                                cv_folds=None, genetic_scheme=None, history_folder=None)
+
+    tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
+
+    dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
+    for i, dct in enumerate(dict_list):
+        update_dict = dct.copy()
+        update_dict.update(common_dict)
+        for key in common_dict.keys():
+            if key not in dct.keys():
+                update_dict.pop(key)
+        dict_list[i] = update_dict
+
+    return dict_list

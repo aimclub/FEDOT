@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Tuple, Union
 
 from sklearn.model_selection import train_test_split
@@ -29,17 +30,13 @@ def _split_time_series(data, task, *args, **kwargs):
     idx_test = data.idx[-forecast_length:]
 
     # Prepare data to train the operation
-    train_data = InputData(idx=idx_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=DataTypesEnum.ts)
+    train_data = InputData(idx=idx_train, features=x_train, target=y_train,
+                           task=task, data_type=DataTypesEnum.ts,
+                           supplementary_data=data.supplementary_data)
 
-    test_data = InputData(idx=idx_test,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=DataTypesEnum.ts)
+    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
+                          task=task, data_type=DataTypesEnum.ts,
+                          supplementary_data=data.supplementary_data)
 
     return train_data, test_data
 
@@ -71,17 +68,13 @@ def _split_any(data, task, data_type, split_ratio, with_shuffle=False):
                          random_state=random_state)
 
     # Prepare data to train the operation
-    train_data = InputData(idx=idx_train,
-                           features=x_train,
-                           target=y_train,
-                           task=task,
-                           data_type=data_type)
+    train_data = InputData(idx=idx_train, features=x_train,  target=y_train,
+                           task=task, data_type=data_type,
+                           supplementary_data=data.supplementary_data)
 
-    test_data = InputData(idx=idx_test,
-                          features=x_test,
-                          target=y_test,
-                          task=task,
-                          data_type=data_type)
+    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
+                          task=task, data_type=data_type,
+                          supplementary_data=data.supplementary_data)
 
     return train_data, test_data
 
@@ -180,6 +173,8 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
     """
     if isinstance(data, InputData):
         train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag)
+        train_data.supplementary_data = copy(data.supplementary_data)
+        test_data.supplementary_data = copy(data.supplementary_data)
     elif isinstance(data, MultiModalData):
         train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag)
     else:

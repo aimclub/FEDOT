@@ -14,9 +14,6 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-# Max unique values to convert numerical column to categorical.
-MAX_UNIQ_VAL = 12
-
 
 @dataclass
 class Data:
@@ -345,108 +342,8 @@ def process_multiple_columns(target_columns, data_frame):
     return features, targets
 
 
-def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> bool:
-    """ Check data for categorical columns. Also check, if some numerical column
-    has unique values less then MAX_UNIQ_VAL, then convert this column to string.
-
-    :param data: Union[InputData, MultiModalData]
-    :return data_has_categorical_columns: bool, whether data has categorical columns or not
-    """
-
-    data_has_categorical_columns = False
-
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_source_name.startswith('data_source_table'):
-                data_has_categorical_columns = _has_data_categorical(values)
-    elif data_type_is_suitable_preprocessing(data):
-        data_has_categorical_columns = _has_data_categorical(data)
-
-    return data_has_categorical_columns
-
-
-def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
-    """ Check data for missing values."""
-
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_type_is_table(values):
-                return pd.DataFrame(values.features).isna().sum().sum() > 0
-    elif data_type_is_suitable_preprocessing(data):
-        return pd.DataFrame(data.features).isna().sum().sum() > 0
-    return False
-
-
-def str_columns_check(features):
-    """
-    Method for checking which columns contain categorical (text) data
-
-    :param features: tabular data for check
-    :return categorical_ids: indices of categorical columns in table
-    :return non_categorical_ids: indices of non categorical columns in table
-    """
-    source_shape = features.shape
-    columns_amount = source_shape[1] if len(source_shape) > 1 else 1
-
-    categorical_ids = []
-    non_categorical_ids = []
-    # For every column in table make check for first element
-    for column_id in range(0, columns_amount):
-        column = features[:, column_id] if columns_amount > 1 else features
-        if isinstance(column[0], str):
-            categorical_ids.append(column_id)
-        else:
-            non_categorical_ids.append(column_id)
-
-    return categorical_ids, non_categorical_ids
-
-
-def divide_data_categorical_numerical(input_data: InputData) -> (InputData, InputData):
-    categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
-    numerical_features = input_data.features[:, non_categorical_ids]
-    categorical_features = input_data.features[:, categorical_ids]
-
-    numerical = InputData(features=numerical_features, data_type=input_data.data_type,
-                          target=input_data.target, task=input_data.task, idx=input_data.idx)
-    categorical = InputData(features=categorical_features, data_type=input_data.data_type,
-                            target=input_data.target, task=input_data.task, idx=input_data.idx)
-
-    return numerical, categorical
-
-
-def data_type_is_table(data: InputData) -> bool:
+def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
     return data.data_type == DataTypesEnum.table
-
-
-def data_type_is_suitable_preprocessing(data: InputData) -> bool:
-    if data.data_type == DataTypesEnum.table or data.data_type == DataTypesEnum.ts:
-        return True
-    return False
-
-
-def _has_data_categorical(data: InputData) -> bool:
-    """ Whether data categorical columns or not.
-
-    :param data: InputData
-    :return data_has_categorical_columns: bool, whether data has categorical columns or not
-    """
-    data_has_categorical_columns = False
-
-    if isinstance(data.features, list) or len(data.features.shape) == 1:
-        data_has_categorical_columns = _is_values_categorical(data.features)
-    else:
-        num_columns = data.features.shape[1]
-        for col_index in range(num_columns):
-            if data_has_categorical_columns:
-                break
-            data_has_categorical_columns = _is_values_categorical(data.features[:, col_index])
-
-    return data_has_categorical_columns
-
-
-def _is_values_categorical(values: List):
-    # Check if any value in list has 'string' type
-    return any(list(map(lambda x: isinstance(x, str), values)))
 
 
 def get_indices_from_file(data_frame, file_path):

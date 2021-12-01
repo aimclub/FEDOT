@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Callable, ClassVar
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import timedelta
 
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -217,6 +218,10 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     """
 
     if loss_params is None:
+        if isinstance(target[0], str):
+            # Target for classification contain string objects
+            le = LabelEncoder()
+            target = le.fit_transform(target)
         metric = loss_function(target, target)
     else:
         try:

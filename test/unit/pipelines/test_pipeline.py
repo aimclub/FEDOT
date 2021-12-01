@@ -15,7 +15,7 @@ from sklearn.metrics import roc_auc_score as roc
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline, pipeline_encoders_validation
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -454,22 +454,3 @@ def test_pipeline_unfit(data_fixture, request):
         assert pipeline.predict(data)
 
 
-def test_pipeline_encoder_validation():
-    first_scaling = PrimaryNode('simple_imputation')
-    first_encoder = PrimaryNode('one_hot_encoding')
-    linear = PrimaryNode('linear')
-    xgb_second = SecondaryNode('xgboost', nodes_from=[linear])
-    second_scaling = SecondaryNode('simple_imputation', nodes_from=[first_encoder])
-    second_encoder = SecondaryNode('one_hot_encoding', nodes_from=[first_scaling])
-    xgb = SecondaryNode('xgboost', nodes_from=[second_encoder, second_scaling])
-    ridge = SecondaryNode('ridge', nodes_from=[first_scaling, xgb_second])
-    encoder_second = SecondaryNode('one_hot_encoding', nodes_from=[ridge])
-    ridge_second = SecondaryNode('ridge', nodes_from=[xgb_second])
-    root = SecondaryNode('simple_imputation', nodes_from=[encoder_second, xgb, ridge_second])
-
-    pipeline = Pipeline(root)
-
-    has_imputer, has_encoder = pipeline_encoders_validation(pipeline)
-
-    assert has_imputer == True
-    assert has_encoder == False

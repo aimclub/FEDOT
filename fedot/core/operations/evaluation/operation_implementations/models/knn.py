@@ -47,6 +47,8 @@ class KNeighborsImplementation(ModelImplementation):
         if n_neighbors > len(input_data.features):
             # Improve the parameter "n_neighbors": n_neighbors <= n_samples
             new_k_value = round(len(input_data.features) / 2)
+            if new_k_value == 0:
+                new_k_value = 1
             current_params.update({'n_neighbors': new_k_value})
             self.model = model_impl(**current_params)
 
@@ -129,4 +131,7 @@ class FedotKnnRegImplementation(KNeighborsImplementation):
 def round_n_neighbors(params):
     """ Convert n_neighbors into integer value. Operation work inplace. """
     if params.get('n_neighbors') is not None:
-        params['n_neighbors'] = round(params.get('n_neighbors'))
+        n_neighbors = round(params.get('n_neighbors'))
+        if n_neighbors == 0:
+            n_neighbors = 1
+        params['n_neighbors'] = n_neighbors
