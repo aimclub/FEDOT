@@ -101,7 +101,8 @@ class Fedot:
 
         :param features: the array with features of train data
         :param target: the array with target values of train data
-        :param predefined_model: the name of the atomic model or Pipeline instance. If argument is 'auto', initial pipeline genration
+        :param predefined_model: the name of the atomic model or Pipeline instance.
+        If argument is 'auto', perform initial assumption generation and then fit the pipeline
         :return: Pipeline object
         """
 
