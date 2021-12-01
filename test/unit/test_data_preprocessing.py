@@ -141,7 +141,7 @@ def test_correct_api_dataset_preprocessing():
         input_data = data_generator()
         fedot_model = Fedot(problem='regression')
         pipeline = fedot_model.fit(input_data, predefined_model='auto')
-        
+
         assert pipeline is not None
 
 
