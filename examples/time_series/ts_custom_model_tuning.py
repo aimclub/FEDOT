@@ -16,18 +16,18 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
 # implementation of custom model without fitting
-def domain_model_imitation_predict(fitted_model, train_data, params):
+def domain_model_imitation_predict(fitted_model: any, predict_data: np.array, params: dict):
     # TODO real custom model or more realistic imitation
     a = params.get('a')
     b = params.get('b')
-    shape = train_data.shape
+    shape = predict_data.shape
     result = np.random.rand(*shape) * a + b
     # Available output_type's 'table', 'ts', 'image', 'text'
     return result, 'table'
 
 
 # implementation of custom regression model imitation (fit)
-def custom_ml_model_imitation_fit(features, target, params):
+def custom_ml_model_imitation_fit(features: np.array, target: np.array, params: dict):
     alpha = params.get('alpha')
     reg = Ridge(alpha=alpha)
     reg.fit(features, target)
@@ -35,7 +35,7 @@ def custom_ml_model_imitation_fit(features, target, params):
 
 
 # implementation of custom regression model imitation (predict)
-def custom_ml_model_imitation_predict(fitted_model, features, _):
+def custom_ml_model_imitation_predict(fitted_model: any, features: np.array, params: dict):
     res = fitted_model.predict(features)
     return res, 'table'
 

@@ -10,7 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from examples.pipeline_import_export import create_correct_path
-from sklearn.linear_model import Ridge
+from examples.time_series.ts_custom_model_tuning import get_fitting_custom_pipeline
 
 
 def custom_model_imitation(_, train_data, params):
@@ -28,33 +28,6 @@ def custom_model_imitation(_, train_data, params):
     if len(train_data.shape) > 1:
         out_type = 'table'
     return result, out_type
-
-
-def custom_regression_model_fit(features, target, params):
-    alpha = params.get('alpha')
-    reg = Ridge(alpha=alpha)
-    reg.fit(features, target)
-    return reg
-
-
-def custom_regression_model_predict(model, features, _):
-    res = model.predict(features)
-    return res, 'table'
-
-
-def get_custom_fitting_pipeline():
-    """
-        lagged -> custom -> ridge
-    """
-    lagged_node = PrimaryNode('lagged')
-    custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
-    custom_node.custom_params = {"alpha": 0.1,
-                                 "model_predict": custom_regression_model_predict,
-                                 "model_fit": custom_regression_model_fit}
-
-    node_final = SecondaryNode('ridge', nodes_from=[custom_node])
-    pipeline = Pipeline(node_final)
-    return pipeline
 
 
 def get_centered_pipeline(with_params=True) -> Pipeline:
@@ -121,7 +94,7 @@ def test_pipeline_with_custom_node():
 
 def test_pipeline_with_custom_fitted_node():
     train_input, predict_input = get_input_data()
-    pipeline = get_custom_fitting_pipeline()
+    pipeline = get_fitting_custom_pipeline()
     pipeline.fit_from_scratch(train_input)
     predicted_centered = pipeline.predict(predict_input)
 
