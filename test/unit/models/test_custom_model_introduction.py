@@ -3,16 +3,17 @@ import os
 import numpy as np
 import pandas as pd
 
-from examples.pipeline_import_export import create_correct_path
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
+from examples.pipeline_import_export import create_correct_path
+from examples.time_series.ts_custom_model_tuning import get_fitting_custom_pipeline
 
 
-def custom_model_imitation(train_data, _, params):
+def custom_model_imitation(_, train_data, params):
     """
     Function imitates custom model behaviour
     :param train_data: np.array for training the model
@@ -38,7 +39,7 @@ def get_centered_pipeline(with_params=True) -> Pipeline:
     if with_params:
         custom_node.custom_params = {"a": -50,
                                      "b": 500,
-                                     'model': custom_model_imitation}
+                                     'model_predict': custom_model_imitation}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -54,7 +55,7 @@ def get_starting_pipeline(with_params=True):
     if with_params:
         custom_node.custom_params = {"a": -50,
                                      "b": 500,
-                                     'model': custom_model_imitation}
+                                     'model_predict': custom_model_imitation}
     lagged_node = SecondaryNode('lagged', nodes_from=[custom_node])
     node_final = SecondaryNode('ridge', nodes_from=[lagged_node])
     pipeline = Pipeline(node_final)
@@ -89,6 +90,15 @@ def test_pipeline_with_custom_node():
     predicted_starting = pipeline.predict(predict_input)
 
     assert predicted_centered and predicted_starting is not None
+
+
+def test_pipeline_with_custom_fitted_node():
+    train_input, predict_input = get_input_data()
+    pipeline = get_fitting_custom_pipeline()
+    pipeline.fit_from_scratch(train_input)
+    predicted_centered = pipeline.predict(predict_input)
+
+    assert predicted_centered is not None
 
 
 def test_save_pipeline_with_custom():
