@@ -159,5 +159,5 @@ def test_categorical_target_processed_correctly():
     fedot_model.fit(train_data)
     predicted = fedot_model.predict(test_data)
 
-    # Predicted label must be close to 'di' label
+    # Predicted label must be close to 'di' label (so, right prediction is 'ba')
     assert predicted[0] == 'ba'

@@ -11,11 +11,18 @@ from test.unit.test_data_preprocessing import data_with_only_categorical_feature
 
 
 def test_only_categorical_data_process_correctly():
-    """ Check if data with only categorical features processed correctly """
+    """
+    Check if data with only categorical features processed correctly
+    Source 3-feature categorical dataset must be transformed into 5-feature
+    """
     pipeline = Pipeline(PrimaryNode('ridge'))
     categorical_data = data_with_only_categorical_features()
 
     pipeline.fit(categorical_data)
+    fitted_ridge = pipeline.nodes[0]
+    coefficients = fitted_ridge.operation.fitted_operation.coef_
+    coefficients_shape = coefficients.shape
+    assert 5 == coefficients_shape[1]
 
 
 def test_nans_columns_process_correctly():

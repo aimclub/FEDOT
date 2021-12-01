@@ -93,34 +93,18 @@ class DataPreprocessor:
             if not data_type_is_table(data):
                 return data
 
-            # Find out characteristics of the data
-            data_with_categorical_features_flag = data_has_categorical_features(data)
-            data_with_missing_values_flag = data_has_missing_values(data)
-
-            if data_with_categorical_features_flag and not data_with_missing_values_flag:
-                # Data contains only categorical features
-                has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
-                if has_encoder is False:
-                    self._encode_data_for_fit(data)
-
-            elif not data_with_categorical_features_flag and data_with_missing_values_flag:
-                # Data contains only missing values
+            if data_has_missing_values(data):
+                # Data contains missing values
                 has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
                 if has_imputer is False:
                     self.apply_imputation(data)
 
-            elif data_with_categorical_features_flag and data_with_missing_values_flag:
-                # Data contains both missing values and categorical features
-                has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation')
+            if data_has_categorical_features(data):
+                # Data contains categorical features values
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
-
-                if not has_imputer:
-                    # There is no imputer in pipeline but data contain missing values
-                    self.apply_imputation(data)
-
-                if not has_encoder:
-                    # There is no encoder in pipeline but data contain categorical features
+                if has_encoder is False:
                     self._encode_data_for_fit(data)
+
         return data
 
     def optional_prepare_for_predict(self, pipeline, data: Union[InputData, MultiModalData]):

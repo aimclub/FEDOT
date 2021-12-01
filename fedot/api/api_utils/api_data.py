@@ -35,7 +35,8 @@ class ApiDataProcessor:
                     target: Union[str, np.ndarray, pd.Series] = None,
                     is_predict=False):
         """ Prepare data for fedot pipeline composing.
-        Obligatory preprocessing steps are applying also
+        Obligatory preprocessing steps are applying also. If features is dictionary
+        there is a need to process MultiModalData
         """
         try:
             # TODO remove workaround
