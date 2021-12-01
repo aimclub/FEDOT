@@ -59,20 +59,21 @@ class ApiComposer:
     def obtain_model(self, **common_dict):
         self.best_models = None
         self.history = None
-        self.current_model = common_dict['current_model']
 
-        if common_dict['is_composing_required']:
-            api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
+        # Prepare parameters
+        api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
 
-            self.current_model, self.best_models, self.history = self.compose_fedot_model(
-                api_params=api_params_dict,
-                composer_params=composer_params_dict,
-                tuning_params=tuner_params_dict)
+        # Start composing - pipeline structure search
+        self.current_model, self.best_models, self.history = self.compose_fedot_model(
+            api_params=api_params_dict,
+            composer_params=composer_params_dict,
+            tuning_params=tuner_params_dict)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
             self.best_models.objective_names = common_dict['composer_metric']
 
+        # Final fit for obtained pipeline on full dataset
         self.current_model.fit_from_scratch(common_dict['train_data'])
 
         return self.current_model, self.best_models, self.history
@@ -83,7 +84,6 @@ class ApiComposer:
                                 optimizer_parameters: GPGraphOptimiserParameters,
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
-                                check_mode: bool,
                                 initial_pipeline: Pipeline = None):
         """ Return GPComposerBuilder with parameters and if it is necessary
         init_pipeline in it """
@@ -102,8 +102,7 @@ class ApiComposer:
                 raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
 
         # Check initial assumption
-        check_initial_pipeline_correctness(initial_pipeline, data, logger=logger,
-                                           check_mode=check_mode)
+        fit_and_check_correctness(initial_pipeline, data, logger=logger)
         builder = builder.with_initial_pipeline(initial_pipeline)
         return builder
 
@@ -193,8 +192,7 @@ class ApiComposer:
                                                optimizer_parameters=optimizer_parameters,
                                                data=api_params['train_data'],
                                                initial_pipeline=api_params['initial_pipeline'],
-                                               logger=api_params['logger'],
-                                               check_mode=api_params['check_mode'])
+                                               logger=api_params['logger'])
 
         gp_composer = builder.build()
 
@@ -280,9 +278,9 @@ class ApiComposer:
         return loss_function, loss_params
 
 
-def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
-                                       data: Union[InputData, MultiModalData],
-                                       logger: Log, check_mode: bool):
+def fit_and_check_correctness(initial_pipeline: Pipeline,
+                              data: Union[InputData, MultiModalData],
+                              logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         initial_pipeline.fit(data)
@@ -291,11 +289,10 @@ def check_initial_pipeline_correctness(initial_pipeline: Pipeline,
         message_success = 'Initial pipeline were fitted successfully'
         logger.debug(message_success)
 
-        if check_mode:
-            raise SystemExit(message_success)
+        return initial_pipeline
     except Exception as ex:
         fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
-        advice_info = f'{fit_failed_info} Check the correctness of the data and matching the task to solve'
+        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
 
         logger.info(fit_failed_info)
         print(traceback.format_exc())
@@ -307,8 +304,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None,
-                           check_mode=False)
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,

@@ -14,7 +14,7 @@ from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.api_composer import ApiComposer
+from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
@@ -52,7 +52,6 @@ class Fedot:
     :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
-    :param check_mode: if True, perform only initial pipeline fit and predict
     """
 
     def __init__(self,
@@ -62,8 +61,7 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_pipeline: Pipeline = None,
-                 check_mode: bool = False):
+                 initial_pipeline: Pipeline = None):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
@@ -76,7 +74,6 @@ class Fedot:
                         'initial_pipeline': initial_pipeline}
         self.api_params = self.composer_params.initialize_params(**input_params)
         self.api_params['current_model'] = None
-        self.api_params['check_mode'] = check_mode
 
         metric_name = self.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
@@ -104,7 +101,7 @@ class Fedot:
 
         :param features: the array with features of train data
         :param target: the array with target values of train data
-        :param predefined_model: the name of the atomic model or Pipeline instance
+        :param predefined_model: the name of the atomic model or Pipeline instance. If argument is 'auto', initial pipeline genration
         :return: Pipeline object
         """
 
@@ -112,24 +109,10 @@ class Fedot:
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         self._init_remote_if_necessary()
 
-        is_composing_required = True
-        if self.api_params['current_model'] is not None:
-            is_composing_required = False
-
         if predefined_model is not None:
-            is_composing_required = False
-            if isinstance(predefined_model, Pipeline):
-                self.current_pipeline = predefined_model
-            elif isinstance(predefined_model, str):
-                categorical_preprocessing = PrimaryNode('one_hot_encoding')
-                scaling_preprocessing = SecondaryNode('scaling', nodes_from=[categorical_preprocessing])
-                model = SecondaryNode(predefined_model, nodes_from=[scaling_preprocessing])
-                self.current_pipeline = Pipeline(model)
-            else:
-                raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-            self.api_params['current_model'] = self.current_pipeline
+            # Fit predefined model and return it without composing
+            return self._process_predefined_model(predefined_model)
 
-        self.api_params['is_composing_required'] = is_composing_required
         self.api_params['train_data'] = self.train_data
         self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
@@ -358,3 +341,27 @@ class Fedot:
                                      visualize=visualize, **kwargs)
 
         return explainer
+
+    def _process_predefined_model(self, predefined_model):
+        """ Fit and return predefined model """
+
+        if isinstance(predefined_model, Pipeline):
+            pipeline = predefined_model
+        elif predefined_model == 'auto':
+            # Generate initial assumption automatically
+            pipeline = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
+                                                                                    self.api_params['task'])
+        elif isinstance(predefined_model, str):
+            # Model name was set
+            categorical_preprocessing = PrimaryNode('one_hot_encoding')
+            scaling_preprocessing = SecondaryNode('scaling', nodes_from=[categorical_preprocessing])
+            model = SecondaryNode(predefined_model, nodes_from=[scaling_preprocessing])
+            pipeline = Pipeline(model)
+        else:
+            raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
+
+        # Perform fitting
+        pipeline = fit_and_check_correctness(initial_pipeline=pipeline, data=self.train_data,
+                                             logger=self.api_params['logger'])
+        return pipeline
+

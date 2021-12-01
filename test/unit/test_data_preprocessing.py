@@ -139,10 +139,10 @@ def test_correct_api_dataset_preprocessing():
     # Check for all datasets
     for data_generator in funcs:
         input_data = data_generator()
-        fedot_model = Fedot(problem='regression', check_mode=True)
-        with pytest.raises(SystemExit) as exc:
-            assert fedot_model.fit(input_data)
-        assert str(exc.value) == f'Initial pipeline were fitted successfully'
+        fedot_model = Fedot(problem='regression')
+        pipeline = fedot_model.fit(input_data, predefined_model='auto')
+        
+        assert pipeline is not None
 
 
 def test_categorical_target_processed_correctly():
@@ -154,8 +154,7 @@ def test_categorical_target_processed_correctly():
     classification_data = data_with_categorical_target()
     train_data, test_data = train_test_data_setup(classification_data)
 
-    fedot_model = Fedot(problem='classification', check_mode=False,
-                        composer_params=composer_params)
+    fedot_model = Fedot(problem='classification', composer_params=composer_params)
     fedot_model.fit(train_data)
     predicted = fedot_model.predict(test_data)
 
