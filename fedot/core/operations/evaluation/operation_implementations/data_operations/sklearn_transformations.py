@@ -392,11 +392,10 @@ class ImputationImplementation(DataOperationImplementation):
         All features in table are numerical.
         """
         df = pd.DataFrame(numerical_features)
-        df = df.dropna()
 
-        # Calculate unique values per column
+        # Calculate unique values per column (excluding nans)
         for column_id, col in enumerate(df):
-            unique_values = df[col].unique()
+            unique_values = df[col].dropna().unique()
             if len(unique_values) <= 2:
                 # Current numerical column has only two values
                 column_info = {column_id: {'min': min(unique_values),

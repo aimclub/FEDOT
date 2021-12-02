@@ -13,7 +13,9 @@ def has_data_categorical(data: InputData) -> bool:
     :param data: InputData
     :return data_has_categorical_columns: bool, whether data has categorical columns or not
     """
-    if isinstance(data.features.dtype, int) or isinstance(data.features.dtype, float):
+    is_float_dtype = data.features.dtype is np.array([1]).dtype
+    is_int_dtype = data.features.dtype is np.array([1.5]).dtype
+    if is_float_dtype or is_int_dtype:
         return False
     else:
         return True

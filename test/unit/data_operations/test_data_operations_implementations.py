@@ -299,8 +299,8 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
     model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
-    for data_operation in model_names:
-        node_data_operation = PrimaryNode(data_operation)
+    for model_name in model_names:
+        node_data_operation = PrimaryNode(model_name)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
 
