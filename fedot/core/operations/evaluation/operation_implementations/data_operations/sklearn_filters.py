@@ -1,7 +1,6 @@
 from copy import copy
 from typing import Optional
 
-import numpy as np
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -73,7 +72,7 @@ class FilterImplementation(DataOperationImplementation):
         modified_input_data = copy(input_data)
         old_features = modified_input_data.features
         old_target = modified_input_data.target
-        old_idx = np.asarray(modified_input_data.idx)
+        old_idx = modified_input_data.idx
 
         modified_input_data.features = old_features[mask]
         modified_input_data.target = old_target[mask]
