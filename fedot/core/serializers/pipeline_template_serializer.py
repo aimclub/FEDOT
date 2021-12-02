@@ -15,7 +15,7 @@ class PipelineTemplateSerializer(Serializable):
         return {
             k: v
             for k, v in super().to_json().items()
-            if k != 'operation_templates'
+            if k not in ['operation_templates', 'data_preprocessor']
         }
 
     @classmethod

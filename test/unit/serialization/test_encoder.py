@@ -2,8 +2,8 @@ from copy import deepcopy
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, encoder
 
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, encoder
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
 from .shared_data import (
@@ -20,7 +20,7 @@ from .shared_data import (
 ENCODER_CASES = [
     EncoderTestCase(
         test_input=TestClass(),
-        test_answer=TypeError()
+        test_answer={}
     ),
     EncoderTestCase(
         test_input=UUID(TEST_UUID),
@@ -93,20 +93,16 @@ ENCODER_CASES.extend([
 
 @pytest.mark.parametrize('case', ENCODER_CASES)
 def test_encoder(case: EncoderTestCase):
-    if isinstance(case.test_answer, Exception):
-        with pytest.raises(type(case.test_answer)):
-            encoder(case.test_input)
+    if getattr(case.test_input, '__dict__', None) is not None:
+        keys_before = vars(case.test_input).keys()
+        encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+        keys_after = vars(case.test_input).keys()
     else:
-        if getattr(case.test_input, '__dict__', None) is not None:
-            keys_before = vars(case.test_input).keys()
-            encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
-            keys_after = vars(case.test_input).keys()
-        else:
-            keys_before = keys_after = {}
-            encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
-        assert encoded == case.test_answer, 'Encoded json objects are not the same'
-        assert keys_before == keys_after, 'Object instance was changed'
-        if isinstance(case.test_input, MockGraph):
-            assert vars(MOCK_NODE_1).keys() != vars(MOCK_NODE_1_COPY).keys()
-            for node in case.test_input.nodes:
-                assert getattr(node, '_serialization_id', None) is not None
+        keys_before = keys_after = {}
+        encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+    assert encoded == case.test_answer, 'Encoded json objects are not the same'
+    assert keys_before == keys_after, 'Object instance was changed'
+    if isinstance(case.test_input, MockGraph):
+        assert vars(MOCK_NODE_1).keys() != vars(MOCK_NODE_1_COPY).keys()
+        for node in case.test_input.nodes:
+            assert getattr(node, '_serialization_id', None) is not None

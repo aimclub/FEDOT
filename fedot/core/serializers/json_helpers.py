@@ -52,7 +52,9 @@ def encoder(obj: Any) -> Dict[str, Any]:
         }
     elif isfunction(obj) or ismethod(obj):
         return dump_path_to_obj(obj)
-    raise TypeError(f'obj={obj} of type {type(obj)} can\'t be serialized!')
+
+    print(f'obj={obj} of type {type(obj)} can\'t be serialized.')
+    return {}
 
 
 def _get_class(class_path: str) -> Any:
