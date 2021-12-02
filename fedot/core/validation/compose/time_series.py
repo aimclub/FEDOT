@@ -1,3 +1,4 @@
+import gc
 from typing import Callable, Tuple
 
 import numpy as np
@@ -35,5 +36,8 @@ def ts_metric_calculation(reference_data: InputData, cv_folds: int,
     except Exception as ex:
         log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
         evaluated_metrics = None
-
+    finally:
+        # enforce memory cleaning
+        pipeline.unfit()
+        gc.collect()
     return evaluated_metrics
