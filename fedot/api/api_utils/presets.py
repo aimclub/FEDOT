@@ -43,7 +43,7 @@ class OperationsPreset:
         # TODO remove workaround
         extended_excluded = ['mlp', 'catboost', 'lda', 'qda', 'lgbm',
                              'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                             'one_hot_encoding']
+                             'one_hot_encoding', 'resample']
         excluded_models_dict = {'light': excluded,
                                 'light_tun': excluded,
                                 'light_steady_state': extended_excluded}
