@@ -1,3 +1,5 @@
+import gc
+
 from fedot.core.data.data import InputData
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
@@ -22,4 +24,9 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
             metric_func = MetricsRepository().metric_by_id(metric)
         metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
         evaluated_metrics[index].extend([metric_value])
+
+    # enforce memory cleaning
+    pipeline.unfit()
+    gc.collect()
+
     return evaluated_metrics

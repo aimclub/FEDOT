@@ -12,9 +12,9 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
