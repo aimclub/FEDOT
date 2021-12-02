@@ -1,6 +1,7 @@
 import datetime
+import gc
 import traceback
-from typing import Callable, Union, List
+from typing import Callable, List, Union
 
 import numpy as np
 from deap import tools
@@ -254,6 +255,9 @@ class ApiComposer:
         api_params['logger'].message('Model composition finished')
 
         history = gp_composer.optimiser.history
+
+        # enforce memory cleaning
+        gc.collect()
 
         return pipeline_for_return, best_candidates, history
 
