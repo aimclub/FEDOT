@@ -281,6 +281,7 @@ class ImputationImplementation(DataOperationImplementation):
         self.params_num = params
         self.categorical_ids = None
         self.non_categorical_ids = None
+        self.ids_binary_integer_features = {}
 
         if not params:
             # Default parameters
@@ -334,13 +335,17 @@ class ImputationImplementation(DataOperationImplementation):
             numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
                                                                        self.non_categorical_ids)
 
-            if categorical is not None and categorical.features.size > 0:
+            if categorical is not None:
                 categorical_features = convert_into_column(categorical.features)
                 categorical_features = self.imputer_cat.transform(categorical_features)
 
-            if numerical is not None and numerical.features.size > 0:
+            if numerical is not None:
                 numerical_features = convert_into_column(numerical.features)
+
+                # Features with only two unique values must be filled in a specific way
+                self._find_binary_features(numerical_features)
                 numerical_features = self.imputer_num.transform(numerical_features)
+                numerical_features = self._correct_binary_ids_features(numerical_features)
 
             if categorical is not None and numerical is not None:
                 # Stack both categorical and numerical features
@@ -381,6 +386,44 @@ class ImputationImplementation(DataOperationImplementation):
         # Sort column names
         all_features_df = all_features_df.sort_index(axis=1)
         return np.array(all_features_df)
+
+    def _find_binary_features(self, numerical_features: np.array):
+        """ Find indices of features with only two unique values in column.
+        All features in table are numerical.
+        """
+        df = pd.DataFrame(numerical_features)
+        df = df.dropna()
+
+        # Calculate unique values per column
+        for column_id, col in enumerate(df):
+            unique_values = df[col].unique()
+            if len(unique_values) <= 2:
+                # Current numerical column has only two values
+                column_info = {column_id: {'min': min(unique_values),
+                                           'max': max(unique_values)}}
+                self.ids_binary_integer_features.update(column_info)
+
+    def _correct_binary_ids_features(self, filled_numerical_features: np.array) -> np.array:
+        """ Correct filled features if previously it was binary. Discretization is performed
+        for the reconstructed values.
+        For example, [1, 1, 0.75, 0] will be transformed into [1, 1, 1, 0]
+        """
+        list_binary_ids = list(self.ids_binary_integer_features.keys())
+        if len(list_binary_ids) == 0:
+            # Return source array
+            return filled_numerical_features
+
+        for bin_id in list_binary_ids:
+            # Correct values inplace
+            filled_column = filled_numerical_features[:, bin_id]
+            min_value = self.ids_binary_integer_features[bin_id]['min']
+            max_value = self.ids_binary_integer_features[bin_id]['max']
+            mean_value = (max_value - min_value) / 2
+
+            filled_column[filled_column > mean_value] = max_value
+            filled_column[filled_column < mean_value] = min_value
+
+        return filled_numerical_features
 
     def get_params(self) -> dict:
         features_imputers = {'imputer_categorical': self.params_cat,
