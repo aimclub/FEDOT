@@ -116,9 +116,9 @@ def data_with_categorical_target(with_nan: bool = False):
     """
     task = Task(TaskTypesEnum.classification)
     features = np.array([[0, 1],
-                         [1, 2],
-                         [0, 3],
-                         [1, 4]])
+                         [1, 3],
+                         [2, 5],
+                         [3, 7]])
     if with_nan:
         target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
     else:
