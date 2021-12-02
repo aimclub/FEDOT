@@ -44,6 +44,8 @@ class DirectAdapter(BaseOptimizationAdapter):
     def adapt(self, adaptee: Any):
         opt_graph = deepcopy(adaptee)
         opt_graph.__class__ = OptGraph
+        opt_graph.uid = adaptee.unique_pipeline_id
+
         for node in opt_graph.nodes:
             node.__class__ = OptNode
         return opt_graph
@@ -51,6 +53,7 @@ class DirectAdapter(BaseOptimizationAdapter):
     def restore(self, opt_graph: OptGraph):
         obj = deepcopy(opt_graph)
         obj.__class__ = self.base_graph_class
+        obj.unique_pipeline_id = opt_graph.uid
         for node in obj.nodes:
             node.__class__ = self.base_node_class
         return obj
@@ -121,7 +124,9 @@ class PipelineAdapter(BaseOptimizationAdapter):
 
     def restore_as_template(self, opt_graph: OptGraph, computation_time=None):
         pipeline = self.restore(opt_graph, computation_time)
-        return PipelineTemplate(pipeline)
+        tmp = PipelineTemplate(pipeline)
+        tmp.unique_pipeline_id = opt_graph.uid
+        return tmp
 
 
 def _check_nodes_references_correct(graph):
