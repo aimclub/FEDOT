@@ -10,6 +10,8 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
+    GLMImplementation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode, get_default_params
 from fedot.core.pipelines.pipeline import Pipeline
@@ -17,6 +19,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from test.unit.data_operations.test_data_operations_implementations import generate_simple_series
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
@@ -208,3 +211,42 @@ def test_pca_model_removes_redunant_features_correct():
     transformed_features = train_predicted.predict
 
     assert transformed_features.shape[1] < data.features.shape[1]
+
+
+def test_glm_indexes_correct():
+    """
+    Test  checks correct indexing after performing non-lagged operation.
+    For example we generate time series [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    and use GLM as estimator
+
+    output should looks like
+    [
+    [0+N(0, 0.1), 1+N(0, 0.1)],
+    [1+N(0, 0.1), 2+N(0, 0.1)],
+    [2+N(0, 0.1), 3+N(0, 0.1)],
+    [3+N(0, 0.1), 4+N(0, 0.1)],
+    [4+N(0, 0.1), 5+N(0, 0.1)],
+    [5+N(0, 0.1), 6+N(0, 0.1)],
+    [6+N(0, 0.1), 7+N(0, 0.1)],
+    [7+N(0, 0.1), 8+N(0, 0.1)],
+    [8+N(0, 0.1 9+N(0, 0.1)]
+    ]
+
+    and indexes look like [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    """
+    input_data = generate_simple_series()
+    glm_impl = GLMImplementation(family="gaussian", link="identity")
+    glm_impl.fit(input_data)
+    predicted = glm_impl.predict(input_data, is_fit_pipeline_stage=True)
+    pred_values = predicted.predict
+    for i in range(9):
+        assert pred_values[i, 0] - i < 0.5
+        assert predicted.idx[i] - pred_values[i, 0] < 0.5
+
+
+def test_glm_fit_correct_with_dt_indexes():
+    input_data, _ = get_ts_data_with_dt_idx()
+    glm_pipeline = Pipeline(PrimaryNode("glm"))
+    glm_pipeline.fit(input_data)
+    predicted = glm_pipeline.predict(input_data)
+    assert np.all(predicted.idx == input_data.idx)

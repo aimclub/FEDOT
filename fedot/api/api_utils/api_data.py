@@ -98,7 +98,6 @@ class ApiDataProcessor:
         if data_type_is_table(prediction):
             # Check dimensions for real and predicted values
             if len(real.target.shape) != len(prediction.predict.shape):
-
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(real.target)
 
